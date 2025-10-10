@@ -111,7 +111,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               QR Code
             </CardTitle>
             <CardDescription className="text-xs text-muted-foreground/80">
-              Download or share this code for instant WhatsApp access
+              Download or share to enable WhatsApp bookings
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -163,22 +163,35 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   <div className="inline-block bg-white p-4 rounded-lg mb-4">
                     <QRCodeSVG value={whatsappLink} size={256} />
                   </div>
-                  {(needsMigration || imgBroken) && (
-                    <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 rounded-md mb-3">
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                      <span>QR code requires repair for permanent version</span>
-                    </div>
-                  )}
-                  <Button
-                    onClick={() => generateQR({ repair: true })}
-                    disabled={generating}
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 border-border/60 hover:border-border hover:bg-card/60 transition-all duration-200"
-                  >
-                    <QrCode className="h-4 w-4" />
-                    {generating ? 'Repairing...' : 'Repair QR Code'}
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      onClick={downloadQRCode}
+                      variant="default" 
+                      size="sm"
+                      className="gap-2 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download QR Code
+                    </Button>
+                    <Button 
+                      onClick={handleCopyLink}
+                      variant="outline" 
+                      size="sm"
+                      className="gap-2 border-border/60 hover:border-border hover:bg-card/60 transition-all duration-200"
+                    >
+                      {linkCopied ? (
+                        <>
+                          <Check className="h-4 w-4 text-green-500" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy WhatsApp Link
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -228,7 +241,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         </Card>
 
         {/* Right Column: Preview & Info */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* WhatsApp Message Preview */}
           <Card className="border-border/60 bg-gradient-to-br from-card to-card/80 hover:shadow-lg transition-all duration-200">
             <CardHeader className="pb-4">
@@ -244,9 +257,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   (Send this message to save the chat, then you can always book via WhatsApp.)
                 </p>
               </div>
-              <p className="text-xs text-muted-foreground/80 leading-relaxed">
-                This message is pre-filled when customers scan the QR code
-              </p>
             </CardContent>
           </Card>
 
@@ -305,21 +315,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Important Customer Action Required */}
-          <Card className="border-amber-500/30 bg-gradient-to-br from-card to-amber-950/5 hover:shadow-lg transition-all duration-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                Customer Action Required
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground/80 leading-relaxed">
-                Customers must send the first message to save the conversation. If they close WhatsApp without sending, the chat will be lost.
-              </p>
             </CardContent>
           </Card>
         </div>
