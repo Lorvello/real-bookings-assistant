@@ -49,17 +49,18 @@ const Index = () => {
           <BackgroundProvider variant="hero">
             <Header />
             <HeroSection />
+            
+            {/* Solution Section - inside hero background for smooth transition */}
+            <ScrollAnimatedSection delay={50} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
+              <div className="pt-0 md:pt-0">
+                <Solution />
+              </div>
+            </ScrollAnimatedSection>
           </BackgroundProvider>
         </div>
         
         {/* All other sections with pure dark blue background */}
         <BackgroundProvider variant="dark">
-          {/* Solution Section */}
-          <ScrollAnimatedSection delay={50} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
-            <div className="pt-0 md:pt-0">
-              <Solution />
-            </div>
-          </ScrollAnimatedSection>
 
           {/* Process Section */}
           <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
