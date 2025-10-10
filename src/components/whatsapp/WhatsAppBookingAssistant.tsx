@@ -26,7 +26,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
     generateQR
   } = useWhatsAppSettings(calendarId);
   
-  const formattedNumber = phoneNumber.replace(/\s+/g, '');
+  const formattedNumber = phoneNumber.replace(/\s+/g, '').replace('+', '');
 
   const handleCopyNumber = async () => {
     try {
@@ -40,7 +40,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
   };
 
   const generateQRCodeFallback = () => {
-    const whatsappUrl = `https://wa.me/${formattedNumber.replace('+', '')}`;
+    const whatsappUrl = `https://wa.me/${formattedNumber.replace(/\+/g, '')}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(whatsappUrl)}`;
   };
 
