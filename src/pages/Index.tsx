@@ -42,7 +42,7 @@ const Index = () => {
   }, [navigate]);
 
   return (
-    <PublicPageWrapper>
+    <PublicPageWrapper disableZoom>
       <div className="min-h-screen w-full">
         {/* Hero Section with green effects */}
         <div className="min-h-screen">

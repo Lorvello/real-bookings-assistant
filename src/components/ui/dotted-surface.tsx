@@ -11,7 +11,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
-    particles: THREE.Points[];
+    points: THREE.Points | null;
+    geometry: THREE.BufferGeometry | null;
+    material: THREE.PointsMaterial | null;
     animationId: number;
     count: number;
   } | null>(null);
@@ -19,15 +21,17 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const container = containerRef.current;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    // Use window viewport as source of truth
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
-    const SEPARATION = 160; // iets dichter voor meer coverage
-    const cols = Math.ceil(width / SEPARATION) + 8; // marge buiten viewport
-    const rows = Math.ceil(height / SEPARATION) + 8;
-    const AMOUNTX = cols;
-    const AMOUNTY = rows;
+    console.log('DottedSurface init:', { viewportWidth, viewportHeight });
+
+    const SEPARATION = 160;
+    const cols = Math.ceil(viewportWidth / SEPARATION) + 12; // Extra margin
+    const rows = Math.ceil(viewportHeight / SEPARATION) + 12;
+
+    console.log('Initial grid:', { cols, rows, totalParticles: cols * rows });
 
     // Scene setup with dark theme (slate-900 fog)
     const scene = new THREE.Scene();
@@ -35,7 +39,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     const camera = new THREE.PerspectiveCamera(
       80,
-      width / height,
+      viewportWidth / viewportHeight,
       1,
       10000,
     );
@@ -47,62 +51,68 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       antialias: true,
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
+    renderer.setSize(viewportWidth, viewportHeight);
     renderer.setClearColor(scene.fog.color, 0);
 
     containerRef.current.appendChild(renderer.domElement);
 
-    // Create particles
-    const positions: number[] = [];
-    const colors: number[] = [];
+    // Helper function to build particles
+    const buildParticles = (amountX: number, amountY: number) => {
+      const positions: number[] = [];
+      const colors: number[] = [];
+      const geometry = new THREE.BufferGeometry();
 
-    // Create geometry for all particles
-    const geometry = new THREE.BufferGeometry();
+      for (let ix = 0; ix < amountX; ix++) {
+        for (let iy = 0; iy < amountY; iy++) {
+          const x = ix * SEPARATION - (amountX * SEPARATION) / 2;
+          const y = 0; // Will be animated
+          const z = iy * SEPARATION - (amountY * SEPARATION) / 2;
 
-    for (let ix = 0; ix < AMOUNTX; ix++) {
-      for (let iy = 0; iy < AMOUNTY; iy++) {
-        const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
-        const y = 0; // Will be animated
-        const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
-
-        positions.push(x, y, z);
-        // Emerald-300 color for subtle effect: rgb(110, 231, 183)
-        colors.push(110 / 255, 231 / 255, 183 / 255);
+          positions.push(x, y, z);
+          // Emerald-300 color for subtle effect: rgb(110, 231, 183)
+          colors.push(110 / 255, 231 / 255, 183 / 255);
+        }
       }
-    }
 
-    geometry.setAttribute(
-      'position',
-      new THREE.Float32BufferAttribute(positions, 3),
-    );
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      geometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(positions, 3),
+      );
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-    // Create material
-    const material = new THREE.PointsMaterial({
-      size: window.innerWidth < 768 ? 4 : 8,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.5,
-      sizeAttenuation: true,
-    });
+      const material = new THREE.PointsMaterial({
+        size: window.innerWidth < 768 ? 4 : 8,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.5,
+        sizeAttenuation: true,
+      });
 
-    // Create points object
-    const points = new THREE.Points(geometry, material);
+      const points = new THREE.Points(geometry, material);
+      return { geometry, material, points };
+    };
+
+    // Initial particle creation
+    const { geometry, material, points } = buildParticles(cols, rows);
     scene.add(points);
 
     let count = 0;
     let animationId: number;
+    let currentCols = cols;
+    let currentRows = rows;
 
     // Animation function
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      const positionAttribute = geometry.attributes.position;
+      if (!sceneRef.current?.geometry) return;
+
+      const positionAttribute = sceneRef.current.geometry.attributes.position;
       const positions = positionAttribute.array as Float32Array;
 
       let i = 0;
-      for (let ix = 0; ix < AMOUNTX; ix++) {
-        for (let iy = 0; iy < AMOUNTY; iy++) {
+      for (let ix = 0; ix < currentCols; ix++) {
+        for (let iy = 0; iy < currentRows; iy++) {
           const index = i * 3;
 
           // Animate Y position with sine waves
@@ -120,14 +130,58 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       count += 0.1;
     };
 
-    // Handle window resize
+    // Function to rebuild particles on resize
+    const rebuildParticles = (newWidth: number, newHeight: number) => {
+      console.log('Rebuilding particles:', { newWidth, newHeight });
+      
+      const newCols = Math.ceil(newWidth / SEPARATION) + 12;
+      const newRows = Math.ceil(newHeight / SEPARATION) + 12;
+      
+      console.log('New grid:', { newCols, newRows, totalParticles: newCols * newRows });
+
+      // Remove old points from scene
+      if (sceneRef.current?.points) {
+        scene.remove(sceneRef.current.points);
+      }
+
+      // Dispose old geometry and material
+      if (sceneRef.current?.geometry) {
+        sceneRef.current.geometry.dispose();
+      }
+      if (sceneRef.current?.material) {
+        sceneRef.current.material.dispose();
+      }
+
+      // Create new particles
+      const newParticles = buildParticles(newCols, newRows);
+      scene.add(newParticles.points);
+
+      // Update refs
+      if (sceneRef.current) {
+        sceneRef.current.points = newParticles.points;
+        sceneRef.current.geometry = newParticles.geometry;
+        sceneRef.current.material = newParticles.material;
+      }
+
+      // Update animation variables
+      currentCols = newCols;
+      currentRows = newRows;
+    };
+
+    // Debounced resize handler
+    let resizeTimeout: ReturnType<typeof setTimeout>;
     const handleResize = () => {
-      if (!containerRef.current) return;
-      const width = containerRef.current.clientWidth;
-      const height = containerRef.current.clientHeight;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newWidth = window.innerWidth || document.documentElement.clientWidth;
+        const newHeight = window.innerHeight || document.documentElement.clientHeight;
+        
+        camera.aspect = newWidth / newHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(newWidth, newHeight);
+        
+        rebuildParticles(newWidth, newHeight);
+      }, 150);
     };
 
     window.addEventListener('resize', handleResize);
@@ -140,7 +194,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       scene,
       camera,
       renderer,
-      particles: [points],
+      points,
+      geometry,
+      material,
       animationId,
       count,
     };
