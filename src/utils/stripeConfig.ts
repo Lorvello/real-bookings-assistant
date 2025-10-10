@@ -1,18 +1,21 @@
 // Stripe configuration and helper functions
 
+/**
+ * SECURITY: Get Stripe mode from environment variable ONLY
+ * Users cannot manipulate this through browser dev tools
+ * Server-side validation in edge functions provides additional security layer
+ */
 export const getStripeMode = (): 'test' | 'live' => {
-  // Check for manual override in localStorage (from StripeModeSwitcher)
-  const override = localStorage.getItem('stripe_mode_override') as 'test' | 'live' | null;
-  if (override) {
-    return override;
+  // SECURITY: Only use environment variable, never localStorage
+  // Default to 'test' for safety - production must explicitly set VITE_STRIPE_MODE=live
+  const envMode = import.meta.env.VITE_STRIPE_MODE as 'test' | 'live' | undefined;
+  
+  if (envMode === 'live') {
+    console.warn('[STRIPE] Running in LIVE mode - real payments will be processed');
+    return 'live';
   }
   
-  // For development, always use test mode
-  if (import.meta.env.DEV) {
-    return 'test';
-  }
-  
-  // In production, default to test mode for safety until manually switched
+  // Always default to test mode for safety
   return 'test';
 };
 
@@ -32,11 +35,13 @@ export const isTestMode = (): boolean => {
 };
 
 export const getStripeConfig = () => {
+  const mode = getStripeMode();
+  
   return {
-    mode: getStripeMode(),
+    mode,
     publishableKey: getStripePublishableKey(),
-    testMode: isTestMode(),
-    isTestMode: isTestMode() // Legacy alias for compatibility
+    testMode: mode === 'test',
+    isTestMode: mode === 'test' // Legacy alias for compatibility
   };
 };
 

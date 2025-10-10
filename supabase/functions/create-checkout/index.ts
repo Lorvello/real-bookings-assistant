@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeConfig } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,26 +25,24 @@ serve(async (req) => {
     // Parse request body first to get mode and service information
     const { priceId, tier_name, price, is_annual, success_url, cancel_url, mode, serviceIds = [], automaticTax = false } = await req.json();
     
-    // Determine Stripe mode - use frontend mode if provided, otherwise fall back to environment
-    const stripeMode = mode || Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
+    // SECURITY: Server-side validation of Stripe mode (cannot be bypassed by client)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    
+    const stripeConfig = await validateStripeConfig(
+      mode as 'test' | 'live' | undefined,
+      supabaseUrl,
+      supabaseAnonKey
+    );
+    
+    const stripeMode = stripeConfig.mode;
+    const stripeKey = stripeConfig.secretKey;
     const isTestMode = stripeMode === 'test';
     
-    // Get Stripe key from secrets
-    const stripeKey = isTestMode 
-      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
-      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
-    if (!stripeKey) {
-      throw new Error(`Missing Stripe secret key for ${isTestMode ? 'test' : 'live'} mode`);
-    }
-    
-    logStep("Stripe configuration", { mode: stripeMode, isTestMode, hasKey: !!stripeKey });
+    logStep("Stripe configuration validated", { mode: stripeMode, isTestMode, clientRequested: mode });
 
     // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");

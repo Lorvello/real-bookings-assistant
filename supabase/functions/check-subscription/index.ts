@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeConfig } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,20 +29,21 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Get environment variables and determine mode
-    const stripeMode = Deno.env.get("STRIPE_MODE") || 'test'; // Default to test for safety
+    // SECURITY: Server-side validation of Stripe mode (cannot be bypassed by client)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    
+    const stripeConfig = await validateStripeConfig(
+      undefined, // No client request here, use server config only
+      supabaseUrl,
+      supabaseServiceKey
+    );
+    
+    const stripeMode = stripeConfig.mode;
+    const stripeKey = stripeConfig.secretKey;
     const isTestMode = stripeMode === 'test';
     
-    // Get Stripe key from secrets
-    const stripeKey = isTestMode 
-      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
-      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
-    if (!stripeKey) {
-      throw new Error(`Missing Stripe secret key for ${isTestMode ? 'test' : 'live'} mode`);
-    }
-    
-    logStep("Stripe configuration", { mode: stripeMode, isTestMode, hasKey: !!stripeKey });
+    logStep("Stripe configuration validated", { mode: stripeMode, isTestMode });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
