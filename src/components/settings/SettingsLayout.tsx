@@ -10,7 +10,6 @@ import { ServicesTab } from './ServicesTab';
 import { PaymentSettingsTab } from './PaymentSettingsTab';
 import { TaxTab } from './TaxTab';
 import { BillingTab } from './BillingTab';
-import { WhatsAppTab } from './WhatsAppTab';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 
@@ -31,7 +30,7 @@ export const SettingsLayout = () => {
   // Handle tab from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['users', 'knowledge', 'operations', 'services', 'whatsapp', 'payments', 'tax', 'billing'].includes(tabParam)) {
+    if (tabParam && ['users', 'knowledge', 'operations', 'services', 'payments', 'tax', 'billing'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -70,7 +69,7 @@ export const SettingsLayout = () => {
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-8 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
+            <TabsList className="grid w-full grid-cols-7 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
               <TabsTrigger value="users" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Users</span>
@@ -86,10 +85,6 @@ export const SettingsLayout = () => {
               <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Services</span>
-              </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
-                <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">WhatsApp</span>
               </TabsTrigger>
               <TabsTrigger
                 value="payments" 
@@ -147,10 +142,6 @@ export const SettingsLayout = () => {
 
           <TabsContent value="services" className="space-y-4 md:space-y-6">
             <ServicesTab />
-          </TabsContent>
-
-          <TabsContent value="whatsapp" className="space-y-4 md:space-y-6">
-            <WhatsAppTab calendarId={selectedCalendar?.id} />
           </TabsContent>
 
           <TabsContent value="payments" className="space-y-4 md:space-y-6">

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Copy, Check, QrCode, Phone, Download, Database, CalendarClock, Share2, MessageSquare } from 'lucide-react';
+import { Copy, Check, QrCode, Phone, Download, Database, CalendarClock, Share2, MessageSquare, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 
 interface WhatsAppBookingAssistantProps {
   calendarId: string;
@@ -12,9 +14,19 @@ interface WhatsAppBookingAssistantProps {
 export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistantProps) {
   const [copied, setCopied] = useState(false);
   
-  // For demo purposes - in production this would come from the calendar settings
-  const whatsappNumber = "+31 6 12345678";
-  const formattedNumber = whatsappNumber.replace(/\s+/g, '');
+  const {
+    phoneNumber,
+    setPhoneNumber,
+    qrUrl,
+    whatsappLink,
+    loading,
+    saving,
+    generating,
+    savePhoneNumber,
+    generateQR
+  } = useWhatsAppSettings(calendarId);
+  
+  const formattedNumber = phoneNumber.replace(/\s+/g, '');
 
   const handleCopyNumber = async () => {
     try {
@@ -27,25 +39,81 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
     }
   };
 
-  const generateQRCode = () => {
+  const generateQRCodeFallback = () => {
     const whatsappUrl = `https://wa.me/${formattedNumber.replace('+', '')}`;
     return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(whatsappUrl)}`;
   };
 
-  const downloadQRCode = () => {
-    const link = document.createElement('a');
-    link.href = generateQRCode();
-    link.download = 'whatsapp-qr-code.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('QR code downloaded');
+  const downloadQRCode = async () => {
+    if (qrUrl) {
+      // Download from Supabase Storage
+      const link = document.createElement('a');
+      link.href = qrUrl;
+      link.download = 'whatsapp-qr-code.png';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('QR code downloaded');
+    } else {
+      // Fallback to generated QR
+      const link = document.createElement('a');
+      link.href = generateQRCodeFallback();
+      link.download = 'whatsapp-qr-code.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('QR code downloaded');
+    }
   };
 
   return (
     <div className="space-y-6">
+      {/* WhatsApp Configuration */}
+      <Card className="bg-slate-800/90 border-slate-700/50">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Phone className="h-5 w-5 text-green-500" />
+            WhatsApp Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Input
+              type="tel"
+              placeholder="+1 555 176 6290"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="flex-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-gray-400"
+              disabled={loading}
+            />
+            <div className="flex gap-2">
+              <Button
+                onClick={savePhoneNumber}
+                disabled={saving || loading || !phoneNumber.trim()}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                <Save className="h-4 w-4" />
+                {saving ? 'Saving...' : 'Save'}
+              </Button>
+              <Button
+                onClick={generateQR}
+                disabled={generating || loading || !phoneNumber.trim()}
+                variant="outline"
+                className="gap-2 border-slate-600 text-gray-300 hover:bg-slate-700"
+              >
+                <QrCode className="h-4 w-4" />
+                {generating ? 'Generating...' : 'Generate QR'}
+              </Button>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400">
+            Save your WhatsApp number and generate a QR code for easy customer access
+          </p>
+        </CardContent>
+      </Card>
 
-      {/* WhatsApp Number Card */}
+      {/* WhatsApp Number Display Card */}
       <Card className="bg-slate-800/90 border-slate-700/50">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
@@ -59,7 +127,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
             <div className="space-y-4">
               <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
                 <div className="text-2xl font-mono font-bold text-white mb-4">
-                  {whatsappNumber}
+                  {phoneNumber || '+1 555 176 6290'}
                 </div>
                 <div className="flex flex-col gap-3">
                   <Button
@@ -92,7 +160,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
               <div className="bg-slate-700/50 rounded-xl p-6 text-center border border-slate-600/30">
                 <div className="inline-block bg-white p-4 rounded-lg mb-4">
                   <img
-                    src={generateQRCode()}
+                    src={qrUrl || generateQRCodeFallback()}
                     alt="WhatsApp QR Code"
                     className="mx-auto rounded"
                     width={200}
@@ -100,7 +168,7 @@ export function WhatsAppBookingAssistant({ calendarId }: WhatsAppBookingAssistan
                   />
                 </div>
                 <p className="text-gray-400 text-sm mb-4">
-                  Scan to open WhatsApp directly
+                  {qrUrl ? 'Scan to open WhatsApp directly' : 'Save number and generate QR code'}
                 </p>
                 <Button 
                   onClick={downloadQRCode}
