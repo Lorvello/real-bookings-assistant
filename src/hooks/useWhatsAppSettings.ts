@@ -49,7 +49,22 @@ export function useWhatsAppSettings(userId: string) {
           const businessName = userData?.business_name || 'Ons bedrijf';
           const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
           setWhatsappLink(`https://wa.me/${formatted}?text=${encodeURIComponent(prefilledMessage)}`);
-          
+
+          // One-time auto refresh of stored PNG so it matches the new message
+          try {
+            const refreshKey = `qrRefreshed-${userId}`;
+            if (hasQr && !isSvg && !sessionStorage.getItem(refreshKey)) {
+              const { data: regen } = await supabase.functions.invoke('generate-whatsapp-qr', {
+                body: { refresh: true }
+              });
+              if (regen?.qrUrl) setQrUrl(regen.qrUrl);
+              sessionStorage.setItem(refreshKey, '1');
+              console.log('QR auto-refreshed to latest message');
+            }
+          } catch (e) {
+            console.warn('QR auto-refresh failed', e);
+          }
+
           // Auto-migrate legacy SVG to PNG
           if (isSvg) {
             console.log('Legacy SVG QR detected, triggering migration...');
@@ -90,15 +105,12 @@ export function useWhatsAppSettings(userId: string) {
       return false;
     }
 
-    if (qrExists && !options?.repair && !needsMigration) {
-      toast.error('QR code already exists and cannot be regenerated');
-      return false;
-    }
+    // Allow regeneration even if a QR exists (we use refresh on the backend)
 
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-whatsapp-qr', {
-        body: {}
+        body: { refresh: true }
       });
 
       if (error) throw error;

@@ -25,6 +25,16 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    // Parse optional refresh flag from request body
+    let refresh = false;
+    try {
+      const body = await req.json();
+      refresh = !!body?.refresh;
+      if (refresh) console.log(`QR refresh requested for user ${user.id}`);
+    } catch (_) {
+      // No JSON body provided
+    }
+
     // Check if QR code already exists (QR codes are permanent)
     const { data: existingUser } = await supabaseClient
       .from('users')
@@ -36,33 +46,28 @@ serve(async (req) => {
       // If it's an old SVG format, force regeneration to PNG
       if (existingUser.whatsapp_qr_url.endsWith('.svg')) {
         console.log(`Migrating old SVG QR to PNG for user ${user.id}`);
-        
-        // Delete old SVG file
         const oldFileName = `${user.id}/whatsapp-qr.svg`;
         await supabaseClient.storage
           .from('whatsapp-qr-codes')
           .remove([oldFileName]);
-        
         // Continue to generate new PNG below (don't return early)
-      } else {
-        // QR already exists as PNG - return existing URL
+      } else if (!refresh) {
+        // QR already exists as PNG - return existing URL unless refresh was requested
         const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
         const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
-        const trackingCode = user.id.substring(0, 8).toUpperCase();
-        
-    // Haal business_name op uit users tabel voor existing QR
-    const { data: userData } = await supabaseClient
-      .from('users')
-      .select('business_name')
-      .eq('id', user.id)
-      .single();
 
-    const businessName = userData?.business_name || 'Ons bedrijf';
-    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
-    const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
+        // Haal business_name op uit users tabel voor existing QR
+        const { data: userData } = await supabaseClient
+          .from('users')
+          .select('business_name')
+          .eq('id', user.id)
+          .single();
+
+        const businessName = userData?.business_name || 'Ons bedrijf';
+        const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
+        const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
         console.log(`QR code already exists for user ${user.id}, returning existing URL`);
-        
         return new Response(
           JSON.stringify({ 
             success: true, 
@@ -72,8 +77,12 @@ serve(async (req) => {
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      } else {
+        console.log(`Refresh requested, regenerating QR for user ${user.id}`);
+        // Fall through to generation below
       }
     }
+
 
     // Generate new QR code
     const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';

@@ -50,6 +50,11 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     if (qrUrl) setCacheBust(Date.now());
   }, [qrUrl]);
 
+  // Also bust cache when the underlying link (message) changes
+  useEffect(() => {
+    if (whatsappLink) setCacheBust(Date.now());
+  }, [whatsappLink]);
+
   const handleCopyNumber = async () => {
     try {
       await navigator.clipboard.writeText(platformNumber);
