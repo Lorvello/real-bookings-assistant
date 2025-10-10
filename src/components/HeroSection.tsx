@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
+import { DottedSurface } from "@/components/ui/dotted-surface";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
@@ -16,9 +17,12 @@ const HeroSection: React.FC = () => {
   
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
-      {/* Grid pattern overlay */}
+      {/* 3D Dotted Surface Background */}
+      <DottedSurface className="absolute inset-0" />
+      
+      {/* Subtle radial gradient overlay for depth */}
       <div 
-        className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(15,23,42,0.3)_100%)] pointer-events-none"
       ></div>
       
       <div className="relative max-w-6xl mx-auto px-4 md:px-6 lg:px-8 text-center z-10">
