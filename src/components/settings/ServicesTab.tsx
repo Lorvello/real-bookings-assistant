@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ServiceTypesManager } from '@/components/ServiceTypesManager';
+import { ServiceTypesManager } from '@/components/settings/service-types/ServiceTypesManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
