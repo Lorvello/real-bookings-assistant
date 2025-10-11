@@ -4,15 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus } from 'lucide-react';
-import { ServiceTypeForm } from './ServiceTypeFormNew';
+import { ServiceTypeForm } from './ServiceTypeForm';
 import { ServiceTypeCard } from './ServiceTypeCard';
 import { ServiceTypesEmptyState } from './ServiceTypesEmptyState';
 import { ServiceTypeInstallmentConfig } from './ServiceTypeInstallmentConfig';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
-import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
-import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useTeamMemberServices } from '@/hooks/useTeamMemberServices';
 import type { ServiceType } from '@/types/database';
@@ -20,35 +18,30 @@ import type { ServiceType } from '@/types/database';
 interface ServiceTypeFormData {
   name: string;
   description: string;
-  duration: number;
-  price: number;
+  duration: string;
+  price: string;
   color: string;
   tax_enabled: boolean;
   tax_behavior: 'inclusive' | 'exclusive';
-  applicable_tax_rate: number;
-  tax_rate_type: string;
-  service_category: string;
+  tax_code: string;
 }
 
 const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   name: '',
   description: '',
-  duration: 30,
-  price: 0,
+  duration: '30',
+  price: '0',
   color: '#3B82F6',
   tax_enabled: false,
   tax_behavior: 'exclusive',
-  applicable_tax_rate: 21,
-  tax_rate_type: 'standard',
-  service_category: 'general'
+  tax_code: ''
 };
 
 export function ServiceTypesManager() {
   const { selectedCalendar } = useCalendarContext();
   const { toast } = useToast();
-  const { stripeAccount } = useStripeConnect();
-  const { taxConfiguration, hasCompleteTaxConfig } = useTaxConfiguration();
-  const { getInstallmentConfig, updateInstallmentConfig } = useInstallmentSettings();
+  const { status: taxStatus } = useTaxConfiguration(selectedCalendar?.id);
+  const hasCompleteTaxConfig = taxStatus?.isFullyConfigured || false;
   
   const [showDialog, setShowDialog] = useState(false);
   const [editingService, setEditingService] = useState<ServiceType | null>(null);
@@ -57,7 +50,6 @@ export function ServiceTypesManager() {
   const [deletingService, setDeletingService] = useState<ServiceType | null>(null);
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
-  const [userTaxBehavior, setUserTaxBehavior] = useState<'inclusive' | 'exclusive' | null>(null);
   const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
 
   const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType, refetch } = useServiceTypes(selectedCalendar?.id);
@@ -75,14 +67,12 @@ export function ServiceTypesManager() {
     setFormData({
       name: service.name,
       description: service.description || '',
-      duration: service.duration,
-      price: service.price || 0,
+      duration: service.duration.toString(),
+      price: (service.price || 0).toString(),
       color: service.color || '#3B82F6',
-      tax_enabled: service.tax_enabled || false,
-      tax_behavior: service.tax_behavior || 'exclusive',
-      applicable_tax_rate: service.applicable_tax_rate || 21,
-      tax_rate_type: service.tax_rate_type || 'standard',
-      service_category: service.service_category || 'general'
+      tax_enabled: (service as any).tax_enabled || false,
+      tax_behavior: (service as any).tax_behavior || 'exclusive',
+      tax_code: (service as any).tax_code || ''
     });
     
     // Load existing team member assignments
@@ -100,10 +90,13 @@ export function ServiceTypesManager() {
     setSaving(true);
     try {
       if (editingService) {
-        await updateServiceType({
-          ...editingService,
-          ...formData
-        });
+        await updateServiceType(editingService.id, {
+          name: formData.name,
+          description: formData.description,
+          duration: parseInt(formData.duration),
+          price: parseFloat(formData.price),
+          color: formData.color,
+        } as any);
         
         // Sync team member assignments for edited service
         if (selectedCalendar?.id && selectedTeamMembers.length > 0) {
@@ -122,7 +115,19 @@ export function ServiceTypesManager() {
           description: "Service type has been updated successfully"
         });
       } else {
-        const newService = await createServiceType(formData);
+        const serviceData = {
+          calendar_id: selectedCalendar.id,
+          name: formData.name,
+          description: formData.description,
+          duration: parseInt(formData.duration),
+          price: parseFloat(formData.price),
+          color: formData.color,
+          is_active: true,
+          tax_enabled: formData.tax_enabled,
+          tax_behavior: formData.tax_behavior,
+          tax_code: formData.tax_code || null,
+        };
+        const newService = await createServiceType(serviceData as any);
         
         // Assign team members to newly created service
         if (newService && selectedCalendar?.id && selectedTeamMembers.length > 0) {
@@ -163,7 +168,7 @@ export function ServiceTypesManager() {
   };
 
   const confirmDelete = async () => {
-    if (!deletingService) return;
+    if (!deletingService?.id) return;
     
     try {
       await deleteServiceType(deletingService.id);
@@ -196,8 +201,7 @@ export function ServiceTypesManager() {
 
   const handleInstallmentUpdate = async (serviceId: string, enabled: boolean, plan?: any) => {
     try {
-      await updateServiceType({
-        id: serviceId,
+      await updateServiceType(serviceId, {
         installments_enabled: enabled,
         custom_installment_plan: plan || null
       } as any);
@@ -229,11 +233,6 @@ export function ServiceTypesManager() {
     );
   }
 
-  const getCalendarName = (calendarId: string | null | undefined) => {
-    // Implementation depends on your calendar context
-    return "Calendar";
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -261,14 +260,13 @@ export function ServiceTypesManager() {
 
         <CardContent>
           {serviceTypes.length === 0 ? (
-            <ServiceTypesEmptyState onCreateService={handleCreate} />
+            <ServiceTypesEmptyState onAddService={handleCreate} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {serviceTypes.map((service) => (
                 <ServiceTypeCard
                   key={service.id}
                   service={service}
-                  calendarName={getCalendarName(service.calendar_id)}
                   onEdit={() => handleEdit(service)}
                   onDelete={() => handleDelete(service)}
                   onInstallmentConfig={() => handleInstallmentConfig(service)}
@@ -300,8 +298,7 @@ export function ServiceTypesManager() {
             onCancel={handleClose}
             saving={saving}
             isEditing={!!editingService}
-            userTaxBehavior={userTaxBehavior}
-            hasCompleteTaxConfig={hasCompleteTaxConfig}
+            taxConfigured={hasCompleteTaxConfig}
             calendarId={selectedCalendar?.id}
             selectedTeamMembers={selectedTeamMembers}
             onTeamMembersChange={setSelectedTeamMembers}
@@ -339,6 +336,8 @@ export function ServiceTypesManager() {
             </DialogHeader>
             <ServiceTypeInstallmentConfig
               serviceType={installmentConfigService}
+              businessInstallmentsEnabled={false}
+              businessDefaultPlan={null}
               onUpdate={(updates: any) => {
                 if ('installments_enabled' in updates || 'custom_installment_plan' in updates) {
                   handleInstallmentUpdate(

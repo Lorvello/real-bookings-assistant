@@ -9,6 +9,7 @@ import { ServiceTypeStripeConfig } from './ServiceTypeStripeConfig';
 import { ServiceType } from '@/types/calendar';
 import { Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TeamMemberSelector } from '@/components/service-types/TeamMemberSelector';
 
 interface ServiceTypeFormData {
   name: string;
@@ -31,6 +32,9 @@ interface ServiceTypeFormProps {
   taxConfigured?: boolean;
   userTaxBehavior?: string | null;
   onRefreshTaxStatus?: () => void;
+  calendarId?: string;
+  selectedTeamMembers?: string[];
+  onTeamMembersChange?: (memberIds: string[]) => void;
 }
 
 const colorOptions = [
@@ -56,7 +60,10 @@ export function ServiceTypeForm({
   isEditing,
   taxConfigured = false,
   userTaxBehavior,
-  onRefreshTaxStatus
+  onRefreshTaxStatus,
+  calendarId,
+  selectedTeamMembers = [],
+  onTeamMembersChange
 }: ServiceTypeFormProps) {
   const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
   const [previousTaxBehavior] = useState(formData.tax_behavior);
@@ -323,6 +330,18 @@ export function ServiceTypeForm({
           )}
         </div>
       </div>
+
+      {/* Team Member Assignment Section */}
+      {calendarId && onTeamMembersChange && (
+        <div className="space-y-4">
+          <TeamMemberSelector
+            calendarId={calendarId}
+            selectedMemberIds={selectedTeamMembers}
+            onSelectionChange={onTeamMembersChange}
+            disabled={saving}
+          />
+        </div>
+      )}
       
       <div className="flex justify-end space-x-3">
         <Button variant="outline" onClick={onCancel} disabled={saving}>
