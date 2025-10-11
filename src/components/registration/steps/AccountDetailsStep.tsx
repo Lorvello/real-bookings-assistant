@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/password-input';
-import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { validateEmail, sanitizeText } from '@/utils/inputSanitization';
 import { validatePassword } from '@/utils/passwordValidation';
 
 interface AccountDetailsStepProps {
@@ -19,11 +19,13 @@ export const AccountDetailsStep: React.FC<AccountDetailsStepProps> = ({ data, up
   const handleInputChange = (field: string, value: string) => {
     let sanitizedValue = value;
     
-    // Apply appropriate sanitization based on field type
+    // Use new validation API for better type safety
     if (field === 'email') {
-      sanitizedValue = sanitizeUserInput(value, 'email');
+      const result = validateEmail(value, { allowEmpty: true });
+      sanitizedValue = result.sanitized;
     } else if (field === 'fullName') {
-      sanitizedValue = sanitizeUserInput(value, 'text');
+      const result = sanitizeText(value, { allowEmpty: true, maxLength: 200 });
+      sanitizedValue = result.sanitized;
     }
     
     updateData({ [field]: sanitizedValue });

@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordInput } from './PasswordInput';
 import { validatePassword } from '@/utils/passwordValidation';
-import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { validateEmail } from '@/utils/inputSanitization';
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -30,14 +30,22 @@ export const LoginForm: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Sanitize inputs for security
-    const sanitizedEmail = sanitizeUserInput(formData.email, 'email');
+    // Validate and sanitize email using new API
+    const emailResult = validateEmail(formData.email);
     
-    // Basic validation
-    if (!sanitizedEmail || !formData.password) {
+    if (!emailResult.valid) {
       toast({
         title: "Validation Error",
-        description: "Please enter both email and password",
+        description: emailResult.errors[0] || "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.password) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter your password",
         variant: "destructive",
       });
       return;
@@ -46,10 +54,10 @@ export const LoginForm: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('[Login] Starting email login for:', sanitizedEmail);
+      console.log('[Login] Starting email login for:', emailResult.value);
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
+        email: emailResult.value!,
         password: formData.password
       });
 
@@ -63,7 +71,7 @@ export const LoginForm: React.FC = () => {
             description: "Please verify your email address before signing in.",
             variant: "destructive",
           });
-          navigate('/verify-email', { state: { email: sanitizedEmail } });
+          navigate('/verify-email', { state: { email: emailResult.value } });
           return;
         }
         

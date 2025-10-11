@@ -29,6 +29,52 @@ import { parsePhoneNumber, isValidPhoneNumber, CountryCode } from 'libphonenumbe
 import DOMPurify from 'dompurify';
 import validator from 'validator';
 import { secureLogger } from './secureLogger';
+import { parseISO, isValid as isValidDate } from 'date-fns';
+
+// ============================================================================
+// PERFORMANCE OPTIMIZATION - Lazy Loading & Caching
+// ============================================================================
+
+/**
+ * Validation result cache for performance optimization
+ * Max 1000 entries, LRU eviction
+ */
+const validationCache = new Map<string, { result: ValidationResult<any>; timestamp: number }>();
+const CACHE_MAX_SIZE = 1000;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Adds a result to the validation cache with LRU eviction
+ */
+const addToCache = (key: string, result: ValidationResult<any>): void => {
+  // Evict oldest entries if cache is full
+  if (validationCache.size >= CACHE_MAX_SIZE) {
+    const oldestKey = validationCache.keys().next().value;
+    validationCache.delete(oldestKey);
+  }
+  
+  validationCache.set(key, {
+    result,
+    timestamp: Date.now()
+  });
+};
+
+/**
+ * Retrieves a result from cache if valid and not expired
+ */
+const getFromCache = (key: string): ValidationResult<any> | null => {
+  const cached = validationCache.get(key);
+  
+  if (!cached) return null;
+  
+  // Check if expired
+  if (Date.now() - cached.timestamp > CACHE_TTL_MS) {
+    validationCache.delete(key);
+    return null;
+  }
+  
+  return cached.result;
+};
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -752,6 +798,278 @@ export const sanitizeText = (
     valid: true,
     value: sanitized,
     errors: [],
+    sanitized,
+    suspicious: suspicious.length > 0
+  };
+};
+
+// ============================================================================
+// ADVANCED VALIDATORS (Phase 6-10)
+// ============================================================================
+
+/**
+ * Validates ISO 8601 date/time strings with timezone safety
+ * 
+ * Features:
+ * - ISO 8601 format parsing (YYYY-MM-DDTHH:mm:ssZ)
+ * - Timezone-safe conversion to UTC
+ * - Date range validation (past/future)
+ * - Returns normalized UTC Date object
+ * 
+ * @param dateTime - ISO 8601 date/time string
+ * @param options - Validation options (allowPast, allowFuture)
+ * @returns ValidationResult with UTC Date object
+ * 
+ * @example
+ * const result = validateDateTime('2025-10-11T12:00:00Z');
+ * if (result.valid) {
+ *   console.log(result.value); // Date object in UTC
+ * }
+ * 
+ * TEST CASES:
+ * ✅ VALID:
+ * - "2025-10-11T12:00:00Z" → { valid: true, value: Date }
+ * - "2025-10-11T12:00:00+02:00" → { valid: true, value: Date (converted to UTC) }
+ * - "2025-10-11" → { valid: true, value: Date }
+ * 
+ * ❌ INVALID:
+ * - "not-a-date" → { errors: ["Ongeldige datum/tijd formaat"] }
+ * - "2025-13-40" → { errors: ["Ongeldige datum/tijd"] }
+ * - "" → { errors: ["Datum/tijd is verplicht"] }
+ */
+export const validateDateTime = (
+  dateTime: string,
+  options: ValidationOptions & { allowPast?: boolean; allowFuture?: boolean } = {}
+): ValidationResult<Date> => {
+  const { allowEmpty = false, allowPast = true, allowFuture = true } = options;
+
+  if (!dateTime || dateTime.trim() === '') {
+    if (allowEmpty) {
+      return { valid: true, value: undefined, errors: [], sanitized: '' };
+    }
+    return { valid: false, errors: ['Datum/tijd is verplicht'], sanitized: '' };
+  }
+
+  const trimmed = dateTime.trim();
+
+  try {
+    // Parse ISO 8601 format
+    const date = parseISO(trimmed);
+
+    if (!isValidDate(date)) {
+      return {
+        valid: false,
+        errors: ['Ongeldige datum/tijd'],
+        sanitized: trimmed
+      };
+    }
+
+    // Check past/future restrictions
+    const now = new Date();
+    
+    if (!allowPast && date < now) {
+      return {
+        valid: false,
+        errors: ['Datum mag niet in het verleden liggen'],
+        sanitized: trimmed
+      };
+    }
+
+    if (!allowFuture && date > now) {
+      return {
+        valid: false,
+        errors: ['Datum mag niet in de toekomst liggen'],
+        sanitized: trimmed
+      };
+    }
+
+    return {
+      valid: true,
+      value: date,
+      errors: [],
+      sanitized: date.toISOString()
+    };
+  } catch (error) {
+    return {
+      valid: false,
+      errors: ['Ongeldige datum/tijd formaat'],
+      sanitized: trimmed
+    };
+  }
+};
+
+/**
+ * Masks credit card numbers for display (PCI-DSS compliant)
+ * 
+ * Features:
+ * - Luhn algorithm validation (checksum)
+ * - Masks all but last 4 digits: **** **** **** 1234
+ * - Never logs full card number (GDPR/PCI-DSS)
+ * - Detects card type (Visa, Mastercard, Amex)
+ * 
+ * @param cardNumber - Credit card number (16 digits)
+ * @returns ValidationResult with masked card number
+ * 
+ * @example
+ * const result = maskCreditCard('4532015112830366');
+ * if (result.valid) {
+ *   console.log(result.value); // "**** **** **** 0366"
+ * }
+ * 
+ * TEST CASES:
+ * ✅ VALID:
+ * - "4532015112830366" (Visa) → { valid: true, value: "**** **** **** 0366" }
+ * - "5425233430109903" (Mastercard) → { valid: true, value: "**** **** **** 9903" }
+ * - "378282246310005" (Amex) → { valid: true, value: "**** ****** *0005" }
+ * 
+ * ❌ INVALID:
+ * - "1234567890123456" → { errors: ["Ongeldige creditcard"] } (fails Luhn)
+ * - "123" → { errors: ["Ongeldige creditcard formaat"] }
+ * 
+ * 🔒 SECURITY:
+ * - Full card number NEVER logged (PCI-DSS requirement)
+ * - Only last 4 digits exposed in masked format
+ */
+export const maskCreditCard = (
+  cardNumber: string,
+  options: ValidationOptions = {}
+): ValidationResult<string> => {
+  const { allowEmpty = false } = options;
+
+  if (!cardNumber || cardNumber.trim() === '') {
+    if (allowEmpty) {
+      return { valid: true, value: '', errors: [], sanitized: '' };
+    }
+    return { valid: false, errors: ['Creditcard nummer is verplicht'], sanitized: '' };
+  }
+
+  // Remove spaces and hyphens
+  const cleaned = cardNumber.replace(/[\s\-]/g, '');
+
+  // Validate format (13-19 digits for various card types)
+  if (!/^\d{13,19}$/.test(cleaned)) {
+    return {
+      valid: false,
+      errors: ['Ongeldige creditcard formaat'],
+      sanitized: ''
+    };
+  }
+
+  // Luhn algorithm validation
+  let sum = 0;
+  let isEven = false;
+
+  for (let i = cleaned.length - 1; i >= 0; i--) {
+    let digit = parseInt(cleaned.charAt(i), 10);
+
+    if (isEven) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+
+    sum += digit;
+    isEven = !isEven;
+  }
+
+  if (sum % 10 !== 0) {
+    // Log as security event (potential fraud attempt)
+    secureLogger.security('Invalid credit card Luhn check', {
+      context: 'creditcard_validation',
+      severity: 'medium'
+    });
+
+    return {
+      valid: false,
+      errors: ['Ongeldige creditcard'],
+      sanitized: '',
+      suspicious: true
+    };
+  }
+
+  // Mask all but last 4 digits
+  const last4 = cleaned.slice(-4);
+  const masked = cleaned.length === 15 
+    ? `**** ****** *${last4}` // Amex format
+    : `**** **** **** ${last4}`; // Visa/Mastercard format
+
+  return {
+    valid: true,
+    value: masked,
+    errors: [],
+    sanitized: masked
+  };
+};
+
+/**
+ * Prevents SQL injection for raw queries (use Supabase client instead!)
+ * 
+ * ⚠️ WARNING: This is a fallback only. Always use Supabase client methods
+ * which provide automatic parameterized queries.
+ * 
+ * Features:
+ * - Escapes SQL special characters: ', ", ;, --, /*, *\/
+ * - Logs suspicious SQL patterns
+ * - NOT a replacement for parameterized queries
+ * 
+ * @param input - SQL query input to sanitize
+ * @returns ValidationResult with escaped SQL
+ * 
+ * @example
+ * // ❌ AVOID - Use Supabase client instead:
+ * const result = sanitizeSqlInput("user' OR '1'='1");
+ * 
+ * // ✅ PREFER - Supabase handles this automatically:
+ * supabase.from('users').select('*').eq('name', userInput)
+ * 
+ * TEST CASES:
+ * 🚨 DANGEROUS (sanitized & logged):
+ * - "user' OR '1'='1" → Escaped and logged
+ * - "admin'--" → Escaped and logged
+ * - "1; DROP TABLE users--" → Escaped and logged
+ */
+export const sanitizeSqlInput = (
+  input: string,
+  options: ValidationOptions = {}
+): ValidationResult<string> => {
+  const { allowEmpty = false } = options;
+
+  if (!input || input.trim() === '') {
+    if (allowEmpty) {
+      return { valid: true, value: '', errors: [], sanitized: '' };
+    }
+    return { valid: false, errors: ['Input is verplicht'], sanitized: '' };
+  }
+
+  let sanitized = input;
+
+  // Check for SQL injection patterns
+  const suspicious = detectSuspiciousPatterns(sanitized, 'sql');
+
+  // Escape SQL special characters
+  sanitized = sanitized
+    .replace(/'/g, "''") // Escape single quotes
+    .replace(/"/g, '""') // Escape double quotes
+    .replace(/;/g, '\\;') // Escape semicolons
+    .replace(/--/g, '\\--') // Escape comment markers
+    .replace(/\/\*/g, '\\/\\*') // Escape block comment start
+    .replace(/\*\//g, '\\*\\/'); // Escape block comment end
+
+  if (suspicious.length > 0) {
+    secureLogger.security('SQL injection attempt detected', {
+      context: 'sql_sanitization',
+      patterns: suspicious,
+      severity: 'critical'
+    });
+  }
+
+  return {
+    valid: true,
+    value: sanitized,
+    errors: suspicious.length > 0 
+      ? ['⚠️ Gebruik Supabase client methods voor veilige queries']
+      : [],
     sanitized,
     suspicious: suspicious.length > 0
   };

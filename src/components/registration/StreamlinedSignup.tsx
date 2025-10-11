@@ -11,7 +11,7 @@ import { useUserRegistration } from '@/hooks/useUserRegistration';
 import { CheckCircle, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/password-input';
 import { validatePassword } from '@/utils/passwordValidation';
-import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
 
 interface SignupFormData {
   fullName: string;
@@ -54,22 +54,26 @@ export const StreamlinedSignup: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateFormData = (field: keyof SignupFormData, value: string | boolean) => {
-    let sanitizedValue = value;
+    let processedValue = value;
     
-    // Apply input sanitization for security
+    // Apply new validation API for better security
     if (typeof value === 'string') {
       if (field === 'email') {
-        sanitizedValue = sanitizeUserInput(value, 'email');
+        const result = validateEmail(value, { allowEmpty: true });
+        processedValue = result.sanitized;
       } else if (field === 'phone') {
-        sanitizedValue = sanitizeUserInput(value, 'phone');
+        const result = validatePhoneNumber(value, { allowEmpty: true, defaultCountry: 'NL' });
+        processedValue = result.sanitized;
       } else if (field === 'fullName') {
-        sanitizedValue = sanitizeUserInput(value, 'business');
+        const result = sanitizeText(value, { allowEmpty: true, maxLength: 200 });
+        processedValue = result.sanitized;
       } else {
-        sanitizedValue = sanitizeUserInput(value, 'text');
+        const result = sanitizeText(value, { allowEmpty: true });
+        processedValue = result.sanitized;
       }
     }
     
-    setFormData(prev => ({ ...prev, [field]: sanitizedValue }));
+    setFormData(prev => ({ ...prev, [field]: processedValue }));
     
     // Clear error when user starts typing
     if (errors[field]) {
