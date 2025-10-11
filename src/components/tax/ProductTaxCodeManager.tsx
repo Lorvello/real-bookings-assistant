@@ -55,39 +55,18 @@ export const ProductTaxCodeManager: React.FC<ProductTaxCodeManagerProps> = ({
     queryFn: async () => {
       if (!calendarId) return [];
 
-      // Get current user
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return [];
-
-      // Fetch service types linked to specific calendar via junction table OR directly via calendar_id
-      const { data: junctionData, error: junctionError } = await supabase
-        .from('service_types')
-        .select(`
-          id, name, tax_code, stripe_test_price_id, stripe_live_price_id,
-          calendar_service_types!inner(calendar_id)
-        `)
-        .eq('calendar_service_types.calendar_id', calendarId)
-        .eq('user_id', userData.user.id)
-        .eq('is_active', true);
-
-      const { data: directData, error: directError } = await supabase
+      // Fetch service types for the calendar (RLS handles ownership check)
+      const { data, error } = await supabase
         .from('service_types')
         .select('id, name, tax_code, stripe_test_price_id, stripe_live_price_id')
         .eq('calendar_id', calendarId)
-        .eq('user_id', userData.user.id)
         .eq('is_active', true);
 
-      if (junctionError || directError) {
-        throw junctionError || directError;
+      if (error) {
+        throw error;
       }
 
-      // Combine both results and remove duplicates
-      const allServiceTypes = [...(junctionData || []), ...(directData || [])];
-      const uniqueServiceTypes = allServiceTypes.filter((item, index, self) => 
-        index === self.findIndex(t => t.id === item.id)
-      );
-
-      return uniqueServiceTypes as ServiceType[];
+      return (data || []) as ServiceType[];
     },
     enabled: !!calendarId,
   });

@@ -158,6 +158,7 @@ export interface Booking {
   confirmed_at?: string;
   cancelled_at?: string;
   cancellation_reason?: string;
+  assigned_team_member_id?: string; // NEW: Which team member handles this booking
   created_at: string;
   updated_at: string;
 }
@@ -224,6 +225,15 @@ export interface CalendarMember {
   invited_at?: string;
   accepted_at?: string;
   created_at: string;
+}
+
+export interface TeamMemberService {
+  id: string;
+  user_id: string;
+  calendar_id: string;
+  service_type_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface WhatsAppContactOverview {

@@ -1,3 +1,51 @@
+/**
+ * ============================================================================
+ * SERVICE TYPES ARCHITECTURE - CRITICAL UNDERSTANDING
+ * ============================================================================
+ * 
+ * Service Types zijn ALTIJD op ACCOUNT/BUSINESS niveau:
+ * --------------------------------------------------------
+ * - Aangemaakt en beheerd ALLEEN door de calendar owner (account eigenaar)
+ * - Gekoppeld aan calendars via service_types.calendar_id
+ * - Vertegenwoordigen de bedrijfsaanbiedingen (bijv. "Knipbeurt", "Kleuring")
+ * 
+ * Team Members kunnen worden TOEGEWEZEN aan service types:
+ * ---------------------------------------------------------
+ * - Via junction table: team_member_services (user_id ↔ service_type_id)
+ * - Team members kunnen GEEN nieuwe service types aanmaken
+ * - Team members kunnen alleen services uitvoeren waarvoor ze zijn toegewezen
+ * 
+ * Voorbeeld Bedrijfsflow (Kapsalon):
+ * ------------------------------------
+ * Account Owner → Calendar "Salon Beauty"
+ *   Service Types (Business Level):
+ *     ├─ "Heren Knipbeurt" (€25, 30min)
+ *     ├─ "Dames Knipbeurt" (€35, 45min)
+ *     └─ "Kinder Knipbeurt" (€15, 20min)
+ * 
+ * Team Member "Jan" → Kan uitvoeren:
+ *   ├─ "Heren Knipbeurt" ✓
+ *   └─ "Dames Knipbeurt" ✓
+ * 
+ * Team Member "Lisa" → Kan uitvoeren:
+ *   └─ "Kinder Knipbeurt" ✓
+ * 
+ * Bookings kunnen optioneel worden toegewezen aan specifieke team members
+ * die gekwalificeerd zijn om die service type uit te voeren.
+ * 
+ * Database Structuur:
+ * -------------------
+ * - service_types: Business-level services (owner creates)
+ * - team_member_services: Junction table (which members can perform which services)
+ * - bookings.assigned_team_member_id: Optional assignment to specific team member
+ * 
+ * RLS Policies:
+ * -------------
+ * - SELECT: Calendar owner OR team member (read-only voor team members)
+ * - INSERT/UPDATE/DELETE: ALLEEN Calendar Owner
+ * ============================================================================
+ */
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';

@@ -386,6 +386,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          assigned_team_member_id: string | null
           booking_duration: number | null
           business_name: string | null
           calendar_id: string | null
@@ -418,6 +419,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          assigned_team_member_id?: string | null
           booking_duration?: number | null
           business_name?: string | null
           calendar_id?: string | null
@@ -450,6 +452,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          assigned_team_member_id?: string | null
           booking_duration?: number | null
           business_name?: string | null
           calendar_id?: string | null
@@ -2261,6 +2264,83 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      team_member_services: {
+        Row: {
+          calendar_id: string
+          created_at: string
+          id: string
+          service_type_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calendar_id: string
+          created_at?: string
+          id?: string
+          service_type_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calendar_id?: string
+          created_at?: string
+          id?: string
+          service_type_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_services_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_member_services_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_member_services_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_member_services_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_member_services_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "public_service_types_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_member_services_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "team_member_services_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
           },
         ]
       }
