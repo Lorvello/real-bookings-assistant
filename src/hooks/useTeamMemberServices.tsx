@@ -46,6 +46,27 @@ export const useTeamMemberServices = (calendarId?: string, userId?: string) => {
     await fetchTeamMemberServices();
   };
 
+  const assignMultipleMembers = async (
+    serviceTypeId: string,
+    userIds: string[],
+    calendarId: string
+  ) => {
+    if (userIds.length === 0) return;
+    
+    const assignments = userIds.map(userId => ({
+      user_id: userId,
+      service_type_id: serviceTypeId,
+      calendar_id: calendarId
+    }));
+    
+    const { error } = await supabase
+      .from('team_member_services')
+      .insert(assignments);
+    
+    if (error) throw error;
+    await fetchTeamMemberServices();
+  };
+
   const unassignService = async (assignmentId: string) => {
     const { error } = await supabase
       .from('team_member_services')
@@ -66,6 +87,7 @@ export const useTeamMemberServices = (calendarId?: string, userId?: string) => {
     services,
     loading,
     assignService,
+    assignMultipleMembers,
     unassignService,
     refetch: fetchTeamMemberServices
   };

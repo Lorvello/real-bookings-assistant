@@ -1,99 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus } from 'lucide-react';
-import { ServiceType } from '@/types/calendar';
-import { ServiceTypeForm } from './ServiceTypeForm';
+import { ServiceTypeForm } from './ServiceTypeFormNew';
 import { ServiceTypeCard } from './ServiceTypeCard';
-import { useServiceTypes } from '@/hooks/useServiceTypes';
+import { ServiceTypesEmptyState } from './ServiceTypesEmptyState';
+import { ServiceTypeInstallmentConfig } from './ServiceTypeInstallmentConfig';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
-import { supabase } from '@/integrations/supabase/client';
-import { ServiceTypeInstallmentConfig } from './ServiceTypeInstallmentConfig';
-import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
 import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
+import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
+import { useServiceTypes } from '@/hooks/useServiceTypes';
+import { useTeamMemberServices } from '@/hooks/useTeamMemberServices';
+import type { ServiceType } from '@/types/database';
 
 interface ServiceTypeFormData {
   name: string;
   description: string;
-  duration: string;
-  price: string;
+  duration: number;
+  price: number;
   color: string;
   tax_enabled: boolean;
   tax_behavior: 'inclusive' | 'exclusive';
-  tax_code: string;
+  applicable_tax_rate: number;
+  tax_rate_type: string;
+  service_category: string;
 }
 
 const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   name: '',
   description: '',
-  duration: '30',
-  price: '',
+  duration: 30,
+  price: 0,
   color: '#3B82F6',
   tax_enabled: false,
   tax_behavior: 'exclusive',
-  tax_code: ''
+  applicable_tax_rate: 21,
+  tax_rate_type: 'standard',
+  service_category: 'general'
 };
 
 export function ServiceTypesManager() {
   const { selectedCalendar } = useCalendarContext();
   const { toast } = useToast();
-  const { getStripeAccount } = useStripeConnect();
+  const { stripeAccount } = useStripeConnect();
+  const { taxConfiguration, hasCompleteTaxConfig } = useTaxConfiguration();
+  const { getInstallmentConfig, updateInstallmentConfig } = useInstallmentSettings();
   
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
   const [editingService, setEditingService] = useState<ServiceType | null>(null);
-  const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [saving, setSaving] = useState(false);
-  const [userTaxBehavior, setUserTaxBehavior] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingService, setDeletingService] = useState<ServiceType | null>(null);
+  const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
+  const [userTaxBehavior, setUserTaxBehavior] = useState<'inclusive' | 'exclusive' | null>(null);
   const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
-  
-  // Use unified tax configuration logic
-  const { status: taxStatus, loading: taxLoading, refetch: refetchTaxStatus } = useTaxConfiguration(selectedCalendar?.id);
-  
-  const { 
-    settings: installmentSettings, 
-    loading: installmentLoading 
-  } = useInstallmentSettings();
 
-  const {
-    serviceTypes,
-    loading,
-    createServiceType,
-    updateServiceType,
-    deleteServiceType,
-    refetch
-  } = useServiceTypes(selectedCalendar?.id);
-
-  // Fetch user default tax behavior
-  useEffect(() => {
-    const fetchUserTaxBehavior = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data, error } = await supabase
-            .from('users')
-            .select('default_tax_behavior')
-            .eq('id', user.id)
-            .single();
-
-          if (!error && data) {
-            setUserTaxBehavior(data.default_tax_behavior);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user tax behavior:', error);
-      }
-    };
-
-    fetchUserTaxBehavior();
-  }, []);
+  const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType, refetch } = useServiceTypes(selectedCalendar?.id);
+  const { assignMultipleMembers, services: teamMemberServices } = useTeamMemberServices(selectedCalendar?.id);
 
   const handleCreate = () => {
     setEditingService(null);
     setFormData(DEFAULT_FORM_DATA);
-    setIsDialogOpen(true);
+    setSelectedTeamMembers([]);
+    setShowDialog(true);
   };
 
   const handleEdit = (service: ServiceType) => {
@@ -101,14 +75,23 @@ export function ServiceTypesManager() {
     setFormData({
       name: service.name,
       description: service.description || '',
-      duration: service.duration.toString(),
-      price: service.price?.toString() || '',
-      color: service.color,
+      duration: service.duration,
+      price: service.price || 0,
+      color: service.color || '#3B82F6',
       tax_enabled: service.tax_enabled || false,
       tax_behavior: service.tax_behavior || 'exclusive',
-      tax_code: service.tax_code || ''
+      applicable_tax_rate: service.applicable_tax_rate || 21,
+      tax_rate_type: service.tax_rate_type || 'standard',
+      service_category: service.service_category || 'general'
     });
-    setIsDialogOpen(true);
+    
+    // Load existing team member assignments
+    const existingAssignments = teamMemberServices
+      .filter(tms => tms.service_type_id === service.id)
+      .map(tms => tms.user_id);
+    setSelectedTeamMembers(existingAssignments);
+    
+    setShowDialog(true);
   };
 
   const handleSave = async () => {
@@ -116,41 +99,46 @@ export function ServiceTypesManager() {
 
     setSaving(true);
     try {
-      const serviceData = {
-        calendar_id: selectedCalendar.id,
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
-        duration: parseInt(formData.duration),
-        price: formData.price ? parseFloat(formData.price) : null,
-        color: formData.color,
-        tax_enabled: formData.tax_enabled,
-        tax_behavior: formData.tax_behavior,
-        tax_code: formData.tax_enabled ? formData.tax_code : null,
-        is_active: true,
-        max_attendees: 1,
-        preparation_time: 0,
-        cleanup_time: 0,
-        created_at: new Date().toISOString()
-      };
-
       if (editingService) {
-        await updateServiceType(editingService.id, serviceData);
+        await updateServiceType({
+          ...editingService,
+          ...formData
+        });
+        
+        // Sync team member assignments for edited service
+        if (selectedCalendar?.id && selectedTeamMembers.length > 0) {
+          const existingAssignments = teamMemberServices
+            .filter(tms => tms.service_type_id === editingService.id)
+            .map(tms => tms.user_id);
+          
+          const toAdd = selectedTeamMembers.filter(id => !existingAssignments.includes(id));
+          if (toAdd.length > 0) {
+            await assignMultipleMembers(editingService.id, toAdd, selectedCalendar.id);
+          }
+        }
+        
         toast({
-          title: "Service Updated",
-          description: "Service type has been updated successfully."
+          title: "Service updated",
+          description: "Service type has been updated successfully"
         });
       } else {
-        await createServiceType(serviceData);
+        const newService = await createServiceType(formData);
+        
+        // Assign team members to newly created service
+        if (newService && selectedCalendar?.id && selectedTeamMembers.length > 0) {
+          await assignMultipleMembers(newService.id, selectedTeamMembers, selectedCalendar.id);
+        }
+        
         toast({
-          title: "Service Created",
-          description: "New service type has been created successfully."
+          title: "Service created",
+          description: "Service type has been created successfully"
         });
       }
-
-      setIsDialogOpen(false);
-      refetch();
+      
+      await refetch();
+      handleClose();
     } catch (error) {
-      console.error('Failed to save service type:', error);
+      console.error('Error saving service type:', error);
       toast({
         title: "Error",
         description: "Failed to save service type. Please try again.",
@@ -161,32 +149,45 @@ export function ServiceTypesManager() {
     }
   };
 
-  const handleDelete = async (serviceId: string) => {
-    if (!confirm('Are you sure you want to delete this service type?')) {
-      return;
-    }
+  const handleClose = () => {
+    setShowDialog(false);
+    setEditingService(null);
+    setFormData(DEFAULT_FORM_DATA);
+    setSelectedTeamMembers([]);
+    setSaving(false);
+  };
 
+  const handleDelete = (service: ServiceType) => {
+    setDeletingService(service);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingService) return;
+    
     try {
-      await deleteServiceType(serviceId);
+      await deleteServiceType(deletingService.id);
       toast({
-        title: "Service Deleted",
-        description: "Service type has been deleted successfully."
+        title: "Service deleted",
+        description: "Service type has been deleted successfully"
       });
-      refetch();
+      await refetch();
     } catch (error) {
-      console.error('Failed to delete service type:', error);
+      console.error('Error deleting service type:', error);
       toast({
         title: "Error",
         description: "Failed to delete service type. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setShowDeleteDialog(false);
+      setDeletingService(null);
     }
   };
 
-  const handleCancel = () => {
-    setIsDialogOpen(false);
-    setEditingService(null);
-    setFormData(DEFAULT_FORM_DATA);
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setDeletingService(null);
   };
 
   const handleInstallmentConfig = (service: ServiceType) => {
@@ -195,25 +196,21 @@ export function ServiceTypesManager() {
 
   const handleInstallmentUpdate = async (serviceId: string, enabled: boolean, plan?: any) => {
     try {
-      const { error } = await supabase
-        .from('service_types')
-        .update({
-          installments_enabled: enabled,
-          custom_installment_plan: plan || null
-        })
-        .eq('id', serviceId);
-
-      if (error) throw error;
+      await updateServiceType({
+        id: serviceId,
+        installments_enabled: enabled,
+        custom_installment_plan: plan || null
+      } as any);
 
       toast({
-        title: "Installment Settings Updated",
-        description: "Service installment configuration has been updated successfully."
+        title: "Installment settings updated",
+        description: "Service installment configuration has been updated successfully"
       });
       
       setInstallmentConfigService(null);
-      refetch();
+      await refetch();
     } catch (error) {
-      console.error('Failed to update installment settings:', error);
+      console.error('Error updating installment settings:', error);
       toast({
         title: "Error",
         description: "Failed to update installment settings. Please try again.",
@@ -232,111 +229,122 @@ export function ServiceTypesManager() {
     );
   }
 
+  const getCalendarName = (calendarId: string | null | undefined) => {
+    // Implementation depends on your calendar context
+    return "Calendar";
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center justify-between">
             <div>
               <CardTitle>Service Types</CardTitle>
               <CardDescription>
-                Manage your available services and their tax configurations
+                Manage the services you offer and assign team members
               </CardDescription>
-              {taxStatus && !taxStatus.isFullyConfigured && (
+              {!hasCompleteTaxConfig && (
                 <div className="mt-2 p-3 bg-warning/10 border border-warning/20 rounded-md">
                   <p className="text-sm text-warning-foreground">
-                    Tax not fully configured. Complete setup in{' '}
-                    <button 
-                      onClick={() => window.location.href = '/settings?tab=tax'} 
-                      className="underline font-medium"
-                    >
-                      Tax Settings
-                    </button>{' '}
-                    to enable tax on services.
+                    Complete tax configuration in Tax Settings to enable tax on services
                   </p>
                 </div>
               )}
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={handleCreate}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Service
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingService ? 'Edit Service Type' : 'Create Service Type'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingService 
-                      ? 'Update the details and tax configuration for this service type.'
-                      : 'Create a new service type with pricing and tax configuration.'
-                    }
-                  </DialogDescription>
-                </DialogHeader>
-              <ServiceTypeForm
-                formData={formData}
-                setFormData={setFormData}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                saving={saving}
-                isEditing={!!editingService}
-                taxConfigured={taxStatus?.isFullyConfigured || false}
-                userTaxBehavior={userTaxBehavior}
-                onRefreshTaxStatus={refetchTaxStatus}
-              />
-              </DialogContent>
-            </Dialog>
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Service
+            </Button>
           </div>
         </CardHeader>
+
         <CardContent>
           {serviceTypes.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No services created yet</p>
-              <Button onClick={handleCreate} variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                Create your first service
-              </Button>
-            </div>
+            <ServiceTypesEmptyState onCreateService={handleCreate} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {serviceTypes.map((service) => (
                 <ServiceTypeCard
                   key={service.id}
                   service={service}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onInstallmentConfig={installmentSettings?.enabled ? handleInstallmentConfig : undefined}
+                  calendarName={getCalendarName(service.calendar_id)}
+                  onEdit={() => handleEdit(service)}
+                  onDelete={() => handleDelete(service)}
+                  onInstallmentConfig={() => handleInstallmentConfig(service)}
                 />
               ))}
             </div>
           )}
         </CardContent>
       </Card>
-      
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingService ? 'Edit Service Type' : 'Create Service Type'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingService
+                ? 'Update service details and team member assignments'
+                : 'Create a new service type and assign team members'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ServiceTypeForm
+            formData={formData}
+            setFormData={setFormData}
+            onSave={handleSave}
+            onCancel={handleClose}
+            saving={saving}
+            isEditing={!!editingService}
+            userTaxBehavior={userTaxBehavior}
+            hasCompleteTaxConfig={hasCompleteTaxConfig}
+            calendarId={selectedCalendar?.id}
+            selectedTeamMembers={selectedTeamMembers}
+            onTeamMembersChange={setSelectedTeamMembers}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Service Type?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingService?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Installment Configuration Dialog */}
       {installmentConfigService && (
         <Dialog open={!!installmentConfigService} onOpenChange={() => setInstallmentConfigService(null)}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Installment Settings for {installmentConfigService.name}</DialogTitle>
+              <DialogTitle>Installment Settings</DialogTitle>
               <DialogDescription>
-                Configure installment payment options for this specific service type.
+                Configure installment payment options for {installmentConfigService.name}
               </DialogDescription>
             </DialogHeader>
             <ServiceTypeInstallmentConfig
               serviceType={installmentConfigService}
-              businessInstallmentsEnabled={installmentSettings?.enabled || false}
-              businessDefaultPlan={installmentSettings?.defaultPlan}
-              onUpdate={(updates) => {
-                const extendedUpdates = updates as any;
-                if ('installments_enabled' in extendedUpdates || 'custom_installment_plan' in extendedUpdates) {
+              onUpdate={(updates: any) => {
+                if ('installments_enabled' in updates || 'custom_installment_plan' in updates) {
                   handleInstallmentUpdate(
-                    installmentConfigService.id, 
-                    extendedUpdates.installments_enabled || false, 
-                    extendedUpdates.custom_installment_plan
+                    installmentConfigService.id,
+                    updates.installments_enabled || false,
+                    updates.custom_installment_plan
                   );
                 }
               }}

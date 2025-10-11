@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
+import { useTeamMemberServices } from '@/hooks/useTeamMemberServices';
+import { TeamMemberSelector } from '@/components/service-types/TeamMemberSelector';
 import { Plus } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,10 +39,12 @@ export function ServiceTypeQuickCreateDialog({
     color: '#3B82F6',
     description: ''
   });
+  const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { selectedCalendar } = useCalendarContext();
   const { createServiceType } = useServiceTypes(selectedCalendar?.id);
+  const { assignMultipleMembers } = useTeamMemberServices(calendarId || selectedCalendar?.id);
   const { user } = useAuth();
 
   const handleCreateService = async (e: React.FormEvent) => {
@@ -72,6 +77,11 @@ export function ServiceTypeQuickCreateDialog({
         created_at: new Date().toISOString()
       });
       
+      // Assign team members if any selected and calendar exists
+      if (newService && targetCalendarId && selectedTeamMembers.length > 0) {
+        await assignMultipleMembers(newService.id, selectedTeamMembers, targetCalendarId);
+      }
+      
       if (onServiceCreated && newService) {
         onServiceCreated(newService.id);
       }
@@ -83,6 +93,7 @@ export function ServiceTypeQuickCreateDialog({
         color: '#3B82F6',
         description: ''
       });
+      setSelectedTeamMembers([]);
       setIsOpen(false);
     } catch (error) {
       console.error('Error creating service:', error);
@@ -189,6 +200,19 @@ export function ServiceTypeQuickCreateDialog({
               />
             </div>
           </div>
+
+          {/* Team Member Assignment - only show if calendar exists */}
+          {(calendarId || selectedCalendar?.id) && (
+            <>
+              <Separator />
+              <TeamMemberSelector
+                calendarId={calendarId || selectedCalendar!.id}
+                selectedMemberIds={selectedTeamMembers}
+                onSelectionChange={setSelectedTeamMembers}
+                disabled={isSubmitting}
+              />
+            </>
+          )}
           
           <div className="flex justify-end space-x-3">
             <Button
