@@ -55,14 +55,12 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
             *,
             calendar_service_types!inner(calendar_id)
           `)
-          .eq('calendar_service_types.calendar_id', calendarId)
-          .eq('user_id', userData.user.id);
+          .eq('calendar_service_types.calendar_id', calendarId);
 
         const { data: directData, error: directError } = await supabase
           .from('service_types')
           .select('*')
-          .eq('calendar_id', calendarId)
-          .eq('user_id', userData.user.id);
+          .eq('calendar_id', calendarId);
 
         if (junctionError || directError) {
           throw junctionError || directError;
@@ -79,11 +77,18 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
       } else {
-        // Fetch all service types for the current user (including global ones)
+        // Fetch all service types for user's calendars
+        const activeCalendarIds = getActiveCalendarIds();
+        
+        if (activeCalendarIds.length === 0) {
+          setServiceTypes([]);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('service_types')
           .select('*')
-          .eq('user_id', userData.user.id)
+          .in('calendar_id', activeCalendarIds)
           .order('created_at', { ascending: false });
         
         if (error) {
@@ -138,10 +143,7 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           throw new Error('User not authenticated');
         }
 
-        const serviceDataForDb = transformForDatabase({
-          ...serviceData,
-          user_id: userData.user.id
-        });
+        const serviceDataForDb = transformForDatabase(serviceData);
 
         const { data, error } = await supabase
           .from('service_types')
