@@ -1,24 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordInput } from './PasswordInput';
-import { validatePassword } from '@/utils/passwordValidation';
 import { validateEmail } from '@/utils/inputSanitization';
+import { InfoIcon } from 'lucide-react';
+import { formatDistance } from 'date-fns';
+import ReCAPTCHA from 'react-google-recaptcha';
+
+interface LastLoginInfo {
+  login_time: string;
+  location_city?: string;
+  location_country?: string;
+  device_type?: string;
+}
 
 export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [rememberDevice, setRememberDevice] = useState(false);
+  const [lastLoginInfo, setLastLoginInfo] = useState<LastLoginInfo | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+
+  // Load last login info when email changes
+  useEffect(() => {
+    const loadLastLogin = async () => {
+      if (!formData.email || !validateEmail(formData.email).valid) return;
+
+      try {
+        // Get the user ID first
+        const { data: userData } = await supabase
+          .from('login_history')
+          .select('login_time, location_city, location_country, user_id')
+          .eq('success', true)
+          .order('login_time', { ascending: false })
+          .limit(1);
+
+        if (userData && userData.length > 0) {
+          setLastLoginInfo(userData[0] as LastLoginInfo);
+        }
+      } catch (error) {
+        console.error('Failed to load last login info:', error);
+      }
+    };
+
+    const timeoutId = setTimeout(loadLastLogin, 500);
+    return () => clearTimeout(timeoutId);
+  }, [formData.email]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -30,7 +72,7 @@ export const LoginForm: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate and sanitize email using new API
+    // Validate and sanitize email
     const emailResult = validateEmail(formData.email);
     
     if (!emailResult.valid) {
@@ -51,11 +93,23 @@ export const LoginForm: React.FC = () => {
       return;
     }
 
+    // Show CAPTCHA after 3 failed attempts
+    if (failedAttempts >= 3 && !captchaToken) {
+      setShowCaptcha(true);
+      toast({
+        title: "Verification Required",
+        description: "Please complete the CAPTCHA to continue",
+        variant: "default",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       console.log('[Login] Starting email login for:', emailResult.value);
       
+      // Sign in with remember device option
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailResult.value!,
         password: formData.password
@@ -63,6 +117,14 @@ export const LoginForm: React.FC = () => {
 
       if (error) {
         console.error('[Login] Email login error:', error);
+        
+        // Increment failed attempts
+        setFailedAttempts(prev => prev + 1);
+        
+        // Show CAPTCHA on 3rd failure
+        if (failedAttempts + 1 >= 3) {
+          setShowCaptcha(true);
+        }
         
         // Handle email not confirmed - redirect to verification
         if (error.message === 'email_not_confirmed') {
@@ -99,6 +161,11 @@ export const LoginForm: React.FC = () => {
       }
 
       console.log('[Login] Email login successful:', data);
+      
+      // Reset failed attempts on success
+      setFailedAttempts(0);
+      setShowCaptcha(false);
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -128,6 +195,20 @@ export const LoginForm: React.FC = () => {
       </CardHeader>
       
       <CardContent>
+        {/* Show last login info */}
+        {lastLoginInfo && (
+          <Alert className="mb-4">
+            <InfoIcon className="h-4 w-4" />
+            <AlertTitle>Last login</AlertTitle>
+            <AlertDescription>
+              {formatDistance(new Date(lastLoginInfo.login_time), new Date(), { addSuffix: true })}
+              {lastLoginInfo.location_city && lastLoginInfo.location_country && (
+                <> from {lastLoginInfo.location_city}, {lastLoginInfo.location_country}</>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-foreground">
@@ -153,7 +234,29 @@ export const LoginForm: React.FC = () => {
             required
           />
 
-          <Button 
+          {/* CAPTCHA after 3 failed attempts */}
+          {showCaptcha && (
+            <div className="mt-4">
+              <ReCAPTCHA
+                sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
+                onChange={setCaptchaToken}
+              />
+            </div>
+          )}
+
+          {/* Remember this device */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="rememberDevice"
+              checked={rememberDevice}
+              onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
+            />
+            <Label htmlFor="rememberDevice" className="text-sm text-muted-foreground cursor-pointer">
+              Remember this device for 30 days
+            </Label>
+          </div>
+
+          <Button
             type="submit" 
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 mt-6"

@@ -1277,6 +1277,54 @@ export type Database = {
           },
         ]
       }
+      login_history: {
+        Row: {
+          created_at: string | null
+          device_fingerprint: string | null
+          failure_reason: string | null
+          flagged_as_suspicious: boolean | null
+          id: string
+          ip_address: unknown | null
+          location_city: string | null
+          location_country: string | null
+          login_time: string | null
+          risk_score: number | null
+          success: boolean
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          failure_reason?: string | null
+          flagged_as_suspicious?: boolean | null
+          id?: string
+          ip_address?: unknown | null
+          location_city?: string | null
+          location_country?: string | null
+          login_time?: string | null
+          risk_score?: number | null
+          success: boolean
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_fingerprint?: string | null
+          failure_reason?: string | null
+          flagged_as_suspicious?: boolean | null
+          id?: string
+          ip_address?: unknown | null
+          location_city?: string | null
+          location_country?: string | null
+          login_time?: string | null
+          risk_score?: number | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       n8n_chat_histories: {
         Row: {
           id: number
@@ -2484,6 +2532,111 @@ export type Database = {
           created_by?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_security_settings: {
+        Row: {
+          created_at: string | null
+          force_password_change: boolean | null
+          id: string
+          last_security_review_at: string | null
+          mfa_enabled: boolean | null
+          mfa_method: string | null
+          mfa_secret: string | null
+          password_changed_at: string | null
+          password_expiry_days: number | null
+          security_questions: Json | null
+          trusted_devices: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          force_password_change?: boolean | null
+          id?: string
+          last_security_review_at?: string | null
+          mfa_enabled?: boolean | null
+          mfa_method?: string | null
+          mfa_secret?: string | null
+          password_changed_at?: string | null
+          password_expiry_days?: number | null
+          security_questions?: Json | null
+          trusted_devices?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          force_password_change?: boolean | null
+          id?: string
+          last_security_review_at?: string | null
+          mfa_enabled?: boolean | null
+          mfa_method?: string | null
+          mfa_secret?: string | null
+          password_changed_at?: string | null
+          password_expiry_days?: number | null
+          security_questions?: Json | null
+          trusted_devices?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          browser: string | null
+          created_at: string | null
+          device_fingerprint: string | null
+          device_name: string | null
+          device_type: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean | null
+          last_activity_at: string | null
+          location_city: string | null
+          location_country: string | null
+          os: string | null
+          session_token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string | null
+          device_fingerprint?: string | null
+          device_name?: string | null
+          device_type?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity_at?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          os?: string | null
+          session_token: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string | null
+          device_fingerprint?: string | null
+          device_name?: string | null
+          device_type?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean | null
+          last_activity_at?: string | null
+          location_city?: string | null
+          location_country?: string | null
+          os?: string | null
+          session_token?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
