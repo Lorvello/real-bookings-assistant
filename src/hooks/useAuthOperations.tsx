@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { sanitizeUserInput } from '@/utils/inputSanitization';
 import { validatePassword } from '@/utils/passwordValidation';
+import { SecurityLogger } from '@/utils/securityLogger';
+import { getClientIp, getUserAgent } from '@/utils/clientHelpers';
 
 interface SignInData {
   email: string;
@@ -50,12 +52,28 @@ export const useAuthOperations = () => {
         });
 
         if (error) {
+          // Log failed login attempt
+          await SecurityLogger.logAuthAttempt(false, 'email', {
+            email: sanitizedEmail,
+            ipAddress: await getClientIp(),
+            userAgent: getUserAgent(),
+            failureReason: error.message
+          });
+          
           if (error.message === 'email_not_confirmed') {
             navigate('/verify-email', { state: { email: sanitizedEmail } });
             return { needsVerification: true };
           }
           throw error;
         }
+
+        // Log successful login
+        await SecurityLogger.logAuthAttempt(true, 'email', {
+          email: sanitizedEmail,
+          userId: authData.user?.id,
+          ipAddress: await getClientIp(),
+          userAgent: getUserAgent()
+        });
 
         return authData;
       }, 2);
@@ -136,8 +154,23 @@ export const useAuthOperations = () => {
         });
 
         if (error) {
+          // Log failed signup
+          await SecurityLogger.logAuthAttempt(false, 'email', {
+            email: sanitizedEmail,
+            ipAddress: await getClientIp(),
+            userAgent: getUserAgent(),
+            failureReason: error.message
+          });
           throw error;
         }
+
+        // Log successful signup
+        await SecurityLogger.logAuthAttempt(true, 'email', {
+          email: sanitizedEmail,
+          userId: authData.user?.id,
+          ipAddress: await getClientIp(),
+          userAgent: getUserAgent()
+        });
 
         return authData;
       }, 2);
