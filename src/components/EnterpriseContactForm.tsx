@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { supabase } from '@/integrations/supabase/client';
+import { checkContactFormRateLimit } from '@/utils/rateLimiter';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +30,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Building2, Phone, Mail, Globe, Users, MessageSquare, X } from 'lucide-react';
 
 const enterpriseFeatures = [
@@ -101,16 +102,39 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
   });
 
   const onSubmit = async (data: FormData) => {
+    // Client-side rate limit check
+    const rateLimit = checkContactFormRateLimit('client');
+    if (!rateLimit.allowed) {
+      toast({
+        title: "Te veel aanvragen",
+        description: "Wacht even voordat je nog een formulier verstuurt.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.functions.invoke('send-enterprise-contact', {
+      const { error } = await supabase.functions.invoke('submit-contact-form', {
         body: {
-          ...data,
-          selectedFeatures: data.selectedFeatures,
+          name: data.fullName,
+          email: data.email,
+          company: data.companyName,
+          message: data.message,
+          formType: 'enterprise'
         },
       });
 
       if (error) {
+        // Handle 429 rate limit from server
+        if (error.status === 429) {
+          toast({
+            title: "Limiet bereikt",
+            description: "Je hebt te veel formulieren verstuurd. Probeer het later opnieuw.",
+            variant: "destructive"
+          });
+          return;
+        }
         throw error;
       }
 

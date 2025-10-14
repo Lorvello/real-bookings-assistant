@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
 import { secureLogger } from '@/utils/secureLogger';
+import { checkBookingRateLimit } from '@/utils/rateLimiter';
 import ProductionSecurity from '@/utils/productionSecurity';
 
 interface BookingData {
@@ -29,6 +30,20 @@ export const usePublicBookingCreation = () => {
   const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
     setLoading(true);
     
+    // Client-side rate limit check
+    const clientRateLimit = checkBookingRateLimit('client', bookingData.calendarSlug);
+    
+    if (!clientRateLimit.allowed) {
+      const minutesLeft = Math.ceil((clientRateLimit.blockedUntil!.getTime() - Date.now()) / 60000);
+      toast({
+        title: "Te veel aanvragen",
+        description: `Je hebt te vaak geprobeerd te boeken. Probeer het opnieuw over ${minutesLeft} ${minutesLeft === 1 ? 'minuut' : 'minuten'}.`,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return { success: false, error: 'Rate limit exceeded' };
+    }
+
     try {
       // Validate and sanitize name
       const nameResult = sanitizeText(bookingData.customerName);
@@ -127,30 +142,54 @@ export const usePublicBookingCreation = () => {
         throw new Error(errors[0]?.message || 'Ongeldige boekingsparameters');
       }
 
-      // Create the booking with sanitized data
-      const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert([{
-          calendar_id: calendar.id,
-          service_type_id: bookingData.serviceTypeId,
-          customer_name: nameResult.sanitized,
-          customer_email: emailResult.value!,
-          customer_phone: sanitizedPhone,
-          start_time: bookingData.startTime.toISOString(),
-          end_time: bookingData.endTime.toISOString(),
-          notes: sanitizedNotes,
-          status: 'pending',
-          confirmation_token: crypto.randomUUID()
-        }])
-        .select()
-        .single();
+      // Create booking via edge function (with server-side rate limiting)
+      const sanitizedData = {
+        calendarSlug: bookingData.calendarSlug,
+        serviceTypeId: bookingData.serviceTypeId,
+        customerName: nameResult.sanitized,
+        customerEmail: emailResult.value!,
+        customerPhone: sanitizedPhone,
+        startTime: bookingData.startTime.toISOString(),
+        endTime: bookingData.endTime.toISOString(),
+        notes: sanitizedNotes
+      };
 
-      if (bookingError) {
-        secureLogger.error('Booking creation failed', bookingError, { 
-          component: 'usePublicBookingCreation'
+      const { data, error } = await supabase.functions.invoke('create-booking', {
+        body: sanitizedData
+      });
+
+      // Handle 429 rate limit response from server
+      if (error && error.status === 429) {
+        const retryAfter = error.context?.headers?.['retry-after'];
+        const requiresCaptcha = error.context?.headers?.['x-requires-captcha'] === 'true';
+
+        toast({
+          title: requiresCaptcha ? "Verificatie vereist" : "Te veel aanvragen",
+          description: requiresCaptcha 
+            ? "Voltooi de CAPTCHA om door te gaan." 
+            : `Wacht ${retryAfter} seconden voordat je het opnieuw probeert.`,
+          variant: "destructive",
         });
-        throw new Error(bookingError.message || 'Boeken mislukt');
+
+        secureLogger.security('Server rate limit exceeded', {
+          calendarSlug: sanitizedData.calendarSlug,
+          requiresCaptcha
+        });
+
+        setLoading(false);
+        return { success: false, error: 'Rate limit exceeded' };
       }
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success || !data?.booking) {
+        throw new Error(data?.error || 'Boeking aanmaken mislukt');
+      }
+
+      const booking = data.booking;
+
 
       // Log successful booking creation
       secureLogger.success('Booking created successfully', { 

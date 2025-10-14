@@ -98,3 +98,15 @@ verify_jwt = false
 
 [functions.generate-whatsapp-qr]
 verify_jwt = true
+
+[functions.create-booking]
+verify_jwt = false
+
+[functions.add-to-waitlist]
+verify_jwt = false
+
+[functions.get-availability]
+verify_jwt = false
+
+[functions.submit-contact-form]
+verify_jwt = false

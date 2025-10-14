@@ -15,18 +15,43 @@ interface RateLimitRecord {
 
 class ClientRateLimiter {
   private storage = new Map<string, RateLimitRecord>();
+  private storageKey = 'bookingsassistant_rate_limits';
   private defaultConfig: RateLimitConfig = {
     maxAttempts: 5,
     windowMs: 60000, // 1 minute
     blockDurationMs: 300000 // 5 minutes
   };
 
-  check(key: string, config?: Partial<RateLimitConfig>): { allowed: boolean; blockedUntil?: Date } {
+  constructor() {
+    this.loadFromStorage();
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        const data = JSON.parse(stored);
+        this.storage = new Map(Object.entries(data));
+      }
+    } catch (error) {
+      console.error('Failed to load rate limits from storage:', error);
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      const data = Object.fromEntries(this.storage);
+      localStorage.setItem(this.storageKey, JSON.stringify(data));
+    } catch (error) {
+      console.error('Failed to save rate limits to storage:', error);
+    }
+  }
+
+  check(key: string, config?: Partial<RateLimitConfig>): { allowed: boolean; blockedUntil?: Date; remaining?: number } {
     const finalConfig = { ...this.defaultConfig, ...config };
     const now = Date.now();
     const record = this.storage.get(key);
 
-    // Clean expired entries
     this.cleanup();
 
     // Check if currently blocked
@@ -39,11 +64,16 @@ class ClientRateLimiter {
 
     // Initialize or reset if window expired
     if (!record || (now - record.firstAttempt) > finalConfig.windowMs) {
-      this.storage.set(key, {
+      const newRecord = {
         attempts: 1,
         firstAttempt: now
-      });
-      return { allowed: true };
+      };
+      this.storage.set(key, newRecord);
+      this.saveToStorage();
+      return { 
+        allowed: true, 
+        remaining: finalConfig.maxAttempts - 1 
+      };
     }
 
     // Increment attempts
@@ -53,6 +83,7 @@ class ClientRateLimiter {
     if (record.attempts > finalConfig.maxAttempts) {
       record.blockedUntil = now + finalConfig.blockDurationMs;
       this.storage.set(key, record);
+      this.saveToStorage();
       
       return {
         allowed: false,
@@ -61,11 +92,16 @@ class ClientRateLimiter {
     }
 
     this.storage.set(key, record);
-    return { allowed: true };
+    this.saveToStorage();
+    return { 
+      allowed: true, 
+      remaining: finalConfig.maxAttempts - record.attempts 
+    };
   }
 
   reset(key: string): void {
     this.storage.delete(key);
+    this.saveToStorage();
   }
 
   private cleanup(): void {
@@ -110,5 +146,29 @@ export const checkFormRateLimit = (formId: string, userIdentifier: string) => {
     maxAttempts: 10,
     windowMs: 60000, // 1 minute
     blockDurationMs: 60000 // 1 minute
+  });
+};
+
+export const checkWaitlistRateLimit = (ip: string) => {
+  return rateLimiter.check(`waitlist:${ip}`, {
+    maxAttempts: 3,
+    windowMs: 300000, // 5 minutes
+    blockDurationMs: 900000 // 15 minutes
+  });
+};
+
+export const checkAvailabilityRateLimit = (ip: string, calendarSlug: string) => {
+  return rateLimiter.check(`availability:${ip}:${calendarSlug}`, {
+    maxAttempts: 20,
+    windowMs: 60000, // 1 minute
+    blockDurationMs: 180000 // 3 minutes
+  });
+};
+
+export const checkContactFormRateLimit = (ip: string) => {
+  return rateLimiter.check(`contact:${ip}`, {
+    maxAttempts: 2,
+    windowMs: 300000, // 5 minutes
+    blockDurationMs: 1800000 // 30 minutes
   });
 };

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createHmac } from "https://deno.land/std@0.224.0/crypto/mod.ts"
+import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -203,21 +204,19 @@ serve(async (req) => {
       
       // 2. Rate limiting
       const businessPhoneId = payload.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id || 'unknown';
-      const rateLimitCheck = await checkRateLimit(supabaseClient, `${ipAddress}:${businessPhoneId}`);
       
-      if (!rateLimitCheck.allowed) {
-        console.warn('Rate limit exceeded:', rateLimitCheck.reason);
-        await logSecurityEvent(
-          supabaseClient,
-          'rate_limit_exceeded',
-          'high',
-          { reason: rateLimitCheck.reason, business_phone_id: businessPhoneId },
-          ipAddress
-        );
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+      const rateLimiter = new RateLimiter(supabaseClient, {
+        endpoint: 'whatsapp_webhook',
+        maxRequests: 100,
+        windowSeconds: 60,
+        blockDurationSeconds: 600,
+        enableCaptchaThreshold: 10
+      });
+
+      const rateLimitResult = await rateLimiter.checkLimit(ipAddress, businessPhoneId);
+
+      if (!rateLimitResult.allowed) {
+        return RateLimiter.createRateLimitResponse(rateLimitResult, corsHeaders);
       }
 
       console.log('Received valid WhatsApp webhook:', JSON.stringify(payload, null, 2));
@@ -314,7 +313,11 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          ...RateLimiter.getRateLimitHeaders(rateLimitResult),
+          'Content-Type': 'application/json' 
+        },
       });
     }
 

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,6 +26,23 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
+
+    const ipAddress = getClientIp(req);
+
+    // Rate limiting: 5 requests per minute
+    const rateLimiter = new RateLimiter(supabaseClient, {
+      endpoint: 'booking_creation',
+      maxRequests: 5,
+      windowSeconds: 60,
+      blockDurationSeconds: 300,
+      enableCaptchaThreshold: 3
+    });
+
+    const rateLimitResult = await rateLimiter.checkLimit(ipAddress, req.url);
+
+    if (!rateLimitResult.allowed) {
+      return RateLimiter.createRateLimitResponse(rateLimitResult, corsHeaders);
+    }
 
     const bookingData = await req.json();
 
@@ -114,7 +132,13 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, booking }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          ...RateLimiter.getRateLimitHeaders(rateLimitResult),
+          'Content-Type': 'application/json' 
+        } 
+      }
     );
 
   } catch (error) {
