@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      archived_security_events: {
+        Row: {
+          archived_at: string | null
+          blocked: boolean | null
+          calendar_id: string | null
+          created_at: string | null
+          event_category: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          new_value: Json | null
+          previous_value: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          risk_score: number | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          blocked?: boolean | null
+          calendar_id?: string | null
+          created_at?: string | null
+          event_category?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          new_value?: Json | null
+          previous_value?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          risk_score?: number | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          blocked?: boolean | null
+          calendar_id?: string | null
+          created_at?: string | null
+          event_category?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          new_value?: Json | null
+          previous_value?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          risk_score?: number | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       availability_overrides: {
         Row: {
           calendar_id: string | null
@@ -1119,6 +1179,39 @@ export type Database = {
         }
         Relationships: []
       }
+      failed_login_attempts: {
+        Row: {
+          attempt_time: string
+          created_at: string | null
+          email: string
+          failure_reason: string | null
+          geo_location: string | null
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          attempt_time?: string
+          created_at?: string | null
+          email: string
+          failure_reason?: string | null
+          geo_location?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          attempt_time?: string
+          created_at?: string | null
+          email?: string
+          failure_reason?: string | null
+          geo_location?: string | null
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       installment_payments: {
         Row: {
           amount_cents: number
@@ -1692,10 +1785,19 @@ export type Database = {
           blocked: boolean | null
           calendar_id: string | null
           created_at: string | null
+          device_info: string | null
+          event_category: string | null
           event_data: Json | null
           event_type: string
+          geo_location: string | null
           id: string
           ip_address: unknown | null
+          new_value: Json | null
+          previous_value: Json | null
+          request_headers: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          risk_score: number | null
           severity: string | null
           user_agent: string | null
           user_id: string | null
@@ -1704,10 +1806,19 @@ export type Database = {
           blocked?: boolean | null
           calendar_id?: string | null
           created_at?: string | null
+          device_info?: string | null
+          event_category?: string | null
           event_data?: Json | null
           event_type: string
+          geo_location?: string | null
           id?: string
           ip_address?: unknown | null
+          new_value?: Json | null
+          previous_value?: Json | null
+          request_headers?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          risk_score?: number | null
           severity?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -1716,10 +1827,19 @@ export type Database = {
           blocked?: boolean | null
           calendar_id?: string | null
           created_at?: string | null
+          device_info?: string | null
+          event_category?: string | null
           event_data?: Json | null
           event_type?: string
+          geo_location?: string | null
           id?: string
           ip_address?: unknown | null
+          new_value?: Json | null
+          previous_value?: Json | null
+          request_headers?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          risk_score?: number | null
           severity?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -3960,6 +4080,10 @@ export type Database = {
               p_user_id: string
             }
         Returns: Json
+      }
+      archive_old_security_events: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       check_availability: {
         Args: {
