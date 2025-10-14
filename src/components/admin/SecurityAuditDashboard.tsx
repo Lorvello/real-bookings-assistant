@@ -47,13 +47,13 @@ export const SecurityAuditDashboard = () => {
   const suspiciousEvents = recentEvents?.filter(e => (e.risk_score || 0) > 50);
 
   // Most accessed resources
-  const resourceAccess = recentEvents
+  const resourceAccess: Record<string, number> = recentEvents
     ?.filter(e => e.event_category === 'data_access')
     .reduce((acc, event) => {
       const resource = event.resource_type || 'unknown';
       acc[resource] = (acc[resource] || 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<string, number>) || {};
 
   return (
     <div className="space-y-6 p-6">
@@ -143,7 +143,7 @@ export const SecurityAuditDashboard = () => {
                       </span>
                     </td>
                     <td className="p-2">{event.user_id?.substring(0, 8) || 'Anonymous'}</td>
-                    <td className="p-2">{event.ip_address || '-'}</td>
+                    <td className="p-2">{event.ip_address?.toString() || '-'}</td>
                     <td className="p-2">
                       <span className={`font-semibold ${
                         (event.risk_score || 0) > 70 ? 'text-red-600' :
@@ -168,13 +168,13 @@ export const SecurityAuditDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {Object.entries(resourceAccess || {})
-              .sort(([, a], [, b]) => b - a)
+            {Object.entries(resourceAccess)
+              .sort(([, a], [, b]) => (b as number) - (a as number))
               .slice(0, 5)
-              .map(([resource, count]) => (
-                <div key={String(resource)} className="flex justify-between items-center">
-                  <span className="font-medium">{String(resource)}</span>
-                  <span className="text-muted-foreground">{Number(count)} accesses</span>
+              .map(([resource, count]: [string, number]) => (
+                <div key={resource} className="flex justify-between items-center">
+                  <span className="font-medium">{resource}</span>
+                  <span className="text-muted-foreground">{count} accesses</span>
                 </div>
               ))}
           </div>
