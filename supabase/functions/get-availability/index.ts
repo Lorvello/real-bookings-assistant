@@ -1,14 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createPreflightResponse, createErrorResponse, getAllHeaders } from '../_shared/headers.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return createPreflightResponse(req);
   }
 
   try {
@@ -25,17 +21,11 @@ Deno.serve(async (req) => {
     const days = parseInt(url.searchParams.get('days') || '14');
 
     if (!calendarSlug) {
-      return new Response(
-        JSON.stringify({ error: 'calendarSlug is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return createErrorResponse(req, 'calendarSlug is required', 400);
     }
 
     if (days < 1 || days > 90) {
-      return new Response(
-        JSON.stringify({ error: 'days must be between 1 and 90' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return createErrorResponse(req, 'days must be between 1 and 90', 400);
     }
 
     // Rate limiting: 20 requests per minute per IP + calendar
@@ -50,7 +40,7 @@ Deno.serve(async (req) => {
     const rateLimitResult = await rateLimiter.checkLimit(ipAddress, calendarSlug);
 
     if (!rateLimitResult.allowed) {
-      return RateLimiter.createRateLimitResponse(rateLimitResult, corsHeaders);
+      return RateLimiter.createRateLimitResponse(rateLimitResult, getAllHeaders(req));
     }
 
     const { data, error } = await supabaseClient.rpc('get_business_available_slots', {
@@ -62,17 +52,14 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error('Availability query error:', error);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch availability' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return createErrorResponse(req, 'Failed to fetch availability', 500);
     }
 
     return new Response(
       JSON.stringify({ success: true, slots: data }),
       { 
         headers: { 
-          ...corsHeaders, 
+          ...getAllHeaders(req),
           ...RateLimiter.getRateLimitHeaders(rateLimitResult),
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=60'
@@ -82,9 +69,6 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Availability endpoint error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return createErrorResponse(req, 'Internal server error', 500);
   }
 });

@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { createSuccessResponse } from '../_shared/headers.ts';
 
 Deno.cron("Archive old security events", "0 2 * * *", async () => {
   const supabaseClient = createClient(
@@ -21,9 +22,8 @@ Deno.cron("Archive old security events", "0 2 * * *", async () => {
   }
 });
 
-Deno.serve(async () => {
-  return new Response(
-    JSON.stringify({ message: 'Archive security events cron job is running' }),
-    { headers: { 'Content-Type': 'application/json' } }
-  );
+Deno.serve(async (req) => {
+  return createSuccessResponse(req, { 
+    message: 'Archive security events cron job is running' 
+  });
 });

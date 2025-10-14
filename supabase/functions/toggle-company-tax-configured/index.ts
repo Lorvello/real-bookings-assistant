@@ -1,10 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createPreflightResponse, createErrorResponse, createSuccessResponse } from '../_shared/headers.ts'
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -13,7 +9,7 @@ const logStep = (step: string, details?: any) => {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return createPreflightResponse(req);
   }
 
   try {
@@ -67,30 +63,14 @@ serve(async (req) => {
       tax_configured: configured 
     });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        tax_configured: configured,
-        message: configured 
-          ? 'Tax configuration marked as complete' 
-          : 'Tax configuration marked as incomplete'
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
+    return createSuccessResponse(req, {
+      tax_configured: configured,
+      message: configured 
+        ? 'Tax configuration marked as complete' 
+        : 'Tax configuration marked as incomplete'
+    });
   } catch (error: any) {
     logStep("ERROR", { message: error.message });
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    )
+    return createErrorResponse(req, error.message, 500);
   }
 })
