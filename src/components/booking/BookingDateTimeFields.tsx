@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { format } from 'date-fns';
+import { format, isAfter, isBefore, startOfDay, addYears } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { BookingFormData } from './bookingSchema';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -10,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ProfessionalTimePicker } from '@/components/availability/ProfessionalTimePicker';
+import { useToast } from '@/hooks/use-toast';
+import { secureLogger } from '@/utils/secureLogger';
 import { cn } from '@/lib/utils';
 
 interface BookingDateTimeFieldsProps {
@@ -35,13 +36,58 @@ export function BookingDateTimeFields({
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
   const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleDateSelect = (date: Date | undefined, onChange: (date: Date | undefined) => void) => {
+    if (!date) return;
+    
+    // Validate future date
+    if (isBefore(date, startOfDay(new Date()))) {
+      toast({
+        title: "Ongeldige datum",
+        description: "Je kunt geen afspraak maken in het verleden.",
+        variant: "destructive"
+      });
+      secureLogger.security('Past date booking attempt', { 
+        date: date.toISOString(),
+        component: 'BookingDateTimeFields'
+      });
+      return;
+    }
+    
+    // Validate not too far in future (1 year)
+    const oneYearFromNow = addYears(new Date(), 1);
+    if (isAfter(date, oneYearFromNow)) {
+      toast({
+        title: "Datum te ver in de toekomst",
+        description: "Boekingen kunnen maximaal 1 jaar vooruit.",
+        variant: "destructive"
+      });
+      secureLogger.security('Far future date booking attempt', { 
+        date: date.toISOString(),
+        component: 'BookingDateTimeFields'
+      });
+      return;
+    }
+    
     onChange(date);
-    // Close the calendar with a small delay for smooth animation
     setTimeout(() => {
       setIsCalendarOpen(false);
     }, 150);
+  };
+
+  const handleTimeChange = (field: 'startTime' | 'endTime', value: string) => {
+    // Validate HH:mm format
+    if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) {
+      secureLogger.security('Invalid time format', { 
+        field, 
+        value,
+        component: 'BookingDateTimeFields'
+      });
+      return;
+    }
+    
+    onTimeChange(field, value);
   };
 
   return (
@@ -85,7 +131,7 @@ export function BookingDateTimeFields({
                   mode="single"
                   selected={field.value}
                   onSelect={(date) => handleDateSelect(date, field.onChange)}
-                  disabled={(date) => date < new Date("1900-01-01")}
+                  disabled={(date) => isBefore(date, startOfDay(new Date()))}
                   initialFocus
                   className="pointer-events-auto"
                 />
@@ -108,7 +154,7 @@ export function BookingDateTimeFields({
                 <FormControl>
                   <ProfessionalTimePicker
                     value={field.value || ''}
-                    onChange={(value) => onTimeChange('startTime', value)}
+                    onChange={(value) => handleTimeChange('startTime', value)}
                     isOpen={isStartTimePickerOpen}
                     onToggle={() => {
                       setIsStartTimePickerOpen(!isStartTimePickerOpen);
@@ -132,7 +178,7 @@ export function BookingDateTimeFields({
                   <div className={cn(autoUpdateEndTime && "opacity-50 pointer-events-none")}>
                     <ProfessionalTimePicker
                       value={field.value || ''}
-                      onChange={(value) => onTimeChange('endTime', value)}
+                      onChange={(value) => handleTimeChange('endTime', value)}
                       isOpen={isEndTimePickerOpen && !autoUpdateEndTime}
                       onToggle={() => {
                         if (!autoUpdateEndTime) {

@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { sanitizeUserInput } from '@/utils/inputSanitization';
+import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
 import { secureLogger } from '@/utils/secureLogger';
 import ProductionSecurity from '@/utils/productionSecurity';
 
@@ -31,46 +30,68 @@ export const usePublicBookingCreation = () => {
     setLoading(true);
     
     try {
-      // Sanitize all user inputs
-      const sanitizedData = {
-        ...bookingData,
-        customerName: sanitizeUserInput(bookingData.customerName, 'text'),
-        customerEmail: sanitizeUserInput(bookingData.customerEmail, 'email'),
-        customerPhone: bookingData.customerPhone ? sanitizeUserInput(bookingData.customerPhone, 'phone') : undefined,
-        notes: bookingData.notes ? sanitizeUserInput(bookingData.notes, 'text') : undefined
-      };
-
-      // Validate required fields
-      if (!sanitizedData.customerName || !sanitizedData.customerEmail) {
-        throw new Error('Name and email are required');
+      // Validate and sanitize name
+      const nameResult = sanitizeText(bookingData.customerName);
+      if (!nameResult.sanitized || nameResult.sanitized.length === 0) {
+        throw new Error('Naam is verplicht');
+      }
+      if (nameResult.sanitized.length > 100) {
+        throw new Error('Naam mag maximaal 100 tekens bevatten');
       }
 
-      // Email format validation
-      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-      if (!emailRegex.test(sanitizedData.customerEmail)) {
-        throw new Error('Please enter a valid email address');
+      // Validate email
+      const emailResult = validateEmail(bookingData.customerEmail);
+      if (!emailResult.valid) {
+        throw new Error(emailResult.errors[0] || 'Ongeldig email adres');
       }
+      
+      // Log suspicious patterns
+      if (emailResult.suspicious) {
+        secureLogger.security('Suspicious public booking email', {
+          calendarSlug: bookingData.calendarSlug,
+          patterns: emailResult.errors,
+          component: 'usePublicBookingCreation'
+        });
+      }
+
+      // Validate phone if provided
+      let sanitizedPhone: string | undefined = undefined;
+      if (bookingData.customerPhone) {
+        const phoneResult = validatePhoneNumber(bookingData.customerPhone);
+        if (!phoneResult.valid) {
+          throw new Error(phoneResult.errors[0] || 'Ongeldig telefoonnummer');
+        }
+        sanitizedPhone = phoneResult.value;
+      }
+
+      // Sanitize notes
+      const sanitizedNotes = bookingData.notes ? sanitizeText(bookingData.notes).sanitized : undefined;
 
       // Time validation
       const now = new Date();
-      if (sanitizedData.startTime <= now) {
-        throw new Error('Booking time must be in the future');
+      if (bookingData.startTime <= now) {
+        secureLogger.security('Past booking attempt', {
+          calendarSlug: bookingData.calendarSlug,
+          startTime: bookingData.startTime.toISOString(),
+          component: 'usePublicBookingCreation'
+        });
+        throw new Error('Boekingstijd moet in de toekomst liggen');
       }
 
-      if (sanitizedData.endTime <= sanitizedData.startTime) {
-        throw new Error('End time must be after start time');
+      if (bookingData.endTime <= bookingData.startTime) {
+        throw new Error('Eindtijd moet na starttijd liggen');
       }
 
       secureLogger.info('Creating secured public booking', { 
         component: 'usePublicBookingCreation',
-        calendarSlug: sanitizedData.calendarSlug
+        calendarSlug: bookingData.calendarSlug
       });
 
       // Get the calendar ID based on the slug
       const { data: calendar, error: calendarError } = await supabase
         .from('calendars')
         .select('id')
-        .eq('slug', sanitizedData.calendarSlug)
+        .eq('slug', bookingData.calendarSlug)
         .eq('is_active', true)
         .single();
 
@@ -78,40 +99,49 @@ export const usePublicBookingCreation = () => {
         secureLogger.error('Calendar lookup failed', calendarError, { 
           component: 'usePublicBookingCreation'
         });
-        throw new Error('Calendar not found or inactive');
+        throw new Error('Kalender niet gevonden of inactief');
       }
 
       // Validate booking security using database function
-      const { data: isValid } = await supabase.rpc('validate_booking_security', {
-        p_calendar_id: calendar.id,
-        p_service_type_id: sanitizedData.serviceTypeId,
-        p_start_time: sanitizedData.startTime.toISOString(),
-        p_end_time: sanitizedData.endTime.toISOString(),
-        p_customer_email: sanitizedData.customerEmail
+      const { data: validationResult, error: rpcError } = await supabase.rpc('validate_booking_security', {
+        p_calendar_slug: bookingData.calendarSlug,
+        p_service_type_id: bookingData.serviceTypeId,
+        p_start_time: bookingData.startTime.toISOString(),
+        p_end_time: bookingData.endTime.toISOString(),
+        p_customer_email: emailResult.value!
       });
 
-      if (!isValid) {
-        secureLogger.error('Booking security validation failed', null, { 
+      if (rpcError) {
+        secureLogger.error('RPC validation failed', rpcError, { 
           component: 'usePublicBookingCreation'
         });
-        throw new Error('Invalid booking parameters or time conflict detected');
+        throw new Error('Validatie mislukt');
+      }
+
+      if (validationResult && typeof validationResult === 'object' && 'valid' in validationResult && !validationResult.valid) {
+        const errors = (validationResult as any).errors || [];
+        secureLogger.error('Booking security validation failed', null, { 
+          component: 'usePublicBookingCreation',
+          errors
+        });
+        throw new Error(errors[0]?.message || 'Ongeldige boekingsparameters');
       }
 
       // Create the booking with sanitized data
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
-        .insert({
+        .insert([{
           calendar_id: calendar.id,
-          service_type_id: sanitizedData.serviceTypeId,
-          customer_name: sanitizedData.customerName,
-          customer_email: sanitizedData.customerEmail,
-          customer_phone: sanitizedData.customerPhone,
-          start_time: sanitizedData.startTime.toISOString(),
-          end_time: sanitizedData.endTime.toISOString(),
-          notes: sanitizedData.notes,
+          service_type_id: bookingData.serviceTypeId,
+          customer_name: nameResult.sanitized,
+          customer_email: emailResult.value!,
+          customer_phone: sanitizedPhone,
+          start_time: bookingData.startTime.toISOString(),
+          end_time: bookingData.endTime.toISOString(),
+          notes: sanitizedNotes,
           status: 'pending',
           confirmation_token: crypto.randomUUID()
-        })
+        }])
         .select()
         .single();
 
@@ -119,7 +149,7 @@ export const usePublicBookingCreation = () => {
         secureLogger.error('Booking creation failed', bookingError, { 
           component: 'usePublicBookingCreation'
         });
-        throw new Error(bookingError.message || 'Failed to create booking');
+        throw new Error(bookingError.message || 'Boeken mislukt');
       }
 
       // Log successful booking creation
@@ -129,8 +159,8 @@ export const usePublicBookingCreation = () => {
       });
 
       toast({
-        title: "Booking Created",
-        description: "Your booking has been created successfully.",
+        title: "Boeking aangemaakt",
+        description: "Je boeking is succesvol aangemaakt.",
       });
 
       return {
@@ -143,8 +173,8 @@ export const usePublicBookingCreation = () => {
       });
 
       toast({
-        title: "Booking Failed",
-        description: error.message || "Failed to create booking. Please try again.",
+        title: "Boeking mislukt",
+        description: error.message || "Boeken mislukt. Probeer het opnieuw.",
         variant: "destructive",
       });
 
