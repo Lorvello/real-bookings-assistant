@@ -58,7 +58,7 @@ export const useAuthOperations = () => {
         }
 
         return authData;
-      }, 2, 1000);
+      }, 2);
 
       if (result.needsVerification) {
         return { success: true, needsVerification: true };
@@ -140,7 +140,7 @@ export const useAuthOperations = () => {
         }
 
         return authData;
-      }, 2, 1000);
+      }, 2);
 
       if (!result.user) {
         throw new Error('Account could not be created');
@@ -218,7 +218,7 @@ export const useAuthOperations = () => {
           sessionStorage.removeItem('password-reset-requested');
           throw new Error(data.error || 'Failed to send reset email');
         }
-      }, 2, 1000);
+      }, 2);
 
       toast({
         title: "Reset Email Sent",
@@ -262,7 +262,7 @@ export const useAuthOperations = () => {
           }
           throw error;
         }
-      }, 2, 1000);
+      }, 2);
 
       toast({
         title: "Email Sent",

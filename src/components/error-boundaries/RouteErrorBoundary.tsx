@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
+import { ProductionErrorHandler } from '@/utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -24,7 +25,16 @@ export class RouteErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`Route Error (${this.props.routeName}):`, error, errorInfo);
+    // Route crashes are critical
+    ProductionErrorHandler.logError(error, {
+      component: 'RouteErrorBoundary',
+      action: 'route_crash',
+      url: window.location.href,
+      metadata: {
+        routeName: this.props.routeName,
+        componentStack: errorInfo.componentStack
+      }
+    }, 'critical');
   }
 
   private handleRetry = () => {

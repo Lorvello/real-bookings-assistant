@@ -17,7 +17,7 @@ export const useRetryableQuery = <T,>(
 
   return useQuery({
     queryKey,
-    queryFn: () => retryWithBackoff(queryFn, maxRetries, baseDelay),
+    queryFn: () => retryWithBackoff(queryFn, maxRetries),
     retry: (failureCount, error) => {
       const appError = handleError(error, `Query: ${queryKey.join('/')}`);
       return appError.retryable && failureCount < maxRetries;

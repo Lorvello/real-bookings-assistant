@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { ProductionErrorHandler } from '@/utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -23,7 +24,15 @@ export class ComponentErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`Component Error (${this.props.componentName}):`, error, errorInfo);
+    // Component errors are medium severity
+    ProductionErrorHandler.logError(error, {
+      component: this.props.componentName || 'ComponentErrorBoundary',
+      action: 'component_error',
+      url: window.location.href,
+      metadata: {
+        componentStack: errorInfo.componentStack
+      }
+    }, 'medium');
   }
 
   private handleReload = () => {

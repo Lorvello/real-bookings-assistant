@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { ProductionErrorHandler } from '@/utils/errorHandler';
 
 export interface AppError {
   type: 'network' | 'validation' | 'auth' | 'server' | 'unknown';
@@ -114,63 +114,48 @@ export const useErrorHandler = () => {
   }, []);
 
   const handleError = useCallback((error: any, context?: string) => {
-    const appError = parseError(error);
+    // Use new centralized handler
+    const result = ProductionErrorHandler.handleAPIError(error);
     
-    // Show user-friendly toast
+    // Show toast
     toast({
       title: "Fout",
-      description: appError.message,
+      description: result.userMessage,
       variant: "destructive",
     });
 
-    // Log error for debugging/monitoring
-    logError(appError, context);
+    // Log with appropriate severity
+    const severity = error?.status >= 500 ? 'high' : 'medium';
+    ProductionErrorHandler.logError(error, {
+      action: context,
+      url: window.location.href
+    }, severity);
 
-    return appError;
+    return parseError(error);
   }, [parseError, toast]);
 
   const logError = useCallback(async (error: AppError, context?: string) => {
-    try {
-      await supabase.rpc('log_error', {
-        p_calendar_id: null, // Could be populated based on context
-        p_error_type: error.type,
-        p_error_message: error.message,
-        p_error_context: {
-          context,
-          details: error.details,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          url: window.location.href
-        }
-      });
-    } catch (loggingError) {
-      console.error('Failed to log error:', loggingError);
-    }
+    // Logging is now handled by ProductionErrorHandler
+    ProductionErrorHandler.logError(error, {
+      action: context,
+      url: window.location.href
+    }, 'medium');
   }, []);
 
   const retryWithBackoff = useCallback(async (
     operation: () => Promise<any>,
-    maxAttempts: number = 3,
-    baseDelay: number = 1000
+    maxAttempts: number = 3
   ) => {
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        return await operation();
-      } catch (error) {
-        const appError = parseError(error);
-        
-        if (!appError.retryable || attempt === maxAttempts) {
-          throw error;
-        }
-
-        // Exponential backoff
-        const delay = baseDelay * Math.pow(2, attempt - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        console.log(`Retry attempt ${attempt}/${maxAttempts} after ${delay}ms`);
+    return ProductionErrorHandler.retryWithBackoff(operation, {
+      maxAttempts,
+      onRetry: (attempt) => {
+        toast({
+          title: "Opnieuw proberen...",
+          description: `Poging ${attempt}/${maxAttempts}`,
+        });
       }
-    }
-  }, [parseError]);
+    });
+  }, [toast]);
 
   return {
     handleError,

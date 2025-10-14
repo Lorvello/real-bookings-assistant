@@ -3,6 +3,7 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { ProductionErrorHandler } from '@/utils/errorHandler';
 
 interface Props {
   children: ReactNode;
@@ -29,26 +30,19 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error Boundary caught an error:', error, errorInfo);
     this.setState({ error, errorInfo });
     
-    // Log error to our backend if needed
-    this.logError(error, errorInfo);
+    // Use centralized error handler with high severity
+    ProductionErrorHandler.logError(error, {
+      component: 'ErrorBoundary',
+      action: 'component_crash',
+      url: window.location.href,
+      metadata: {
+        componentStack: errorInfo.componentStack
+      }
+    }, 'high');
   }
 
-  private logError = async (error: Error, errorInfo: ErrorInfo) => {
-    try {
-      // You could send this to your error logging service
-      console.error('Error logged:', {
-        message: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        timestamp: new Date().toISOString()
-      });
-    } catch (loggingError) {
-      console.error('Failed to log error:', loggingError);
-    }
-  };
 
   private handleRetry = () => {
     this.setState(prev => ({ 
