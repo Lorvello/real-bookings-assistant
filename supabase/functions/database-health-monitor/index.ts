@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-import { corsHeaders } from '../_shared/cors.ts';
+import { createPreflightResponse, getAllHeaders } from '../_shared/headers.ts';
 
 interface HealthMetric {
   metric_name: string;
@@ -11,7 +11,7 @@ interface HealthMetric {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return createPreflightResponse(req);
   }
 
   const supabase = createClient(
@@ -106,14 +106,14 @@ Deno.serve(async (req) => {
         metrics,
         alerts_triggered: criticalMetrics.length,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...getAllHeaders(req), 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Health check failed:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getAllHeaders(req), 'Content-Type': 'application/json' } }
     );
   }
 });
