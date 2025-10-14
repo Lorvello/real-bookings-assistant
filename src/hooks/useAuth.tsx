@@ -10,7 +10,6 @@ import { SessionManager } from '@/utils/sessionManager';
 import { SuspiciousLoginDetector } from '@/utils/suspiciousLoginDetector';
 import { checkPasswordExpiry } from '@/utils/passwordPolicy';
 import { SecurityLogger } from '@/utils/securityLogger';
-import { useNavigate } from 'react-router-dom';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -18,7 +17,6 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [deviceFingerprint, setDeviceFingerprint] = useState<DeviceFingerprint | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   // Initialize device fingerprinting on mount
   useEffect(() => {
@@ -268,7 +266,8 @@ export const useAuth = () => {
           description: "Your password has expired. Please change it now.",
           variant: "destructive",
         });
-        navigate('/reset-password?expired=true');
+        // Return expiry info so caller can handle navigation
+        return { data, error, passwordExpired: true };
       } else if (passwordCheck.daysUntilExpiry <= 7) {
         toast({
           title: "Password Expiring Soon",
@@ -290,7 +289,7 @@ export const useAuth = () => {
       });
       return { error: { message: 'An unexpected error occurred' } };
     }
-  }, [toast, deviceFingerprint, navigate]);
+  }, [toast, deviceFingerprint]);
 
   // Memoize return object to prevent unnecessary re-renders
   return useMemo(() => ({
