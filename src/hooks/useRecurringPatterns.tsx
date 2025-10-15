@@ -36,8 +36,8 @@ export const useRecurringPatterns = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching recurring patterns:', error);
       toast({
-        title: "Fout bij laden patronen",
-        description: "Kon terugkerende patronen niet laden",
+        title: "Error loading patterns",
+        description: "Could not load recurring patterns",
         variant: "destructive",
       });
     } finally {
@@ -68,16 +68,16 @@ export const useRecurringPatterns = (calendarId?: string) => {
       const newPattern = data as RecurringPattern;
       setPatterns(prev => [newPattern, ...prev]);
       toast({
-        title: "Patroon aangemaakt",
-        description: "Terugkerend beschikbaarheidspatroon succesvol aangemaakt",
+        title: "Pattern created",
+        description: "Recurring availability pattern created successfully",
       });
       
       return newPattern;
     } catch (error) {
       console.error('Error creating pattern:', error);
       toast({
-        title: "Fout bij aanmaken patroon",
-        description: "Kon patroon niet aanmaken",
+        title: "Error creating pattern",
+        description: "Could not create pattern",
         variant: "destructive",
       });
       throw error;
@@ -98,16 +98,16 @@ export const useRecurringPatterns = (calendarId?: string) => {
       const updatedPattern = data as RecurringPattern;
       setPatterns(prev => prev.map(p => p.id === id ? updatedPattern : p));
       toast({
-        title: "Patroon bijgewerkt",
-        description: "Terugkerend patroon succesvol bijgewerkt",
+        title: "Pattern updated",
+        description: "Recurring pattern updated successfully",
       });
       
       return updatedPattern;
     } catch (error) {
       console.error('Error updating pattern:', error);
       toast({
-        title: "Fout bij bijwerken patroon",
-        description: "Kon patroon niet bijwerken",
+        title: "Error updating pattern",
+        description: "Could not update pattern",
         variant: "destructive",
       });
       throw error;
@@ -125,14 +125,14 @@ export const useRecurringPatterns = (calendarId?: string) => {
       
       setPatterns(prev => prev.filter(p => p.id !== id));
       toast({
-        title: "Patroon verwijderd",
-        description: "Terugkerend patroon succesvol verwijderd",
+        title: "Pattern deleted",
+        description: "Recurring pattern deleted successfully",
       });
     } catch (error) {
       console.error('Error deleting pattern:', error);
       toast({
-        title: "Fout bij verwijderen patroon",
-        description: "Kon patroon niet verwijderen",
+        title: "Error deleting pattern",
+        description: "Could not delete pattern",
         variant: "destructive",
       });
       throw error;

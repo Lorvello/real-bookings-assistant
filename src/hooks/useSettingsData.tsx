@@ -165,23 +165,23 @@ export const useSettingsData = () => {
       if (error) {
         console.error('Error updating profile:', error);
         toast({
-          title: "Fout",
-          description: "Er is een fout opgetreden bij het opslaan van je profiel.",
+          title: "Error",
+          description: "An error occurred while saving your profile.",
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Succes",
-        description: "Je profiel is succesvol bijgewerkt!",
+        title: "Success",
+        description: "Your profile has been updated successfully!",
       });
 
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Fout",
-        description: "Er is een onverwachte fout opgetreden.",
+        title: "Error",
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
@@ -227,23 +227,23 @@ export const useSettingsData = () => {
       if (error) {
         console.error('Error updating business:', error);
         toast({
-          title: "Fout",
-          description: "Er is een fout opgetreden bij het opslaan van je bedrijfsgegevens.",
+          title: "Error",
+          description: "An error occurred while saving your business information.",
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Succes",
-        description: "Je bedrijfsgegevens zijn succesvol bijgewerkt!",
+        title: "Success",
+        description: "Your business information has been updated successfully!",
       });
 
     } catch (error) {
       console.error('Error updating business:', error);
       toast({
-        title: "Fout",
-        description: "Er is een onverwachte fout opgetreden.",
+        title: "Error",
+        description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {

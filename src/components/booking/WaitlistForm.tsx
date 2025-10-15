@@ -45,8 +45,8 @@ export const WaitlistForm = ({ calendarSlug, serviceTypeId, onSuccess }: Waitlis
     const rateLimit = checkWaitlistRateLimit('client');
     if (!rateLimit.allowed) {
       toast({
-        title: "Te veel aanvragen",
-        description: "Je hebt te vaak geprobeerd je aan te melden voor de wachtlijst.",
+        title: "Too many requests",
+        description: "You have tried to register for the waitlist too many times.",
         variant: "destructive"
       });
       return;
@@ -69,8 +69,8 @@ export const WaitlistForm = ({ calendarSlug, serviceTypeId, onSuccess }: Waitlis
       if (error) {
         if (error.status === 429) {
           toast({
-            title: "Limiet bereikt",
-            description: "Wacht even voordat je het opnieuw probeert.",
+            title: "Limit reached",
+            description: "Please wait before trying again.",
             variant: "destructive"
           });
           return;
@@ -79,16 +79,16 @@ export const WaitlistForm = ({ calendarSlug, serviceTypeId, onSuccess }: Waitlis
       }
 
       toast({
-        title: "Toegevoegd aan wachtlijst",
-        description: "We nemen contact met je op zodra er een plek beschikbaar is."
+        title: "Added to waitlist",
+        description: "We'll contact you when a spot becomes available."
       });
 
       form.reset();
       onSuccess?.();
     } catch (error: any) {
       toast({
-        title: "Fout",
-        description: error.message || "Er is iets misgegaan",
+        title: "Error",
+        description: error.message || "Something went wrong",
         variant: "destructive"
       });
     } finally {
@@ -157,7 +157,7 @@ export const WaitlistForm = ({ calendarSlug, serviceTypeId, onSuccess }: Waitlis
         />
 
         <Button type="submit" disabled={isSubmitting} className="w-full">
-          {isSubmitting ? 'Bezig...' : 'Toevoegen aan wachtlijst'}
+          {isSubmitting ? 'Processing...' : 'Add to waitlist'}
         </Button>
       </form>
     </Form>

@@ -88,21 +88,21 @@ export function WaitlistDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Clock className="h-5 w-5 mr-2" />
-            Wachtlijst voor {serviceName}
+            Waitlist for {serviceName}
           </DialogTitle>
           <DialogDescription>
-            Er zijn momenteel geen beschikbare tijden. Voeg jezelf toe aan de wachtlijst en we laten je weten zodra er een plek vrijkomt.
+            There are currently no available times. Add yourself to the waitlist and we'll let you know as soon as a spot opens up.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="customer_name">Naam *</Label>
+            <Label htmlFor="customer_name">Name *</Label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="customer_name"
-                placeholder="Vul je naam in"
+                placeholder="Enter your name"
                 value={formData.customer_name}
                 onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                 className="pl-10"
@@ -112,25 +112,25 @@ export function WaitlistDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="customer_email">E-mail (optioneel)</Label>
+            <Label htmlFor="customer_email">Email (optional)</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="customer_email"
                 type="email"
-                placeholder="je@email.com"
+                placeholder="you@email.com"
                 value={formData.customer_email}
                 onChange={(e) => setFormData({ ...formData, customer_email: e.target.value })}
                 className="pl-10"
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              Email is handig voor bevestigingen, maar niet verplicht
+              Email is useful for confirmations, but not required
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label>Gewenste datum *</Label>
+            <Label>Preferred date *</Label>
             <div className="border rounded-md p-3">
               <Calendar
                 mode="single"
@@ -149,16 +149,16 @@ export function WaitlistDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="flexibility">Flexibiliteit</Label>
+            <Label htmlFor="flexibility">Flexibility</Label>
             <Select value={formData.flexibility} onValueChange={(value) => setFormData({ ...formData, flexibility: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="anytime">Altijd beschikbaar</SelectItem>
-                <SelectItem value="morning">Alleen ochtend</SelectItem>
-                <SelectItem value="afternoon">Alleen middag</SelectItem>
-                <SelectItem value="specific">Specifieke tijd</SelectItem>
+                <SelectItem value="anytime">Always available</SelectItem>
+                <SelectItem value="morning">Morning only</SelectItem>
+                <SelectItem value="afternoon">Afternoon only</SelectItem>
+                <SelectItem value="specific">Specific time</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -166,7 +166,7 @@ export function WaitlistDialog({
           {formData.flexibility === 'specific' && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_time">Van tijd</Label>
+                <Label htmlFor="start_time">From time</Label>
                 <Input
                   id="start_time"
                   type="time"
@@ -175,7 +175,7 @@ export function WaitlistDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="end_time">Tot tijd</Label>
+                <Label htmlFor="end_time">To time</Label>
                 <Input
                   id="end_time"
                   type="time"
@@ -188,14 +188,14 @@ export function WaitlistDialog({
 
           <div className="flex space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Annuleren
+              Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={loading || !selectedDate || !formData.customer_name}
               className="flex-1"
             >
-              {loading ? 'Toevoegen...' : 'Aan wachtlijst toevoegen'}
+              {loading ? 'Adding...' : 'Add to waitlist'}
             </Button>
           </div>
         </form>

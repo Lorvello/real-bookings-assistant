@@ -31,8 +31,8 @@ export const useWaitlist = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching waitlist entries:', error);
       toast({
-        title: "Fout bij laden wachtlijst",
-        description: "Kon wachtlijst niet laden",
+        title: "Error loading waitlist",
+        description: "Could not load waitlist",
         variant: "destructive",
       });
     } finally {
@@ -68,16 +68,16 @@ export const useWaitlist = (calendarId?: string) => {
 
       if (!result.success) {
         toast({
-          title: "Fout bij toevoegen aan wachtlijst",
-          description: result.error || "Onbekende fout",
+          title: "Error adding to waitlist",
+          description: result.error || "Unknown error",
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Toegevoegd aan wachtlijst",
-        description: "Je bent succesvol toegevoegd aan de wachtlijst. Je krijgt bericht zodra er een plek vrijkomt.",
+        title: "Added to waitlist",
+        description: "You have been successfully added to the waitlist. You'll be notified when a spot opens up.",
       });
 
       await fetchWaitlistEntries();
@@ -85,8 +85,8 @@ export const useWaitlist = (calendarId?: string) => {
     } catch (error) {
       console.error('Error adding to waitlist:', error);
       toast({
-        title: "Fout bij toevoegen aan wachtlijst",
-        description: "Er is een onverwachte fout opgetreden",
+        title: "Error adding to waitlist",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       return false;
@@ -103,16 +103,16 @@ export const useWaitlist = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Verwijderd van wachtlijst",
-        description: "De wachtlijst entry is verwijderd",
+        title: "Removed from waitlist",
+        description: "The waitlist entry has been removed",
       });
 
       await fetchWaitlistEntries();
     } catch (error) {
       console.error('Error removing from waitlist:', error);
       toast({
-        title: "Fout bij verwijderen",
-        description: "Kon niet verwijderen van wachtlijst",
+        title: "Error deleting",
+        description: "Could not remove from waitlist",
         variant: "destructive",
       });
     }
@@ -128,16 +128,16 @@ export const useWaitlist = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Status bijgewerkt",
-        description: "Wachtlijst status is bijgewerkt",
+        title: "Status updated",
+        description: "Waitlist status has been updated",
       });
 
       await fetchWaitlistEntries();
     } catch (error) {
       console.error('Error updating waitlist status:', error);
       toast({
-        title: "Fout bij bijwerken",
-        description: "Kon status niet bijwerken",
+        title: "Error updating",
+        description: "Could not update status",
         variant: "destructive",
       });
     }

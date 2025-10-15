@@ -192,19 +192,19 @@ export function RecurringPatternsList({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Patroon verwijderen?</AlertDialogTitle>
+                       <AlertDialogTitle>Delete pattern?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Weet je zeker dat je "{pattern.pattern_name}" wilt verwijderen? 
-                        Deze actie kan niet ongedaan worden gemaakt.
+                        Are you sure you want to delete "{pattern.pattern_name}"? 
+                        This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => onDeletePattern(pattern.id)}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Verwijderen
+                        Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

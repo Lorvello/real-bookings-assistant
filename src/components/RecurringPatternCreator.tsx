@@ -194,7 +194,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
         return (
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium">Selecteer dagen</Label>
+              <Label className="text-sm font-medium">Select days</Label>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Button
@@ -216,7 +216,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
         return (
           <div className="space-y-6">
             <div>
-              <Label className="text-sm font-medium">Week 1 dagen</Label>
+              <Label className="text-sm font-medium">Week 1 days</Label>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Button
@@ -233,7 +233,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
             </div>
             
             <div>
-              <Label className="text-sm font-medium">Week 2 dagen</Label>
+              <Label className="text-sm font-medium">Week 2 days</Label>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Button
@@ -255,20 +255,20 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
         return (
           <div className="space-y-4">
             <div>
-              <Label className="text-sm font-medium">Voorkomend</Label>
+              <Label className="text-sm font-medium">Occurrence</Label>
               <Select value={monthlyOccurrence} onValueChange={(value: any) => setMonthlyOccurrence(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="first">Eerste week van de maand</SelectItem>
-                  <SelectItem value="last">Laatste week van de maand</SelectItem>
+                  <SelectItem value="first">First week of the month</SelectItem>
+                  <SelectItem value="last">Last week of the month</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div>
-              <Label className="text-sm font-medium">Selecteer dagen</Label>
+              <Label className="text-sm font-medium">Select days</Label>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Button
@@ -291,7 +291,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium">Van maand</Label>
+                <Label className="text-sm font-medium">From month</Label>
                 <Select value={startMonth.toString()} onValueChange={(value) => setStartMonth(parseInt(value))}>
                   <SelectTrigger>
                     <SelectValue />
@@ -307,7 +307,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
               </div>
               
               <div>
-                <Label className="text-sm font-medium">Tot maand</Label>
+                <Label className="text-sm font-medium">To month</Label>
                 <Select value={endMonth.toString()} onValueChange={(value) => setEndMonth(parseInt(value))}>
                   <SelectTrigger>
                     <SelectValue />
@@ -324,7 +324,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
             </div>
             
             <div>
-              <Label className="text-sm font-medium">Selecteer dagen</Label>
+              <Label className="text-sm font-medium">Select days</Label>
               <div className="grid grid-cols-4 gap-2 mt-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Button
@@ -362,27 +362,27 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary/90">
           <Plus className="h-4 w-4 mr-2" />
-          Nieuw Patroon
+          New Pattern
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Terugkerend Beschikbaarheidspatroon</DialogTitle>
+          <DialogTitle>Recurring Availability Pattern</DialogTitle>
           <DialogDescription>
-            Maak een terugkerend patroon voor je beschikbaarheid
+            Create a recurring pattern for your availability
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Pattern Type Selection */}
           <div>
-            <Label className="text-sm font-medium">Patroon Type</Label>
+            <Label className="text-sm font-medium">Pattern Type</Label>
             <div className="grid grid-cols-2 gap-3 mt-2">
               {[
-                { value: 'weekly', label: 'Wekelijks', desc: 'Elke week hetzelfde' },
-                { value: 'biweekly', label: 'Tweewekelijks', desc: 'Afwisselende weken' },
-                { value: 'monthly', label: 'Maandelijks', desc: 'Specifieke weken' },
-                { value: 'seasonal', label: 'Seizoensgebonden', desc: 'Bepaalde maanden' }
+                { value: 'weekly', label: 'Weekly', desc: 'Same every week' },
+                { value: 'biweekly', label: 'Biweekly', desc: 'Alternating weeks' },
+                { value: 'monthly', label: 'Monthly', desc: 'Specific weeks' },
+                { value: 'seasonal', label: 'Seasonal', desc: 'Certain months' }
               ].map((type) => (
                 <Card 
                   key={type.value}
@@ -408,12 +408,12 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
           {/* Basic Info */}
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <Label htmlFor="patternName">Patroon Naam</Label>
+              <Label htmlFor="patternName">Pattern Name</Label>
               <Input
                 id="patternName"
                 value={patternName}
                 onChange={(e) => setPatternName(e.target.value)}
-                placeholder="bijv. Zomer Schema, Weekend Shifts"
+                placeholder="e.g. Summer Schedule, Weekend Shifts"
               />
             </div>
           </div>
@@ -421,7 +421,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="startDate">Startdatum</Label>
+              <Label htmlFor="startDate">Start Date</Label>
               <Input
                 id="startDate"
                 type="date"
@@ -430,7 +430,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
               />
             </div>
             <div>
-              <Label htmlFor="endDate">Einddatum (optioneel)</Label>
+              <Label htmlFor="endDate">End Date (optional)</Label>
               <Input
                 id="endDate"
                 type="date"
@@ -446,10 +446,10 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
           {/* Time Slots */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <Label className="text-sm font-medium">Tijdsloten</Label>
+              <Label className="text-sm font-medium">Time slots</Label>
               <Button variant="outline" size="sm" onClick={addTimeSlot}>
                 <Plus className="h-3 w-3 mr-1" />
-                Toevoegen
+                Add
               </Button>
             </div>
             
@@ -462,7 +462,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
                     onChange={(e) => updateTimeSlot(index, 'start', e.target.value)}
                     className="w-28"
                   />
-                  <span className="text-sm text-muted-foreground">tot</span>
+                  <span className="text-sm text-muted-foreground">to</span>
                   <Input
                     type="time"
                     value={slot.end}
@@ -476,7 +476,7 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
                       onClick={() => removeTimeSlot(index)}
                       className="text-destructive"
                     >
-                      Verwijder
+                      Remove
                     </Button>
                   )}
                 </div>
@@ -487,10 +487,10 @@ export function RecurringPatternCreator({ onPatternCreate }: RecurringPatternCre
           {/* Actions */}
           <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Annuleren
+              Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={!patternName || !startDate}>
-              Patroon Aanmaken
+              Create Pattern
             </Button>
           </div>
         </div>

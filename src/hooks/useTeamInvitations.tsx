@@ -45,8 +45,8 @@ export const useTeamInvitations = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching invitations:', error);
       toast({
-        title: "Fout bij laden uitnodigingen",
-        description: "Kon uitnodigingen niet laden",
+        title: "Error loading invitations",
+        description: "Could not load invitations",
         variant: "destructive",
       });
     } finally {
@@ -64,16 +64,16 @@ export const useTeamInvitations = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Uitnodiging geannuleerd",
-        description: "De uitnodiging is succesvol geannuleerd",
+        title: "Invitation cancelled",
+        description: "The invitation has been successfully cancelled",
       });
 
       fetchInvitations();
     } catch (error) {
       console.error('Error cancelling invitation:', error);
       toast({
-        title: "Fout bij annuleren",
-        description: "Kon uitnodiging niet annuleren",
+        title: "Error cancelling",
+        description: "Could not cancel invitation",
         variant: "destructive",
       });
     }
@@ -107,16 +107,16 @@ export const useTeamInvitations = (calendarId?: string) => {
       }
 
       toast({
-        title: "Uitnodiging opnieuw verzonden! 📧",
-        description: `Een nieuwe uitnodiging is verzonden naar ${invitation.email}`,
+        title: "Invitation resent! 📧",
+        description: `A new invitation has been sent to ${invitation.email}`,
       });
 
       fetchInvitations();
     } catch (error: any) {
       console.error('Error resending invitation:', error);
       toast({
-        title: "Fout bij opnieuw verzenden",
-        description: error.message || "Kon uitnodiging niet opnieuw verzenden",
+        title: "Error resending",
+        description: error.message || "Could not resend invitation",
         variant: "destructive",
       });
     }

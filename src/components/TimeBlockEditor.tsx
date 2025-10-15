@@ -88,10 +88,10 @@ export function TimeBlockEditor({
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center">
             <Clock className="h-5 w-5 mr-2" />
-            {dayLabel} - Tijdblokken Bewerken
+            {dayLabel} - Edit Time Blocks
           </DialogTitle>
           <DialogDescription>
-            Voeg meerdere tijdblokken toe voor deze dag. Sleep om te herordenen.
+            Add multiple time blocks for this day. Drag to reorder.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,18 +106,18 @@ export function TimeBlockEditor({
         {/* Actions */}
         <div className="flex justify-end space-x-2 pt-4 border-t border-border">
           <Button variant="outline" onClick={onClose}>
-            Annuleren
+            Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <div className="w-4 h-4 bg-current rounded-full animate-spin mr-2" />
-                Opslaan...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Opslaan
+                Save
               </>
             )}
           </Button>

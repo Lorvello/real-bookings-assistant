@@ -37,8 +37,8 @@ export const usePublicWaitlist = () => {
 
       if (!result.success) {
         toast({
-          title: "Kon niet toevoegen aan wachtlijst",
-          description: result.error || "Onbekende fout",
+          title: "Could not add to waitlist",
+          description: result.error || "Unknown error",
           variant: "destructive",
         });
         setLoading(false);
@@ -46,8 +46,8 @@ export const usePublicWaitlist = () => {
       }
 
       toast({
-        title: "Toegevoegd aan wachtlijst!",
-        description: "Je bent succesvol toegevoegd aan de wachtlijst. Je krijgt bericht zodra er een plek vrijkomt.",
+        title: "Added to waitlist!",
+        description: "You have been successfully added to the waitlist. You'll be notified when a spot opens up.",
       });
 
       setLoading(false);
@@ -55,12 +55,12 @@ export const usePublicWaitlist = () => {
     } catch (error) {
       console.error('Error joining waitlist:', error);
       toast({
-        title: "Fout bij toevoegen aan wachtlijst",
-        description: "Er is een onverwachte fout opgetreden",
+        title: "Error adding to waitlist",
+        description: "An unexpected error occurred",
         variant: "destructive",
       });
       setLoading(false);
-      return { success: false, error: 'Onverwachte fout' };
+      return { success: false, error: 'Unexpected error' };
     }
   };
 

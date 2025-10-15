@@ -88,7 +88,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
           {/* Left Side - Calendar & Slots */}
           <div className="space-y-6">
             <div className="bg-background-secondary rounded-lg p-6 border border-border">
-              <h3 className="text-lg font-medium text-foreground mb-4">Selecteer een service</h3>
+              <h3 className="text-lg font-medium text-foreground mb-4">Select a service</h3>
               
               {servicesLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -136,7 +136,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
 
             {selectedServiceType && (
               <div className="bg-background-secondary rounded-lg p-6 border border-border">
-                <h3 className="text-lg font-medium text-foreground mb-4">Selecteer een datum</h3>
+                <h3 className="text-lg font-medium text-foreground mb-4">Select a date</h3>
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -186,7 +186,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                           className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
                         >
                           <Clock className="h-4 w-4 mr-2" />
-                          Aan wachtlijst toevoegen
+                          Add to waitlist
                         </Button>
                       </div>
                     )}
@@ -239,7 +239,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <User className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                  <p>Selecteer een service, datum en tijd om verder te gaan</p>
+                  <p>Select a service, date and time to continue</p>
                 </div>
               )}
             </div>
@@ -253,7 +253,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                     <Label htmlFor="name">Naam *</Label>
                     <Input
                       id="name"
-                      placeholder="Vul je naam in"
+                      placeholder="Enter your name"
                       value={customerForm.name}
                       onChange={(e) => setCustomerForm({ ...customerForm, name: e.target.value })}
                       className="bg-input border-border"
