@@ -14,11 +14,32 @@ const MAX_REQUESTS_PER_WINDOW = 100;
 const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'your_verify_token';
 const APP_SECRET = Deno.env.get('WHATSAPP_APP_SECRET');
 
+// Critical security check on initialization
+if (!APP_SECRET) {
+  console.error(`
+╔════════════════════════════════════════════════════════════╗
+║  🚨 CRITICAL SECURITY WARNING                              ║
+║  WHATSAPP_APP_SECRET is NOT configured!                    ║
+║  All webhook requests will be REJECTED until configured.   ║
+║                                                             ║
+║  Configure in Supabase Dashboard:                          ║
+║  Settings → Edge Functions → Add Secret:                   ║
+║  Name: WHATSAPP_APP_SECRET                                 ║
+║  Value: [Your WhatsApp App Secret from Meta Dashboard]     ║
+╚════════════════════════════════════════════════════════════╝
+  `);
+}
+
 // Helper: Validate WhatsApp signature
 async function validateSignature(payload: string, signature: string | null): Promise<boolean> {
-  if (!APP_SECRET || !signature) {
-    console.warn('Signature validation skipped: missing APP_SECRET or signature header');
-    return true; // Allow if not configured yet
+  if (!APP_SECRET) {
+    console.error('🚨 WHATSAPP_APP_SECRET not configured - rejecting webhook');
+    return false; // FAIL SECURE
+  }
+
+  if (!signature) {
+    console.error('❌ Missing X-Hub-Signature-256 header');
+    return false; // FAIL SECURE
   }
 
   try {
@@ -186,21 +207,52 @@ serve(async (req) => {
       
       const isValidSignature = await validateSignature(rawBody, signature);
       if (!isValidSignature) {
-        console.error('Invalid webhook signature');
+        console.error('🚨 WEBHOOK SIGNATURE VALIDATION FAILED', {
+          has_signature: !!signature,
+          has_app_secret: !!APP_SECRET,
+          ip: ipAddress
+        });
+        
         await logSecurityEvent(
           supabaseClient,
           'invalid_signature',
           'critical',
-          { signature_provided: !!signature },
+          { 
+            signature_provided: !!signature,
+            app_secret_configured: !!APP_SECRET,
+            payload_size: rawBody.length,
+            ip_address: ipAddress,
+            timestamp: new Date().toISOString()
+          },
           ipAddress
         );
-        return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+        
+        return new Response(JSON.stringify({ 
+          error: 'Forbidden',
+          message: 'Webhook signature validation failed'
+        }), {
           status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-Webhook-Status': 'signature_invalid'
+          },
         });
       }
 
       const payload = JSON.parse(rawBody);
+      
+      // Log successful signature validation
+      await logSecurityEvent(
+        supabaseClient,
+        'signature_validated',
+        'info',
+        { 
+          payload_size: rawBody.length,
+          ip_address: ipAddress
+        },
+        ipAddress
+      );
       
       // 2. Rate limiting
       const businessPhoneId = payload.entry?.[0]?.changes?.[0]?.value?.metadata?.phone_number_id || 'unknown';
