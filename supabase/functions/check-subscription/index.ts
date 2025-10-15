@@ -178,33 +178,48 @@ serve(async (req) => {
         logStep("Checking metadata for tier", { metadata: subscription.metadata, tier: subscriptionTier });
 
         if (!subscriptionTier || subscriptionTier === 'unknown') {
-          // Fallback: determine from price if metadata not available
+          // Fallback: query database to map price ID to tier
           const priceId = subscription.items.data[0].price.id;
-          logStep("Determining tier from price", { priceId });
+          logStep("Determining tier from price ID", { priceId });
 
-          const price = await stripe.prices.retrieve(priceId);
-          const amount = price.unit_amount || 0;
-
-          logStep("Price details", { amount, currency: price.currency, nickname: price.nickname });
-
-          // Map specific price IDs to tiers (based on your Stripe prices)
-          if (priceId === 'price_1RqwecLcBboIITXgsuyzCCcU' || priceId === 'price_1RqwcuLcBboIITXgCew589Ao') {
-            subscriptionTier = 'professional';
-          } else if (priceId === 'price_1RqwcHLcBboIITXgYhJupraj' || priceId === 'price_1RqwdWLcBboIITXgMHKmGtbv') {
-            subscriptionTier = 'starter';
+          // Query subscription_tiers table for price ID mapping
+          const { data: tiers, error: tierError } = await supabaseClient
+            .from('subscription_tiers')
+            .select('tier_name, stripe_test_monthly_price_id, stripe_test_yearly_price_id, stripe_live_monthly_price_id, stripe_live_yearly_price_id');
+          
+          if (tierError) {
+            logStep("Error fetching subscription tiers", { error: tierError });
+            subscriptionTier = 'starter'; // Safe fallback
           } else {
-            // Fallback to price-based determination
-            const centAmount = amount;
-            if (centAmount <= 2000) {
-              subscriptionTier = 'starter';
-            } else if (centAmount <= 5000) {
-              subscriptionTier = 'professional';
+            // Find matching tier by price ID (supports test and live modes)
+            const matchingTier = tiers.find(t => 
+              t.stripe_test_monthly_price_id === priceId ||
+              t.stripe_test_yearly_price_id === priceId ||
+              t.stripe_live_monthly_price_id === priceId ||
+              t.stripe_live_yearly_price_id === priceId
+            );
+            
+            if (matchingTier) {
+              subscriptionTier = matchingTier.tier_name;
+              logStep("Mapped price ID to tier from database", { priceId, tier: subscriptionTier });
             } else {
-              subscriptionTier = 'enterprise';
+              // Final fallback: price-based determination
+              const price = await stripe.prices.retrieve(priceId);
+              const amount = price.unit_amount || 0;
+              logStep("Unknown price ID, using amount-based fallback", { priceId, amount, currency: price.currency });
+              
+              const centAmount = amount;
+              if (centAmount <= 3000) {
+                subscriptionTier = 'starter';
+              } else if (centAmount <= 6000) {
+                subscriptionTier = 'professional';
+              } else {
+                subscriptionTier = 'enterprise';
+              }
+              
+              logStep("⚠️ Unknown price ID detected", { priceId, tier: subscriptionTier, amount: centAmount });
             }
           }
-
-          logStep("Tier determined from price", { centAmount: amount, priceId, tier: subscriptionTier });
         } else {
           logStep("Tier found in metadata", { tier: subscriptionTier });
         }
