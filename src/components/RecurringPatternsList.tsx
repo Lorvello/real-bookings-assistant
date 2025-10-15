@@ -129,10 +129,10 @@ export function RecurringPatternsList({
           <div className="text-center">
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h3 className="text-lg font-medium text-foreground mb-2">
-              Nog geen terugkerende patronen
+              No recurring patterns yet
             </h3>
             <p className="text-muted-foreground">
-              Maak een terugkerend beschikbaarheidspatroon om je planning te automatiseren
+              Create a recurring availability pattern to automate your scheduling
             </p>
           </div>
         </CardContent>
@@ -162,12 +162,12 @@ export function RecurringPatternsList({
                     {pattern.is_active ? (
                       <Badge className="text-xs bg-green-100 text-green-800">
                         <Play className="h-3 w-3 mr-1" />
-                        Actief
+                        Active
                       </Badge>
                     ) : (
                       <Badge variant="secondary" className="text-xs">
                         <Pause className="h-3 w-3 mr-1" />
-                        Gepauzeerd
+                        Paused
                       </Badge>
                     )}
                   </div>
@@ -225,11 +225,11 @@ export function RecurringPatternsList({
                 </span>
                 {pattern.end_date && (
                   <span>
-                    Eind: {format(new Date(pattern.end_date), 'd MMM yyyy', { locale: nl })}
+                    End: {format(new Date(pattern.end_date), 'd MMM yyyy', { locale: nl })}
                   </span>
                 )}
                 <span>
-                  Aangemaakt: {format(new Date(pattern.created_at), 'd MMM yyyy', { locale: nl })}
+                  Created: {format(new Date(pattern.created_at), 'd MMM yyyy', { locale: nl })}
                 </span>
               </div>
             </div>

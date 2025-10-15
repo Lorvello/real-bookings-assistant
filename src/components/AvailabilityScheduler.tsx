@@ -92,7 +92,7 @@ export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps
         <div className="flex items-center justify-between">
           <CardTitle className="text-foreground flex items-center">
             <Calendar className="h-5 w-5 mr-2" />
-            Beschikbaarheid Schema
+            Availability Schedule
           </CardTitle>
           
           <div className="flex items-center space-x-2">
@@ -114,9 +114,9 @@ export function AvailabilityScheduler({ calendarId }: AvailabilitySchedulerProps
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 bg-muted">
-            <TabsTrigger value="visual">Visuele Planner</TabsTrigger>
+            <TabsTrigger value="visual">Visual Planner</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="bulk">Bulk Bewerken</TabsTrigger>
+            <TabsTrigger value="bulk">Bulk Edit</TabsTrigger>
           </TabsList>
 
           <TabsContent value="visual" className="space-y-6">

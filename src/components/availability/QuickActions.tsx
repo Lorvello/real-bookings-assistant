@@ -31,7 +31,7 @@ export function QuickActions({
           onClick={onFullWeekSchedule}
           className="border-border"
         >
-          Alle dagen 8:00-18:00
+          All days 8:00-18:00
         </Button>
         
         <Button
@@ -40,7 +40,7 @@ export function QuickActions({
           onClick={onCloseAllDays}
           className="border-border"
         >
-          Alle dagen sluiten
+          Close all days
         </Button>
       </div>
     </div>

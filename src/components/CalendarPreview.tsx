@@ -204,7 +204,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
           {/* Right Side - Booking Form */}
           <div className="space-y-6">
             <div className="bg-background-secondary rounded-lg p-6 border border-border">
-              <h3 className="text-lg font-medium text-foreground mb-4">Booking Overzicht</h3>
+              <h3 className="text-lg font-medium text-foreground mb-4">Booking Overview</h3>
               
               {selectedService && selectedDate && selectedSlotData ? (
                 <div className="space-y-4">
@@ -233,7 +233,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
 
                   <Badge variant="outline" className="w-fit">
                     <CheckCircle className="h-3 w-3 mr-1" />
-                    Beschikbaar
+                    Available
                   </Badge>
                 </div>
               ) : (
@@ -246,7 +246,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
 
             {selectedSlot && (
               <div className="bg-background-secondary rounded-lg p-6 border border-border">
-                <h3 className="text-lg font-medium text-foreground mb-4">Jouw gegevens</h3>
+                <h3 className="text-lg font-medium text-foreground mb-4">Your information</h3>
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -285,10 +285,10 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Opmerkingen (optioneel)</Label>
+                    <Label htmlFor="notes">Notes (optional)</Label>
                     <Textarea
                       id="notes"
-                      placeholder="Eventuele opmerkingen of speciale wensen..."
+                      placeholder="Any notes or special requests..."
                       value={customerForm.notes}
                       onChange={(e) => setCustomerForm({ ...customerForm, notes: e.target.value })}
                       className="bg-input border-border"
@@ -300,11 +300,11 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     disabled={!customerForm.name || !customerForm.email}
                   >
-                    Afspraak Bevestigen
+                    Confirm Appointment
                   </Button>
 
                   <p className="text-xs text-muted-foreground text-center">
-                    Je ontvangt een bevestiging via e-mail
+                    You'll receive a confirmation via email
                   </p>
                 </div>
               </div>

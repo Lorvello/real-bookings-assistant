@@ -28,51 +28,51 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium text-foreground">Buffer Tijden</h3>
+          <h3 className="text-lg font-medium text-foreground">Buffer Times</h3>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="bufferBefore">Voor de afspraak</Label>
+            <Label htmlFor="bufferBefore">Before appointment</Label>
             <Select 
               value={settings?.buffer_before?.toString() || '0'}
               onValueChange={(value) => updateSetting('buffer_before', parseInt(value))}
             >
               <SelectTrigger className="bg-background border-border">
-                <SelectValue placeholder="Selecteer buffertijd" />
+                <SelectValue placeholder="Select buffer time" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="0">Geen buffertijd</SelectItem>
-                <SelectItem value="5">5 minuten</SelectItem>
-                <SelectItem value="10">10 minuten</SelectItem>
-                <SelectItem value="15">15 minuten</SelectItem>
-                <SelectItem value="30">30 minuten</SelectItem>
+                <SelectItem value="0">No buffer time</SelectItem>
+                <SelectItem value="5">5 minutes</SelectItem>
+                <SelectItem value="10">10 minutes</SelectItem>
+                <SelectItem value="15">15 minutes</SelectItem>
+                <SelectItem value="30">30 minutes</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Tijd voor voorbereiding tussen afspraken
+              Time for preparation between appointments
             </p>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="bufferAfter">Na de afspraak</Label>
+            <Label htmlFor="bufferAfter">After appointment</Label>
             <Select 
               value={settings?.buffer_after?.toString() || '0'}
               onValueChange={(value) => updateSetting('buffer_after', parseInt(value))}
             >
               <SelectTrigger className="bg-background border-border">
-                <SelectValue placeholder="Selecteer buffertijd" />
+                <SelectValue placeholder="Select buffer time" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="0">Geen buffertijd</SelectItem>
-                <SelectItem value="5">5 minuten</SelectItem>
-                <SelectItem value="10">10 minuten</SelectItem>
-                <SelectItem value="15">15 minuten</SelectItem>
-                <SelectItem value="30">30 minuten</SelectItem>
+                <SelectItem value="0">No buffer time</SelectItem>
+                <SelectItem value="5">5 minutes</SelectItem>
+                <SelectItem value="10">10 minutes</SelectItem>
+                <SelectItem value="15">15 minutes</SelectItem>
+                <SelectItem value="30">30 minutes</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Tijd voor afronden na afspraken
+              Time for wrapping up after appointments
             </p>
           </div>
         </div>
@@ -84,7 +84,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium text-foreground">Boekingsbeperkingen</h3>
+          <h3 className="text-lg font-medium text-foreground">Booking Constraints</h3>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -107,14 +107,14 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  <SelectItem value="minutes">Minuten</SelectItem>
-                  <SelectItem value="hours">Uren</SelectItem>
-                  <SelectItem value="days">Dagen</SelectItem>
+                  <SelectItem value="minutes">Minutes</SelectItem>
+                  <SelectItem value="hours">Hours</SelectItem>
+                  <SelectItem value="days">Days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <p className="text-xs text-muted-foreground">
-              Minimale tijd voordat een afspraak geboekt kan worden
+              Minimum time before an appointment can be booked
             </p>
           </div>
           
@@ -125,17 +125,17 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
               onValueChange={(value) => updateSetting('slot_type', value)}
             >
               <SelectTrigger className="bg-background border-border">
-                <SelectValue placeholder="Selecteer slot type" />
+                <SelectValue placeholder="Select slot type" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="fixed">Vaste lengtes (30 min)</SelectItem>
-                <SelectItem value="15min">15 minuten intervals</SelectItem>
-                <SelectItem value="60min">60 minuten intervals</SelectItem>
-                <SelectItem value="dynamic">Dynamisch per event</SelectItem>
+                <SelectItem value="fixed">Fixed lengths (30 min)</SelectItem>
+                <SelectItem value="15min">15 minute intervals</SelectItem>
+                <SelectItem value="60min">60 minute intervals</SelectItem>
+                <SelectItem value="dynamic">Dynamic per event</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Hoe tijdslots worden berekend en getoond
+              How time slots are calculated and displayed
             </p>
           </div>
         </div>
@@ -147,7 +147,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-medium text-foreground">Geavanceerde Opties</h3>
+          <h3 className="text-lg font-medium text-foreground">Advanced Options</h3>
         </div>
         
         <div className="space-y-6">
@@ -158,7 +158,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                 <Badge variant="secondary" className="text-xs">Pro</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Beperk hoe vaak klanten per dag/week kunnen boeken
+                Limit how often customers can book per day/week
               </p>
             </div>
             <Switch
@@ -174,7 +174,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                 <Badge variant="outline" className="text-xs">Focus</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Toon alleen het eerste beschikbare tijdslot van elke dag
+                Show only the first available time slot of each day
               </p>
             </div>
             <Switch
@@ -190,7 +190,7 @@ export const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({
                 <Badge variant="secondary" className="text-xs">Time</Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                Stel een maximum in voor totale geboekte tijd per periode
+                Set a maximum for total booked time per period
               </p>
             </div>
             <Switch
