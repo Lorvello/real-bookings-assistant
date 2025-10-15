@@ -302,6 +302,11 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         statusMessage = 'Trial Expired. Upgrade Now';
         statusColor = 'red';
         break;
+      case 'missed_payment_grace':
+        userType = 'missed_payment';
+        statusMessage = 'Payment Issue - Grace Period Active';
+        statusColor = 'yellow';
+        break;
       case 'missed_payment':
         userType = 'missed_payment';
         statusMessage = 'Payment Issue - Update Payment Method';
