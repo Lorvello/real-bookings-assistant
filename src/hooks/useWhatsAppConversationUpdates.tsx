@@ -34,10 +34,10 @@ export function useWhatsAppConversationUpdates(calendarId?: string) {
           
           // Show toast for newly linked conversations
           if (payload.old.calendar_id === null && payload.new.calendar_id) {
-            toast({
-              title: "Gesprek gekoppeld",
-              description: "Een WhatsApp gesprek is automatisch gekoppeld aan een afspraak",
-            });
+          toast({
+            title: "Conversation Linked",
+            description: "A WhatsApp conversation was automatically linked to an appointment",
+          });
           }
         }
       )
@@ -65,8 +65,8 @@ export function useWhatsAppConversationUpdates(calendarId?: string) {
             queryClient.invalidateQueries({ queryKey: ['whatsapp-contact-overview'] });
             
             toast({
-              title: "Automatische koppeling",
-              description: "WhatsApp gesprek gekoppeld aan nieuwe afspraak",
+              title: "Automatic Linking",
+              description: "WhatsApp conversation linked to new appointment",
             });
           }
         }
