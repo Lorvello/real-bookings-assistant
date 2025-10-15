@@ -24,33 +24,33 @@ export const BusinessInfoStep: React.FC<BusinessInfoStepProps> = ({ data, update
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Bedrijfsinformatie
+          Business Information
         </h3>
         <p className="text-gray-600">
-          Vertel ons over je bedrijf zodat klanten je kunnen vinden
+          Tell us about your business so customers can find you
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2 space-y-2">
-          <Label htmlFor="businessName">Bedrijfsnaam *</Label>
+          <Label htmlFor="businessName">Business Name *</Label>
           <Input
             id="businessName"
             type="text"
             value={data.businessName}
             onChange={(e) => updateData({ businessName: e.target.value })}
-            placeholder="Naam van je bedrijf"
+            placeholder="Your business name"
             className="h-12"
           />
         </div>
 
         <div className="md:col-span-2 space-y-2">
-          <Label htmlFor="businessType">Type Bedrijf *</Label>
+          <Label htmlFor="businessType">Business Type *</Label>
           <Select
             value={businessTypes.find(type => type.value === data.businessType)}
             onChange={(option) => updateData({ businessType: option?.value || '' })}
             options={businessTypes}
-            placeholder="Selecteer je bedrijfstype..."
+            placeholder="Select your business type..."
             isSearchable
             className="react-select-container"
             classNamePrefix="react-select"
@@ -73,33 +73,33 @@ export const BusinessInfoStep: React.FC<BusinessInfoStepProps> = ({ data, update
         </div>
 
         <div className="md:col-span-2 space-y-2">
-          <Label htmlFor="businessEmail">Bedrijfs E-mailadres *</Label>
+          <Label htmlFor="businessEmail">Business Email Address *</Label>
           <Input
             id="businessEmail"
             type="email"
             value={data.businessEmail}
             onChange={(e) => updateData({ businessEmail: e.target.value })}
-            placeholder="contact@jebedrijf.nl"
+            placeholder="contact@yourbusiness.com"
             className="h-12"
           />
         </div>
 
         <div className="md:col-span-2 mt-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Bedrijfsadres</h4>
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Business Address</h4>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-3 space-y-2">
-              <Label htmlFor="street">Straatnaam</Label>
+              <Label htmlFor="street">Street Name</Label>
               <Input
                 id="street"
                 type="text"
                 value={data.businessAddress.street}
                 onChange={(e) => updateAddress('street', e.target.value)}
-                placeholder="Hoofdstraat"
+                placeholder="Main Street"
                 className="h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="number">Nummer</Label>
+              <Label htmlFor="number">Number</Label>
               <Input
                 id="number"
                 type="text"
@@ -110,7 +110,7 @@ export const BusinessInfoStep: React.FC<BusinessInfoStepProps> = ({ data, update
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="postal">Postcode</Label>
+              <Label htmlFor="postal">Postal Code</Label>
               <Input
                 id="postal"
                 type="text"
@@ -121,18 +121,18 @@ export const BusinessInfoStep: React.FC<BusinessInfoStepProps> = ({ data, update
               />
             </div>
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="city">Plaats</Label>
+              <Label htmlFor="city">City</Label>
               <Input
                 id="city"
                 type="text"
                 value={data.businessAddress.city}
                 onChange={(e) => updateAddress('city', e.target.value)}
-                placeholder="Amsterdam"
+                placeholder="City name"
                 className="h-12"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="country">Land</Label>
+              <Label htmlFor="country">Country</Label>
               <Input
                 id="country"
                 type="text"
