@@ -66,7 +66,7 @@ export const Pricing = () => {
           tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
         },
         {
-          text: "Advanced team collaboration suite (2-10 users)",
+          text: "Advanced team collaboration suite (up to 10 users)",
           tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
         },
         {

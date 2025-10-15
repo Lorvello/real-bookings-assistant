@@ -109,7 +109,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
             tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
           },
           {
-            text: "Advanced team collaboration suite (3+ users)",
+            text: "Advanced team collaboration suite (up to 10 users)",
             tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
           },
           {
