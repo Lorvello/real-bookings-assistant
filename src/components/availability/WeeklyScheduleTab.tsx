@@ -10,7 +10,7 @@ interface WeeklyScheduleTabProps {
   loading: boolean;
 }
 
-const dayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export function WeeklyScheduleTab({ 
   calendarId, 
@@ -37,7 +37,7 @@ export function WeeklyScheduleTab({
     <div className="h-full overflow-y-auto">
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-foreground">Werkschema</h3>
+          <h3 className="text-sm font-medium text-foreground">Work Schedule</h3>
           <button className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
             <Settings className="h-3 w-3" />
             Template

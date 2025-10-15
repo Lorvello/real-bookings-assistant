@@ -32,8 +32,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
   const validateForm = (): boolean => {
     if (!date) {
       toast({
-        title: "Datum vereist",
-        description: "Selecteer een datum voor de uitzondering.",
+        title: "Date required",
+        description: "Please select a date for the override.",
         variant: "destructive",
       });
       return false;
@@ -45,8 +45,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
     
     if (selectedDate < today) {
       toast({
-        title: "Ongeldige datum",
-        description: "Datum kan niet in het verleden liggen.",
+        title: "Invalid date",
+        description: "Date cannot be in the past.",
         variant: "destructive",
       });
       return false;
@@ -54,8 +54,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
 
     if (type === 'closed' && !reason.trim()) {
       toast({
-        title: "Reden vereist",
-        description: "Geef een reden op waarom je niet beschikbaar bent.",
+        title: "Reason required",
+        description: "Please provide a reason why you're unavailable.",
         variant: "destructive",
       });
       return false;
@@ -63,8 +63,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
 
     if (type === 'custom' && startTime >= endTime) {
       toast({
-        title: "Ongeldige tijden",
-        description: "Eindtijd moet na starttijd zijn.",
+        title: "Invalid times",
+        description: "End time must be after start time.",
         variant: "destructive",
       });
       return false;
@@ -90,8 +90,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
       });
 
       toast({
-        title: "Uitzondering toegevoegd",
-        description: `${type === 'closed' ? 'Gesloten dag' : 'Aangepaste tijden'} voor ${new Date(date).toLocaleDateString('nl-NL')} opgeslagen.`,
+        title: "Override added",
+        description: `${type === 'closed' ? 'Closed day' : 'Custom times'} for ${new Date(date).toLocaleDateString('en-US')} saved.`,
       });
 
       onClose();
@@ -103,12 +103,12 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
   };
 
   const quickReasons = [
-    { label: '🏖️ Vakantie', value: 'Vakantie' },
-    { label: '🤒 Ziek', value: 'Ziek' },
-    { label: '🎉 Vrije dag', value: 'Vrije dag' },
-    { label: '🎊 Feestdag', value: 'Feestdag' },
-    { label: '🏢 Vergadering', value: 'Vergadering' },
-    { label: '🔧 Onderhoud', value: 'Onderhoud' },
+    { label: '🏖️ Vacation', value: 'Vacation' },
+    { label: '🤒 Sick', value: 'Sick' },
+    { label: '🎉 Day off', value: 'Day off' },
+    { label: '🎊 Holiday', value: 'Holiday' },
+    { label: '🏢 Meeting', value: 'Meeting' },
+    { label: '🔧 Maintenance', value: 'Maintenance' },
   ];
 
   return (
@@ -118,7 +118,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           <div className="flex items-center justify-between">
             <AlertDialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Uitzondering toevoegen
+              Add Override
             </AlertDialogTitle>
             <Button
               variant="ghost"
@@ -134,7 +134,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date Selection */}
           <div className="space-y-2">
-            <Label htmlFor="date">Datum</Label>
+            <Label htmlFor="date">Date</Label>
             <Input
               id="date"
               type="date"
@@ -147,7 +147,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
 
           {/* Type Selection */}
           <div className="space-y-3">
-            <Label>Type uitzondering</Label>
+            <Label>Override type</Label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -158,7 +158,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                🚫 Gesloten
+                🚫 Closed
               </button>
               <button
                 type="button"
@@ -170,7 +170,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
                 }`}
               >
                 <Clock className="h-4 w-4 inline mr-1" />
-                Aangepaste tijden
+                Custom times
               </button>
             </div>
           </div>
@@ -178,12 +178,12 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           {/* Closed Day - Reason */}
           {type === 'closed' && (
             <div className="space-y-2">
-              <Label htmlFor="reason">Reden</Label>
+              <Label htmlFor="reason">Reason</Label>
               <Input
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Bijv. Vakantie, ziek, vrije dag..."
+                placeholder="E.g. Vacation, sick, day off..."
                 required
               />
               
@@ -207,7 +207,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           {type === 'custom' && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="startTime">Van</Label>
+                <Label htmlFor="startTime">From</Label>
                 <Input
                   id="startTime"
                   type="time"
@@ -217,7 +217,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">Tot</Label>
+                <Label htmlFor="endTime">To</Label>
                 <Input
                   id="endTime"
                   type="time"
@@ -232,10 +232,10 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           {/* Submit Buttons */}
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Annuleren
+              Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? 'Opslaan...' : 'Opslaan'}
+              {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
           </div>
         </form>

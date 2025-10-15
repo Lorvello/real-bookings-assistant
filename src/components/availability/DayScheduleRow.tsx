@@ -72,7 +72,7 @@ export function DayScheduleRow({
 
         {isAvailable && (
           <Badge variant="default" className="bg-primary/10 text-primary">
-            Beschikbaar
+            Available
           </Badge>
         )}
       </div>
@@ -81,7 +81,7 @@ export function DayScheduleRow({
       {isAvailable && (
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <Label className="text-sm text-muted-foreground">Van:</Label>
+            <Label className="text-sm text-muted-foreground">From:</Label>
             <Input
               type="time"
               value={startTime}
@@ -91,7 +91,7 @@ export function DayScheduleRow({
           </div>
 
           <div className="flex items-center space-x-2">
-            <Label className="text-sm text-muted-foreground">Tot:</Label>
+            <Label className="text-sm text-muted-foreground">To:</Label>
             <Input
               type="time"
               value={endTime}
@@ -106,7 +106,7 @@ export function DayScheduleRow({
             size="sm"
             onClick={handleCopyToNextDay}
             className="p-2"
-            title="Kopieer naar volgende dag"
+            title="Copy to next day"
           >
             <Copy className="h-4 w-4" />
           </Button>

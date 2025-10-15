@@ -20,7 +20,7 @@ export function WeekActions({ onCopyWeek, onPasteWeek, hasCopiedWeek }: WeekActi
         className="border-border"
       >
         <Copy className="h-4 w-4 mr-1" />
-        Kopieer Week
+        Copy Week
       </Button>
       
       {hasCopiedWeek && (
@@ -30,7 +30,7 @@ export function WeekActions({ onCopyWeek, onPasteWeek, hasCopiedWeek }: WeekActi
           onClick={onPasteWeek}
           className="border-border"
         >
-          Plak Week
+          Paste Week
         </Button>
       )}
     </div>

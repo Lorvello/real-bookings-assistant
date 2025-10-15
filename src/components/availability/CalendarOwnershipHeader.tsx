@@ -32,7 +32,7 @@ export const CalendarOwnershipHeader: React.FC<CalendarOwnershipHeaderProps> = (
                 </div>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                   <User className="h-3 w-3" />
-                  <span>Eigenaar: {profile?.full_name || user?.email}</span>
+                  <span>Owner: {profile?.full_name || user?.email}</span>
                   {profile?.business_name && (
                     <>
                       <Building2 className="h-3 w-3 ml-2" />
@@ -48,7 +48,7 @@ export const CalendarOwnershipHeader: React.FC<CalendarOwnershipHeaderProps> = (
               <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
                 <Info className="h-4 w-4 text-blue-600" />
                 <span className="text-sm text-blue-800">
-                  Beschikbaarheid wordt ingesteld voor specifieke kalender
+                  Availability is being set for specific calendar
                 </span>
               </div>
             )}

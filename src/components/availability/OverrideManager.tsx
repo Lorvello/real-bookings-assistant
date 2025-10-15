@@ -15,7 +15,7 @@ export function OverrideManager({ calendarId }: OverrideManagerProps) {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const handleDelete = async (overrideId: string) => {
-    if (confirm('Weet je zeker dat je deze uitzondering wilt verwijderen?')) {
+    if (confirm('Are you sure you want to delete this override?')) {
       await deleteOverride(overrideId);
     }
   };
@@ -23,13 +23,13 @@ export function OverrideManager({ calendarId }: OverrideManagerProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-medium text-foreground">Uitzonderingen & Vakanties</h3>
+        <h3 className="text-sm font-medium text-foreground">Overrides & Holidays</h3>
         <button
           onClick={() => setShowAddModal(true)}
           className="inline-flex items-center gap-1 px-3 py-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded text-sm font-medium transition-colors"
         >
           <Plus className="h-3 w-3" />
-          Toevoegen
+          Add
         </button>
       </div>
 
@@ -37,8 +37,8 @@ export function OverrideManager({ calendarId }: OverrideManagerProps) {
       <div className="space-y-2">
         {overrides.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">Geen uitzonderingen gepland</p>
-            <p className="text-xs mt-1">Voeg vakanties of speciale openingstijden toe</p>
+            <p className="text-sm">No overrides scheduled</p>
+            <p className="text-xs mt-1">Add holidays or special hours</p>
           </div>
         ) : (
           overrides.map((override) => (
@@ -53,19 +53,19 @@ export function OverrideManager({ calendarId }: OverrideManagerProps) {
                 <div className="text-muted-foreground text-xs mt-1">
                   {override.is_available ? (
                     override.start_time && override.end_time ? (
-                      `Aangepaste tijden: ${override.start_time} - ${override.end_time}`
+                      `Custom times: ${override.start_time} - ${override.end_time}`
                     ) : (
-                      'Beschikbaar met normale tijden'
+                      'Available with normal hours'
                     )
                   ) : (
-                    `${getOverrideIcon(override.reason)} ${override.reason || 'Niet beschikbaar'}`
+                    `${getOverrideIcon(override.reason)} ${override.reason || 'Unavailable'}`
                   )}
                 </div>
               </div>
               <button 
                 onClick={() => handleDelete(override.id)}
                 className="text-destructive hover:text-destructive/80 p-1 rounded transition-colors"
-                title="Verwijderen"
+                title="Delete"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -89,10 +89,10 @@ function getOverrideIcon(reason?: string | null): string {
   if (!reason) return '🚫';
   
   const lowerReason = reason.toLowerCase();
-  if (lowerReason.includes('vakantie') || lowerReason.includes('holiday')) return '🏖️';
-  if (lowerReason.includes('ziek') || lowerReason.includes('sick')) return '🤒';
-  if (lowerReason.includes('vrij') || lowerReason.includes('free')) return '🎉';
-  if (lowerReason.includes('feest') || lowerReason.includes('party')) return '🎊';
+  if (lowerReason.includes('vacation') || lowerReason.includes('holiday')) return '🏖️';
+  if (lowerReason.includes('sick')) return '🤒';
+  if (lowerReason.includes('day off') || lowerReason.includes('free')) return '🎉';
+  if (lowerReason.includes('party')) return '🎊';
   
   return '🚫';
 }
