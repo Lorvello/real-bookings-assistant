@@ -44,10 +44,10 @@ export function DashboardMetricsCards({ analytics }: DashboardMetricsCardsProps)
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Vandaag</p>
+              <p className="text-sm font-medium text-muted-foreground">Today</p>
               <p className="text-2xl font-bold">{analytics?.today_bookings || 0}</p>
               <p className="text-xs text-muted-foreground">
-                {analytics?.pending_bookings || 0} wachtend
+                {analytics?.pending_bookings || 0} pending
               </p>
             </div>
             <Calendar className="h-8 w-8 text-blue-600" />

@@ -57,7 +57,7 @@ export function EnhancedMetricsCards({ analytics }: EnhancedMetricsCardsProps) {
           <p className="text-xs text-muted-foreground mt-1">
             {analytics.pending_bookings > 0 && (
               <span className="text-orange-600">
-                {analytics.pending_bookings} in behandeling
+                {analytics.pending_bookings} pending
               </span>
             )}
           </p>

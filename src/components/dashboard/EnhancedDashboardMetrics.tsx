@@ -22,58 +22,58 @@ interface EnhancedDashboardMetricsProps {
 export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetricsProps) {
   const metricCards = [
     {
-      title: 'Vandaag',
+      title: 'Today',
       value: analytics.today_bookings,
       icon: Calendar,
       color: 'text-blue-400',
       bgColor: 'bg-blue-900/20',
-      suffix: analytics.today_bookings === 1 ? ' afspraak' : ' afspraken',
-      subtitle: analytics.pending_bookings > 0 ? `${analytics.pending_bookings} wachtend` : 'Alles bevestigd'
+      suffix: analytics.today_bookings === 1 ? ' appointment' : ' appointments',
+      subtitle: analytics.pending_bookings > 0 ? `${analytics.pending_bookings} pending` : 'All confirmed'
     },
     {
-      title: 'Deze Week',
+      title: 'This Week',
       value: analytics.week_bookings,
       icon: Users,
       color: 'text-green-400',
       bgColor: 'bg-green-900/20',
-      suffix: analytics.week_bookings === 1 ? ' afspraak' : ' afspraken',
-      subtitle: 'Bevestigd'
+      suffix: analytics.week_bookings === 1 ? ' appointment' : ' appointments',
+      subtitle: 'Confirmed'
     },
     {
-      title: 'Maand Omzet',
+      title: 'Month Revenue',
       value: `€${analytics.total_revenue.toFixed(2)}`,
       icon: Euro,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-900/20',
       suffix: '',
-      subtitle: `${analytics.month_bookings} afspraken`
+      subtitle: `${analytics.month_bookings} appointments`
     },
     {
-      title: 'WhatsApp Conversaties',
+      title: 'WhatsApp Conversations',
       value: analytics.whatsapp_conversations,
       icon: MessageSquare,
       color: 'text-purple-400',
       bgColor: 'bg-purple-900/20',
-      suffix: ' actief',
-      subtitle: `${analytics.whatsapp_messages_today} berichten vandaag`
+      suffix: ' active',
+      subtitle: `${analytics.whatsapp_messages_today} messages today`
     },
     {
-      title: 'WhatsApp Conversie',
+      title: 'WhatsApp Conversion',
       value: `${analytics.conversion_rate}%`,
       icon: TrendingUp,
       color: 'text-indigo-400',
       bgColor: 'bg-indigo-900/20',
       suffix: '',
-      subtitle: 'Chat naar booking'
+      subtitle: 'Chat to booking'
     },
     {
-      title: 'Respons Tijd',
+      title: 'Response Time',
       value: analytics.avg_response_time > 0 ? `${analytics.avg_response_time.toFixed(1)}min` : 'Real-time',
       icon: Clock,
       color: 'text-cyan-400',
       bgColor: 'bg-cyan-900/20',
       suffix: '',
-      subtitle: analytics.avg_response_time > 0 ? 'Gemiddeld' : 'AI Bot actief'
+      subtitle: analytics.avg_response_time > 0 ? 'Average' : 'AI Bot active'
     }
   ];
 
@@ -82,10 +82,10 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
       {/* Real-time indicator */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <span>Live data - inclusief WhatsApp statistieken</span>
+        <span>Live data - including WhatsApp statistics</span>
         {analytics.last_updated && (
           <span className="ml-2">
-            (laatste update: {new Date(analytics.last_updated).toLocaleTimeString('nl-NL')})
+            (last updated: {new Date(analytics.last_updated).toLocaleTimeString('en-US')})
           </span>
         )}
       </div>

@@ -47,7 +47,7 @@ export const WebhookStatusIndicator: React.FC<WebhookStatusIndicatorProps> = ({
     return (
       <Badge variant="secondary" className="gap-1">
         <Clock className="h-3 w-3" />
-        {pendingEvents.length} webhook(s) in behandeling
+        {pendingEvents.length} webhook(s) processing
       </Badge>
     );
   }

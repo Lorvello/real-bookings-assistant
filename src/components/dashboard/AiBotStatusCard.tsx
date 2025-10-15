@@ -39,14 +39,14 @@ export const AiBotStatusCard: React.FC = () => {
     <div className="flex items-center gap-2">
       <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
       <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
-        Actief
+        Active
       </Badge>
     </div>
   ) : (
     <div className="flex items-center gap-2">
       <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
       <Badge className="bg-gray-100 text-gray-800 border-gray-200" variant="outline">
-        Gepauzeerd
+        Paused
       </Badge>
     </div>
   );
@@ -64,22 +64,22 @@ export const AiBotStatusCard: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-foreground mb-1">24/7</div>
-            <div className="text-sm text-muted-foreground">Beschikbaarheid</div>
+            <div className="text-sm text-muted-foreground">Availability</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600 mb-1">~2s</div>
-            <div className="text-sm text-muted-foreground">Reactietijd</div>
+            <div className="text-sm text-muted-foreground">Response Time</div>
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-sm">
             <Zap className="h-4 w-4 text-yellow-500" />
-            <span className="text-muted-foreground">Auto-booking ingeschakeld</span>
+            <span className="text-muted-foreground">Auto-booking enabled</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
             <Activity className="h-4 w-4 text-blue-500" />
-            <span className="text-muted-foreground">Kalender sync actief</span>
+            <span className="text-muted-foreground">Calendar sync active</span>
           </div>
           {botStatus?.last_bot_activity && (
             <div className="flex items-center gap-3 text-sm">

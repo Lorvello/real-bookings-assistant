@@ -51,7 +51,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut } = useAuth();
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (isMobile) return false; // Mobile altijd gesloten
+    if (isMobile) return false; // Mobile always closed
     
     const saved = localStorage.getItem('sidebar-expanded');
     return saved !== null ? JSON.parse(saved) : true; // Default open voor desktop

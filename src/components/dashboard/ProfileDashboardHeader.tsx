@@ -27,7 +27,7 @@ export function ProfileDashboardHeader({ profileName, whatsappStatus }: ProfileD
             <div className="flex items-center space-x-2">
               <div className={`w-3 h-3 rounded-full ${whatsappStatus.isConnected ? 'bg-whatsapp animate-pulse' : 'bg-destructive'}`}></div>
               <span className={`text-sm font-medium ${whatsappStatus.isConnected ? 'text-whatsapp' : 'text-destructive'}`}>
-                {whatsappStatus.isConnected ? 'WhatsApp Actief' : 'WhatsApp Offline'}
+                {whatsappStatus.isConnected ? 'WhatsApp Active' : 'WhatsApp Offline'}
               </span>
             </div>
             {whatsappStatus.phoneNumber && (

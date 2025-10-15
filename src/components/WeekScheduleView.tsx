@@ -16,13 +16,13 @@ interface WeekScheduleViewProps {
 }
 
 const DAYS_OF_WEEK = [
-  { key: 1, label: 'Maandag', short: 'Ma' },
-  { key: 2, label: 'Dinsdag', short: 'Di' },
-  { key: 3, label: 'Woensdag', short: 'Wo' },
-  { key: 4, label: 'Donderdag', short: 'Do' },
-  { key: 5, label: 'Vrijdag', short: 'Vr' },
-  { key: 6, label: 'Zaterdag', short: 'Za' },
-  { key: 7, label: 'Zondag', short: 'Zo' },
+  { key: 1, label: 'Monday', short: 'Mo' },
+  { key: 2, label: 'Tuesday', short: 'Tu' },
+  { key: 3, label: 'Wednesday', short: 'We' },
+  { key: 4, label: 'Thursday', short: 'Th' },
+  { key: 5, label: 'Friday', short: 'Fr' },
+  { key: 6, label: 'Saturday', short: 'Sa' },
+  { key: 7, label: 'Sunday', short: 'Su' },
 ];
 
 // Helper function to format time to HH:MM

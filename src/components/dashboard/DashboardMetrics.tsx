@@ -54,15 +54,15 @@ export const DashboardMetrics = () => {
       icon: Calendar,
       color: 'text-blue-400',
       bgColor: 'bg-blue-900/20',
-      suffix: metrics.today_bookings === 1 ? ' afspraak' : ' afspraken'
+      suffix: metrics.today_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'Wachtend',
+      title: 'Pending',
       value: metrics.pending_bookings,
       icon: Clock,
       color: 'text-yellow-400',
       bgColor: 'bg-yellow-900/20',
-      suffix: metrics.pending_bookings === 1 ? ' afspraak' : ' afspraken'
+      suffix: metrics.pending_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
       title: 'Deze Week',

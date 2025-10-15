@@ -40,13 +40,13 @@ interface RecurringPatternCreatorProps {
 }
 
 const DAYS_OF_WEEK = [
-  { value: '0', label: 'Zondag', short: 'Zo' },
-  { value: '1', label: 'Maandag', short: 'Ma' },
-  { value: '2', label: 'Dinsdag', short: 'Di' },
-  { value: '3', label: 'Woensdag', short: 'Wo' },
-  { value: '4', label: 'Donderdag', short: 'Do' },
-  { value: '5', label: 'Vrijdag', short: 'Vr' },
-  { value: '6', label: 'Zaterdag', short: 'Za' },
+  { value: '0', label: 'Sunday', short: 'Su' },
+  { value: '1', label: 'Monday', short: 'Mo' },
+  { value: '2', label: 'Tuesday', short: 'Tu' },
+  { value: '3', label: 'Wednesday', short: 'We' },
+  { value: '4', label: 'Thursday', short: 'Th' },
+  { value: '5', label: 'Friday', short: 'Fr' },
+  { value: '6', label: 'Saturday', short: 'Sa' },
 ];
 
 const MONTHS = [

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
-import { getDayNameDutch } from '@/utils/n8nDayMappingHelper';
+import { getDayNameEnglish } from '@/utils/n8nDayMappingHelper';
 
 interface BusinessOpeningHoursProps {
   formattedOpeningHours?: string | null;
@@ -25,7 +25,7 @@ export const BusinessOpeningHours: React.FC<BusinessOpeningHoursProps> = ({
       const rules = Array.isArray(availabilityRules) ? availabilityRules : [];
       return rules.map((rule: any) => ({
         day_of_week: rule.day_of_week || 1,
-        day_name_dutch: getDayNameDutch(rule.day_of_week || 1),
+        day_name_english: getDayNameEnglish(rule.day_of_week || 1),
         start_time: rule.start_time || '09:00',
         end_time: rule.end_time || '17:00',
         is_available: rule.is_available !== false
@@ -55,7 +55,7 @@ export const BusinessOpeningHours: React.FC<BusinessOpeningHoursProps> = ({
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Clock className="w-4 h-4" />
-        <span>Openingstijden niet beschikbaar</span>
+        <span>Opening hours not available</span>
       </div>
     );
   }
@@ -67,7 +67,7 @@ export const BusinessOpeningHours: React.FC<BusinessOpeningHoursProps> = ({
       return (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="w-4 h-4" />
-          <span>Gesloten</span>
+          <span>Closed</span>
         </div>
       );
     }
@@ -78,11 +78,11 @@ export const BusinessOpeningHours: React.FC<BusinessOpeningHoursProps> = ({
         <div className="text-muted-foreground">
           {openDays.slice(0, 2).map((rule, index) => (
             <div key={rule.day_of_week}>
-              {rule.day_name_dutch}: {rule.start_time} - {rule.end_time}
+              {rule.day_name_english}: {rule.start_time} - {rule.end_time}
             </div>
           ))}
           {openDays.length > 2 && (
-            <div className="text-xs">+ {openDays.length - 2} meer</div>
+            <div className="text-xs">+ {openDays.length - 2} more</div>
           )}
         </div>
       </div>
@@ -94,16 +94,16 @@ export const BusinessOpeningHours: React.FC<BusinessOpeningHoursProps> = ({
     <div className="space-y-2">
       <h4 className="font-semibold text-sm flex items-center gap-2">
         <Clock className="w-4 h-4" />
-        Openingstijden
+        Opening Hours
       </h4>
       <div className="space-y-1 text-sm">
         {rules.map((rule) => (
           <div key={rule.day_of_week} className="flex justify-between">
-            <span className="text-muted-foreground">{rule.day_name_dutch}:</span>
+            <span className="text-muted-foreground">{rule.day_name_english}:</span>
             <span className={rule.is_available ? '' : 'text-muted-foreground'}>
               {rule.is_available 
                 ? `${rule.start_time} - ${rule.end_time}`
-                : 'Gesloten'
+                : 'Closed'
               }
             </span>
           </div>

@@ -10,13 +10,13 @@ interface AvailabilityStepProps {
 }
 
 const days = [
-  { key: 'monday', label: 'Maandag' },
-  { key: 'tuesday', label: 'Dinsdag' },
-  { key: 'wednesday', label: 'Woensdag' },
-  { key: 'thursday', label: 'Donderdag' },
-  { key: 'friday', label: 'Vrijdag' },
-  { key: 'saturday', label: 'Zaterdag' },
-  { key: 'sunday', label: 'Zondag' }
+  { key: 'monday', label: 'Monday' },
+  { key: 'tuesday', label: 'Tuesday' },
+  { key: 'wednesday', label: 'Wednesday' },
+  { key: 'thursday', label: 'Thursday' },
+  { key: 'friday', label: 'Friday' },
+  { key: 'saturday', label: 'Saturday' },
+  { key: 'sunday', label: 'Sunday' }
 ];
 
 export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, updateData }) => {
