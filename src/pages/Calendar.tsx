@@ -6,16 +6,19 @@ import { CalendarView } from '@/components/CalendarView';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
 
 const Calendar = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendar, calendars, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
+  const { userStatus, accessControl } = useUserStatus();
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   
   // Auto scroll to top on route changes
@@ -99,6 +102,24 @@ const Calendar = () => {
           <div className="mb-1 sm:mb-2 md:mb-6">
             <CalendarSwitcher />
           </div>
+
+          {/* Read-only mode warning for expired/inactive users */}
+          {(userStatus.isExpired || !accessControl.canEditBookings) && (
+            <Alert className="mb-4 border-yellow-600 bg-yellow-600/10">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-600">
+                Read-only mode - Your {userStatus.userType === 'expired_trial' ? 'trial has expired' : 'subscription is inactive'}.{' '}
+                <Button 
+                  variant="link" 
+                  className="text-yellow-600 underline p-0 ml-1 h-auto font-semibold"
+                  onClick={() => navigate('/settings?tab=billing')}
+                >
+                  Upgrade now
+                </Button>{' '}
+                to edit bookings and availability.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Calendar Content */}
           <div className="bg-card border border-border shadow-sm rounded-lg p-2 sm:p-3 md:p-4">

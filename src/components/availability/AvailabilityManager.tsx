@@ -5,10 +5,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
 import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
-import { CalendarSwitcher } from '@/components/CalendarSwitcher';
+import { AccessBlockedOverlay } from '@/components/user-status/AccessBlockedOverlay';
+import { SubscriptionModal } from '@/components/SubscriptionModal';
 import type { Calendar } from '@/types/database';
 
 export const AvailabilityManager = () => {
@@ -17,7 +19,9 @@ export const AvailabilityManager = () => {
   const { profile, loading: profileLoading } = useProfile();
   const { selectedCalendar, viewingAllCalendars } = useCalendarContext();
   const { calendars } = useCalendars();
+  const { userStatus, accessControl } = useUserStatus();
   const [activeTab, setActiveTab] = useState('schedule');
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // OPTIMIZED: Single auth check with fast redirect
   useEffect(() => {
@@ -71,6 +75,42 @@ export const AvailabilityManager = () => {
         description="Choose a calendar to manage its availability settings."
         showCreateButton={false}
       />
+    );
+  }
+
+  // Access control: Block editing for expired/inactive users, show read-only view
+  if (userStatus.isExpired || !accessControl.canEditBookings) {
+    return (
+      <>
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+          <AccessBlockedOverlay
+            userStatus={userStatus}
+            feature="Availability Settings"
+            description="An active subscription is required to modify your availability settings. Your current settings remain visible below in read-only mode."
+            onUpgrade={() => setShowSubscriptionModal(true)}
+          />
+        </div>
+
+        {/* Show read-only availability below */}
+        <div className="mt-6 opacity-50 pointer-events-none">
+          <AvailabilityTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
+            <AvailabilityContent
+              activeTab={activeTab}
+            />
+          </div>
+        </div>
+
+        <SubscriptionModal
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+          userType={userStatus.userType}
+        />
+      </>
     );
   }
 
