@@ -11,7 +11,7 @@ import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { DeveloperStatusManager } from '@/components/developer/DeveloperStatusManager';
-import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
+import { StripeModeIndicator } from '@/components/developer/StripeModeIndicator';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
@@ -98,7 +98,7 @@ const Dashboard = () => {
           <div className="mb-4 space-y-3 sm:space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               <DeveloperStatusManager />
-              <StripeModeSwitcher />
+              <StripeModeIndicator />
             </div>
           </div>
 
@@ -120,7 +120,7 @@ const Dashboard = () => {
         <div className="mb-1 space-y-1 sm:space-y-2">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 sm:gap-2">
             <DeveloperStatusManager />
-            <StripeModeSwitcher />
+            <StripeModeIndicator />
           </div>
         </div>
 

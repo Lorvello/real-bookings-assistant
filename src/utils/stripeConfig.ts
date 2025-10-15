@@ -6,17 +6,30 @@
  * Server-side validation in edge functions provides additional security layer
  */
 export const getStripeMode = (): 'test' | 'live' => {
-  // SECURITY: Only use environment variable, never localStorage
-  // Default to 'test' for safety - production must explicitly set VITE_STRIPE_MODE=live
   const envMode = import.meta.env.VITE_STRIPE_MODE as 'test' | 'live' | undefined;
   
-  if (envMode === 'live') {
-    console.warn('[STRIPE] Running in LIVE mode - real payments will be processed');
-    return 'live';
+  // In Vite development mode, ALWAYS use test (safety first)
+  if (import.meta.env.DEV) {
+    console.log('[STRIPE] Development environment detected - forcing TEST mode');
+    return 'test';
   }
   
-  // Always default to test mode for safety
-  return 'test';
+  // Production MUST have explicit configuration
+  if (!envMode || (envMode !== 'test' && envMode !== 'live')) {
+    console.error('[STRIPE] CRITICAL: VITE_STRIPE_MODE not properly configured in production');
+    throw new Error(
+      'VITE_STRIPE_MODE environment variable must be set to either "test" or "live" in production. ' +
+      'This prevents accidental live charges in development and ensures explicit production configuration.'
+    );
+  }
+  
+  if (envMode === 'live') {
+    console.warn('[STRIPE] ⚠️  LIVE MODE ACTIVE - Real payments will be processed');
+  } else {
+    console.log('[STRIPE] TEST MODE ACTIVE - Using Stripe test environment');
+  }
+  
+  return envMode;
 };
 
 export const getStripePublishableKey = (): string => {

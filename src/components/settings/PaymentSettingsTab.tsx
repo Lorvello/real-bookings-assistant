@@ -21,7 +21,7 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
 import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
-import { StripeModeSwitcher } from '@/components/developer/StripeModeSwitcher';
+import { StripeModeIndicator } from '@/components/developer/StripeModeIndicator';
 import { getStripeConfig } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
@@ -547,8 +547,8 @@ export function PaymentSettingsTab() {
   const hasStripeAccount = !!stripeAccount?.stripe_account_id;
   const isStripeSetupComplete = stripeAccount?.onboarding_completed && stripeAccount?.charges_enabled && stripeAccount?.payouts_enabled;
   return <div className="space-y-6">
-      {/* Stripe Mode Switcher (for development) */}
-      {stripeConfig.isTestMode && <StripeModeSwitcher />}
+      {/* Stripe Mode Indicator (read-only, for development) */}
+      {stripeConfig.isTestMode && <StripeModeIndicator />}
 
       {/* Feature Overview */}
       <Card>
