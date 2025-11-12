@@ -278,7 +278,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     const now = new Date();
     const trialEndDate = profile.trial_end_date ? new Date(profile.trial_end_date) : null;
     const subscriptionEndDate = profile.subscription_end_date ? new Date(profile.subscription_end_date) : null;
-    const gracePeriodEnd = profile.grace_period_end ? new Date(profile.grace_period_end) : null;
+    const gracePeriodEnd = profile?.grace_period_end ? new Date(profile.grace_period_end) : null;
 
     const daysRemaining = trialEndDate 
       ? Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))

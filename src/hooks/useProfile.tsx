@@ -6,7 +6,7 @@ import { UserProfile } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
 const PROFILE_CACHE_KEY = 'userProfile';
-const PROFILE_CACHE_VERSION = '1.0';
+const PROFILE_CACHE_VERSION = '2.0'; // Updated after grace_period_end migration
 
 export const useProfile = () => {
   const { user } = useAuth();
