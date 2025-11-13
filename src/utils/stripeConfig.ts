@@ -6,30 +6,31 @@
  * Server-side validation in edge functions provides additional security layer
  */
 export const getStripeMode = (): 'test' | 'live' => {
-  const envMode = import.meta.env.VITE_STRIPE_MODE as 'test' | 'live' | undefined;
-  
   // In Vite development mode, ALWAYS use test (safety first)
   if (import.meta.env.DEV) {
     console.log('[STRIPE] Development environment detected - forcing TEST mode');
     return 'test';
   }
   
-  // Production MUST have explicit configuration
-  if (!envMode || (envMode !== 'test' && envMode !== 'live')) {
-    console.error('[STRIPE] CRITICAL: VITE_STRIPE_MODE not properly configured in production');
-    throw new Error(
-      'VITE_STRIPE_MODE environment variable must be set to either "test" or "live" in production. ' +
-      'This prevents accidental live charges in development and ensures explicit production configuration.'
-    );
+  // Production: try to get env var, but gracefully fallback to test if missing
+  const envMode = import.meta.env.VITE_STRIPE_MODE as 'test' | 'live' | undefined;
+  
+  if (envMode === 'live' || envMode === 'test') {
+    if (envMode === 'live') {
+      console.warn('[STRIPE] ⚠️  LIVE MODE ACTIVE - Real payments will be processed');
+    } else {
+      console.log('[STRIPE] TEST MODE ACTIVE - Using Stripe test environment');
+    }
+    return envMode;
   }
   
-  if (envMode === 'live') {
-    console.warn('[STRIPE] ⚠️  LIVE MODE ACTIVE - Real payments will be processed');
-  } else {
-    console.log('[STRIPE] TEST MODE ACTIVE - Using Stripe test environment');
-  }
+  // FALLBACK: log warning and use test mode (NO CRASH)
+  console.warn(
+    '[STRIPE CONFIG] VITE_STRIPE_MODE not configured in production. ' +
+    'Falling back to TEST mode for safety. Configure runtime Stripe mode later.'
+  );
   
-  return envMode;
+  return 'test'; // Safe fallback, prevents crash
 };
 
 export const getStripePublishableKey = (): string => {
@@ -49,12 +50,15 @@ export const isTestMode = (): boolean => {
 
 export const getStripeConfig = () => {
   const mode = getStripeMode();
+  const fallbackUsed = !import.meta.env.DEV && 
+    !import.meta.env.VITE_STRIPE_MODE;
   
   return {
     mode,
     publishableKey: getStripePublishableKey(),
     testMode: mode === 'test',
-    isTestMode: mode === 'test' // Legacy alias for compatibility
+    isTestMode: mode === 'test', // Legacy alias for compatibility
+    fallbackUsed // Flag to indicate if fallback mode is being used
   };
 };
 
