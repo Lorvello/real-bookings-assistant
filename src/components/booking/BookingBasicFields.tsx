@@ -5,8 +5,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
-import { secureLogger } from '@/utils/secureLogger';
+import { validateEmail, validatePhoneNumber } from '@/utils/inputSanitization';
 import { ValidationFeedback } from './ValidationFeedback';
 import { cn } from '@/lib/utils';
 
@@ -31,23 +30,18 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
   const [locationValidation, setLocationValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
 
   const handleTitleChange = (value: string, onChange: (value: string) => void) => {
-    const result = sanitizeText(value);
+    // Basic sanitization without trim (allow spaces while typing)
+    const sanitized = value.replace(/[<>]/g, '');
     
-    if (value !== result.sanitized) {
-      secureLogger.security('Suspicious booking title detected', { 
-        original: value.substring(0, 20),
-        component: 'BookingBasicFields'
-      });
-      setTitleValidation('warning');
-    } else if (result.sanitized.length > 200) {
+    if (sanitized.length > 200) {
       setTitleValidation('error');
-    } else if (result.sanitized.length > 0) {
+    } else if (sanitized.length > 0) {
       setTitleValidation('valid');
     } else {
       setTitleValidation('idle');
     }
     
-    onChange(result.sanitized);
+    onChange(sanitized);
   };
 
   const handleEmailBlur = (value: string) => {
@@ -57,13 +51,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
     }
     
     const result = validateEmail(value);
-    if (!result.valid && result.suspicious) {
-      secureLogger.security('Suspicious email detected', { 
-        patterns: result.errors,
-        component: 'BookingBasicFields'
-      });
-      setEmailValidation('warning');
-    } else if (!result.valid) {
+    if (!result.valid) {
       setEmailValidation('error');
     } else {
       setEmailValidation('valid');
@@ -71,23 +59,18 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
   };
 
   const handleNameChange = (value: string, onChange: (value: string) => void) => {
-    const result = sanitizeText(value);
+    // Basic sanitization without trim (allow spaces while typing)
+    const sanitized = value.replace(/[<>]/g, '');
     
-    if (value !== result.sanitized) {
-      secureLogger.security('Suspicious customer name detected', { 
-        original: value.substring(0, 20),
-        component: 'BookingBasicFields'
-      });
-      setNameValidation('warning');
-    } else if (result.sanitized.length > 200) {
+    if (sanitized.length > 200) {
       setNameValidation('error');
-    } else if (result.sanitized.length > 0) {
+    } else if (sanitized.length > 0) {
       setNameValidation('valid');
     } else {
       setNameValidation('idle');
     }
     
-    onChange(result.sanitized);
+    onChange(sanitized);
   };
 
   const handlePhoneChange = (value: string, onChange: (value: string) => void) => {
@@ -98,12 +81,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
     }
     
     const result = validatePhoneNumber(value, { defaultCountry: 'NL' });
-    if (!result.valid && result.suspicious) {
-      secureLogger.security('Suspicious phone number detected', { 
-        component: 'BookingBasicFields'
-      });
-      setPhoneValidation('warning');
-    } else if (!result.valid) {
+    if (!result.valid) {
       setPhoneValidation('error');
     } else {
       setPhoneValidation('valid');
@@ -119,14 +97,15 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
       return;
     }
 
-    const result = sanitizeText(value);
-    if (result.sanitized.length > 500) {
+    // Basic sanitization without trim (allow spaces while typing)
+    const sanitized = value.replace(/[<>]/g, '');
+    if (sanitized.length > 500) {
       setLocationValidation('error');
     } else {
       setLocationValidation('valid');
     }
     
-    onChange(result.sanitized);
+    onChange(sanitized);
   };
 
   return (
@@ -326,8 +305,9 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               <Textarea 
                 value={field.value || ''}
                 onChange={(e) => {
-                  const sanitized = sanitizeText(e.target.value);
-                  field.onChange(sanitized.sanitized);
+                  // Basic sanitization without trim (allow spaces while typing)
+                  const sanitized = e.target.value.replace(/[<>]/g, '');
+                  field.onChange(sanitized);
                 }}
                 placeholder="Extra informatie over de afspraak"
                 className="bg-background"
