@@ -96,7 +96,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
           .eq('user_id', profile.id)
           .maybeSingle();
         
-        const adminStatus = roleData?.role === 'admin' || roleData?.role === 'super_admin';
+        const adminStatus = roleData?.role === 'admin';
         setIsAdmin(adminStatus);
         
         // If admin, skip subscription check and set admin status
