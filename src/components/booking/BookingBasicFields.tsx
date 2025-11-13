@@ -5,7 +5,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescripti
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { validateEmail, sanitizeText } from '@/utils/inputSanitization';
+import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
 import { secureLogger } from '@/utils/secureLogger';
 import { ValidationFeedback } from './ValidationFeedback';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,9 @@ interface BookingBasicFieldsProps {
 
 export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: BookingBasicFieldsProps) {
   const [titleValidation, setTitleValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
+  const [nameValidation, setNameValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
   const [emailValidation, setEmailValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
+  const [phoneValidation, setPhoneValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
   const [locationValidation, setLocationValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
 
   const handleTitleChange = (value: string, onChange: (value: string) => void) => {
@@ -66,6 +68,48 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
     } else {
       setEmailValidation('valid');
     }
+  };
+
+  const handleNameChange = (value: string, onChange: (value: string) => void) => {
+    const result = sanitizeText(value);
+    
+    if (value !== result.sanitized) {
+      secureLogger.security('Suspicious customer name detected', { 
+        original: value.substring(0, 20),
+        component: 'BookingBasicFields'
+      });
+      setNameValidation('warning');
+    } else if (result.sanitized.length > 200) {
+      setNameValidation('error');
+    } else if (result.sanitized.length > 0) {
+      setNameValidation('valid');
+    } else {
+      setNameValidation('idle');
+    }
+    
+    onChange(result.sanitized);
+  };
+
+  const handlePhoneChange = (value: string, onChange: (value: string) => void) => {
+    if (!value) {
+      setPhoneValidation('idle');
+      onChange('');
+      return;
+    }
+    
+    const result = validatePhoneNumber(value, { defaultCountry: 'NL' });
+    if (!result.valid && result.suspicious) {
+      secureLogger.security('Suspicious phone number detected', { 
+        component: 'BookingBasicFields'
+      });
+      setPhoneValidation('warning');
+    } else if (!result.valid) {
+      setPhoneValidation('error');
+    } else {
+      setPhoneValidation('valid');
+    }
+    
+    onChange(value);
   };
 
   const handleLocationChange = (value: string, onChange: (value: string) => void) => {
@@ -118,6 +162,103 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         )}
       />
 
+      {/* Customer Name */}
+      <FormField
+        control={form.control}
+        name="customerName"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>Naam klant *</FormLabel>
+            <FormControl>
+              <Input 
+                {...field} 
+                onChange={(e) => handleNameChange(e.target.value, field.onChange)}
+                onBlur={field.onBlur}
+                placeholder="Bijvoorbeeld: Jan Jansen"
+                className={cn(
+                  "bg-background transition-colors",
+                  fieldState.error && "border-destructive",
+                  nameValidation === 'valid' && !fieldState.error && "border-green-500 focus:ring-green-500"
+                )}
+              />
+            </FormControl>
+            <FormDescription>
+              Voor wie is deze afspraak?
+            </FormDescription>
+            {!fieldState.error && nameValidation !== 'idle' && (
+              <ValidationFeedback status={nameValidation} />
+            )}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Customer Email */}
+      <FormField
+        control={form.control}
+        name="customerEmail"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <Input 
+                {...field} 
+                type="email"
+                onBlur={(e) => {
+                  field.onBlur();
+                  handleEmailBlur(e.target.value);
+                }}
+                placeholder="naam@voorbeeld.nl"
+                className={cn(
+                  "bg-background transition-colors",
+                  fieldState.error && "border-destructive",
+                  emailValidation === 'valid' && !fieldState.error && "border-green-500 focus:ring-green-500"
+                )}
+              />
+            </FormControl>
+            <FormDescription>
+              Voor bevestiging en herinneringen (optioneel)
+            </FormDescription>
+            {!fieldState.error && emailValidation !== 'idle' && (
+              <ValidationFeedback status={emailValidation} />
+            )}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Customer Phone */}
+      <FormField
+        control={form.control}
+        name="customerPhone"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>Telefoonnummer</FormLabel>
+            <FormControl>
+              <Input 
+                {...field} 
+                type="tel"
+                onChange={(e) => handlePhoneChange(e.target.value, field.onChange)}
+                onBlur={field.onBlur}
+                placeholder="06 12345678"
+                className={cn(
+                  "bg-background transition-colors",
+                  fieldState.error && "border-destructive",
+                  phoneValidation === 'valid' && !fieldState.error && "border-green-500 focus:ring-green-500"
+                )}
+              />
+            </FormControl>
+            <FormDescription>
+              Voor WhatsApp notificaties (optioneel)
+            </FormDescription>
+            {!fieldState.error && phoneValidation !== 'idle' && (
+              <ValidationFeedback status={phoneValidation} />
+            )}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       {/* Service Type Selection */}
       {serviceTypes.length > 0 && (
         <FormField
@@ -152,7 +293,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="location"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Locatie</FormLabel>
+            <FormLabel>Locatie (optioneel)</FormLabel>
             <FormControl>
               <Input 
                 {...field} 
@@ -173,41 +314,6 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         )}
       />
 
-      {/* Customer Email (for external bookings) */}
-      {!form.watch('isInternal') && (
-        <FormField
-          control={form.control}
-          name="customerEmail"
-          render={({ field, fieldState }) => (
-            <FormItem>
-              <FormLabel>Email *</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  type="email"
-                  onBlur={(e) => {
-                    field.onBlur();
-                    handleEmailBlur(e.target.value);
-                  }}
-                  placeholder="naam@voorbeeld.nl"
-                  className={cn(
-                    "bg-background transition-colors",
-                    fieldState.error && "border-destructive",
-                    emailValidation === 'valid' && !fieldState.error && "border-green-500 focus:ring-green-500"
-                  )}
-                />
-              </FormControl>
-              <FormDescription>
-                We sturen een bevestiging naar dit email adres
-              </FormDescription>
-              {!fieldState.error && emailValidation !== 'idle' && (
-                <ValidationFeedback status={emailValidation} />
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
 
       {/* Description */}
       <FormField
@@ -221,7 +327,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
                 value={field.value || ''}
                 onChange={(e) => {
                   const sanitized = sanitizeText(e.target.value);
-                  field.onChange(sanitized);
+                  field.onChange(sanitized.sanitized);
                 }}
                 placeholder="Extra informatie over de afspraak"
                 className="bg-background"

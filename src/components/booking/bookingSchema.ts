@@ -9,6 +9,24 @@ export const bookingSchema = z.object({
       message: 'Titel is verplicht en mag maximaal 200 tekens bevatten'
     }),
   
+  customerName: z.string()
+    .transform(val => sanitizeText(val).sanitized)
+    .refine(val => val.length > 0 && val.length <= 200, {
+      message: 'Naam is verplicht en mag maximaal 200 tekens bevatten'
+    }),
+  
+  customerEmail: z.string()
+    .transform(val => val ? sanitizeText(val).sanitized : '')
+    .refine(val => !val || val === '' || validateEmail(val).valid, {
+      message: 'Ongeldig email formaat'
+    })
+    .optional()
+    .or(z.literal('')),
+  
+  customerPhone: z.string()
+    .transform(val => val ? sanitizeText(val).sanitized : '')
+    .optional(),
+  
   location: z.string()
     .transform(val => val ? sanitizeText(val).sanitized : '')
     .refine(val => !val || val.length <= 500, {
@@ -44,15 +62,6 @@ export const bookingSchema = z.object({
   hasReminder: z.boolean().default(false),
   reminderTiming: z.string().optional(),
   serviceTypeId: z.string().optional(),
-  isInternal: z.boolean().default(true),
-  
-  customerEmail: z.string()
-    .transform(val => sanitizeText(val).sanitized)
-    .refine(val => !val || val === '' || validateEmail(val).valid, {
-      message: 'Ongeldig email formaat'
-    })
-    .optional()
-    .or(z.literal('')),
 }).refine((data) => {
   // Valideer dat eind tijd na start tijd is
   if (data.startTime && data.endTime) {

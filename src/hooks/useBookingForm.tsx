@@ -36,6 +36,9 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       title: '',
+      customerName: '',
+      customerEmail: '',
+      customerPhone: '',
       location: '',
       date: new Date(),
       startTime: '13:00',
@@ -44,7 +47,6 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
       hasReminder: false,
       reminderTiming: '30',
       serviceTypeId: '',
-      isInternal: true,
     },
   });
 
@@ -171,13 +173,14 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
       const bookingData = {
         calendar_id: calendarId,
         service_type_id: data.serviceTypeId || undefined,
-        customer_name: data.title,
-        customer_email: 'internal@calendar.app',
+        customer_name: data.customerName,
+        customer_email: data.customerEmail || null,
+        customer_phone: data.customerPhone || null,
         start_time: startTime,
         end_time: endTime,
         status: 'confirmed' as const,
         notes: notesContent,
-        internal_notes: `Interne afspraak - handmatig aangemaakt - ${duration} minuten`,
+        internal_notes: `Handmatig aangemaakt - ${duration} minuten`,
       };
 
       console.log('Creating booking with data:', bookingData);
