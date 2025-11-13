@@ -38,6 +38,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     return 'unknown';
   });
   
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  
   // Show loading only when we have no cached data
   const [isLoading, setIsLoading] = useState(() => {
     try {
@@ -87,6 +89,39 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       fetchInProgress.current = true;
 
       try {
+        // STEP 1: Check admin role FIRST (priority check)
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+        
+        const adminStatus = roleData?.role === 'admin' || roleData?.role === 'super_admin';
+        setIsAdmin(adminStatus);
+        
+        // If admin, skip subscription check and set admin status
+        if (adminStatus) {
+          setUserStatusType('admin');
+          
+          // Cache admin status
+          try {
+            sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+              version: CACHE_VERSION,
+              data: { userStatusType: 'admin' },
+              userId: profile.id,
+              timestamp: Date.now()
+            }));
+          } catch (error) {
+            console.error('Error caching admin status:', error);
+          }
+          
+          setIsLoading(false);
+          initialLoadComplete.current = true;
+          fetchInProgress.current = false;
+          return; // Early return for admin
+        }
+        
+        // STEP 2: For non-admins, check subscription status normally
         const { data, error } = await supabase
           .rpc('get_user_status_type', { p_user_id: profile.id });
 
@@ -291,7 +326,17 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
 
     const gracePeriodActive = gracePeriodEnd && now <= gracePeriodEnd;
 
+    // ADMIN BYPASS: Admins get full access always
+    if (userStatusType === 'admin') {
+      userType = 'subscriber'; // Treat as active subscriber
+      statusMessage = '👑 Admin Account - Full Access';
+      statusColor = 'green';
+    }
+
     switch (userStatusType) {
+      case 'admin':
+        // Admin case already handled above, this prevents fall-through
+        break;
       case 'active_trial':
         userType = 'trial';
         statusMessage = daysRemaining === 1 ? '1 Day Free Trial Remaining' : `${daysRemaining} Days Free Trial Remaining`;
@@ -385,6 +430,34 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
   const accessControl: AccessControl = React.useMemo(() => {
     const { userType, hasFullAccess } = userStatus;
     const tier = profile?.subscription_tier;
+
+    // ADMIN BYPASS: Admins get FULL unlimited access
+    if (userStatusType === 'admin') {
+      return {
+        canViewDashboard: true,
+        canCreateBookings: true,
+        canEditBookings: true,
+        canManageSettings: true,
+        canAccessWhatsApp: true,
+        canAccessBookingAssistant: true,
+        canUseAI: true,
+        canExportData: true,
+        canInviteUsers: true,
+        canAccessAPI: true,
+        canUseWhiteLabel: true,
+        hasPrioritySupport: true,
+        canAccessFutureInsights: true,
+        canAccessBusinessIntelligence: true,
+        canAccessPerformance: true,
+        canAccessCustomerSatisfaction: true,
+        canAccessTeamMembers: true,
+        canAccessTaxCompliance: true,
+        maxCalendars: null,         // Unlimited
+        maxBookingsPerMonth: null,  // Unlimited
+        maxTeamMembers: 999,        // Effectively unlimited
+        maxWhatsAppContacts: null   // Unlimited
+      };
+    }
 
     // For active subscribers, provide full access based on tier
     if (userType === 'subscriber' && profile?.subscription_tier) {
