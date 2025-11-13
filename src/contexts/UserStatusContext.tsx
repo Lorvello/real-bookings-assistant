@@ -65,26 +65,8 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     if (!profile?.id || initialLoadComplete.current) return;
 
     const fetchUserStatus = async () => {
-      // Check cache first
-      try {
-        const cached = sessionStorage.getItem(USER_STATUS_CACHE_KEY);
-        if (cached) {
-          const { version, data, userId, timestamp } = JSON.parse(cached);
-          if (version === CACHE_VERSION && userId === profile.id) {
-            // Use cached data if less than 15 minutes old
-            if (Date.now() - timestamp < 15 * 60 * 1000) {
-              setUserStatusType(data.userStatusType || 'unknown');
-              setIsLoading(false);
-              initialLoadComplete.current = true;
-              return;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error reading cache:', error);
-      }
-
-      // Fetch from database only if necessary
+      // Admin-bypass fix: do NOT short-circuit on cache before role check
+      // We intentionally skip the early cache return so we can always verify admin role first.
       if (fetchInProgress.current) return;
       fetchInProgress.current = true;
 
