@@ -71,18 +71,16 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       fetchInProgress.current = true;
 
       try {
-        // STEP 1: Check admin role FIRST (priority check)
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', profile.id)
-          .maybeSingle();
+        // STEP 1: Check admin role FIRST (priority check) using SECURITY DEFINER RPC
+        const { data: isAdminResult } = await supabase
+          .rpc('has_role', { _user_id: profile.id, _role: 'admin' });
         
-        const adminStatus = roleData?.role === 'admin';
+        const adminStatus = isAdminResult === true;
         setIsAdmin(adminStatus);
         
         // If admin, skip subscription check and set admin status
         if (adminStatus) {
+          console.info('[UserStatusContext] Admin detected via has_role RPC');
           setUserStatusType('admin');
           
           // Cache admin status
