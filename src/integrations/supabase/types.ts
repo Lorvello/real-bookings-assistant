@@ -4692,6 +4692,55 @@ export type Database = {
         }[]
       }
       get_business_hours: { Args: { p_calendar_id: string }; Returns: Json }
+      get_business_overview: {
+        Args: {
+          p_business_name?: string
+          p_business_type?: string
+          p_calendar_slug?: string
+          p_city?: string
+        }
+        Returns: {
+          allow_waitlist: boolean
+          available_slots: Json
+          booking_window_days: number
+          buffer_time: number
+          business_city: string
+          business_country: string
+          business_description: string
+          business_email: string
+          business_name: string
+          business_number: string
+          business_phone: string
+          business_postal: string
+          business_street: string
+          business_type: string
+          business_whatsapp: string
+          calendar_active: boolean
+          calendar_color: string
+          calendar_description: string
+          calendar_id: string
+          calendar_name: string
+          calendar_slug: string
+          confirmation_required: boolean
+          created_at: string
+          facebook: string
+          instagram: string
+          last_updated: string
+          linkedin: string
+          max_bookings_per_day: number
+          minimum_notice_hours: number
+          opening_hours: Json
+          services: Json
+          slot_duration: number
+          timezone: string
+          total_bookings: number
+          total_revenue: number
+          upcoming_bookings: Json
+          user_id: string
+          website: string
+          whatsapp_bot_active: boolean
+        }[]
+      }
       get_calendar_availability: {
         Args: {
           p_calendar_slug: string

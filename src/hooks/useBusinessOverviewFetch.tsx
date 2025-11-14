@@ -12,17 +12,34 @@ export const useBusinessOverviewFetch = () => {
     setLoading(true);
 
     try {
-      // Business overview functionality temporarily disabled due to materialized view removal
-      // This prevents build errors while maintaining API compatibility
-      const overviewData: BusinessAvailabilityOverview[] = [];
-      
+      const { data: rawData, error } = await supabase.rpc('get_business_overview', {
+        p_business_name: filters?.business_name || null,
+        p_business_type: filters?.business_type || null,
+        p_city: filters?.city || null,
+        p_calendar_slug: filters?.calendar_slug || null,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Parse JSON fields from JSONB columns
+      const overviewData = (rawData || []).map((item: any) => ({
+        ...item,
+        available_slots: Array.isArray(item.available_slots) ? item.available_slots : [],
+        upcoming_bookings: Array.isArray(item.upcoming_bookings) ? item.upcoming_bookings : [],
+        services: Array.isArray(item.services) ? item.services : [],
+        opening_hours: typeof item.opening_hours === 'object' ? item.opening_hours : {},
+      }));
+
       setData(overviewData);
       setLoading(false);
       return overviewData;
     } catch (error) {
+      console.error('Error fetching business overview:', error);
       toast({
         title: "Fout bij ophalen bedrijfsoverzicht",
-        description: "Feature tijdelijk uitgeschakeld",
+        description: error instanceof Error ? error.message : "Er ging iets mis",
         variant: "destructive",
       });
       setLoading(false);

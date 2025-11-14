@@ -1,6 +1,42 @@
 
 import { Json } from '@/integrations/supabase/types';
 
+export interface AvailableSlot {
+  date: string;
+  start_time: string;
+  end_time: string;
+  service_name: string;
+  is_available: boolean;
+}
+
+export interface UpcomingBooking {
+  booking_id: string;
+  customer_name: string;
+  service_name: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  total_price: number | null;
+}
+
+export interface Service {
+  service_id: string;
+  name: string;
+  description: string | null;
+  duration: number;
+  price: number | null;
+  color: string;
+  is_active: boolean;
+}
+
+export interface OpeningHours {
+  [day: string]: {
+    start_time: string;
+    end_time: string;
+    is_available: boolean;
+  };
+}
+
 export interface BusinessAvailabilityOverview {
   user_id: string;
   business_name: string | null;
@@ -33,26 +69,14 @@ export interface BusinessAvailabilityOverview {
   allow_waitlist: boolean;
   confirmation_required: boolean;
   whatsapp_bot_active: boolean;
-  service_type_id: string | null;
-  service_name: string | null;
-  service_description: string | null;
-  service_duration: number | null;
-  service_price: number | null;
-  service_color: string | null;
-  service_active: boolean | null;
-  max_attendees: number | null;
-  preparation_time: number | null;
-  cleanup_time: number | null;
-  schedule_id: string | null;
-  schedule_name: string | null;
-  is_default_schedule: boolean | null;
-  formatted_opening_hours: string | null;
-  availability_rules: Json | null;
-  recent_overrides: Json | null;
-  current_month_stats: Json | null;
+  available_slots: AvailableSlot[];
+  upcoming_bookings: UpcomingBooking[];
+  services: Service[];
+  opening_hours: OpeningHours;
+  total_bookings: number;
+  total_revenue: number;
+  created_at: string;
   last_updated: string;
-  calendar_created_at: string;
-  business_created_at: string;
 }
 
 export interface BusinessSlot {

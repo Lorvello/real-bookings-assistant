@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin, Phone, Mail, Globe, ExternalLink } from 'lucide-react';
 import { BusinessAvailabilityOverview } from '@/types/businessAvailability';
-import { BusinessOpeningHours } from './BusinessOpeningHours';
 
 interface BusinessOverviewCardProps {
   business: BusinessAvailabilityOverview;
@@ -38,20 +37,8 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
     return types[type || 'other'] || 'Onbekend';
   };
 
-  // Helper function to safely access current_month_stats
-  const getCurrentMonthStats = () => {
-    if (!business.current_month_stats || typeof business.current_month_stats !== 'object') {
-      return { total_bookings: 0, total_revenue: 0 };
-    }
-    
-    const stats = business.current_month_stats as Record<string, any>;
-    return {
-      total_bookings: stats.total_bookings || 0,
-      total_revenue: stats.total_revenue || 0
-    };
-  };
-
-  const monthStats = getCurrentMonthStats();
+  // Get first service name for display
+  const primaryService = business.services[0]?.name || null;
 
   return (
     <Card className="w-full hover:shadow-lg transition-shadow">
@@ -65,9 +52,9 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
               <Badge variant="secondary">
                 {getBusinessTypeLabel(business.business_type)}
               </Badge>
-              {business.service_name && (
+              {primaryService && (
                 <Badge variant="outline">
-                  {business.service_name}
+                  {primaryService}
                 </Badge>
               )}
             </div>
@@ -147,24 +134,36 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
 
         {/* Openingstijden */}
         <div className="pt-2 border-t">
-          <BusinessOpeningHours 
-            formattedOpeningHours={business.formatted_opening_hours}
-            availabilityRules={business.availability_rules}
-            showCompact={!showFullDetails}
-          />
+          <h4 className="font-semibold text-sm mb-2">Openingstijden</h4>
+          {Object.keys(business.opening_hours).length > 0 ? (
+            <div className="text-sm space-y-1">
+              {Object.entries(business.opening_hours).map(([day, hours]) => (
+                <div key={day} className="flex justify-between">
+                  <span>{['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'][parseInt(day)]}</span>
+                  <span>
+                    {hours.is_available 
+                      ? `${hours.start_time} - ${hours.end_time}`
+                      : 'Gesloten'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Geen openingstijden ingesteld</p>
+          )}
         </div>
 
         {/* Service informatie */}
-        {business.service_name && (
+        {business.services.length > 0 && business.services[0] && (
           <div className="space-y-2 pt-2 border-t">
             <h4 className="font-semibold text-sm">Service details</h4>
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                <span>{formatDuration(business.service_duration)}</span>
+                <span>{formatDuration(business.services[0].duration)}</span>
               </div>
               <div>
-                <span className="font-medium">{formatPrice(business.service_price)}</span>
+                <span className="font-medium">{formatPrice(business.services[0].price)}</span>
               </div>
             </div>
           </div>
@@ -186,15 +185,15 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
         {/* Statistieken */}
         {showFullDetails && (
           <div className="space-y-2 pt-4 border-t">
-            <h4 className="font-semibold text-sm">Deze maand</h4>
+            <h4 className="font-semibold text-sm">Statistieken</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-muted-foreground">Boekingen: </span>
-                <span className="font-medium">{monthStats.total_bookings}</span>
+                <span className="font-medium">{business.total_bookings}</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Omzet: </span>
-                <span className="font-medium">€{Number(monthStats.total_revenue).toFixed(2)}</span>
+                <span className="font-medium">€{Number(business.total_revenue).toFixed(2)}</span>
               </div>
             </div>
           </div>
