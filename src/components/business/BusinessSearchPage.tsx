@@ -169,7 +169,7 @@ export const BusinessSearchPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {data.map((business) => (
               <BusinessOverviewCard
-                key={`${business.calendar_id}-${business.service_type_id || 'no-service'}`}
+                key={business.calendar_id}
                 business={business}
                 onViewSlots={handleViewSlots}
                 showFullDetails={false}
