@@ -715,6 +715,168 @@ export type Database = {
           },
         ]
       }
+      business_overview: {
+        Row: {
+          allow_waitlist: boolean | null
+          available_slots: Json | null
+          booking_window_days: number | null
+          buffer_time: number | null
+          business_city: string | null
+          business_country: string | null
+          business_description: string | null
+          business_email: string | null
+          business_name: string | null
+          business_number: string | null
+          business_phone: string | null
+          business_postal: string | null
+          business_street: string | null
+          business_type: string | null
+          business_whatsapp: string | null
+          calendar_active: boolean | null
+          calendar_color: string | null
+          calendar_description: string | null
+          calendar_id: string
+          calendar_name: string | null
+          calendar_slug: string | null
+          confirmation_required: boolean | null
+          created_at: string | null
+          facebook: string | null
+          instagram: string | null
+          last_updated: string | null
+          linkedin: string | null
+          max_bookings_per_day: number | null
+          minimum_notice_hours: number | null
+          opening_hours: Json | null
+          services: Json | null
+          slot_duration: number | null
+          timezone: string | null
+          total_bookings: number | null
+          total_revenue: number | null
+          upcoming_bookings: Json | null
+          user_id: string
+          website: string | null
+          whatsapp_bot_active: boolean | null
+        }
+        Insert: {
+          allow_waitlist?: boolean | null
+          available_slots?: Json | null
+          booking_window_days?: number | null
+          buffer_time?: number | null
+          business_city?: string | null
+          business_country?: string | null
+          business_description?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          business_number?: string | null
+          business_phone?: string | null
+          business_postal?: string | null
+          business_street?: string | null
+          business_type?: string | null
+          business_whatsapp?: string | null
+          calendar_active?: boolean | null
+          calendar_color?: string | null
+          calendar_description?: string | null
+          calendar_id: string
+          calendar_name?: string | null
+          calendar_slug?: string | null
+          confirmation_required?: boolean | null
+          created_at?: string | null
+          facebook?: string | null
+          instagram?: string | null
+          last_updated?: string | null
+          linkedin?: string | null
+          max_bookings_per_day?: number | null
+          minimum_notice_hours?: number | null
+          opening_hours?: Json | null
+          services?: Json | null
+          slot_duration?: number | null
+          timezone?: string | null
+          total_bookings?: number | null
+          total_revenue?: number | null
+          upcoming_bookings?: Json | null
+          user_id: string
+          website?: string | null
+          whatsapp_bot_active?: boolean | null
+        }
+        Update: {
+          allow_waitlist?: boolean | null
+          available_slots?: Json | null
+          booking_window_days?: number | null
+          buffer_time?: number | null
+          business_city?: string | null
+          business_country?: string | null
+          business_description?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          business_number?: string | null
+          business_phone?: string | null
+          business_postal?: string | null
+          business_street?: string | null
+          business_type?: string | null
+          business_whatsapp?: string | null
+          calendar_active?: boolean | null
+          calendar_color?: string | null
+          calendar_description?: string | null
+          calendar_id?: string
+          calendar_name?: string | null
+          calendar_slug?: string | null
+          confirmation_required?: boolean | null
+          created_at?: string | null
+          facebook?: string | null
+          instagram?: string | null
+          last_updated?: string | null
+          linkedin?: string | null
+          max_bookings_per_day?: number | null
+          minimum_notice_hours?: number | null
+          opening_hours?: Json | null
+          services?: Json | null
+          slot_duration?: number | null
+          timezone?: string | null
+          total_bookings?: number | null
+          total_revenue?: number | null
+          upcoming_bookings?: Json | null
+          user_id?: string
+          website?: string | null
+          whatsapp_bot_active?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
       business_stripe_accounts: {
         Row: {
           account_owner_id: string | null
@@ -4692,55 +4854,6 @@ export type Database = {
         }[]
       }
       get_business_hours: { Args: { p_calendar_id: string }; Returns: Json }
-      get_business_overview: {
-        Args: {
-          p_business_name?: string
-          p_business_type?: string
-          p_calendar_slug?: string
-          p_city?: string
-        }
-        Returns: {
-          allow_waitlist: boolean
-          available_slots: Json
-          booking_window_days: number
-          buffer_time: number
-          business_city: string
-          business_country: string
-          business_description: string
-          business_email: string
-          business_name: string
-          business_number: string
-          business_phone: string
-          business_postal: string
-          business_street: string
-          business_type: string
-          business_whatsapp: string
-          calendar_active: boolean
-          calendar_color: string
-          calendar_description: string
-          calendar_id: string
-          calendar_name: string
-          calendar_slug: string
-          confirmation_required: boolean
-          created_at: string
-          facebook: string
-          instagram: string
-          last_updated: string
-          linkedin: string
-          max_bookings_per_day: number
-          minimum_notice_hours: number
-          opening_hours: Json
-          services: Json
-          slot_duration: number
-          timezone: string
-          total_bookings: number
-          total_revenue: number
-          upcoming_bookings: Json
-          user_id: string
-          website: string
-          whatsapp_bot_active: boolean
-        }[]
-      }
       get_calendar_availability: {
         Args: {
           p_calendar_slug: string
@@ -4876,6 +4989,10 @@ export type Database = {
       refresh_analytics_views: { Args: never; Returns: undefined }
       refresh_business_availability_overview: {
         Args: never
+        Returns: undefined
+      }
+      refresh_business_overview: {
+        Args: { p_calendar_id: string }
         Returns: undefined
       }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }
