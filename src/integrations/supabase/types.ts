@@ -4992,7 +4992,7 @@ export type Database = {
         Returns: undefined
       }
       refresh_business_overview: {
-        Args: { p_calendar_id: string }
+        Args: { p_calendar_id?: string }
         Returns: undefined
       }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }
