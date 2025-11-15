@@ -12,12 +12,27 @@ export const useBusinessOverviewFetch = () => {
     setLoading(true);
 
     try {
-      const { data: rawData, error } = await supabase.rpc('get_business_overview', {
-        p_business_name: filters?.business_name || null,
-        p_business_type: filters?.business_type || null,
-        p_city: filters?.city || null,
-        p_calendar_slug: filters?.calendar_slug || null,
-      });
+      // Build query from table with filters
+      let query = supabase
+        .from('business_overview')
+        .select('*')
+        .eq('calendar_active', true);
+
+      // Apply filters
+      if (filters?.business_name) {
+        query = query.ilike('business_name', `%${filters.business_name}%`);
+      }
+      if (filters?.business_type) {
+        query = query.eq('business_type', filters.business_type);
+      }
+      if (filters?.city) {
+        query = query.ilike('business_city', `%${filters.city}%`);
+      }
+      if (filters?.calendar_slug) {
+        query = query.eq('calendar_slug', filters.calendar_slug);
+      }
+
+      const { data: rawData, error } = await query.order('business_name');
 
       if (error) {
         throw error;

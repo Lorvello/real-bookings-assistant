@@ -69,7 +69,10 @@ export const BusinessSearchPage: React.FC = () => {
         </div>
         <Button
           variant="outline"
-          onClick={refreshOverview}
+          onClick={() => {
+            refreshOverview();
+            fetchBusinessOverview();
+          }}
           disabled={loading}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
