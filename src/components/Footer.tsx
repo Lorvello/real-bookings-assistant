@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowUpRight, Linkedin, Instagram, Twitter, Facebook } from 'lucide-react';
+import { Mail, ArrowUpRight } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -23,12 +23,6 @@ const Footer: React.FC = () => {
     { name: 'Privacy Policy', href: '/privacy-policy' },
   ];
 
-  const socialLinks = [
-    { icon: Linkedin, href: '#', label: 'LinkedIn' },
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Facebook, href: '#', label: 'Facebook' },
-  ];
 
   return (
     <footer className="relative bg-background-secondary border-t border-border/50">
@@ -65,21 +59,6 @@ const Footer: React.FC = () => {
               </span>
             </a>
 
-            {/* Social Media Icons */}
-            <div className="mt-6 flex gap-3">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2.5 rounded-lg bg-card/30 border border-border/30 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
-                  aria-label={social.label}
-                >
-                  <social.icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Product links */}
