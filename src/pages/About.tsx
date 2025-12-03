@@ -4,7 +4,7 @@ import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Brain, Calendar, Building2, CreditCard, MessageCircle, User, Target, Sparkles, Shield, Zap } from 'lucide-react';
+import { User } from 'lucide-react';
 
 const About = () => {
   return (
@@ -57,7 +57,7 @@ const About = () => {
               
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Mathew */}
-                <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 hover:bg-slate-800/70 transition-all duration-300">
+                <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/30 transition-all duration-500 shadow-2xl shadow-black/20">
                   <CardContent className="p-8">
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 border border-emerald-500/30 flex items-center justify-center">
@@ -66,7 +66,7 @@ const About = () => {
                       <div>
                         <h3 className="text-xl font-bold text-white">Mathew Groen</h3>
                         <p className="text-emerald-400 text-sm font-medium">Co-Founder & Lead Developer</p>
-                        <p className="text-slate-500 text-sm">21 · Netherlands</p>
+                        <p className="text-slate-500 text-sm">18 August 2003 · Netherlands</p>
                       </div>
                     </div>
                     <div className="space-y-4 text-slate-300 leading-relaxed">
@@ -91,7 +91,7 @@ const About = () => {
                 </Card>
 
                 {/* Luciano */}
-                <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 hover:bg-slate-800/70 transition-all duration-300">
+                <Card className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/30 transition-all duration-500 shadow-2xl shadow-black/20">
                   <CardContent className="p-8">
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 border border-emerald-500/30 flex items-center justify-center">
@@ -100,7 +100,7 @@ const About = () => {
                       <div>
                         <h3 className="text-xl font-bold text-white">Luciano Raatgever</h3>
                         <p className="text-emerald-400 text-sm font-medium">Co-Founder & Systems Architect</p>
-                        <p className="text-slate-500 text-sm">21 · Netherlands</p>
+                        <p className="text-slate-500 text-sm">26 January 2003 · Netherlands</p>
                       </div>
                     </div>
                     <div className="space-y-4 text-slate-300 leading-relaxed">
@@ -139,11 +139,8 @@ const About = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* WhatsApp Focus Card */}
-                <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 hover:bg-slate-800/70 transition-all duration-300">
+                <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/50 transition-all duration-500 shadow-xl shadow-black/10">
                   <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-                      <MessageCircle className="w-6 h-6 text-emerald-400" />
-                    </div>
                     <h3 className="text-lg font-bold text-white mb-3">WhatsApp Native</h3>
                     <p className="text-slate-400 text-sm leading-relaxed">
                       95%+ adoption in Europe. Your customers won't download another app or create another account. 
@@ -153,11 +150,8 @@ const About = () => {
                 </Card>
 
                 {/* Vision Card */}
-                <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 hover:bg-slate-800/70 transition-all duration-300">
+                <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/50 transition-all duration-500 shadow-xl shadow-black/10">
                   <CardContent className="p-6">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-                      <Target className="w-6 h-6 text-emerald-400" />
-                    </div>
                     <h3 className="text-lg font-bold text-white mb-3">Our Vision</h3>
                     <p className="text-slate-400 text-sm leading-relaxed">
                       Starting in the Netherlands, our goal is simple: make automated booking accessible to thousands of 
@@ -167,11 +161,8 @@ const About = () => {
                 </Card>
 
                 {/* CTA Card */}
-                <Card className="bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 backdrop-blur-sm border-emerald-500/30 hover:from-emerald-500/30 hover:to-emerald-600/20 transition-all duration-300">
+                <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-500 shadow-xl shadow-emerald-500/5">
                   <CardContent className="p-6 flex flex-col h-full">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mb-4">
-                      <Sparkles className="w-6 h-6 text-emerald-400" />
-                    </div>
                     <h3 className="text-lg font-bold text-white mb-3">Let's Talk</h3>
                     <p className="text-slate-300 text-sm leading-relaxed mb-4 flex-grow">
                       Want intelligent booking automation for your business? We'd love to show you what's possible.
@@ -183,78 +174,55 @@ const About = () => {
                 </Card>
 
                 {/* Technology Cards - Full Width Row */}
-                <Card className="bg-slate-800/50 backdrop-blur-sm border-slate-700/50 md:col-span-2 lg:col-span-3">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                        <Zap className="w-6 h-6 text-emerald-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white">The Technology Stack</h3>
-                    </div>
+                <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border-slate-700/30 md:col-span-2 lg:col-span-3 shadow-xl shadow-black/10">
+                  <CardContent className="p-8">
+                    <h3 className="text-xl font-bold text-white mb-6">The Technology Stack</h3>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {/* Conversational AI */}
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Brain className="w-5 h-5 text-emerald-400" />
-                          <span className="text-white font-medium">Conversational AI</span>
-                        </div>
-                        <p className="text-slate-400 text-sm">
-                          Natural language understanding that grasps context and intent. No menus, no commands, just natural conversations.
+                      <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
+                        <span className="text-white font-medium block mb-2">Conversational AI</span>
+                        <p className="text-slate-400 text-sm leading-relaxed">
+                          Natural language understanding that grasps context and intent. No menus, no commands, just natural conversations. Our system continuously updates to leverage the latest and most powerful AI models available, ensuring you always benefit from cutting-edge technology as the AI landscape evolves.
                         </p>
                       </div>
 
                       {/* Real-time Calendar */}
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Calendar className="w-5 h-5 text-emerald-400" />
-                          <span className="text-white font-medium">Real-time Calendar</span>
-                        </div>
-                        <p className="text-slate-400 text-sm">
+                      <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
+                        <span className="text-white font-medium block mb-2">Real-time Calendar</span>
+                        <p className="text-slate-400 text-sm leading-relaxed">
                           Instant availability checks with conflict prevention. No double bookings, automatic synchronization across all channels.
                         </p>
                       </div>
 
                       {/* Multi-tenant Architecture */}
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Building2 className="w-5 h-5 text-emerald-400" />
-                          <span className="text-white font-medium">Multi-tenant Architecture</span>
-                        </div>
-                        <p className="text-slate-400 text-sm">
+                      <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
+                        <span className="text-white font-medium block mb-2">Multi-tenant Architecture</span>
+                        <p className="text-slate-400 text-sm leading-relaxed">
                           Built to scale from 1 to 10,000+ businesses with complete data isolation and enterprise-grade security.
                         </p>
                       </div>
 
                       {/* Secure Payments */}
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CreditCard className="w-5 h-5 text-emerald-400" />
-                          <span className="text-white font-medium">Secure Payments</span>
-                        </div>
-                        <p className="text-slate-400 text-sm">
+                      <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
+                        <span className="text-white font-medium block mb-2">Secure Payments</span>
+                        <p className="text-slate-400 text-sm leading-relaxed">
                           PCI-compliant payments via Stripe Connect with automatic payouts and platform fee management.
                         </p>
                       </div>
 
                       {/* WhatsApp Business API */}
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <MessageCircle className="w-5 h-5 text-emerald-400" />
-                          <span className="text-white font-medium">WhatsApp Business API</span>
-                        </div>
-                        <p className="text-slate-400 text-sm">
+                      <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
+                        <span className="text-white font-medium block mb-2">WhatsApp Business API</span>
+                        <p className="text-slate-400 text-sm leading-relaxed">
                           Official Meta partnership for reliable message delivery, enterprise-grade uptime, and verified business profiles.
                         </p>
                       </div>
 
                       {/* Security */}
-                      <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Shield className="w-5 h-5 text-emerald-400" />
-                          <span className="text-white font-medium">Enterprise Security</span>
-                        </div>
-                        <p className="text-slate-400 text-sm">
+                      <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
+                        <span className="text-white font-medium block mb-2">Enterprise Security</span>
+                        <p className="text-slate-400 text-sm leading-relaxed">
                           Row-level security, encrypted data storage, rate limiting, and comprehensive audit logging for complete protection.
                         </p>
                       </div>
