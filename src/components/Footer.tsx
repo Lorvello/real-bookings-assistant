@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, ArrowUpRight } from 'lucide-react';
+import { Mail, ArrowUpRight, Linkedin, Instagram, Twitter, Facebook } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -13,9 +13,20 @@ const Footer: React.FC = () => {
     { name: 'FAQ', href: '/faq' },
   ];
 
+  const companyLinks = [
+    { name: 'Contact', href: '/contact' },
+  ];
+
   const legalLinks = [
     { name: 'Terms of Service', href: '/terms-of-service' },
     { name: 'Privacy Policy', href: '/privacy-policy' },
+  ];
+
+  const socialLinks = [
+    { icon: Linkedin, href: '#', label: 'LinkedIn' },
+    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Twitter, href: '#', label: 'Twitter' },
+    { icon: Facebook, href: '#', label: 'Facebook' },
   ];
 
   return (
@@ -25,7 +36,7 @@ const Footer: React.FC = () => {
       
       <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-20">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           
           {/* Brand column */}
           <div className="lg:col-span-2">
@@ -45,13 +56,29 @@ const Footer: React.FC = () => {
             {/* Contact - Subtle email link */}
             <a 
               href="mailto:support@bookingsassistant.com"
-              className="mt-8 inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200 group"
+              className="mt-6 inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200 group"
             >
               <Mail className="h-4 w-4" />
               <span className="underline-offset-4 group-hover:underline">
                 support@bookingsassistant.com
               </span>
             </a>
+
+            {/* Social Media Icons */}
+            <div className="mt-6 flex gap-3">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-lg bg-card/30 border border-border/30 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
+                  aria-label={social.label}
+                >
+                  <social.icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Product links */}
@@ -61,6 +88,26 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-4">
               {productLinks.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href}
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group"
+                  >
+                    {link.name}
+                    <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company links */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
+              Company
+            </h3>
+            <ul className="space-y-4">
+              {companyLinks.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href}

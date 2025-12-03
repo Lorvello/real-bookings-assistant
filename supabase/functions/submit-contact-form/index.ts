@@ -23,13 +23,13 @@ Deno.serve(async (req) => {
 
     const ipAddress = getClientIp(req);
 
-    // Rate limiting: 2 requests per 5 minutes
+    // Rate limiting: 3 requests per 5 minutes for contact form
     const rateLimiter = new RateLimiter(supabaseClient, {
       endpoint: 'contact_form',
-      maxRequests: 2,
+      maxRequests: 3,
       windowSeconds: 300,
       blockDurationSeconds: 1800,
-      enableCaptchaThreshold: 1
+      enableCaptchaThreshold: 2
     });
 
     const rateLimitResult = await rateLimiter.checkLimit(ipAddress);
@@ -38,8 +38,20 @@ Deno.serve(async (req) => {
       return RateLimiter.createRateLimitResponse(rateLimitResult, corsHeaders);
     }
 
-    const { name, email, company, message, formType = 'general' } = await req.json();
+    const { 
+      name, 
+      email, 
+      phone,
+      company, 
+      subject,
+      budget,
+      platform,
+      message, 
+      requestMeeting,
+      formType = 'general' 
+    } = await req.json();
 
+    // Validate required fields
     if (!name || name.length > 100) {
       return new Response(
         JSON.stringify({ error: 'Invalid name' }),
@@ -61,22 +73,47 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!subject || subject.length > 50) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid subject' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Log the submission
     console.log('Contact form submission:', {
       name: name.trim(),
       email: email.toLowerCase().trim(),
-      company: company?.trim(),
-      message: message.trim(),
+      phone: phone?.trim() || null,
+      company: company?.trim() || null,
+      subject: subject.trim(),
+      budget: budget || null,
+      platform: platform || null,
+      message: message.trim().substring(0, 100) + '...', // Log first 100 chars only
+      requestMeeting: requestMeeting || false,
       formType,
       ipAddress
     });
 
+    // Store in security_events_log for tracking
     await supabaseClient
       .from('security_events_log')
       .insert({
         event_type: 'contact_form_submission',
         ip_address: ipAddress,
-        event_data: { form_type: formType, email },
-        severity: 'info'
+        event_data: { 
+          form_type: formType,
+          name: name.trim(),
+          email: email.toLowerCase().trim(),
+          phone: phone?.trim() || null,
+          company: company?.trim() || null,
+          subject: subject.trim(),
+          budget: budget || null,
+          platform: platform || null,
+          message: message.trim(),
+          request_meeting: requestMeeting || false
+        },
+        severity: requestMeeting ? 'warn' : 'info' // Higher priority if meeting requested
       });
 
     return new Response(
