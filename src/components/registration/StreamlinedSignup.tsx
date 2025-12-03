@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useUserRegistration } from '@/hooks/useUserRegistration';
 import { CheckCircle, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/password-input';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { validatePassword } from '@/utils/passwordValidation';
 import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
 
@@ -364,6 +365,19 @@ export const StreamlinedSignup: React.FC = () => {
                 'Start 30-Day Free Trial'
               )}
             </Button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">or sign up with</span>
+              </div>
+            </div>
+
+            {/* Google Sign Up */}
+            <GoogleAuthButton mode="signup" />
           </form>
 
           {/* Trust Indicator */}
