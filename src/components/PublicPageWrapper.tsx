@@ -1,12 +1,18 @@
 import React from 'react';
 import { useIsMobile } from '../hooks/use-mobile';
+import Footer from './Footer';
 
 interface PublicPageWrapperProps {
   children: React.ReactNode;
   className?: string;
+  showFooter?: boolean;
 }
 
-const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({ children, className = "" }) => {
+const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({ 
+  children, 
+  className = "",
+  showFooter = true 
+}) => {
   const isMobile = useIsMobile();
 
   return (
@@ -23,6 +29,7 @@ const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({ children, classNa
       }}
     >
       {children}
+      {showFooter && <Footer />}
     </div>
   );
 };
