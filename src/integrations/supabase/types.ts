@@ -1350,6 +1350,57 @@ export type Database = {
           },
         ]
       }
+      contact_meetings: {
+        Row: {
+          budget: string | null
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          meeting_date: string
+          meeting_time: string
+          message: string
+          name: string
+          phone: string | null
+          platform: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          meeting_date: string
+          meeting_time: string
+          message: string
+          name: string
+          phone?: string | null
+          platform?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          meeting_date?: string
+          meeting_time?: string
+          message?: string
+          name?: string
+          phone?: string | null
+          platform?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversation_context: {
         Row: {
           context_data: Json
@@ -4691,6 +4742,10 @@ export type Database = {
         Args: { p_calendar_id: string; p_ip_address: unknown }
         Returns: Json
       }
+      check_meeting_slot_available: {
+        Args: { p_date: string; p_time: string }
+        Returns: boolean
+      }
       check_payment_rate_limit: {
         Args: { p_calendar_id: string; p_ip_address: unknown }
         Returns: Json
@@ -4829,6 +4884,13 @@ export type Database = {
               slot_start: string
             }[]
           }
+      get_booked_meeting_slots: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          meeting_date: string
+          meeting_time: string
+        }[]
+      }
       get_booking_trends: {
         Args: { p_calendar_id: string; p_days?: number }
         Returns: Json

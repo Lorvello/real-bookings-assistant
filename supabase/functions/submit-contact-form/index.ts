@@ -48,6 +48,8 @@ Deno.serve(async (req) => {
       platform,
       message, 
       requestMeeting,
+      meetingDate,
+      meetingTime,
       formType = 'general' 
     } = await req.json();
 
@@ -91,6 +93,8 @@ Deno.serve(async (req) => {
       platform: platform || null,
       message: message.trim().substring(0, 100) + '...', // Log first 100 chars only
       requestMeeting: requestMeeting || false,
+      meetingDate: meetingDate || null,
+      meetingTime: meetingTime || null,
       formType,
       ipAddress
     });
@@ -111,7 +115,9 @@ Deno.serve(async (req) => {
           budget: budget || null,
           platform: platform || null,
           message: message.trim(),
-          request_meeting: requestMeeting || false
+          request_meeting: requestMeeting || false,
+          meeting_date: meetingDate || null,
+          meeting_time: meetingTime || null
         },
         severity: requestMeeting ? 'warn' : 'info' // Higher priority if meeting requested
       });

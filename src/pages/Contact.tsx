@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { ArrowLeft, Mail, Phone, MapPin, Send, Loader2, Linkedin, Instagram, Twitter, Facebook } from 'lucide-react';
+import * as z from 'zod';
+import { format, addDays, isWeekend, isBefore, startOfDay } from 'date-fns';
+import { Mail, Send, ArrowLeft, CalendarIcon, Clock, CheckCircle } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
 import {
   Form,
   FormControl,
@@ -23,21 +20,35 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { cn } from '@/lib/utils';
 
 const contactFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
-  email: z.string().email('Invalid email address').max(254, 'Email must be less than 254 characters'),
-  phone: z.string().max(20, 'Phone must be less than 20 characters').optional().or(z.literal('')),
-  company: z.string().max(100, 'Company must be less than 100 characters').optional().or(z.literal('')),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().optional(),
+  company: z.string().optional(),
   subject: z.string().min(1, 'Please select a subject'),
   budget: z.string().optional(),
   platform: z.string().optional(),
-  message: z.string().min(1, 'Message is required').max(2000, 'Message must be less than 2000 characters'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
   requestMeeting: z.boolean().default(false),
+  meetingDate: z.date().optional(),
+  meetingTime: z.string().optional(),
 });
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
@@ -45,9 +56,9 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 const subjectOptions = [
   { value: 'general', label: 'General Inquiry' },
   { value: 'sales', label: 'Sales Question' },
-  { value: 'partnership', label: 'Partnership Opportunity' },
-  { value: 'support', label: 'Technical Support' },
-  { value: 'meeting', label: 'Schedule a Meeting' },
+  { value: 'partnership', label: 'Partnership' },
+  { value: 'support', label: 'Support' },
+  { value: 'demo', label: 'Request a Demo' },
 ];
 
 const budgetOptions = [
@@ -56,7 +67,7 @@ const budgetOptions = [
   { value: '50-200', label: '€50 - €200/month' },
   { value: '200-500', label: '€200 - €500/month' },
   { value: '500-plus', label: '€500+/month' },
-  { value: 'enterprise', label: 'Custom / Enterprise' },
+  { value: 'enterprise', label: 'Custom/Enterprise' },
 ];
 
 const platformOptions = [
@@ -68,17 +79,16 @@ const platformOptions = [
   { value: 'other', label: 'Other' },
 ];
 
-const socialLinks = [
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Facebook, href: '#', label: 'Facebook' },
+const timeSlots = [
+  '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'
 ];
 
-const Contact: React.FC = () => {
+const Contact = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState<{ date: string; time: string }[]>([]);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -92,8 +102,150 @@ const Contact: React.FC = () => {
       platform: '',
       message: '',
       requestMeeting: false,
+      meetingDate: undefined,
+      meetingTime: '',
     },
   });
+
+  const watchRequestMeeting = form.watch('requestMeeting');
+  const watchMeetingDate = form.watch('meetingDate');
+
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      const startDate = new Date();
+      const endDate = addDays(startDate, 30);
+      
+      const { data, error } = await supabase.rpc('get_booked_meeting_slots', {
+        p_start_date: format(startDate, 'yyyy-MM-dd'),
+        p_end_date: format(endDate, 'yyyy-MM-dd'),
+      });
+
+      if (!error && data) {
+        setBookedSlots(data.map((slot: { meeting_date: string; meeting_time: string }) => ({
+          date: slot.meeting_date,
+          time: slot.meeting_time.substring(0, 5),
+        })));
+      }
+    };
+
+    fetchBookedSlots();
+  }, []);
+
+  const getAvailableTimeSlotsForDate = (date: Date | undefined) => {
+    if (!date) return timeSlots;
+    
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const bookedTimesForDate = bookedSlots
+      .filter(slot => slot.date === dateStr)
+      .map(slot => slot.time);
+    
+    return timeSlots.filter(time => !bookedTimesForDate.includes(time));
+  };
+
+  const dateHasAvailableSlots = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const bookedTimesForDate = bookedSlots
+      .filter(slot => slot.date === dateStr)
+      .map(slot => slot.time);
+    
+    return timeSlots.some(time => !bookedTimesForDate.includes(time));
+  };
+
+  const isDateDisabled = (date: Date) => {
+    const today = startOfDay(new Date());
+    return (
+      isBefore(date, today) ||
+      isWeekend(date) ||
+      !dateHasAvailableSlots(date)
+    );
+  };
+
+  const onSubmit = async (data: ContactFormValues) => {
+    setIsSubmitting(true);
+
+    try {
+      if (data.requestMeeting) {
+        if (!data.meetingDate || !data.meetingTime) {
+          toast({
+            title: "Meeting details required",
+            description: "Please select both a date and time for your meeting.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { data: isAvailable } = await supabase.rpc('check_meeting_slot_available', {
+          p_date: format(data.meetingDate, 'yyyy-MM-dd'),
+          p_time: data.meetingTime,
+        });
+
+        if (!isAvailable) {
+          toast({
+            title: "Time slot no longer available",
+            description: "This time slot was just booked. Please select another time.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { error: meetingError } = await supabase
+          .from('contact_meetings')
+          .insert({
+            name: data.name,
+            email: data.email,
+            phone: data.phone || null,
+            company: data.company || null,
+            subject: data.subject,
+            budget: data.budget || null,
+            platform: data.platform || null,
+            message: data.message,
+            meeting_date: format(data.meetingDate, 'yyyy-MM-dd'),
+            meeting_time: data.meetingTime,
+          });
+
+        if (meetingError) throw meetingError;
+      }
+
+      const { error } = await supabase.functions.invoke('submit-contact-form', {
+        body: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          company: data.company,
+          subject: data.subject,
+          budget: data.budget,
+          platform: data.platform,
+          message: data.message,
+          requestMeeting: data.requestMeeting,
+          meetingDate: data.meetingDate ? format(data.meetingDate, 'yyyy-MM-dd') : null,
+          meetingTime: data.meetingTime,
+        },
+      });
+
+      if (error) throw error;
+
+      setIsSuccess(true);
+      toast({
+        title: data.requestMeeting ? "Meeting scheduled!" : "Message sent!",
+        description: data.requestMeeting 
+          ? `Your meeting is scheduled for ${format(data.meetingDate!, 'PPP')} at ${data.meetingTime} CET.`
+          : "We'll get back to you as soon as possible.",
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -103,269 +255,190 @@ const Contact: React.FC = () => {
     }
   };
 
-  const onSubmit = async (data: ContactFormValues) => {
-    setIsSubmitting(true);
-
-    try {
-      const { error } = await supabase.functions.invoke('submit-contact-form', {
-        body: {
-          name: data.name,
-          email: data.email,
-          phone: data.phone || null,
-          company: data.company || null,
-          subject: data.subject,
-          budget: data.budget || null,
-          platform: data.platform || null,
-          message: data.message,
-          requestMeeting: data.requestMeeting,
-          formType: 'contact_page',
-        },
-      });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to submit form');
-      }
-
-      toast({
-        title: 'Message sent!',
-        description: data.requestMeeting
-          ? "We'll get back to you shortly to schedule your meeting."
-          : "We'll get back to you as soon as possible.",
-      });
-
-      form.reset();
-    } catch (error: any) {
-      console.error('Contact form error:', error);
-      toast({
-        title: 'Failed to send message',
-        description: error.message || 'Please try again later.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const availableTimeSlotsForSelectedDate = getAvailableTimeSlotsForDate(watchMeetingDate);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'hsl(217, 35%, 12%)' }}>
-      <Navbar />
+    <PublicPageWrapper>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+        <Header />
+        
+        {/* Hero Section */}
+        <section className="pt-32 md:pt-40 pb-12 md:pb-16 px-4 relative overflow-hidden">
+          {/* Animated background blobs */}
+          <div className="absolute inset-0">
+            <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-gradient-to-l from-emerald-500/15 via-slate-600/10 to-emerald-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-emerald-700/10 via-slate-700/5 to-emerald-600/10 rounded-full blur-3xl" />
+          </div>
+          
+          {/* Grid pattern */}
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(16_185_129,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(16_185_129,0.05)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-40" />
+          </div>
 
-      <main className="pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Back button */}
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            className="mb-8 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Go back
-          </Button>
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            {/* Back Button */}
+            <div className="flex justify-start mb-8">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Go back
+              </Button>
+            </div>
 
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Get in Touch
+            {/* Badge */}
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm mb-6">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
+              <span className="text-emerald-300 text-sm font-medium tracking-wide">Get in Touch</span>
+            </div>
+
+            {/* Heading */}
+            <h1 className="text-4xl md:text-5xl xl:text-6xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
+                Let's Start a{' '}
+              </span>
+              <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
+                Conversation
+              </span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Have questions about BookingsAssistant? Want to schedule a demo? 
-              We'd love to hear from you. Reach out anytime!
+
+            <p className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
+              Have questions or ready to transform your booking experience? We'd love to hear from you.
             </p>
           </div>
+        </section>
 
-          {/* Content grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Left column - Contact info */}
-            <div className="space-y-8">
-              <div>
-                <h2 className="text-2xl font-semibold text-foreground mb-6">
-                  Contact Information
-                </h2>
-                <div className="space-y-6">
-                  <a
-                    href="mailto:support@bookingsassistant.com"
-                    className="flex items-start gap-4 text-muted-foreground hover:text-primary transition-colors group"
-                  >
-                    <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                      <Mail className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Email</p>
-                      <p className="group-hover:underline">support@bookingsassistant.com</p>
-                    </div>
-                  </a>
-
-                  <a
-                    href="tel:+31207942048"
-                    className="flex items-start gap-4 text-muted-foreground hover:text-primary transition-colors group"
-                  >
-                    <div className="p-3 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                      <Phone className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Phone</p>
-                      <p className="group-hover:underline">+31 20 794 2048</p>
-                    </div>
-                  </a>
-
-                  <div className="flex items-start gap-4 text-muted-foreground">
-                    <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                      <MapPin className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">Address</p>
-                      <p>Rokin</p>
-                      <p>Amsterdam, Netherlands</p>
-                    </div>
-                  </div>
+        {/* Form Section */}
+        <section className="pb-24 px-4 relative z-10">
+          <div className="max-w-2xl mx-auto">
+            {isSuccess ? (
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-8 md:p-10 text-center">
+                <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="h-8 w-8 text-emerald-400" />
                 </div>
-              </div>
-
-              {/* Social links */}
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Follow Us
-                </h3>
-                <div className="flex gap-3">
-                  {socialLinks.map((social) => (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-3 rounded-lg bg-card/50 border border-border/50 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
-                      aria-label={social.label}
-                    >
-                      <social.icon className="h-5 w-5" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* Office hours */}
-              <div className="p-6 rounded-xl bg-card/30 border border-border/50">
-                <h3 className="text-lg font-semibold text-foreground mb-3">
-                  Office Hours
-                </h3>
-                <div className="space-y-2 text-muted-foreground">
-                  <p>Monday - Friday: 9:00 AM - 6:00 PM (CET)</p>
-                  <p>Saturday - Sunday: Closed</p>
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground/70">
-                  Our AI booking assistant is available 24/7 for your customers!
+                <h2 className="text-2xl font-semibold text-white mb-4">Thank you!</h2>
+                <p className="text-slate-300 mb-6">
+                  We've received your message and will get back to you shortly.
                 </p>
+                <Button
+                  onClick={() => setIsSuccess(false)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  Send another message
+                </Button>
               </div>
-            </div>
-
-            {/* Right column - Contact form */}
-            <div className="bg-card/30 border border-border/50 rounded-2xl p-6 md:p-8">
-              <h2 className="text-2xl font-semibold text-foreground mb-6">
-                Send Us a Message
-              </h2>
-
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email *</FormLabel>
-                          <FormControl>
-                            <Input type="email" placeholder="your@email.com" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+            ) : (
+              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 md:p-10">
+                <h2 className="text-2xl font-semibold text-white mb-8 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                    <Mail className="h-5 w-5 text-emerald-400" />
                   </div>
+                  Send Us a Message
+                </h2>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone</FormLabel>
-                          <FormControl>
-                            <Input type="tel" placeholder="+31 6 12345678" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="company"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Company</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your company" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="What's this about?" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {subjectOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="budget"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Budget Indication</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    {/* Name & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Name *</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select budget range" />
+                              <Input
+                                placeholder="Your name"
+                                className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Email *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="your@email.com"
+                                className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Phone & Company */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Phone</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="tel"
+                                placeholder="+31 6 12345678"
+                                className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="company"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Company</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Your company"
+                                className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Subject */}
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-300">Subject *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
+                                <SelectValue placeholder="Select a topic" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              {budgetOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                            <SelectContent className="bg-slate-800 border-slate-700">
+                              {subjectOptions.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                  className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                >
                                   {option.label}
                                 </SelectItem>
                               ))}
@@ -376,100 +449,243 @@ const Contact: React.FC = () => {
                       )}
                     />
 
+                    {/* Budget & Platform */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="budget"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Budget indication</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
+                                  <SelectValue placeholder="Select budget" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-slate-800 border-slate-700">
+                                {budgetOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="platform"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Preferred platform</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
+                                  <SelectValue placeholder="Meeting platform" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-slate-800 border-slate-700">
+                                {platformOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Message */}
                     <FormField
                       control={form.control}
-                      name="platform"
+                      name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Preferred Meeting Platform</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select platform" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {platformOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel className="text-slate-300">Message *</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Tell us about your needs..."
+                              rows={4}
+                              className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500 resize-none"
+                              {...field}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="message"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message *</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Tell us how we can help you..."
-                            className="min-h-[120px] resize-none"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    {/* Schedule Meeting Checkbox */}
+                    <FormField
+                      control={form.control}
+                      name="requestMeeting"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border border-slate-700/50 p-4 bg-slate-900/30">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="border-slate-600 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-white font-medium cursor-pointer">
+                              I'd like to schedule a meeting
+                            </FormLabel>
+                            <p className="text-sm text-slate-400">
+                              Select a date and time below to book directly
+                            </p>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="requestMeeting"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-border/50 p-4 bg-card/20">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="cursor-pointer">
-                            I'd like to schedule a meeting
-                          </FormLabel>
-                          <p className="text-sm text-muted-foreground">
-                            We'll reach out to set up a call to discuss your needs
-                          </p>
+                    {/* Meeting Date & Time Picker */}
+                    {watchRequestMeeting && (
+                      <div className="space-y-4 p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                        <div className="flex items-center gap-2 mb-4">
+                          <CalendarIcon className="h-5 w-5 text-emerald-400" />
+                          <span className="text-white font-medium">Select meeting date & time</span>
                         </div>
-                      </FormItem>
-                    )}
-                  />
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Date Picker */}
+                          <FormField
+                            control={form.control}
+                            name="meetingDate"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-slate-300">Date *</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal bg-slate-900/50 border-slate-700 hover:bg-slate-800 hover:border-emerald-500",
+                                          !field.value && "text-slate-500"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4 text-emerald-400" />
+                                        {field.value ? (
+                                          <span className="text-white">{format(field.value, "PPP")}</span>
+                                        ) : (
+                                          <span>Pick a date</span>
+                                        )}
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={field.value}
+                                      onSelect={(date) => {
+                                        field.onChange(date);
+                                        form.setValue('meetingTime', '');
+                                      }}
+                                      disabled={isDateDisabled}
+                                      initialFocus
+                                      className="p-3 pointer-events-auto"
+                                      fromDate={new Date()}
+                                      toDate={addDays(new Date(), 30)}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    size="lg"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-4 w-4 mr-2" />
-                        Send Message
-                      </>
+                          {/* Time Selector */}
+                          <FormField
+                            control={form.control}
+                            name="meetingTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-slate-300">Time (CET) *</FormLabel>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  value={field.value}
+                                  disabled={!watchMeetingDate}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500 disabled:opacity-50">
+                                      <Clock className="mr-2 h-4 w-4 text-emerald-400" />
+                                      <SelectValue placeholder={watchMeetingDate ? "Select time" : "Select date first"} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent className="bg-slate-800 border-slate-700">
+                                    {availableTimeSlotsForSelectedDate.length > 0 ? (
+                                      availableTimeSlotsForSelectedDate.map((time) => (
+                                        <SelectItem
+                                          key={time}
+                                          value={time}
+                                          className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                        >
+                                          {time} CET
+                                        </SelectItem>
+                                      ))
+                                    ) : (
+                                      <SelectItem value="none" disabled className="text-slate-500">
+                                        No available slots
+                                      </SelectItem>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <p className="text-sm text-emerald-300/80 mt-2">
+                          ✓ Available slots are shown in real-time. Once booked, the slot is reserved.
+                        </p>
+                      </div>
                     )}
-                  </Button>
-                </form>
-              </Form>
-            </div>
+
+                    {/* Submit Button */}
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold py-6 text-lg shadow-lg shadow-emerald-500/25 transition-all duration-300"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Sending...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Send className="h-5 w-5" />
+                          {watchRequestMeeting ? 'Schedule Meeting' : 'Send Message'}
+                        </div>
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </div>
+            )}
           </div>
-        </div>
-      </main>
+        </section>
 
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </PublicPageWrapper>
   );
 };
 
