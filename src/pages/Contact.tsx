@@ -55,11 +55,9 @@ const subjectOptions = [
 
 const budgetOptions = [
   { value: 'exploring', label: 'Just exploring' },
-  { value: 'under-50', label: 'Under €50/month' },
-  { value: '50-200', label: '€50 - €200/month' },
-  { value: '200-500', label: '€200 - €500/month' },
-  { value: '500-plus', label: '€500+/month' },
-  { value: 'enterprise', label: 'Custom/Enterprise' },
+  { value: 'starter', label: 'Starter Plan (€20/month)' },
+  { value: 'professional', label: 'Professional Plan (€48/month)' },
+  { value: 'enterprise', label: 'Enterprise (Custom pricing)' },
 ];
 
 const countryOptions = [
