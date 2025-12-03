@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Mail, ArrowUpRight } from 'lucide-react';
+import { Mail, ArrowUpRight } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -14,8 +14,8 @@ const Footer: React.FC = () => {
   ];
 
   const legalLinks = [
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Terms of Service', href: '/terms-of-service' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
   ];
 
   return (
@@ -30,12 +30,11 @@ const Footer: React.FC = () => {
           {/* Brand column */}
           <div className="lg:col-span-2">
             <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-xl blur-lg group-hover:bg-primary/30 transition-colors duration-300" />
-                <div className="relative bg-gradient-to-br from-primary to-secondary p-2.5 rounded-xl">
-                  <Calendar className="h-6 w-6 text-white" />
-                </div>
-              </div>
+              <img 
+                src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
+                alt="BookingsAssistant logo" 
+                className="h-10 w-auto"
+              />
               <span className="text-xl font-bold text-foreground tracking-tight">
                 BookingsAssistant
               </span>
@@ -46,15 +45,24 @@ const Footer: React.FC = () => {
               Let your customers book appointments 24/7 while you focus on what matters most.
             </p>
 
-            {/* Contact */}
-            <a 
-              href="mailto:support@bookingsassistant.com"
-              className="inline-flex items-center gap-2 mt-6 text-muted-foreground hover:text-primary transition-colors duration-200 group"
-            >
-              <Mail className="h-4 w-4" />
-              <span>support@bookingsassistant.com</span>
-              <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-            </a>
+            {/* Contact Card */}
+            <div className="mt-8 p-5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl max-w-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <Mail className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-sm font-semibold text-foreground uppercase tracking-wider">
+                  Contact
+                </span>
+              </div>
+              <a 
+                href="mailto:support@bookingsassistant.com"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg text-primary font-medium transition-all duration-200 group"
+              >
+                <span>support@bookingsassistant.com</span>
+                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </a>
+            </div>
           </div>
 
           {/* Product links */}
