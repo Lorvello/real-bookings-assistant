@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordInput } from './PasswordInput';
+import { GoogleAuthButton } from './GoogleAuthButton';
 import { validateEmail } from '@/utils/inputSanitization';
 import { InfoIcon } from 'lucide-react';
 import { formatDistance } from 'date-fns';
@@ -264,6 +265,19 @@ export const LoginForm: React.FC = () => {
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </Button>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or continue with</span>
+            </div>
+          </div>
+
+          {/* Google Sign In */}
+          <GoogleAuthButton mode="signin" />
         </form>
 
         <div className="mt-4 text-center">
