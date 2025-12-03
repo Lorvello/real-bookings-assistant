@@ -29,15 +29,12 @@ const Footer: React.FC = () => {
           
           {/* Brand column */}
           <div className="lg:col-span-2">
-            <Link to="/" className="inline-flex items-center gap-3 group">
+            <Link to="/" className="inline-block group">
               <img 
                 src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
                 alt="BookingsAssistant logo" 
-                className="h-10 w-auto"
+                className="h-14 w-auto hover:opacity-90 transition-opacity"
               />
-              <span className="text-xl font-bold text-foreground tracking-tight">
-                BookingsAssistant
-              </span>
             </Link>
             
             <p className="mt-6 text-muted-foreground leading-relaxed max-w-md">
@@ -45,24 +42,16 @@ const Footer: React.FC = () => {
               Let your customers book appointments 24/7 while you focus on what matters most.
             </p>
 
-            {/* Contact Card */}
-            <div className="mt-8 p-5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl max-w-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 bg-primary/20 rounded-lg">
-                  <Mail className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-sm font-semibold text-foreground uppercase tracking-wider">
-                  Contact
-                </span>
-              </div>
-              <a 
-                href="mailto:support@bookingsassistant.com"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-lg text-primary font-medium transition-all duration-200 group"
-              >
-                <span>support@bookingsassistant.com</span>
-                <ArrowUpRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-            </div>
+            {/* Contact - Subtle email link */}
+            <a 
+              href="mailto:support@bookingsassistant.com"
+              className="mt-8 inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200 group"
+            >
+              <Mail className="h-4 w-4" />
+              <span className="underline-offset-4 group-hover:underline">
+                support@bookingsassistant.com
+              </span>
+            </a>
           </div>
 
           {/* Product links */}
