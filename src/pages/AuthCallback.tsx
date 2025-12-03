@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<'database' | 'oauth' | 'session' | 'unknown'>('unknown');
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -18,17 +20,34 @@ const AuthCallback = () => {
         
         const errorParam = hashParams.get('error') || queryParams.get('error');
         const errorDescription = hashParams.get('error_description') || queryParams.get('error_description');
+        const errorCode = hashParams.get('error_code') || queryParams.get('error_code');
 
         if (errorParam) {
-          console.error('[AuthCallback] OAuth error:', errorParam, errorDescription);
-          setError(errorDescription || errorParam);
-          toast({
-            title: "Authentication Failed",
-            description: errorDescription || "Could not complete sign in. Please try again.",
-            variant: "destructive",
-          });
-          setTimeout(() => navigate('/login?error=oauth_failed'), 2000);
-          return;
+          console.error('[AuthCallback] OAuth error:', errorParam, errorDescription, errorCode);
+          
+          // Detect database error during user creation
+          const isDatabaseError = errorDescription?.toLowerCase().includes('database') ||
+                                  errorDescription?.toLowerCase().includes('saving new user') ||
+                                  errorCode === 'unexpected_failure';
+          
+          if (isDatabaseError) {
+            setErrorType('database');
+            setError('Er is een tijdelijk probleem met het aanmaken van je account. Probeer het opnieuw.');
+            toast({
+              title: "Account Aanmaken Mislukt",
+              description: "Er was een tijdelijk probleem. Probeer het opnieuw.",
+              variant: "destructive",
+            });
+          } else {
+            setErrorType('oauth');
+            setError(errorDescription || errorParam);
+            toast({
+              title: "Inloggen Mislukt",
+              description: errorDescription || "Kon niet inloggen. Probeer het opnieuw.",
+              variant: "destructive",
+            });
+          }
+          return; // Don't auto-redirect, let user choose
         }
 
         // Wait for Supabase to process the OAuth callback
@@ -36,21 +55,21 @@ const AuthCallback = () => {
 
         if (sessionError) {
           console.error('[AuthCallback] Session error:', sessionError);
+          setErrorType('session');
           setError(sessionError.message);
           toast({
-            title: "Session Error",
-            description: "Could not establish session. Please try again.",
+            title: "Sessie Fout",
+            description: "Kon geen sessie starten. Probeer opnieuw in te loggen.",
             variant: "destructive",
           });
-          setTimeout(() => navigate('/login?error=session_failed'), 2000);
           return;
         }
 
         if (session) {
           console.log('[AuthCallback] Session established successfully');
           toast({
-            title: "Welcome!",
-            description: "You have successfully signed in.",
+            title: "Welkom!",
+            description: "Je bent succesvol ingelogd.",
           });
           navigate('/dashboard');
         } else {
@@ -62,8 +81,8 @@ const AuthCallback = () => {
             
             if (event === 'SIGNED_IN' && session) {
               toast({
-                title: "Welcome!",
-                description: "You have successfully signed in.",
+                title: "Welkom!",
+                description: "Je bent succesvol ingelogd.",
               });
               subscription.unsubscribe();
               navigate('/dashboard');
@@ -78,53 +97,80 @@ const AuthCallback = () => {
             subscription.unsubscribe();
             if (!session) {
               console.log('[AuthCallback] Timeout - no session received');
-              navigate('/login?error=callback_failed');
+              setErrorType('session');
+              setError('Timeout bij het verkrijgen van sessie. Probeer opnieuw in te loggen.');
             }
           }, 10000);
         }
       } catch (err) {
         console.error('[AuthCallback] Unexpected error:', err);
-        setError('An unexpected error occurred');
+        setErrorType('unknown');
+        setError('Er is een onverwachte fout opgetreden');
         toast({
-          title: "Error",
-          description: "Something went wrong. Please try again.",
+          title: "Fout",
+          description: "Er ging iets mis. Probeer het opnieuw.",
           variant: "destructive",
         });
-        setTimeout(() => navigate('/login?error=unexpected'), 2000);
       }
     };
 
     handleAuthCallback();
   }, [navigate, toast]);
 
+  const handleRetry = () => {
+    // Clear error and retry Google login
+    setError(null);
+    navigate('/login');
+  };
+
+  const handleTryAgain = async () => {
+    // Try Google OAuth again directly
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        setError(error.message);
+      }
+    } catch (err) {
+      console.error('Retry error:', err);
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
+      <div className="text-center max-w-md px-4">
         {error ? (
           <>
-            <div className="h-8 w-8 mx-auto mb-4 text-destructive">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-              </svg>
-            </div>
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-destructive" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              Authentication Failed
+              {errorType === 'database' ? 'Account Aanmaken Mislukt' : 'Inloggen Mislukt'}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-6">
               {error}
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Redirecting to login...
-            </p>
+            <div className="flex flex-col gap-3">
+              <Button onClick={handleTryAgain} className="w-full">
+                Opnieuw Proberen met Google
+              </Button>
+              <Button variant="outline" onClick={handleRetry} className="w-full">
+                Terug naar Inloggen
+              </Button>
+            </div>
           </>
         ) : (
           <>
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              Completing Sign In...
+              Bezig met inloggen...
             </h2>
             <p className="text-muted-foreground">
-              Please wait while we verify your account
+              Even geduld terwijl we je account verifiëren
             </p>
           </>
         )}
