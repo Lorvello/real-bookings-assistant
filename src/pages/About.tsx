@@ -5,7 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
-import lucianoPhoto from '@/assets/luciano-photo.jpg';
+import lucianoPhoto from '@/assets/luciano-photo.png';
+import mathewPhoto from '@/assets/mathew-photo.png';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 const About = () => {
@@ -67,8 +68,12 @@ const About = () => {
                   <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/40 transition-all duration-500 ease-out shadow-2xl shadow-black/20 hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer h-full">
                     <CardContent className="p-8">
                       <div className="flex items-center gap-4 mb-6">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 border border-emerald-500/30 flex items-center justify-center group-hover:border-emerald-400/50 transition-all duration-500">
-                          <User className="w-10 h-10 text-emerald-400 group-hover:scale-110 transition-transform duration-500" />
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 border border-emerald-500/30 overflow-hidden group-hover:border-emerald-400/50 transition-all duration-500">
+                          <img 
+                            src={mathewPhoto} 
+                            alt="Mathew Groen" 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-white">Mathew Groen</h3>
