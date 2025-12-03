@@ -6,6 +6,7 @@ import { format, addDays, isWeekend, isBefore, startOfDay } from 'date-fns';
 import { Mail, Send, CalendarIcon, Clock, CheckCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
+import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -258,30 +259,32 @@ const Contact = () => {
 
           <div className="max-w-4xl mx-auto text-center relative z-10">
             {/* Badge */}
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm mb-6">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
-              <span className="text-emerald-300 text-sm font-medium tracking-wide">Get in Touch</span>
-            </div>
+            <ScrollAnimatedSection animation="fade-up" delay={0} as="div">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm mb-6">
+                <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
+                <span className="text-emerald-300 text-sm font-medium tracking-wide">Get in Touch</span>
+              </div>
+            </ScrollAnimatedSection>
 
             {/* Heading */}
-            <h1 className="text-4xl md:text-5xl xl:text-6xl font-bold mb-6">
+            <ScrollAnimatedSection animation="fade-up" delay={100} as="h1" className="text-4xl md:text-5xl xl:text-6xl font-bold mb-6">
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
                 Let's Start a{' '}
               </span>
               <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
                 Conversation
               </span>
-            </h1>
+            </ScrollAnimatedSection>
 
-            <p className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
+            <ScrollAnimatedSection animation="fade-up" delay={200} as="p" className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
               Have questions or ready to transform your booking experience? We'd love to hear from you.
-            </p>
+            </ScrollAnimatedSection>
           </div>
         </section>
 
         {/* Form Section */}
         <section className="pb-24 px-4 relative z-10">
-          <div className="max-w-2xl mx-auto">
+          <ScrollAnimatedSection animation="fade-up" delay={300} as="div" className="max-w-2xl mx-auto">
             {isSuccess ? (
               <div className="bg-slate-800/50 backdrop-blur-sm border border-emerald-500/30 rounded-2xl p-8 md:p-10 text-center">
                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -626,7 +629,7 @@ const Contact = () => {
                 </Form>
               </div>
             )}
-          </div>
+          </ScrollAnimatedSection>
         </section>
       </div>
     </PublicPageWrapper>
