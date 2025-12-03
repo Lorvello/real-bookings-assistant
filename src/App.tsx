@@ -64,7 +64,8 @@ function GlobalWebhookProcessor() {
   return null; // This component doesn't render anything
 }
 
-// Redirect any Supabase recovery link to /reset-password
+// Redirect ONLY password recovery links to /reset-password
+// DO NOT redirect OAuth errors - those are handled by AuthCallback
 function RecoveryRedirector() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,18 +75,24 @@ function RecoveryRedirector() {
       const { pathname, search, hash } = window.location;
       const normalizedHash = hash === '#' ? '' : hash; // Treat lone '#' as empty
 
-      const hasSupabaseTokens = (normalizedHash && (normalizedHash.includes('type=recovery') || normalizedHash.includes('access_token=') || normalizedHash.includes('refresh_token='))) ||
-                          (search && (search.includes('type=recovery') || search.includes('access_token=') || search.includes('refresh_token=')));
-      const hasAuthError = (normalizedHash && (normalizedHash.includes('error=') || normalizedHash.includes('error_code=') || normalizedHash.includes('error_description='))) ||
-                          (search && (search.includes('error=') || search.includes('error_code=') || search.includes('error_description=')));
+      // IMPORTANT: Only detect password recovery flows (type=recovery)
+      // DO NOT redirect OAuth callbacks or OAuth errors
+      const isOAuthCallback = pathname.includes('/auth/callback');
+      if (isOAuthCallback) {
+        // Let AuthCallback handle OAuth flows
+        return;
+      }
+
+      const hasRecoveryType = (normalizedHash && normalizedHash.includes('type=recovery')) ||
+                              (search && search.includes('type=recovery'));
       
       // Handle cases where Supabase redirects to homepage with an empty or lone '#' hash
       const isHomepageWithEmptyHash = pathname === '/' && !normalizedHash && !search;
       const mightBeFromEmail = isHomepageWithEmptyHash && 
-                              ((document.referrer && (document.referrer.includes('supabase') || document.referrer.includes('/verify'))) ||
-                               sessionStorage.getItem('password-reset-requested') === '1');
+                              sessionStorage.getItem('password-reset-requested') === '1';
       
-      const needsRedirect = (hasSupabaseTokens || hasAuthError || mightBeFromEmail);
+      // Only redirect for password recovery, NOT for OAuth errors
+      const needsRedirect = hasRecoveryType || mightBeFromEmail;
       const alreadyOnReset = pathname.includes('/reset-password');
       
       if (needsRedirect && !alreadyOnReset) {
