@@ -1,21 +1,31 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Lock, Eye, Database, UserCheck, Mail } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 const PrivacyPolicy = () => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#2C3E50' }}>
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: 'hsl(217, 35%, 12%)' }}>
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
-        <Link 
-          to="/signup" 
+        <button 
+          onClick={handleBack}
           className="inline-flex items-center text-sm text-gray-300 hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to registration
-        </Link>
+          Go back
+        </button>
 
         {/* Main Card */}
         <Card className="bg-card border-border shadow-xl">
@@ -232,10 +242,16 @@ const PrivacyPolicy = () => {
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <div className="space-y-2">
-                    <p className="text-muted-foreground"><strong>Email:</strong> privacy@example.com</p>
-                    <p className="text-muted-foreground"><strong>Phone:</strong> +31 20 123 4567</p>
-                    <p className="text-muted-foreground"><strong>Address:</strong> [Company Address]</p>
-                    <p className="text-muted-foreground"><strong>Data Protection Officer:</strong> dpo@example.com</p>
+                    <p className="text-muted-foreground">
+                      <strong>Email:</strong> <a href="mailto:support@bookingsassistant.com" className="text-primary hover:underline">support@bookingsassistant.com</a>
+                    </p>
+                    <p className="text-muted-foreground">
+                      <strong>Privacy inquiries:</strong> <a href="mailto:privacy@bookingsassistant.com" className="text-primary hover:underline">privacy@bookingsassistant.com</a>
+                    </p>
+                    <p className="text-muted-foreground"><strong>Phone:</strong> +31 20 794 2048</p>
+                    <p className="text-muted-foreground">
+                      <strong>Data Protection Officer:</strong> <a href="mailto:dpo@bookingsassistant.com" className="text-primary hover:underline">dpo@bookingsassistant.com</a>
+                    </p>
                   </div>
                 </div>
                 <p className="text-muted-foreground leading-relaxed mt-3 text-sm">
@@ -249,10 +265,8 @@ const PrivacyPolicy = () => {
             {/* Footer Actions */}
             <div className="mt-8 pt-6 border-t border-border">
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-                <Button asChild className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white" style={{ backgroundColor: '#10B981' }}>
-                  <Link to="/signup">
-                    Back to registration
-                  </Link>
+                <Button onClick={handleBack} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
+                  Go back
                 </Button>
                 <div className="flex flex-col sm:flex-row gap-4 text-sm">
                   <Link to="/terms-of-service" className="text-primary hover:text-primary/80 underline">
