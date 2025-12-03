@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format, addDays, isWeekend, isBefore, startOfDay } from 'date-fns';
-import { Mail, Send, ArrowLeft, CalendarIcon, Clock, CheckCircle } from 'lucide-react';
+import { Mail, Send, CalendarIcon, Clock, CheckCircle } from 'lucide-react';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,11 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,11 +33,10 @@ import { cn } from '@/lib/utils';
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  phone: z.string().optional(),
   company: z.string().optional(),
+  country: z.string().min(1, 'Please select your country'),
   subject: z.string().min(1, 'Please select a subject'),
   budget: z.string().optional(),
-  platform: z.string().optional(),
   message: z.string().min(10, 'Message must be at least 10 characters'),
   requestMeeting: z.boolean().default(false),
   meetingDate: z.date().optional(),
@@ -70,12 +62,15 @@ const budgetOptions = [
   { value: 'enterprise', label: 'Custom/Enterprise' },
 ];
 
-const platformOptions = [
-  { value: 'google-meet', label: 'Google Meet' },
-  { value: 'zoom', label: 'Zoom' },
-  { value: 'discord', label: 'Discord' },
-  { value: 'slack', label: 'Slack' },
-  { value: 'teams', label: 'Microsoft Teams' },
+const countryOptions = [
+  { value: 'nl', label: 'Netherlands' },
+  { value: 'be', label: 'Belgium' },
+  { value: 'de', label: 'Germany' },
+  { value: 'uk', label: 'United Kingdom' },
+  { value: 'us', label: 'United States' },
+  { value: 'fr', label: 'France' },
+  { value: 'es', label: 'Spain' },
+  { value: 'it', label: 'Italy' },
   { value: 'other', label: 'Other' },
 ];
 
@@ -84,7 +79,6 @@ const timeSlots = [
 ];
 
 const Contact = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<{ date: string; time: string }[]>([]);
@@ -95,11 +89,10 @@ const Contact = () => {
     defaultValues: {
       name: '',
       email: '',
-      phone: '',
       company: '',
+      country: '',
       subject: '',
       budget: '',
-      platform: '',
       message: '',
       requestMeeting: false,
       meetingDate: undefined,
@@ -195,11 +188,9 @@ const Contact = () => {
           .insert({
             name: data.name,
             email: data.email,
-            phone: data.phone || null,
             company: data.company || null,
             subject: data.subject,
             budget: data.budget || null,
-            platform: data.platform || null,
             message: data.message,
             meeting_date: format(data.meetingDate, 'yyyy-MM-dd'),
             meeting_time: data.meetingTime,
@@ -212,11 +203,10 @@ const Contact = () => {
         body: {
           name: data.name,
           email: data.email,
-          phone: data.phone,
           company: data.company,
+          country: data.country,
           subject: data.subject,
           budget: data.budget,
-          platform: data.platform,
           message: data.message,
           requestMeeting: data.requestMeeting,
           meetingDate: data.meetingDate ? format(data.meetingDate, 'yyyy-MM-dd') : null,
@@ -247,14 +237,6 @@ const Contact = () => {
     }
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
-  };
-
   const availableTimeSlotsForSelectedDate = getAvailableTimeSlotsForDate(watchMeetingDate);
 
   return (
@@ -277,18 +259,6 @@ const Contact = () => {
           </div>
 
           <div className="max-w-4xl mx-auto text-center relative z-10">
-            {/* Back Button */}
-            <div className="flex justify-start mb-8">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                className="text-slate-400 hover:text-white hover:bg-slate-800/50"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Go back
-              </Button>
-            </div>
-
             {/* Badge */}
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm mb-6">
               <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
@@ -380,26 +350,8 @@ const Contact = () => {
                       />
                     </div>
 
-                    {/* Phone & Company */}
+                    {/* Company & Country */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-slate-300">Phone</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="tel"
-                                placeholder="+31 6 12345678"
-                                className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField
                         control={form.control}
                         name="company"
@@ -417,54 +369,52 @@ const Contact = () => {
                           </FormItem>
                         )}
                       />
-                    </div>
-
-                    {/* Subject */}
-                    <FormField
-                      control={form.control}
-                      name="subject"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-slate-300">Subject *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
-                                <SelectValue placeholder="Select a topic" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="bg-slate-800 border-slate-700">
-                              {subjectOptions.map((option) => (
-                                <SelectItem
-                                  key={option.value}
-                                  value={option.value}
-                                  className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Budget & Platform */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="budget"
+                        name="country"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Budget indication</FormLabel>
+                            <FormLabel className="text-slate-300">Country *</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
-                                  <SelectValue placeholder="Select budget" />
+                                  <SelectValue placeholder="Select your country" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-slate-800 border-slate-700">
-                                {budgetOptions.map((option) => (
+                                {countryOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="text-white hover:bg-slate-700 focus:bg-slate-700"
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Subject & Budget */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-slate-300">Subject *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
+                                  <SelectValue placeholder="Select a topic" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-slate-800 border-slate-700">
+                                {subjectOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
                                     value={option.value}
@@ -481,18 +431,18 @@ const Contact = () => {
                       />
                       <FormField
                         control={form.control}
-                        name="platform"
+                        name="budget"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Preferred platform</FormLabel>
+                            <FormLabel className="text-slate-300">Budget indication</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
-                                  <SelectValue placeholder="Meeting platform" />
+                                  <SelectValue placeholder="Select budget" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-slate-800 border-slate-700">
-                                {platformOptions.map((option) => (
+                                {budgetOptions.map((option) => (
                                   <SelectItem
                                     key={option.value}
                                     value={option.value}
@@ -554,7 +504,7 @@ const Contact = () => {
                       )}
                     />
 
-                    {/* Meeting Date & Time Picker */}
+                    {/* Inline Meeting Calendar & Time Picker */}
                     {watchRequestMeeting && (
                       <div className="space-y-4 p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                         <div className="flex items-center gap-2 mb-4">
@@ -562,97 +512,95 @@ const Contact = () => {
                           <span className="text-white font-medium">Select meeting date & time</span>
                         </div>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Date Picker */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* Inline Calendar */}
                           <FormField
                             control={form.control}
                             name="meetingDate"
                             render={({ field }) => (
                               <FormItem className="flex flex-col">
-                                <FormLabel className="text-slate-300">Date *</FormLabel>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <FormControl>
-                                      <Button
-                                        variant="outline"
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal bg-slate-900/50 border-slate-700 hover:bg-slate-800 hover:border-emerald-500",
-                                          !field.value && "text-slate-500"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4 text-emerald-400" />
-                                        {field.value ? (
-                                          <span className="text-white">{format(field.value, "PPP")}</span>
-                                        ) : (
-                                          <span>Pick a date</span>
-                                        )}
-                                      </Button>
-                                    </FormControl>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={field.value}
-                                      onSelect={(date) => {
-                                        field.onChange(date);
-                                        form.setValue('meetingTime', '');
-                                      }}
-                                      disabled={isDateDisabled}
-                                      initialFocus
-                                      className="p-3 pointer-events-auto"
-                                      fromDate={new Date()}
-                                      toDate={addDays(new Date(), 30)}
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <FormLabel className="text-slate-300 mb-2">Date *</FormLabel>
+                                <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-2">
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={(date) => {
+                                      field.onChange(date);
+                                      form.setValue('meetingTime', '');
+                                    }}
+                                    disabled={isDateDisabled}
+                                    className="p-0 pointer-events-auto [&_.rdp-day]:text-white [&_.rdp-day_button]:text-white"
+                                    fromDate={new Date()}
+                                    toDate={addDays(new Date(), 30)}
+                                  />
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
 
-                          {/* Time Selector */}
+                          {/* Time Slots */}
                           <FormField
                             control={form.control}
                             name="meetingTime"
                             render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-slate-300">Time (CET) *</FormLabel>
-                                <Select 
-                                  onValueChange={field.onChange} 
-                                  value={field.value}
-                                  disabled={!watchMeetingDate}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500 disabled:opacity-50">
-                                      <Clock className="mr-2 h-4 w-4 text-emerald-400" />
-                                      <SelectValue placeholder={watchMeetingDate ? "Select time" : "Select date first"} />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent className="bg-slate-800 border-slate-700">
-                                    {availableTimeSlotsForSelectedDate.length > 0 ? (
-                                      availableTimeSlotsForSelectedDate.map((time) => (
-                                        <SelectItem
-                                          key={time}
-                                          value={time}
-                                          className="text-white hover:bg-slate-700 focus:bg-slate-700"
-                                        >
-                                          {time} CET
-                                        </SelectItem>
-                                      ))
-                                    ) : (
-                                      <SelectItem value="none" disabled className="text-slate-500">
-                                        No available slots
-                                      </SelectItem>
-                                    )}
-                                  </SelectContent>
-                                </Select>
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-slate-300 mb-2">
+                                  <Clock className="inline h-4 w-4 mr-1 text-emerald-400" />
+                                  Available Times (CET) *
+                                </FormLabel>
+                                <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 flex-1">
+                                  {watchMeetingDate ? (
+                                    <div className="space-y-2">
+                                      <p className="text-sm text-slate-400 mb-3">
+                                        {format(watchMeetingDate, 'EEEE, MMMM d, yyyy')}
+                                      </p>
+                                      {availableTimeSlotsForSelectedDate.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-2">
+                                          {availableTimeSlotsForSelectedDate.map((time) => (
+                                            <button
+                                              key={time}
+                                              type="button"
+                                              onClick={() => field.onChange(time)}
+                                              className={cn(
+                                                "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                                                field.value === time
+                                                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+                                                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-600"
+                                              )}
+                                            >
+                                              {time}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <p className="text-slate-500 text-sm">No available slots for this date</p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center h-full min-h-[120px]">
+                                      <p className="text-slate-500 text-sm text-center">
+                                        Select a date to see available times
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                         </div>
 
-                        <p className="text-sm text-emerald-300/80 mt-2">
+                        {watchMeetingDate && form.watch('meetingTime') && (
+                          <div className="flex items-center gap-2 p-3 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
+                            <CheckCircle className="h-4 w-4 text-emerald-400" />
+                            <span className="text-emerald-300 text-sm">
+                              Meeting: {format(watchMeetingDate, 'PPP')} at {form.watch('meetingTime')} CET
+                            </span>
+                          </div>
+                        )}
+
+                        <p className="text-sm text-emerald-300/80">
                           ✓ Available slots are shown in real-time. Once booked, the slot is reserved.
                         </p>
                       </div>
@@ -682,8 +630,6 @@ const Contact = () => {
             )}
           </div>
         </section>
-
-        <Footer />
       </div>
     </PublicPageWrapper>
   );

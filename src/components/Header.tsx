@@ -17,7 +17,8 @@ const Header = () => {
     { name: 'How it Works', path: '/how-it-works' },
     { name: 'Why Us', path: '/why-us' },
     { name: 'Pricing', path: '/#pricing' },
-    { name: 'FAQ', path: '/faq' }
+    { name: 'FAQ', path: '/faq' },
+    { name: 'Contact', path: '/contact' }
   ];
 
   const handleNavClick = () => {
