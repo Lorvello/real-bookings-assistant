@@ -41,6 +41,7 @@ const TeamInvite = lazy(() => import('@/pages/TeamInvite'));
 const TermsOfService = lazy(() => import('@/pages/TermsOfService'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
 const Contact = lazy(() => import('@/pages/Contact'));
+const About = lazy(() => import('@/pages/About'));
 const Success = lazy(() => import('@/pages/Success'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Calendar = lazy(() => import('@/pages/Calendar'));
@@ -287,6 +288,13 @@ function App() {
                       <RouteErrorBoundary routeName="Contact">
                         <Suspense fallback={<FullPageLoadingSkeleton />}>
                           <Contact />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/about" element={
+                      <RouteErrorBoundary routeName="About">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <About />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
