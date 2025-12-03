@@ -18,6 +18,11 @@ const Footer: React.FC = () => {
     { name: 'Contact', href: '/contact' },
   ];
 
+  const resourceLinks = [
+    { name: 'Blog', href: '/blog' },
+    { name: 'Help Center', href: '/guides' },
+  ];
+
   const legalLinks = [
     { name: 'Terms of Service', href: '/terms-of-service' },
     { name: 'Privacy Policy', href: '/privacy-policy' },
@@ -31,7 +36,7 @@ const Footer: React.FC = () => {
       
       <div className="relative max-w-7xl mx-auto px-6 py-16 lg:py-20">
         {/* Main footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 lg:gap-8">
           
           {/* Brand column */}
           <div className="lg:col-span-2">
@@ -88,6 +93,26 @@ const Footer: React.FC = () => {
             </h3>
             <ul className="space-y-4">
               {companyLinks.map((link) => (
+                <li key={link.name}>
+                  <Link 
+                    to={link.href}
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group"
+                  >
+                    {link.name}
+                    <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources links */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
+              Resources
+            </h3>
+            <ul className="space-y-4">
+              {resourceLinks.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href}
