@@ -14,6 +14,7 @@ const Footer: React.FC = () => {
   ];
 
   const companyLinks = [
+    { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
 
