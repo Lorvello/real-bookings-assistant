@@ -1,140 +1,77 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Clock, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Sparkles } from 'lucide-react';
 import Header from '@/components/Header';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { blogArticles } from '@/data/blogArticles';
 
-interface BlogArticle {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  readTime: string;
-  date: string;
-  image: string;
-}
+const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = ({ article, index }) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('nl-NL', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
-const blogArticles: BlogArticle[] = [
-  {
-    id: '1',
-    slug: 'waarom-klanten-whatsapp-verkiezen',
-    title: 'Waarom klanten WhatsApp verkiezen boven bellen',
-    excerpt: 'Ontdek waarom 78% van de consumenten liever via WhatsApp communiceert met bedrijven en hoe je hierop kunt inspelen.',
-    category: 'Industry Insights',
-    readTime: '5 min',
-    date: '28 nov 2024',
-    image: '/images/blog/whatsapp-preference.jpg'
-  },
-  {
-    id: '2',
-    slug: 'no-shows-reduceren-automatisering',
-    title: '5 manieren om no-shows te reduceren met automatisering',
-    excerpt: 'Leer hoe automatische herinneringen en slimme booking flows je no-show percentage drastisch kunnen verlagen.',
-    category: 'Tips & Tricks',
-    readTime: '7 min',
-    date: '21 nov 2024',
-    image: '/images/blog/reduce-no-shows.jpg'
-  },
-  {
-    id: '3',
-    slug: 'toekomst-ai-beauty-wellness',
-    title: 'De toekomst van AI in de beauty & wellness industrie',
-    excerpt: 'Van chatbots tot gepersonaliseerde aanbevelingen: zo transformeert AI de klantervaring in salons en wellness centra.',
-    category: 'Thought Leadership',
-    readTime: '8 min',
-    date: '14 nov 2024',
-    image: '/images/blog/ai-future.jpg'
-  },
-  {
-    id: '4',
-    slug: 'openingstijden-optimaliseren',
-    title: 'Hoe je je openingstijden optimaliseert voor meer bookings',
-    excerpt: 'Data-gedreven inzichten om je beschikbaarheid af te stemmen op wanneer je klanten het meest willen boeken.',
-    category: 'Practical Guide',
-    readTime: '6 min',
-    date: '7 nov 2024',
-    image: '/images/blog/optimize-hours.jpg'
-  },
-  {
-    id: '5',
-    slug: 'case-study-kapsalon-groei',
-    title: 'Case study: Hoe een kapsalon 40% meer klanten boekte',
-    excerpt: 'Een praktijkvoorbeeld van hoe Salon Elegance hun boekingsproces transformeerde met WhatsApp automatisering.',
-    category: 'Case Study',
-    readTime: '10 min',
-    date: '31 okt 2024',
-    image: '/images/blog/case-study.jpg'
-  },
-  {
-    id: '6',
-    slug: 'wat-is-conversational-ai',
-    title: 'Wat is conversational AI en waarom heb je het nodig?',
-    excerpt: 'Een beginnersgids over conversational AI, chatbots en hoe ze de klantenservice in jouw bedrijf kunnen verbeteren.',
-    category: 'Educational',
-    readTime: '9 min',
-    date: '24 okt 2024',
-    image: '/images/blog/conversational-ai.jpg'
-  }
-];
-
-const BlogCard: React.FC<{ article: BlogArticle; index: number }> = ({ article, index }) => {
   return (
     <ScrollAnimatedSection
       animation="fade-up"
       delay={index * 100}
       as="div"
     >
-      <Card className="group h-full bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/40 transition-all duration-300 hover:scale-[1.02] overflow-hidden">
-        {/* Image placeholder */}
-        <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <BookOpen className="w-12 h-12 text-primary/30" />
-          </div>
-          {/* Category badge */}
-          <div className="absolute top-4 left-4">
-            <span className="px-3 py-1 text-xs font-medium bg-primary/90 text-primary-foreground rounded-full">
-              {article.category}
-            </span>
-          </div>
-        </div>
-        
-        <CardContent className="p-6 flex flex-col h-[calc(100%-theme(spacing.48))]">
-          {/* Meta info */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              {article.date}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              {article.readTime} read
-            </span>
+      <Link to={`/blog/${article.slug}`} className="block h-full">
+        <Card className="group h-full bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/40 transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+          {/* Image */}
+          <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 relative overflow-hidden">
+            <img
+              src={article.image}
+              alt={article.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+            {/* Category badge */}
+            <div className="absolute top-4 left-4">
+              <span className="px-3 py-1 text-xs font-medium bg-primary/90 text-primary-foreground rounded-full">
+                {article.category}
+              </span>
+            </div>
           </div>
           
-          {/* Title */}
-          <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
-            {article.title}
-          </h3>
-          
-          {/* Excerpt */}
-          <p className="text-muted-foreground text-sm line-clamp-2 mb-4 flex-grow">
-            {article.excerpt}
-          </p>
-          
-          {/* Read more link */}
-          <Link 
-            to={`/blog/${article.slug}`}
-            className="inline-flex items-center gap-2 text-primary font-medium text-sm group/link"
-          >
-            Read More
-            <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
-          </Link>
-        </CardContent>
-      </Card>
+          <CardContent className="p-6">
+            {/* Meta info */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" />
+                {formatDate(article.date)}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {article.readTime} leestijd
+              </span>
+            </div>
+            
+            {/* Title */}
+            <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+              {article.title}
+            </h3>
+            
+            {/* Excerpt */}
+            <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
+              {article.excerpt}
+            </p>
+            
+            {/* Read more link */}
+            <div className="inline-flex items-center gap-2 text-primary font-medium text-sm">
+              Lees meer
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
     </ScrollAnimatedSection>
   );
 };
@@ -203,11 +140,11 @@ const Blog: React.FC = () => {
         </div>
       </section>
       
-      {/* Subscribe Section (Optional Skeleton) */}
+      {/* Subscribe Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <ScrollAnimatedSection animation="fade-up" as="div" className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
-            Stay Updated
+            Blijf op de hoogte
           </h2>
           <p className="text-muted-foreground mb-8">
             Ontvang de nieuwste tips en inzichten direct in je inbox. 

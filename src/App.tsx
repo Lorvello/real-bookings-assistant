@@ -50,6 +50,7 @@ const StripeGo = lazy(() => import('@/pages/StripeGo'));
 const BusinessSearch = lazy(() => import('@/pages/BusinessSearch'));
 const SecurityAudit = lazy(() => import('@/pages/SecurityAudit'));
 const Blog = lazy(() => import('@/pages/Blog'));
+const BlogArticle = lazy(() => import('@/pages/BlogArticle'));
 
 const queryClient = new QueryClient();
 
@@ -324,6 +325,13 @@ function App() {
                       <RouteErrorBoundary routeName="Blog">
                         <Suspense fallback={<FullPageLoadingSkeleton />}>
                           <Blog />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/blog/:slug" element={
+                      <RouteErrorBoundary routeName="Blog Article">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <BlogArticle />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
