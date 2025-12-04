@@ -123,9 +123,30 @@ export const useStripeConnect = () => {
         }
       });
 
-      if (error) throw error;
+      // Handle edge function errors
+      if (error) {
+        // Check if it's a "no account found" error - this is expected, not an error
+        if (error.message?.includes('404') || error.message?.includes('No Stripe account')) {
+          console.log('[STRIPE CONNECT] No Stripe account found - user needs to onboard');
+          return null;
+        }
+        throw error;
+      }
+      
+      // Handle response indicating no account (edge function returns success: false)
+      if (data?.success === false || data?.error) {
+        console.log('[STRIPE CONNECT] No account found:', data?.error);
+        return null;
+      }
+      
       return data;
-    } catch (error) {
+    } catch (error: any) {
+      // Don't show toast for "no account found" - it's expected for new users
+      if (error?.message?.includes('No Stripe account') || error?.message?.includes('404')) {
+        console.log('[STRIPE CONNECT] No Stripe account exists yet');
+        return null;
+      }
+      
       console.error('Error refreshing account status:', error);
       toast({
         title: "Error",
