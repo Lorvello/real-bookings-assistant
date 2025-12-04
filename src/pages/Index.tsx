@@ -22,15 +22,9 @@ const Index = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
     
-    // Check for any password reset related parameters
+    // Check ONLY for password recovery flows (not general OAuth tokens)
     const hasResetParams = 
-      urlParams.get('access_token') || 
-      urlParams.get('refresh_token') || 
-      urlParams.get('token') || 
       urlParams.get('type') === 'recovery' ||
-      hashParams.get('access_token') || 
-      hashParams.get('refresh_token') || 
-      hashParams.get('token') || 
       hashParams.get('type') === 'recovery' ||
       urlParams.get('error_description')?.includes('expired') ||
       hashParams.get('error_description')?.includes('expired');
