@@ -14,11 +14,9 @@ interface MobileMenuProps {
   navItems: NavItem[];
   onNavClick: () => void;
   user: User | null;
-  isDialogOpen: boolean;
-  setIsDialogOpen: (open: boolean) => void;
 }
 
-export function MobileMenu({ isOpen, navItems, onNavClick, user, isDialogOpen, setIsDialogOpen }: MobileMenuProps) {
+export function MobileMenu({ isOpen, navItems, onNavClick, user }: MobileMenuProps) {
   return (
     <div 
       className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ease-in-out ${
@@ -45,12 +43,7 @@ export function MobileMenu({ isOpen, navItems, onNavClick, user, isDialogOpen, s
             <NavLinks navItems={navItems} onNavClick={onNavClick} isMobile />
           </div>
           <div className="mt-auto pt-6 border-t border-slate-700">
-            <AuthSection 
-              user={user} 
-              isDialogOpen={isDialogOpen} 
-              setIsDialogOpen={setIsDialogOpen} 
-              isMobile 
-            />
+            <AuthSection user={user} isMobile />
           </div>
         </div>
       </div>

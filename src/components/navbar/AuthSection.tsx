@@ -2,25 +2,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserIcon } from 'lucide-react';
 
 interface AuthSectionProps {
   user: User | null;
-  isDialogOpen: boolean;
-  setIsDialogOpen: (open: boolean) => void;
   isMobile?: boolean;
 }
 
-export function AuthSection({ user, isDialogOpen, setIsDialogOpen, isMobile = false }: AuthSectionProps) {
+export function AuthSection({ user, isMobile = false }: AuthSectionProps) {
   if (user) {
     return (
       <Link to="/dashboard">
@@ -34,33 +24,21 @@ export function AuthSection({ user, isDialogOpen, setIsDialogOpen, isMobile = fa
   }
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <button className={`bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors ${
-          isMobile ? 'px-4 py-2 text-sm' : 'px-6 py-2 shadow-lg'
+    <div className={`flex items-center ${isMobile ? 'flex-col gap-3 w-full' : 'gap-3'}`}>
+      <Link to="/login">
+        <button className={`border border-white/30 text-white rounded-lg font-medium hover:bg-white/10 transition-colors ${
+          isMobile ? 'px-4 py-2 text-sm w-full' : 'px-5 py-2'
+        }`}>
+          Log In
+        </button>
+      </Link>
+      <Link to="/signup">
+        <button className={`bg-white text-emerald-600 rounded-lg font-medium hover:bg-white/90 transition-colors ${
+          isMobile ? 'px-4 py-2 text-sm w-full' : 'px-5 py-2 shadow-lg'
         }`}>
           Get Started
         </button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-gray-900">
-            Get Started
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-4 pt-4">
-          <Link to="/login" onClick={() => setIsDialogOpen(false)}>
-            <Button variant="outline" className="w-full">
-              Log In
-            </Button>
-          </Link>
-          <Link to="/signup" onClick={() => setIsDialogOpen(false)}>
-            <Button className="w-full bg-green-600 hover:bg-green-700">
-              Sign Up
-            </Button>
-          </Link>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </Link>
+    </div>
   );
 }
