@@ -3602,10 +3602,12 @@ export type Database = {
           last_seen_at: string | null
           linked_customer_email: string | null
           metadata: Json | null
+          name_asked: string | null
           phone_number: string
           profile_picture_url: string | null
           updated_at: string | null
           user_id: string | null
+          welcome_send: string | null
         }
         Insert: {
           came_from?: string | null
@@ -3618,10 +3620,12 @@ export type Database = {
           last_seen_at?: string | null
           linked_customer_email?: string | null
           metadata?: Json | null
+          name_asked?: string | null
           phone_number: string
           profile_picture_url?: string | null
           updated_at?: string | null
           user_id?: string | null
+          welcome_send?: string | null
         }
         Update: {
           came_from?: string | null
@@ -3634,10 +3638,12 @@ export type Database = {
           last_seen_at?: string | null
           linked_customer_email?: string | null
           metadata?: Json | null
+          name_asked?: string | null
           phone_number?: string
           profile_picture_url?: string | null
           updated_at?: string | null
           user_id?: string | null
+          welcome_send?: string | null
         }
         Relationships: [
           {

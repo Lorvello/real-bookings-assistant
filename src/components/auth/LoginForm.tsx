@@ -138,8 +138,30 @@ export const LoginForm: React.FC = () => {
           return;
         }
         
+        // Handle invalid_credentials - could be wrong email or wrong password
+        if (error.message === 'invalid_credentials') {
+          toast({
+            title: "Invalid Credentials",
+            description: (
+              <div className="space-y-2">
+                <p>The email or password you entered is incorrect.</p>
+                <p className="text-sm">
+                  Don't have an account?{' '}
+                  <button 
+                    onClick={() => navigate('/signup', { state: { email: emailResult.value } })}
+                    className="text-primary underline hover:text-primary/80 font-medium"
+                  >
+                    Sign up here
+                  </button>
+                </p>
+              </div>
+            ),
+            variant: "destructive",
+          });
+          return;
+        }
+        
         const errorMessages = {
-          'invalid_credentials': 'Invalid email or password. Please check your credentials and try again.',
           'too_many_requests': 'Too many login attempts. Please wait 15 minutes and try again.',
           'signup_disabled': 'Account creation is currently disabled. Please contact support.',
           'email_address_invalid': 'Please enter a valid email address.',

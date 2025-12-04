@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useUserRegistration } from '@/hooks/useUserRegistration';
 import { CheckCircle, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/password-input';
@@ -47,12 +47,21 @@ const countryCodes = [
 
 export const StreamlinedSignup: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { registerUser, loading } = useUserRegistration();
   const [formData, setFormData] = useState<SignupFormData>(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Pre-fill email if passed from login page
+  useEffect(() => {
+    const state = location.state as { email?: string } | null;
+    if (state?.email) {
+      setFormData(prev => ({ ...prev, email: state.email }));
+    }
+  }, [location.state]);
 
   const updateFormData = (field: keyof SignupFormData, value: string | boolean) => {
     let processedValue = value;
