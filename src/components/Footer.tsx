@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowUpRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -20,13 +21,19 @@ const Footer: React.FC = () => {
 
   const resourceLinks = [
     { name: 'Blog', href: '/blog' },
-    { name: 'Help Center', href: '/guides' },
   ];
+
+  const comingSoonLinks = ['Help Center'];
 
   const legalLinks = [
     { name: 'Terms of Service', href: '/terms-of-service' },
     { name: 'Privacy Policy', href: '/privacy-policy' },
   ];
+
+  const handleComingSoon = (e: React.MouseEvent) => {
+    e.preventDefault();
+    toast.info('This feature will come soon.');
+  };
 
 
   return (
@@ -106,7 +113,6 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Resources links */}
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
               Resources
@@ -121,6 +127,17 @@ const Footer: React.FC = () => {
                     {link.name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                   </Link>
+                </li>
+              ))}
+              {comingSoonLinks.map((name) => (
+                <li key={name}>
+                  <button 
+                    onClick={handleComingSoon}
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer"
+                  >
+                    {name}
+                    <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+                  </button>
                 </li>
               ))}
             </ul>

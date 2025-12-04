@@ -51,7 +51,7 @@ const BusinessSearch = lazy(() => import('@/pages/BusinessSearch'));
 const SecurityAudit = lazy(() => import('@/pages/SecurityAudit'));
 const Blog = lazy(() => import('@/pages/Blog'));
 const BlogArticle = lazy(() => import('@/pages/BlogArticle'));
-const HelpCenter = lazy(() => import('@/pages/HelpCenter'));
+
 
 const queryClient = new QueryClient();
 
@@ -333,13 +333,6 @@ function App() {
                       <RouteErrorBoundary routeName="Blog Article">
                         <Suspense fallback={<FullPageLoadingSkeleton />}>
                           <BlogArticle />
-                        </Suspense>
-                      </RouteErrorBoundary>
-                    } />
-                    <Route path="/guides" element={
-                      <RouteErrorBoundary routeName="Help Center">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <HelpCenter />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
