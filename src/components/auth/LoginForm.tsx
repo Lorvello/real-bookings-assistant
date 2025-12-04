@@ -139,7 +139,7 @@ export const LoginForm: React.FC = () => {
         }
         
         // Handle invalid_credentials - could be wrong email or wrong password
-        if (error.message === 'invalid_credentials') {
+        if (error.message === 'Invalid login credentials' || error.message.toLowerCase().includes('invalid') && error.message.toLowerCase().includes('credentials')) {
           toast({
             title: "Invalid Credentials",
             description: (
