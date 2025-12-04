@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PasswordInput } from './PasswordInput';
 import { GoogleAuthButton } from './GoogleAuthButton';
 import { validateEmail } from '@/utils/inputSanitization';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, ArrowLeft } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import ReCAPTCHA from 'react-google-recaptcha';
 
@@ -185,8 +185,16 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md bg-card border-border shadow-xl">
-      <CardHeader className="text-center">
+    <Card className="w-full max-w-md bg-card border-border shadow-xl relative">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate(-1)}
+        className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
+      <CardHeader className="text-center pt-12">
         <CardTitle className="text-2xl font-bold text-foreground">
           Welcome Back
         </CardTitle>
