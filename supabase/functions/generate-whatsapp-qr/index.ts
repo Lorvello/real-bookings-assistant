@@ -53,7 +53,7 @@ serve(async (req) => {
         // Continue to generate new PNG below (don't return early)
       } else if (!refresh) {
         // QR already exists as PNG - return existing URL unless refresh was requested
-        const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
+        const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+31852502132';
         const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
 
         // Haal business_name op uit users tabel voor existing QR
@@ -85,7 +85,7 @@ serve(async (req) => {
 
 
     // Generate new QR code
-    const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+15551766290';
+    const PLATFORM_WHATSAPP_NUMBER = Deno.env.get('WHATSAPP_NUMBER') || '+31852502132';
     const cleanPhone = PLATFORM_WHATSAPP_NUMBER.replace(/[\s-]/g, '');
     
     // Haal business_name op uit users tabel
