@@ -126,8 +126,18 @@ const Header = () => {
             })}
           </div>
           
-          {/* Desktop CTA Button */}
-          <div className="hidden lg:block">
+          {/* Desktop CTA Buttons */}
+          <div className="hidden lg:flex items-center gap-3">
+            {!user && (
+              <Link to="/login">
+                <Button 
+                  variant="ghost"
+                  className="text-white hover:bg-white/10 font-medium px-5 py-2.5"
+                >
+                  Log In
+                </Button>
+              </Link>
+            )}
             <Button 
               onClick={handleGetStarted}
               className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
@@ -191,9 +201,19 @@ const Header = () => {
                   </Link>
                 );
               })}
+              {!user && (
+                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
+                  <Button 
+                    variant="ghost"
+                    className="text-white hover:bg-white/10 font-medium w-full mt-4"
+                  >
+                    Log In
+                  </Button>
+                </Link>
+              )}
               <Button 
                 onClick={handleGetStarted}
-                className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-4 w-full"
+                className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-2 w-full"
               >
                 {user ? 'Dashboard' : 'Get Started'}
               </Button>
