@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArticleSection } from '@/data/blogArticles';
 import { cn } from '@/lib/utils';
+import NoShowCalculator from './NoShowCalculator';
 
 interface ArticleRendererProps {
   sections: ArticleSection[];
@@ -12,6 +13,12 @@ export const ArticleRenderer: React.FC<ArticleRendererProps> = ({ sections, clas
 
   const renderSection = (section: ArticleSection, index: number) => {
     switch (section.type) {
+      case 'calculator':
+        if (section.componentType === 'no-show-calculator') {
+          return <NoShowCalculator key={index} />;
+        }
+        return null;
+
       case 'heading':
         if (section.level === 2) {
           h2Index++;

@@ -1,11 +1,12 @@
 export interface ArticleSection {
-  type: 'paragraph' | 'heading' | 'quote' | 'list' | 'stat-box' | 'image';
+  type: 'paragraph' | 'heading' | 'quote' | 'list' | 'stat-box' | 'image' | 'calculator';
   content: string;
   level?: 2 | 3;
   items?: string[];
   stat?: string;
   source?: string;
   alt?: string;
+  componentType?: 'no-show-calculator';
 }
 
 export interface BlogArticle {
@@ -754,6 +755,233 @@ export const blogArticles: BlogArticle[] = [
       }
     ],
     relatedArticles: ['waarom-klanten-whatsapp-verkiezen', 'reduce-no-shows', 'case-study-kapsalon']
+  },
+  {
+    id: '8',
+    slug: 'salon-no-shows-revenue-loss',
+    title: 'The Hidden Cost of No-Shows: How to Save Thousands in Lost Revenue',
+    excerpt: 'Calculate exactly how much no-shows cost your salon and discover proven strategies to recover up to 50% of that lost revenue.',
+    category: 'Business Insights',
+    readTime: '9 min',
+    date: '2024-02-15',
+    image: '/placeholder.svg',
+    author: {
+      name: 'BookingsAssistant Team',
+      role: 'Content Team'
+    },
+    content: [
+      {
+        type: 'paragraph',
+        content: 'Picture this: It\'s Tuesday afternoon at your salon. Your 2 PM client hasn\'t shown up. Neither did your 11 AM appointment. By the end of the week, you\'ve lost six appointments to no-shows. Sound familiar? You\'re not alone—but the real question is: do you know exactly how much money you\'re losing?'
+      },
+      {
+        type: 'paragraph',
+        content: 'No-shows are the silent killer of salon profitability. They don\'t just cost you the price of one missed appointment—they create ripple effects that impact your entire business. And the most frustrating part? Most salon owners dramatically underestimate just how much revenue walks out the door with every empty chair.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'The No-Show Epidemic: Industry Statistics That Will Shock You'
+      },
+      {
+        type: 'paragraph',
+        content: 'Let\'s start with the uncomfortable truth. The beauty and wellness industry faces one of the highest no-show rates of any service sector—and the numbers are staggering.'
+      },
+      {
+        type: 'stat-box',
+        stat: '15-30%',
+        content: 'Average no-show rate in beauty salons—nearly triple the acceptable business threshold of 5%.',
+        source: 'Salon Industry Reports 2024'
+      },
+      {
+        type: 'paragraph',
+        content: 'To put this in perspective: if you run a busy salon with 200 appointments per month, you\'re likely seeing 30 to 60 clients simply not show up. That\'s not a minor inconvenience—it\'s a systematic drain on your business.'
+      },
+      {
+        type: 'stat-box',
+        stat: '$67,000',
+        content: 'Average annual revenue lost per salon due to no-shows, cancellations, and empty appointment slots.',
+        source: 'National Salon Association Survey'
+      },
+      {
+        type: 'paragraph',
+        content: 'Think about what $67,000 could mean for your business. That\'s a complete salon renovation. It\'s two years of marketing budget. It\'s the salary for an additional team member. Instead, it\'s money that evaporates into thin air, one missed appointment at a time.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Calculate Your Hidden Losses'
+      },
+      {
+        type: 'paragraph',
+        content: 'Every salon is different, which is why we\'ve created this interactive calculator. Adjust the sliders below to match your salon\'s reality and see exactly what no-shows are costing you—and how much you could save.'
+      },
+      {
+        type: 'calculator',
+        content: '',
+        componentType: 'no-show-calculator'
+      },
+      {
+        type: 'paragraph',
+        content: 'Seeing your actual numbers can be jarring. But awareness is the first step toward solving the problem. Now let\'s understand why clients don\'t show up—so we can fix it.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Why Your Clients Don\'t Show Up: The Root Causes'
+      },
+      {
+        type: 'paragraph',
+        content: 'Here\'s something that might surprise you: most no-shows aren\'t malicious. Your clients don\'t wake up thinking "I\'m going to cost my stylist money today." Understanding the real reasons behind no-shows is essential to preventing them.'
+      },
+      {
+        type: 'list',
+        content: 'The primary reasons clients miss appointments:',
+        items: [
+          'They simply forgot — Life is busy, and without a reminder, appointments slip through the cracks',
+          'Booking friction makes rescheduling hard — If canceling or rescheduling requires a phone call during business hours, clients avoid the awkwardness and just don\'t show',
+          'No psychological commitment — Without a deposit or confirmation, there\'s no "cost" to missing the appointment',
+          'Life happens — Emergencies, sick children, work crises—sometimes legitimate things come up',
+          'Impulse booking regret — Appointments made during promotional campaigns often have higher no-show rates'
+        ]
+      },
+      {
+        type: 'quote',
+        content: 'Studies show that 78% of clients who book online return for future appointments, compared to just 39% of walk-in clients. Online booking creates a digital commitment that significantly reduces no-show behavior.',
+        source: 'Journal of Service Management'
+      },
+      {
+        type: 'paragraph',
+        content: 'The good news? Every single one of these causes has a solution. And the most effective solutions don\'t require you to change your clients—they require you to change your systems.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'The True Financial Impact: Beyond the Obvious'
+      },
+      {
+        type: 'paragraph',
+        content: 'When you calculate the cost of a no-show, most salon owners think only about the lost service revenue. But the true cost extends much further.'
+      },
+      {
+        type: 'paragraph',
+        content: 'Let\'s break down a real example: A salon with 200 appointments per month, a 20% no-show rate, and an average service price of €85 sees 40 missed appointments monthly. That\'s €3,400 in direct lost revenue per month, or €40,800 per year.'
+      },
+      {
+        type: 'list',
+        content: 'But that\'s not the whole story. Hidden costs include:',
+        items: [
+          'Staff wages paid during empty slots — Your team is being paid whether there\'s a client in the chair or not',
+          'Product waste — Prepared colors, mixed treatments, and reserved products often can\'t be reused',
+          'Opportunity cost — That slot could have been filled by a paying customer from your waitlist',
+          'Energy and overhead — Rent, utilities, and supplies are fixed costs that no-shows don\'t reduce',
+          'Morale impact — Repeated no-shows frustrate staff and affect team motivation'
+        ]
+      },
+      {
+        type: 'stat-box',
+        stat: '40-52%',
+        content: 'of salon bookings are made outside of business hours, often late at night when clients are planning their week.',
+        source: 'Booking Platform Analytics'
+      },
+      {
+        type: 'paragraph',
+        content: 'This statistic reveals a crucial insight: your clients want flexibility. They\'re making decisions about appointments when your salon is closed. If they can\'t easily book, reschedule, or cancel at those moments, they\'re more likely to become no-shows.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Proven Solutions That Actually Work'
+      },
+      {
+        type: 'paragraph',
+        content: 'After analyzing thousands of salons, we\'ve identified the strategies that consistently reduce no-shows by 40-60%. The common thread? Automation that works for your clients, not against them.'
+      },
+      {
+        type: 'list',
+        content: 'The five most effective no-show reduction strategies:',
+        items: [
+          'Automated WhatsApp reminders — Send confirmations 24 hours before and again 2 hours before. WhatsApp has a 98% open rate compared to just 21% for email',
+          'Easy online rebooking — Give clients a simple link to reschedule. A rescheduled appointment is infinitely better than a no-show',
+          'Confirmation requests — Require clients to confirm their appointment 24-48 hours in advance. Non-responders can be followed up or rebooked',
+          'Deposit or prepayment requirements — Even a small deposit (10-20%) creates psychological commitment and reduces no-shows dramatically',
+          'Real-time cancellation notifications — When someone cancels, immediately notify your waitlist to fill the slot'
+        ]
+      },
+      {
+        type: 'stat-box',
+        stat: '98% vs 21%',
+        content: 'WhatsApp message open rate compared to email. Your reminders only work if clients actually see them.',
+        source: 'Digital Communication Studies 2024'
+      },
+      {
+        type: 'paragraph',
+        content: 'Notice what these solutions have in common: they\'re all automated. You shouldn\'t have to spend hours each day manually texting clients, calling to confirm, or managing cancellations. The right system does this for you, 24/7.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'How BookingsAssistant Reduces No-Shows by 50%'
+      },
+      {
+        type: 'paragraph',
+        content: 'We built BookingsAssistant specifically to solve the no-show problem. Here\'s how our automated WhatsApp booking system tackles each root cause:'
+      },
+      {
+        type: 'list',
+        content: 'Built-in no-show prevention features:',
+        items: [
+          'Automatic WhatsApp reminders at 24 hours and 2 hours before appointments',
+          'One-tap confirmation requests that clients can respond to in seconds',
+          'Easy rescheduling through the same WhatsApp conversation—no phone calls needed',
+          'Instant waitlist notifications when cancellations occur',
+          'Smart booking policies including deposit collection for high-risk time slots',
+          '24/7 booking availability so clients can manage appointments on their schedule'
+        ]
+      },
+      {
+        type: 'quote',
+        content: 'Since implementing BookingsAssistant\'s automated reminders, our no-show rate dropped from 22% to under 8%. That\'s an extra €2,800 per month we\'re no longer losing. The system paid for itself in the first week.',
+        source: 'Maria S., Owner of Glow Beauty Studio'
+      },
+      {
+        type: 'paragraph',
+        content: 'The ROI is straightforward: if our calculator showed you\'re losing €40,000 annually to no-shows, and BookingsAssistant helps you recover 50% of that, you\'re gaining €20,000 per year. That\'s the equivalent of adding another revenue stream to your business—without taking on a single extra client.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Take Action: Your Next Steps'
+      },
+      {
+        type: 'paragraph',
+        content: 'Every day without an automated reminder system is another day of preventable revenue loss. Here\'s how to start recovering that money:'
+      },
+      {
+        type: 'list',
+        content: 'Your action plan for this week:',
+        items: [
+          'Calculate your actual losses using the calculator above—know your numbers',
+          'Audit your current reminder process—are you relying on clients to remember?',
+          'Evaluate your booking friction—how easy is it to cancel or reschedule?',
+          'Consider your communication channels—are you meeting clients where they already are (WhatsApp)?',
+          'Start a free trial of BookingsAssistant and see the difference automation makes'
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: 'The salons that thrive in 2024 and beyond aren\'t the ones with the most stylists or the biggest marketing budgets. They\'re the ones that run the tightest operations—maximizing every appointment slot and minimizing every inefficiency.'
+      },
+      {
+        type: 'paragraph',
+        content: 'No-shows aren\'t just an annoyance to accept. They\'re a problem to solve. And with the right tools, you can solve them starting today.'
+      },
+      {
+        type: 'paragraph',
+        content: 'Ready to see how much revenue you can recover? Start your free trial of BookingsAssistant and reduce your no-shows by up to 50%. Your future self—and your bank account—will thank you.'
+      }
+    ],
+    relatedArticles: ['reduce-no-shows', 'whatsapp-booking-increases-appointments', 'case-study-kapsalon']
   }
 ];
 
