@@ -26,7 +26,7 @@ export const ArticleNavigation: React.FC<ArticleNavigationProps> = ({
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-2">
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm">Vorig artikel</span>
+            <span className="text-sm">Previous article</span>
           </div>
           <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {previous.title}
@@ -42,7 +42,7 @@ export const ArticleNavigation: React.FC<ArticleNavigationProps> = ({
           className="group p-6 rounded-xl border border-border bg-card hover:border-primary/40 hover:bg-accent/50 transition-all duration-300 text-right"
         >
           <div className="flex items-center justify-end gap-2 text-muted-foreground mb-2">
-            <span className="text-sm">Volgend artikel</span>
+            <span className="text-sm">Next article</span>
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
           <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">

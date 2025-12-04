@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { STATUS_COLORS, BOOKING_STATUS_COLORS } from '@/lib/colors';
 
 export const formatDate = (dateString?: string) => {
-  if (!dateString) return 'Nooit';
+  if (!dateString) return 'Never';
   return format(new Date(dateString), 'dd/MM/yyyy HH:mm');
 };
 
