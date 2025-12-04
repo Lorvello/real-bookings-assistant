@@ -9,9 +9,11 @@ import { TableOfContents } from '@/components/blog/TableOfContents';
 import { ArticleRenderer } from '@/components/blog/ArticleRenderer';
 import { ArticleNavigation } from '@/components/blog/ArticleNavigation';
 import { getArticleBySlug, getAdjacentArticles } from '@/data/blogArticles';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 const BlogArticle: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  useScrollToTop();
   
   const article = slug ? getArticleBySlug(slug) : undefined;
   const { previous, next } = slug ? getAdjacentArticles(slug) : { previous: null, next: null };
@@ -21,7 +23,7 @@ const BlogArticle: React.FC = () => {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

@@ -18,7 +18,7 @@ import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useAvailableSlots } from '@/hooks/useAvailableSlots';
 import { WaitlistDialog } from './WaitlistDialog';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 interface CalendarPreviewProps {
   calendarId: string;
@@ -66,9 +66,9 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
   };
 
   const formatDateLabel = (date: Date) => {
-    if (isToday(date)) return `Vandaag, ${format(date, 'd MMMM', { locale: nl })}`;
-    if (isTomorrow(date)) return `Morgen, ${format(date, 'd MMMM', { locale: nl })}`;
-    return format(date, 'EEEE, d MMMM yyyy', { locale: nl });
+    if (isToday(date)) return `Today, ${format(date, 'MMMM d', { locale: enUS })}`;
+    if (isTomorrow(date)) return `Tomorrow, ${format(date, 'MMMM d', { locale: enUS })}`;
+    return format(date, 'EEEE, MMMM d, yyyy', { locale: enUS });
   };
 
   const selectedService = serviceTypes.find(s => s.id === selectedServiceType);
@@ -80,7 +80,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
       <CardHeader>
         <CardTitle className="text-foreground flex items-center">
           <CalendarIcon className="h-5 w-5 mr-2" />
-          Klant Booking Ervaring Preview
+          Customer Booking Experience Preview
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -121,7 +121,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                         </div>
                         <div className="text-right">
                           <div className="font-medium text-foreground">
-                            {service.price ? `€${service.price}` : 'Gratis'}
+                            {service.price ? `€${service.price}` : 'Free'}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {service.duration} min
@@ -149,8 +149,8 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
 
             {selectedDate && selectedServiceType && (
               <div className="bg-background-secondary rounded-lg p-6 border border-border">
-                <h3 className="text-lg font-medium text-foreground mb-4">
-                  Beschikbare tijden - {formatDateLabel(selectedDate)}
+              <h3 className="text-lg font-medium text-foreground mb-4">
+                  Available times - {formatDateLabel(selectedDate)}
                 </h3>
                 
                 {slotsLoading ? (
@@ -179,7 +179,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                     ) : (
                       <div className="text-center py-8">
                         <Clock className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                        <p className="text-muted-foreground mb-4">Geen beschikbare tijden voor deze datum</p>
+                        <p className="text-muted-foreground mb-4">No available times for this date</p>
                         <Button 
                           onClick={() => setShowWaitlistDialog(true)}
                           variant="outline"
@@ -194,7 +194,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Clock className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                    <p>Geen beschikbare tijden voor deze datum</p>
+                    <p>No available times for this date</p>
                   </div>
                 )}
               </div>
@@ -216,7 +216,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                     <div className="flex-1">
                       <div className="font-medium text-foreground">{selectedService.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {selectedService.duration} minuten - {selectedService.price ? `€${selectedService.price}` : 'Gratis'}
+                        {selectedService.duration} minutes - {selectedService.price ? `€${selectedService.price}` : 'Free'}
                       </div>
                     </div>
                   </div>
@@ -250,7 +250,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Naam *</Label>
+                    <Label htmlFor="name">Name *</Label>
                     <Input
                       id="name"
                       placeholder="Enter your name"
@@ -261,11 +261,11 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">E-mail *</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="je@email.com"
+                      placeholder="you@email.com"
                       value={customerForm.email}
                       onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })}
                       className="bg-input border-border"
@@ -273,7 +273,7 @@ export function CalendarPreview({ calendarId }: CalendarPreviewProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Telefoonnummer</Label>
+                    <Label htmlFor="phone">Phone number</Label>
                     <Input
                       id="phone"
                       type="tel"
