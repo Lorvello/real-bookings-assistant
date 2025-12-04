@@ -139,17 +139,28 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               <span className="text-slate-300 text-sm font-mono">{trackingCode}</span>
             </div>
 
-            {/* Primary Action Button */}
-            <div className="w-full max-w-md">
+            {/* Primary Action Buttons */}
+            <div className="w-full max-w-md space-y-3">
               {qrUrl || (whatsappLink && qrExists) ? (
-                <Button 
-                  onClick={downloadQRCode} 
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                  size="lg"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download QR Code
-                </Button>
+                <>
+                  <Button 
+                    onClick={downloadQRCode} 
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                    size="lg"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download QR Code
+                  </Button>
+                  <Button 
+                    onClick={() => generateQR()} 
+                    disabled={generating}
+                    variant="outline"
+                    className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                    size="lg"
+                  >
+                    {generating ? 'Regenerating...' : 'Regenerate QR Code'}
+                  </Button>
+                </>
               ) : (
                 <Button 
                   onClick={() => generateQR()} 
