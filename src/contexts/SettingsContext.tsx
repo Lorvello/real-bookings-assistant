@@ -7,8 +7,9 @@ interface SettingsContextType {
   businessData: any;
   setBusinessData: (data: any) => void;
   loading: boolean;
-  handleUpdateProfile: (customData?: any) => void;
-  handleUpdateBusiness: (customData?: any) => void;
+  handleUpdateProfile: (customData?: any, showToast?: boolean) => Promise<boolean>;
+  handleUpdateBusiness: (customData?: any, showToast?: boolean) => Promise<boolean>;
+  handleBatchUpdate: (profileChanges: any, businessChanges: any) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 
