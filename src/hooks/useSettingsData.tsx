@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -51,12 +50,10 @@ export const useSettingsData = () => {
     team_size: '1'
   });
 
-  // No loading state for immediate rendering with cached data
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      // Fetch silently in background without showing loading state
       fetchUserData();
     }
   }, [user]);
@@ -77,7 +74,6 @@ export const useSettingsData = () => {
       }
 
       if (data) {
-        // Update profile data
         setProfileData({
           full_name: data.full_name || '',
           email: data.email || '',
@@ -100,7 +96,6 @@ export const useSettingsData = () => {
           subscription_tier: data.subscription_tier || null
         });
 
-        // Update business data
         setBusinessData({
           business_name: data.business_name || '',
           business_type: data.business_type || '',
@@ -128,13 +123,12 @@ export const useSettingsData = () => {
     }
   };
 
-  const handleUpdateProfile = async (customProfileData?: any) => {
-    if (!user) return;
+  // Silent update for profile - no toast (used by batch update)
+  const handleUpdateProfile = async (customProfileData?: any, showToast = true) => {
+    if (!user) return false;
     
-    // Only set loading during actual save operations
     setLoading(true);
     const dataToUse = customProfileData || profileData;
-    console.log('Updating profile with data:', dataToUse);
 
     try {
       const { error } = await supabase
@@ -164,38 +158,45 @@ export const useSettingsData = () => {
 
       if (error) {
         console.error('Error updating profile:', error);
-        toast({
-          title: "Error",
-          description: "An error occurred while saving your profile.",
-          variant: "destructive",
-        });
-        return;
+        if (showToast) {
+          toast({
+            title: "Error",
+            description: "An error occurred while saving your profile.",
+            variant: "destructive",
+          });
+        }
+        return false;
       }
 
-      toast({
-        title: "Success",
-        description: "Your profile has been updated successfully!",
-      });
+      if (showToast) {
+        toast({
+          title: "Success",
+          description: "Your profile has been updated successfully!",
+        });
+      }
+      return true;
 
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      });
+      if (showToast) {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateBusiness = async (customBusinessData?: any) => {
-    if (!user) return;
+  // Silent update for business - no toast (used by batch update)
+  const handleUpdateBusiness = async (customBusinessData?: any, showToast = true) => {
+    if (!user) return false;
     
-    // Only set loading during actual save operations
     setLoading(true);
     const dataToUse = customBusinessData || businessData;
-    console.log('Updating business with data:', dataToUse);
 
     try {
       const { error } = await supabase
@@ -226,26 +227,112 @@ export const useSettingsData = () => {
 
       if (error) {
         console.error('Error updating business:', error);
-        toast({
-          title: "Error",
-          description: "An error occurred while saving your business information.",
-          variant: "destructive",
-        });
-        return;
+        if (showToast) {
+          toast({
+            title: "Error",
+            description: "An error occurred while saving your business information.",
+            variant: "destructive",
+          });
+        }
+        return false;
       }
 
-      toast({
-        title: "Success",
-        description: "Your business information has been updated successfully!",
-      });
+      if (showToast) {
+        toast({
+          title: "Success",
+          description: "Your business information has been updated successfully!",
+        });
+      }
+      return true;
 
     } catch (error) {
       console.error('Error updating business:', error);
+      if (showToast) {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Batch update - combines profile and business updates in one call, no individual toasts
+  const handleBatchUpdate = async (profileChanges: any, businessChanges: any) => {
+    if (!user) return false;
+    
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({
+          // Profile fields
+          full_name: profileChanges.full_name,
+          email: profileChanges.email,
+          phone: profileChanges.phone,
+          date_of_birth: profileChanges.date_of_birth || null,
+          gender: profileChanges.gender || null,
+          language: profileChanges.language,
+          timezone: profileChanges.timezone,
+          avatar_url: profileChanges.avatar_url || null,
+          address_street: profileChanges.address_street || null,
+          address_number: profileChanges.address_number || null,
+          address_postal: profileChanges.address_postal || null,
+          address_city: profileChanges.address_city || null,
+          address_country: profileChanges.address_country,
+          website: profileChanges.website || null,
+          facebook: profileChanges.facebook || null,
+          instagram: profileChanges.instagram || null,
+          linkedin: profileChanges.linkedin || null,
+          tiktok: profileChanges.tiktok || null,
+          // Business fields
+          business_name: businessChanges.business_name || null,
+          business_type: businessChanges.business_type || null,
+          business_type_other: businessChanges.business_type_other || null,
+          business_phone: businessChanges.business_phone || null,
+          business_email: businessChanges.business_email || null,
+          business_whatsapp: businessChanges.business_whatsapp || null,
+          business_street: businessChanges.business_street || null,
+          business_number: businessChanges.business_number || null,
+          business_postal: businessChanges.business_postal || null,
+          business_city: businessChanges.business_city || null,
+          business_country: businessChanges.business_country,
+          business_description: businessChanges.business_description || null,
+          parking_info: businessChanges.parking_info || null,
+          public_transport_info: businessChanges.public_transport_info || null,
+          accessibility_info: businessChanges.accessibility_info || null,
+          other_info: businessChanges.other_info || null,
+          show_opening_hours: businessChanges.show_opening_hours,
+          opening_hours_note: businessChanges.opening_hours_note || null,
+          team_size: businessChanges.team_size,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error in batch update:', error);
+        toast({
+          title: "Error",
+          description: "An error occurred while saving your changes.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      return true;
+
+    } catch (error) {
+      console.error('Error in batch update:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -259,6 +346,7 @@ export const useSettingsData = () => {
     loading,
     handleUpdateProfile,
     handleUpdateBusiness,
+    handleBatchUpdate,
     refetch: fetchUserData
   };
 };

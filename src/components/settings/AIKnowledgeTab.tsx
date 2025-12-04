@@ -1,162 +1,132 @@
-
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Select from 'react-select';
-import { Info, Check, X } from 'lucide-react';
+import { Info, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { businessTypes } from '@/constants/settingsOptions';
 import { useSettingsContext } from '@/contexts/SettingsContext';
-import { isBusinessField } from '@/utils/fieldMapping';
+import { useToast } from '@/hooks/use-toast';
 
 export const AIKnowledgeTab: React.FC = () => {
   const {
     profileData,
-    setProfileData,
     businessData,
-    setBusinessData,
-    handleUpdateProfile,
-    handleUpdateBusiness,
+    handleBatchUpdate,
     refetch
   } = useSettingsContext();
-  // Manual save state management
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [tempValues, setTempValues] = useState<any>({});
-  const [saving, setSaving] = useState<string | null>(null);
+  
+  const { toast } = useToast();
+  
+  // Local state for pending changes (buffered)
+  const [localProfileData, setLocalProfileData] = useState(profileData);
+  const [localBusinessData, setLocalBusinessData] = useState(businessData);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Auto-save for business type dropdown only
-  const autoSaveBusinessType = useCallback((newData: any) => {
-    setBusinessData(newData);
-    handleUpdateBusiness();
-  }, [setBusinessData, handleUpdateBusiness]);
+  // Sync local state when data is fetched from server
+  useEffect(() => {
+    setLocalProfileData(profileData);
+  }, [profileData]);
 
-  // Manual save functions
-  const startEditing = (field: string, currentValue: any) => {
-    setEditingField(field);
-    setTempValues({ [field]: currentValue });
-  };
+  useEffect(() => {
+    setLocalBusinessData(businessData);
+  }, [businessData]);
 
-  const cancelEditing = () => {
-    setEditingField(null);
-    setTempValues({});
-  };
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    const profileChanged = JSON.stringify(localProfileData) !== JSON.stringify(profileData);
+    const businessChanged = JSON.stringify(localBusinessData) !== JSON.stringify(businessData);
+    return profileChanged || businessChanged;
+  }, [localProfileData, localBusinessData, profileData, businessData]);
 
-  const saveField = async (field: string) => {
-    setSaving(field);
+  // Warn user before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Save all changes
+  const saveAllChanges = async () => {
+    setIsSaving(true);
     
     try {
-      if (isBusinessField(field)) {
-        // Update business data with the new value
-        const newBusinessData = { ...businessData, [field]: tempValues[field] };
-        setBusinessData(newBusinessData);
-        
-        // Save to database with the new data directly
-        await handleUpdateBusiness(newBusinessData);
-        
-        // Refresh data from database to ensure UI shows exactly what was saved
-        await refetch();
-      } else {
-        // Update profile data with the new value
-        const newProfileData = { ...profileData, [field]: tempValues[field] };
-        setProfileData(newProfileData);
-        
-        // Save to database with the new data directly
-        await handleUpdateProfile(newProfileData);
-        
-        // Refresh data from database to ensure UI shows exactly what was saved
-        await refetch();
-      }
+      const success = await handleBatchUpdate(localProfileData, localBusinessData);
       
-      setEditingField(null);
-      setTempValues({});
+      if (success) {
+        await refetch();
+        toast({
+          title: "Changes Saved",
+          description: "All your settings have been saved successfully.",
+        });
+      }
     } catch (error) {
-      console.error('Failed to save field:', error);
-      // Reset temp values on error
-      setTempValues({});
+      console.error('Failed to save changes:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setSaving(null);
+      setIsSaving(false);
     }
   };
 
-  const renderEditableField = (
+  // Discard all changes
+  const discardChanges = () => {
+    setLocalProfileData(profileData);
+    setLocalBusinessData(businessData);
+  };
+
+  // Update handlers for local state
+  const updateBusinessField = (field: string, value: string) => {
+    setLocalBusinessData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateProfileField = (field: string, value: string) => {
+    setLocalProfileData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Render input field
+  const renderInputField = (
     field: string,
-    label: string,
-    currentValue: string,
+    value: string,
+    onChange: (value: string) => void,
     placeholder?: string,
     isTextarea?: boolean,
     rows?: number
   ) => {
-    const isEditing = editingField === field;
-    const isSaving = saving === field;
-    
-    if (isEditing) {
+    if (isTextarea) {
       return (
-        <div className="flex items-start gap-2">
-          {isTextarea ? (
-            <textarea
-              value={tempValues[field] || ''}
-              onChange={(e) => setTempValues({ ...tempValues, [field]: e.target.value })}
-              rows={rows || 3}
-              className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              placeholder={placeholder}
-              autoFocus
-            />
-          ) : (
-            <input
-              type="text"
-              value={tempValues[field] || ''}
-              onChange={(e) => setTempValues({ ...tempValues, [field]: e.target.value })}
-              className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent"
-              placeholder={placeholder}
-              autoFocus
-            />
-          )}
-          <div className="flex items-center gap-1 mt-1">
-            <Button
-              size="sm"
-              onClick={() => saveField(field)}
-              disabled={isSaving}
-              className="bg-green-600 hover:bg-green-700 h-8 w-8 p-0"
-            >
-              <Check className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={cancelEditing}
-              className="border-gray-700 text-gray-300 hover:bg-gray-700 h-8 w-8 p-0"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
+        <textarea
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          rows={rows || 3}
+          className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors"
+          placeholder={placeholder}
+        />
       );
     }
 
     return (
-      <div 
-        className="bg-gray-900 border border-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-800 transition-colors min-h-[44px] flex items-center"
-        onClick={() => startEditing(field, currentValue || '')}
-      >
-        <span className={currentValue ? 'text-white' : 'text-gray-500'}>
-          {currentValue || placeholder || 'Click to edit'}
-        </span>
-      </div>
+      <input
+        type="text"
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors"
+        placeholder={placeholder}
+      />
     );
   };
 
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="space-y-8">
-        {/* Save indicator - only show when actively saving */}
-        {saving && (
-          <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-              <p className="text-blue-200 text-sm">Saving...</p>
-            </div>
-          </div>
-        )}
-
+      <div className="space-y-8 pb-24">
         {/* Business Information with Address */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center gap-2 mb-6">
@@ -178,10 +148,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Business Name *
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'business_name',
-                'Business Name',
-                businessData.business_name,
+                localBusinessData.business_name,
+                (value) => updateBusinessField('business_name', value),
                 'Enter your business name'
               )}
             </div>
@@ -191,11 +161,8 @@ export const AIKnowledgeTab: React.FC = () => {
                 Business Type *
               </label>
               <Select 
-                value={businessTypes.find(type => type.value === businessData.business_type)} 
-                onChange={option => autoSaveBusinessType({
-                  ...businessData,
-                  business_type: option?.value || ''
-                })}
+                value={businessTypes.find(type => type.value === localBusinessData.business_type)} 
+                onChange={option => updateBusinessField('business_type', option?.value || '')}
                 options={businessTypes} 
                 className="react-select-container" 
                 classNamePrefix="react-select" 
@@ -230,14 +197,11 @@ export const AIKnowledgeTab: React.FC = () => {
                 }} 
               />
               
-              {businessData.business_type === 'other' && (
+              {localBusinessData.business_type === 'other' && (
                 <input 
                   type="text" 
-                  value={businessData.business_type_other} 
-                  onChange={e => autoSaveBusinessType({
-                    ...businessData,
-                    business_type_other: e.target.value
-                  })}
+                  value={localBusinessData.business_type_other || ''} 
+                  onChange={e => updateBusinessField('business_type_other', e.target.value)}
                   placeholder="Specify business type..." 
                   className="mt-2 w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
                 />
@@ -248,10 +212,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Business Description
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'business_description',
-                'Business Description',
-                businessData.business_description,
+                localBusinessData.business_description,
+                (value) => updateBusinessField('business_description', value),
                 'Tell customers about your business...',
                 true,
                 4
@@ -269,10 +233,10 @@ export const AIKnowledgeTab: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Street Name
                   </label>
-                  {renderEditableField(
+                  {renderInputField(
                     'business_street',
-                    'Street Name',
-                    businessData.business_street,
+                    localBusinessData.business_street,
+                    (value) => updateBusinessField('business_street', value),
                     'Enter street name'
                   )}
                 </div>
@@ -281,10 +245,10 @@ export const AIKnowledgeTab: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     House Number
                   </label>
-                  {renderEditableField(
+                  {renderInputField(
                     'business_number',
-                    'House Number',
-                    businessData.business_number,
+                    localBusinessData.business_number,
+                    (value) => updateBusinessField('business_number', value),
                     'Enter house number'
                   )}
                 </div>
@@ -293,10 +257,10 @@ export const AIKnowledgeTab: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Postal Code
                   </label>
-                  {renderEditableField(
+                  {renderInputField(
                     'business_postal',
-                    'Postal Code',
-                    businessData.business_postal,
+                    localBusinessData.business_postal,
+                    (value) => updateBusinessField('business_postal', value),
                     'Enter postal code'
                   )}
                 </div>
@@ -305,10 +269,10 @@ export const AIKnowledgeTab: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     City
                   </label>
-                  {renderEditableField(
+                  {renderInputField(
                     'business_city',
-                    'City',
-                    businessData.business_city,
+                    localBusinessData.business_city,
+                    (value) => updateBusinessField('business_city', value),
                     'Enter city'
                   )}
                 </div>
@@ -317,10 +281,10 @@ export const AIKnowledgeTab: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Country
                   </label>
-                  {renderEditableField(
+                  {renderInputField(
                     'business_country',
-                    'Country',
-                    businessData.business_country,
+                    localBusinessData.business_country,
+                    (value) => updateBusinessField('business_country', value),
                     'Enter country'
                   )}
                 </div>
@@ -351,10 +315,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Website
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'website',
-                'Website',
-                profileData.website,
+                localProfileData.website,
+                (value) => updateProfileField('website', value),
                 'https://www.example.com'
               )}
             </div>
@@ -363,10 +327,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Instagram
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'instagram',
-                'Instagram',
-                profileData.instagram,
+                localProfileData.instagram,
+                (value) => updateProfileField('instagram', value),
                 '@username'
               )}
             </div>
@@ -375,10 +339,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Facebook
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'facebook',
-                'Facebook',
-                profileData.facebook,
+                localProfileData.facebook,
+                (value) => updateProfileField('facebook', value),
                 'facebook.com/pagename'
               )}
             </div>
@@ -406,10 +370,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Parking Information
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'parking_info',
-                'Parking Information',
-                businessData.parking_info,
+                localBusinessData.parking_info,
+                (value) => updateBusinessField('parking_info', value),
                 'e.g. Free parking at the door, Paid parking in garage around the corner...',
                 true,
                 3
@@ -420,10 +384,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Public Transport
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'public_transport_info',
-                'Public Transport',
-                businessData.public_transport_info,
+                localBusinessData.public_transport_info,
+                (value) => updateBusinessField('public_transport_info', value),
                 'e.g. 5 minutes walk from station, Bus 12 stops at the door...',
                 true,
                 3
@@ -434,10 +398,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Accessibility
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'accessibility_info',
-                'Accessibility',
-                businessData.accessibility_info,
+                localBusinessData.accessibility_info,
+                (value) => updateBusinessField('accessibility_info', value),
                 'e.g. Wheelchair accessible, Elevator available, No thresholds...',
                 true,
                 3
@@ -448,10 +412,10 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Other Information
               </label>
-              {renderEditableField(
+              {renderInputField(
                 'other_info',
-                'Other Information',
-                businessData.other_info,
+                localBusinessData.other_info,
+                (value) => updateBusinessField('other_info', value),
                 'Other information that may be useful for customers...',
                 true,
                 3
@@ -459,6 +423,34 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Sticky Save Bar */}
+        {hasUnsavedChanges && (
+          <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 shadow-lg">
+            <div className="max-w-4xl mx-auto flex justify-between items-center">
+              <span className="text-amber-400 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                You have unsaved changes
+              </span>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={discardChanges}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                >
+                  Discard
+                </Button>
+                <Button 
+                  onClick={saveAllChanges} 
+                  disabled={isSaving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
