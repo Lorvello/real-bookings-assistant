@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const PLATFORM_WHATSAPP_NUMBER = '+15551766290';
+const PLATFORM_WHATSAPP_NUMBER = '+31852502132';
 
 export function useWhatsAppSettings(userId: string) {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
