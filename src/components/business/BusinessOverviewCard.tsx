@@ -17,7 +17,7 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
   showFullDetails = false
 }) => {
   const formatPrice = (price: number | null) => {
-    if (!price) return 'Prijs op aanvraag';
+    if (!price) return 'Price on request';
     return `€${price.toFixed(2)}`;
   };
 
@@ -28,13 +28,13 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
 
   const getBusinessTypeLabel = (type: string | null) => {
     const types: Record<string, string> = {
-      'salon': 'Kapsalon',
-      'clinic': 'Kliniek',
+      'salon': 'Hair Salon',
+      'clinic': 'Clinic',
       'consultant': 'Consultant',
       'trainer': 'Trainer',
-      'other': 'Overig'
+      'other': 'Other'
     };
-    return types[type || 'other'] || 'Onbekend';
+    return types[type || 'other'] || 'Unknown';
   };
 
   // Get first service name for display
@@ -46,7 +46,7 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-xl">
-              {business.business_name || 'Naamloos bedrijf'}
+              {business.business_name || 'Unnamed business'}
             </CardTitle>
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="secondary">
@@ -66,7 +66,7 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
               onClick={() => onViewSlots(business.calendar_slug)}
             >
               <Calendar className="w-4 h-4 mr-1" />
-              Bekijk tijden
+              View times
             </Button>
           )}
         </div>
@@ -80,7 +80,7 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Contact informatie */}
+          {/* Contact information */}
           <div className="space-y-2">
             <h4 className="font-semibold text-sm">Contact</h4>
             {business.business_phone && (
@@ -110,10 +110,10 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
             )}
           </div>
 
-          {/* Locatie */}
+          {/* Location */}
           {(business.business_street || business.business_city) && (
             <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Adres</h4>
+              <h4 className="font-semibold text-sm">Address</h4>
               <div className="flex items-start gap-2 text-sm">
                 <MapPin className="w-4 h-4 mt-0.5" />
                 <div>
@@ -132,24 +132,24 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
           )}
         </div>
 
-        {/* Openingstijden */}
+        {/* Opening hours */}
         <div className="pt-2 border-t">
-          <h4 className="font-semibold text-sm mb-2">Openingstijden</h4>
+          <h4 className="font-semibold text-sm mb-2">Opening Hours</h4>
           {Object.keys(business.opening_hours).length > 0 ? (
             <div className="text-sm space-y-1">
               {Object.entries(business.opening_hours).map(([day, hours]) => (
                 <div key={day} className="flex justify-between">
-                  <span>{['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'][parseInt(day)]}</span>
+                  <span>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][parseInt(day)]}</span>
                   <span>
                     {hours.is_available 
                       ? `${hours.start_time} - ${hours.end_time}`
-                      : 'Gesloten'}
+                      : 'Closed'}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Geen openingstijden ingesteld</p>
+            <p className="text-sm text-muted-foreground">No opening hours set</p>
           )}
         </div>
 
@@ -169,30 +169,30 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
           </div>
         )}
 
-        {/* Kalender instellingen */}
+        {/* Calendar settings */}
         {showFullDetails && (
           <div className="space-y-2 pt-4 border-t">
-            <h4 className="font-semibold text-sm">Boeking instellingen</h4>
+            <h4 className="font-semibold text-sm">Booking Settings</h4>
             <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-              <div>Min. voortijd: {business.minimum_notice_hours}u</div>
-              <div>Slot duur: {business.slot_duration} min</div>
-              <div>Boekingsvenster: {business.booking_window_days} dagen</div>
-              <div>Wachtlijst: {business.allow_waitlist ? 'Ja' : 'Nee'}</div>
+              <div>Min. notice: {business.minimum_notice_hours}h</div>
+              <div>Slot duration: {business.slot_duration} min</div>
+              <div>Booking window: {business.booking_window_days} days</div>
+              <div>Waitlist: {business.allow_waitlist ? 'Yes' : 'No'}</div>
             </div>
           </div>
         )}
 
-        {/* Statistieken */}
+        {/* Statistics */}
         {showFullDetails && (
           <div className="space-y-2 pt-4 border-t">
-            <h4 className="font-semibold text-sm">Statistieken</h4>
+            <h4 className="font-semibold text-sm">Statistics</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-muted-foreground">Boekingen: </span>
+                <span className="text-muted-foreground">Bookings: </span>
                 <span className="font-medium">{business.total_bookings}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Omzet: </span>
+                <span className="text-muted-foreground">Revenue: </span>
                 <span className="font-medium">€{Number(business.total_revenue).toFixed(2)}</span>
               </div>
             </div>

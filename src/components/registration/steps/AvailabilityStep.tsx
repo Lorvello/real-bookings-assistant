@@ -39,10 +39,10 @@ export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, update
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Beschikbaarheid
+          Availability
         </h3>
         <p className="text-gray-600">
-          Stel je standaard openingstijden in. Je kunt later specifieke tijden per dag aanpassen.
+          Set your default opening hours. You can adjust specific times per day later.
         </p>
       </div>
 
@@ -52,7 +52,7 @@ export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, update
             <div className="flex items-center justify-between mb-3">
               <Label className="text-base font-medium">{day.label}</Label>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Gesloten</span>
+                <span className="text-sm text-gray-600">Closed</span>
                 <Switch
                   checked={data.availability[day.key] !== null}
                   onCheckedChange={(checked) => updateAvailability(day.key, 'enabled', checked)}
@@ -64,7 +64,7 @@ export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, update
             {data.availability[day.key] && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor={`${day.key}-start`} className="text-sm">Van</Label>
+                  <Label htmlFor={`${day.key}-start`} className="text-sm">From</Label>
                   <Input
                     id={`${day.key}-start`}
                     type="time"
@@ -74,7 +74,7 @@ export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, update
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`${day.key}-end`} className="text-sm">Tot</Label>
+                  <Label htmlFor={`${day.key}-end`} className="text-sm">To</Label>
                   <Input
                     id={`${day.key}-end`}
                     type="time"
@@ -91,8 +91,8 @@ export const AvailabilityStep: React.FC<AvailabilityStepProps> = ({ data, update
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-800">
-          <strong>Tip:</strong> Dit zijn je standaard openingstijden. Na registratie kun je in de instellingen 
-          specifieke tijden per dag instellen, vakantiedagen toevoegen en meer geavanceerde beschikbaarheidsregels maken.
+          <strong>Tip:</strong> These are your default opening hours. After registration, you can set 
+          specific times per day, add holidays, and create more advanced availability rules in your settings.
         </p>
       </div>
     </div>
