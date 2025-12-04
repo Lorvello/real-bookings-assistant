@@ -189,6 +189,9 @@ export const LoginForm: React.FC = () => {
       setFailedAttempts(0);
       setShowCaptcha(false);
       
+      // Clear any stale password reset markers to prevent redirect issues
+      sessionStorage.removeItem('password-reset-requested');
+      
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",

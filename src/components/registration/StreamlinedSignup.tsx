@@ -167,6 +167,8 @@ export const StreamlinedSignup: React.FC = () => {
       const result = await registerUser(registrationData);
       
       if (result.success) {
+        // Clear any stale password reset markers to prevent redirect issues
+        sessionStorage.removeItem('password-reset-requested');
         navigate('/dashboard');
       } else {
         // Handle specific registration errors

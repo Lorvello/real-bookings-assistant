@@ -105,14 +105,14 @@ export const PasswordResetConfirmForm: React.FC = () => {
       return;
     }
     
-    // Check if we have valid tokens (multiple patterns)
+    // Check if we have valid tokens - MUST have actual tokens, not just type=recovery
+    // The type=recovery alone is NOT sufficient - we need actual auth tokens
     const hasValidTokenPattern = 
-      (access_token && refresh_token) || // Standard pattern
-      (token && type === 'recovery') ||  // Alternative pattern
-      type === 'recovery'; // Recovery type indicates this is a reset flow
+      (access_token && refresh_token) || // Standard pattern with both tokens
+      (token && type === 'recovery');     // Alternative pattern with token + type
     
     if (!hasValidTokenPattern) {
-      console.log("❌ No valid tokens found - showing manual mode");
+      console.log("❌ No valid tokens found - showing manual mode (type alone is not sufficient)");
       setHasValidTokens(false);
       return;
     }
@@ -202,7 +202,8 @@ export const PasswordResetConfirmForm: React.FC = () => {
         description: "Your password has been successfully updated. You can now sign in with your new password.",
       });
 
-      // Sign out to ensure clean state, then redirect to login
+      // Clear password reset marker and sign out to ensure clean state
+      sessionStorage.removeItem('password-reset-requested');
       await supabase.auth.signOut();
       navigate('/login');
 

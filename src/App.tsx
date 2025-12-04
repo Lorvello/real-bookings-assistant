@@ -88,20 +88,15 @@ function RecoveryRedirector() {
         return;
       }
 
+      // ONLY redirect if type=recovery is EXPLICITLY in the URL
+      // Do NOT use sessionStorage guessing - it causes false redirects
       const hasRecoveryType = (normalizedHash && normalizedHash.includes('type=recovery')) ||
                               (search && search.includes('type=recovery'));
       
-      // Handle cases where Supabase redirects to homepage with an empty or lone '#' hash
-      const isHomepageWithEmptyHash = pathname === '/' && !normalizedHash && !search;
-      const mightBeFromEmail = isHomepageWithEmptyHash && 
-                              sessionStorage.getItem('password-reset-requested') === '1';
-      
-      // Only redirect for password recovery, NOT for OAuth errors
-      const needsRedirect = hasRecoveryType || mightBeFromEmail;
       const alreadyOnReset = pathname.includes('/reset-password');
       
-      if (needsRedirect && !alreadyOnReset) {
-        // Clear the marker to avoid loops once we navigate
+      if (hasRecoveryType && !alreadyOnReset) {
+        console.log('[RecoveryRedirector] Redirecting to reset-password - type=recovery found in URL');
         sessionStorage.removeItem('password-reset-requested');
         navigate(`/reset-password${search || ''}${normalizedHash || ''}`, { replace: true });
       }
