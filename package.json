@@ -84,7 +84,6 @@
     "three": "^0.180.0",
     "validator": "^13.15.15",
     "vaul": "^0.9.3",
-    "vite-plugin-imagemin": "^0.6.1",
     "vite-plugin-pwa": "^1.0.3",
     "vitest": "^3.2.4",
     "workbox-window": "^7.3.0",
