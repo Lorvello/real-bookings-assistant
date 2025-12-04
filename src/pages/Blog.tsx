@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, ArrowRight, Sparkles, Mail, Check } from 'lucide-react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = ({ article, index }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('nl-NL', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -51,7 +52,7 @@ const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = (
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                {article.readTime} leestijd
+                {article.readTime} read
               </span>
             </div>
             
@@ -67,7 +68,7 @@ const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = (
             
             {/* Read more link */}
             <div className="inline-flex items-center gap-2 text-emerald-400 font-medium text-sm">
-              Lees meer
+              Read more
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </CardContent>
@@ -87,8 +88,8 @@ const Blog: React.FC = () => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       toast({
-        title: "Ongeldig e-mailadres",
-        description: "Vul een geldig e-mailadres in.",
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
         variant: "destructive"
       });
       return;
@@ -104,13 +105,13 @@ const Blog: React.FC = () => {
     if (error) {
       if (error.code === '23505') {
         toast({
-          title: "Al ingeschreven",
-          description: "Dit e-mailadres is al ingeschreven voor onze nieuwsbrief.",
+          title: "Already subscribed",
+          description: "This email is already subscribed to our newsletter.",
         });
       } else {
         toast({
-          title: "Er ging iets mis",
-          description: "Probeer het later opnieuw.",
+          title: "Something went wrong",
+          description: "Please try again later.",
           variant: "destructive"
         });
       }
@@ -120,8 +121,8 @@ const Blog: React.FC = () => {
     setSuccess(true);
     setEmail('');
     toast({
-      title: "Ingeschreven!",
-      description: "Je bent succesvol ingeschreven voor onze nieuwsbrief.",
+      title: "Subscribed!",
+      description: "You've successfully subscribed to our newsletter.",
     });
   };
 
@@ -167,8 +168,8 @@ const Blog: React.FC = () => {
           {/* Subtitle */}
           <ScrollAnimatedSection animation="fade-up" delay={200} as="div">
             <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
-              Tips, insights en updates over WhatsApp booking automatisering. 
-              Leer hoe je meer klanten bereikt en je bedrijf laat groeien.
+              Tips, insights and updates about WhatsApp booking automation. 
+              Learn how to reach more customers and grow your business.
             </p>
           </ScrollAnimatedSection>
         </div>
@@ -194,17 +195,17 @@ const Blog: React.FC = () => {
             </div>
             
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-              Blijf op de hoogte
+              Stay updated
             </h2>
             <p className="text-slate-400 mb-8">
-              Ontvang de nieuwste tips en inzichten direct in je inbox. 
-              Geen spam, alleen waardevolle content.
+              Get the latest tips and insights directly in your inbox. 
+              No spam, only valuable content.
             </p>
             
             {success ? (
               <div className="flex items-center justify-center gap-3 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg py-4 px-6">
                 <Check className="w-5 h-5" />
-                <span className="font-medium">Je bent ingeschreven!</span>
+                <span className="font-medium">You're subscribed!</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -212,7 +213,7 @@ const Blog: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Je e-mailadres"
+                  placeholder="Your email address"
                   className="flex-1 px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500"
                 />
                 <Button 
@@ -220,13 +221,15 @@ const Blog: React.FC = () => {
                   disabled={loading}
                   className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  {loading ? 'Bezig...' : 'Aanmelden'}
+                  {loading ? 'Loading...' : 'Subscribe'}
                 </Button>
               </form>
             )}
           </div>
         </ScrollAnimatedSection>
       </section>
+      
+      <Footer />
     </div>
   );
 };
