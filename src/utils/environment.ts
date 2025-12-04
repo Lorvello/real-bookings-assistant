@@ -29,13 +29,7 @@ export const getEnvironmentType = () => {
 // Environment-specific configuration with user context
 export const getEnvironmentConfig = (userEmail?: string) => {
   const env = getEnvironmentType();
-  const isDeveloperEmail = userEmail && (
-    userEmail.endsWith('@brandevolves.com') || 
-    userEmail.endsWith('@dev.local') ||
-    userEmail === 'developer@example.com' ||
-    userEmail === 'admin@example.com' ||
-    userEmail === 'businessof00@gmail.com'
-  );
+  const isDeveloperEmail = userEmail === 'business01003@gmail.com';
   
   return {
     environment: env,
