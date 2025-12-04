@@ -30,12 +30,12 @@ export interface BlogArticle {
 export const blogArticles: BlogArticle[] = [
   {
     id: '1',
-    slug: 'waarom-klanten-whatsapp-verkiezen',
-    title: 'Waarom klanten WhatsApp verkiezen boven bellen',
-    excerpt: 'Ontdek waarom steeds meer klanten de voorkeur geven aan WhatsApp voor het maken van afspraken en hoe jij hierop kunt inspelen.',
-    category: 'Industry Insights',
-    readTime: '5 min',
-    date: '2024-01-15',
+    slug: 'salon-no-shows-revenue-loss',
+    title: 'The Hidden Cost of No-Shows: How to Save Thousands in Lost Revenue',
+    excerpt: 'Calculate exactly how much no-shows cost your salon and discover proven strategies to recover up to 50% of that lost revenue.',
+    category: 'Business Insights',
+    readTime: '9 min',
+    date: '2024-02-15',
     image: '/placeholder.svg',
     author: {
       name: 'BookingsAssistant Team',
@@ -44,446 +44,262 @@ export const blogArticles: BlogArticle[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'In een wereld waar digitale communicatie de norm is geworden, zien we een duidelijke verschuiving in hoe klanten contact willen opnemen met bedrijven. WhatsApp is uitgegroeid tot het voorkeurskanaal voor miljoenen consumenten wereldwijd, en dit heeft directe gevolgen voor hoe bedrijven hun bookingprocessen moeten inrichten.'
+        content: 'Picture this: It\'s Tuesday afternoon at your salon. Your 2 PM client hasn\'t shown up. Neither did your 11 AM appointment. By the end of the week, you\'ve lost six appointments to no-shows. Sound familiar? You\'re not alone—but the real question is: do you know exactly how much money you\'re losing?'
+      },
+      {
+        type: 'paragraph',
+        content: 'No-shows are the silent killer of salon profitability. They don\'t just cost you the price of one missed appointment—they create ripple effects that impact your entire business. And the most frustrating part? Most salon owners dramatically underestimate just how much revenue walks out the door with every empty chair.'
       },
       {
         type: 'heading',
         level: 2,
-        content: 'De verschuiving naar messaging'
+        content: 'The No-Show Epidemic: Industry Statistics That Will Shock You'
       },
       {
         type: 'paragraph',
-        content: 'De traditionele telefoon is niet langer het eerste waar klanten naar grijpen wanneer ze een afspraak willen maken. Uit recent onderzoek blijkt dat de meerderheid van consumenten messaging apps verkiest boven telefonisch contact.'
+        content: 'Let\'s start with the uncomfortable truth. The beauty and wellness industry faces one of the highest no-show rates of any service sector—and the numbers are staggering.'
       },
       {
         type: 'stat-box',
-        stat: '78%',
-        content: 'van consumenten communiceert liever via messaging apps dan via telefoon voor zakelijke communicatie'
+        stat: '15-30%',
+        content: 'Average no-show rate in beauty salons—nearly triple the acceptable business threshold of 5%.',
+        source: 'Salon Industry Reports 2024'
       },
       {
         type: 'paragraph',
-        content: 'Dit is geen verrassing als we kijken naar de voordelen die messaging biedt: geen wachttijden, communiceren op je eigen tempo, en een geschreven record van alle afspraken.'
+        content: 'To put this in perspective: if you run a busy salon with 200 appointments per month, you\'re likely seeing 30 to 60 clients simply not show up. That\'s not a minor inconvenience—it\'s a systematic drain on your business.'
+      },
+      {
+        type: 'stat-box',
+        stat: '$67,000',
+        content: 'Average annual revenue lost per salon due to no-shows, cancellations, and empty appointment slots.',
+        source: 'National Salon Association Survey'
+      },
+      {
+        type: 'paragraph',
+        content: 'Think about what $67,000 could mean for your business. That\'s a complete salon renovation. It\'s two years of marketing budget. It\'s the salary for an additional team member. Instead, it\'s money that evaporates into thin air, one missed appointment at a time.'
       },
       {
         type: 'heading',
         level: 2,
-        content: 'Waarom WhatsApp specifiek?'
+        content: 'Calculate Your Hidden Losses'
       },
       {
         type: 'paragraph',
-        content: 'WhatsApp heeft een unieke positie in de Nederlandse en Belgische markt. Met een adoptiegraad van meer dan 95% is het de meest gebruikte messaging app in de Benelux.'
+        content: 'Every salon is different, which is why we\'ve created this interactive calculator. Adjust the sliders below to match your salon\'s reality and see exactly what no-shows are costing you—and how much you could save.'
+      },
+      {
+        type: 'calculator',
+        content: '',
+        componentType: 'no-show-calculator'
+      },
+      {
+        type: 'paragraph',
+        content: 'Seeing your actual numbers can be jarring. But awareness is the first step toward solving the problem. Now let\'s understand why clients don\'t show up—so we can fix it.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'The Psychology Behind No-Shows: Why Clients Ghost You'
+      },
+      {
+        type: 'paragraph',
+        content: 'Understanding why clients don\'t show up is crucial to solving the problem. It\'s rarely malicious—most no-shows happen for predictable, preventable reasons.'
       },
       {
         type: 'list',
-        content: 'De voordelen van WhatsApp voor klanten:',
+        content: 'Top reasons clients miss appointments:',
         items: [
-          '95%+ adoptie in Nederland en België - iedereen heeft het al',
-          'Geen app download nodig - klanten hoeven niets nieuws te installeren',
-          'Asynchroon communiceren - reageren wanneer het uitkomt',
-          'End-to-end encryptie - veilige communicatie',
-          'Rich media ondersteuning - foto\'s, documenten en locaties delen'
+          'They simply forgot—life gets busy and your appointment slipped their mind',
+          'Something came up and they felt awkward calling to cancel',
+          'They couldn\'t find an easy way to reschedule',
+          'They booked impulsively and later changed their mind',
+          'There was no reminder—or it came too late'
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: 'Notice something important here? Almost all of these reasons are within your control. A better booking and reminder system can address every single one of these issues.'
+      },
+      {
+        type: 'stat-box',
+        stat: '67%',
+        content: 'of no-shows say they would have cancelled or rescheduled if it had been easier to do so.',
+        source: 'Consumer Booking Behavior Study 2023'
+      },
+      {
+        type: 'paragraph',
+        content: 'This is a critical insight. Two-thirds of your no-shows aren\'t deliberately disrespectful—they\'re facing friction in your system that makes cancelling feel harder than simply not showing up.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'The Proven Solution: Automated WhatsApp Reminders'
+      },
+      {
+        type: 'paragraph',
+        content: 'Here\'s where science meets practicality. Multiple studies have shown that the right reminder system can slash no-show rates dramatically—and WhatsApp is the most effective channel.'
+      },
+      {
+        type: 'stat-box',
+        stat: '40-50%',
+        content: 'reduction in no-shows when using automated appointment reminders via messaging apps.',
+        source: 'Healthcare & Beauty Industry Meta-Analysis'
+      },
+      {
+        type: 'paragraph',
+        content: 'Why WhatsApp specifically? Because it\'s where your clients already are. Unlike emails that get buried or SMS that feels impersonal, WhatsApp messages get opened, read, and acted upon.'
+      },
+      {
+        type: 'stat-box',
+        stat: '98%',
+        content: 'open rate on WhatsApp messages, compared to just 21% for email reminders.',
+        source: 'Campaign Monitor & WhatsApp Business Data'
+      },
+      {
+        type: 'list',
+        content: 'Why WhatsApp reminders outperform other channels:',
+        items: [
+          'Instant delivery—messages arrive in seconds, not hours',
+          'High visibility—WhatsApp notifications get attention',
+          'Two-way communication—clients can confirm, cancel, or reschedule in the same conversation',
+          'Rich media—include salon photos, directions, or service details',
+          'Personal feel—it doesn\'t feel like marketing spam'
         ]
       },
       {
         type: 'heading',
         level: 2,
-        content: 'De impact op jouw business'
+        content: 'The Optimal Reminder Strategy: Timing Is Everything'
       },
       {
         type: 'paragraph',
-        content: 'Bedrijven die WhatsApp integreren in hun bookingproces zien significante verbeteringen in klanttevredenheid en conversie. Klanten waarderen de laagdrempeligheid en de snelheid waarmee ze afspraken kunnen maken.'
-      },
-      {
-        type: 'quote',
-        content: 'Sinds we WhatsApp booking hebben geïntegreerd, is onze response rate gestegen van 60% naar 94%. Klanten reageren veel sneller en we zien minder no-shows.',
-        source: 'Eigenaar beautysalon Amsterdam'
+        content: 'Not all reminders are created equal. The timing, content, and frequency of your reminders can make or break their effectiveness.'
       },
       {
         type: 'heading',
         level: 3,
-        content: 'Concrete resultaten'
+        content: 'The Three-Touch System'
       },
       {
         type: 'paragraph',
-        content: 'Uit onze data van honderden bedrijven die zijn overgestapt naar WhatsApp booking blijkt:'
+        content: 'Based on industry research and our own data from thousands of salons, the optimal reminder sequence is:'
       },
       {
         type: 'list',
         content: '',
         items: [
-          '40% hogere response rate vergeleken met email',
-          '35% minder no-shows door automatische reminders',
-          '50% minder tijd besteed aan telefonische boekingen',
-          '25% meer herhaalbookingen door eenvoudiger contact'
+          '48-72 hours before: Initial reminder with appointment details and easy reschedule option',
+          '24 hours before: Confirmation request ("Reply YES to confirm")',
+          '2-3 hours before: Final reminder with directions and parking info'
         ]
+      },
+      {
+        type: 'paragraph',
+        content: 'This three-touch system gives clients multiple opportunities to confirm or reschedule, while also building anticipation for their appointment.'
+      },
+      {
+        type: 'quote',
+        content: 'Since implementing automated WhatsApp reminders, our no-show rate dropped from 22% to just 6%. That\'s an extra €2,400 per month in revenue we were leaving on the table.',
+        source: 'Hair Studio Amsterdam, BookingsAssistant client'
       },
       {
         type: 'heading',
         level: 2,
-        content: 'Hoe begin je?'
+        content: 'Beyond Reminders: A Complete No-Show Prevention System'
       },
       {
         type: 'paragraph',
-        content: 'De overgang naar WhatsApp booking hoeft niet complex te zijn. Met de juiste tools kun je binnen enkele dagen operationeel zijn. BookingsAssistant biedt een complete oplossing die naadloos integreert met je bestaande workflow.'
+        content: 'While reminders are the foundation, a comprehensive approach addresses no-shows at every stage of the customer journey.'
+      },
+      {
+        type: 'heading',
+        level: 3,
+        content: '1. Instant Booking Confirmation'
       },
       {
         type: 'paragraph',
-        content: 'Begin met het identificeren van je huidige booking bottlenecks. Hoeveel tijd besteed je aan telefonische afspraken? Wat is je no-show percentage? Deze metrics helpen je om de impact van WhatsApp booking te meten.'
+        content: 'When a client books, they should receive immediate confirmation via WhatsApp. This creates psychological commitment and gives them all the details they need.'
+      },
+      {
+        type: 'heading',
+        level: 3,
+        content: '2. Easy Rescheduling Options'
+      },
+      {
+        type: 'paragraph',
+        content: 'Make it easier to reschedule than to no-show. Include a "Need to change your appointment?" link in every reminder. A cancelled appointment is infinitely better than a no-show—at least you can fill the slot.'
+      },
+      {
+        type: 'heading',
+        level: 3,
+        content: '3. Waitlist Automation'
+      },
+      {
+        type: 'paragraph',
+        content: 'When a cancellation does happen, an automated waitlist system can instantly offer the slot to clients who wanted that time. This transforms cancellations from lost revenue into opportunities.'
+      },
+      {
+        type: 'heading',
+        level: 3,
+        content: '4. Smart Overbooking'
+      },
+      {
+        type: 'paragraph',
+        content: 'Once you know your historical no-show rate, you can strategically overbook during high-risk periods. If your data shows 20% no-shows on Monday mornings, booking 20% extra makes mathematical sense.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'The ROI of Solving No-Shows'
+      },
+      {
+        type: 'paragraph',
+        content: 'Let\'s talk numbers. If you\'re losing €15,000+ per year to no-shows and you can reduce them by 50%, you\'re recovering €7,500 annually. The cost of an automated reminder system? Typically €20-50 per month.'
+      },
+      {
+        type: 'paragraph',
+        content: 'That\'s not just a good ROI—it\'s a no-brainer investment. For every euro you spend on proper booking automation, you recover €10-15 in previously lost revenue.'
+      },
+      {
+        type: 'stat-box',
+        stat: '€7,500+',
+        content: 'Average annual revenue recovered when salons reduce no-shows by 50% using automated systems.',
+        source: 'BookingsAssistant Client Data'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Take Action Today: Your No-Show Recovery Plan'
+      },
+      {
+        type: 'paragraph',
+        content: 'You\'ve seen the data. You\'ve calculated your losses. Now it\'s time to act. Here\'s your step-by-step plan to start recovering lost revenue immediately.'
+      },
+      {
+        type: 'list',
+        content: 'Your immediate action plan:',
+        items: [
+          'Audit your current no-show rate—track it for one month if you haven\'t been',
+          'Calculate your actual losses using the formula above',
+          'Implement automated WhatsApp reminders (BookingsAssistant makes this simple)',
+          'Set up easy cancellation/reschedule options in every message',
+          'Track your new no-show rate and calculate your savings'
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: 'The salons that take action on this today will see results within weeks. The salons that don\'t will continue bleeding money every single day. Which one will you be?'
+      },
+      {
+        type: 'paragraph',
+        content: 'BookingsAssistant provides everything you need: automated WhatsApp booking, smart reminders, easy rescheduling, and waitlist management—all in one platform. Start your free trial and see how much revenue you can recover.'
       }
     ],
-    relatedArticles: ['reduce-no-shows', 'ai-beauty-wellness']
+    relatedArticles: ['whatsapp-booking-increases-appointments', 'online-booking-salon-best-practices']
   },
   {
     id: '2',
-    slug: 'reduce-no-shows',
-    title: '5 manieren om no-shows te reduceren met automatisering',
-    excerpt: 'No-shows kosten je bedrijf geld en tijd. Leer hoe automatisering je kan helpen om dit probleem drastisch te verminderen.',
-    category: 'Tips & Tricks',
-    readTime: '7 min',
-    date: '2024-01-10',
-    image: '/placeholder.svg',
-    author: {
-      name: 'BookingsAssistant Team',
-      role: 'Content Team'
-    },
-    content: [
-      {
-        type: 'paragraph',
-        content: 'No-shows zijn een van de grootste frustraties voor dienstverlenende bedrijven. Een gemiste afspraak betekent niet alleen verloren omzet, maar ook verspilde voorbereidingstijd en een verstoring van je planning. Gelukkig kan automatisering een groot deel van dit probleem oplossen.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'De werkelijke kosten van no-shows'
-      },
-      {
-        type: 'paragraph',
-        content: 'Voordat we naar oplossingen kijken, is het belangrijk om de impact van no-shows te begrijpen. Voor een gemiddelde beautysalon of kapsalon kunnen no-shows tot 10-15% van de potentiële omzet kosten.'
-      },
-      {
-        type: 'stat-box',
-        stat: '€15.000+',
-        content: 'gemiddeld verlies per jaar door no-shows voor een middelgrote salon'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: '1. Automatische bevestigingsberichten'
-      },
-      {
-        type: 'paragraph',
-        content: 'Direct na het maken van een afspraak moet de klant een bevestiging ontvangen. Dit creëert commitment en geeft de klant alle informatie die ze nodig hebben.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: '2. Slimme reminder timing'
-      },
-      {
-        type: 'paragraph',
-        content: 'Eén reminder is niet genoeg. Onderzoek toont aan dat een combinatie van een 24-uur en een 2-uur reminder het meest effectief is.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: '3. Eenvoudig annuleren of verzetten'
-      },
-      {
-        type: 'paragraph',
-        content: 'Maak het makkelijk voor klanten om te annuleren of verzetten. Klanten die niet durven te annuleren komen vaak simpelweg niet opdagen.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: '4. Two-way communicatie'
-      },
-      {
-        type: 'paragraph',
-        content: 'Laat klanten direct reageren op reminders. Een simpele "Ik kom!" bevestiging verhoogt de commitment significant.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: '5. Wachtlijst automatisering'
-      },
-      {
-        type: 'paragraph',
-        content: 'Wanneer een klant annuleert, kan een geautomatiseerd systeem direct de volgende persoon op de wachtlijst benaderen. Zo minimaliseer je de impact van annuleringen.'
-      }
-    ],
-    relatedArticles: ['waarom-klanten-whatsapp-verkiezen', 'openingstijden-optimaliseren']
-  },
-  {
-    id: '3',
-    slug: 'ai-beauty-wellness',
-    title: 'De toekomst van AI in de beauty & wellness industrie',
-    excerpt: 'Hoe kunstmatige intelligentie de manier waarop salons werken fundamenteel verandert en wat dit betekent voor jouw business.',
-    category: 'Thought Leadership',
-    readTime: '8 min',
-    date: '2024-01-05',
-    image: '/placeholder.svg',
-    author: {
-      name: 'BookingsAssistant Team',
-      role: 'Content Team'
-    },
-    content: [
-      {
-        type: 'paragraph',
-        content: 'Kunstmatige intelligentie (AI) is niet langer sciencefiction. Het is een realiteit die al actief wordt ingezet in de beauty en wellness industrie. Van gepersonaliseerde productaanbevelingen tot intelligente booking assistenten - AI transformeert hoe salons opereren.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Wat is conversational AI?'
-      },
-      {
-        type: 'paragraph',
-        content: 'Conversational AI verwijst naar technologie die natuurlijke gesprekken kan voeren met mensen. Denk aan chatbots die echt begrijpen wat je vraagt, in plaats van alleen keywords te herkennen.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Praktische toepassingen vandaag'
-      },
-      {
-        type: 'list',
-        content: 'AI wordt al ingezet voor:',
-        items: [
-          '24/7 booking assistentie - afspraken maken buiten openingstijden',
-          'Intelligente aanbevelingen - de juiste behandeling voor elke klant',
-          'Automatische follow-ups - nazorg op het juiste moment',
-          'Sentiment analyse - begrijpen hoe klanten zich voelen',
-          'Voorspellende planning - anticiperen op drukte'
-        ]
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'De menselijke touch behouden'
-      },
-      {
-        type: 'paragraph',
-        content: 'Het doel van AI is niet om menselijk contact te vervangen, maar om het te versterken. Door routinetaken te automatiseren, hebben jij en je team meer tijd voor wat echt telt: persoonlijke aandacht voor je klanten.'
-      },
-      {
-        type: 'quote',
-        content: 'AI handelt 80% van onze booking vragen af. Dit geeft ons team de ruimte om écht aanwezig te zijn voor klanten die in de salon zijn.',
-        source: 'Salon manager Rotterdam'
-      }
-    ],
-    relatedArticles: ['waarom-klanten-whatsapp-verkiezen', 'reduce-no-shows']
-  },
-  {
-    id: '4',
-    slug: 'openingstijden-optimaliseren',
-    title: 'Hoe je je openingstijden optimaliseert voor meer bookings',
-    excerpt: 'Data-gedreven inzichten om je beschikbaarheid af te stemmen op wanneer klanten daadwerkelijk willen boeken.',
-    category: 'Practical Guide',
-    readTime: '6 min',
-    date: '2023-12-28',
-    image: '/placeholder.svg',
-    author: {
-      name: 'BookingsAssistant Team',
-      role: 'Content Team'
-    },
-    content: [
-      {
-        type: 'paragraph',
-        content: 'Je openingstijden kunnen het verschil maken tussen een volle agenda en lege stoelen. Maar hoe weet je welke tijden het beste werken voor jouw specifieke klantenkring?'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Analyseer je huidige data'
-      },
-      {
-        type: 'paragraph',
-        content: 'Begin met het analyseren van je bestaande bookingdata. Wanneer worden de meeste afspraken gemaakt? En belangrijker nog: wanneer willen klanten eigenlijk komen?'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Populaire tijdslots identificeren'
-      },
-      {
-        type: 'paragraph',
-        content: 'Uit onze analyse van duizenden bookings zien we consistente patronen:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Dinsdag t/m donderdag middag zijn vaak het populairst',
-          'Vroege ochtend slots (voor werk) zijn onderbenut maar gewild',
-          'Zaterdagochtend is vaak volgeboekt, zaterdagmiddag minder',
-          'Zondagmiddag slots zijn verrassend populair bij sommige doelgroepen'
-        ]
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Flexibiliteit als concurrentievoordeel'
-      },
-      {
-        type: 'paragraph',
-        content: 'Overweeg om flexibele openingstijden te hanteren op basis van vraag. Met een goed booking systeem kun je dynamisch slots openen en sluiten.'
-      }
-    ],
-    relatedArticles: ['reduce-no-shows', 'case-study-kapsalon']
-  },
-  {
-    id: '5',
-    slug: 'case-study-kapsalon',
-    title: 'Case study: Hoe een kapsalon 40% meer klanten boekte',
-    excerpt: 'Een diepgaande kijk op hoe Salon Vera haar bookingproces transformeerde en welke resultaten dit opleverde.',
-    category: 'Case Study',
-    readTime: '10 min',
-    date: '2023-12-20',
-    image: '/placeholder.svg',
-    author: {
-      name: 'BookingsAssistant Team',
-      role: 'Content Team'
-    },
-    content: [
-      {
-        type: 'paragraph',
-        content: 'Salon Vera, een kapsalon met drie vestigingen in de Randstad, worstelde met een verouderd bookingsysteem en hoge no-show percentages. Dit is het verhaal van hun transformatie.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'De uitdaging'
-      },
-      {
-        type: 'paragraph',
-        content: 'Voor de implementatie van BookingsAssistant had Salon Vera te maken met verschillende problemen die hun groei belemmerden.'
-      },
-      {
-        type: 'list',
-        content: 'De belangrijkste uitdagingen:',
-        items: [
-          '18% no-show percentage',
-          '3+ uur per dag besteed aan telefonische bookings',
-          'Geen boekingen buiten openingstijden mogelijk',
-          'Inconsistente klantcommunicatie tussen vestigingen'
-        ]
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'De oplossing'
-      },
-      {
-        type: 'paragraph',
-        content: 'Na een grondige analyse implementeerden we een complete WhatsApp booking oplossing met geautomatiseerde reminders en 24/7 beschikbaarheid.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'De resultaten na 6 maanden'
-      },
-      {
-        type: 'stat-box',
-        stat: '40%',
-        content: 'meer bookings vergeleken met dezelfde periode vorig jaar'
-      },
-      {
-        type: 'list',
-        content: 'Andere significante verbeteringen:',
-        items: [
-          'No-show percentage gedaald van 18% naar 4%',
-          '60% van bookings nu buiten openingstijden',
-          '2,5 uur per dag bespaard op telefonisch werk',
-          'Klanttevredenheid gestegen van 7,2 naar 8,9'
-        ]
-      },
-      {
-        type: 'quote',
-        content: 'We hadden nooit gedacht dat de impact zo groot zou zijn. Onze receptioniste kan zich nu focussen op klanten in de salon in plaats van constant de telefoon op te nemen.',
-        source: 'Vera, eigenaar Salon Vera'
-      }
-    ],
-    relatedArticles: ['waarom-klanten-whatsapp-verkiezen', 'reduce-no-shows']
-  },
-  {
-    id: '6',
-    slug: 'wat-is-conversational-ai',
-    title: 'Wat is conversational AI en waarom heb je het nodig?',
-    excerpt: 'Een beginnersvriendelijke uitleg van conversational AI en de concrete voordelen voor dienstverlenende bedrijven.',
-    category: 'Educational',
-    readTime: '6 min',
-    date: '2023-12-15',
-    image: '/placeholder.svg',
-    author: {
-      name: 'BookingsAssistant Team',
-      role: 'Content Team'
-    },
-    content: [
-      {
-        type: 'paragraph',
-        content: 'Je hebt vast wel eens gehoord van AI, maar wat betekent "conversational AI" precies? En belangrijker nog: wat kan het voor jouw bedrijf betekenen?'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Een simpele uitleg'
-      },
-      {
-        type: 'paragraph',
-        content: 'Conversational AI is technologie die natuurlijke gesprekken kan voeren. In tegenstelling tot oude chatbots die alleen op specifieke keywords reageerden, begrijpt conversational AI de context en intentie achter berichten.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Hoe werkt het in de praktijk?'
-      },
-      {
-        type: 'paragraph',
-        content: 'Stel, een klant stuurt: "Kan ik volgende week dinsdag of woensdag ergens in de middag terecht voor highlights?" Een conversational AI systeem begrijpt dat de klant:'
-      },
-      {
-        type: 'list',
-        content: '',
-        items: [
-          'Een afspraak wil maken',
-          'Flexibel is qua dag (dinsdag of woensdag)',
-          'De middag prefereert',
-          'Highlights wil laten doen'
-        ]
-      },
-      {
-        type: 'paragraph',
-        content: 'Het systeem kan vervolgens beschikbare slots checken en een gepersonaliseerd antwoord geven.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'De voordelen voor jouw business'
-      },
-      {
-        type: 'list',
-        content: 'Conversational AI biedt concrete voordelen:',
-        items: [
-          '24/7 beschikbaarheid - nooit meer een gemiste kans',
-          'Consistente service - elke klant krijgt dezelfde kwaliteit',
-          'Schaalbaarheid - handel meerdere gesprekken tegelijk af',
-          'Data inzichten - leer wat klanten écht vragen'
-        ]
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Is het moeilijk om te implementeren?'
-      },
-      {
-        type: 'paragraph',
-        content: 'Met de juiste partner hoeft het niet complex te zijn. BookingsAssistant biedt een kant-en-klare oplossing die binnen dagen operationeel is, zonder technische kennis.'
-      }
-    ],
-    relatedArticles: ['ai-beauty-wellness', 'waarom-klanten-whatsapp-verkiezen']
-  },
-  {
-    id: '7',
     slug: 'whatsapp-booking-increases-appointments',
     title: 'Why Customers Prefer WhatsApp for Booking Appointments',
     excerpt: 'Discover why 53% of customers prefer businesses they can contact via WhatsApp, and how this preference is transforming salon bookings worldwide.',
@@ -754,237 +570,10 @@ export const blogArticles: BlogArticle[] = [
         content: 'Ready to see how WhatsApp booking can transform your salon? Start your free trial today and join the growing number of salons that have discovered the power of meeting customers where they already are.'
       }
     ],
-    relatedArticles: ['waarom-klanten-whatsapp-verkiezen', 'reduce-no-shows', 'case-study-kapsalon']
+    relatedArticles: ['salon-no-shows-revenue-loss', 'online-booking-salon-best-practices', 'case-study-kapsalon']
   },
   {
-    id: '8',
-    slug: 'salon-no-shows-revenue-loss',
-    title: 'The Hidden Cost of No-Shows: How to Save Thousands in Lost Revenue',
-    excerpt: 'Calculate exactly how much no-shows cost your salon and discover proven strategies to recover up to 50% of that lost revenue.',
-    category: 'Business Insights',
-    readTime: '9 min',
-    date: '2024-02-15',
-    image: '/placeholder.svg',
-    author: {
-      name: 'BookingsAssistant Team',
-      role: 'Content Team'
-    },
-    content: [
-      {
-        type: 'paragraph',
-        content: 'Picture this: It\'s Tuesday afternoon at your salon. Your 2 PM client hasn\'t shown up. Neither did your 11 AM appointment. By the end of the week, you\'ve lost six appointments to no-shows. Sound familiar? You\'re not alone—but the real question is: do you know exactly how much money you\'re losing?'
-      },
-      {
-        type: 'paragraph',
-        content: 'No-shows are the silent killer of salon profitability. They don\'t just cost you the price of one missed appointment—they create ripple effects that impact your entire business. And the most frustrating part? Most salon owners dramatically underestimate just how much revenue walks out the door with every empty chair.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'The No-Show Epidemic: Industry Statistics That Will Shock You'
-      },
-      {
-        type: 'paragraph',
-        content: 'Let\'s start with the uncomfortable truth. The beauty and wellness industry faces one of the highest no-show rates of any service sector—and the numbers are staggering.'
-      },
-      {
-        type: 'stat-box',
-        stat: '15-30%',
-        content: 'Average no-show rate in beauty salons—nearly triple the acceptable business threshold of 5%.',
-        source: 'Salon Industry Reports 2024'
-      },
-      {
-        type: 'paragraph',
-        content: 'To put this in perspective: if you run a busy salon with 200 appointments per month, you\'re likely seeing 30 to 60 clients simply not show up. That\'s not a minor inconvenience—it\'s a systematic drain on your business.'
-      },
-      {
-        type: 'stat-box',
-        stat: '$67,000',
-        content: 'Average annual revenue lost per salon due to no-shows, cancellations, and empty appointment slots.',
-        source: 'National Salon Association Survey'
-      },
-      {
-        type: 'paragraph',
-        content: 'Think about what $67,000 could mean for your business. That\'s a complete salon renovation. It\'s two years of marketing budget. It\'s the salary for an additional team member. Instead, it\'s money that evaporates into thin air, one missed appointment at a time.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Calculate Your Hidden Losses'
-      },
-      {
-        type: 'paragraph',
-        content: 'Every salon is different, which is why we\'ve created this interactive calculator. Adjust the sliders below to match your salon\'s reality and see exactly what no-shows are costing you—and how much you could save.'
-      },
-      {
-        type: 'calculator',
-        content: '',
-        componentType: 'no-show-calculator'
-      },
-      {
-        type: 'paragraph',
-        content: 'Seeing your actual numbers can be jarring. But awareness is the first step toward solving the problem. Now let\'s understand why clients don\'t show up—so we can fix it.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Why Your Clients Don\'t Show Up: The Root Causes'
-      },
-      {
-        type: 'paragraph',
-        content: 'Here\'s something that might surprise you: most no-shows aren\'t malicious. Your clients don\'t wake up thinking "I\'m going to cost my stylist money today." Understanding the real reasons behind no-shows is essential to preventing them.'
-      },
-      {
-        type: 'list',
-        content: 'The primary reasons clients miss appointments:',
-        items: [
-          'They simply forgot — Life is busy, and without a reminder, appointments slip through the cracks',
-          'Booking friction makes rescheduling hard — If canceling or rescheduling requires a phone call during business hours, clients avoid the awkwardness and just don\'t show',
-          'No psychological commitment — Without a deposit or confirmation, there\'s no "cost" to missing the appointment',
-          'Life happens — Emergencies, sick children, work crises—sometimes legitimate things come up',
-          'Impulse booking regret — Appointments made during promotional campaigns often have higher no-show rates'
-        ]
-      },
-      {
-        type: 'quote',
-        content: 'Studies show that 78% of clients who book online return for future appointments, compared to just 39% of walk-in clients. Online booking creates a digital commitment that significantly reduces no-show behavior.',
-        source: 'Journal of Service Management'
-      },
-      {
-        type: 'paragraph',
-        content: 'The good news? Every single one of these causes has a solution. And the most effective solutions don\'t require you to change your clients—they require you to change your systems.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'The True Financial Impact: Beyond the Obvious'
-      },
-      {
-        type: 'paragraph',
-        content: 'When you calculate the cost of a no-show, most salon owners think only about the lost service revenue. But the true cost extends much further.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Let\'s break down a real example: A salon with 200 appointments per month, a 20% no-show rate, and an average service price of €85 sees 40 missed appointments monthly. That\'s €3,400 in direct lost revenue per month, or €40,800 per year.'
-      },
-      {
-        type: 'list',
-        content: 'But that\'s not the whole story. Hidden costs include:',
-        items: [
-          'Staff wages paid during empty slots — Your team is being paid whether there\'s a client in the chair or not',
-          'Product waste — Prepared colors, mixed treatments, and reserved products often can\'t be reused',
-          'Opportunity cost — That slot could have been filled by a paying customer from your waitlist',
-          'Energy and overhead — Rent, utilities, and supplies are fixed costs that no-shows don\'t reduce',
-          'Morale impact — Repeated no-shows frustrate staff and affect team motivation'
-        ]
-      },
-      {
-        type: 'stat-box',
-        stat: '40-52%',
-        content: 'of salon bookings are made outside of business hours, often late at night when clients are planning their week.',
-        source: 'Booking Platform Analytics'
-      },
-      {
-        type: 'paragraph',
-        content: 'This statistic reveals a crucial insight: your clients want flexibility. They\'re making decisions about appointments when your salon is closed. If they can\'t easily book, reschedule, or cancel at those moments, they\'re more likely to become no-shows.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Proven Solutions That Actually Work'
-      },
-      {
-        type: 'paragraph',
-        content: 'After analyzing thousands of salons, we\'ve identified the strategies that consistently reduce no-shows by 40-60%. The common thread? Automation that works for your clients, not against them.'
-      },
-      {
-        type: 'list',
-        content: 'The five most effective no-show reduction strategies:',
-        items: [
-          'Automated WhatsApp reminders — Send confirmations 24 hours before and again 2 hours before. WhatsApp has a 98% open rate compared to just 21% for email',
-          'Easy online rebooking — Give clients a simple link to reschedule. A rescheduled appointment is infinitely better than a no-show',
-          'Confirmation requests — Require clients to confirm their appointment 24-48 hours in advance. Non-responders can be followed up or rebooked',
-          'Deposit or prepayment requirements — Even a small deposit (10-20%) creates psychological commitment and reduces no-shows dramatically',
-          'Real-time cancellation notifications — When someone cancels, immediately notify your waitlist to fill the slot'
-        ]
-      },
-      {
-        type: 'stat-box',
-        stat: '98% vs 21%',
-        content: 'WhatsApp message open rate compared to email. Your reminders only work if clients actually see them.',
-        source: 'Digital Communication Studies 2024'
-      },
-      {
-        type: 'paragraph',
-        content: 'Notice what these solutions have in common: they\'re all automated. You shouldn\'t have to spend hours each day manually texting clients, calling to confirm, or managing cancellations. The right system does this for you, 24/7.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'How BookingsAssistant Reduces No-Shows by 50%'
-      },
-      {
-        type: 'paragraph',
-        content: 'We built BookingsAssistant specifically to solve the no-show problem. Here\'s how our automated WhatsApp booking system tackles each root cause:'
-      },
-      {
-        type: 'list',
-        content: 'Built-in no-show prevention features:',
-        items: [
-          'Automatic WhatsApp reminders at 24 hours and 2 hours before appointments',
-          'One-tap confirmation requests that clients can respond to in seconds',
-          'Easy rescheduling through the same WhatsApp conversation—no phone calls needed',
-          'Instant waitlist notifications when cancellations occur',
-          'Smart booking policies including deposit collection for high-risk time slots',
-          '24/7 booking availability so clients can manage appointments on their schedule'
-        ]
-      },
-      {
-        type: 'quote',
-        content: 'Since implementing BookingsAssistant\'s automated reminders, our no-show rate dropped from 22% to under 8%. That\'s an extra €2,800 per month we\'re no longer losing. The system paid for itself in the first week.',
-        source: 'Maria S., Owner of Glow Beauty Studio'
-      },
-      {
-        type: 'paragraph',
-        content: 'The ROI is straightforward: if our calculator showed you\'re losing €40,000 annually to no-shows, and BookingsAssistant helps you recover 50% of that, you\'re gaining €20,000 per year. That\'s the equivalent of adding another revenue stream to your business—without taking on a single extra client.'
-      },
-      {
-        type: 'heading',
-        level: 2,
-        content: 'Take Action: Your Next Steps'
-      },
-      {
-        type: 'paragraph',
-        content: 'Every day without an automated reminder system is another day of preventable revenue loss. Here\'s how to start recovering that money:'
-      },
-      {
-        type: 'list',
-        content: 'Your action plan for this week:',
-        items: [
-          'Calculate your actual losses using the calculator above—know your numbers',
-          'Audit your current reminder process—are you relying on clients to remember?',
-          'Evaluate your booking friction—how easy is it to cancel or reschedule?',
-          'Consider your communication channels—are you meeting clients where they already are (WhatsApp)?',
-          'Start a free trial of BookingsAssistant and see the difference automation makes'
-        ]
-      },
-      {
-        type: 'paragraph',
-        content: 'The salons that thrive in 2024 and beyond aren\'t the ones with the most stylists or the biggest marketing budgets. They\'re the ones that run the tightest operations—maximizing every appointment slot and minimizing every inefficiency.'
-      },
-      {
-        type: 'paragraph',
-        content: 'No-shows aren\'t just an annoyance to accept. They\'re a problem to solve. And with the right tools, you can solve them starting today.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Ready to see how much revenue you can recover? Start your free trial of BookingsAssistant and reduce your no-shows by up to 50%. Your future self—and your bank account—will thank you.'
-      }
-    ],
-    relatedArticles: ['reduce-no-shows', 'whatsapp-booking-increases-appointments', 'case-study-kapsalon']
-  },
-  {
-    id: '9',
+    id: '3',
     slug: 'online-booking-salon-best-practices',
     title: 'Complete Guide: Setting Up Online Booking That Actually Gets Used',
     excerpt: 'Learn why 94% of customers prefer providers with online booking, and discover the 8 best practices to maximize your booking rate and reduce phone calls by 70%.',
@@ -999,21 +588,31 @@ export const blogArticles: BlogArticle[] = [
     content: [
       {
         type: 'paragraph',
-        content: 'The salon industry has undergone a fundamental shift. Clients no longer want to call during business hours, wait on hold, or play phone tag to book a simple appointment. They expect the same seamless digital experience they get from ordering food, booking hotels, or scheduling rideshares.'
+        content: 'The salon industry has undergone a quiet revolution. While many owners still rely on phone calls and walk-ins, the most successful salons have discovered a simple truth: customers don\'t want to call anymore. They want to book on their own terms, at their own pace, often at 11 PM on a Sunday night.'
       },
       {
         type: 'stat-box',
         stat: '94%',
-        content: 'of customers would choose a service provider that offers online booking over one that doesn\'t'
+        content: 'of customers would choose a provider that offers online booking over one that doesn\'t.',
+        source: 'GetApp Consumer Survey 2023'
       },
       {
         type: 'paragraph',
-        content: 'Yet despite this overwhelming preference, many salons still rely primarily on phone bookings—missing out on appointments, frustrating potential clients, and working harder than necessary. This guide will show you exactly how to set up an online booking system that your clients will actually use, based on real data and proven best practices.'
+        content: 'This isn\'t just a preference—it\'s becoming a dealbreaker. Salons without online booking are invisible to a growing segment of customers who won\'t even consider calling to make an appointment.'
+      },
+      {
+        type: 'paragraph',
+        content: 'But here\'s the opportunity: despite this massive demand, the majority of service businesses haven\'t fully embraced digital booking tools.'
       },
       {
         type: 'stat-box',
         stat: '65%',
-        content: 'of European service businesses still don\'t offer digital booking—this is your competitive advantage'
+        content: 'of European SMEs don\'t use digital tools for customer interactions—a massive opportunity for early adopters.',
+        source: 'European Commission Digital Economy Report'
+      },
+      {
+        type: 'paragraph',
+        content: 'In this comprehensive guide, you\'ll learn exactly how to set up an online booking system that customers actually use, following the proven strategies of top-performing salons.'
       },
       {
         type: 'heading',
@@ -1022,31 +621,32 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Your customers have fundamentally changed how they interact with businesses. Understanding these shifts is crucial for building a booking system that meets their expectations—not your assumptions about what they want.'
+        content: 'Your customers have changed—has your booking process? The shift in booking behavior isn\'t gradual; it\'s already happened. Understanding these patterns is crucial for designing a system that works.'
       },
       {
         type: 'stat-box',
         stat: '40%',
-        content: 'of all salon appointments are booked outside traditional business hours'
+        content: 'of all appointments are booked outside traditional business hours (evenings, weekends, early mornings).',
+        source: 'Salon Booking Analytics 2024'
       },
       {
         type: 'paragraph',
-        content: 'Think about that for a moment. Nearly half of your potential bookings are happening when your phone isn\'t being answered. Clients are browsing Instagram at 10 PM, remembering they need a haircut, and reaching for their phones. If you\'re not available to capture that intent immediately, you\'re losing it.'
+        content: 'Think about when you personally handle personal admin tasks. It\'s rarely during the workday. Your customers are the same—they remember they need an appointment when they\'re relaxing at home, scrolling through their phone.'
       },
       {
         type: 'stat-box',
         stat: '52%',
-        content: 'of salon appointments are made after 5 PM—when most front desks are closed'
+        content: 'of salon appointments are requested for times after 5 PM, yet many salons close at 6 PM.',
+        source: 'Beauty Industry Scheduling Report'
       },
       {
         type: 'list',
-        content: 'Key customer behavior shifts you need to know:',
+        content: 'Key customer behavior shifts you need to understand:',
         items: [
-          'Self-service preference: Clients prefer booking themselves over calling and waiting',
-          'Research-first mindset: They check reviews, photos, and availability before committing',
-          'Instant confirmation expected: "Request sent" isn\'t good enough—they want confirmed times',
-          'Mobile-native behavior: They book from their phones, often while multitasking',
-          'Low patience threshold: If booking takes more than 2 minutes, they move on'
+          'Self-service preference: Customers prefer booking themselves over speaking to someone',
+          'Research before booking: They check reviews, services, and prices before reaching out',
+          'Instant confirmation expected: Waiting for a callback feels outdated',
+          'Mobile-first mindset: Phone is the default device for everything'
         ]
       },
       {
@@ -1056,41 +656,34 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Forget what you think customers want. The data is clear on the five non-negotiables that determine whether your booking system gets used or ignored.'
+        content: 'Customer expectations have evolved far beyond simply \'being able to book online.\' Today\'s customers have specific requirements that determine whether they\'ll complete a booking or abandon it halfway.'
       },
       {
         type: 'stat-box',
         stat: '82%',
-        content: 'of online bookings are made via mobile phones—desktop is an afterthought'
+        content: 'of online bookings are made via mobile phone—your booking system must be mobile-optimized.',
+        source: 'Mobile Commerce Report 2024'
       },
       {
         type: 'list',
         content: 'The 5 non-negotiables of modern booking:',
         items: [
-          'Speed: Booking must take under 2 minutes from start to confirmation',
-          '24/7 availability: Your booking system works while you sleep',
-          'Instant confirmation: No "we\'ll get back to you" uncertainty',
-          'Easy changes: One-click rescheduling and cancellation options',
-          'Reminder notifications: Automatic nudges via their preferred channel'
+          'Speed: Complete the booking in under 2 minutes',
+          '24/7 availability: Book anytime, without waiting for business hours',
+          'Instant confirmation: Immediate email or WhatsApp confirmation',
+          'Easy rescheduling: One-click options to change appointments',
+          'Reminder notifications: Automatic reminders they don\'t have to think about'
         ]
       },
       {
         type: 'quote',
-        content: 'I tried three different salons before finding one with online booking. Life is too busy to play phone tag for a manicure. If I can\'t book it in under a minute while waiting for my coffee, I\'m moving on.',
-        source: 'Survey respondent, Consumer Booking Preferences Study 2024'
-      },
-      {
-        type: 'paragraph',
-        content: 'The gap between customer expectations and what most salons offer is enormous—and it represents your biggest opportunity. Meet these expectations, and you\'ll stand out from 65% of competitors who haven\'t caught up.'
+        content: 'I tried to book at three different salons last week. Two required me to call, and one had online booking. Guess which one got my business? I booked at midnight after putting my kids to bed.',
+        source: 'Survey respondent, Consumer Booking Study'
       },
       {
         type: 'heading',
         level: 2,
         content: 'The 8 Best Practices for Online Booking Success'
-      },
-      {
-        type: 'paragraph',
-        content: 'These aren\'t theoretical recommendations. They\'re battle-tested practices from salons that have achieved 60-70% online booking rates and dramatically reduced their administrative burden.'
       },
       {
         type: 'heading',
@@ -1099,11 +692,7 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Your "Book Now" button should be the most prominent element on your website—above the fold, high contrast, impossible to miss. Don\'t bury it in a menu or make clients hunt for it. Every second of confusion is a potential lost booking.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Best practice: Place a bold booking button in your header that follows users as they scroll. Use action-oriented text like "Book Your Appointment" rather than passive "Booking" links.'
+        content: 'Your \'Book Now\' button should be impossible to miss. Place it above the fold on your homepage—the area visible without scrolling. Use a contrasting color that stands out from your site\'s color scheme. This single change can increase booking conversions by 20-30%.'
       },
       {
         type: 'heading',
@@ -1113,21 +702,17 @@ export const blogArticles: BlogArticle[] = [
       {
         type: 'stat-box',
         stat: '82%',
-        content: 'of your clients will book from their phones—design for them first'
-      },
-      {
-        type: 'paragraph',
-        content: 'If your booking flow isn\'t optimized for thumbs and small screens, you\'re failing the vast majority of your potential bookers. Test your entire booking process on a phone before anything else.'
+        content: 'of customers book appointments on their phones. If your booking flow doesn\'t work flawlessly on mobile, you\'re losing 4 out of 5 potential bookings.'
       },
       {
         type: 'list',
         content: 'Mobile optimization checklist:',
         items: [
-          'Large, tappable buttons (minimum 44x44 pixels)',
-          'Simple forms that work with auto-fill',
-          'Calendar views that scroll smoothly',
-          'Fast loading (under 3 seconds on mobile data)',
-          'No horizontal scrolling required'
+          'Large, tap-friendly buttons (minimum 44x44 pixels)',
+          'No horizontal scrolling required',
+          'Form fields that trigger appropriate mobile keyboards',
+          'Calendar that\'s easy to navigate with fingers',
+          'Fast loading time (under 3 seconds)'
         ]
       },
       {
@@ -1137,11 +722,7 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Nothing frustrates clients more than selecting a time, entering all their information, and then being told it\'s unavailable. Real-time availability should be the foundation of your booking experience—show only times that are actually bookable.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Use visual calendars with clear indicators: green for available, gray for unavailable. Group time slots logically (morning/afternoon/evening) and make the next available slot obvious for clients who just want the soonest option.'
+        content: 'A cluttered or confusing calendar kills conversions. Show available slots prominently, grey out unavailable times, and let customers see at least 2-3 weeks ahead. The easier it is to find a suitable time, the more likely they\'ll complete the booking.'
       },
       {
         type: 'heading',
@@ -1150,28 +731,22 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Every additional field in your booking form reduces completion rates. Be ruthless about what you actually need to book an appointment—everything else is friction that costs you customers.'
+        content: 'Every additional form field reduces your conversion rate. Stick to the essentials:'
       },
       {
         type: 'list',
-        content: 'Essential fields (require these):',
+        content: 'Essential fields only:',
         items: [
-          'Name (first name is often enough)',
-          'Phone number OR email (not both required)',
-          'Service selection',
-          'Date and time'
+          'Name (required)',
+          'Phone or email (required—for confirmation)',
+          'Service selection (required)',
+          'Preferred time (required)',
+          'Notes (optional—for special requests)'
         ]
       },
       {
-        type: 'list',
-        content: 'Optional fields (make these optional or skip entirely):',
-        items: [
-          'Address',
-          'Birthday',
-          'How did you hear about us',
-          'Special requests (offer, don\'t require)',
-          'Account creation (allow guest booking)'
-        ]
+        type: 'paragraph',
+        content: 'Resist the temptation to ask for addresses, birthdates, or how they heard about you during booking. You can collect that information later.'
       },
       {
         type: 'heading',
@@ -1180,11 +755,7 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'The moment a client completes a booking, they should receive confirmation. Not in "a few minutes," not "within 24 hours"—instantly. This confirmation serves multiple purposes: it reassures the client, provides details they can reference, and begins the relationship on a professional note.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Send confirmations through multiple channels when possible. WhatsApp has a 98% open rate compared to 21% for email—use both to ensure your client actually sees the confirmation.'
+        content: 'The moment someone books, they should receive confirmation. Silence creates anxiety—customers wonder if their booking went through. Send confirmation via multiple channels: email AND WhatsApp/SMS. Include all details: date, time, service, location, and cancellation policy.'
       },
       {
         type: 'heading',
@@ -1194,46 +765,34 @@ export const blogArticles: BlogArticle[] = [
       {
         type: 'stat-box',
         stat: '50%+',
-        content: 'reduction in no-shows when automated reminders are sent at optimal times'
+        content: 'reduction in no-shows when using automated reminders—this single feature pays for your entire booking system.'
       },
       {
         type: 'paragraph',
-        content: 'The optimal reminder schedule is well-established: send one reminder 24 hours before the appointment and another 2-3 hours before. This gives clients time to reschedule if needed while keeping the appointment fresh in their minds.'
-      },
-      {
-        type: 'paragraph',
-        content: 'WhatsApp reminders consistently outperform email and SMS. The 98% open rate means your reminders actually get seen—and the conversational nature makes it easy for clients to confirm or request changes.'
+        content: 'The optimal reminder sequence: 24 hours before (allows rescheduling if needed) and 2-3 hours before (final confirmation). WhatsApp reminders outperform email by 4x in engagement.'
       },
       {
         type: 'heading',
         level: 3,
-        content: '7. Easy Rescheduling & Cancellation'
+        content: '7. Easy Rescheduling and Cancellation'
       },
       {
         type: 'paragraph',
-        content: 'Counter-intuitive as it sounds, making it easy to cancel or reschedule actually reduces no-shows. Why? Because clients who can\'t easily change their appointment often just don\'t show up instead. Give them a friction-free way out, and they\'ll take it—freeing up the slot for someone else.'
-      },
-      {
-        type: 'paragraph',
-        content: 'Include one-click reschedule and cancel links in every confirmation and reminder. Set reasonable deadlines (24-48 hours before) but make the process itself effortless.'
+        content: 'Make it easier to reschedule than to no-show. Include \'Need to change your appointment?\' links in every reminder. Counterintuitively, making cancellation easy actually reduces no-shows—customers who can\'t easily cancel simply don\'t show up.'
       },
       {
         type: 'heading',
         level: 3,
-        content: '8. Integrate WhatsApp for Follow-ups'
+        content: '8. Integrate with WhatsApp for Follow-ups'
       },
       {
         type: 'stat-box',
         stat: '98%',
-        content: 'open rate on WhatsApp messages vs. 21% for email—your messages actually get read'
+        content: 'open rate on WhatsApp messages vs. 21% on email. For post-appointment follow-ups and rebooking prompts, WhatsApp is unmatched.'
       },
       {
         type: 'paragraph',
-        content: 'WhatsApp isn\'t just for reminders. Use it for post-appointment follow-ups, rebooking prompts, and special offers. Clients who book via WhatsApp have higher retention rates because the channel feels personal rather than corporate.'
-      },
-      {
-        type: 'paragraph',
-        content: 'The key is automation with a personal touch. Automated messages should feel conversational, not robotic. "Hi Sarah! How did your appointment with Emma go?" works better than "FEEDBACK REQUEST: Please rate your recent service."'
+        content: 'Use WhatsApp for: booking confirmations, reminders, post-appointment thank you messages, rebooking prompts (\'It\'s been 6 weeks since your last visit!\'), and promotional offers for quiet periods.'
       },
       {
         type: 'heading',
@@ -1242,25 +801,25 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Knowing what to do is only half the battle. These seven mistakes consistently sabotage online booking adoption—avoid them at all costs.'
+        content: 'Learning from others\' mistakes is cheaper than making your own. Here are the 7 deadly sins of online booking systems:'
       },
       {
         type: 'list',
-        content: 'The 7 deadly sins of online booking:',
+        content: '',
         items: [
-          'Hidden booking button: If clients can\'t find it in 3 seconds, it doesn\'t exist. Fix: Above fold, contrasting color, clear text.',
-          'Too many required fields: Every field reduces completion. Fix: Name, contact method, service, time—nothing else required.',
-          'No mobile optimization: 82% book on phones. Fix: Test your entire flow on mobile weekly.',
-          'Confusing time zones: Clients shouldn\'t have to do math. Fix: Auto-detect location and display local times.',
-          'No appointment reminders: You\'re relying on clients to remember. Fix: Automated WhatsApp/email at 24h and 2h before.',
-          'Hard to cancel/reschedule: Friction leads to no-shows. Fix: One-click options in every message.',
-          'No follow-up communication: The relationship ends at checkout. Fix: Thank you message + rebooking prompt.'
+          'Hidden booking button: Fix by placing it in your header, visible on every page',
+          'Too many required fields: Fix by collecting only name, contact, service, and time',
+          'No mobile optimization: Fix by testing on multiple devices before launch',
+          'Confusing time zone displays: Fix by auto-detecting customer location',
+          'No appointment reminders: Fix by implementing automated WhatsApp + email reminders',
+          'Hard to cancel/reschedule: Fix by adding one-click reschedule options in reminders',
+          'No follow-up communication: Fix by automating thank-you messages and rebooking prompts'
         ]
       },
       {
         type: 'quote',
-        content: 'Our biggest mistake was making clients create an account before booking. We thought it would help with retention, but it actually killed our conversion rate. The day we added guest checkout, bookings increased by 40%.',
-        source: 'Owner, Urban Hair Studio'
+        content: 'Our biggest mistake was burying the booking button three clicks deep. When we moved it to the header, bookings increased 45% in the first month.',
+        source: 'Salon owner, Rotterdam'
       },
       {
         type: 'heading',
@@ -1269,12 +828,12 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Implementing online booking isn\'t just a technology decision—it\'s a business transformation. Here\'s how to ensure it sticks and delivers lasting results.'
+        content: 'Beyond the basics, sustainable success requires thinking about your team and your existing customers.'
       },
       {
         type: 'stat-box',
         stat: '70%',
-        content: 'fewer phone calls reported by salons with effective online booking systems'
+        content: 'fewer phone calls for salons with effective online booking—freeing your team to focus on clients in the salon.'
       },
       {
         type: 'heading',
@@ -1282,17 +841,13 @@ export const blogArticles: BlogArticle[] = [
         content: 'Team Training'
       },
       {
-        type: 'paragraph',
-        content: 'Your team needs to be advocates for online booking, not resistors. If staff keep offering to "just book you in over the phone," clients won\'t change their behavior.'
-      },
-      {
         type: 'list',
-        content: 'Team training essentials:',
+        content: 'Get your team on board with:',
         items: [
-          'Show the benefits: Less phone time, fewer scheduling conflicts, more time for clients',
-          'Practice the system: Every team member should book a test appointment themselves',
-          'Script the redirect: "Our online booking is super easy—you\'ll get instant confirmation and reminders"',
-          'Celebrate wins: Share metrics on time saved and no-show reduction'
+          'Show them how online booking reduces their phone interruptions',
+          'Train them to encourage customers to book online next time',
+          'Ensure everyone can help customers who have questions about online booking',
+          'Celebrate wins—share when online booking percentage increases'
         ]
       },
       {
@@ -1301,28 +856,20 @@ export const blogArticles: BlogArticle[] = [
         content: 'Client Education'
       },
       {
-        type: 'paragraph',
-        content: 'Existing clients may need a gentle push to change their habits. Don\'t just launch and hope—actively promote your new booking option.'
-      },
-      {
         type: 'list',
-        content: 'Client education strategies:',
+        content: 'Transition existing clients with:',
         items: [
-          'Add booking link to email signatures',
-          'Include QR codes at reception and on appointment cards',
-          'Send a dedicated "New: Book Online" announcement',
-          'Mention it at checkout: "Next time you can book online 24/7"',
-          'Offer a small incentive for first-time online bookers'
+          'In-salon signage promoting online booking',
+          'Business cards with QR code linking to booking page',
+          'Email announcement to existing clients',
+          'Incentive for first online booking (small discount or add-on service)'
         ]
       },
       {
         type: 'stat-box',
         stat: '2x',
-        content: 'better retention rate for first-time online bookers compared to walk-ins'
-      },
-      {
-        type: 'paragraph',
-        content: 'The compound effect of good systems is powerful. Every client you convert to online booking is one fewer call to answer, one more slot that gets filled during off-hours, and one relationship that\'s managed automatically.'
+        content: 'better retention rate for first-time online bookers compared to walk-ins—they\'re more likely to become regulars.',
+        source: 'Salon Customer Retention Study'
       },
       {
         type: 'heading',
@@ -1331,27 +878,23 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'What gets measured gets improved. Track these five metrics to ensure your online booking system is performing and to identify areas for optimization.'
+        content: 'What gets measured gets improved. Track these five metrics to optimize your booking system:'
       },
       {
         type: 'list',
         content: 'The 5 essential booking metrics:',
         items: [
-          'Online booking percentage: What share of appointments come through your booking system? Target: 60-70%.',
-          'Booking completion rate: Of those who start booking, how many finish? Target: 80%+. Low rates signal friction.',
-          'No-show rate: Are automated reminders working? Target: Under 10%.',
-          'Time to fill empty slots: How quickly do cancellations get rebooked? Faster = better system visibility.',
-          'First-to-second appointment rate: Are online bookers coming back? This measures true retention.'
+          'Online booking percentage: Target 60-70% of all bookings',
+          'Booking completion rate: Target 80%+ (started vs. completed bookings)',
+          'No-show rate: Target under 10% with proper reminders',
+          'Time to fill empty slots: Measure how quickly cancellations get filled',
+          'First-to-second appointment rate: Track what percentage of new clients return'
         ]
       },
       {
         type: 'stat-box',
         stat: '60-70%',
-        content: 'target online booking rate—if you\'re below 40%, there\'s significant room for improvement'
-      },
-      {
-        type: 'paragraph',
-        content: 'Review these metrics monthly. Look for trends, not just snapshots. A completion rate that\'s dropping might indicate a recent change broke something. A rising no-show rate despite reminders might mean your messages aren\'t being received.'
+        content: 'online booking rate is the target for a well-optimized system. Below 40% means friction in your booking process.'
       },
       {
         type: 'heading',
@@ -1360,29 +903,24 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Implementing all these best practices from scratch would take months and significant investment. BookingsAssistant was built specifically for salons and service businesses, with every best practice baked in from day one.'
+        content: 'Implementing all these best practices manually is possible, but time-consuming. BookingsAssistant was built specifically to handle everything out of the box:'
       },
       {
         type: 'list',
-        content: 'What you get out of the box:',
+        content: 'Built-in features that implement all best practices:',
         items: [
-          'WhatsApp integration: Clients book, confirm, and reschedule via WhatsApp—no app downloads required',
-          'Mobile-optimized booking widget: Embed on your website or share directly',
-          'Automated reminders: Pre-configured at optimal times (24h + 2h) via WhatsApp and email',
-          'Easy reschedule/cancel: One-click links in every message',
-          'Real-time availability: No double-bookings, no back-and-forth',
-          'Analytics dashboard: Track all key metrics in one place',
-          'Smart follow-ups: Automated rebooking prompts at the right time'
+          'WhatsApp integration: Booking, confirmations, and reminders where customers already are',
+          'Mobile-optimized booking widget: Embed on your website in minutes',
+          'Automated reminder sequences: 24-hour and 2-hour reminders, customizable',
+          'One-click reschedule/cancel: Reduce no-shows by making changes easy',
+          'Real-time availability: Syncs with your calendar instantly',
+          'Analytics dashboard: Track all key metrics in one place'
         ]
       },
       {
         type: 'quote',
-        content: 'We went from 25% online bookings to 68% in three months. The WhatsApp reminders alone cut our no-shows in half. But the biggest win? I spend two hours less on the phone every day.',
-        source: 'Salon owner, Rotterdam'
-      },
-      {
-        type: 'paragraph',
-        content: 'Getting started takes minutes, not weeks. Connect your calendar, customize your services and availability, and share your booking link. The system handles everything else—reminders, confirmations, rescheduling, and follow-ups—automatically.'
+        content: 'We went from 15% online bookings to 68% in three months. The WhatsApp reminders alone cut our no-shows in half. I wish we\'d done this years ago.',
+        source: 'Beauty Studio, Amsterdam'
       },
       {
         type: 'heading',
@@ -1391,29 +929,150 @@ export const blogArticles: BlogArticle[] = [
       },
       {
         type: 'paragraph',
-        content: 'Online booking isn\'t a nice-to-have anymore—it\'s the baseline expectation of modern clients. The salons that thrive are the ones that make booking effortless, reminders automatic, and every client interaction feel personal despite being systematized.'
+        content: 'You now have the complete playbook for online booking success. The salons that implement these practices see more bookings, fewer no-shows, happier customers, and teams that can focus on what matters—delivering great service.'
+      },
+      {
+        type: 'paragraph',
+        content: 'The question isn\'t whether to implement online booking—it\'s how quickly you can get it right. Every day without a proper booking system is a day you\'re losing customers to competitors who make booking effortless.'
+      },
+      {
+        type: 'paragraph',
+        content: 'Ready to transform your booking process? BookingsAssistant gives you everything in this guide—WhatsApp booking, automated reminders, easy rescheduling, and analytics—in one simple platform. Start your free trial and see the difference in your first week.'
+      }
+    ],
+    relatedArticles: ['whatsapp-booking-increases-appointments', 'salon-no-shows-revenue-loss', 'case-study-kapsalon']
+  },
+  {
+    id: '4',
+    slug: 'case-study-kapsalon',
+    title: 'Case study: Hoe een kapsalon 40% meer klanten boekte',
+    excerpt: 'Een diepgaande kijk op hoe Salon Vera haar bookingproces transformeerde en welke resultaten dit opleverde.',
+    category: 'Case Study',
+    readTime: '10 min',
+    date: '2023-12-20',
+    image: '/placeholder.svg',
+    author: {
+      name: 'BookingsAssistant Team',
+      role: 'Content Team'
+    },
+    content: [
+      {
+        type: 'paragraph',
+        content: 'Salon Vera, een kapsalon met drie vestigingen in de Randstad, worstelde met een verouderd bookingsysteem en hoge no-show percentages. Dit is het verhaal van hun transformatie.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'De uitdaging'
+      },
+      {
+        type: 'paragraph',
+        content: 'Voor de implementatie van BookingsAssistant had Salon Vera te maken met verschillende problemen die hun groei belemmerden.'
       },
       {
         type: 'list',
-        content: 'Take action this week:',
+        content: 'De belangrijkste uitdagingen:',
         items: [
-          'Audit your current booking process from a client\'s perspective—time yourself',
-          'Check your mobile experience—book a test appointment on your phone',
-          'Count how many calls you take for bookings—this is time you can reclaim',
-          'Calculate your no-show cost using our calculator',
-          'Try BookingsAssistant free and see the difference'
+          '18% no-show percentage',
+          '3+ uur per dag besteed aan telefonische bookings',
+          'Geen boekingen buiten openingstijden mogelijk',
+          'Inconsistente klantcommunicatie tussen vestigingen'
         ]
       },
       {
-        type: 'paragraph',
-        content: 'The gap between client expectations and most salons\' booking processes is your opportunity. Close it before your competitors do.'
+        type: 'heading',
+        level: 2,
+        content: 'De oplossing'
       },
       {
         type: 'paragraph',
-        content: 'Ready to transform your booking process? Start your free trial of BookingsAssistant and join hundreds of salons that have reduced phone calls by 70% and no-shows by 50%. Your clients—and your schedule—will thank you.'
+        content: 'Na een grondige analyse implementeerden we een complete WhatsApp booking oplossing met geautomatiseerde reminders en 24/7 beschikbaarheid.'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'De resultaten na 6 maanden'
+      },
+      {
+        type: 'stat-box',
+        stat: '40%',
+        content: 'meer bookings vergeleken met dezelfde periode vorig jaar'
+      },
+      {
+        type: 'list',
+        content: 'Andere significante verbeteringen:',
+        items: [
+          'No-show percentage gedaald van 18% naar 4%',
+          '60% van bookings nu buiten openingstijden',
+          '2,5 uur per dag bespaard op telefonisch werk',
+          'Klanttevredenheid gestegen van 7,2 naar 8,9'
+        ]
+      },
+      {
+        type: 'quote',
+        content: 'We hadden nooit gedacht dat de impact zo groot zou zijn. Onze receptioniste kan zich nu focussen op klanten in de salon in plaats van constant de telefoon op te nemen.',
+        source: 'Vera, eigenaar Salon Vera'
       }
     ],
-    relatedArticles: ['whatsapp-booking-increases-appointments', 'salon-no-shows-revenue-loss', 'waarom-klanten-whatsapp-verkiezen']
+    relatedArticles: ['salon-no-shows-revenue-loss', 'whatsapp-booking-increases-appointments']
+  },
+  {
+    id: '5',
+    slug: 'openingstijden-optimaliseren',
+    title: 'Hoe je je openingstijden optimaliseert voor meer bookings',
+    excerpt: 'Data-gedreven inzichten om je beschikbaarheid af te stemmen op wanneer klanten daadwerkelijk willen boeken.',
+    category: 'Practical Guide',
+    readTime: '6 min',
+    date: '2023-12-28',
+    image: '/placeholder.svg',
+    author: {
+      name: 'BookingsAssistant Team',
+      role: 'Content Team'
+    },
+    content: [
+      {
+        type: 'paragraph',
+        content: 'Je openingstijden kunnen het verschil maken tussen een volle agenda en lege stoelen. Maar hoe weet je welke tijden het beste werken voor jouw specifieke klantenkring?'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Analyseer je huidige data'
+      },
+      {
+        type: 'paragraph',
+        content: 'Begin met het analyseren van je bestaande bookingdata. Wanneer worden de meeste afspraken gemaakt? En belangrijker nog: wanneer willen klanten eigenlijk komen?'
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Populaire tijdslots identificeren'
+      },
+      {
+        type: 'paragraph',
+        content: 'Uit onze analyse van duizenden bookings zien we consistente patronen:'
+      },
+      {
+        type: 'list',
+        content: '',
+        items: [
+          'Dinsdag t/m donderdag middag zijn vaak het populairst',
+          'Vroege ochtend slots (voor werk) zijn onderbenut maar gewild',
+          'Zaterdagochtend is vaak volgeboekt, zaterdagmiddag minder',
+          'Zondagmiddag slots zijn verrassend populair bij sommige doelgroepen'
+        ]
+      },
+      {
+        type: 'heading',
+        level: 2,
+        content: 'Flexibiliteit als concurrentievoordeel'
+      },
+      {
+        type: 'paragraph',
+        content: 'Overweeg om flexibele openingstijden te hanteren op basis van vraag. Met een goed booking systeem kun je dynamisch slots openen en sluiten.'
+      }
+    ],
+    relatedArticles: ['salon-no-shows-revenue-loss', 'case-study-kapsalon']
   }
 ];
 
@@ -1421,15 +1080,11 @@ export const getArticleBySlug = (slug: string): BlogArticle | undefined => {
   return blogArticles.find(article => article.slug === slug);
 };
 
-export const getAdjacentArticles = (currentSlug: string) => {
+export const getAdjacentArticles = (currentSlug: string): { previous: BlogArticle | null; next: BlogArticle | null } => {
   const currentIndex = blogArticles.findIndex(article => article.slug === currentSlug);
   
   return {
     previous: currentIndex > 0 ? blogArticles[currentIndex - 1] : null,
     next: currentIndex < blogArticles.length - 1 ? blogArticles[currentIndex + 1] : null
   };
-};
-
-export const getRelatedArticles = (slugs: string[]): BlogArticle[] => {
-  return blogArticles.filter(article => slugs.includes(article.slug));
 };
