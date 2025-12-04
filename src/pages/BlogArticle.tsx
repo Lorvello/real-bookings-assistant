@@ -33,7 +33,7 @@ const BlogArticle: React.FC = () => {
       <Header />
       
       {/* Featured Image Section */}
-      <section className="relative pt-20">
+      <section className="relative">
         <div className="relative h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
           <img
             src={article.image}
@@ -61,7 +61,7 @@ const BlogArticle: React.FC = () => {
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Terug naar blog</span>
+              <span>Back to blog</span>
             </Link>
 
             {/* Title */}
@@ -81,7 +81,7 @@ const BlogArticle: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>{article.readTime} leestijd</span>
+                <span>{article.readTime} read time</span>
               </div>
             </div>
           </ScrollAnimatedSection>
