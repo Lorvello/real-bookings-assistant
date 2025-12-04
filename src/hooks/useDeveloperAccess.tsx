@@ -2,50 +2,22 @@
 import { useAuth } from './useAuth';
 import { getEnvironmentConfig } from '@/utils/environment';
 
-// Developer emails list - can be extended with environment variables
-const DEVELOPER_EMAILS = [
-  'developer@example.com',
-  'admin@example.com',
-  'businessof00@gmail.com',
-  // Add more developer emails as needed
-];
+// Only this email has developer access
+const DEVELOPER_EMAIL = 'business01003@gmail.com';
 
 export const useDeveloperAccess = () => {
   const { user } = useAuth();
 
   const isDeveloper = () => {
-    const { allowDeveloperTools, isProduction } = getEnvironmentConfig(user?.email);
+    const { isProduction } = getEnvironmentConfig(user?.email);
     
-    console.log('[DEBUG] Developer Access Check:', {
-      userEmail: user?.email,
-      allowDeveloperTools,
-      isProduction,
-      isDeveloperEmailsIncluded: DEVELOPER_EMAILS.includes(user?.email || '')
-    });
-    
-    // NEVER show developer tools in production, regardless of email
+    // NEVER show developer tools in production
     if (isProduction) {
       return false;
     }
     
-    // In development, only show for specific conditions
-    if (!allowDeveloperTools) {
-      return false;
-    }
-    
-    if (!user?.email) return false;
-    
-    // Check if user email is in developer list
-    if (DEVELOPER_EMAILS.includes(user.email)) {
-      return true;
-    }
-    
-    // Check if user email ends with development domain
-    if (user.email.endsWith('@brandevolves.com') || user.email.endsWith('@dev.local')) {
-      return true;
-    }
-    
-    return false;
+    // Only allow the specific developer email
+    return user?.email === DEVELOPER_EMAIL;
   };
 
   return {
