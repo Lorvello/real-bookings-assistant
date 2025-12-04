@@ -8,7 +8,6 @@ import { MobileMenu } from './navbar/MobileMenu';
 import { useNavbarAuth } from './navbar/useNavbarAuth';
 
 const Navbar = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useNavbarAuth();
   
@@ -40,11 +39,7 @@ const Navbar = () => {
           
           {/* Desktop CTA Button or Profile */}
           <div className="hidden lg:block">
-            <AuthSection 
-              user={user} 
-              isDialogOpen={isDialogOpen} 
-              setIsDialogOpen={setIsDialogOpen} 
-            />
+            <AuthSection user={user} />
           </div>
 
           {/* Mobile menu button */}
@@ -64,8 +59,6 @@ const Navbar = () => {
           navItems={navItems} 
           onNavClick={handleNavClick}
           user={user}
-          isDialogOpen={isDialogOpen}
-          setIsDialogOpen={setIsDialogOpen}
         />
       </div>
     </nav>
