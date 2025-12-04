@@ -3,9 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard } from 'lucide-react';
 import { getStripeConfig } from '@/utils/stripeConfig';
+import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 
 export const StripeModeIndicator = () => {
+  const { isDeveloper } = useDeveloperAccess();
   const config = getStripeConfig();
+
+  // Only render for developers
+  if (!isDeveloper) {
+    return null;
+  }
 
   return (
     <Card className={config.mode === 'live' ? 'border-red-500 bg-red-50' : 'border-blue-500 bg-blue-50'}>

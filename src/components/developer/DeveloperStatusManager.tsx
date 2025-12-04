@@ -8,6 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useAdminControls } from '@/hooks/useAdminControls';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { Settings, RefreshCw, Crown, User, AlertCircle } from 'lucide-react';
 
 const userStatusOptions = [
@@ -81,6 +82,7 @@ const subscriptionTierOptions = [
 ];
 
 export const DeveloperStatusManager = () => {
+  const { isDeveloper } = useDeveloperAccess();
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
   const { applyDeveloperStatus, isLoading } = useAdminControls();
@@ -88,6 +90,11 @@ export const DeveloperStatusManager = () => {
   const { toast } = useToast();
   const [selectedUserStatus, setSelectedUserStatus] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
+
+  // Only render for developers
+  if (!isDeveloper) {
+    return null;
+  }
 
   const getCurrentUserStatusOption = () => {
     return userStatusOptions.find(option => {
