@@ -1,3 +1,9 @@
+import noShowsRevenueImg from '@/assets/blog/no-shows-revenue.jpg';
+import whatsappBookingImg from '@/assets/blog/whatsapp-booking.jpg';
+import onlineBookingTipsImg from '@/assets/blog/online-booking-tips.jpg';
+import salonCaseStudyImg from '@/assets/blog/salon-case-study.jpg';
+import openingHoursImg from '@/assets/blog/opening-hours.jpg';
+
 export interface ArticleSection {
   type: 'paragraph' | 'heading' | 'quote' | 'list' | 'stat-box' | 'image' | 'calculator';
   content: string;
@@ -36,7 +42,7 @@ export const blogArticles: BlogArticle[] = [
     category: 'Business Insights',
     readTime: '9 min',
     date: '2024-02-15',
-    image: '/placeholder.svg',
+    image: noShowsRevenueImg,
     author: {
       name: 'BookingsAssistant Team',
       role: 'Content Team'
@@ -306,7 +312,7 @@ export const blogArticles: BlogArticle[] = [
     category: 'Industry Insights',
     readTime: '8 min',
     date: '2024-02-01',
-    image: '/placeholder.svg',
+    image: whatsappBookingImg,
     author: {
       name: 'BookingsAssistant Team',
       role: 'Content Team'
@@ -580,7 +586,7 @@ export const blogArticles: BlogArticle[] = [
     category: 'Guides',
     readTime: '11 min',
     date: '2024-03-01',
-    image: '/images/blog/online-booking-guide.jpg',
+    image: onlineBookingTipsImg,
     author: {
       name: 'BookingsAssistant Team',
       role: 'Content Team'
@@ -950,7 +956,7 @@ export const blogArticles: BlogArticle[] = [
     category: 'Case Study',
     readTime: '10 min',
     date: '2023-12-20',
-    image: '/placeholder.svg',
+    image: salonCaseStudyImg,
     author: {
       name: 'BookingsAssistant Team',
       role: 'Content Team'
@@ -1024,7 +1030,7 @@ export const blogArticles: BlogArticle[] = [
     category: 'Practical Guide',
     readTime: '6 min',
     date: '2023-12-28',
-    image: '/placeholder.svg',
+    image: openingHoursImg,
     author: {
       name: 'BookingsAssistant Team',
       role: 'Content Team'
