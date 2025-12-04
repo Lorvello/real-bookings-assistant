@@ -145,19 +145,19 @@ const Blog: React.FC = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="relative max-w-4xl mx-auto text-center">
           {/* Floating badge */}
           <ScrollAnimatedSection animation="fade-down" delay={0} as="div">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-8">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-400">Blog & Resources</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-xs font-medium text-emerald-400">Blog & Resources</span>
             </div>
           </ScrollAnimatedSection>
           
           {/* Main heading */}
           <ScrollAnimatedSection animation="fade-up" delay={100} as="div">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               <span className="text-white">Insights & </span>
               <span className="bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400 bg-clip-text text-transparent">
                 Resources
@@ -167,9 +167,8 @@ const Blog: React.FC = () => {
           
           {/* Subtitle */}
           <ScrollAnimatedSection animation="fade-up" delay={200} as="div">
-            <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
-              Tips, insights and updates about WhatsApp booking automation. 
-              Learn how to reach more customers and grow your business.
+            <p className="text-base sm:text-lg text-slate-400 max-w-xl mx-auto">
+              Tips and insights about WhatsApp booking automation to help grow your business.
             </p>
           </ScrollAnimatedSection>
         </div>
@@ -187,41 +186,40 @@ const Blog: React.FC = () => {
       </section>
       
       {/* Subscribe Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
-        <ScrollAnimatedSection animation="fade-up" as="div" className="max-w-2xl mx-auto text-center">
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 sm:p-12">
-            <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Mail className="w-8 h-8 text-emerald-400" />
+      <section className="py-16 px-4 sm:px-6 lg:px-8 relative">
+        <ScrollAnimatedSection animation="fade-up" as="div" className="max-w-lg mx-auto">
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/30 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-emerald-500/15 rounded-lg flex items-center justify-center">
+                <Mail className="w-4.5 h-4.5 text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">Stay updated</h2>
+                <p className="text-sm text-slate-400">Get the latest tips in your inbox.</p>
+              </div>
             </div>
             
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-              Stay updated
-            </h2>
-            <p className="text-slate-400 mb-8">
-              Get the latest tips and insights directly in your inbox. 
-              No spam, only valuable content.
-            </p>
-            
             {success ? (
-              <div className="flex items-center justify-center gap-3 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg py-4 px-6">
-                <Check className="w-5 h-5" />
+              <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg py-2.5 px-4 text-sm">
+                <Check className="w-4 h-4" />
                 <span className="font-medium">You're subscribed!</span>
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <form onSubmit={handleSubscribe} className="flex gap-2">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email address"
-                  className="flex-1 px-4 py-3 rounded-lg bg-slate-700/50 border border-slate-600 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500"
+                  placeholder="your@email.com"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg bg-slate-700/40 border border-slate-600/50 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50"
                 />
                 <Button 
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  size="sm"
+                  className="px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium"
                 >
-                  {loading ? 'Loading...' : 'Subscribe'}
+                  {loading ? '...' : 'Subscribe'}
                 </Button>
               </form>
             )}

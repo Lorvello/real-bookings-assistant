@@ -3592,6 +3592,7 @@ export type Database = {
       }
       whatsapp_contacts: {
         Row: {
+          came_from: string | null
           created_at: string | null
           display_name: string | null
           first_name: string | null
@@ -3607,6 +3608,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          came_from?: string | null
           created_at?: string | null
           display_name?: string | null
           first_name?: string | null
@@ -3622,6 +3624,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          came_from?: string | null
           created_at?: string | null
           display_name?: string | null
           first_name?: string | null
