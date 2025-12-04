@@ -114,17 +114,17 @@ const BlogArticle: React.FC = () => {
         <ScrollAnimatedSection animation="fade-up">
           <div className="max-w-3xl mx-auto text-center p-8 md:p-12 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Klaar om je booking proces te automatiseren?
+              Ready to automate your booking process?
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Ontdek hoe BookingsAssistant jouw bedrijf kan helpen met WhatsApp booking automatisering.
+              Discover how BookingsAssistant can help your business with WhatsApp booking automation.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
-                <Link to="/signup">Start Gratis Trial</Link>
+                <Link to="/signup">Start Free Trial</Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link to="/contact">Plan een Demo</Link>
+                <Link to="/contact">Schedule a Demo</Link>
               </Button>
             </div>
           </div>
