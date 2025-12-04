@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserRegistration } from '@/hooks/useUserRegistration';
-import { CheckCircle, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { CheckCircle, Eye, EyeOff, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/password-input';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { validatePassword } from '@/utils/passwordValidation';
@@ -194,8 +194,16 @@ export const StreamlinedSignup: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#2C3E50' }}>
-      <Card className="w-full max-w-md bg-card border-border shadow-xl">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-md bg-card border-border shadow-xl relative">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <CardHeader className="text-center pt-12">
           <CardTitle className="text-2xl font-bold text-foreground">
             Create Your Account
           </CardTitle>
