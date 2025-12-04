@@ -576,7 +576,7 @@ export const blogArticles: BlogArticle[] = [
         content: 'Ready to see how WhatsApp booking can transform your salon? Start your free trial today and join the growing number of salons that have discovered the power of meeting customers where they already are.'
       }
     ],
-    relatedArticles: ['salon-no-shows-revenue-loss', 'online-booking-salon-best-practices', 'case-study-kapsalon']
+    relatedArticles: ['salon-no-shows-revenue-loss', 'online-booking-salon-best-practices', 'case-study-hair-salon']
   },
   {
     id: '3',
@@ -946,11 +946,11 @@ export const blogArticles: BlogArticle[] = [
         content: 'Ready to transform your booking process? BookingsAssistant gives you everything in this guide—WhatsApp booking, automated reminders, easy rescheduling, and analytics—in one simple platform. Start your free trial and see the difference in your first week.'
       }
     ],
-    relatedArticles: ['whatsapp-booking-increases-appointments', 'salon-no-shows-revenue-loss', 'case-study-kapsalon']
+    relatedArticles: ['whatsapp-booking-increases-appointments', 'salon-no-shows-revenue-loss', 'case-study-hair-salon']
   },
   {
     id: '4',
-    slug: 'case-study-kapsalon',
+    slug: 'case-study-hair-salon',
     title: 'Case Study: How a Hair Salon Increased Bookings by 40%',
     excerpt: 'An in-depth look at how Salon Vera transformed their booking process across three locations, reduced no-shows by 78%, and saved 2.5 hours per day on administrative work.',
     category: 'Case Study',
@@ -1300,7 +1300,7 @@ export const blogArticles: BlogArticle[] = [
   },
   {
     id: '5',
-    slug: 'openingstijden-optimaliseren',
+    slug: 'optimize-opening-hours',
     title: 'How to Optimize Your Opening Hours for Maximum Bookings',
     excerpt: 'Data-driven insights on aligning your availability with when customers actually want to book. Learn to identify peak demand, capture after-hours bookings, and maximize every time slot.',
     category: 'Practical Guide',
@@ -1836,7 +1836,7 @@ export const blogArticles: BlogArticle[] = [
         content: 'BookingsAssistant provides the tools you need to capture demand around the clock, analyze your booking patterns, and continuously optimize your schedule. Start your free trial and discover the hidden opportunities in your opening hours.'
       }
     ],
-    relatedArticles: ['salon-no-shows-revenue-loss', 'case-study-kapsalon']
+    relatedArticles: ['salon-no-shows-revenue-loss', 'case-study-hair-salon']
   }
 ];
 

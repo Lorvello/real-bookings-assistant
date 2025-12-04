@@ -18,7 +18,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
   };
 
   const getWorkingDays = () => {
-    const days = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     const keys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     
     return keys
@@ -35,10 +35,10 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Controleer Je Gegevens
+          Review Your Details
         </h3>
         <p className="text-gray-600">
-          Bekijk alle ingevoerde informatie voordat je je account aanmaakt
+          Review all entered information before creating your account
         </p>
       </div>
 
@@ -64,7 +64,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center space-x-2 text-lg">
               <Briefcase className="w-5 h-5" />
-              <span>Bedrijfsinfo</span>
+              <span>Business Info</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -93,7 +93,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Service Types</CardTitle>
             <CardDescription>
-              {data.serviceTypes.length} service{data.serviceTypes.length !== 1 ? 's' : ''} toegevoegd
+              {data.serviceTypes.length} service{data.serviceTypes.length !== 1 ? 's' : ''} added
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,9 +124,9 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
         {/* Availability */}
         <Card className="md:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Beschikbaarheid</CardTitle>
+            <CardTitle className="text-lg">Availability</CardTitle>
             <CardDescription>
-              Je standaard openingstijden
+              Your default opening hours
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -141,7 +141,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
               ))}
             </div>
             {getWorkingDays().length === 0 && (
-              <p className="text-gray-500 text-center py-4">Geen openingstijden ingesteld</p>
+              <p className="text-gray-500 text-center py-4">No opening hours set</p>
             )}
           </CardContent>
         </Card>
@@ -149,8 +149,8 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ data }) => {
 
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <p className="text-sm text-green-800">
-          <strong>Alles klaar!</strong> Je account wordt aangemaakt met alle bovenstaande informatie. 
-          Je kunt alles later nog aanpassen in de instellingen van je account.
+          <strong>All set!</strong> Your account will be created with all the information above. 
+          You can adjust everything later in your account settings.
         </p>
       </div>
     </div>

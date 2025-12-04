@@ -17,7 +17,7 @@ export const BusinessSearchPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    // Laad initial data
+    // Load initial data
     fetchBusinessOverview();
   }, []);
 
@@ -45,26 +45,26 @@ export const BusinessSearchPage: React.FC = () => {
   };
 
   const handleViewSlots = (calendarSlug: string) => {
-    // Hier kun je navigeren naar een slots pagina of modal openen
+    // Navigate to slots page or open modal
     console.log('View slots for calendar:', calendarSlug);
-    // Bijvoorbeeld: navigate(`/calendar/${calendarSlug}/slots`);
+    // Example: navigate(`/calendar/${calendarSlug}/slots`);
   };
 
   const businessTypes = [
-    { value: 'salon', label: 'Kapsalon' },
-    { value: 'clinic', label: 'Kliniek' },
+    { value: 'salon', label: 'Hair Salon' },
+    { value: 'clinic', label: 'Clinic' },
     { value: 'consultant', label: 'Consultant' },
     { value: 'trainer', label: 'Trainer' },
-    { value: 'other', label: 'Overig' }
+    { value: 'other', label: 'Other' }
   ];
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Bedrijven zoeken</h1>
+          <h1 className="text-3xl font-bold">Search Businesses</h1>
           <p className="text-muted-foreground">
-            Zoek naar bedrijven en bekijk hun beschikbaarheid
+            Search for businesses and view their availability
           </p>
         </div>
         <Button
@@ -76,23 +76,23 @@ export const BusinessSearchPage: React.FC = () => {
           disabled={loading}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Ververs
+          Refresh
         </Button>
       </div>
 
-      {/* Zoek sectie */}
+      {/* Search section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="w-5 h-5" />
-            Zoeken
+            Search
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Zoek op bedrijfsnaam..."
+                placeholder="Search by business name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -100,7 +100,7 @@ export const BusinessSearchPage: React.FC = () => {
             </div>
             <Button onClick={handleSearch} disabled={loading}>
               <Search className="w-4 h-4 mr-2" />
-              Zoeken
+              Search
             </Button>
             <Button
               variant="outline"
@@ -114,13 +114,13 @@ export const BusinessSearchPage: React.FC = () => {
           {showFilters && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
               <div>
-                <label className="text-sm font-medium mb-2 block">Type bedrijf</label>
+                <label className="text-sm font-medium mb-2 block">Business Type</label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecteer type" />
+                    <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Alle types</SelectItem>
+                    <SelectItem value="">All types</SelectItem>
                     {businessTypes.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.label}
@@ -130,9 +130,9 @@ export const BusinessSearchPage: React.FC = () => {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Stad</label>
+                <label className="text-sm font-medium mb-2 block">City</label>
                 <Input
-                  placeholder="Zoek op stad..."
+                  placeholder="Search by city..."
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                 />
@@ -147,15 +147,15 @@ export const BusinessSearchPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Resultaten */}
+      {/* Results */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">
-            Resultaten ({data.length})
+            Results ({data.length})
           </h2>
           {loading && (
             <div className="text-sm text-muted-foreground">
-              Laden...
+              Loading...
             </div>
           )}
         </div>
@@ -164,7 +164,7 @@ export const BusinessSearchPage: React.FC = () => {
           <Card>
             <CardContent className="py-8 text-center">
               <p className="text-muted-foreground">
-                Geen bedrijven gevonden. Probeer andere zoektermen.
+                No businesses found. Try different search terms.
               </p>
             </CardContent>
           </Card>
