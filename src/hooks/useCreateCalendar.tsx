@@ -12,12 +12,23 @@ interface TeamMember {
   role: 'owner' | 'editor' | 'viewer';
 }
 
+interface PendingServiceType {
+  id: string;
+  name: string;
+  duration: number;
+  price?: number;
+  color: string;
+  description?: string;
+  isPending: true;
+}
+
 interface CreateCalendarData {
   name: string;
   description?: string;
   color?: string;
   location?: string;
   serviceTypes?: string[];
+  pendingServiceTypes?: PendingServiceType[];
   teamMembers?: TeamMember[];
 }
 
@@ -114,11 +125,64 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
         console.error('Error adding owner as calendar member:', error);
       }
 
-      // Link selected service types to the calendar
+      // Create pending service types with the new calendar_id
+      if (data.pendingServiceTypes && data.pendingServiceTypes.length > 0) {
+        console.log('Creating pending service types for new calendar:', data.pendingServiceTypes);
+        
+        for (const pendingService of data.pendingServiceTypes) {
+          try {
+            const { data: newService, error: serviceError } = await supabase
+              .from('service_types')
+              .insert({
+                calendar_id: calendar.id,
+                name: pendingService.name,
+                duration: pendingService.duration,
+                price: pendingService.price || null,
+                color: pendingService.color,
+                description: pendingService.description || null,
+                is_active: true,
+                max_attendees: 1,
+                preparation_time: 0,
+                cleanup_time: 0
+              })
+              .select()
+              .single();
+
+            if (serviceError) {
+              console.error('Error creating pending service type:', serviceError);
+            } else {
+              console.log('Created service type:', newService);
+              
+              // If service has a price, create Stripe price via edge function
+              if (pendingService.price && pendingService.price > 0) {
+                try {
+                  const { error: stripeError } = await supabase.functions.invoke('create-service-type-with-stripe', {
+                    body: {
+                      serviceTypeId: newService.id,
+                      name: pendingService.name,
+                      price: pendingService.price,
+                      currency: 'eur',
+                      calendarId: calendar.id
+                    }
+                  });
+                  
+                  if (stripeError) {
+                    console.error('Error creating Stripe price for service:', stripeError);
+                  }
+                } catch (stripeError) {
+                  console.error('Error invoking Stripe function:', stripeError);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error processing pending service type:', error);
+          }
+        }
+      }
+
+      // Link selected existing service types to the calendar
       if (data.serviceTypes && data.serviceTypes.length > 0) {
         try {
-          // For each service type, either update global ones to be calendar-specific
-          // or create junction table links for existing calendar-specific ones
           for (const serviceTypeId of data.serviceTypes) {
             // Check if this is a global service type (calendar_id is null)
             const { data: serviceTypeData, error: fetchError } = await supabase

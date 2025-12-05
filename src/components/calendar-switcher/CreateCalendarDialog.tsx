@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -10,17 +9,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { SimpleMultiSelect } from '@/components/ui/simple-multi-select';
-import { X, Plus, User, Settings, ChevronDown } from 'lucide-react';
+import { X, Plus, User, Settings, Clock } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useCreateCalendar } from '@/hooks/useCreateCalendar';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
-import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
+import { ServiceTypeQuickCreateDialog, PendingServiceType } from './ServiceTypeQuickCreateDialog';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { CalendarUpgradeModal } from './CalendarUpgradeModal';
@@ -49,7 +46,6 @@ export function CreateCalendarDialog({
   trigger = 'dropdown',
   onCalendarCreated
 }: CreateCalendarDialogProps) {
-  // Fixed: Now using SimpleMultiSelect instead of problematic MultiSelect
   const { profile } = useProfile();
   const { serviceTypes, loading: serviceTypesLoading, refetch: refetchServiceTypes } = useServiceTypes(undefined, true);
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
@@ -60,6 +56,7 @@ export function CreateCalendarDialog({
   });
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
+  const [pendingServiceTypes, setPendingServiceTypes] = useState<PendingServiceType[]>([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -71,10 +68,8 @@ export function CreateCalendarDialog({
   // Auto-select current user and handle single team member case
   useEffect(() => {
     if (open && profile) {
-      // Always include current user as owner
       const currentUserEmail = profile.email || '';
       
-      // Get unique team members (avoid duplicates by email)
       const uniqueMembers = (availableMembers || []).reduce((acc, member) => {
         const email = member.user?.email;
         if (email && !acc.find(m => m.user?.email === email)) {
@@ -83,14 +78,11 @@ export function CreateCalendarDialog({
         return acc;
       }, [] as typeof availableMembers);
 
-      // If there's only the current user or no team members, auto-select current user
       if (uniqueMembers.length <= 1 || !uniqueMembers.some(m => m.user?.email === currentUserEmail)) {
         setSelectedTeamMembers([currentUserEmail]);
       } else if (uniqueMembers.length === 1) {
-        // Auto-select the single team member
         setSelectedTeamMembers([uniqueMembers[0].user?.email || '']);
       } else {
-        // Multiple team members available, auto-select current user
         setSelectedTeamMembers([currentUserEmail]);
       }
     }
@@ -105,17 +97,21 @@ export function CreateCalendarDialog({
     setSelectedServiceTypes(selectedServiceTypes.filter(id => id !== serviceTypeId));
   };
 
+  const removePendingServiceType = (pendingId: string) => {
+    setPendingServiceTypes(pendingServiceTypes.filter(p => p.id !== pendingId));
+  };
+
   const removeTeamMember = (email: string) => {
     setSelectedTeamMembers(selectedTeamMembers.filter(m => m !== email));
   };
 
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) return;
-    if (selectedServiceTypes.length === 0) return;
+    // Allow creation if we have either existing or pending service types
+    if (selectedServiceTypes.length === 0 && pendingServiceTypes.length === 0) return;
     if (selectedTeamMembers.length === 0) return;
 
     try {
-      // Convert selected team members to TeamMember format
       const teamMembersForCreation = selectedTeamMembers.map(email => {
         const member = (availableMembers || []).find(m => m.user?.email === email);
         const isCurrentUser = email === profile?.email;
@@ -133,6 +129,7 @@ export function CreateCalendarDialog({
         color: newCalendar.color,
         location: newCalendar.location,
         serviceTypes: selectedServiceTypes,
+        pendingServiceTypes: pendingServiceTypes,
         teamMembers: teamMembersForCreation
       });
       
@@ -143,6 +140,7 @@ export function CreateCalendarDialog({
         location: ''
       });
       setSelectedServiceTypes([]);
+      setPendingServiceTypes([]);
       setSelectedTeamMembers([]);
       onOpenChange(false);
     } catch (error) {
@@ -159,11 +157,9 @@ export function CreateCalendarDialog({
   };
 
   const getAvailableTeamMembers = () => {
-    // Get unique team members including current user
     const uniqueMembers = [];
     const seenEmails = new Set();
     
-    // Always include current user
     if (profile?.email && !seenEmails.has(profile.email)) {
       uniqueMembers.push({
         email: profile.email,
@@ -173,7 +169,6 @@ export function CreateCalendarDialog({
       seenEmails.add(profile.email);
     }
     
-    // Add other team members
     (availableMembers || []).forEach(member => {
       const email = member.user?.email;
       if (email && !seenEmails.has(email)) {
@@ -193,7 +188,6 @@ export function CreateCalendarDialog({
     return (serviceTypes || []).find(st => st.id === id)?.name || 'Unknown Service';
   };
 
-  // Helper functions for SimpleMultiSelect data formatting
   const getServiceTypeOptions = () => {
     if (!serviceTypes || !Array.isArray(serviceTypes)) {
       return [];
@@ -222,6 +216,20 @@ export function CreateCalendarDialog({
   const handleTeamMemberChange = (selectedValues: string[]) => {
     setSelectedTeamMembers(selectedValues);
   };
+
+  const handleServiceCreated = (serviceIdOrPending: string | PendingServiceType) => {
+    if (typeof serviceIdOrPending === 'object' && serviceIdOrPending.isPending) {
+      // Pending service - store locally
+      setPendingServiceTypes(prev => [...prev, serviceIdOrPending]);
+    } else if (typeof serviceIdOrPending === 'string') {
+      // Existing service ID - add to selection
+      setSelectedServiceTypes(prev => [...prev, serviceIdOrPending]);
+      refetchServiceTypes();
+    }
+    setShowServiceTypeDialog(false);
+  };
+
+  const totalServiceCount = selectedServiceTypes.length + pendingServiceTypes.length;
 
   return (
     <>
@@ -318,6 +326,33 @@ export function CreateCalendarDialog({
                   disabled={serviceTypesLoading}
                 />
                 
+                {/* Show pending service types */}
+                {pendingServiceTypes.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">New services (will be created with calendar):</p>
+                    <div className="flex flex-wrap gap-2">
+                      {pendingServiceTypes.map((pending) => (
+                        <Badge 
+                          key={pending.id} 
+                          variant="secondary"
+                          className="flex items-center gap-1 bg-primary/10 text-primary border-primary/20"
+                        >
+                          <Clock className="h-3 w-3" />
+                          {pending.name}
+                          {pending.price && <span className="text-xs opacity-70">€{pending.price}</span>}
+                          <button
+                            type="button"
+                            onClick={() => removePendingServiceType(pending.id)}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex items-center space-x-2">
                   <Button
                     type="button"
@@ -391,7 +426,7 @@ export function CreateCalendarDialog({
                 disabled={
                   !canCreateMore ||
                   !newCalendar.name.trim() || 
-                  selectedServiceTypes.length === 0 || 
+                  totalServiceCount === 0 || 
                   selectedTeamMembers.length === 0 || 
                   creating
                 }
@@ -406,11 +441,7 @@ export function CreateCalendarDialog({
       {showServiceTypeDialog && (
         <ServiceTypeQuickCreateDialog
           open={showServiceTypeDialog}
-          onServiceCreated={async (serviceId) => {
-            setSelectedServiceTypes([...selectedServiceTypes, serviceId]);
-            await refetchServiceTypes(); // Refresh the service types list
-            setShowServiceTypeDialog(false);
-          }}
+          onServiceCreated={handleServiceCreated}
           trigger={null}
         />
       )}
