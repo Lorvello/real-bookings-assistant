@@ -206,10 +206,10 @@ export const Pricing = () => {
               <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
               <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
             </div>
-            <h2 className="text-2xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Choose Your <span className="text-emerald-400">Perfect Plan</span>
+            <h2 className="text-2xl md:text-4xl xl:text-5xl font-semibold text-white mb-4 md:mb-6 px-3 sm:px-0">
+              Choose Your <span className="text-emerald-400 biolum-text-subtle">Perfect Plan</span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-xs md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0">
               Start with our free trial and scale as you grow. No setup fees, no contracts.
             </p>
           </ScrollAnimatedSection>
@@ -277,7 +277,7 @@ export const Pricing = () => {
                   )}
 
                   <div className="p-6 text-center relative z-10">
-                    <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-sm">{plan.name}</h3>
+                    <h3 className="text-2xl font-semibold text-white mb-2 drop-shadow-sm">{plan.name}</h3>
                     <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
                   </div>
 

@@ -140,7 +140,7 @@ const Header = () => {
             )}
             <Button 
               onClick={handleGetStarted}
-              className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
+              className="bg-green-500 hover:bg-green-400 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl"
             >
               {user ? 'Dashboard' : 'Get Started'}
             </Button>
@@ -213,7 +213,7 @@ const Header = () => {
               )}
               <Button 
                 onClick={handleGetStarted}
-                className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-2 w-full"
+                className="bg-green-500 hover:bg-green-400 text-white font-semibold px-6 py-2.5 rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl mt-2 w-full"
               >
                 {user ? 'Dashboard' : 'Get Started'}
               </Button>
