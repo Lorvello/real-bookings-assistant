@@ -160,8 +160,30 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const createServiceType = async (serviceData: Omit<ServiceType, 'id'>) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('User not authenticated');
+      }
+
       // Check if we should create with Stripe integration
+      // Only use Stripe if: 1) service has a price > 0, AND 2) user has a connected Stripe account
+      let shouldUseStripe = false;
+      
       if (serviceData.price && serviceData.price > 0) {
+        // Check if user has a connected Stripe account with completed onboarding
+        const { data: stripeAccount } = await supabase
+          .from('business_stripe_accounts')
+          .select('id, onboarding_completed, charges_enabled')
+          .eq('user_id', userData.user.id)
+          .eq('onboarding_completed', true)
+          .eq('charges_enabled', true)
+          .maybeSingle();
+        
+        shouldUseStripe = !!stripeAccount;
+        console.log('Stripe account check:', { hasAccount: !!stripeAccount, shouldUseStripe });
+      }
+
+      if (shouldUseStripe) {
         console.log('Creating service type with Stripe integration...');
         
         const { data, error } = await supabase.functions.invoke('create-service-type-with-stripe', {
@@ -185,12 +207,10 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
         
         return transformedData;
       } else {
-        // Fallback to regular creation for free services
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) {
-          throw new Error('User not authenticated');
-        }
-
+        // Create service directly in database (no Stripe integration)
+        // This handles: free services OR users without Stripe connected
+        console.log('Creating service type directly (no Stripe)...');
+        
         const serviceDataForDb = transformForDatabase(serviceData);
 
         const { data, error } = await supabase
