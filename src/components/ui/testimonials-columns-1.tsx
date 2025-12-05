@@ -134,10 +134,10 @@ const Testimonials = () => {
             <span className="text-emerald-400 font-semibold text-xs md:text-base">Testimonials</span>
           </div>
 
-          <h2 className="text-3xl md:text-4xl xl:text-5xl font-semibold text-white mb-3 md:mb-6 px-3 sm:px-0">
+          <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-3 md:mb-6 px-3 sm:px-0">
             What our <span className="text-emerald-400 biolum-text-subtle">users say</span>
           </h2>
-          <p className="text-xs md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0">
+          <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0">
             See what our customers have to say about us.
           </p>
         </motion.div>
