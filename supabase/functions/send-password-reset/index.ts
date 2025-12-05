@@ -103,9 +103,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend
     const emailResult = await resend.emails.send({
-      from: 'business@bookingsassistant.com',
+      from: 'Bookings Assistant <business@bookingsassistant.com>',
       to: email,
-      subject: 'Password Reset - BookingsAssistant',
+      subject: 'Reset Your Password - Bookings Assistant',
       html: `
         <!DOCTYPE html>
         <html>
@@ -114,52 +114,57 @@ const handler = async (req: Request): Promise<Response> => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Password Reset</title>
         </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #E5E7EB; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #1F2937;">
           
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 28px;">BookingsAssistant</h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Password Reset Request</p>
+          <div style="background: linear-gradient(135deg, #111827 0%, #1F2937 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0; border-bottom: 2px solid #10B981;">
+            <h1 style="color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 700;">Bookings Assistant</h1>
+            <p style="color: #10B981; margin: 10px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Password Reset Request</p>
           </div>
           
-          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px;">
-            <h2 style="color: #2c3e50; margin-top: 0;">Reset Your Password</h2>
+          <div style="background: #111827; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #374151; border-top: none;">
+            <h2 style="color: #FFFFFF; margin-top: 0; font-size: 22px;">Reset Your Password</h2>
             
-            <p>We received a request to reset your password for your BookingsAssistant account.</p>
+            <p style="color: #9CA3AF; font-size: 15px; line-height: 1.7;">
+              We received a request to reset your password for your Bookings Assistant account. Click the button below to create a new password.
+            </p>
             
-            <div style="text-align: center; margin: 30px 0;">
+            <div style="text-align: center; margin: 35px 0;">
               <a href="${finalLink}" 
-                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        color: white; 
-                        padding: 15px 30px; 
+                 style="background: linear-gradient(135deg, #10B981 0%, #34D399 100%); 
+                        color: #FFFFFF; 
+                        padding: 16px 40px; 
                         text-decoration: none; 
-                        border-radius: 5px; 
-                        font-weight: bold; 
+                        border-radius: 8px; 
+                        font-weight: 600; 
                         display: inline-block;
-                        font-size: 16px;">
+                        font-size: 16px;
+                        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
                 Reset My Password
               </a>
             </div>
             
-            <p style="color: #666; font-size: 14px;">
+            <p style="color: #6B7280; font-size: 13px; text-align: center;">
               This link will expire in 1 hour for security reasons.
             </p>
             
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            
-            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-              <p style="margin: 0; color: #856404; font-size: 14px;">
-                <strong>Security Notice:</strong> If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 16px; border-radius: 8px; margin: 30px 0;">
+              <p style="margin: 0; color: #9CA3AF; font-size: 13px;">
+                <strong style="color: #10B981;">Security Notice:</strong> If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
               </p>
             </div>
             
-            <p style="color: #666; font-size: 12px; margin-top: 30px;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              <span style="word-break: break-all;">${finalLink}</span>
-            </p>
+            <div style="border-top: 1px solid #374151; margin-top: 30px; padding-top: 20px;">
+              <p style="color: #6B7280; font-size: 12px; margin: 0;">
+                If the button doesn't work, copy and paste this link into your browser:
+              </p>
+              <p style="color: #10B981; font-size: 11px; word-break: break-all; margin: 8px 0 0 0;">
+                ${finalLink}
+              </p>
+            </div>
             
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-              <p style="color: #999; font-size: 12px; margin: 0;">
-                © 2024 BookingsAssistant. All rights reserved.
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #374151;">
+              <p style="color: #6B7280; font-size: 12px; margin: 0;">
+                © 2025 Bookings Assistant. All rights reserved.
               </p>
             </div>
           </div>
