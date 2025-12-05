@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useTeamInvitations } from '@/hooks/useTeamInvitations';
-import { useProfile } from '@/hooks/useProfile';
+import { useSettingsContext } from '@/contexts/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Mail, RotateCcw, Clock } from 'lucide-react';
+import { UserPlus, Trash2, Crown, User, Eye, Lock, Check, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Mail, RotateCcw, Clock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -100,7 +100,7 @@ export const UserManagement = ({
   const { calendars } = useCalendarContext();
   const { members, loading, inviteMember, removeMember, updateMemberRole, refetch } = useCalendarMembers();
   const { invitations, loading: invitationsLoading, cancelInvitation, resendInvitation, refetch: refetchInvitations } = useTeamInvitations();
-  const { profile, updateProfile, loading: profileLoading } = useProfile();
+  const { profileData, businessData, handleBatchUpdate, refetch: refetchSettings } = useSettingsContext();
   const { toast } = useToast();
   const { accessControl, requireAccess } = useAccessControl();
   
@@ -111,13 +111,87 @@ export const UserManagement = ({
   const [newUserRole, setNewUserRole] = useState<'editor' | 'viewer'>('viewer');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Profile editing states
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [tempValues, setTempValues] = useState<any>({});
-  const [saving, setSaving] = useState<string | null>(null);
-  
-  // Optimistic updates - local state that updates immediately
-  const [optimisticProfile, setOptimisticProfile] = useState<any>(null);
+  // Local state for buffered profile changes (no auto-save)
+  const [localProfileData, setLocalProfileData] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Use external data if provided, otherwise use context data
+  const baseProfile = externalProfileData || profileData;
+  const currentBusinessData = externalBusinessData || businessData;
+  const isUsingExternalData = !!externalBusinessData;
+
+  // Sync local state when server data changes (initial load or after save)
+  useEffect(() => {
+    if (baseProfile && !localProfileData) {
+      setLocalProfileData(baseProfile);
+    }
+  }, [baseProfile]);
+
+  // Also update when baseProfile changes from external source
+  useEffect(() => {
+    if (baseProfile) {
+      setLocalProfileData(baseProfile);
+    }
+  }, [baseProfile?.id]);
+
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    if (!localProfileData || !baseProfile) return false;
+    
+    const fieldsToCompare = ['full_name', 'email', 'phone', 'date_of_birth', 'language', 'timezone'];
+    return fieldsToCompare.some(field => {
+      const localVal = localProfileData[field] || '';
+      const baseVal = baseProfile[field] || '';
+      return localVal !== baseVal;
+    });
+  }, [localProfileData, baseProfile]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // Save all profile changes
+  const saveAllChanges = async () => {
+    if (!localProfileData) return;
+    
+    setIsSaving(true);
+    try {
+      const success = await handleBatchUpdate(localProfileData, currentBusinessData);
+      if (success) {
+        await refetchSettings();
+        toast({
+          title: "Changes Saved",
+          description: "Your profile has been updated successfully.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Discard all changes
+  const discardChanges = () => {
+    setLocalProfileData(baseProfile);
+  };
+
+  // Update local profile field (no auto-save, just local state)
+  const updateLocalProfile = useCallback((field: string, value: any) => {
+    setLocalProfileData((prev: any) => ({ ...prev, [field]: value }));
+  }, []);
 
   // Stabilize refetch function
   const stableRefetch = useCallback(() => {
@@ -293,141 +367,16 @@ export const UserManagement = ({
     }
   }, [resendInvitation, stableRefetch, toast]);
 
-  // Debounce timer for auto-save
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
-
-  // Profile editing functions
-  const startEditing = (field: string, currentValue: any) => {
-    setEditingField(field);
-    setTempValues({ [field]: currentValue });
-  };
-
-  const cancelEditing = () => {
-    setEditingField(null);
-    setTempValues({});
-  };
-
-  const saveField = async (field: string) => {
-    setSaving(field);
-    
-    // Optimistic update - immediately show the change
-    setOptimisticProfile(prev => ({ 
-      ...prev, 
-      [field]: tempValues[field] 
-    }));
-    
-    try {
-      await updateProfile({ [field]: tempValues[field] });
-      // Only clear editing state after successful update
-      setEditingField(null);
-      setTempValues({});
-    } catch (error) {
-      // Revert optimistic update on error
-      setOptimisticProfile(prev => {
-        const reverted = { ...prev };
-        delete reverted[field];
-        return Object.keys(reverted).length > 0 ? reverted : null;
-      });
-      
-      toast({
-        title: "Error updating profile",
-        description: "Could not update your profile",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(null);
-    }
-  };
-
-  // Auto-save with debouncing for certain fields
-  const handleAutoSave = useCallback(async (field: string, value: any) => {
-    // Immediate optimistic update
-    setOptimisticProfile(prev => ({ 
-      ...prev, 
-      [field]: value 
-    }));
-    
-    // Clear existing timer
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    // Set new timer
-    const timer = setTimeout(async () => {
-      setSaving(field);
-      try {
-        await updateProfile({ [field]: value });
-        // Success toast is now handled in updateProfile after UI refresh
-      } catch (error) {
-        console.error('Profile update error:', error);
-        
-        // Revert optimistic update on error
-        setOptimisticProfile(prev => {
-          const reverted = { ...prev };
-          delete reverted[field];
-          return Object.keys(reverted).length > 0 ? reverted : null;
-        });
-        
-        toast({
-          title: "Error updating profile",
-          description: "Could not update your profile",
-          variant: "destructive",
-        });
-      } finally {
-        setSaving(null);
-      }
-    }, 300); // Reduced debounce for faster feedback
-
-    setDebounceTimer(timer);
-  }, [debounceTimer, updateProfile, toast]);
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-    };
-  }, [debounceTimer]);
-
-  // Use external data if provided, otherwise use profile data
-  // Apply optimistic updates on top of the base profile
-  const baseProfile = externalProfileData || profile;
-  const currentProfile = optimisticProfile ? { ...baseProfile, ...optimisticProfile } : baseProfile;
-  const currentBusinessData = externalBusinessData || {
-    business_name: profile?.business_name || '',
-    business_type: profile?.business_type || ''
-  };
-
-  const isUsingExternalData = !!externalBusinessData;
-  const currentLoading = externalLoading !== undefined ? externalLoading : (loading || profileLoading || invitationsLoading);
-
-  // Handle business data updates
-  const handleBusinessDataUpdate = useCallback((field: string, value: any) => {
-    if (isUsingExternalData && onBusinessDataChange) {
-      const updatedData = { ...currentBusinessData, [field]: value };
-      onBusinessDataChange(updatedData);
-      
-      // Auto-save if we have the update function
-      if (onUpdateBusiness) {
-        setTimeout(() => {
-          onUpdateBusiness();
-        }, 1000);
-      }
-    } else {
-      // Fallback to original profile update
-      handleAutoSave(field, value);
-    }
-  }, [isUsingExternalData, currentBusinessData, onBusinessDataChange, onUpdateBusiness, handleAutoSave]);
+  const currentLoading = externalLoading !== undefined ? externalLoading : (loading || invitationsLoading);
 
   // Memoize computed users to prevent unnecessary recalculations
   const allUsers = useMemo(() => {
     // Ensure owner is only included once at the top
-    const ownerUser = profile ? {
+    const ownerUser = baseProfile ? {
       id: 'owner',
       user: {
-        full_name: profile.full_name || 'Account Owner',
-        email: profile.email
+        full_name: baseProfile.full_name || 'Account Owner',
+        email: baseProfile.email
       },
       role: 'owner',
       calendar: { name: 'All Calendars' },
@@ -436,7 +385,7 @@ export const UserManagement = ({
 
     // Filter out any team members who have the same email as the owner
     const teamMembers = members.filter(
-      member => member.user?.email !== profile?.email
+      member => member.user?.email !== baseProfile?.email
     ).map(member => ({
       ...member,
       type: 'member' as const
@@ -463,7 +412,7 @@ export const UserManagement = ({
       ...teamMembers,
       ...pendingInvitations
     ];
-  }, [profile, members, invitations]);
+  }, [baseProfile, members, invitations]);
 
   // Format phone number to E.164 format for validation
   const formatPhoneForInput = useCallback((phone: string | null | undefined) => {
@@ -531,172 +480,105 @@ export const UserManagement = ({
             </TabsList>
             
             <TabsContent value="profile">
-              {currentProfile && (
+              {localProfileData && (
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Full Name */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Full Name</Label>
-                      {editingField === 'full_name' ? (
-                        <div className="flex items-center gap-2">
-                           <Input
-                            value={tempValues.full_name || ''}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setTempValues({ ...tempValues, full_name: newValue });
-                              // Immediate optimistic update while typing
-                              setOptimisticProfile(prev => ({ ...prev, full_name: newValue }));
-                            }}
-                            className="bg-gray-800 border-gray-700 text-white"
-                            autoFocus
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => saveField('full_name')}
-                            disabled={saving === 'full_name'}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={cancelEditing}
-                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
-                          onClick={() => startEditing('full_name', currentProfile.full_name || '')}
-                        >
-                          {currentProfile.full_name || 'Click to edit'}
-                        </div>
-                      )}
+                      <Input
+                        value={localProfileData.full_name || ''}
+                        onChange={(e) => updateLocalProfile('full_name', e.target.value)}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="Enter your full name"
+                      />
                     </div>
 
                     {/* Email */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Email</Label>
-                      {editingField === 'email' ? (
-                        <div className="flex items-center gap-2">
-                           <Input
-                            type="email"
-                            value={tempValues.email || ''}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setTempValues({ ...tempValues, email: newValue });
-                              // Immediate optimistic update while typing
-                              setOptimisticProfile(prev => ({ ...prev, email: newValue }));
-                            }}
-                            className="bg-gray-800 border-gray-700 text-white"
-                            autoFocus
-                          />
-                          <Button
-                            size="sm"
-                            onClick={() => saveField('email')}
-                            disabled={saving === 'email'}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={cancelEditing}
-                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-white bg-gray-800 border border-gray-700 rounded-md p-3 cursor-pointer hover:bg-gray-700 transition-colors"
-                          onClick={() => startEditing('email', currentProfile.email || '')}
-                        >
-                          {currentProfile.email}
-                        </div>
-                      )}
+                      <Input
+                        type="email"
+                        value={localProfileData.email || ''}
+                        onChange={(e) => updateLocalProfile('email', e.target.value)}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        placeholder="Enter your email"
+                      />
                     </div>
 
-
-                     {/* Phone Number with Country Code */}
+                    {/* Phone Number with Country Code */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</Label>
-                      <div className="relative">
-                        <CountryPhoneInput
-                          value={currentProfile.phone || ''}
-                          onChange={(value) => handleAutoSave('phone', value)}
-                        />
-                        {saving === 'phone' && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                          </div>
-                        )}
-                      </div>
+                      <CountryPhoneInput
+                        value={localProfileData.phone || ''}
+                        onChange={(value) => updateLocalProfile('phone', value)}
+                      />
                     </div>
 
-                     {/* Date of Birth with Year Selector */}
+                    {/* Date of Birth with Year Selector */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</Label>
-                      <div className="relative">
-                        <EnhancedDatePicker
-                          value={currentProfile.date_of_birth ? new Date(currentProfile.date_of_birth) : undefined}
-                          onChange={(date) => {
-                            if (date) {
-                              handleAutoSave('date_of_birth', format(date, 'yyyy-MM-dd'));
-                            }
-                          }}
-                          placeholder="Select your date of birth"
-                        />
-                        {saving === 'date_of_birth' && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                          </div>
-                        )}
-                      </div>
+                      <EnhancedDatePicker
+                        value={localProfileData.date_of_birth ? new Date(localProfileData.date_of_birth) : undefined}
+                        onChange={(date) => {
+                          if (date) {
+                            updateLocalProfile('date_of_birth', format(date, 'yyyy-MM-dd'));
+                          }
+                        }}
+                        placeholder="Select your date of birth"
+                      />
                     </div>
 
-                     {/* Language */}
+                    {/* Language */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Language</Label>
-                      <div className="relative">
-                        <SearchableSelect
-                          value={currentProfile.language || 'nl'}
-                          onValueChange={(value) => handleAutoSave('language', value)}
-                          options={LANGUAGE_OPTIONS}
-                          placeholder="Select language"
-                          searchPlaceholder="Search languages..."
-                        />
-                        {saving === 'language' && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                          </div>
-                        )}
-                      </div>
+                      <SearchableSelect
+                        value={localProfileData.language || 'nl'}
+                        onValueChange={(value) => updateLocalProfile('language', value)}
+                        options={LANGUAGE_OPTIONS}
+                        placeholder="Select language"
+                        searchPlaceholder="Search languages..."
+                      />
                     </div>
 
-                     {/* Timezone */}
+                    {/* Timezone */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Timezone</Label>
-                      <div className="relative">
-                        <SearchableSelect
-                          value={currentProfile.timezone || 'Europe/Amsterdam'}
-                          onValueChange={(value) => handleAutoSave('timezone', value)}
-                          options={TIMEZONE_OPTIONS}
-                          placeholder="Select timezone"
-                          searchPlaceholder="Search timezones..."
-                        />
-                        {saving === 'timezone' && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                          </div>
-                        )}
-                      </div>
+                      <SearchableSelect
+                        value={localProfileData.timezone || 'Europe/Amsterdam'}
+                        onValueChange={(value) => updateLocalProfile('timezone', value)}
+                        options={TIMEZONE_OPTIONS}
+                        placeholder="Select timezone"
+                        searchPlaceholder="Search timezones..."
+                      />
                     </div>
                   </div>
+
+                  {/* Sticky Save Bar */}
+                  {hasUnsavedChanges && (
+                    <div className="mt-6 p-4 bg-gray-800 border border-amber-600/50 rounded-lg flex justify-between items-center">
+                      <span className="text-amber-400 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        You have unsaved changes
+                      </span>
+                      <div className="flex gap-3">
+                        <Button 
+                          variant="outline" 
+                          onClick={discardChanges}
+                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                        >
+                          Discard
+                        </Button>
+                        <Button 
+                          onClick={saveAllChanges} 
+                          disabled={isSaving}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isSaving ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
@@ -857,20 +739,21 @@ export const UserManagement = ({
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleResendInvitation(user.id)}
-                                      className="h-8 px-2 border-green-700 text-green-400 hover:bg-green-900/30"
+                                      className="h-8 px-2 border-blue-700 text-blue-400 hover:bg-blue-900/30"
                                       title="Resend invitation"
                                     >
-                                      <Mail className="h-3 w-3" />
+                                      <RotateCcw className="h-3 w-3 mr-1" />
+                                      Resend
                                     </Button>
                                   )}
                                 </div>
                               ) : (
                                 <div className="flex items-center space-x-2">
-                                  <Select
-                                    value={user.role}
+                                  <Select 
+                                    value={user.role} 
                                     onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(user.id, value)}
                                   >
-                                    <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-700 text-white text-xs">
+                                    <SelectTrigger className="h-8 w-24 bg-gray-800 border-gray-700 text-white">
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="bg-gray-800 border-gray-700">
@@ -883,6 +766,7 @@ export const UserManagement = ({
                                     size="sm"
                                     onClick={() => handleRemoveUser(user.id)}
                                     className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                                    title="Remove user"
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
@@ -893,8 +777,8 @@ export const UserManagement = ({
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-6 text-gray-400">
-                            No team members found. Add team members to collaborate.
+                          <TableCell colSpan={5} className="text-center py-8 text-gray-400">
+                            No team members yet. Add your first team member to get started.
                           </TableCell>
                         </TableRow>
                       )}
