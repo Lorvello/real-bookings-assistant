@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,7 @@ export const TaxAnalyticsDashboard: React.FC<TaxAnalyticsDashboardProps> = ({
   calendarId, 
   accountId 
 }) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState({
     start_date: new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0],
@@ -356,7 +358,7 @@ export const TaxAnalyticsDashboard: React.FC<TaxAnalyticsDashboardProps> = ({
             </p>
             <Button 
               variant="outline" 
-              onClick={() => window.location.href = '/settings?tab=services'}
+              onClick={() => navigate('/settings?tab=services')}
             >
               Configure Service Taxes
             </Button>

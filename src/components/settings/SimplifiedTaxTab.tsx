@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { TaxManagementPage } from './TaxManagementPage';
 
 export const SimplifiedTaxTab = () => {
+  const navigate = useNavigate();
   const { userStatus } = useUserStatus();
   const { selectedCalendar } = useCalendarContext();
   const { checkAccess } = useAccessControl();
@@ -165,7 +167,7 @@ export const SimplifiedTaxTab = () => {
             </Badge>
             <div className="pt-4">
               <Button 
-                onClick={() => window.location.href = '/settings?tab=payments'}
+                onClick={() => navigate('/settings?tab=payments')}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Go to Payment Settings
