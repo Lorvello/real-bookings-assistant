@@ -133,15 +133,16 @@ serve(async (req) => {
     console.log('Creating Stripe price for service:', serviceData.name)
 
     // Create Stripe Price
+    // Note: product_data only supports 'name', 'metadata', and 'tax_code' - NOT 'description'
     const priceData: any = {
       currency: 'eur',
       unit_amount: Math.round((serviceData.price || 0) * 100), // Convert to cents
       product_data: {
         name: serviceData.name,
-        description: serviceData.description || `${serviceData.name} - ${serviceData.duration} minuten`,
         metadata: {
           service_duration: serviceData.duration.toString(),
           calendar_id: serviceData.calendar_id || '',
+          description: serviceData.description || '', // Store description in metadata instead
         },
       },
     }
