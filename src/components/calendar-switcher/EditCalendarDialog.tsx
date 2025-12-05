@@ -361,10 +361,14 @@ export function EditCalendarDialog({
 
       {showServiceTypeDialog && (
         <ServiceTypeQuickCreateDialog
+          calendarId={calendar?.id}
           open={showServiceTypeDialog}
-          onServiceCreated={async (serviceId) => {
-            setSelectedServiceTypes([...selectedServiceTypes, serviceId]);
-            await refetchServiceTypes();
+          onServiceCreated={async (serviceIdOrPending) => {
+            // In edit mode, calendar exists so we only get string IDs
+            if (typeof serviceIdOrPending === 'string') {
+              setSelectedServiceTypes([...selectedServiceTypes, serviceIdOrPending]);
+              await refetchServiceTypes();
+            }
             setShowServiceTypeDialog(false);
           }}
           trigger={null}

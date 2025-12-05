@@ -18,9 +18,20 @@ const colorOptions = [
   '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
 ];
 
+// Type for pending service that hasn't been saved to DB yet
+export interface PendingServiceType {
+  id: string;
+  name: string;
+  duration: number;
+  price?: number;
+  color: string;
+  description?: string;
+  isPending: true;
+}
+
 interface ServiceTypeQuickCreateDialogProps {
   calendarId?: string;
-  onServiceCreated?: (serviceId: string) => void;
+  onServiceCreated?: (serviceIdOrPending: string | PendingServiceType) => void;
   trigger?: React.ReactNode;
   open?: boolean;
 }
@@ -52,7 +63,6 @@ export function ServiceTypeQuickCreateDialog({
     
     if (!formData.name.trim()) return;
     
-    // Allow creation without a calendar (global service type)
     const targetCalendarId = calendarId || selectedCalendar?.id || null;
     
     if (!user) {
@@ -60,6 +70,36 @@ export function ServiceTypeQuickCreateDialog({
       return;
     }
     
+    // If no calendar exists yet, create a pending service type (store locally)
+    if (!targetCalendarId) {
+      const pendingService: PendingServiceType = {
+        id: `pending-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+        name: formData.name,
+        duration: parseInt(formData.duration),
+        price: formData.price ? parseFloat(formData.price) : undefined,
+        color: formData.color,
+        description: formData.description || undefined,
+        isPending: true
+      };
+      
+      if (onServiceCreated) {
+        onServiceCreated(pendingService);
+      }
+      
+      // Reset form and close
+      setFormData({
+        name: '',
+        duration: '60',
+        price: '',
+        color: '#3B82F6',
+        description: ''
+      });
+      setSelectedTeamMembers([]);
+      setIsOpen(false);
+      return;
+    }
+    
+    // Calendar exists - save to database as normal
     setIsSubmitting(true);
     
     try {
@@ -69,7 +109,7 @@ export function ServiceTypeQuickCreateDialog({
         price: formData.price ? parseFloat(formData.price) : undefined,
         color: formData.color,
         description: formData.description,
-        calendar_id: targetCalendarId, // Use provided calendarId or create global service type
+        calendar_id: targetCalendarId,
         is_active: true,
         max_attendees: 1,
         preparation_time: 0,
@@ -108,6 +148,8 @@ export function ServiceTypeQuickCreateDialog({
       setIsOpen(open);
     }
   }, [open]);
+
+  const targetCalendarId = calendarId || selectedCalendar?.id || null;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -202,11 +244,11 @@ export function ServiceTypeQuickCreateDialog({
           </div>
 
           {/* Team Member Assignment - only show if calendar exists */}
-          {(calendarId || selectedCalendar?.id) && (
+          {targetCalendarId && (
             <>
               <Separator />
               <TeamMemberSelector
-                calendarId={calendarId || selectedCalendar!.id}
+                calendarId={targetCalendarId}
                 selectedMemberIds={selectedTeamMembers}
                 onSelectionChange={setSelectedTeamMembers}
                 disabled={isSubmitting}
