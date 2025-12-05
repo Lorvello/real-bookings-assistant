@@ -55,7 +55,7 @@ const Footer: React.FC = () => {
               />
             </Link>
             
-            <p className="mt-6 text-muted-foreground leading-relaxed max-w-md font-garamond font-light">
+            <p className="mt-6 text-muted-foreground leading-relaxed max-w-md font-garamond font-light text-base md:text-lg">
               AI-powered WhatsApp booking automation for modern businesses. 
               Let your customers book appointments 24/7 while you focus on what matters most.
             </p>
@@ -66,7 +66,7 @@ const Footer: React.FC = () => {
               className="mt-6 inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors duration-200 group"
             >
               <Mail className="h-4 w-4" />
-              <span className="underline-offset-4 group-hover:underline font-garamond font-light">
+              <span className="underline-offset-4 group-hover:underline font-garamond font-light text-base">
                 support@bookingsassistant.com
               </span>
             </a>
@@ -83,7 +83,7 @@ const Footer: React.FC = () => {
                 <li key={link.name}>
                   <Link 
                     to={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light"
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
                   >
                     {link.name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
@@ -103,7 +103,7 @@ const Footer: React.FC = () => {
                 <li key={link.name}>
                   <Link 
                     to={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light"
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
                   >
                     {link.name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
@@ -122,7 +122,7 @@ const Footer: React.FC = () => {
                 <li key={link.name}>
                   <Link 
                     to={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light"
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
                   >
                     {link.name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
@@ -133,7 +133,7 @@ const Footer: React.FC = () => {
                 <li key={name}>
                   <button 
                     onClick={handleComingSoon}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer font-garamond font-light"
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer font-garamond font-light text-base"
                   >
                     {name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
@@ -153,7 +153,7 @@ const Footer: React.FC = () => {
                 <li key={link.name}>
                   <Link 
                     to={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light"
+                    className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
                   >
                     {link.name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
@@ -167,10 +167,10 @@ const Footer: React.FC = () => {
         {/* Bottom bar */}
         <div className="mt-16 pt-8 border-t border-border/30">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground font-garamond font-light">
+            <p className="text-base text-muted-foreground font-garamond font-light">
               © {currentYear} BookingsAssistant. All rights reserved.
             </p>
-            <p className="text-sm text-muted-foreground/60 font-garamond font-light">
+            <p className="text-base text-muted-foreground/60 font-garamond font-light">
               Empowering businesses with AI-driven automation
             </p>
           </div>

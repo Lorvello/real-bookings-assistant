@@ -34,7 +34,7 @@ const ProcessSection = () => {
             <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-6 md:mb-6 px-3 sm:px-0">
               See How It <span className="text-emerald-400 biolum-text-subtle">Works</span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-12 md:mb-8 font-garamond font-light">
+            <p className="text-base md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-12 md:mb-8 font-garamond font-light">
               From first message to confirmed appointment in less than 30 seconds. 
               Watch how our AI handles the entire booking process automatically.
             </p>
@@ -49,7 +49,7 @@ const ProcessSection = () => {
                 </div>
                 <h3 className="text-lg md:text-2xl font-semibold text-white">Customer Starts WhatsApp Chat</h3>
               </div>
-              <p className="text-sm md:text-lg text-slate-400 leading-relaxed px-3 lg:px-0 font-garamond font-light">
+              <p className="text-base md:text-xl text-slate-400 leading-relaxed px-3 lg:px-0 font-garamond font-light">
                 Your customer sends a simple message expressing their need. Our AI agent 
                 responds immediately with intelligent questions to understand their preferences 
                 and find the perfect appointment time.
@@ -72,7 +72,7 @@ const ProcessSection = () => {
                 </div>
                 <h3 className="text-lg md:text-2xl font-semibold text-white">Appointment Automatically Booked</h3>
               </div>
-               <p className="text-sm md:text-lg text-slate-400 leading-relaxed px-1 lg:px-0 font-garamond font-light">
+               <p className="text-base md:text-xl text-slate-400 leading-relaxed px-1 lg:px-0 font-garamond font-light">
                  Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
                </p>
              </div>
@@ -94,7 +94,7 @@ const ProcessSection = () => {
                 </div>
                 <h3 className="text-lg md:text-2xl font-semibold text-white">Test The AI Agent Yourself</h3>
               </div>
-              <p className="text-sm md:text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 font-garamond font-light">
+              <p className="text-base md:text-xl text-slate-400 leading-relaxed max-w-3xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 font-garamond font-light">
                 Try it yourself! Chat with our AI agent and experience how fast and natural 
                 the booking process is. No registration required.
               </p>
