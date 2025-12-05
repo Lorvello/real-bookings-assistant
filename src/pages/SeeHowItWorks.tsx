@@ -8,10 +8,17 @@ import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 import { useVoiceflowChatbot } from '@/hooks/useVoiceflowChatbot';
+import { useSEO } from '@/hooks/useSEO';
 
 const SeeHowItWorks = () => {
   useVoiceflowChatbot();
   const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+
+  useSEO({
+    title: "How It Works - Setup in 3 Easy Steps",
+    description: "Learn how to automate your WhatsApp bookings in 3 simple steps. No technical skills required, instant activation, and 24/7 AI support.",
+    canonical: "/how-it-works",
+  });
 
   return (
     <PublicPageWrapper>

@@ -10,6 +10,8 @@ import { ArticleRenderer } from '@/components/blog/ArticleRenderer';
 import { ArticleNavigation } from '@/components/blog/ArticleNavigation';
 import { getArticleBySlug, getAdjacentArticles } from '@/data/blogArticles';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
+import { useSEO } from '@/hooks/useSEO';
+import { ArticleSchema, BreadcrumbSchema } from '@/components/SEO/StructuredData';
 
 const BlogArticle: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -17,6 +19,19 @@ const BlogArticle: React.FC = () => {
   
   const article = slug ? getArticleBySlug(slug) : undefined;
   const { previous, next } = slug ? getAdjacentArticles(slug) : { previous: null, next: null };
+
+  useSEO({
+    title: article?.title || 'Blog Article',
+    description: article?.excerpt || 'Read our latest insights on WhatsApp booking automation.',
+    canonical: `/blog/${slug}`,
+    type: 'article',
+    image: article?.image,
+    article: article ? {
+      publishedTime: article.date,
+      author: article.author.name,
+      section: article.category,
+    } : undefined,
+  });
 
   if (!article) {
     return <Navigate to="/blog" replace />;
@@ -32,6 +47,21 @@ const BlogArticle: React.FC = () => {
 
   return (
     <PublicPageWrapper showFooter={true}>
+      <ArticleSchema
+        title={article.title}
+        description={article.excerpt}
+        slug={article.slug}
+        publishedDate={article.date}
+        author={article.author.name}
+        image={article.image}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: article.title, url: `/blog/${article.slug}` },
+        ]}
+      />
       <Header />
       
       {/* Featured Image Section */}
