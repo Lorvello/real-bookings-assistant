@@ -142,7 +142,7 @@ export const WhatsAppBenefits = ({
                       />
                     </div>
                     <div className="p-4">
-                      <h3 className="text-lg font-bold text-white mb-3 leading-tight">
+                      <h3 className="text-lg font-semibold text-white mb-3 leading-tight">
                         {benefit.title}
                       </h3>
                       <p className="text-slate-300 text-sm leading-relaxed font-garamond font-light">
@@ -222,7 +222,7 @@ export const WhatsAppBenefits = ({
                   />
                 </div>
                 <div className="md:flex-1 flex flex-col justify-center px-6 py-7 md:px-8 md:py-9 lg:px-10 lg:py-11 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                  <h3 className="mb-3 text-xl font-bold tracking-tight text-white md:mb-4 md:text-2xl lg:mb-5 lg:text-3xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
+                  <h3 className="mb-3 text-xl font-semibold tracking-tight text-white md:mb-4 md:text-2xl lg:mb-5 lg:text-3xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
                     {enhancedBenefits[0].title}
                   </h3>
                   <p className="text-slate-300 font-garamond font-light text-lg md:text-xl lg:text-2xl leading-relaxed transition-all duration-300 group-hover:text-slate-200">
@@ -248,7 +248,7 @@ export const WhatsAppBenefits = ({
                   />
                 </div>
                 <div className="px-6 py-7 md:px-7 md:py-8 lg:px-8 lg:py-9 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                  <h3 className="mb-3 text-lg font-bold tracking-tight text-white md:mb-4 md:text-xl lg:mb-5 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
+                  <h3 className="mb-3 text-lg font-semibold tracking-tight text-white md:mb-4 md:text-xl lg:mb-5 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
                     {benefit.title}
                   </h3>
                   <p className="text-slate-300 font-garamond font-light text-base md:text-lg lg:text-xl leading-relaxed transition-all duration-300 group-hover:text-slate-200">
