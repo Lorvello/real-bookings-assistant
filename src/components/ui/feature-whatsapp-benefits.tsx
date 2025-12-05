@@ -145,7 +145,7 @@ export const WhatsAppBenefits = ({
                       <h3 className="text-lg font-bold text-white mb-3 leading-tight">
                         {benefit.title}
                       </h3>
-                      <p className="text-slate-300 text-xs leading-relaxed">
+                      <p className="text-slate-300 text-xs leading-relaxed font-garamond font-light">
                         {benefit.mobileDescription || benefit.description}
                       </p>
                     </div>
@@ -197,7 +197,7 @@ export const WhatsAppBenefits = ({
           
           {/* Swipe hint */}
           <div className="text-center mt-3 px-4">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 font-garamond font-light">
               Swipe or tap arrows to explore
             </p>
           </div>
@@ -225,7 +225,7 @@ export const WhatsAppBenefits = ({
                   <h3 className="mb-3 text-xl font-bold tracking-tight text-white md:mb-4 md:text-2xl lg:mb-5 lg:text-3xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
                     {enhancedBenefits[0].title}
                   </h3>
-                  <p className="text-slate-300 font-medium text-base md:text-lg lg:text-xl leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                  <p className="text-slate-300 font-garamond font-light text-base md:text-lg lg:text-xl leading-relaxed transition-all duration-300 group-hover:text-slate-200">
                     {enhancedBenefits[0].description}
                   </p>
                 </div>
@@ -251,7 +251,7 @@ export const WhatsAppBenefits = ({
                   <h3 className="mb-3 text-lg font-bold tracking-tight text-white md:mb-4 md:text-xl lg:mb-5 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
                     {benefit.title}
                   </h3>
-                  <p className="text-slate-300 font-medium text-sm md:text-base lg:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                  <p className="text-slate-300 font-garamond font-light text-sm md:text-base lg:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-200">
                     {benefit.description}
                   </p>
                 </div>

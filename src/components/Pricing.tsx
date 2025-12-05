@@ -204,12 +204,12 @@ export const Pricing = () => {
           <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-16">
             <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
               <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
-              <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
+              <span className="text-emerald-400 font-garamond font-light text-sm md:text-base">Simple Pricing</span>
             </div>
             <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-4 md:mb-6 px-3 sm:px-0">
               Choose Your <span className="text-emerald-400 biolum-text-subtle">Perfect Plan</span>
             </h2>
-            <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0 font-garamond font-light">
               Start with our free trial and scale as you grow. No setup fees, no contracts.
             </p>
           </ScrollAnimatedSection>
@@ -219,7 +219,7 @@ export const Pricing = () => {
               <div className="flex">
                 <button
                   onClick={() => setIsAnnual(false)}
-                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 ${
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-garamond font-light transition-all duration-300 ${
                     !isAnnual
                       ? 'bg-emerald-500 text-white shadow-lg'
                       : 'text-slate-300 hover:text-white'
@@ -229,7 +229,7 @@ export const Pricing = () => {
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
-                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-garamond font-light transition-all duration-300 relative ${
                     isAnnual
                       ? 'bg-emerald-500 text-white shadow-lg'
                       : 'text-slate-300 hover:text-white'
@@ -278,7 +278,7 @@ export const Pricing = () => {
 
                   <div className="p-6 text-center relative z-10">
                     <h3 className="text-2xl font-semibold text-white mb-2 drop-shadow-sm">{plan.name}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{plan.description}</p>
+                    <p className="text-slate-400 text-sm leading-relaxed font-garamond font-light">{plan.description}</p>
                   </div>
 
                   <div className="px-6 text-center mb-6 relative z-10">
@@ -288,14 +288,14 @@ export const Pricing = () => {
                           <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm biolum-text-subtle">
                             €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                           </span>
-                          <span className="text-slate-400 text-lg ml-2">/month</span>
+                          <span className="text-slate-400 text-lg ml-2 font-garamond font-light">/month</span>
                         </div>
                         {isAnnual && (
-                          <div className="text-sm text-emerald-400/90 mb-1 biolum-text-subtle">
+                          <div className="text-sm text-emerald-400/90 mb-1 biolum-text-subtle font-garamond font-light">
                             Billed annually (€{plan.annualPrice * 12}/year)
                           </div>
                         )}
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-500 font-garamond font-light">
                           Save €{((plan.monthlyPrice - plan.annualPrice) * 12)} per year
                         </div>
                       </div>
@@ -303,9 +303,9 @@ export const Pricing = () => {
                       <div>
                         <div className="flex items-baseline justify-center mb-2">
                           <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm biolum-text-subtle">From €300</span>
-                          <span className="text-slate-400 text-lg ml-2">/month</span>
+                          <span className="text-slate-400 text-lg ml-2 font-garamond font-light">/month</span>
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-500 font-garamond font-light">
                           Custom pricing based on your needs
                         </div>
                       </div>
@@ -336,7 +336,7 @@ export const Pricing = () => {
                            <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="flex-1 cursor-help relative">
-                                <span className="text-slate-400 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors pr-4">
+                                <span className="text-slate-400 text-sm leading-relaxed font-garamond font-light hover:text-slate-200 transition-colors pr-4">
                                   {feature.text}
                                 </span>
                                 <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors absolute top-0 right-0 translate-y-2" />
@@ -400,7 +400,7 @@ export const Pricing = () => {
 
                         <div className={`p-3.5 text-center relative z-10 ${plan.popular ? 'pt-10' : 'pt-4'}`}>
                           <h3 className="text-lg font-semibold text-white drop-shadow-lg mb-1.5">{plan.name}</h3>
-                          <p className="text-slate-400 text-[10px] leading-tight px-1">{plan.description}</p>
+                          <p className="text-slate-400 text-[10px] leading-tight px-1 font-garamond font-light">{plan.description}</p>
                         </div>
 
                         <div className="px-3.5 text-center mb-2.5 relative z-10">
@@ -410,14 +410,14 @@ export const Pricing = () => {
                                 <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">
                                   €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                 </span>
-                                <span className="text-slate-400/90 text-sm ml-1">/month</span>
+                                <span className="text-slate-400/90 text-sm ml-1 font-garamond font-light">/month</span>
                               </div>
                               {isAnnual && (
-                                <div className="text-[10px] text-emerald-400/90 mb-0.5 biolum-text-subtle">
+                                <div className="text-[10px] text-emerald-400/90 mb-0.5 biolum-text-subtle font-garamond font-light">
                                   Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                                 </div>
                               )}
-                              <div className="text-[9px] text-slate-500">
+                              <div className="text-[9px] text-slate-500 font-garamond font-light">
                                 Save €{((plan.monthlyPrice - (plan.annualPrice || 0)) * 12)} per year
                               </div>
                             </div>
@@ -425,9 +425,9 @@ export const Pricing = () => {
                             <div>
                               <div className="flex items-baseline justify-center mb-1">
                                 <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">From €499</span>
-                                <span className="text-slate-400/90 text-xs ml-1">/month</span>
+                                <span className="text-slate-400/90 text-xs ml-1 font-garamond font-light">/month</span>
                               </div>
-                              <div className="text-[9px] text-slate-500">
+                              <div className="text-[9px] text-slate-500 font-garamond font-light">
                                 Custom pricing
                               </div>
                             </div>
@@ -452,7 +452,7 @@ export const Pricing = () => {
                                   <Check className="w-2 h-2 text-white" />
                                 </div>
                                  <div className="flex-1">
-                                   <span className="text-slate-200/95 text-[10px] leading-tight font-medium tracking-wide">
+                                   <span className="text-slate-200/95 text-[10px] leading-tight font-garamond font-light tracking-wide">
                                      {feature.text}
                                    </span>
                                  </div>
@@ -505,7 +505,7 @@ export const Pricing = () => {
               </div>
               
               <div className="text-center mt-4">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 font-garamond font-light">
                   Swipe or tap arrows to explore plans
                 </p>
               </div>
@@ -513,7 +513,7 @@ export const Pricing = () => {
           </div>
 
           <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-12">
-            <p className="text-slate-400 text-[10px] sm:text-sm">
+            <p className="text-slate-400 text-[10px] sm:text-sm font-garamond font-light">
               30 days free trial • No credit card required • Cancel anytime
             </p>
           </ScrollAnimatedSection>
