@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
 import BioluminescentBackground from "@/components/effects/BioluminescentBackground";
+import { NoodleConnections } from "@/components/NoodleConnections";
+import ParticleCanvas from "@/components/effects/ParticleCanvas";
 
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
@@ -17,8 +19,17 @@ const HeroSection: React.FC = () => {
   
   return (
     <section className="relative min-h-[130vh] overflow-hidden flex items-center justify-center -mt-24 md:mt-0 md:pt-24">
+      {/* Noodle SVG Connections */}
+      <NoodleConnections />
+      
       {/* Bioluminescent Background */}
       <BioluminescentBackground />
+      
+      {/* Particle Canvas */}
+      <ParticleCanvas />
+      
+      {/* Radial Emerald Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
       
       {/* Fade out gradient at bottom for smooth transition */}
       <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-b from-transparent via-[hsl(217,35%,12%)]/50 to-[hsl(217,35%,12%)] pointer-events-none z-10"></div>

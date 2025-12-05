@@ -135,6 +135,11 @@
     100% { stroke-dashoffset: 0; }
   }
 
+  @keyframes beam-glow {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.3)); }
+    50% { filter: drop-shadow(0 0 12px rgba(52, 211, 153, 0.6)); }
+  }
+
   .animate-drift {
     animation: drift 1s ease-out forwards;
     opacity: 0;
@@ -186,6 +191,14 @@
     animation: noodle-draw 3s ease-out forwards;
     filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
   }
+
+  /* Noodle path animations */
+  .noodle-path {
+    stroke-dasharray: 1000;
+    animation: beam-flow 4s ease-in-out infinite, beam-glow 2s ease-in-out infinite;
+  }
+  .noodle-path-delayed { animation-delay: 1s; }
+  .noodle-path-delayed-2 { animation-delay: 2s; }
   
   /* Vertical beams */
   .beam {
