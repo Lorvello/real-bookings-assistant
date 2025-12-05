@@ -24,11 +24,54 @@ interface ResetPasswordData {
   email: string;
 }
 
+interface RateLimitResult {
+  allowed: boolean;
+  remaining_attempts?: number;
+  blocked_until?: string;
+  error?: string;
+}
+
 export const useAuthOperations = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { handleError, retryWithBackoff } = useErrorHandler();
   const [loading, setLoading] = useState(false);
+
+  // Check server-side rate limit before auth attempt
+  const checkServerRateLimit = async (email: string): Promise<RateLimitResult> => {
+    try {
+      const { data, error } = await supabase.rpc('check_auth_rate_limit', {
+        p_email: email,
+        p_ip: null // IP is captured server-side if needed
+      });
+
+      if (error) {
+        console.error('[Auth] Rate limit check error:', error);
+        // Allow on error to prevent blocking legitimate users
+        return { allowed: true };
+      }
+
+      // Safely parse the JSON result
+      const result = data as unknown as RateLimitResult;
+      return result || { allowed: true };
+    } catch (error) {
+      console.error('[Auth] Rate limit check failed:', error);
+      return { allowed: true };
+    }
+  };
+
+  // Record auth attempt result server-side
+  const recordAuthAttempt = async (email: string, success: boolean): Promise<void> => {
+    try {
+      await supabase.rpc('record_auth_attempt', {
+        p_email: email,
+        p_ip: null,
+        p_success: success
+      });
+    } catch (error) {
+      console.error('[Auth] Failed to record auth attempt:', error);
+    }
+  };
 
   const signIn = async (data: SignInData) => {
     setLoading(true);
@@ -45,6 +88,23 @@ export const useAuthOperations = () => {
         throw new Error('Please enter a valid email address');
       }
 
+      // Check server-side rate limit before attempting auth
+      const rateLimitResult = await checkServerRateLimit(sanitizedEmail);
+      
+      if (!rateLimitResult.allowed) {
+        const blockedUntil = rateLimitResult.blocked_until 
+          ? new Date(rateLimitResult.blocked_until).toLocaleTimeString() 
+          : 'a few minutes';
+        
+        toast({
+          title: "Too Many Attempts",
+          description: `Please try again after ${blockedUntil}.`,
+          variant: "destructive",
+        });
+        
+        return { success: false, error: 'Rate limited' };
+      }
+
       const result = await retryWithBackoff(async () => {
         const { data: authData, error } = await supabase.auth.signInWithPassword({
           email: sanitizedEmail,
@@ -52,6 +112,9 @@ export const useAuthOperations = () => {
         });
 
         if (error) {
+          // Record failed attempt server-side
+          await recordAuthAttempt(sanitizedEmail, false);
+          
           // Log failed login attempt
           await SecurityLogger.logAuthAttempt(false, 'email', {
             email: sanitizedEmail,
@@ -66,6 +129,9 @@ export const useAuthOperations = () => {
           }
           throw error;
         }
+
+        // Record successful attempt server-side (resets counter)
+        await recordAuthAttempt(sanitizedEmail, true);
 
         // Log successful login
         await SecurityLogger.logAuthAttempt(true, 'email', {
@@ -139,6 +205,23 @@ export const useAuthOperations = () => {
         throw new Error(passwordValidation.errors[0] || 'Password does not meet security requirements');
       }
 
+      // Check server-side rate limit for signup too
+      const rateLimitResult = await checkServerRateLimit(sanitizedEmail);
+      
+      if (!rateLimitResult.allowed) {
+        const blockedUntil = rateLimitResult.blocked_until 
+          ? new Date(rateLimitResult.blocked_until).toLocaleTimeString() 
+          : 'a few minutes';
+        
+        toast({
+          title: "Too Many Attempts",
+          description: `Please try again after ${blockedUntil}.`,
+          variant: "destructive",
+        });
+        
+        return { success: false, error: 'Rate limited' };
+      }
+
       const result = await retryWithBackoff(async () => {
         const { data: authData, error } = await supabase.auth.signUp({
           email: sanitizedEmail,
@@ -154,6 +237,9 @@ export const useAuthOperations = () => {
         });
 
         if (error) {
+          // Record failed signup attempt
+          await recordAuthAttempt(sanitizedEmail, false);
+          
           // Log failed signup
           await SecurityLogger.logAuthAttempt(false, 'email', {
             email: sanitizedEmail,
@@ -163,6 +249,9 @@ export const useAuthOperations = () => {
           });
           throw error;
         }
+
+        // Record successful signup (resets counter)
+        await recordAuthAttempt(sanitizedEmail, true);
 
         // Log successful signup
         await SecurityLogger.logAuthAttempt(true, 'email', {
@@ -233,6 +322,18 @@ export const useAuthOperations = () => {
         throw new Error('Please enter a valid email address');
       }
 
+      // Check rate limit for password reset too
+      const rateLimitResult = await checkServerRateLimit(sanitizedEmail);
+      
+      if (!rateLimitResult.allowed) {
+        toast({
+          title: "Too Many Attempts",
+          description: "Please wait before requesting another password reset.",
+          variant: "destructive",
+        });
+        return { success: false, error: 'Rate limited' };
+      }
+
       // Mark that a password reset was requested
       sessionStorage.setItem('password-reset-requested', '1');
       
@@ -274,6 +375,18 @@ export const useAuthOperations = () => {
     
     try {
       const sanitizedEmail = sanitizeUserInput(email, 'email');
+      
+      // Check rate limit for verification resend
+      const rateLimitResult = await checkServerRateLimit(sanitizedEmail);
+      
+      if (!rateLimitResult.allowed) {
+        toast({
+          title: "Too Many Attempts",
+          description: "Please wait before requesting another verification email.",
+          variant: "destructive",
+        });
+        return { success: false, error: 'Rate limited' };
+      }
       
       await retryWithBackoff(async () => {
         const { error } = await supabase.auth.resend({

@@ -49,7 +49,7 @@ export const usePublicBookings = () => {
           calendar_id: calendarId,
           service_type_id: bookingData.service_type_id,
           customer_name: bookingData.customer_name,
-          customer_email: bookingData.customer_email || null, // Allow null
+          customer_email: bookingData.customer_email || null,
           customer_phone: bookingData.customer_phone,
           start_time: bookingData.start_time,
           end_time: bookingData.end_time,
@@ -77,7 +77,6 @@ export const usePublicBookings = () => {
       });
 
       setLoading(false);
-      // Type assertion for the returned booking data
       return {
         ...data,
         status: data.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
@@ -94,17 +93,29 @@ export const usePublicBookings = () => {
     }
   };
 
+  // Use secure RPC function to get booking by token
   const getBookingByToken = async (confirmationToken: string) => {
     setLoading(true);
 
     try {
       const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('confirmation_token', confirmationToken)
-        .single();
+        .rpc('get_booking_by_token', { p_token: confirmationToken });
 
-      if (error || !data) {
+      if (error) {
+        console.error('Error fetching booking by token:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch booking",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return null;
+      }
+
+      // RPC returns an array, get first result
+      const booking = Array.isArray(data) ? data[0] : data;
+
+      if (!booking) {
         toast({
           title: "Error",
           description: "Booking not found",
@@ -115,10 +126,9 @@ export const usePublicBookings = () => {
       }
 
       setLoading(false);
-      // Type assertion for the returned booking data
       return {
-        ...data,
-        status: data.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
+        ...booking,
+        status: booking.status as 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show'
       };
     } catch (error) {
       console.error('Error fetching booking by token:', error);
@@ -132,23 +142,34 @@ export const usePublicBookings = () => {
     }
   };
 
+  // Use secure RPC function to cancel booking by token
   const cancelPublicBooking = async (confirmationToken: string, reason?: string) => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({
-          status: 'cancelled',
-          cancelled_at: new Date().toISOString(),
-          cancellation_reason: reason
-        })
-        .eq('confirmation_token', confirmationToken);
+      const { data, error } = await supabase
+        .rpc('cancel_booking_by_token', { 
+          p_token: confirmationToken, 
+          p_reason: reason || null 
+        });
 
       if (error) {
+        console.error('Error cancelling booking:', error);
         toast({
           title: "Error",
           description: "Failed to cancel booking",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return false;
+      }
+
+      const result = data as { success: boolean; error?: string };
+
+      if (!result.success) {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to cancel booking",
           variant: "destructive",
         });
         setLoading(false);

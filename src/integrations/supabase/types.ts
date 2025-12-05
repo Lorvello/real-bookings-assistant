@@ -74,6 +74,45 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_rate_limits: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          created_at: string | null
+          first_attempt_at: string | null
+          id: string
+          identifier: string
+          ip_address: unknown
+          last_attempt_at: string | null
+          total_blocks: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          identifier: string
+          ip_address?: unknown
+          last_attempt_at?: string | null
+          total_blocks?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          created_at?: string | null
+          first_attempt_at?: string | null
+          id?: string
+          identifier?: string
+          ip_address?: unknown
+          last_attempt_at?: string | null
+          total_blocks?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       availability_overrides: {
         Row: {
           calendar_id: string | null
@@ -4743,6 +4782,14 @@ export type Database = {
             Returns: Json
           }
       archive_old_security_events: { Args: never; Returns: number }
+      cancel_booking_by_token: {
+        Args: { p_reason?: string; p_token: string }
+        Returns: Json
+      }
+      check_auth_rate_limit: {
+        Args: { p_email: string; p_ip?: unknown }
+        Returns: Json
+      }
       check_availability: {
         Args: {
           p_calendar_id: string
@@ -4924,6 +4971,28 @@ export type Database = {
           meeting_time: string
         }[]
       }
+      get_booking_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          business_name: string
+          calendar_id: string
+          cancellation_reason: string
+          cancelled_at: string
+          confirmation_token: string
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          end_time: string
+          id: string
+          notes: string
+          service_name: string
+          service_type_id: string
+          start_time: string
+          status: string
+          total_price: number
+        }[]
+      }
       get_booking_trends: {
         Args: { p_calendar_id: string; p_days?: number }
         Returns: Json
@@ -5073,6 +5142,10 @@ export type Database = {
         Returns: Json
       }
       process_whatsapp_webhook_queue: { Args: never; Returns: undefined }
+      record_auth_attempt: {
+        Args: { p_email: string; p_ip?: unknown; p_success?: boolean }
+        Returns: undefined
+      }
       record_payment_attempt: {
         Args: {
           p_calendar_id: string
