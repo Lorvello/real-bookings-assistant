@@ -66,7 +66,7 @@ export const Pricing: React.FC<PricingProps> = ({
       description: "Advanced features for teams with extended contact management and collaboration tools",
       features: [
         "All Starter premium features included",
-        "Automated tax compliance & administration",
+        "Automated tax compliance & administration (Coming Soon)",
         "Unlimited calendar orchestration platform",
         "Advanced team collaboration suite (3+ users)",
         "Multi-location business coordination",

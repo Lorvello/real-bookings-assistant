@@ -46,12 +46,11 @@ export const SettingsLayout = () => {
       return; // Don't change the tab
     }
     
-    // Prevent access to tax compliance for Starter users
-    if (value === 'tax' && !checkAccess('canAccessTaxCompliance')) {
+    // Tax compliance is coming soon - block access for everyone
+    if (value === 'tax') {
       toast({
-        title: "Professional Feature",
-        description: "Tax Compliance is only available for Professional and Enterprise subscriptions.",
-        variant: "destructive",
+        title: "Coming Soon",
+        description: "Tax Compliance features are coming soon. Stay tuned!",
       });
       return;
     }
@@ -107,19 +106,14 @@ export const SettingsLayout = () => {
               </TabsTrigger>
               <TabsTrigger 
                 value="tax" 
-                className={`flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3 ${!checkAccess('canAccessTaxCompliance') ? 'opacity-60' : ''}`}
+                className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3 opacity-60 cursor-not-allowed"
+                disabled
               >
-                {checkAccess('canAccessTaxCompliance') ? (
-                  <Calculator className="h-3 w-3 md:h-4 md:w-4" />
-                ) : (
-                  <Lock className="h-3 w-3 md:h-4 md:w-4" />
-                )}
+                <Lock className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Tax</span>
-                {!checkAccess('canAccessTaxCompliance') && (
-                  <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
-                    Pro
-                  </span>
-                )}
+                <span className="bg-slate-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+                  Soon
+                </span>
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
