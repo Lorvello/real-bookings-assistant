@@ -83,7 +83,7 @@ export const TestimonialsColumn = (props: {
           <React.Fragment key={`testimonial-group-${index}`}>
             {props.testimonials.map(({ text, image, name, role }, i) => (
               <div className="p-3 md:p-10 rounded-2xl md:rounded-3xl border shadow-lg shadow-primary/10 max-w-[280px] md:max-w-xs w-full" key={`${index}-${i}`}>
-                <div className="text-[10px] md:text-base leading-tight md:leading-normal font-garamond font-light">{text}</div>
+                <div className="text-xs md:text-lg leading-tight md:leading-normal font-garamond font-light">{text}</div>
                 <div className="flex items-center gap-2 mt-3 md:mt-5">
                   <img
                     width={32}
@@ -94,7 +94,7 @@ export const TestimonialsColumn = (props: {
                   />
                   <div className="flex flex-col">
                     <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{name}</div>
-                    <div className="leading-tight md:leading-5 opacity-60 tracking-tight text-[9px] md:text-base font-garamond font-light">{role}</div>
+                    <div className="leading-tight md:leading-5 opacity-60 tracking-tight text-[10px] md:text-lg font-garamond font-light">{role}</div>
                   </div>
                 </div>
               </div>
@@ -131,13 +131,13 @@ const Testimonials = () => {
           className="text-center mb-6 md:mb-16"
         >
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5 md:px-6 md:py-3 mb-4 md:mb-8">
-            <span className="text-emerald-400 font-garamond font-light text-xs md:text-base">Testimonials</span>
+            <span className="text-emerald-400 font-garamond font-light text-sm md:text-lg">Testimonials</span>
           </div>
 
           <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-3 md:mb-6 px-3 sm:px-0">
             What our <span className="text-emerald-400 biolum-text-subtle">users say</span>
           </h2>
-          <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0 font-garamond font-light">
+          <p className="text-base md:text-xl text-slate-400 max-w-3xl mx-auto px-3 sm:px-0 font-garamond font-light">
             See what our customers have to say about us.
           </p>
         </motion.div>

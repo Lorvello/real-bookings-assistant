@@ -85,7 +85,7 @@ const BentoCard = ({
       <p className={cn(
         "text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors duration-300 font-garamond font-light",
         // Mobile: much smaller text and compact spacing
-        "text-[10px] sm:text-xs lg:text-base lg:max-w-lg",
+        "text-xs sm:text-sm lg:text-lg lg:max-w-lg",
         "leading-tight sm:leading-snug lg:leading-relaxed",
         name === "100% Automatic Bookings" ? "" : ""
       )}>{description}</p>

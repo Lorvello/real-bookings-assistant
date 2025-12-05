@@ -32,7 +32,7 @@ const HeroSection: React.FC = () => {
         {/* Floating badge - SUBTEXT */}
         <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-2 md:mb-8 animate-appear opacity-0">
           <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
-          <span className="text-emerald-300 text-xs md:text-sm font-garamond font-light">AI-Powered Booking Revolution</span>
+          <span className="text-emerald-300 text-sm md:text-base font-garamond font-light">AI-Powered Booking Revolution</span>
         </div>
 
         {/* Main headline - HEADER (Largest) */}
@@ -46,7 +46,7 @@ const HeroSection: React.FC = () => {
             <span className="font-serif italic font-normal text-emerald-400 biolum-text">via WhatsApp</span>
           </h1>
 
-          <p className="text-sm md:text-xl text-slate-400 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0 font-garamond font-light">
+          <p className="text-base md:text-2xl text-slate-400 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0 font-garamond font-light">
             <span className="md:hidden">AI Books Appointments, Zero Missed Opportunities</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 biolum-text-subtle">24/7 automation</span>,{" "}
@@ -92,14 +92,14 @@ const HeroSection: React.FC = () => {
                   <Stethoscope className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
                 </div>
               </div>
-              <span className="text-slate-400 text-xs md:text-sm font-garamond font-light">1000+ businesses automated</span>
+              <span className="text-slate-400 text-sm md:text-base font-garamond font-light">1000+ businesses automated</span>
             </div>
             
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-xs md:text-lg">★</span>
               ))}
-              <span className="text-slate-400 text-xs md:text-sm ml-1 font-garamond font-light">4.9/5 rating</span>
+              <span className="text-slate-400 text-sm md:text-base ml-1 font-garamond font-light">4.9/5 rating</span>
             </div>
           </div>
         </div>
