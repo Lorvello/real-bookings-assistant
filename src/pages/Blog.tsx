@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { blogArticles } from '@/data/blogArticles';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSEO } from '@/hooks/useSEO';
 
 const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = ({ article, index }) => {
   const formatDate = (dateString: string) => {
@@ -83,6 +84,12 @@ const Blog: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { toast } = useToast();
+
+  useSEO({
+    title: "Blog - WhatsApp Booking Tips & Insights",
+    description: "Tips and insights about WhatsApp booking automation to help grow your business. Learn how to reduce no-shows, optimize scheduling, and automate appointments.",
+    canonical: "/blog",
+  });
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();

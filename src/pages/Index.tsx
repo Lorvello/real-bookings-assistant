@@ -12,10 +12,18 @@ import { Pricing } from "@/components/Pricing";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import PublicPageWrapper from "@/components/PublicPageWrapper";
 import { useVoiceflowChatbot } from "@/hooks/useVoiceflowChatbot";
+import { useSEO } from "@/hooks/useSEO";
+import { GlobalStructuredData } from "@/components/SEO/StructuredData";
 
 const Index = () => {
   const navigate = useNavigate();
   useVoiceflowChatbot();
+  
+  useSEO({
+    title: "AI-Powered WhatsApp Booking Automation",
+    description: "Automate your bookings with AI-powered WhatsApp integration. Perfect for beauty salons, healthcare, and consultants. Reduce no-shows and save time.",
+    canonical: "/",
+  });
 
   useEffect(() => {
     // Check for password reset parameters in URL hash or search
@@ -37,6 +45,7 @@ const Index = () => {
 
   return (
     <PublicPageWrapper>
+      <GlobalStructuredData />
       <div className="min-h-screen w-full">
         {/* Hero Section with green effects */}
         <div className="min-h-screen">

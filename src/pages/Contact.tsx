@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
+import { useSEO } from '@/hooks/useSEO';
 import {
   Form,
   FormControl,
@@ -82,6 +83,12 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<{ date: string; time: string }[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useSEO({
+    title: "Contact Us - Get in Touch",
+    description: "Have questions about WhatsApp booking automation? Contact our team for sales inquiries, demos, partnerships, or support. We'd love to hear from you.",
+    canonical: "/contact",
+  });
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),

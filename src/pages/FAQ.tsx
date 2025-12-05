@@ -11,10 +11,18 @@ import {
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail, Search } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
+import { FAQSchema } from '@/components/SEO/StructuredData';
 
 const FAQ = () => {
   useVoiceflowChatbot();
   const [searchTerm, setSearchTerm] = useState('');
+
+  useSEO({
+    title: "FAQ - Frequently Asked Questions",
+    description: "Find answers to common questions about WhatsApp booking automation, pricing, features, integrations, and support. Everything you need to know.",
+    canonical: "/faq",
+  });
 
   const recommendedQuestions = [
     "What does it cost?",
@@ -276,8 +284,17 @@ const FAQ = () => {
     setSearchTerm(question);
   };
 
+  // Flatten FAQs for structured data
+  const allFaqs = faqSections.flatMap(section => 
+    section.items.map(item => ({
+      question: item.question,
+      answer: item.answer,
+    }))
+  );
+
   return (
     <PublicPageWrapper>
+      <FAQSchema faqs={allFaqs} />
       <div className="min-h-screen bg-slate-900">
         <Header />
       

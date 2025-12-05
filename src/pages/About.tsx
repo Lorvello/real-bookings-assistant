@@ -8,8 +8,14 @@ import { User } from 'lucide-react';
 import lucianoPhoto from '@/assets/luciano-photo.png';
 import mathewPhoto from '@/assets/mathew-photo.png';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
+import { useSEO } from '@/hooks/useSEO';
 
 const About = () => {
+  useSEO({
+    title: "About Us - Our Story & Team",
+    description: "Meet the founders of Bookings Assistant. Learn how we're revolutionizing appointment scheduling with AI-powered WhatsApp automation for businesses worldwide.",
+    canonical: "/about",
+  });
   return (
     <PublicPageWrapper>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 relative overflow-hidden">
