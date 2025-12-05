@@ -23,13 +23,13 @@ export const AIKnowledgeTab: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Sync local state when data is fetched from server
+  // Sync local state when REAL server data is loaded (has id)
   useEffect(() => {
-    if (profileData) {
+    if (profileData?.id) {
       setLocalProfileData(profileData);
       setIsInitialized(true);
     }
-  }, [profileData]);
+  }, [profileData?.id]);
 
   useEffect(() => {
     if (businessData) {
