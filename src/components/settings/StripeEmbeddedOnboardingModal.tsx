@@ -5,6 +5,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
 import { loadConnectAndInitialize } from '@stripe/connect-js';
@@ -26,6 +28,8 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
   const [connectInstance, setConnectInstance] = useState<any>(null);
   const { toast } = useToast();
   const { refreshAccountStatus, createEmbeddedSession } = useStripeConnect();
+  const { invalidateCache } = useUserStatus();
+  const { refetch: refetchProfile } = useProfile();
 
   const testMode = getStripeMode() === 'test';
 
@@ -130,16 +134,26 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
 
   // Handle embedded completion
   const handleEmbeddedComplete = async () => {
-    console.log('[STRIPE EMBEDDED] Onboarding completed, refreshing account status...');
+    console.log('[STRIPE EMBEDDED] Onboarding completed, refreshing all data...');
     
     try {
-      // Refresh account status to ensure we have the latest data
+      // Step 1: Refresh Stripe account status
       const refreshedAccount = await refreshAccountStatus();
       console.log('[STRIPE EMBEDDED] Account status refreshed:', {
         onboarding_completed: refreshedAccount?.onboarding_completed,
         charges_enabled: refreshedAccount?.charges_enabled,
         payouts_enabled: refreshedAccount?.payouts_enabled
       });
+      
+      // Step 2: Clear session storage cache
+      sessionStorage.clear();
+      
+      // Step 3: Refresh profile data
+      await refetchProfile();
+      
+      // Step 4: Invalidate user status cache
+      await invalidateCache();
+      
     } catch (error) {
       console.error('[STRIPE EMBEDDED] Error refreshing status after completion:', error);
     }
@@ -147,6 +161,11 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
     setShowEmbedded(false);
     onComplete();
     onClose();
+    
+    // Force page reload to ensure clean state
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   // Reset state when modal opens/closes

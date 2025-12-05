@@ -172,8 +172,8 @@ export function PaymentSettingsTab() {
     resetStripeAccount
   } = useStripeConnect();
   const { settings: installmentSettings, loading: installmentLoading, updateSettings: updateInstallmentSettings } = useInstallmentSettings();
-  const { userStatus } = useUserStatus();
-  const { profile } = useProfile();
+  const { userStatus, invalidateCache } = useUserStatus();
+  const { profile, refetch: refetchProfile } = useProfile();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [platformFee, setPlatformFee] = useState('2.50');
@@ -391,9 +391,10 @@ export function PaymentSettingsTab() {
   };
   const handleOnboardingComplete = async () => {
     setShowEmbeddedOnboarding(false);
-    // Immediately refresh account status after onboarding completion
-    console.log('[PAYMENT SETTINGS] Onboarding completed, refreshing account status...');
+    console.log('[PAYMENT SETTINGS] Onboarding completed, refreshing all data...');
+    
     try {
+      // Step 1: Refresh Stripe account status
       const refreshedAccount = await refreshAccountStatus();
       if (refreshedAccount) {
         setStripeAccount(refreshedAccount);
@@ -402,19 +403,30 @@ export function PaymentSettingsTab() {
           charges_enabled: refreshedAccount.charges_enabled,
           payouts_enabled: refreshedAccount.payouts_enabled
         });
-
-        // Show success toast
-        toast({
-          title: "Stripe setup completed!",
-          description: refreshedAccount.charges_enabled && refreshedAccount.payouts_enabled ? "Your account is fully set up and ready to accept payments." : "Account setup in progress. Some features may need additional verification."
-        });
       }
-    } catch (error) {
-      console.error('[PAYMENT SETTINGS] Error refreshing account:', error);
-      // Fallback to regular load
+
+      // Step 2: Clear session storage cache
+      sessionStorage.clear();
+      
+      // Step 3: Refresh profile and invalidate user status cache
+      await refetchProfile();
+      await invalidateCache();
+      
+      // Step 4: Show success and reload page to ensure clean state
+      toast({
+        title: "Stripe setup completed!",
+        description: "Your account is ready. Refreshing page...",
+      });
+      
+      // Reload after short delay to ensure all caches are cleared
       setTimeout(() => {
-        loadStripeAccount();
-      }, 2000);
+        window.location.reload();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('[PAYMENT SETTINGS] Error during completion:', error);
+      // Force reload as fallback
+      window.location.reload();
     }
   };
   const handleResetStripeConnection = async () => {
