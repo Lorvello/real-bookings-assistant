@@ -2,14 +2,10 @@ import { useMemo, useState, useEffect } from 'react';
 import { useProfile } from './useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useUserStatus } from '@/contexts/UserStatusContext';
-import { useDeveloperAccess } from './useDeveloperAccess';
 
 export const useOnboardingProgress = () => {
   const { profile } = useProfile();
   const { selectedCalendar, calendars } = useCalendarContext();
-  const { userStatus, invalidateCache } = useUserStatus();
-  const { isDeveloper } = useDeveloperAccess();
   const [serviceTypeCount, setServiceTypeCount] = useState(0);
   const [availabilityRulesCount, setAvailabilityRulesCount] = useState(0);
   const [bookingSettingsConfigured, setBookingSettingsConfigured] = useState(false);
@@ -73,54 +69,11 @@ export const useOnboardingProgress = () => {
     fetchOnboardingData();
   }, [profile?.id, calendars]);
 
-  // Check if setup is complete and automatically progress user status
-  // Skip auto-promotion if developer has manually set the status
-  useEffect(() => {
-    if (!profile?.id || userStatus.userType !== 'setup_incomplete') return;
-    
-    // Skip automatic promotion if we're in developer mode
-    // This allows developers to simulate setup_incomplete status even with complete data
-    if (isDeveloper) {
-      console.log('Developer mode: Skipping automatic promotion to preserve manually set status');
-      return;
-    }
-    
-    const isBusinessInfoComplete = !!(profile.business_name && profile.business_type);
-    const isServiceTypesComplete = serviceTypeCount > 0;
-    const isCalendarCreated = calendars.length > 0;
-    const isAvailabilityComplete = availabilityRulesCount > 0;
-    
-    // If all 4 steps are complete, automatically progress to active trial
-    if (isBusinessInfoComplete && isServiceTypesComplete && isCalendarCreated && isAvailabilityComplete) {
-      const progressToActiveTrial = async () => {
-        try {
-          // Update user status to active trial
-          const { error } = await supabase
-            .from('users')
-            .update({
-              subscription_status: 'trial',
-              trial_start_date: new Date().toISOString(),
-              trial_end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-            })
-            .eq('id', profile.id);
-          
-          if (error) {
-            console.error('Error updating user status:', error);
-            return;
-          }
-          
-          // Invalidate cache and update status
-          invalidateCache('active_trial');
-          
-          console.log('Setup completed! User status automatically progressed to active trial.');
-        } catch (error) {
-          console.error('Error progressing user status:', error);
-        }
-      };
-      
-      progressToActiveTrial();
-    }
-  }, [profile?.id, profile?.business_name, profile?.business_type, serviceTypeCount, calendars.length, availabilityRulesCount, userStatus.userType, invalidateCache, isDeveloper]);
+  // NOTE: Auto-promotion logic has been REMOVED.
+  // The database RPC function `get_user_status_type` now handles status determination
+  // by checking all 4 setup requirements (business info, calendar, services, availability).
+  // This prevents race conditions and ensures consistent status across the app.
+  // Status only changes when the user completes ALL setup steps AND the database is queried.
 
   const progress = useMemo(() => {
     if (!profile) {
