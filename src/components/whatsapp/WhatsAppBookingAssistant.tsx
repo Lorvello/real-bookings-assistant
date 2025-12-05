@@ -16,7 +16,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
   const [linkCopied, setLinkCopied] = useState(false);
   const [imgBroken, setImgBroken] = useState(false);
   const [businessName, setBusinessName] = useState('');
-  const [trackingCode, setTrackingCode] = useState('');
   const [cacheBust, setCacheBust] = useState(0);
   
   const {
@@ -38,8 +37,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         .eq('id', userId)
         .single();
       
-      setBusinessName(data?.business_name || 'Ons bedrijf');
-      setTrackingCode(userId.substring(0, 8).toUpperCase());
+      setBusinessName(data?.business_name || 'Our business');
     };
     
     loadBusinessData();
@@ -134,10 +132,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               )}
             </div>
 
-            {/* Business Code Badge - Minimal */}
-            <div className="bg-slate-700 px-4 py-2 rounded-md">
-              <span className="text-slate-300 text-sm font-mono">{trackingCode}</span>
-            </div>
 
             {/* Primary Action Buttons */}
             <div className="w-full max-w-md space-y-3">
@@ -211,11 +205,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 </Button>
               </div>
 
-              <div className="h-px bg-slate-700 my-4" />
-
-              <p className="text-sm text-slate-300">
-                Code: <span className="font-mono">{trackingCode}</span>
-              </p>
             </CardContent>
           </Card>
 
