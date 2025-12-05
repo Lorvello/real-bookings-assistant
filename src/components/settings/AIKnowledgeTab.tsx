@@ -31,8 +31,17 @@ export const AIKnowledgeTab: React.FC = () => {
     setLocalBusinessData(businessData);
   }, [businessData]);
 
-  // Check if there are unsaved changes
+  // Check if there are unsaved changes - only after data is loaded
   const hasUnsavedChanges = useMemo(() => {
+    // Don't show unsaved changes if data hasn't loaded yet
+    if (!profileData || !businessData || !localProfileData || !localBusinessData) return false;
+    
+    // Don't show if both are empty/default (initial load state)
+    if (!profileData.website && !profileData.instagram && !profileData.facebook && 
+        !businessData.business_name && !businessData.business_type) {
+      return false;
+    }
+    
     const profileChanged = JSON.stringify(localProfileData) !== JSON.stringify(profileData);
     const businessChanged = JSON.stringify(localBusinessData) !== JSON.stringify(businessData);
     return profileChanged || businessChanged;
