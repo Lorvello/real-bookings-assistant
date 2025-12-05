@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Loader2, ExternalLink, CheckCircle, Shield, Check, Info } from 'lucide-react';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useProfile } from '@/hooks/useProfile';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import type { BusinessStripeAccount } from '@/types/payments';
 
@@ -23,6 +25,8 @@ export function StripeConnectOnboarding({
   onClose 
 }: StripeConnectOnboardingProps) {
   const { createOnboardingLink, onboarding, refreshAccountStatus } = useStripeConnect();
+  const { invalidateCache } = useUserStatus();
+  const { refetch: refetchProfile } = useProfile();
   const [step, setStep] = useState<'intro' | 'onboarding' | 'complete'>('intro');
 
   const requirements = [
@@ -47,6 +51,13 @@ export function StripeConnectOnboarding({
           const account = await refreshAccountStatus();
           if (account && account.onboarding_completed) {
             clearInterval(checkInterval);
+            
+            // Clear caches and refresh data before completing
+            console.log('[STRIPE ONBOARDING] Onboarding completed, refreshing all data...');
+            sessionStorage.clear();
+            await refetchProfile();
+            await invalidateCache();
+            
             setStep('complete');
             onComplete(account);
           }
@@ -63,6 +74,14 @@ export function StripeConnectOnboarding({
     } else {
       setStep('intro');
     }
+  };
+  
+  const handleContinue = () => {
+    onClose();
+    // Force page reload to ensure clean state
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
@@ -179,7 +198,7 @@ export function StripeConnectOnboarding({
               <p className="text-sm text-muted-foreground mb-4">
                 Your Stripe account is connected and ready to accept payments.
               </p>
-              <Button onClick={onClose} className="w-full">
+              <Button onClick={handleContinue} className="w-full">
                 Continue
               </Button>
             </div>
