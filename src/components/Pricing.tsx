@@ -219,7 +219,7 @@ export const Pricing = () => {
               <div className="flex">
                 <button
                   onClick={() => setIsAnnual(false)}
-                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-base md:text-lg font-garamond font-light transition-all duration-300 ${
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-base md:text-lg font-semibold transition-all duration-300 ${
                     !isAnnual
                       ? 'bg-emerald-500 text-white shadow-lg'
                       : 'text-slate-300 hover:text-white'
@@ -229,7 +229,7 @@ export const Pricing = () => {
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
-                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-base md:text-lg font-garamond font-light transition-all duration-300 relative ${
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-base md:text-lg font-semibold transition-all duration-300 relative ${
                     isAnnual
                       ? 'bg-emerald-500 text-white shadow-lg'
                       : 'text-slate-300 hover:text-white'

@@ -89,7 +89,7 @@ const Solution = () => {
             faster than any human could.</span>
           </p>
           
-          <p className="text-base md:text-lg text-emerald-400/80 font-garamond font-light tracking-wide uppercase mb-8 md:mb-0">
+          <p className="text-base md:text-lg text-emerald-400/80 font-semibold tracking-wide uppercase mb-8 md:mb-0">
               Here's what makes it revolutionary:
             </p>
           </div>

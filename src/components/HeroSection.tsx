@@ -66,7 +66,7 @@ const HeroSection: React.FC = () => {
             
             <button 
               onClick={handleHowItWorks}
-              className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-medium flex items-center justify-center gap-2 group transition-colors min-h-[40px] md:min-h-[48px] px-4"
+              className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-semibold flex items-center justify-center gap-2 group transition-colors min-h-[40px] md:min-h-[48px] px-4"
             >
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
               See how it works
