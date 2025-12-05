@@ -74,8 +74,8 @@ export const Pricing = () => {
           tooltip: "Manage bookings and operations across multiple business locations with centralized control"
         },
         {
-          text: "Automated tax compliance & administration",
-          tooltip: "Automatic tax calculation and compliance based on your local tax regulations. No more manual tax administration - everything is automatically calculated and applied according to your local tax rules"
+          text: "Automated tax compliance & administration (Coming Soon)",
+          tooltip: "Coming soon: Automatic tax calculation and compliance based on your local tax regulations."
         },
         {
           text: "Flexible installment payment options",

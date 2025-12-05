@@ -187,7 +187,7 @@ export default function Success() {
                   {subscriptionTier === 'Professional' && (
                     <>
                       <li>• All Starter premium features included</li>
-                      <li>• Automated tax compliance & administration</li>
+                      <li>• Automated tax compliance & administration (Coming Soon)</li>
                       <li>• Unlimited calendar orchestration platform</li>
                       <li>• Advanced team collaboration suite (3+ users)</li>
                       <li>• Multi-location business coordination</li>

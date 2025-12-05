@@ -169,14 +169,23 @@ export function ServiceTypeForm({
         </div>
       </div>
 
-      {/* Tax Configuration Section */}
+      {/* Tax Configuration Section - Coming Soon */}
       <div className="space-y-4 border-t border-border pt-6">
-        <h3 className="text-lg font-medium text-foreground">Tax Configuration</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-foreground">Tax Configuration</h3>
+          <span className="bg-slate-500/20 text-slate-400 border border-slate-500/30 text-xs px-2 py-1 rounded-full font-medium">
+            Coming Soon
+          </span>
+        </div>
         
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="opacity-50 pointer-events-none">
+          <p className="text-sm text-muted-foreground mb-4">
+            Tax configuration features are coming soon. You'll be able to configure tax behavior and tax codes for your services.
+          </p>
+          
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
             <div className="space-y-0.5">
-              <Label htmlFor="tax-enabled" className="text-sm font-medium">
+              <Label className="text-sm font-medium text-muted-foreground">
                 Enable Tax for this service
               </Label>
               <p className="text-xs text-muted-foreground">
@@ -184,152 +193,10 @@ export function ServiceTypeForm({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {!taxConfigured && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Lock className="w-4 h-4 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Complete tax setup in Tax Settings page</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-              {onRefreshTaxStatus && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onRefreshTaxStatus}
-                        className="h-8 w-8 p-0"
-                      >
-                        <RefreshCw className="h-3 w-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Refresh tax configuration status</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-              <Switch
-                id="tax-enabled"
-                checked={formData.tax_enabled}
-                onCheckedChange={(checked) => {
-                  // If enabling tax, apply fallback tax behavior if not set
-                  if (checked && !formData.tax_behavior) {
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      tax_enabled: checked,
-                      tax_behavior: (userTaxBehavior as 'inclusive' | 'exclusive') || 'exclusive'
-                    }));
-                  } else {
-                    setFormData(prev => ({ ...prev, tax_enabled: checked }));
-                  }
-                }}
-                disabled={!taxConfigured}
-              />
+              <Lock className="w-4 h-4 text-muted-foreground" />
+              <Switch disabled checked={false} />
             </div>
           </div>
-
-          {!taxConfigured && formData.tax_enabled && (
-            <div className="p-3 bg-muted border border-border rounded-md">
-              <p className="text-sm text-muted-foreground">
-                Tax configuration incomplete. Please complete your{' '}
-                <button
-                  type="button" 
-                  onClick={() => navigate('/settings?tab=tax')}
-                  className="underline font-medium text-primary"
-                >
-                  Tax Settings
-                </button>{' '}
-                before enabling tax on services.
-              </p>
-            </div>
-          )}
-
-          {/* Show validation error if tax enabled but missing required fields */}
-          {formData.tax_enabled && (!formData.tax_code || !formData.tax_behavior) && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-              <p className="text-sm text-destructive">
-                Tax code and tax behavior are required when tax is enabled.
-              </p>
-            </div>
-          )}
-
-          {formData.tax_enabled && (
-            <div className="space-y-4 pl-4 border-l-2 border-primary/20">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Tax Behavior</Label>
-                <RadioGroup
-                  value={formData.tax_behavior}
-                  onValueChange={handleTaxBehaviorChange}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="inclusive" id="inclusive" />
-                    <Label htmlFor="inclusive" className="text-sm">
-                      Inclusive
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="exclusive" id="exclusive" />
-                    <Label htmlFor="exclusive" className="text-sm">
-                      Exclusive
-                    </Label>
-                  </div>
-                </RadioGroup>
-                <p className="text-xs text-muted-foreground">
-                  <strong>Inclusive:</strong> Price includes tax • <strong>Exclusive:</strong> Tax added on top
-                </p>
-                
-                {/* Tax behavior warning */}
-                {showTaxBehaviorWarning && (
-                  <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/20 rounded-md">
-                    <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
-                    <div className="space-y-2">
-                      <p className="text-sm text-warning-foreground">
-                        <strong>Warning:</strong> This changes what your customer pays at checkout. 
-                        Switching from inclusive to exclusive tax will increase the final amount customers pay.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowTaxBehaviorWarning(false)}
-                        className="text-xs underline text-warning-foreground"
-                      >
-                        I understand
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Tax Code</Label>
-                <Select
-                  value={formData.tax_code}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, tax_code: value }))}
-                >
-                  <SelectTrigger className="w-full bg-background">
-                    <SelectValue placeholder="Select a tax code" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border z-50">
-                    {TAX_CODE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Choose the appropriate tax category for this service
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
