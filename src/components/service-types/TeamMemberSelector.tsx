@@ -72,6 +72,9 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
           <p className="text-xs text-muted-foreground mt-1">
             Select which team members can perform this service
           </p>
+          <p className="text-xs text-muted-foreground/70 mt-1 italic">
+            Leave empty to make this service available to all team members. This feature is only relevant for Professional or Enterprise plans.
+          </p>
         </div>
         <div className="flex gap-2">
           <button
