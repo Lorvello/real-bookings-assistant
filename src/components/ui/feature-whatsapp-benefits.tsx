@@ -109,12 +109,12 @@ export const WhatsAppBenefits = ({
   
   return (
     <section className={className}>
-      {/* Mobile Slideshow Layout */}
+      {/* Mobile Slideshow Layout with Bioluminescent Effects */}
       <div className="md:hidden relative py-4">
         <div ref={ref} className="max-w-sm mx-auto px-6 pb-4 relative">
           {/* Slide container with smoother transition */}
           <div 
-            className="relative overflow-hidden rounded-lg"
+            className="relative overflow-hidden rounded-2xl"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -129,23 +129,24 @@ export const WhatsAppBenefits = ({
                   key={benefit.id}
                   className="w-full flex-shrink-0 opacity-100"
                 >
-                  <div className="bg-slate-900/95 rounded-lg border border-slate-700/50 shadow-lg overflow-hidden mx-2">
-                    <div className="h-48 overflow-hidden">
+                  <div className="feature-card rounded-2xl overflow-hidden mx-2">
+                    <div className="h-48 overflow-hidden relative">
                       <img
                         src={benefit.image}
                         alt={benefit.title}
-                        className="h-full w-full object-cover object-center"
+                        className="h-full w-full object-cover object-center opacity-70"
                         width="340"
                         height="256"
                         loading="lazy"
                         decoding="async"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(217,35%,12%)] via-[hsl(217,35%,12%)]/60 to-transparent"></div>
                     </div>
                     <div className="p-4">
-                      <h3 className="text-lg font-bold text-white mb-3 leading-tight">
+                      <h3 className="text-lg font-semibold text-white mb-3 leading-tight">
                         {benefit.title}
                       </h3>
-                      <p className="text-slate-300 text-xs leading-relaxed">
+                      <p className="text-slate-400 text-xs leading-relaxed">
                         {benefit.mobileDescription || benefit.description}
                       </p>
                     </div>
@@ -160,7 +161,7 @@ export const WhatsAppBenefits = ({
             <div className="absolute top-1/2 -translate-y-1/2 -left-2 z-20">
               <button
                 onClick={prevSlide}
-                className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                className="p-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 transition-colors duration-200 shadow-lg"
                 aria-label="Previous slide"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -171,7 +172,7 @@ export const WhatsAppBenefits = ({
             <div className="absolute top-1/2 -translate-y-1/2 -right-2 z-20">
               <button
                 onClick={nextSlide}
-                className="p-2 rounded-full bg-slate-800/90 text-white hover:bg-slate-700/90 transition-colors duration-200 shadow-lg"
+                className="p-2 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 transition-colors duration-200 shadow-lg"
                 aria-label="Next slide"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -204,28 +205,38 @@ export const WhatsAppBenefits = ({
         </div>
       </div>
 
-      {/* Desktop Layout (unchanged) */}
+      {/* Desktop Layout with Bioluminescent Effects */}
       <div className="hidden md:block relative">
         <div ref={ref} className="container max-w-5xl mx-auto px-8 lg:px-16 relative z-10">
-          <div className="grid gap-4 md:grid-cols-2 lg:gap-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
             {enhancedBenefits[0] && (
-              <div className={`group md:col-span-2 flex flex-col md:flex-row overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-xl shadow-black/30 transition-all duration-300 ease-out transform-gpu isolate hover:scale-[1.03] hover:z-10 hover:shadow-2xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 cursor-pointer ${isVisible ? 'opacity-100 animate-appear' : 'opacity-0'}`}>
-                <div className="md:flex-1 md:min-h-[16rem] lg:min-h-[18rem] xl:min-h-[20rem] overflow-hidden rounded-t-xl md:rounded-l-xl md:rounded-tr-none">
+              <div className={`group md:col-span-2 flex flex-col md:flex-row overflow-hidden rounded-2xl feature-card card-glow cursor-pointer ${isVisible ? 'opacity-100 animate-appear' : 'opacity-0'}`}>
+                <div className="md:flex-1 md:min-h-[16rem] lg:min-h-[18rem] xl:min-h-[20rem] overflow-hidden relative">
                   <img
                     src={enhancedBenefits[0].image}
                     alt={enhancedBenefits[0].title}
-                    className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                    className="aspect-[16/9] h-full w-full object-cover object-center transition-all duration-700 ease-out opacity-70 group-hover:opacity-90 group-hover:scale-105"
                     width="340"
                     height="256"
                     loading="eager"
                     decoding="async"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[hsl(217,35%,12%)] via-[hsl(217,35%,12%)]/60 to-transparent"></div>
+                  {/* Animated ping dots */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="relative">
+                      <div className="absolute w-3 h-3 bg-emerald-400 rounded-full top-0 left-12 animate-ping opacity-75"></div>
+                      <div className="absolute w-2 h-2 bg-emerald-400 rounded-full bottom-4 right-0 animate-ping opacity-75" style={{ animationDelay: '0.5s' }}></div>
+                      <div className="absolute w-2 h-2 bg-emerald-400 rounded-full top-8 -left-8 animate-ping opacity-75" style={{ animationDelay: '1s' }}></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="md:flex-1 flex flex-col justify-center px-6 py-7 md:px-8 md:py-9 lg:px-10 lg:py-11 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                  <h3 className="mb-3 text-xl font-bold tracking-tight text-white md:mb-4 md:text-2xl lg:mb-5 lg:text-3xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
-                    {enhancedBenefits[0].title}
+                <div className="md:flex-1 flex flex-col justify-center p-6 md:p-8">
+                  <h3 className="mb-3 text-2xl md:text-3xl font-semibold text-white md:mb-4 transition-all duration-300 leading-tight">
+                    {enhancedBenefits[0].title.split('Ready to Book')[0]}
+                    <span className="text-emerald-400">Ready to Book</span>
                   </h3>
-                  <p className="text-slate-300 font-medium text-base md:text-lg lg:text-xl leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                  <p className="text-slate-400 text-base md:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-300">
                     {enhancedBenefits[0].description}
                   </p>
                 </div>
@@ -234,24 +245,45 @@ export const WhatsAppBenefits = ({
             {enhancedBenefits.slice(1).map((benefit, index) => (
               <div
                 key={benefit.id}
-                className={`group flex flex-col overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-br from-slate-900/95 to-slate-950/90 backdrop-blur-lg shadow-lg shadow-black/30 transition-all duration-300 ease-out transform-gpu isolate hover:scale-[1.03] hover:z-10 hover:shadow-xl hover:shadow-emerald-500/40 hover:border-emerald-400/80 cursor-pointer ${isVisible ? 'opacity-100 animate-appear' : 'opacity-0'}`}
+                className={`group flex flex-col overflow-hidden rounded-2xl feature-card card-glow cursor-pointer ${isVisible ? 'opacity-100 animate-appear' : 'opacity-0'}`}
               >
-                <div className="overflow-hidden h-52 md:h-56 lg:h-60 rounded-t-xl">
+                <div className="overflow-hidden h-40 md:h-48 relative">
                   <img
                     src={benefit.image}
                     alt={benefit.title}
-                    className="h-full w-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-115"
+                    className="h-full w-full object-cover object-center transition-all duration-700 ease-out opacity-60 group-hover:opacity-80 group-hover:scale-105"
                     width="347"
                     height="194"
                     loading="lazy"
                     decoding="async"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[hsl(217,35%,12%)] via-[hsl(217,35%,12%)]/50 to-transparent"></div>
+                  {/* Icon badge */}
+                  <div className="absolute top-4 right-4 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                    {index === 0 ? (
+                      <svg className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 md:w-6 md:h-6 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22,4 12,14.01 9,11.01"/>
+                      </svg>
+                    )}
+                  </div>
                 </div>
-                <div className="px-6 py-7 md:px-7 md:py-8 lg:px-8 lg:py-9 bg-gradient-to-br from-slate-900/95 to-slate-950/90">
-                  <h3 className="mb-3 text-lg font-bold tracking-tight text-white md:mb-4 md:text-xl lg:mb-5 lg:text-2xl transition-all duration-300 group-hover:text-emerald-300 group-hover:drop-shadow-lg leading-tight">
-                    {benefit.title}
+                <div className="p-6">
+                  <h3 className="mb-2 text-xl md:text-2xl font-semibold text-white transition-all duration-300 leading-tight">
+                    {benefit.title.includes('Without Staff') ? (
+                      <>24/7 Booking <span className="text-emerald-400">Without Staff</span></>
+                    ) : benefit.title.includes('Instant Payment') ? (
+                      <>80% Fewer No-Shows with <span className="text-emerald-400">Instant Payment</span></>
+                    ) : (
+                      benefit.title
+                    )}
                   </h3>
-                  <p className="text-slate-300 font-medium text-sm md:text-base lg:text-lg leading-relaxed transition-all duration-300 group-hover:text-slate-200">
+                  <p className="text-slate-400 text-sm leading-relaxed transition-all duration-300 group-hover:text-slate-300">
                     {benefit.description}
                   </p>
                 </div>

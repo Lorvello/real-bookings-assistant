@@ -1,38 +1,11 @@
-
-import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import { WhatsAppBenefits } from "@/components/ui/feature-whatsapp-benefits";
-import { MessageCircle, Brain, Target, Clock, Users, TrendingUp } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const Solution = () => {
   const [activeSolutionIndex, setActiveSolutionIndex] = useState(0);
   const solutionCarouselRef = useRef<HTMLDivElement>(null);
-  const features = [{
-    icon: MessageCircle,
-    title: "Instant WhatsApp Responses",
-    description: "Responds within seconds to every message, 24/7. Your customers get immediate answers to their questions and available time slots.",
-    mobileDescription: "Instant 24/7 responses with available slots.",
-    stat: "Average response: 3 seconds",
-    color: "from-emerald-500 to-green-500",
-    hoverTextColor: "group-hover:text-emerald-300"
-  }, {
-    icon: Brain,
-    title: "Smart Conversations",
-    description: "Understands context, asks the right questions, and guides customers to the perfect appointment time that works for everyone.",
-    mobileDescription: "Smart questions to find perfect appointment times.",
-    stat: "98% customer satisfaction",
-    color: "from-blue-500 to-indigo-500",
-    hoverTextColor: "group-hover:text-blue-300"
-  }, {
-    icon: Target,
-    title: "Perfect For Every Business",
-    description: "Salons, clinics, gyms, consultants - if you book appointments, our AI adapts to your specific business needs.",
-    mobileDescription: "Adapts to any appointment-based business.",
-    stat: "300% more bookings avg.",
-    color: "from-purple-500 to-pink-500",
-    hoverTextColor: "group-hover:text-purple-300"
-  }];
 
   // Handle solution carousel scroll
   useEffect(() => {
@@ -60,14 +33,17 @@ const Solution = () => {
       behavior: 'smooth'
     });
   };
+
   return (
     <section className="relative -mt-16 md:-mt-8 py-1 md:py-16 overflow-hidden">
       
-      {/* Background decoration - removed to preserve BackgroundProvider hero gradients */}
+      {/* Grid pattern overlay with emerald tint */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-50"></div>
       
-      {/* Grid pattern overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.1)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-20"></div>
-      
+      {/* Connecting noodle lines */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: -1 }} viewBox="0 0 1200 1000" preserveAspectRatio="xMidYMid slice">
+        <path className="noodle-line" d="M 300 100 Q 600 200 600 500 T 900 900" style={{ animationDelay: '2s', opacity: 0.3 }} />
+      </svg>
       
       <div className="max-w-6xl mx-auto relative z-20 px-4 md:px-6 lg:px-8">
         <StaggeredAnimationContainer 
@@ -77,20 +53,21 @@ const Solution = () => {
         >
           {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-2 md:pt-8">
-            <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
-              Meet Your <span className="text-emerald-400">24/7</span>{" "}
-              <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Booking Assistant
+            <Sparkles className="mx-auto w-6 h-6 md:w-8 md:h-8 text-emerald-500/60 mb-4 md:mb-6" />
+            <h2 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-light text-white mb-4 md:mb-6 leading-tight px-2 md:px-0">
+              Meet Your{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 biolum-text font-medium">
+                24/7 Booking Assistant
               </span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-6 md:mb-8">
+            <p className="text-xs md:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed px-3 sm:px-0 mb-4 md:mb-6">
               <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
               <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
               faster than any human could.</span>
             </p>
             
-            <p className="text-base md:text-lg text-emerald-400 font-semibold tracking-tight mb-8 md:mb-0">
-              Here's what makes it revolutionary:
+            <p className="text-sm md:text-base text-emerald-400/80 tracking-wide mb-8 md:mb-0">
+              <span className="border-b border-emerald-400/40 pb-0.5">Here's what makes it revolutionary:</span>
             </p>
           </div>
           
