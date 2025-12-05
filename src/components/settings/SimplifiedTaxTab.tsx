@@ -42,9 +42,19 @@ export const SimplifiedTaxTab = () => {
   const checkStripeAccountStatus = async () => {
     try {
       setCheckingStripe(true);
+      
+      // First check if there's a local account - if not, don't try to refresh
+      const localAccount = await getStripeAccount();
+      
+      if (!localAccount) {
+        // No account exists, no need to call refresh endpoint
+        setStripeAccount(null);
+        return;
+      }
+      
+      // Only refresh if we have an existing account
       const freshAccount = await refreshAccountStatus();
-      let account = freshAccount || (await getStripeAccount());
-      setStripeAccount(account);
+      setStripeAccount(freshAccount || localAccount);
     } catch (error) {
       console.error('Failed to check Stripe account:', error);
       const localAccount = await getStripeAccount();
