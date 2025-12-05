@@ -21,31 +21,32 @@ export const AIKnowledgeTab: React.FC = () => {
   const [localProfileData, setLocalProfileData] = useState(profileData);
   const [localBusinessData, setLocalBusinessData] = useState(businessData);
   const [isSaving, setIsSaving] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Sync local state when data is fetched from server
   useEffect(() => {
-    setLocalProfileData(profileData);
+    if (profileData) {
+      setLocalProfileData(profileData);
+      setIsInitialized(true);
+    }
   }, [profileData]);
 
   useEffect(() => {
-    setLocalBusinessData(businessData);
+    if (businessData) {
+      setLocalBusinessData(businessData);
+    }
   }, [businessData]);
 
-  // Check if there are unsaved changes - only after data is loaded
+  // Check if there are unsaved changes - only after data is initialized
   const hasUnsavedChanges = useMemo(() => {
-    // Don't show unsaved changes if data hasn't loaded yet
+    // Don't show unsaved changes until fully initialized
+    if (!isInitialized) return false;
     if (!profileData || !businessData || !localProfileData || !localBusinessData) return false;
-    
-    // Don't show if both are empty/default (initial load state)
-    if (!profileData.website && !profileData.instagram && !profileData.facebook && 
-        !businessData.business_name && !businessData.business_type) {
-      return false;
-    }
     
     const profileChanged = JSON.stringify(localProfileData) !== JSON.stringify(profileData);
     const businessChanged = JSON.stringify(localBusinessData) !== JSON.stringify(businessData);
     return profileChanged || businessChanged;
-  }, [localProfileData, localBusinessData, profileData, businessData]);
+  }, [isInitialized, localProfileData, localBusinessData, profileData, businessData]);
 
   // Warn user before leaving with unsaved changes
   useEffect(() => {
