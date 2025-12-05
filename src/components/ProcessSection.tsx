@@ -31,10 +31,10 @@ const ProcessSection = () => {
         >
           {/* Section header - HEADERS (Largest) */}
           <div className="text-center">
-            <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-6 px-3 sm:px-0">
-              See How It <span className="text-emerald-400">Works</span>
+            <h2 className="text-3xl md:text-4xl xl:text-5xl font-semibold text-white mb-6 md:mb-6 px-3 sm:px-0">
+              See How It <span className="text-emerald-400 biolum-text-subtle">Works</span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-12 md:mb-8">
+            <p className="text-xs md:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-12 md:mb-8">
               From first message to confirmed appointment in less than 30 seconds. 
               Watch how our AI handles the entire booking process automatically.
             </p>
@@ -44,12 +44,12 @@ const ProcessSection = () => {
           <div className="flex flex-col lg:flex-row items-center gap-3 md:gap-12 pt-2 md:pt-0">
             <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
+                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-semibold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   1
                 </div>
-                <h3 className="text-lg md:text-2xl font-bold text-white">Customer Starts WhatsApp Chat</h3>
+                <h3 className="text-lg md:text-2xl font-semibold text-white">Customer Starts WhatsApp Chat</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-3 lg:px-0">
+              <p className="text-xs md:text-lg text-slate-400 leading-relaxed px-3 lg:px-0">
                 Your customer sends a simple message expressing their need. Our AI agent 
                 responds immediately with intelligent questions to understand their preferences 
                 and find the perfect appointment time.
@@ -67,12 +67,12 @@ const ProcessSection = () => {
           <div className="flex flex-col lg:flex-row-reverse items-start lg:items-center gap-3 md:gap-12 pt-2 md:pt-8">
             <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left max-w-lg lg:max-w-none">
               <div className="flex items-center gap-2 md:gap-4 justify-center lg:justify-start">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 aspect-square">
+                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-semibold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 aspect-square">
                   2
                 </div>
-                <h3 className="text-lg md:text-2xl font-bold text-white">Appointment Automatically Booked</h3>
+                <h3 className="text-lg md:text-2xl font-semibold text-white">Appointment Automatically Booked</h3>
               </div>
-               <p className="text-xs md:text-lg text-slate-300 leading-relaxed px-1 lg:px-0">
+               <p className="text-xs md:text-lg text-slate-400 leading-relaxed px-1 lg:px-0">
                  Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
                </p>
              </div>
@@ -89,12 +89,12 @@ const ProcessSection = () => {
           <div className="space-y-2 md:space-y-8 pt-2 md:pt-8">
             <div className="text-center">
               <div className="flex items-center gap-2 md:gap-4 justify-center mb-4 md:mb-6">
-                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-bold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
+                <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-semibold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500">
                   3
                 </div>
-                <h3 className="text-lg md:text-2xl font-bold text-white">Test The AI Agent Yourself</h3>
+                <h3 className="text-lg md:text-2xl font-semibold text-white">Test The AI Agent Yourself</h3>
               </div>
-              <p className="text-xs md:text-lg text-slate-300 leading-relaxed max-w-3xl mx-auto mb-6 md:mb-8 px-3 sm:px-0">
+              <p className="text-xs md:text-lg text-slate-400 leading-relaxed max-w-3xl mx-auto mb-6 md:mb-8 px-3 sm:px-0">
                 Try it yourself! Chat with our AI agent and experience how fast and natural 
                 the booking process is. No registration required.
               </p>

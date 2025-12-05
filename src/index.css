@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -568,5 +568,27 @@
   .perfect-snap-carousel > div > div {
     scroll-snap-align: center;
     scroll-snap-stop: always;
+  }
+}
+
+@layer utilities {
+  /* Premium font families */
+  .font-garamond { 
+    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif; 
+  }
+  
+  /* Bioluminescent glow effect for hero text */
+  .biolum-text {
+    text-shadow: 
+      0 0 30px rgba(16, 185, 129, 0.5),
+      0 0 60px rgba(16, 185, 129, 0.3),
+      0 0 90px rgba(16, 185, 129, 0.1);
+  }
+  
+  /* Subtle glow for secondary elements */
+  .biolum-text-subtle {
+    text-shadow: 
+      0 0 20px rgba(16, 185, 129, 0.3),
+      0 0 40px rgba(16, 185, 129, 0.15);
   }
 }
