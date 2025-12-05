@@ -12,19 +12,44 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  isChunkError: boolean;
+}
+
+// Detect chunk loading errors (common after deployments)
+function isChunkLoadError(error: Error): boolean {
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('failed to fetch dynamically imported module') ||
+    message.includes('loading chunk') ||
+    message.includes('loading css chunk') ||
+    message.includes('dynamically imported module') ||
+    message.includes('failed to load module script')
+  );
 }
 
 export class RouteErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, isChunkError: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    const isChunkError = isChunkLoadError(error);
+    return { hasError: true, error, isChunkError };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const isChunkError = isChunkLoadError(error);
+    
+    // For chunk errors, auto-refresh after a short delay
+    if (isChunkError) {
+      console.log('[RouteErrorBoundary] Chunk load error detected, auto-refreshing...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      return;
+    }
+
     // Route crashes are critical
     ProductionErrorHandler.logError(error, {
       component: 'RouteErrorBoundary',
@@ -38,7 +63,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
   }
 
   private handleRetry = () => {
-    this.setState({ hasError: false, error: undefined });
+    this.setState({ hasError: false, error: undefined, isChunkError: false });
     window.location.reload();
   };
 
@@ -48,6 +73,27 @@ export class RouteErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Show a simpler message for chunk errors since we auto-refresh
+      if (this.state.isChunkError) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+            <Alert className="max-w-md">
+              <RefreshCw className="h-5 w-5 animate-spin" />
+              <AlertTitle className="text-lg">Pagina wordt bijgewerkt...</AlertTitle>
+              <AlertDescription className="space-y-4">
+                <p>
+                  Er is een nieuwe versie beschikbaar. De pagina wordt automatisch ververst.
+                </p>
+                <Button onClick={this.handleRetry} variant="default" className="w-full">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Nu verversen
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+      }
+
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-background">
           <Alert className="max-w-md">
