@@ -37,17 +37,16 @@ const HeroSection: React.FC = () => {
 
         {/* Main headline - HEADER (Largest) */}
         <div className="space-y-2 md:space-y-8">
-          <h1 className="text-3xl md:text-5xl xl:text-6xl font-semibold text-white leading-tight md:leading-[0.95] tracking-tight opacity-100 biolum-text">
-            <span className="bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent relative">
+        <h1 className="text-4xl md:text-6xl xl:text-7xl font-light text-white leading-tight md:leading-[0.95] tracking-tighter opacity-100">
+            <span className="text-transparent bg-clip-text bg-gradient-to-b from-emerald-200 via-emerald-400 to-emerald-600 biolum-text font-normal">
               Bookings
-              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 blur-xl -z-10"></div>
             </span>
-            {" "}on Auto Pilot
+            <span className="text-white/90">{" "}on Auto Pilot</span>
             <br />
-            via WhatsApp
+            <span className="font-serif italic font-normal text-emerald-400 biolum-text">via WhatsApp</span>
           </h1>
 
-          <p className="text-xs md:text-lg text-slate-400 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0">
+          <p className="text-sm md:text-xl text-slate-400 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0">
             <span className="md:hidden">AI Books Appointments, Zero Missed Opportunities</span>
             <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
             <span className="text-emerald-400 font-medium biolum-text-subtle">24/7 automation</span>,{" "}
