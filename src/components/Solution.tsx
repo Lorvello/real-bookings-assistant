@@ -77,19 +77,19 @@ const Solution = () => {
         >
           {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-2 md:pt-8">
-            <h2 className="text-3xl md:text-4xl xl:text-5xl font-semibold text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
-              Meet Your <span className="text-emerald-400 biolum-text-subtle">24/7</span>{" "}
-              <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
-                Booking Assistant
-              </span>
-            </h2>
-            <p className="text-xs md:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-6 md:mb-8">
-              <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
-              <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
-              faster than any human could.</span>
-            </p>
-            
-            <p className="text-base md:text-lg text-emerald-400 font-medium tracking-tight mb-8 md:mb-0 biolum-text-subtle">
+          <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-3 md:mb-6 leading-tight px-2 md:px-0">
+            Meet Your <span className="text-emerald-400 biolum-text-subtle">24/7</span>{" "}
+            <span className="bg-gradient-to-b from-emerald-300 via-emerald-400 to-emerald-600 bg-clip-text text-transparent biolum-text">
+              Booking Assistant
+            </span>
+          </h2>
+          <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-6 md:mb-8">
+            <span className="md:hidden">AI that never sleeps, never misses bookings.</span>
+            <span className="hidden md:inline">The AI that never sleeps, never misses a lead, and books appointments 
+            faster than any human could.</span>
+          </p>
+          
+          <p className="text-sm md:text-base text-emerald-400/80 font-medium tracking-wide uppercase mb-8 md:mb-0">
               Here's what makes it revolutionary:
             </p>
           </div>
