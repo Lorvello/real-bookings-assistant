@@ -114,6 +114,7 @@ export const UserManagement = ({
   // Local state for buffered profile changes (no auto-save)
   const [localProfileData, setLocalProfileData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isProfileInitialized, setIsProfileInitialized] = useState(false);
 
   // Use external data if provided, otherwise use context data
   const baseProfile = externalProfileData || profileData;
@@ -122,20 +123,15 @@ export const UserManagement = ({
 
   // Sync local state when server data changes (initial load or after save)
   useEffect(() => {
-    if (baseProfile && !localProfileData) {
-      setLocalProfileData(baseProfile);
-    }
-  }, [baseProfile]);
-
-  // Also update when baseProfile changes from external source
-  useEffect(() => {
     if (baseProfile) {
       setLocalProfileData(baseProfile);
+      setIsProfileInitialized(true);
     }
   }, [baseProfile?.id]);
 
-  // Check if there are unsaved changes
+  // Check if there are unsaved changes - only after initialized
   const hasUnsavedChanges = useMemo(() => {
+    if (!isProfileInitialized) return false;
     if (!localProfileData || !baseProfile) return false;
     
     const fieldsToCompare = ['full_name', 'email', 'phone', 'date_of_birth', 'language', 'timezone'];
@@ -144,7 +140,7 @@ export const UserManagement = ({
       const baseVal = baseProfile[field] || '';
       return localVal !== baseVal;
     });
-  }, [localProfileData, baseProfile]);
+  }, [isProfileInitialized, localProfileData, baseProfile]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
