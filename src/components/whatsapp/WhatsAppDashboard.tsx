@@ -5,13 +5,9 @@ import { ConversationView } from './ConversationView';
 import { ContactSidebar } from './ContactSidebar';
 import { WhatsAppContactOverview } from './WhatsAppContactOverview';
 import { ConversationManagement } from './ConversationManagement';
-import { WebhookFlowDashboard } from '../webhooks/WebhookFlowDashboard';
-import { WebhookHealthMonitor } from '../webhooks/WebhookHealthMonitor';
 import { WhatsAppServiceStatus } from './WhatsAppServiceStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
-import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 import { useWhatsAppLimits } from '@/hooks/useSubscriptionLimits';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
@@ -23,13 +19,11 @@ interface WhatsAppDashboardProps {
 
 export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const { isDeveloper } = useDeveloperAccess();
   const { currentCount, maxContacts, canAddMore } = useWhatsAppLimits(calendarId);
   const { accessControl } = useAccessControl();
   
   // Initialize enhanced webhook processor
   useWebhookProcessor(calendarId);
-
   return (
     <div className="h-full">
       {/* Service Status Indicator */}
@@ -59,33 +53,13 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       
       <Tabs defaultValue="overview" className="h-full">
         <div className="overflow-x-auto">
-          <TabsList className={`flex md:grid w-max md:w-full ${isDeveloper ? 'md:grid-cols-5' : 'md:grid-cols-3'} bg-muted p-1`}>
+          <TabsList className="flex md:grid w-max md:w-full md:grid-cols-3 bg-muted p-1">
             <TabsTrigger value="overview" className="whitespace-nowrap">
               Contact Overview
             </TabsTrigger>
             <TabsTrigger value="conversations" className="whitespace-nowrap">
               Live Conversations
             </TabsTrigger>
-            {isDeveloper && (
-              <TabsTrigger value="webhook-flow" className="whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  Webhook Flow
-                  <Badge variant="default" className="bg-green-500">
-                    GLOBAL
-                  </Badge>
-                </div>
-              </TabsTrigger>
-            )}
-            {isDeveloper && (
-              <TabsTrigger value="health" className="whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  System Health
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    Monitoring
-                  </Badge>
-                </div>
-              </TabsTrigger>
-            )}
             <TabsTrigger value="management" className="whitespace-nowrap">
               Conversation Management
             </TabsTrigger>
@@ -119,17 +93,6 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
           </div>
         </TabsContent>
         
-        {isDeveloper && (
-          <TabsContent value="webhook-flow" className="mt-6">
-            <WebhookFlowDashboard calendarId={calendarId} />
-          </TabsContent>
-        )}
-        
-        {isDeveloper && (
-          <TabsContent value="health" className="mt-6">
-            <WebhookHealthMonitor calendarId={calendarId} />
-          </TabsContent>
-        )}
         
         <TabsContent value="management" className="mt-6">
           <div className="space-y-6">
