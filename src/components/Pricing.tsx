@@ -206,10 +206,10 @@ export const Pricing = () => {
               <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
               <span className="text-emerald-400 font-semibold text-sm md:text-base">Simple Pricing</span>
             </div>
-            <h2 className="text-2xl md:text-4xl xl:text-5xl font-semibold text-white mb-4 md:mb-6 px-3 sm:px-0">
+            <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-4 md:mb-6 px-3 sm:px-0">
               Choose Your <span className="text-emerald-400 biolum-text-subtle">Perfect Plan</span>
             </h2>
-            <p className="text-xs md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0">
+            <p className="text-sm md:text-lg text-slate-400 max-w-3xl mx-auto px-3 sm:px-0">
               Start with our free trial and scale as you grow. No setup fees, no contracts.
             </p>
           </ScrollAnimatedSection>
@@ -285,13 +285,13 @@ export const Pricing = () => {
                     {plan.monthlyPrice ? (
                       <div>
                         <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm">
+                          <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm biolum-text-subtle">
                             €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                           </span>
                           <span className="text-slate-400 text-lg ml-2">/month</span>
                         </div>
                         {isAnnual && (
-                          <div className="text-sm text-emerald-400/90 mb-1">
+                          <div className="text-sm text-emerald-400/90 mb-1 biolum-text-subtle">
                             Billed annually (€{plan.annualPrice * 12}/year)
                           </div>
                         )}
@@ -302,7 +302,7 @@ export const Pricing = () => {
                     ) : (
                       <div>
                         <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €300</span>
+                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm biolum-text-subtle">From €300</span>
                           <span className="text-slate-400 text-lg ml-2">/month</span>
                         </div>
                         <div className="text-xs text-slate-500">
@@ -336,7 +336,7 @@ export const Pricing = () => {
                            <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="flex-1 cursor-help relative">
-                                <span className="text-slate-300 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors pr-4">
+                                <span className="text-slate-400 text-sm leading-relaxed font-medium hover:text-slate-200 transition-colors pr-4">
                                   {feature.text}
                                 </span>
                                 <Info className="w-2.5 h-2.5 text-slate-500 hover:text-slate-400 transition-colors absolute top-0 right-0 translate-y-2" />
@@ -399,7 +399,7 @@ export const Pricing = () => {
                         )}
 
                         <div className={`p-3.5 text-center relative z-10 ${plan.popular ? 'pt-10' : 'pt-4'}`}>
-                          <h3 className="text-lg font-bold text-white drop-shadow-lg mb-1.5">{plan.name}</h3>
+                          <h3 className="text-lg font-semibold text-white drop-shadow-lg mb-1.5">{plan.name}</h3>
                           <p className="text-slate-400 text-[10px] leading-tight px-1">{plan.description}</p>
                         </div>
 
@@ -407,13 +407,13 @@ export const Pricing = () => {
                           {plan.monthlyPrice ? (
                             <div>
                               <div className="flex items-baseline justify-center mb-1">
-                                <span className="text-xl font-bold text-emerald-400 drop-shadow-lg">
+                                <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">
                                   €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                 </span>
-                                <span className="text-slate-300/90 text-sm ml-1">/month</span>
+                                <span className="text-slate-400/90 text-sm ml-1">/month</span>
                               </div>
                               {isAnnual && (
-                                <div className="text-[10px] text-emerald-400/90 mb-0.5">
+                                <div className="text-[10px] text-emerald-400/90 mb-0.5 biolum-text-subtle">
                                   Billed annually (€{(plan.annualPrice || 0) * 12}/year)
                                 </div>
                               )}
@@ -424,8 +424,8 @@ export const Pricing = () => {
                           ) : (
                             <div>
                               <div className="flex items-baseline justify-center mb-1">
-                                <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €499</span>
-                                <span className="text-slate-300/90 text-xs ml-1">/month</span>
+                                <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">From €499</span>
+                                <span className="text-slate-400/90 text-xs ml-1">/month</span>
                               </div>
                               <div className="text-[9px] text-slate-500">
                                 Custom pricing
