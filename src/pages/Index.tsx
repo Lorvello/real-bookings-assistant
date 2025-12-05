@@ -14,9 +14,11 @@ import PublicPageWrapper from "@/components/PublicPageWrapper";
 import { useVoiceflowChatbot } from "@/hooks/useVoiceflowChatbot";
 import { useSEO } from "@/hooks/useSEO";
 import { GlobalStructuredData } from "@/components/SEO/StructuredData";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   useVoiceflowChatbot();
   
   useSEO({
@@ -24,6 +26,13 @@ const Index = () => {
     description: "Automate your bookings with AI-powered WhatsApp integration. Perfect for beauty salons, healthcare, and consultants. Reduce no-shows and save time.",
     canonical: "/",
   });
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     // Check for password reset parameters in URL hash or search
