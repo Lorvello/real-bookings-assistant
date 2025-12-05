@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -65,6 +66,7 @@ export function ServiceTypeForm({
   selectedTeamMembers = [],
   onTeamMembersChange
 }: ServiceTypeFormProps) {
+  const navigate = useNavigate();
   const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
   const [previousTaxBehavior] = useState(formData.tax_behavior);
 
@@ -239,7 +241,7 @@ export function ServiceTypeForm({
                 Tax configuration incomplete. Please complete your{' '}
                 <button
                   type="button" 
-                  onClick={() => window.location.href = '/settings?tab=tax'}
+                  onClick={() => navigate('/settings?tab=tax')}
                   className="underline font-medium text-primary"
                 >
                   Tax Settings

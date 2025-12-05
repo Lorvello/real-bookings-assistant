@@ -79,14 +79,14 @@ export class RouteErrorBoundary extends Component<Props, State> {
           <div className="min-h-screen flex items-center justify-center p-4 bg-background">
             <Alert className="max-w-md">
               <RefreshCw className="h-5 w-5 animate-spin" />
-              <AlertTitle className="text-lg">Pagina wordt bijgewerkt...</AlertTitle>
+              <AlertTitle className="text-lg">Updating page...</AlertTitle>
               <AlertDescription className="space-y-4">
                 <p>
-                  Er is een nieuwe versie beschikbaar. De pagina wordt automatisch ververst.
+                  A new version is available. The page will refresh automatically.
                 </p>
                 <Button onClick={this.handleRetry} variant="default" className="w-full">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Nu verversen
+                  Refresh now
                 </Button>
               </AlertDescription>
             </Alert>
@@ -98,10 +98,10 @@ export class RouteErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center p-4 bg-background">
           <Alert className="max-w-md">
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="text-lg">Pagina kon niet worden geladen</AlertTitle>
+            <AlertTitle className="text-lg">Page could not be loaded</AlertTitle>
             <AlertDescription className="space-y-4">
               <p>
-                Er is een fout opgetreden bij het laden van deze pagina.
+                An error occurred while loading this page.
                 {this.props.routeName && ` (${this.props.routeName})`}
               </p>
               {process.env.NODE_ENV === 'development' && this.state.error && (
@@ -115,7 +115,7 @@ export class RouteErrorBoundary extends Component<Props, State> {
               <div className="flex gap-2">
                 <Button onClick={this.handleRetry} variant="default" className="flex-1">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Opnieuw laden
+                  Reload
                 </Button>
                 <Button onClick={this.handleGoHome} variant="outline" className="flex-1">
                   <Home className="h-4 w-4 mr-2" />

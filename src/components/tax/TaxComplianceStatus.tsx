@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,8 @@ export const TaxComplianceStatus: React.FC<TaxComplianceStatusProps> = ({
   businessCountry,
   onRefresh
 }) => {
+  const navigate = useNavigate();
+  
   const getCountryFlag = (countryCode: string) => {
     const flags: { [key: string]: string } = {
       'NL': '🇳🇱',
@@ -155,7 +158,7 @@ export const TaxComplianceStatus: React.FC<TaxComplianceStatusProps> = ({
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.location.href = item.actionUrl!}
+                    onClick={() => navigate(item.actionUrl!)}
                   >
                     {item.action}
                   </Button>
