@@ -554,34 +554,37 @@ export const UserManagement = ({
                     </div>
                   </div>
 
-                  {/* Sticky Save Bar */}
-                  {hasUnsavedChanges && (
-                    <div className="mt-6 p-4 bg-gray-800 border border-amber-600/50 rounded-lg flex justify-between items-center">
-                      <span className="text-amber-400 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4" />
-                        You have unsaved changes
-                      </span>
-                      <div className="flex gap-3">
-                        <Button 
-                          variant="outline" 
-                          onClick={discardChanges}
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                        >
-                          Discard
-                        </Button>
-                        <Button 
-                          onClick={saveAllChanges} 
-                          disabled={isSaving}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isSaving ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </TabsContent>
+
+            {/* Fixed Save Bar at bottom of screen */}
+            {hasUnsavedChanges && (
+              <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 shadow-lg">
+                <div className="max-w-4xl mx-auto flex justify-between items-center">
+                  <span className="text-amber-400 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    You have unsaved changes
+                  </span>
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={discardChanges}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      Discard
+                    </Button>
+                    <Button 
+                      onClick={saveAllChanges} 
+                      disabled={isSaving}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <TabsContent value="team">
               <div className="space-y-4">
