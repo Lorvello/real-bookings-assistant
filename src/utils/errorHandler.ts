@@ -31,7 +31,7 @@ export class ProductionErrorHandler {
       code: 'AUTH_001',
       category: 'auth',
       severity: 'medium',
-      userMessage: 'Je sessie is verlopen. Log opnieuw in.',
+      userMessage: 'Your session has expired. Please sign in again.',
       technicalMessage: 'JWT token expired or invalid',
       retryable: false,
       supportAction: 'Check user auth state'
@@ -40,7 +40,7 @@ export class ProductionErrorHandler {
       code: 'AUTH_002',
       category: 'auth',
       severity: 'low',
-      userMessage: 'Ongeldige inloggegevens. Controleer je email en wachtwoord.',
+      userMessage: 'Invalid credentials. Please check your email and password.',
       technicalMessage: 'Invalid credentials provided',
       retryable: false,
       supportAction: 'User may have forgotten password'
@@ -49,7 +49,7 @@ export class ProductionErrorHandler {
       code: 'AUTH_003',
       category: 'auth',
       severity: 'low',
-      userMessage: 'Bevestig je email voordat je inlogt.',
+      userMessage: 'Please confirm your email before signing in.',
       technicalMessage: 'Email not confirmed',
       retryable: false,
       supportAction: 'Resend verification email'
@@ -59,7 +59,7 @@ export class ProductionErrorHandler {
       code: 'API_001',
       category: 'api',
       severity: 'high',
-      userMessage: 'Server fout. Probeer het later opnieuw.',
+      userMessage: 'Server error. Please try again later.',
       technicalMessage: 'Internal server error',
       retryable: true,
       supportAction: 'Check server logs'
@@ -69,7 +69,7 @@ export class ProductionErrorHandler {
       code: 'VAL_001',
       category: 'validation',
       severity: 'low',
-      userMessage: 'Deze gegevens bestaan al.',
+      userMessage: 'This data already exists.',
       technicalMessage: 'Unique constraint violation',
       retryable: false,
       supportAction: 'User needs to use different data'
@@ -79,7 +79,7 @@ export class ProductionErrorHandler {
       code: 'NET_001',
       category: 'network',
       severity: 'medium',
-      userMessage: 'Netwerkfout. Controleer je verbinding.',
+      userMessage: 'Network error. Please check your connection.',
       technicalMessage: 'Network request failed',
       retryable: true,
       supportAction: 'Check user connection'
@@ -127,7 +127,7 @@ export class ProductionErrorHandler {
     const errorCode = this.classifyError(error);
     
     return {
-      userMessage: errorCode?.userMessage || fallbackMessage || 'Er is een fout opgetreden bij het verwerken van je verzoek.',
+      userMessage: errorCode?.userMessage || fallbackMessage || 'An error occurred while processing your request.',
       errorCode,
       shouldRetry: errorCode?.retryable ?? true
     };
@@ -155,7 +155,7 @@ export class ProductionErrorHandler {
       return { fieldErrors: errors };
     }
 
-    return { fieldErrors: {}, globalError: 'Validatie fout' };
+    return { fieldErrors: {}, globalError: 'Validation error' };
   }
 
   /**
@@ -172,13 +172,13 @@ export class ProductionErrorHandler {
       return {
         shouldRedirect: true,
         redirectUrl: '/login',
-        userMessage: 'Je sessie is verlopen. Log opnieuw in.'
+        userMessage: 'Your session has expired. Please sign in again.'
       };
     }
 
     return {
       shouldRedirect: false,
-      userMessage: errorCode?.userMessage || 'Authenticatiefout opgetreden.'
+      userMessage: errorCode?.userMessage || 'Authentication error occurred.'
     };
   }
 
@@ -198,8 +198,8 @@ export class ProductionErrorHandler {
       shouldRetry: true,
       retryAfter: isOffline ? 30 : 5,
       userMessage: isOffline 
-        ? 'Je bent offline. Controleer je internetverbinding.'
-        : 'Netwerkfout. Probeer het opnieuw.'
+        ? 'You are offline. Please check your internet connection.'
+        : 'Network error. Please try again.'
     };
   }
 
