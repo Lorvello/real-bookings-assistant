@@ -7,6 +7,7 @@ export const useSettingsData = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profileData, setProfileData] = useState({
+    id: null as string | null,  // Used to track if real server data is loaded
     full_name: '',
     email: '',
     phone: '',
@@ -75,6 +76,7 @@ export const useSettingsData = () => {
 
       if (data) {
         setProfileData({
+          id: data.id,  // Include id to indicate real data is loaded
           full_name: data.full_name || '',
           email: data.email || '',
           phone: data.phone || '',

@@ -121,9 +121,9 @@ export const UserManagement = ({
   const currentBusinessData = externalBusinessData || businessData;
   const isUsingExternalData = !!externalBusinessData;
 
-  // Sync local state when server data changes (initial load or after save)
+  // Sync local state when REAL server data is loaded (has id)
   useEffect(() => {
-    if (baseProfile) {
+    if (baseProfile?.id) {
       setLocalProfileData(baseProfile);
       setIsProfileInitialized(true);
     }
