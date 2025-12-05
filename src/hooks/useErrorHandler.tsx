@@ -22,35 +22,35 @@ export const useErrorHandler = () => {
         case '23505': // Unique violation
           return {
             type: 'validation',
-            message: 'Deze gegevens bestaan al in het systeem',
+            message: 'This data already exists in the system',
             details: error.details,
             retryable: false
           };
         case '23503': // Foreign key violation
           return {
             type: 'validation',
-            message: 'Ongeldige gegevens - gekoppelde record niet gevonden',
+            message: 'Invalid data - linked record not found',
             details: error.details,
             retryable: false
           };
         case '23514': // Check constraint violation
           return {
             type: 'validation',
-            message: 'Gegevens voldoen niet aan de vereisten',
+            message: 'Data does not meet requirements',
             details: error.hint || error.details,
             retryable: false
           };
         case 'P0001': // Custom raised exception
           return {
             type: 'validation',
-            message: error.message || 'Validatie fout',
+            message: error.message || 'Validation error',
             details: error.details,
             retryable: false
           };
         default:
           return {
             type: 'server',
-            message: 'Server fout opgetreden',
+            message: 'Server error occurred',
             details: error.message,
             retryable: true
           };
@@ -61,7 +61,7 @@ export const useErrorHandler = () => {
     if (error?.name === 'NetworkError' || error?.message?.includes('fetch')) {
       return {
         type: 'network',
-        message: 'Verbindingsprobleem - controleer je internetverbinding',
+        message: 'Connection problem - please check your internet connection',
         retryable: true
       };
     }
@@ -108,7 +108,7 @@ export const useErrorHandler = () => {
     // Default unknown error
     return {
       type: 'unknown',
-      message: error?.message || 'Er is een onbekende fout opgetreden',
+      message: error?.message || 'An unknown error occurred',
       retryable: true
     };
   }, []);
@@ -119,7 +119,7 @@ export const useErrorHandler = () => {
     
     // Show toast
     toast({
-      title: "Fout",
+      title: "Error",
       description: result.userMessage,
       variant: "destructive",
     });
@@ -150,8 +150,8 @@ export const useErrorHandler = () => {
       maxAttempts,
       onRetry: (attempt) => {
         toast({
-          title: "Opnieuw proberen...",
-          description: `Poging ${attempt}/${maxAttempts}`,
+          title: "Retrying...",
+          description: `Attempt ${attempt}/${maxAttempts}`,
         });
       }
     });

@@ -181,6 +181,19 @@ export const PasswordResetConfirmForm: React.FC = () => {
       if (error) {
         console.error('[PasswordReset] Update error:', error);
         
+        // Check for same password error
+        if (error.message?.includes('same_password') || 
+            error.message?.includes('different from the old') ||
+            error.message?.includes('should be different') ||
+            error.code === 'same_password') {
+          toast({
+            title: "Same Password",
+            description: "Your new password must be different from your current password. Please choose a different password.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         if (error.message.includes('token') || error.message.includes('session')) {
           toast({
             title: "Reset Link Expired",
