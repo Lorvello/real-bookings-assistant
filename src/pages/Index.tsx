@@ -27,12 +27,6 @@ const Index = () => {
     canonical: "/",
   });
 
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [user, loading, navigate]);
 
   useEffect(() => {
     // Check for password reset parameters in URL hash or search
