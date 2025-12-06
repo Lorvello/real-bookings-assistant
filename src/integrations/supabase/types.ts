@@ -529,6 +529,7 @@ export type Database = {
           payment_deadline: string | null
           payment_required: boolean | null
           payment_status: string | null
+          payment_timing: string | null
           service_name: string | null
           service_type_id: string | null
           session_id: string | null
@@ -562,6 +563,7 @@ export type Database = {
           payment_deadline?: string | null
           payment_required?: boolean | null
           payment_status?: string | null
+          payment_timing?: string | null
           service_name?: string | null
           service_type_id?: string | null
           session_id?: string | null
@@ -595,6 +597,7 @@ export type Database = {
           payment_deadline?: string | null
           payment_required?: boolean | null
           payment_status?: string | null
+          payment_timing?: string | null
           service_name?: string | null
           service_type_id?: string | null
           session_id?: string | null
@@ -1879,12 +1882,14 @@ export type Database = {
       payment_settings: {
         Row: {
           allow_partial_refunds: boolean
+          allowed_payment_timing: Json | null
           auto_cancel_unpaid_bookings: boolean
           calendar_id: string
           created_at: string
           enabled_payment_methods: Json | null
           id: string
           payment_deadline_hours: number | null
+          payment_optional: boolean | null
           payment_required_for_booking: boolean
           payout_option: string | null
           platform_fee_percentage: number
@@ -1894,12 +1899,14 @@ export type Database = {
         }
         Insert: {
           allow_partial_refunds?: boolean
+          allowed_payment_timing?: Json | null
           auto_cancel_unpaid_bookings?: boolean
           calendar_id: string
           created_at?: string
           enabled_payment_methods?: Json | null
           id?: string
           payment_deadline_hours?: number | null
+          payment_optional?: boolean | null
           payment_required_for_booking?: boolean
           payout_option?: string | null
           platform_fee_percentage?: number
@@ -1909,12 +1916,14 @@ export type Database = {
         }
         Update: {
           allow_partial_refunds?: boolean
+          allowed_payment_timing?: Json | null
           auto_cancel_unpaid_bookings?: boolean
           calendar_id?: string
           created_at?: string
           enabled_payment_methods?: Json | null
           id?: string
           payment_deadline_hours?: number | null
+          payment_optional?: boolean | null
           payment_required_for_booking?: boolean
           payout_option?: string | null
           platform_fee_percentage?: number

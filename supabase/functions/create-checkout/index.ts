@@ -2,13 +2,13 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeConfig } from "../_shared/stripeValidation.ts";
+import { calculateApplicationFee } from "../_shared/feeCalculator.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper logging function for enhanced debugging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
@@ -23,11 +23,25 @@ serve(async (req) => {
     logStep("Function started");
 
     // Parse request body first to get mode and service information
-    const { priceId, tier_name, price, is_annual, success_url, cancel_url, mode, serviceIds = [], automaticTax = false } = await req.json();
+    const { 
+      priceId, 
+      tier_name, 
+      price, 
+      is_annual, 
+      success_url, 
+      cancel_url, 
+      mode, 
+      serviceIds = [], 
+      automaticTax = false,
+      calendarId,
+      bookingId,
+      paymentMethod = 'card',
+    } = await req.json();
     
-    // SECURITY: Server-side validation of Stripe mode (cannot be bypassed by client)
+    // SECURITY: Server-side validation of Stripe mode
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     
     const stripeConfig = await validateStripeConfig(
       mode as 'test' | 'live' | undefined,
@@ -41,8 +55,9 @@ serve(async (req) => {
     
     logStep("Stripe configuration validated", { mode: stripeMode, isTestMode, clientRequested: mode });
 
-    // Create Supabase client
+    // Create Supabase clients
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } });
 
     // Authenticate user
     const authHeader = req.headers.get("Authorization");
@@ -57,17 +72,13 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Get origin from request headers for URL construction
-    const origin = req.headers.get("origin") || "https://3461320d-933f-4e55-89c4-11076909a36e.lovableproject.com";
+    const origin = req.headers.get("origin") || "https://bookingsassistant.com";
     const finalSuccessUrl = success_url || `${origin}/success`;
     const finalCancelUrl = cancel_url || `${origin}/dashboard`;
     
     logStep("Request data parsed", { 
       priceId, tier_name, price, is_annual, 
-      provided_success_url: success_url,
-      provided_cancel_url: cancel_url,
-      origin,
-      final_success_url: finalSuccessUrl,
-      final_cancel_url: finalCancelUrl,
+      calendarId, bookingId,
       mode: stripeMode 
     });
 
@@ -84,6 +95,42 @@ serve(async (req) => {
       logStep("No existing customer found, will create new one in checkout");
     }
 
+    // Determine if this is a service-based booking checkout (needs destination charge)
+    const isServiceBooking = serviceIds.length > 0 || (calendarId && bookingId);
+    let stripeAccount = null;
+    let paymentSettings = null;
+    let feeCalculation = null;
+
+    if (isServiceBooking && calendarId) {
+      // Get Stripe connected account for destination charge
+      const { data: account } = await supabaseAdmin
+        .from("business_stripe_accounts")
+        .select("*")
+        .eq("calendar_id", calendarId)
+        .eq("charges_enabled", true)
+        .single();
+
+      if (account) {
+        stripeAccount = account;
+        logStep("Connected Stripe account found", { accountId: account.stripe_account_id });
+      }
+
+      // Get payment settings
+      const { data: settings } = await supabaseAdmin
+        .from("payment_settings")
+        .select("*")
+        .eq("calendar_id", calendarId)
+        .single();
+
+      if (settings) {
+        paymentSettings = settings;
+        logStep("Payment settings found", { 
+          platformFee: settings.platform_fee_percentage,
+          payoutOption: settings.payout_option 
+        });
+      }
+    }
+
     // Create product name based on tier
     const productNames = {
       starter: "Starter Plan",
@@ -93,24 +140,17 @@ serve(async (req) => {
 
     const productName = productNames[tier_name as keyof typeof productNames] || "Subscription Plan";
     
-    // Convert price to cents (Stripe uses smallest currency unit)
+    // Convert price to cents
     const unitAmount = Math.round(price * 100);
-    
-    logStep("Creating checkout session", { 
-      productName, 
-      unitAmount, 
-      interval: is_annual ? 'year' : 'month',
-      customerId 
-    });
 
     // Handle service-based bookings with Stripe Price IDs
     let finalLineItems = [];
+    let totalAmountCents = 0;
     
     if (serviceIds.length > 0) {
       logStep("Fetching service information for checkout", { serviceIds });
       
-      // Fetch service types to get their Stripe Price IDs
-      const { data: services, error: serviceError } = await supabaseClient
+      const { data: services, error: serviceError } = await supabaseAdmin
         .from('service_types')
         .select('id, stripe_test_price_id, stripe_live_price_id, name, price, tax_enabled')
         .in('id', serviceIds);
@@ -120,34 +160,52 @@ serve(async (req) => {
       }
 
       finalLineItems = services.map((service: any) => {
-        const priceId = isTestMode ? service.stripe_test_price_id : service.stripe_live_price_id;
+        const stripePriceId = isTestMode ? service.stripe_test_price_id : service.stripe_live_price_id;
+        totalAmountCents += Math.round(service.price * 100);
         
-        if (!priceId) {
+        if (!stripePriceId) {
           throw new Error(`No Stripe Price ID found for service: ${service.name}`);
         }
         
         return {
-          price: priceId,
+          price: stripePriceId,
           quantity: 1
         };
       });
       
-      logStep("Service line items prepared", { finalLineItems });
+      logStep("Service line items prepared", { finalLineItems, totalAmountCents });
     }
 
-    // Create checkout session - use Price ID if provided, otherwise use dynamic pricing
+    // Calculate application fee if this is a service booking with connected account
+    if (isServiceBooking && stripeAccount && totalAmountCents > 0) {
+      feeCalculation = calculateApplicationFee({
+        amountCents: totalAmountCents,
+        paymentMethod,
+        payoutOption: (paymentSettings?.payout_option as 'standard' | 'instant') || 'standard',
+        platformFeePercentage: (paymentSettings?.platform_fee_percentage || 1.9) / 100,
+      });
+      
+      logStep("Application fee calculated", {
+        amount: totalAmountCents / 100,
+        applicationFee: feeCalculation.applicationFeeCents / 100,
+      });
+    }
+
+    // Create checkout session
     const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      client_reference_id: user.id, // Add user ID for session tracking
-      mode: serviceIds.length > 0 ? "payment" : "subscription", // Use payment mode for service bookings
+      client_reference_id: user.id,
+      mode: serviceIds.length > 0 ? "payment" : "subscription",
       success_url: `${finalSuccessUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: finalCancelUrl,
       metadata: {
         user_id: user.id,
         tier_name: tier_name || 'unknown',
         is_annual: is_annual ? 'true' : 'false',
-        service_ids: serviceIds.join(',')
+        service_ids: serviceIds.join(','),
+        calendar_id: calendarId || '',
+        booking_id: bookingId || '',
       }
     };
 
@@ -156,6 +214,26 @@ serve(async (req) => {
       sessionConfig.automatic_tax = { enabled: true };
       sessionConfig.billing_address_collection = 'required';
       logStep("Automatic tax enabled for checkout");
+    }
+
+    // Add payment intent data for destination charges (service bookings)
+    if (isServiceBooking && stripeAccount && feeCalculation) {
+      sessionConfig.payment_intent_data = {
+        application_fee_amount: feeCalculation.applicationFeeCents,
+        transfer_data: {
+          destination: stripeAccount.stripe_account_id,
+        },
+        metadata: {
+          calendar_id: calendarId,
+          booking_id: bookingId || '',
+          platform_fee_percentage: (paymentSettings?.platform_fee_percentage || 1.9).toString(),
+          payout_option: paymentSettings?.payout_option || 'standard',
+        },
+      };
+      logStep("Destination charge configured", { 
+        destination: stripeAccount.stripe_account_id,
+        applicationFee: feeCalculation.applicationFeeCents 
+      });
     }
 
     // Add subscription data only for subscription mode
@@ -169,12 +247,11 @@ serve(async (req) => {
       };
     }
 
+    // Configure line items
     if (finalLineItems.length > 0) {
-      // Use service-based line items
       sessionConfig.line_items = finalLineItems;
       logStep("Using service-based line items", { count: finalLineItems.length });
     } else if (priceId) {
-      // Use predefined Stripe Price ID
       sessionConfig.line_items = [
         {
           price: priceId,
@@ -183,7 +260,6 @@ serve(async (req) => {
       ];
       logStep("Using predefined Price ID", { priceId });
     } else {
-      // Legacy dynamic pricing
       sessionConfig.line_items = [
         {
           price_data: {
@@ -203,11 +279,17 @@ serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
-    logStep("Checkout session created successfully", { sessionId: session.id, url: session.url });
+    logStep("Checkout session created successfully", { 
+      sessionId: session.id, 
+      url: session.url,
+      applicationFee: feeCalculation?.applicationFeeCents 
+    });
 
     return new Response(JSON.stringify({ 
       url: session.url,
-      session_id: session.id 
+      session_id: session.id,
+      application_fee: feeCalculation?.applicationFeeCents,
+      fee_breakdown: feeCalculation,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
