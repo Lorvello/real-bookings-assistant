@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Shield, ExternalLink, CheckCircle, AlertCircle, Loader2, Euro, Clock, RefreshCw, Check, ArrowRight, TestTube, RotateCcw, Info, ChevronDown, TrendingUp, Zap, Lock, X } from 'lucide-react';
+import { CreditCard, Shield, ExternalLink, CheckCircle, AlertCircle, Loader2, Euro, Clock, RefreshCw, Check, ArrowRight, TestTube, RotateCcw, Info, ChevronDown, TrendingUp, Zap, Lock, X, MessageSquare, Link, Wallet } from 'lucide-react';
 import { FundFlowCard } from './FundFlowCard';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
@@ -183,6 +183,7 @@ export function PaymentSettingsTab() {
   const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
   const [feesInfoOpen, setFeesInfoOpen] = useState(false);
   const [fundFlowOpen, setFundFlowOpen] = useState(false);
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const [currencyConversionModalOpen, setCurrencyConversionModalOpen] = useState(false);
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -1117,6 +1118,92 @@ export function PaymentSettingsTab() {
                       <TrendingUp className="h-3 w-3" />
                       <span>Learn more in Fees</span>
                     </button>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+
+            {/* How it works Section */}
+            <Collapsible open={howItWorksOpen} onOpenChange={setHowItWorksOpen}>
+              <div className="bg-muted/30 border border-muted/40 p-3 rounded-lg">
+                <CollapsibleTrigger asChild>
+                  <button className="flex items-center justify-between w-full text-left">
+                    <div>
+                      <h4 className="text-sm font-medium text-foreground mb-0.5">How it works (Payment Flow)</h4>
+                      <p className="text-xs text-muted-foreground">Step-by-step guide to how customers pay for bookings</p>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${howItWorksOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <div className="mt-4 space-y-4">
+                    {/* Step 1 */}
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">1</div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <MessageSquare className="h-4 w-4 text-primary" />
+                          <h5 className="text-sm font-medium text-foreground">Customer books via WhatsApp</h5>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Customer starts a conversation with your WhatsApp booking assistant, selects a service and preferred time slot.</p>
+                      </div>
+                    </div>
+                    
+                    {/* Step 2 */}
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">2</div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <Link className="h-4 w-4 text-primary" />
+                          <h5 className="text-sm font-medium text-foreground">Payment link is generated</h5>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {settings?.payment_required_for_booking 
+                            ? "Customer receives a secure payment link and must pay to confirm their booking."
+                            : "Customer can choose to pay now, later, or on-site at your location."}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Step 3 */}
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">3</div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <CreditCard className="h-4 w-4 text-primary" />
+                          <h5 className="text-sm font-medium text-foreground">Customer completes payment</h5>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Customer selects their preferred payment method ({selectedMethods.length > 0 ? selectedMethods.map(m => paymentMethodsFees.find(pm => pm.id === m)?.name).filter(Boolean).join(', ') : 'iDEAL, Card, etc.'}) and pays securely through Stripe.</p>
+                      </div>
+                    </div>
+                    
+                    {/* Step 4 */}
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">4</div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                          <h5 className="text-sm font-medium text-foreground">Confirmation sent</h5>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Both you and the customer receive confirmation. The booking is marked as confirmed in your calendar.</p>
+                      </div>
+                    </div>
+                    
+                    {/* Step 5 */}
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">5</div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <Wallet className="h-4 w-4 text-primary" />
+                          <h5 className="text-sm font-medium text-foreground">Funds arrive in your account</h5>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          After processing, funds are transferred to your bank. 
+                          {selectedPayoutOption === 'instant' ? ' Instant payout: within minutes.' : ' Standard payout: 2-3 business days.'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </CollapsibleContent>
               </div>
