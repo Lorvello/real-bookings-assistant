@@ -575,25 +575,93 @@ export function PaymentSettingsTab() {
             Powered by Stripe Connect for seamless payouts to your business account.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label className="text-base">Enable Pay & Book</Label>
-              <div className="text-sm text-muted-foreground">
-                Allow customers to pay for bookings upfront through WhatsApp
+        <CardContent className="space-y-6">
+          {/* Layer 1: Enable Pay & Book (Main Toggle) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium">Enable Pay & Book</Label>
+                <div className="text-sm text-muted-foreground">
+                  Allow customers to pay for bookings online through WhatsApp or your booking page
+                </div>
               </div>
+              <Switch checked={settings?.secure_payments_enabled || false} onCheckedChange={toggleSecurePayments} disabled={settingsSaving || !isStripeSetupComplete} data-pay-book-toggle />
             </div>
-            <Switch checked={settings?.secure_payments_enabled || false} onCheckedChange={toggleSecurePayments} disabled={settingsSaving || !isStripeSetupComplete} data-pay-book-toggle />
-          </div>
-          
-          {settings?.secure_payments_enabled && !isStripeSetupComplete && <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <p className="text-sm text-amber-800">
-                  {hasStripeAccount ? "Complete your Stripe account setup to enable Pay & Book" : "Connect your Stripe account to enable Pay & Book"}
-                </p>
+            
+            {settings?.secure_payments_enabled && !isStripeSetupComplete && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <p className="text-sm text-amber-800">
+                    {hasStripeAccount ? "Complete your Stripe account setup to enable Pay & Book" : "Connect your Stripe account to enable Pay & Book"}
+                  </p>
+                </div>
               </div>
-            </div>}
+            )}
+          </div>
+
+          {/* Layer 2: Make Payment Optional (Only visible when Pay & Book is enabled AND Stripe is complete) */}
+          {settings?.secure_payments_enabled && isStripeSetupComplete && (
+            <div className="border-t pt-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Make Payment Optional</Label>
+                  <div className="text-sm text-muted-foreground max-w-md">
+                    When enabled, customers can choose when to pay. When disabled, payment is required upfront to confirm the booking.
+                  </div>
+                </div>
+                <Switch 
+                  checked={!(settings?.payment_required_for_booking ?? true)} 
+                  onCheckedChange={(checked) => togglePaymentRequired(!checked)} 
+                  disabled={settingsSaving} 
+                />
+              </div>
+
+              {/* Explanation cards based on toggle state */}
+              {settings?.payment_required_for_booking ? (
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <Lock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-foreground mb-1">Payment Required Upfront</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Customers <strong>must pay online</strong> before their booking is confirmed. This maximizes security and eliminates no-shows.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-muted/50 border border-muted p-4 rounded-lg space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <Wallet className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-foreground mb-1">Customer Choice Enabled</h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Customers can choose how they want to pay when making a booking:
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="text-foreground font-medium">Pay Now</span>
+                          <span className="text-muted-foreground">— Pay online immediately via Stripe</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-foreground font-medium">Pay Later</span>
+                          <span className="text-muted-foreground">— Receive an invoice or payment reminder</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="text-foreground font-medium">Pay On-Site</span>
+                          <span className="text-muted-foreground">— Pay with cash or card at your location</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
