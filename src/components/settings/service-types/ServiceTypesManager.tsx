@@ -14,7 +14,6 @@ import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useTeamMemberServices } from '@/hooks/useTeamMemberServices';
 import type { ServiceType } from '@/types/database';
-
 interface ServiceTypeFormData {
   name: string;
   description: string;
@@ -25,7 +24,6 @@ interface ServiceTypeFormData {
   tax_behavior: 'inclusive' | 'exclusive';
   tax_code: string;
 }
-
 const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   name: '',
   description: '',
@@ -36,13 +34,17 @@ const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   tax_behavior: 'exclusive',
   tax_code: ''
 };
-
 export function ServiceTypesManager() {
-  const { selectedCalendar } = useCalendarContext();
-  const { toast } = useToast();
-  const { status: taxStatus } = useTaxConfiguration(selectedCalendar?.id);
+  const {
+    selectedCalendar
+  } = useCalendarContext();
+  const {
+    toast
+  } = useToast();
+  const {
+    status: taxStatus
+  } = useTaxConfiguration(selectedCalendar?.id);
   const hasCompleteTaxConfig = taxStatus?.isFullyConfigured || false;
-  
   const [showDialog, setShowDialog] = useState(false);
   const [editingService, setEditingService] = useState<ServiceType | null>(null);
   const [saving, setSaving] = useState(false);
@@ -51,17 +53,24 @@ export function ServiceTypesManager() {
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
-
-  const { serviceTypes, loading, createServiceType, updateServiceType, deleteServiceType, refetch } = useServiceTypes(selectedCalendar?.id);
-  const { assignMultipleMembers, services: teamMemberServices } = useTeamMemberServices(selectedCalendar?.id);
-
+  const {
+    serviceTypes,
+    loading,
+    createServiceType,
+    updateServiceType,
+    deleteServiceType,
+    refetch
+  } = useServiceTypes(selectedCalendar?.id);
+  const {
+    assignMultipleMembers,
+    services: teamMemberServices
+  } = useTeamMemberServices(selectedCalendar?.id);
   const handleCreate = () => {
     setEditingService(null);
     setFormData(DEFAULT_FORM_DATA);
     setSelectedTeamMembers([]);
     setShowDialog(true);
   };
-
   const handleEdit = (service: ServiceType) => {
     setEditingService(service);
     setFormData({
@@ -74,19 +83,14 @@ export function ServiceTypesManager() {
       tax_behavior: (service as any).tax_behavior || 'exclusive',
       tax_code: (service as any).tax_code || ''
     });
-    
+
     // Load existing team member assignments
-    const existingAssignments = teamMemberServices
-      .filter(tms => tms.service_type_id === service.id)
-      .map(tms => tms.user_id);
+    const existingAssignments = teamMemberServices.filter(tms => tms.service_type_id === service.id).map(tms => tms.user_id);
     setSelectedTeamMembers(existingAssignments);
-    
     setShowDialog(true);
   };
-
   const handleSave = async () => {
     if (!selectedCalendar?.id) return;
-
     setSaving(true);
     try {
       if (editingService) {
@@ -95,21 +99,17 @@ export function ServiceTypesManager() {
           description: formData.description,
           duration: parseInt(formData.duration),
           price: parseFloat(formData.price),
-          color: formData.color,
+          color: formData.color
         } as any);
-        
+
         // Sync team member assignments for edited service
         if (selectedCalendar?.id && selectedTeamMembers.length > 0) {
-          const existingAssignments = teamMemberServices
-            .filter(tms => tms.service_type_id === editingService.id)
-            .map(tms => tms.user_id);
-          
+          const existingAssignments = teamMemberServices.filter(tms => tms.service_type_id === editingService.id).map(tms => tms.user_id);
           const toAdd = selectedTeamMembers.filter(id => !existingAssignments.includes(id));
           if (toAdd.length > 0) {
             await assignMultipleMembers(editingService.id, toAdd, selectedCalendar.id);
           }
         }
-        
         toast({
           title: "Service updated",
           description: "Service type has been updated successfully"
@@ -125,21 +125,19 @@ export function ServiceTypesManager() {
           is_active: true,
           tax_enabled: formData.tax_enabled,
           tax_behavior: formData.tax_behavior,
-          tax_code: formData.tax_code || null,
+          tax_code: formData.tax_code || null
         };
         const newService = await createServiceType(serviceData as any);
-        
+
         // Assign team members to newly created service
         if (newService && selectedCalendar?.id && selectedTeamMembers.length > 0) {
           await assignMultipleMembers(newService.id, selectedTeamMembers, selectedCalendar.id);
         }
-        
         toast({
           title: "Service created",
           description: "Service type has been created successfully"
         });
       }
-      
       await refetch();
       handleClose();
     } catch (error) {
@@ -153,7 +151,6 @@ export function ServiceTypesManager() {
       setSaving(false);
     }
   };
-
   const handleClose = () => {
     setShowDialog(false);
     setEditingService(null);
@@ -161,15 +158,12 @@ export function ServiceTypesManager() {
     setSelectedTeamMembers([]);
     setSaving(false);
   };
-
   const handleDelete = (service: ServiceType) => {
     setDeletingService(service);
     setShowDeleteDialog(true);
   };
-
   const confirmDelete = async () => {
     if (!deletingService?.id) return;
-    
     try {
       await deleteServiceType(deletingService.id);
       toast({
@@ -189,28 +183,23 @@ export function ServiceTypesManager() {
       setDeletingService(null);
     }
   };
-
   const cancelDelete = () => {
     setShowDeleteDialog(false);
     setDeletingService(null);
   };
-
   const handleInstallmentConfig = (service: ServiceType) => {
     setInstallmentConfigService(service);
   };
-
   const handleInstallmentUpdate = async (serviceId: string, enabled: boolean, plan?: any) => {
     try {
       await updateServiceType(serviceId, {
         installments_enabled: enabled,
         custom_installment_plan: plan || null
       } as any);
-
       toast({
         title: "Installment settings updated",
         description: "Service installment configuration has been updated successfully"
       });
-      
       setInstallmentConfigService(null);
       await refetch();
     } catch (error) {
@@ -222,19 +211,14 @@ export function ServiceTypesManager() {
       });
     }
   };
-
   if (loading) {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="p-8 text-center">
           <p className="text-muted-foreground">Loading services...</p>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -243,13 +227,7 @@ export function ServiceTypesManager() {
               <CardDescription>
                 Manage the services you offer and assign team members
               </CardDescription>
-              {!hasCompleteTaxConfig && (
-                <div className="mt-2 p-3 bg-warning/10 border border-warning/20 rounded-md">
-                  <p className="text-sm text-warning-foreground">
-                    Complete tax configuration in Tax Settings to enable tax on services
-                  </p>
-                </div>
-              )}
+              {!hasCompleteTaxConfig}
             </div>
             <Button onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" />
@@ -259,21 +237,9 @@ export function ServiceTypesManager() {
         </CardHeader>
 
         <CardContent>
-          {serviceTypes.length === 0 ? (
-            <ServiceTypesEmptyState onAddService={handleCreate} />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {serviceTypes.map((service) => (
-                <ServiceTypeCard
-                  key={service.id}
-                  service={service}
-                  onEdit={() => handleEdit(service)}
-                  onDelete={() => handleDelete(service)}
-                  onInstallmentConfig={() => handleInstallmentConfig(service)}
-                />
-              ))}
-            </div>
-          )}
+          {serviceTypes.length === 0 ? <ServiceTypesEmptyState onAddService={handleCreate} /> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {serviceTypes.map(service => <ServiceTypeCard key={service.id} service={service} onEdit={() => handleEdit(service)} onDelete={() => handleDelete(service)} onInstallmentConfig={() => handleInstallmentConfig(service)} />)}
+            </div>}
         </CardContent>
       </Card>
 
@@ -285,24 +251,11 @@ export function ServiceTypesManager() {
               {editingService ? 'Edit Service Type' : 'Create Service Type'}
             </DialogTitle>
             <DialogDescription>
-              {editingService
-                ? 'Update service details and team member assignments'
-                : 'Create a new service type and assign team members'}
+              {editingService ? 'Update service details and team member assignments' : 'Create a new service type and assign team members'}
             </DialogDescription>
           </DialogHeader>
           
-          <ServiceTypeForm
-            formData={formData}
-            setFormData={setFormData}
-            onSave={handleSave}
-            onCancel={handleClose}
-            saving={saving}
-            isEditing={!!editingService}
-            taxConfigured={hasCompleteTaxConfig}
-            calendarId={selectedCalendar?.id}
-            selectedTeamMembers={selectedTeamMembers}
-            onTeamMembersChange={setSelectedTeamMembers}
-          />
+          <ServiceTypeForm formData={formData} setFormData={setFormData} onSave={handleSave} onCancel={handleClose} saving={saving} isEditing={!!editingService} taxConfigured={hasCompleteTaxConfig} calendarId={selectedCalendar?.id} selectedTeamMembers={selectedTeamMembers} onTeamMembersChange={setSelectedTeamMembers} />
         </DialogContent>
       </Dialog>
 
@@ -325,8 +278,7 @@ export function ServiceTypesManager() {
       </AlertDialog>
 
       {/* Installment Configuration Dialog */}
-      {installmentConfigService && (
-        <Dialog open={!!installmentConfigService} onOpenChange={() => setInstallmentConfigService(null)}>
+      {installmentConfigService && <Dialog open={!!installmentConfigService} onOpenChange={() => setInstallmentConfigService(null)}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Installment Settings</DialogTitle>
@@ -334,23 +286,12 @@ export function ServiceTypesManager() {
                 Configure installment payment options for {installmentConfigService.name}
               </DialogDescription>
             </DialogHeader>
-            <ServiceTypeInstallmentConfig
-              serviceType={installmentConfigService}
-              businessInstallmentsEnabled={false}
-              businessDefaultPlan={null}
-              onUpdate={(updates: any) => {
-                if ('installments_enabled' in updates || 'custom_installment_plan' in updates) {
-                  handleInstallmentUpdate(
-                    installmentConfigService.id,
-                    updates.installments_enabled || false,
-                    updates.custom_installment_plan
-                  );
-                }
-              }}
-            />
+            <ServiceTypeInstallmentConfig serviceType={installmentConfigService} businessInstallmentsEnabled={false} businessDefaultPlan={null} onUpdate={(updates: any) => {
+          if ('installments_enabled' in updates || 'custom_installment_plan' in updates) {
+            handleInstallmentUpdate(installmentConfigService.id, updates.installments_enabled || false, updates.custom_installment_plan);
+          }
+        }} />
           </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
+        </Dialog>}
+    </div>;
 }
