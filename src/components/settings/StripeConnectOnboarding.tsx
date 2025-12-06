@@ -13,6 +13,9 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useSettingsContext } from '@/contexts/SettingsContext';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { getStripeMode } from '@/utils/stripeConfig';
 import type { BusinessStripeAccount } from '@/types/payments';
 
 interface StripeConnectOnboardingProps {
@@ -27,7 +30,9 @@ export function StripeConnectOnboarding({
   const { createOnboardingLink, onboarding, refreshAccountStatus } = useStripeConnect();
   const { invalidateCache } = useUserStatus();
   const { refetch: refetchProfile } = useProfile();
+  const { toast } = useToast();
   const [step, setStep] = useState<'intro' | 'onboarding' | 'complete'>('intro');
+  const testMode = getStripeMode() === 'test';
 
   const requirements = [
     'Business bank account details',
@@ -57,6 +62,29 @@ export function StripeConnectOnboarding({
             sessionStorage.clear();
             await refetchProfile();
             await invalidateCache();
+            
+            // Auto-sync existing services with Stripe
+            console.log('[STRIPE ONBOARDING] Auto-syncing services with Stripe...');
+            try {
+              const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-services-with-stripe', {
+                body: { test_mode: testMode }
+              });
+              
+              if (syncError) {
+                console.error('[STRIPE ONBOARDING] Service sync error:', syncError);
+              } else {
+                console.log('[STRIPE ONBOARDING] Services synced:', syncData);
+                const syncedCount = syncData?.results?.filter((r: any) => r.success)?.length || 0;
+                if (syncedCount > 0) {
+                  toast({
+                    title: "Services Connected",
+                    description: `${syncedCount} service(s) are now ready to accept payments.`,
+                  });
+                }
+              }
+            } catch (syncErr) {
+              console.error('[STRIPE ONBOARDING] Service sync exception:', syncErr);
+            }
             
             setStep('complete');
             onComplete(account);

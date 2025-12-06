@@ -154,6 +154,25 @@ export const StripeEmbeddedOnboardingModal: React.FC<StripeEmbeddedOnboardingMod
       // Step 4: Invalidate user status cache
       await invalidateCache();
       
+      // Step 5: Automatically sync existing services with Stripe
+      console.log('[STRIPE EMBEDDED] Auto-syncing services with Stripe...');
+      const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-services-with-stripe', {
+        body: { test_mode: testMode }
+      });
+      
+      if (syncError) {
+        console.error('[STRIPE EMBEDDED] Service sync error:', syncError);
+      } else {
+        console.log('[STRIPE EMBEDDED] Services synced:', syncData);
+        const syncedCount = syncData?.results?.filter((r: any) => r.success)?.length || 0;
+        if (syncedCount > 0) {
+          toast({
+            title: "Services Connected",
+            description: `${syncedCount} service(s) are now ready to accept payments.`,
+          });
+        }
+      }
+      
     } catch (error) {
       console.error('[STRIPE EMBEDDED] Error refreshing status after completion:', error);
     }
