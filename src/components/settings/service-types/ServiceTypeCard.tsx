@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ServiceType } from '@/types/calendar';
 import { TaxBadge } from '@/components/tax/TaxBadge';
 import { InstallmentBadge } from './InstallmentBadge';
+import { StripeStatusBadge } from './StripeStatusBadge';
 
 interface ServiceTypeCardProps {
   service: ServiceType;
@@ -43,6 +44,11 @@ export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig
               <h3 className="text-foreground font-medium truncate">{service.name}</h3>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <StripeStatusBadge
+                price={service.price}
+                stripeTestPriceId={(service as any).stripe_test_price_id}
+                stripeLivePriceId={(service as any).stripe_live_price_id}
+              />
               <TaxBadge 
                 taxEnabled={service.tax_enabled || false}
                 taxBehavior={service.tax_behavior}
