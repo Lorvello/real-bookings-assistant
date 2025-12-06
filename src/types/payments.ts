@@ -10,6 +10,8 @@ export interface PaymentSettings {
   auto_cancel_unpaid_bookings: boolean;
   enabled_payment_methods: string[];
   payout_option: 'standard' | 'instant';
+  payment_optional: boolean;
+  allowed_payment_timing: string[];
   created_at: string;
   updated_at: string;
 }
@@ -67,4 +69,41 @@ export interface PaymentResponse {
   payment_intent?: PaymentIntent;
   payment_url?: string;
   error?: string;
+}
+
+export interface PaymentTiming {
+  type: 'pay_now' | 'pay_later' | 'pay_on_site';
+  label: string;
+  description: string;
+}
+
+export const PAYMENT_TIMING_OPTIONS: PaymentTiming[] = [
+  {
+    type: 'pay_now',
+    label: 'Pay Now',
+    description: 'Complete payment immediately during booking',
+  },
+  {
+    type: 'pay_later',
+    label: 'Pay Later',
+    description: 'Receive a payment link after booking confirmation',
+  },
+  {
+    type: 'pay_on_site',
+    label: 'Pay On-Site',
+    description: 'Pay at the location when service is provided',
+  },
+];
+
+export interface FeeBreakdown {
+  applicationFeeCents: number;
+  platformFeeCents: number;
+  paymentMethodFeeCents: number;
+  payoutFeeCents: number;
+  breakdown: {
+    platformFeePercent: number;
+    platformFeeFixed: number;
+    paymentMethodFeePercent: number;
+    paymentMethodFeeFixed: number;
+  };
 }

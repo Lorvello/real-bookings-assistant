@@ -9,6 +9,18 @@ export const usePaymentSettings = (calendarId?: string) => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
+  const parseSettings = (data: any): PaymentSettings => ({
+    ...data,
+    enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
+      ? data.enabled_payment_methods as string[]
+      : ['ideal'],
+    payout_option: (data.payout_option as 'standard' | 'instant') || 'standard',
+    payment_optional: data.payment_optional ?? false,
+    allowed_payment_timing: Array.isArray(data.allowed_payment_timing)
+      ? data.allowed_payment_timing as string[]
+      : ['pay_now'],
+  });
+
   const fetchSettings = async () => {
     if (!calendarId) {
       setLoading(false);
@@ -26,13 +38,7 @@ export const usePaymentSettings = (calendarId?: string) => {
       if (error) throw error;
 
       if (data) {
-        setSettings({
-          ...data,
-          enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
-            ? data.enabled_payment_methods as string[]
-            : ['ideal'],
-          payout_option: (data.payout_option as 'standard' | 'instant') || 'standard'
-        });
+        setSettings(parseSettings(data));
       }
     } catch (error) {
       console.error('Error fetching payment settings:', error);
@@ -64,13 +70,7 @@ export const usePaymentSettings = (calendarId?: string) => {
           .single();
 
         if (error) throw error;
-        setSettings({
-          ...data,
-          enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
-            ? data.enabled_payment_methods as string[]
-            : ['ideal'],
-          payout_option: (data.payout_option as 'standard' | 'instant') || 'standard'
-        });
+        setSettings(parseSettings(data));
       } else {
         // Update existing settings
         const { data, error } = await supabase
@@ -81,13 +81,7 @@ export const usePaymentSettings = (calendarId?: string) => {
           .single();
 
         if (error) throw error;
-        setSettings({
-          ...data,
-          enabled_payment_methods: Array.isArray(data.enabled_payment_methods) 
-            ? data.enabled_payment_methods as string[]
-            : ['ideal'],
-          payout_option: (data.payout_option as 'standard' | 'instant') || 'standard'
-        });
+        setSettings(parseSettings(data));
       }
 
       toast({
@@ -119,6 +113,14 @@ export const usePaymentSettings = (calendarId?: string) => {
 
   const updatePaymentMethods = async (methods: string[]) => {
     return await updateSettings({ enabled_payment_methods: methods });
+  };
+
+  const togglePaymentOptional = async (optional: boolean) => {
+    return await updateSettings({ payment_optional: optional });
+  };
+
+  const updateAllowedPaymentTiming = async (timings: string[]) => {
+    return await updateSettings({ allowed_payment_timing: timings });
   };
 
   const updatePayoutOption = async (option: 'standard' | 'instant') => {
@@ -169,6 +171,8 @@ export const usePaymentSettings = (calendarId?: string) => {
     toggleSecurePayments,
     togglePaymentRequired,
     updatePaymentMethods,
+    togglePaymentOptional,
+    updateAllowedPaymentTiming,
     updatePayoutOption,
     refetch: fetchSettings
   };
