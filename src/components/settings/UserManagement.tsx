@@ -28,6 +28,7 @@ import { CountryPhoneInput } from './CountryPhoneInput';
 import { EnhancedDatePicker } from './EnhancedDatePicker';
 import { businessTypes } from '@/constants/settingsOptions';
 import ReactSelect from 'react-select';
+import { SetPasswordSection } from './SetPasswordSection';
 
 
 // Enhanced language options - alphabetically sorted with more languages
@@ -476,6 +477,9 @@ export const UserManagement = ({
             </TabsList>
             
             <TabsContent value="profile">
+              {/* Set Password Section for Google-only accounts */}
+              <SetPasswordSection />
+              
               {localProfileData && (
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
