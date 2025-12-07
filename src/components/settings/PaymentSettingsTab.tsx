@@ -1026,7 +1026,7 @@ export function PaymentSettingsTab() {
                         <p className="text-sm text-muted-foreground mb-3">
                           Customers can choose how they want to pay when making a booking:
                         </p>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center space-x-2 text-sm">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
                             <span className="text-foreground font-medium">Pay Now</span>
@@ -1037,47 +1037,56 @@ export function PaymentSettingsTab() {
                             <span className="text-foreground font-medium">Pay On-Site</span>
                             <span className="text-muted-foreground">— Pay with cash or card at your location</span>
                           </div>
+                          {/* Installments as third option */}
+                          {userStatus.hasFullAccess && (installmentSettings?.enabled) && (
+                            <div className="flex items-center space-x-2 text-sm">
+                              <div className="w-2 h-2 rounded-full bg-blue-500" />
+                              <span className="text-foreground font-medium">Pay in Installments</span>
+                              <span className="text-muted-foreground">— Split payment into multiple parts</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
 
-              {/* Separator */}
-              <Separator className="my-4" />
-
-              {/* Installment Payments */}
-              {userStatus.hasFullAccess ? (
-                <InstallmentSettings
-                  installmentsEnabled={installmentSettings?.enabled || false}
-                  defaultPlan={installmentSettings?.defaultPlan || {
-                    type: 'preset',
-                    preset: '50_50',
-                    deposits: [
-                      { percentage: 50, timing: 'now' },
-                      { percentage: 50, timing: 'appointment' }
-                    ]
-                  }}
-                  onUpdate={updateInstallmentSettings}
-                  subscriptionTier={profile?.subscription_tier || 'free'}
-                />
-              ) : (
-                <div className="opacity-50">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <Label className="text-base font-medium">Installment Payments</Label>
-                        <Badge variant="secondary" className="text-xs">Pro</Badge>
+                {/* Installment Configuration - shows when customer choice is enabled */}
+                {!settings?.payment_required_for_booking && (
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    {userStatus.hasFullAccess ? (
+                      <InstallmentSettings
+                        installmentsEnabled={installmentSettings?.enabled || false}
+                        defaultPlan={installmentSettings?.defaultPlan || {
+                          type: 'preset',
+                          preset: '50_50',
+                          deposits: [
+                            { percentage: 50, timing: 'now' },
+                            { percentage: 50, timing: 'appointment' }
+                          ]
+                        }}
+                        onUpdate={updateInstallmentSettings}
+                        subscriptionTier={profile?.subscription_tier || 'free'}
+                      />
+                    ) : (
+                      <div className="opacity-50">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <Label className="text-base font-medium">Installment Payments</Label>
+                              <Badge variant="secondary" className="text-xs">Pro</Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              Add installments as a payment option for your customers. Upgrade to Professional to unlock.
+                            </div>
+                          </div>
+                          <Switch disabled checked={false} />
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Allow customers to pay in multiple installments. Upgrade to Professional to unlock.
-                      </div>
-                    </div>
-                    <Switch disabled checked={false} />
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Fund Flow Section */}
