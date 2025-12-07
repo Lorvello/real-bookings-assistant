@@ -72,7 +72,7 @@ export interface PaymentResponse {
 }
 
 export interface PaymentTiming {
-  type: 'pay_now' | 'pay_later' | 'pay_on_site';
+  type: 'pay_now' | 'pay_on_site';
   label: string;
   description: string;
 }
@@ -82,11 +82,6 @@ export const PAYMENT_TIMING_OPTIONS: PaymentTiming[] = [
     type: 'pay_now',
     label: 'Pay Now',
     description: 'Complete payment immediately during booking',
-  },
-  {
-    type: 'pay_later',
-    label: 'Pay Later',
-    description: 'Receive a payment link after booking confirmation',
   },
   {
     type: 'pay_on_site',

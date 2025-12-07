@@ -77,26 +77,25 @@ serve(async (req) => {
     };
     logStep("Payment settings loaded", settings);
 
-    // Validate payment timing if payment is optional
-    if (settings.payment_optional && payment_timing !== 'pay_now') {
-      // Customer chose to pay later or on-site - just update booking status
+    // Handle pay on-site option when payment is optional
+    if (settings.payment_optional && payment_timing === 'pay_on_site') {
       const { error: updateError } = await supabaseClient
         .from("bookings")
         .update({
-          payment_timing: payment_timing,
-          payment_status: payment_timing === 'pay_later' ? 'pending' : 'pay_on_site',
+          payment_timing: 'pay_on_site',
+          payment_status: 'pay_on_site',
         })
         .eq("id", booking_id);
 
       if (updateError) {
-        logStep("Error updating booking for non-immediate payment", { error: updateError.message });
+        logStep("Error updating booking for pay on-site", { error: updateError.message });
       }
 
       return new Response(
         JSON.stringify({
           success: true,
-          payment_timing: payment_timing,
-          message: `Booking confirmed with ${payment_timing === 'pay_later' ? 'pay later' : 'pay on-site'} option`,
+          payment_timing: 'pay_on_site',
+          message: 'Booking confirmed with pay on-site option',
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
