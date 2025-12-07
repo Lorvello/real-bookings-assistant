@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,10 +6,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Settings } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceTypeInstallmentCard } from './ServiceTypeInstallmentCard';
@@ -61,7 +59,6 @@ export function InstallmentSettings({
   const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, ServiceTypeInstallmentSettings>>({});
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
   const { selectedCalendar } = useCalendarContext();
   const { serviceTypes } = useServiceTypes(undefined, true); // Load all service types
 
@@ -221,16 +218,22 @@ export function InstallmentSettings({
     }
   };
 
+  // Sync enabled state with prop
+  useEffect(() => {
+    setEnabled(installmentsEnabled);
+  }, [installmentsEnabled]);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
+    <div className="space-y-4 p-4 bg-muted/30 border border-border/50 rounded-lg">
+      {/* Enable toggle at the top */}
+      <div className="flex items-center justify-between pb-3 border-b border-border/30">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-medium text-foreground">Installment Payments</h3>
+            <Label className="text-sm font-medium text-foreground">Enable Installment Payments</Label>
             {enabled && <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/30">Active</Badge>}
           </div>
-          <p className="text-sm text-muted-foreground">
-            Add "Pay in Installments" as a payment option for your customers
+          <p className="text-xs text-muted-foreground">
+            Add "Pay in Installments" as a payment option for customers
           </p>
         </div>
         <Switch
@@ -240,27 +243,9 @@ export function InstallmentSettings({
         />
       </div>
       
-      {subscriptionTier === 'free' ? (
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">
-                Upgrade Required
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Installment payment options are available for Professional plans and above
-              </p>
-              <Button variant="default" size="sm">
-                Upgrade to Professional
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : enabled && (
-        <div className="space-y-6 pl-4 border-l-2 border-blue-500/30">
+      {/* Configuration only shows when enabled */}
+      {enabled && (
+        <div className="space-y-6">
               <div className="space-y-6">
                 {/* Allow Customer Choice - New top option */}
                 <div className="flex items-center justify-between">

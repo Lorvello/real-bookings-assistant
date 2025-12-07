@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, Shield, ExternalLink, CheckCircle, AlertCircle, Loader2, Euro, Clock, RefreshCw, Check, ArrowRight, TestTube, RotateCcw, Info, ChevronDown, TrendingUp, Zap, Lock, X, MessageSquare, Link, Wallet } from 'lucide-react';
+import { CreditCard, Shield, ExternalLink, CheckCircle, AlertCircle, Loader2, Euro, Clock, RefreshCw, Check, ArrowRight, TestTube, RotateCcw, Info, ChevronDown, TrendingUp, Zap, Lock, X, MessageSquare, Link, Wallet, Settings } from 'lucide-react';
 import { FundFlowCard } from './FundFlowCard';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
@@ -981,112 +981,115 @@ export function PaymentSettingsTab() {
               </div>
             </div>
 
-            {/* Payment Flexibility Section - combines Make Payment Optional and Installments */}
-            <div className="bg-muted/50 p-4 rounded-lg space-y-6">
-              <div className="flex items-center space-x-2 mb-2">
+            {/* Payment Flexibility Section - Only show when Pay & Book is enabled */}
+            <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+              <div className="flex items-center space-x-2">
                 <Wallet className="h-5 w-5 text-primary" />
                 <h4 className="font-medium text-foreground">Payment Flexibility</h4>
               </div>
 
-              {/* Make Payment Optional */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-base font-medium">Make Payment Optional</Label>
-                    <div className="text-sm text-muted-foreground max-w-md">
-                      When enabled, customers can choose when to pay. When disabled, payment is required upfront to confirm the booking.
-                    </div>
+              {/* Make Payment Optional Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base font-medium">Make Payment Optional</Label>
+                  <div className="text-sm text-muted-foreground max-w-md">
+                    When enabled, customers can choose when to pay. When disabled, payment is required upfront.
                   </div>
-                  <Switch 
-                    checked={!(settings?.payment_required_for_booking ?? true)} 
-                    onCheckedChange={(checked) => togglePaymentRequired(!checked)} 
-                    disabled={settingsSaving} 
-                  />
                 </div>
+                <Switch 
+                  checked={!(settings?.payment_required_for_booking ?? true)} 
+                  onCheckedChange={(checked) => togglePaymentRequired(!checked)} 
+                  disabled={settingsSaving} 
+                />
+              </div>
 
-                {/* Explanation cards based on toggle state */}
-                {settings?.payment_required_for_booking ? (
-                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                    <div className="flex items-start space-x-3">
-                      <Lock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-medium text-foreground mb-1">Payment Required Upfront</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Customers <strong>must pay online</strong> before their booking is confirmed. This maximizes security and eliminates no-shows.
-                        </p>
-                      </div>
+              {/* Dynamic status display based on toggle state */}
+              {settings?.payment_required_for_booking ? (
+                <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <Lock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Payment Required Upfront</span> — Customers must pay online before their booking is confirmed.
+                      </p>
                     </div>
                   </div>
-                ) : (
-                  <div className="bg-background/50 border border-border/50 p-4 rounded-lg space-y-4">
-                    <div className="flex items-start space-x-3">
-                      <Wallet className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-medium text-foreground mb-1">Customer Choice Enabled</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Customers can choose how they want to pay when making a booking:
-                        </p>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2 text-sm">
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <span className="text-foreground font-medium">Pay Now</span>
-                            <span className="text-muted-foreground">— Pay online immediately via Stripe</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm">
-                            <div className="w-2 h-2 rounded-full bg-amber-500" />
-                            <span className="text-foreground font-medium">Pay On-Site</span>
-                            <span className="text-muted-foreground">— Pay with cash or card at your location</span>
-                          </div>
-                          {/* Installments as third option */}
-                          {userStatus.hasFullAccess && (installmentSettings?.enabled) && (
-                            <div className="flex items-center space-x-2 text-sm">
-                              <div className="w-2 h-2 rounded-full bg-blue-500" />
-                              <span className="text-foreground font-medium">Pay in Installments</span>
-                              <span className="text-muted-foreground">— Split payment into multiple parts</span>
-                            </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Customer choices info box */}
+                  <div className="bg-background/50 border border-border/50 p-4 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Customers can choose how to pay:
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        <span className="text-foreground font-medium">Pay Now</span>
+                        <span className="text-muted-foreground">— Pay online immediately</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-amber-500" />
+                        <span className="text-foreground font-medium">Pay On-Site</span>
+                        <span className="text-muted-foreground">— Pay at your location</span>
+                      </div>
+                      {/* Installments - only show if configured */}
+                      {installmentSettings?.enabled && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          <span className="text-foreground font-medium">Pay in Installments</span>
+                          <span className="text-muted-foreground">— Split into multiple payments</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Installment Configuration - collapsible when optional is enabled */}
+                  <Collapsible>
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center justify-between w-full p-3 bg-background/50 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center space-x-2">
+                          <Settings className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">Configure Installment Plans</span>
+                          {installmentSettings?.enabled && (
+                            <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/30">Active</Badge>
+                          )}
+                          {!userStatus.hasFullAccess && (
+                            <Badge variant="secondary" className="text-xs">Pro</Badge>
                           )}
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Installment Configuration - shows when customer choice is enabled */}
-                {!settings?.payment_required_for_booking && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    {userStatus.hasFullAccess ? (
-                      <InstallmentSettings
-                        installmentsEnabled={installmentSettings?.enabled || false}
-                        defaultPlan={installmentSettings?.defaultPlan || {
-                          type: 'preset',
-                          preset: '50_50',
-                          deposits: [
-                            { percentage: 50, timing: 'now' },
-                            { percentage: 50, timing: 'appointment' }
-                          ]
-                        }}
-                        onUpdate={updateInstallmentSettings}
-                        subscriptionTier={profile?.subscription_tier || 'free'}
-                      />
-                    ) : (
-                      <div className="opacity-50">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <Label className="text-base font-medium">Installment Payments</Label>
-                              <Badge variant="secondary" className="text-xs">Pro</Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              Add installments as a payment option for your customers. Upgrade to Professional to unlock.
-                            </div>
-                          </div>
-                          <Switch disabled checked={false} />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      {userStatus.hasFullAccess ? (
+                        <InstallmentSettings
+                          installmentsEnabled={installmentSettings?.enabled || false}
+                          defaultPlan={installmentSettings?.defaultPlan || {
+                            type: 'preset',
+                            preset: '50_50',
+                            deposits: [
+                              { percentage: 50, timing: 'now' },
+                              { percentage: 50, timing: 'appointment' }
+                            ]
+                          }}
+                          onUpdate={updateInstallmentSettings}
+                          subscriptionTier={profile?.subscription_tier || 'free'}
+                        />
+                      ) : (
+                        <div className="p-4 bg-muted/30 rounded-lg">
+                          <p className="text-sm text-muted-foreground">
+                            Installment payment options are available for Professional plans and above.
+                          </p>
+                          <Button variant="default" size="sm" className="mt-3">
+                            Upgrade to Professional
+                          </Button>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              )}
             </div>
 
             {/* Fund Flow Section */}
