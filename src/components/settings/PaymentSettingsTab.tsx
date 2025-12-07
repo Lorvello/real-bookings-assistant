@@ -646,11 +646,6 @@ export function PaymentSettingsTab() {
                           <span className="text-muted-foreground">— Pay online immediately via Stripe</span>
                         </div>
                         <div className="flex items-center space-x-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                          <span className="text-foreground font-medium">Pay Later</span>
-                          <span className="text-muted-foreground">— Receive an invoice or payment reminder</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm">
                           <div className="w-2 h-2 rounded-full bg-amber-500" />
                           <span className="text-foreground font-medium">Pay On-Site</span>
                           <span className="text-muted-foreground">— Pay with cash or card at your location</span>

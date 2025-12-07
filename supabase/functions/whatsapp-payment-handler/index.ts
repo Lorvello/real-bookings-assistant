@@ -83,16 +83,16 @@ serve(async (req) => {
       throw new Error(`Payment timing '${paymentTiming}' is not allowed for this business`);
     }
 
-    // If payment is optional and customer chose not to pay now, return early
-    if (settings.payment_optional && paymentTiming !== 'pay_now') {
-      logStep("Customer chose deferred payment", { paymentTiming });
+    // If payment is optional and customer chose pay on-site, return early
+    if (settings.payment_optional && paymentTiming === 'pay_on_site') {
+      logStep("Customer chose pay on-site", { paymentTiming });
       
       return new Response(
         JSON.stringify({
           success: true,
           payment_deferred: true,
-          payment_timing: paymentTiming,
-          message: `Payment will be collected ${paymentTiming === 'pay_later' ? 'later' : 'on-site'}`,
+          payment_timing: 'pay_on_site',
+          message: 'Payment will be collected on-site',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
