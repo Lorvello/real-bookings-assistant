@@ -40,6 +40,7 @@ export interface UserProfile {
   payment_status?: 'unpaid' | 'paid' | 'failed' | 'pending';
   grace_period_end?: string;
   qr_code_data?: string;
+  password_added?: boolean;
   created_at: string;
   updated_at: string;
 }
