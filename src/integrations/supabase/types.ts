@@ -3114,6 +3114,7 @@ export type Database = {
           opening_hours_note: string | null
           other_info: string | null
           parking_info: string | null
+          password_added: boolean | null
           payment_status: string | null
           phone: string | null
           public_transport_info: string | null
@@ -3178,6 +3179,7 @@ export type Database = {
           opening_hours_note?: string | null
           other_info?: string | null
           parking_info?: string | null
+          password_added?: boolean | null
           payment_status?: string | null
           phone?: string | null
           public_transport_info?: string | null
@@ -3242,6 +3244,7 @@ export type Database = {
           opening_hours_note?: string | null
           other_info?: string | null
           parking_info?: string | null
+          password_added?: boolean | null
           payment_status?: string | null
           phone?: string | null
           public_transport_info?: string | null
