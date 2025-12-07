@@ -224,49 +224,43 @@ export function InstallmentSettings({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-medium text-foreground">Installment Payments</h3>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-medium text-foreground">Installment Payments</h3>
+            {enabled && <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/30">Active</Badge>}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Add "Pay in Installments" as a payment option for your customers
+          </p>
         </div>
+        <Switch
+          id="installments-enabled"
+          checked={enabled}
+          onCheckedChange={setEnabled}
+        />
       </div>
-      <div className="space-y-4">
-        {subscriptionTier === 'free' ? (
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
-                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-foreground">
-                  Upgrade Required
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Installment payment options are available for Professional plans and above
-                </p>
-                <Button variant="default" size="sm">
-                  Upgrade to Professional
-                </Button>
-              </div>
+      
+      {subscriptionTier === 'free' ? (
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0">
+              <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">
+                Upgrade Required
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Installment payment options are available for Professional plans and above
+              </p>
+              <Button variant="default" size="sm">
+                Upgrade to Professional
+              </Button>
             </div>
           </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="installments-enabled" className="text-sm font-medium text-foreground">
-                  Enable Installment Payments
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Allow customers to pay for services in multiple installments
-                </p>
-              </div>
-              <Switch
-                id="installments-enabled"
-                checked={enabled}
-                onCheckedChange={setEnabled}
-              />
-            </div>
-
-            {enabled && (
+        </div>
+      ) : enabled && (
+        <div className="space-y-6 pl-4 border-l-2 border-blue-500/30">
               <div className="space-y-6">
                 {/* Allow Customer Choice - New top option */}
                 <div className="flex items-center justify-between">
@@ -583,10 +577,8 @@ export function InstallmentSettings({
                   {saving ? 'Saving...' : 'Save Installment Settings'}
                 </Button>
               </div>
-            )}
-          </>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
