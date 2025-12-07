@@ -18,18 +18,18 @@ export const useBookingsFilters = (bookings: Booking[]) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState<DateRange>(() => {
     try {
-      return getPresetRange('last30days');
+      return getPresetRange('upcoming');
     } catch (error) {
       console.error('Error getting preset range, using default:', error);
       const now = new Date();
-      const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-      const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
       
       return {
         startDate,
         endDate,
-        preset: 'last30days',
-        label: 'Last 30 days'
+        preset: 'upcoming',
+        label: 'Upcoming'
       };
     }
   });
