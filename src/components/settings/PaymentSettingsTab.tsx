@@ -600,63 +600,6 @@ export function PaymentSettingsTab() {
             )}
           </div>
 
-          {/* Layer 2: Make Payment Optional (Only visible when Pay & Book is enabled AND Stripe is complete) */}
-          {settings?.secure_payments_enabled && isStripeSetupComplete && (
-            <div className="border-t pt-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Make Payment Optional</Label>
-                  <div className="text-sm text-muted-foreground max-w-md">
-                    When enabled, customers can choose when to pay. When disabled, payment is required upfront to confirm the booking.
-                  </div>
-                </div>
-                <Switch 
-                  checked={!(settings?.payment_required_for_booking ?? true)} 
-                  onCheckedChange={(checked) => togglePaymentRequired(!checked)} 
-                  disabled={settingsSaving} 
-                />
-              </div>
-
-              {/* Explanation cards based on toggle state */}
-              {settings?.payment_required_for_booking ? (
-                <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <Lock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-medium text-foreground mb-1">Payment Required Upfront</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Customers <strong>must pay online</strong> before their booking is confirmed. This maximizes security and eliminates no-shows.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-muted/50 border border-muted p-4 rounded-lg space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <Wallet className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-medium text-foreground mb-1">Customer Choice Enabled</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Customers can choose how they want to pay when making a booking:
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-green-500" />
-                          <span className="text-foreground font-medium">Pay Now</span>
-                          <span className="text-muted-foreground">— Pay online immediately via Stripe</span>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-amber-500" />
-                          <span className="text-foreground font-medium">Pay On-Site</span>
-                          <span className="text-muted-foreground">— Pay with cash or card at your location</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -1038,9 +981,74 @@ export function PaymentSettingsTab() {
               </div>
             </div>
 
-            {/* Installment Payments Section - placed above FundFlow */}
-            {userStatus.hasFullAccess ? (
-              <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+            {/* Payment Flexibility Section - combines Make Payment Optional and Installments */}
+            <div className="bg-muted/50 p-4 rounded-lg space-y-6">
+              <div className="flex items-center space-x-2 mb-2">
+                <Wallet className="h-5 w-5 text-primary" />
+                <h4 className="font-medium text-foreground">Payment Flexibility</h4>
+              </div>
+
+              {/* Make Payment Optional */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base font-medium">Make Payment Optional</Label>
+                    <div className="text-sm text-muted-foreground max-w-md">
+                      When enabled, customers can choose when to pay. When disabled, payment is required upfront to confirm the booking.
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={!(settings?.payment_required_for_booking ?? true)} 
+                    onCheckedChange={(checked) => togglePaymentRequired(!checked)} 
+                    disabled={settingsSaving} 
+                  />
+                </div>
+
+                {/* Explanation cards based on toggle state */}
+                {settings?.payment_required_for_booking ? (
+                  <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Lock className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-foreground mb-1">Payment Required Upfront</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Customers <strong>must pay online</strong> before their booking is confirmed. This maximizes security and eliminates no-shows.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-background/50 border border-border/50 p-4 rounded-lg space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <Wallet className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-foreground mb-1">Customer Choice Enabled</h4>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Customers can choose how they want to pay when making a booking:
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2 text-sm">
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <span className="text-foreground font-medium">Pay Now</span>
+                            <span className="text-muted-foreground">— Pay online immediately via Stripe</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm">
+                            <div className="w-2 h-2 rounded-full bg-amber-500" />
+                            <span className="text-foreground font-medium">Pay On-Site</span>
+                            <span className="text-muted-foreground">— Pay with cash or card at your location</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Separator */}
+              <Separator className="my-4" />
+
+              {/* Installment Payments */}
+              {userStatus.hasFullAccess ? (
                 <InstallmentSettings
                   installmentsEnabled={installmentSettings?.enabled || false}
                   defaultPlan={installmentSettings?.defaultPlan || {
@@ -1054,8 +1062,23 @@ export function PaymentSettingsTab() {
                   onUpdate={updateInstallmentSettings}
                   subscriptionTier={profile?.subscription_tier || 'free'}
                 />
-              </div>
-            ) : null}
+              ) : (
+                <div className="opacity-50">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-base font-medium">Installment Payments</Label>
+                        <Badge variant="secondary" className="text-xs">Pro</Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Allow customers to pay in multiple installments. Upgrade to Professional to unlock.
+                      </div>
+                    </div>
+                    <Switch disabled checked={false} />
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Fund Flow Section */}
             <Collapsible open={fundFlowOpen} onOpenChange={setFundFlowOpen}>
