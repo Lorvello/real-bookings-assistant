@@ -262,6 +262,25 @@ export function PaymentSettingsTab() {
     }
   };
 
+  // Wrapper for Make Payment Optional - auto-enables Pay & Book if needed
+  const handleTogglePaymentOptional = async (optional: boolean) => {
+    if (optional && !settings?.secure_payments_enabled) {
+      // First enable Pay & Book
+      await toggleSecurePayments(true);
+    }
+    // When optional=true, payment is NOT required (inverted logic)
+    await togglePaymentRequired(!optional);
+  };
+
+  // Wrapper for Installments - auto-enables Pay & Book if needed
+  const handleUpdateInstallmentSettings = async (settingsData: any) => {
+    if (settingsData.enabled && !settings?.secure_payments_enabled) {
+      // First enable Pay & Book
+      await toggleSecurePayments(true);
+    }
+    return await updateInstallmentSettings(settingsData);
+  };
+
   const loadStripeAccount = async () => {
     setAccountLoading(true);
     console.log('[PAYMENT SETTINGS] Loading Stripe account...');
@@ -1011,7 +1030,7 @@ export function PaymentSettingsTab() {
                 </div>
                 <Switch 
                   checked={!(settings?.payment_required_for_booking ?? true)} 
-                  onCheckedChange={(checked) => togglePaymentRequired(!checked)} 
+                  onCheckedChange={(checked) => handleTogglePaymentOptional(checked)} 
                   disabled={settingsSaving} 
                 />
               </div>
@@ -1086,7 +1105,7 @@ export function PaymentSettingsTab() {
                               { percentage: 50, timing: 'appointment' }
                             ]
                           }}
-                          onUpdate={updateInstallmentSettings}
+                          onUpdate={handleUpdateInstallmentSettings}
                           subscriptionTier={profile?.subscription_tier || 'free'}
                         />
                       ) : (
