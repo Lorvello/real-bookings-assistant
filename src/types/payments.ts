@@ -86,7 +86,7 @@ export const PAYMENT_TIMING_OPTIONS: PaymentTiming[] = [
   {
     type: 'pay_on_site',
     label: 'Pay On-Site',
-    description: 'Pay at the location when service is provided',
+    description: 'Pay when service is provided',
   },
 ];
 

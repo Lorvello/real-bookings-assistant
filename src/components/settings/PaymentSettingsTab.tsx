@@ -161,7 +161,8 @@ export function PaymentSettingsTab() {
     toggleSecurePayments,
     togglePaymentRequired,
     updatePaymentMethods,
-    updatePayoutOption
+    updatePayoutOption,
+    updateAllowedPaymentTiming
   } = usePaymentSettings(selectedCalendar?.id);
   const {
     loading: stripeLoading,
@@ -268,8 +269,50 @@ export function PaymentSettingsTab() {
       // First enable Pay & Book
       await toggleSecurePayments(true);
     }
+    
+    if (!optional) {
+      // Reset to defaults when disabling optional payments
+      await updateAllowedPaymentTiming(['pay_now']);
+      await updateInstallmentSettings({ enabled: false });
+      setInstallmentConfigOpen(false);
+    }
+    
     // When optional=true, payment is NOT required (inverted logic)
     await togglePaymentRequired(!optional);
+  };
+
+  // Wrapper for Pay On-Site toggle
+  const isPayOnSiteEnabled = settings?.allowed_payment_timing?.includes('pay_on_site') ?? false;
+  
+  const handleTogglePayOnSite = async (enabled: boolean) => {
+    // Auto-enable Pay & Book and Make Optional if needed
+    if (enabled && !settings?.secure_payments_enabled) {
+      await toggleSecurePayments(true);
+    }
+    if (enabled && settings?.payment_required_for_booking) {
+      await togglePaymentRequired(false);
+    }
+    
+    const currentTimings = settings?.allowed_payment_timing || ['pay_now'];
+    
+    if (enabled) {
+      const newTimings = [...currentTimings.filter(t => t !== 'pay_on_site'), 'pay_on_site'];
+      await updateAllowedPaymentTiming(newTimings);
+    } else {
+      const newTimings = currentTimings.filter(t => t !== 'pay_on_site');
+      await updateAllowedPaymentTiming(newTimings.length > 0 ? newTimings : ['pay_now']);
+    }
+  };
+
+  // Wrapper for Installments toggle - auto-enables Pay & Book and Make Optional if needed
+  const handleToggleInstallments = async (enabled: boolean) => {
+    if (enabled && !settings?.secure_payments_enabled) {
+      await toggleSecurePayments(true);
+    }
+    if (enabled && settings?.payment_required_for_booking) {
+      await togglePaymentRequired(false);
+    }
+    return await updateInstallmentSettings({ enabled });
   };
 
   // Wrapper for Installments - auto-enables Pay & Book if needed
@@ -277,6 +320,9 @@ export function PaymentSettingsTab() {
     if (settingsData.enabled && !settings?.secure_payments_enabled) {
       // First enable Pay & Book
       await toggleSecurePayments(true);
+    }
+    if (settingsData.enabled && settings?.payment_required_for_booking) {
+      await togglePaymentRequired(false);
     }
     return await updateInstallmentSettings(settingsData);
   };
@@ -1048,78 +1094,97 @@ export function PaymentSettingsTab() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {/* Customer choices info box */}
+                <div className="space-y-3">
+                  {/* Payment timing options - individually toggleable */}
                   <div className="bg-background/50 border border-border/50 p-4 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-3">
-                      Customers can choose how to pay:
+                      Select which payment options customers can choose from:
                     </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-foreground font-medium">Pay Now</span>
-                        <span className="text-muted-foreground">— Pay online immediately</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-amber-500" />
-                        <span className="text-foreground font-medium">Pay On-Site</span>
-                        <span className="text-muted-foreground">— Pay at your location</span>
-                      </div>
-                      {/* Installments - only show if configured */}
-                      {installmentSettings?.enabled && (
-                        <div className="flex items-center space-x-2 text-sm">
-                          <div className="w-2 h-2 rounded-full bg-blue-500" />
-                          <span className="text-foreground font-medium">Pay in Installments</span>
-                          <span className="text-muted-foreground">— Split into multiple payments</span>
+                    <div className="space-y-3">
+                      {/* Pay Now - Always enabled, not toggleable */}
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <div>
+                            <span className="text-foreground font-medium">Pay Now</span>
+                            <p className="text-sm text-muted-foreground">Pay online immediately</p>
+                          </div>
                         </div>
-                      )}
+                        <Badge variant="secondary" className="text-xs">Always enabled</Badge>
+                      </div>
+                      
+                      {/* Pay On-Site - Toggleable */}
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className={cn("w-2 h-2 rounded-full", isPayOnSiteEnabled ? "bg-amber-500" : "bg-muted-foreground/40")} />
+                          <div>
+                            <span className="text-foreground font-medium">Pay On-Site</span>
+                            <p className="text-sm text-muted-foreground">Pay when service is provided</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={isPayOnSiteEnabled}
+                          onCheckedChange={handleTogglePayOnSite}
+                          disabled={settingsSaving}
+                        />
+                      </div>
+                      
+                      {/* Installments - Toggleable with Configure option */}
+                      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className={cn("w-2 h-2 rounded-full", installmentSettings?.enabled ? "bg-blue-500" : "bg-muted-foreground/40")} />
+                          <div>
+                            <span className="text-foreground font-medium">Pay in Installments</span>
+                            <p className="text-sm text-muted-foreground">Split into multiple payments</p>
+                            {!userStatus.hasFullAccess && (
+                              <Badge variant="secondary" className="text-xs mt-1">Pro</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {installmentSettings?.enabled && userStatus.hasFullAccess && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => setInstallmentConfigOpen(!installmentConfigOpen)}
+                              className="text-xs"
+                            >
+                              <Settings className="h-3 w-3 mr-1" />
+                              Configure
+                            </Button>
+                          )}
+                          <Switch 
+                            checked={installmentSettings?.enabled || false}
+                            onCheckedChange={handleToggleInstallments}
+                            disabled={settingsSaving || !userStatus.hasFullAccess}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Installment Configuration - collapsible when optional is enabled */}
-                  <Collapsible open={installmentConfigOpen} onOpenChange={setInstallmentConfigOpen}>
-                    <CollapsibleTrigger asChild>
-                      <button className="flex items-center justify-between w-full p-3 bg-background/50 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center space-x-2">
-                          <Settings className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium text-foreground">Configure Installment Plans</span>
-                          {installmentSettings?.enabled && (
-                            <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/30">Active</Badge>
-                          )}
-                          {!userStatus.hasFullAccess && (
-                            <Badge variant="secondary" className="text-xs">Pro</Badge>
-                          )}
+                  {/* Installment Configuration - collapsible, only when enabled */}
+                  {installmentSettings?.enabled && userStatus.hasFullAccess && (
+                    <Collapsible open={installmentConfigOpen} onOpenChange={setInstallmentConfigOpen}>
+                      <CollapsibleContent>
+                        <div className="mt-2">
+                          <InstallmentSettings
+                            installmentsEnabled={installmentSettings?.enabled || false}
+                            defaultPlan={installmentSettings?.defaultPlan || {
+                              type: 'preset',
+                              preset: '50_50',
+                              deposits: [
+                                { percentage: 50, timing: 'now' },
+                                { percentage: 50, timing: 'appointment' }
+                              ]
+                            }}
+                            onUpdate={handleUpdateInstallmentSettings}
+                            subscriptionTier={profile?.subscription_tier || 'free'}
+                          />
                         </div>
-                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${installmentConfigOpen ? 'rotate-180' : ''}`} />
-                      </button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2">
-                      {userStatus.hasFullAccess ? (
-                        <InstallmentSettings
-                          installmentsEnabled={installmentSettings?.enabled || false}
-                          defaultPlan={installmentSettings?.defaultPlan || {
-                            type: 'preset',
-                            preset: '50_50',
-                            deposits: [
-                              { percentage: 50, timing: 'now' },
-                              { percentage: 50, timing: 'appointment' }
-                            ]
-                          }}
-                          onUpdate={handleUpdateInstallmentSettings}
-                          subscriptionTier={profile?.subscription_tier || 'free'}
-                        />
-                      ) : (
-                        <div className="p-4 bg-muted/30 rounded-lg">
-                          <p className="text-sm text-muted-foreground">
-                            Installment payment options are available for Professional plans and above.
-                          </p>
-                          <Button variant="default" size="sm" className="mt-3">
-                            Upgrade to Professional
-                          </Button>
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </Collapsible>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
                 </div>
               )}
             </div>
