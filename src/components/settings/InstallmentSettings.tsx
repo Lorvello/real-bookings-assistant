@@ -29,7 +29,6 @@ interface InstallmentPlan {
 interface ServiceTypeInstallmentSettings {
   enabled: boolean;
   plan: InstallmentPlan;
-  allowCustomerChoice: boolean;
 }
 
 interface InstallmentSettingsProps {
@@ -46,7 +45,6 @@ export function InstallmentSettings({
   subscriptionTier 
 }: InstallmentSettingsProps) {
   const [enabled, setEnabled] = useState(installmentsEnabled);
-  const [allowCustomerChoice, setAllowCustomerChoice] = useState(true);
   const [planType, setPlanType] = useState<'preset' | 'custom'>(defaultPlan.type || 'preset');
   const [presetSelection, setPresetSelection] = useState(defaultPlan.preset || '100_at_booking');
   const [fixedDepositAmount, setFixedDepositAmount] = useState(defaultPlan.fixed_deposit_amount || 50);
@@ -193,7 +191,6 @@ export function InstallmentSettings({
 
       const settingsData = {
         enabled,
-        allowCustomerChoice,
         defaultPlan: plan,
         applyToServices,
         selectedServices: applyToServices === 'selected' ? selectedServices : undefined,
@@ -201,8 +198,7 @@ export function InstallmentSettings({
           ? selectedServices.map(serviceId => ({
               serviceTypeId: serviceId,
               enabled: serviceTypeSettings[serviceId]?.enabled ?? true,
-              plan: serviceTypeSettings[serviceId]?.plan ?? plan,
-              allowCustomerChoice: serviceTypeSettings[serviceId]?.allowCustomerChoice ?? allowCustomerChoice
+              plan: serviceTypeSettings[serviceId]?.plan ?? plan
             }))
           : undefined
       };
@@ -247,23 +243,6 @@ export function InstallmentSettings({
       {enabled && (
         <div className="space-y-6">
               <div className="space-y-6">
-                {/* Allow Customer Choice - New top option */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label htmlFor="allow-customer-choice" className="text-sm font-medium text-foreground">
-                      Allow customers to choose
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      When enabled, customers can choose between your installment plan or paying in full upfront
-                    </p>
-                  </div>
-                  <Switch
-                    id="allow-customer-choice"
-                    checked={allowCustomerChoice}
-                    onCheckedChange={setAllowCustomerChoice}
-                  />
-                </div>
-
                 {/* Apply to Services Section */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium text-foreground">Apply to Services</Label>
@@ -297,7 +276,7 @@ export function InstallmentSettings({
                                   setSelectedServices([...selectedServices, service.id]);
                                   // Initialize with default plan for new selections
                                   if (!serviceTypeSettings[service.id]) {
-                                   setServiceTypeSettings(prev => ({
+                                  setServiceTypeSettings(prev => ({
                                      ...prev,
                                      [service.id]: {
                                        enabled: true,
@@ -305,8 +284,7 @@ export function InstallmentSettings({
                                          type: 'preset',
                                          preset: '100_at_booking',
                                          deposits: [{ percentage: 100, timing: 'now' }]
-                                       },
-                                       allowCustomerChoice: allowCustomerChoice
+                                       }
                                      }
                                    }));
                                   }
