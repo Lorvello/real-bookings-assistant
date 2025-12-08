@@ -272,13 +272,17 @@ export function PaymentSettingsTab() {
     
     if (!optional) {
       // Reset to defaults when disabling optional payments
-      await updateAllowedPaymentTiming(['pay_now']);
-      await updateInstallmentSettings({ enabled: false });
+      // Run all resets in PARALLEL for instant UI response
       setInstallmentConfigOpen(false);
+      await Promise.all([
+        updateAllowedPaymentTiming(['pay_now']),
+        updateInstallmentSettings({ enabled: false }),
+        togglePaymentRequired(true) // inverted: !optional = true
+      ]);
+    } else {
+      // When optional=true, payment is NOT required (inverted logic)
+      await togglePaymentRequired(false);
     }
-    
-    // When optional=true, payment is NOT required (inverted logic)
-    await togglePaymentRequired(!optional);
   };
 
   // Wrapper for Pay On-Site toggle
