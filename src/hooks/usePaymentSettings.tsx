@@ -104,7 +104,14 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const toggleSecurePayments = async (enabled: boolean) => {
+    // OPTIMISTIC: Update local state immediately for instant UI feedback
     if (!enabled) {
+      setSettings(prev => prev ? { 
+        ...prev, 
+        secure_payments_enabled: false,
+        payment_required_for_booking: true,
+        payment_optional: false
+      } : prev);
       // Cascade: reset all related settings when Pay & Book is disabled
       return await updateSettings({ 
         secure_payments_enabled: false,
@@ -112,10 +119,13 @@ export const usePaymentSettings = (calendarId?: string) => {
         payment_optional: false              // Reset to not optional
       });
     }
+    setSettings(prev => prev ? { ...prev, secure_payments_enabled: enabled } : prev);
     return await updateSettings({ secure_payments_enabled: enabled });
   };
 
   const togglePaymentRequired = async (required: boolean) => {
+    // OPTIMISTIC: Update local state immediately for instant UI feedback
+    setSettings(prev => prev ? { ...prev, payment_required_for_booking: required } : prev);
     return await updateSettings({ payment_required_for_booking: required });
   };
 
@@ -128,6 +138,8 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const updateAllowedPaymentTiming = async (timings: string[]) => {
+    // OPTIMISTIC: Update local state immediately for instant UI feedback
+    setSettings(prev => prev ? { ...prev, allowed_payment_timing: timings } : prev);
     return await updateSettings({ allowed_payment_timing: timings });
   };
 
