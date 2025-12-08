@@ -188,6 +188,7 @@ export function PaymentSettingsTab() {
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingMethods, setSavingMethods] = useState(false);
+  const [installmentConfigOpen, setInstallmentConfigOpen] = useState(false);
 
   // Payout options state
   const [selectedPayoutOption, setSelectedPayoutOption] = useState<'standard' | 'instant'>('standard');
@@ -249,6 +250,18 @@ export function PaymentSettingsTab() {
     const original = settings?.payout_option ?? 'standard';
     setHasUnsavedPayoutChanges(original !== selectedPayoutOption);
   }, [selectedPayoutOption, settings?.payout_option]);
+
+  // Wrapper function to handle cascade logic when Pay & Book is disabled
+  const handleToggleSecurePayments = async (enabled: boolean) => {
+    const success = await toggleSecurePayments(enabled);
+    
+    if (success && !enabled) {
+      // Reset installments when Pay & Book is disabled
+      await updateInstallmentSettings({ enabled: false });
+      setInstallmentConfigOpen(false);
+    }
+  };
+
   const loadStripeAccount = async () => {
     setAccountLoading(true);
     console.log('[PAYMENT SETTINGS] Loading Stripe account...');
@@ -585,7 +598,7 @@ export function PaymentSettingsTab() {
                   Allow customers to pay for bookings online through WhatsApp or your booking page
                 </div>
               </div>
-              <Switch checked={settings?.secure_payments_enabled || false} onCheckedChange={toggleSecurePayments} disabled={settingsSaving || !isStripeSetupComplete} data-pay-book-toggle />
+              <Switch checked={settings?.secure_payments_enabled || false} onCheckedChange={handleToggleSecurePayments} disabled={settingsSaving || !isStripeSetupComplete} data-pay-book-toggle />
             </div>
             
             {settings?.secure_payments_enabled && !isStripeSetupComplete && (
@@ -1045,7 +1058,7 @@ export function PaymentSettingsTab() {
                   </div>
 
                   {/* Installment Configuration - collapsible when optional is enabled */}
-                  <Collapsible>
+                  <Collapsible open={installmentConfigOpen} onOpenChange={setInstallmentConfigOpen}>
                     <CollapsibleTrigger asChild>
                       <button className="flex items-center justify-between w-full p-3 bg-background/50 border border-border/50 rounded-lg hover:bg-muted/30 transition-colors">
                         <div className="flex items-center space-x-2">
@@ -1058,7 +1071,7 @@ export function PaymentSettingsTab() {
                             <Badge variant="secondary" className="text-xs">Pro</Badge>
                           )}
                         </div>
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${installmentConfigOpen ? 'rotate-180' : ''}`} />
                       </button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="mt-2">

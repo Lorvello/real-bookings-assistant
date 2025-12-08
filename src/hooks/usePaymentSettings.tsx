@@ -104,6 +104,14 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const toggleSecurePayments = async (enabled: boolean) => {
+    if (!enabled) {
+      // Cascade: reset all related settings when Pay & Book is disabled
+      return await updateSettings({ 
+        secure_payments_enabled: false,
+        payment_required_for_booking: true,  // Reset to required
+        payment_optional: false              // Reset to not optional
+      });
+    }
     return await updateSettings({ secure_payments_enabled: enabled });
   };
 

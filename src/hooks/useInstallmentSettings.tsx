@@ -72,13 +72,19 @@ export const useInstallmentSettings = () => {
     }
   };
 
-  const updateSettings = async (settingsData: InstallmentSettings) => {
+  const updateSettings = async (settingsData: Partial<InstallmentSettings>) => {
     if (!user) return false;
 
     try {
+      // Merge with existing settings
+      const mergedSettings = {
+        ...settings,
+        ...settingsData
+      };
+
       const { data, error } = await supabase.functions.invoke('manage-installment-settings', {
         body: {
-          ...settingsData,
+          ...mergedSettings,
           test_mode: isTestMode()
         }
       });
@@ -89,7 +95,7 @@ export const useInstallmentSettings = () => {
         throw new Error(data.error || 'Failed to update settings');
       }
 
-      setSettings(settingsData);
+      setSettings(mergedSettings as InstallmentSettings);
       toast({
         title: "Settings saved",
         description: "Installment settings have been updated successfully.",
