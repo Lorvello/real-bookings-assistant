@@ -114,12 +114,37 @@ serve(async (req) => {
     }
     logStep("Service type found", { serviceName: serviceType.name, price: serviceType.price });
 
-    // Get Stripe account for this calendar
+    // Get the calendar owner for Stripe account lookup
+    const { data: calendar } = await supabaseClient
+      .from("calendars")
+      .select("user_id")
+      .eq("id", conversation.calendar_id)
+      .single();
+
+    if (!calendar) {
+      throw new Error("Calendar not found");
+    }
+
+    // Get account_owner_id from users table (may be null for solo users)
+    const { data: ownerData } = await supabaseClient
+      .from("users")
+      .select("account_owner_id")
+      .eq("id", calendar.user_id)
+      .single();
+
+    const accountOwnerId = ownerData?.account_owner_id || calendar.user_id;
+    logStep("Account owner determined", { calendarUserId: calendar.user_id, accountOwnerId });
+
+    // Get Stripe account by account_owner_id
     const { data: stripeAccount } = await supabaseClient
       .from("business_stripe_accounts")
       .select("*")
-      .eq("calendar_id", conversation.calendar_id)
+      .eq("account_owner_id", accountOwnerId)
+      .eq("environment", testMode ? 'test' : 'live')
       .eq("charges_enabled", true)
+      .eq("onboarding_completed", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single();
 
     if (!stripeAccount) {

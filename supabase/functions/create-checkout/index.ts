@@ -102,17 +102,40 @@ serve(async (req) => {
     let feeCalculation = null;
 
     if (isServiceBooking && calendarId) {
-      // Get Stripe connected account for destination charge
-      const { data: account } = await supabaseAdmin
-        .from("business_stripe_accounts")
-        .select("*")
-        .eq("calendar_id", calendarId)
-        .eq("charges_enabled", true)
+      // Get the calendar owner for Stripe account lookup
+      const { data: calendarOwner } = await supabaseAdmin
+        .from("calendars")
+        .select("user_id")
+        .eq("id", calendarId)
         .single();
 
-      if (account) {
-        stripeAccount = account;
-        logStep("Connected Stripe account found", { accountId: account.stripe_account_id });
+      if (calendarOwner) {
+        // Get account_owner_id from users table (may be null for solo users)
+        const { data: ownerData } = await supabaseAdmin
+          .from("users")
+          .select("account_owner_id")
+          .eq("id", calendarOwner.user_id)
+          .single();
+
+        const accountOwnerId = ownerData?.account_owner_id || calendarOwner.user_id;
+        logStep("Account owner determined", { calendarUserId: calendarOwner.user_id, accountOwnerId });
+
+        // Get Stripe connected account by account_owner_id
+        const { data: account } = await supabaseAdmin
+          .from("business_stripe_accounts")
+          .select("*")
+          .eq("account_owner_id", accountOwnerId)
+          .eq("environment", isTestMode ? 'test' : 'live')
+          .eq("charges_enabled", true)
+          .eq("onboarding_completed", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (account) {
+          stripeAccount = account;
+          logStep("Connected Stripe account found", { accountId: account.stripe_account_id });
+        }
       }
 
       // Get payment settings
