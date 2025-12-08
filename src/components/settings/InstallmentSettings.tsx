@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { Switch } from '@/components/ui/switch';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,7 +43,7 @@ export function InstallmentSettings({
   onUpdate,
   subscriptionTier 
 }: InstallmentSettingsProps) {
-  const [enabled, setEnabled] = useState(installmentsEnabled);
+  // Note: enabled state is now managed by parent component via installmentsEnabled prop
   const [planType, setPlanType] = useState<'preset' | 'custom'>(defaultPlan.type || 'preset');
   const [presetSelection, setPresetSelection] = useState(defaultPlan.preset || '100_at_booking');
   const [fixedDepositAmount, setFixedDepositAmount] = useState(defaultPlan.fixed_deposit_amount || 50);
@@ -190,7 +189,7 @@ export function InstallmentSettings({
           };
 
       const settingsData = {
-        enabled,
+        enabled: installmentsEnabled, // Use prop instead of local state
         defaultPlan: plan,
         applyToServices,
         selectedServices: applyToServices === 'selected' ? selectedServices : undefined,
@@ -214,34 +213,10 @@ export function InstallmentSettings({
     }
   };
 
-  // Sync enabled state with prop
-  useEffect(() => {
-    setEnabled(installmentsEnabled);
-  }, [installmentsEnabled]);
-
   return (
     <div className="space-y-4 p-4 bg-muted/30 border border-border/50 rounded-lg">
-      {/* Enable toggle at the top */}
-      <div className="flex items-center justify-between pb-3 border-b border-border/30">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium text-foreground">Enable Installment Payments</Label>
-            {enabled && <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/30">Active</Badge>}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Add "Pay in Installments" as a payment option for customers
-          </p>
-        </div>
-        <Switch
-          id="installments-enabled"
-          checked={enabled}
-          onCheckedChange={setEnabled}
-        />
-      </div>
-      
-      {/* Configuration only shows when enabled */}
-      {enabled && (
-        <div className="space-y-6">
+      {/* Configuration content - parent manages enabled state */}
+      <div className="space-y-6">
               <div className="space-y-6">
                 {/* Apply to Services Section */}
                 <div className="space-y-3">
@@ -536,12 +511,11 @@ export function InstallmentSettings({
                   </div>
                 )}
 
-                <Button onClick={handleSave} disabled={saving || (enabled && !isValidPlan())} className="w-full">
+                <Button onClick={handleSave} disabled={saving || !isValidPlan()} className="w-full">
                   {saving ? 'Saving...' : 'Save Installment Settings'}
                 </Button>
               </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
