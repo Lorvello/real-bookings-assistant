@@ -37,7 +37,8 @@ const DEFAULT_FORM_DATA: ServiceTypeFormData = {
 export function ServiceTypesManager() {
   const {
     selectedCalendar,
-    calendars
+    calendars,
+    refreshCalendars
   } = useCalendarContext();
   const {
     toast
@@ -54,6 +55,12 @@ export function ServiceTypesManager() {
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
+  
+  // State for calendar selection in the form
+  const [targetCalendarId, setTargetCalendarId] = useState<string | null>(
+    selectedCalendar?.id || calendars[0]?.id || null
+  );
+  
   const {
     serviceTypes,
     loading,
@@ -66,10 +73,13 @@ export function ServiceTypesManager() {
     assignMultipleMembers,
     services: teamMemberServices
   } = useTeamMemberServices(selectedCalendar?.id);
+  
   const handleCreate = () => {
     setEditingService(null);
     setFormData(DEFAULT_FORM_DATA);
     setSelectedTeamMembers([]);
+    // Reset to current calendar or first available
+    setTargetCalendarId(selectedCalendar?.id || calendars[0]?.id || null);
     setShowDialog(true);
   };
   const handleEdit = (service: ServiceType) => {
@@ -91,12 +101,12 @@ export function ServiceTypesManager() {
     setShowDialog(true);
   };
   const handleSave = async () => {
-    const targetCalendarId = selectedCalendar?.id || calendars[0]?.id;
+    const calendarIdToUse = targetCalendarId || selectedCalendar?.id || calendars[0]?.id;
     
-    if (!targetCalendarId) {
+    if (!calendarIdToUse) {
       toast({
         title: "Geen kalender beschikbaar",
-        description: "Je hebt een kalender nodig om services aan te maken.",
+        description: "Selecteer of maak eerst een kalender aan.",
         variant: "destructive"
       });
       return;
@@ -127,7 +137,7 @@ export function ServiceTypesManager() {
         });
       } else {
         const serviceData = {
-          calendar_id: targetCalendarId,
+          calendar_id: calendarIdToUse,
           name: formData.name,
           description: formData.description,
           duration: parseInt(formData.duration),
@@ -141,8 +151,8 @@ export function ServiceTypesManager() {
         const newService = await createServiceType(serviceData as any);
 
         // Assign team members to newly created service
-        if (newService && selectedCalendar?.id && selectedTeamMembers.length > 0) {
-          await assignMultipleMembers(newService.id, selectedTeamMembers, selectedCalendar.id);
+        if (newService && calendarIdToUse && selectedTeamMembers.length > 0) {
+          await assignMultipleMembers(newService.id, selectedTeamMembers, calendarIdToUse);
         }
         toast({
           title: "Service created",
@@ -167,7 +177,15 @@ export function ServiceTypesManager() {
     setEditingService(null);
     setFormData(DEFAULT_FORM_DATA);
     setSelectedTeamMembers([]);
+    setTargetCalendarId(selectedCalendar?.id || calendars[0]?.id || null);
     setSaving(false);
+  };
+  
+  const handleCalendarCreated = async (calendar: any) => {
+    // Refresh calendars list in context
+    await refreshCalendars();
+    // Set the newly created calendar as the target
+    setTargetCalendarId(calendar.id);
   };
   const handleDelete = (service: ServiceType) => {
     setDeletingService(service);
@@ -266,7 +284,7 @@ export function ServiceTypesManager() {
             </DialogDescription>
           </DialogHeader>
           
-          <ServiceTypeForm formData={formData} setFormData={setFormData} onSave={handleSave} onCancel={handleClose} saving={saving} isEditing={!!editingService} taxConfigured={hasCompleteTaxConfig} calendarId={selectedCalendar?.id} selectedTeamMembers={selectedTeamMembers} onTeamMembersChange={setSelectedTeamMembers} />
+          <ServiceTypeForm formData={formData} setFormData={setFormData} onSave={handleSave} onCancel={handleClose} saving={saving} isEditing={!!editingService} taxConfigured={hasCompleteTaxConfig} calendarId={targetCalendarId || selectedCalendar?.id} selectedTeamMembers={selectedTeamMembers} onTeamMembersChange={setSelectedTeamMembers} calendars={calendars} selectedCalendarId={targetCalendarId} onCalendarSelect={setTargetCalendarId} onCalendarCreated={handleCalendarCreated} />
         </DialogContent>
       </Dialog>
 
