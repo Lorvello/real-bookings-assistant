@@ -257,6 +257,22 @@
   }
 }
 
+/* Neon pulse animation for alerts */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 4px hsl(45 93% 47%), 0 0 8px hsl(45 93% 47%), 0 0 12px hsl(45 93% 47%);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 8px hsl(45 93% 47%), 0 0 16px hsl(45 93% 47%), 0 0 24px hsl(45 93% 47%);
+    opacity: 0.9;
+  }
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);

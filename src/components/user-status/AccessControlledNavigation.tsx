@@ -16,6 +16,7 @@ import {
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAvailabilityAlerts } from '@/hooks/useAvailabilityAlerts';
 
 interface NavItem {
   name: string;
@@ -47,6 +48,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   const location = useLocation();
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
+  const { hasAlerts, alertCount } = useAvailabilityAlerts();
 
   // Memoize navigation items with ULTRA-STABLE state to prevent any flashing
   const navigationItems = useMemo(() => {
@@ -258,6 +260,22 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
                 <div className={`absolute ${isSidebarOpen ? '-top-1 -right-1' : '-top-1 -right-1'}`}>
                   <Lock className="h-3 w-3 text-red-400" />
                 </div>
+              )}
+              {/* Availability alert badge with neon effect */}
+              {item.href === '/availability' && hasAlerts && !item.isActive && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-yellow-400/40 animate-ping" />
+                      <span className="relative flex h-3.5 w-3.5 items-center justify-center rounded-full bg-yellow-500 animate-neon-pulse">
+                        <AlertCircle className="h-2.5 w-2.5 text-yellow-900" />
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="bg-yellow-500 text-yellow-900 border-yellow-600">
+                    <p>{alertCount} calendar{alertCount > 1 ? 's' : ''} need{alertCount === 1 ? 's' : ''} availability setup</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
             {isSidebarOpen && (
