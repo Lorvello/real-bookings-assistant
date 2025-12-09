@@ -95,6 +95,9 @@ export function ServiceTypesManager() {
       tax_code: (service as any).tax_code || ''
     });
 
+    // Set the calendar ID from the service being edited
+    setTargetCalendarId((service as any).calendar_id || selectedCalendar?.id || null);
+
     // Load existing team member assignments
     const existingAssignments = teamMemberServices.filter(tms => tms.service_type_id === service.id).map(tms => tms.user_id);
     setSelectedTeamMembers(existingAssignments);
@@ -116,6 +119,7 @@ export function ServiceTypesManager() {
     try {
       if (editingService) {
         await updateServiceType(editingService.id, {
+          calendar_id: calendarIdToUse,
           name: formData.name,
           description: formData.description,
           duration: parseInt(formData.duration),
@@ -124,11 +128,11 @@ export function ServiceTypesManager() {
         } as any);
 
         // Sync team member assignments for edited service
-        if (selectedCalendar?.id && selectedTeamMembers.length > 0) {
+        if (calendarIdToUse && selectedTeamMembers.length > 0) {
           const existingAssignments = teamMemberServices.filter(tms => tms.service_type_id === editingService.id).map(tms => tms.user_id);
           const toAdd = selectedTeamMembers.filter(id => !existingAssignments.includes(id));
           if (toAdd.length > 0) {
-            await assignMultipleMembers(editingService.id, toAdd, selectedCalendar.id);
+            await assignMultipleMembers(editingService.id, toAdd, calendarIdToUse);
           }
         }
         toast({

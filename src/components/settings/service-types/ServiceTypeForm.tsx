@@ -180,8 +180,8 @@ export function ServiceTypeForm({
         </div>
       </div>
 
-      {/* Calendar Selection Section - only show when creating new service */}
-      {!isEditing && calendars.length > 0 && onCalendarSelect && onCalendarCreated && (
+      {/* Calendar Selection Section */}
+      {calendars && calendars.length > 0 && onCalendarSelect && onCalendarCreated && (
         <ServiceCalendarSelector
           calendars={calendars}
           selectedCalendarId={selectedCalendarId || null}
