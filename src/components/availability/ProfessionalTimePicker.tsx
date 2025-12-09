@@ -311,20 +311,28 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
 
   return (
     <>
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative flex items-center" ref={dropdownRef}>
         <Input
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleInputKeyDown}
           onFocus={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          placeholder="00:00"
+          className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200 pr-9"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           onClick={(e) => {
             e.stopPropagation();
             onToggle();
           }}
-          onMouseDown={(e) => e.stopPropagation()}
-          placeholder="00:00"
-          className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200"
-        />
+          className="absolute right-0.5 h-7 w-7 text-muted-foreground hover:text-foreground"
+        >
+          <Clock className="h-4 w-4" />
+        </Button>
       </div>
       
       {/* Professional Modal Overlay */}

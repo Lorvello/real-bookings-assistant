@@ -3596,6 +3596,7 @@ export type Database = {
           phone_number: string
           session_id: string | null
           updated_at: string | null
+          with_business: string | null
         }
         Insert: {
           booking_id?: string | null
@@ -3604,7 +3605,7 @@ export type Database = {
           calendar_id?: string | null
           calendar_name?: string | null
           contact_created_at?: string | null
-          contact_id: string
+          contact_id?: string
           conversation_created_at?: string | null
           conversation_status?: string | null
           display_name?: string | null
@@ -3617,6 +3618,7 @@ export type Database = {
           phone_number: string
           session_id?: string | null
           updated_at?: string | null
+          with_business?: string | null
         }
         Update: {
           booking_id?: string | null
@@ -3638,6 +3640,7 @@ export type Database = {
           phone_number?: string
           session_id?: string | null
           updated_at?: string | null
+          with_business?: string | null
         }
         Relationships: []
       }
@@ -3722,10 +3725,10 @@ export type Database = {
           contact_id: string | null
           context: Json | null
           created_at: string | null
+          From: string | null
           id: string
-          last_message_at: string | null
-          message: Json | null
-          session_id: string | null
+          message: string | null
+          phone_number: string | null
           status: string | null
         }
         Insert: {
@@ -3733,10 +3736,10 @@ export type Database = {
           contact_id?: string | null
           context?: Json | null
           created_at?: string | null
+          From?: string | null
           id?: string
-          last_message_at?: string | null
-          message?: Json | null
-          session_id?: string | null
+          message?: string | null
+          phone_number?: string | null
           status?: string | null
         }
         Update: {
@@ -3744,10 +3747,10 @@ export type Database = {
           contact_id?: string | null
           context?: Json | null
           created_at?: string | null
+          From?: string | null
           id?: string
-          last_message_at?: string | null
-          message?: Json | null
-          session_id?: string | null
+          message?: string | null
+          phone_number?: string | null
           status?: string | null
         }
         Relationships: [
@@ -4744,7 +4747,6 @@ export type Database = {
         Returns: Json
       }
       admin_set_user_status:
-        | { Args: { p_status_type: string; p_user_id: string }; Returns: Json }
         | {
             Args: {
               p_clear_data?: boolean
@@ -4754,6 +4756,7 @@ export type Database = {
             }
             Returns: Json
           }
+        | { Args: { p_status_type: string; p_user_id: string }; Returns: Json }
       admin_setup_mock_incomplete_user: {
         Args: { p_user_id: string }
         Returns: Json
@@ -4761,33 +4764,33 @@ export type Database = {
       admin_update_user_subscription:
         | {
             Args: {
-              p_subscription_end_date?: string
-              p_subscription_status?: string
-              p_subscription_tier?: string
-              p_trial_end_date?: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_business_name?: string
-              p_business_type?: string
-              p_subscription_end_date?: string
-              p_subscription_status?: string
-              p_subscription_tier?: string
-              p_trial_end_date?: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
               p_business_name?: string
               p_business_type?: string
               p_subscription_end_date?: string
               p_subscription_status?: string
               p_subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+              p_trial_end_date?: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_business_name?: string
+              p_business_type?: string
+              p_subscription_end_date?: string
+              p_subscription_status?: string
+              p_subscription_tier?: string
+              p_trial_end_date?: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_subscription_end_date?: string
+              p_subscription_status?: string
+              p_subscription_tier?: string
               p_trial_end_date?: string
               p_user_id: string
             }
@@ -4908,6 +4911,7 @@ export type Database = {
         Returns: undefined
       }
       export_whatsapp_data:
+        | { Args: { p_calendar_id: string }; Returns: Json }
         | {
             Args: {
               p_calendar_id: string
@@ -4916,7 +4920,6 @@ export type Database = {
             }
             Returns: Json
           }
-        | { Args: { p_calendar_id: string }; Returns: Json }
       find_orphaned_whatsapp_conversations: {
         Args: never
         Returns: {
@@ -5136,11 +5139,11 @@ export type Database = {
         Returns: Json
       }
       match_quick_reply_flow:
-        | { Args: { p_calendar_id: string; p_message: string }; Returns: Json }
         | {
             Args: { p_calendar_id: string; p_message_text: string }
             Returns: Json
           }
+        | { Args: { p_calendar_id: string; p_message: string }; Returns: Json }
       process_automatic_status_transitions: { Args: never; Returns: Json }
       process_booking_webhook_events: { Args: never; Returns: undefined }
       process_webhook_queue: { Args: never; Returns: undefined }
@@ -5230,16 +5233,6 @@ export type Database = {
       validate_booking_security:
         | {
             Args: {
-              p_calendar_slug: string
-              p_customer_email: string
-              p_end_time: string
-              p_service_type_id: string
-              p_start_time: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
               p_calendar_id: string
               p_customer_email: string
               p_end_time: string
@@ -5247,6 +5240,16 @@ export type Database = {
               p_start_time: string
             }
             Returns: boolean
+          }
+        | {
+            Args: {
+              p_calendar_slug: string
+              p_customer_email: string
+              p_end_time: string
+              p_service_type_id: string
+              p_start_time: string
+            }
+            Returns: Json
           }
       validate_payment_security: {
         Args: {
