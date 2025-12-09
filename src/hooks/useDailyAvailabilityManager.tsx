@@ -250,7 +250,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     };
   }, [syncTimeouts]);
 
-  // PHASE 2: Improved schedule creation with better error handling and verification
+  // Create schedule with default availability rules (Mon-Fri 9:00-18:00)
   const createDefaultSchedule = async () => {
     if (!defaultCalendar) {
       console.error('No default calendar available for schedule creation');
@@ -260,67 +260,71 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     try {
       console.log('Creating default schedule for calendar:', defaultCalendar.id);
       
-      // PHASE 2: Enhanced calendar verification with retry
-      let calendarCheck = null;
-      let retryCount = 0;
-      const maxRetries = 3;
-      
-      while (retryCount < maxRetries && !calendarCheck) {
-        const { data, error } = await supabase
-          .from('calendars')
-          .select('id')
-          .eq('id', defaultCalendar.id)
-          .single();
-        
-        if (error) {
-          console.warn(`Calendar check attempt ${retryCount + 1} failed:`, error);
-          retryCount++;
-          
-          if (retryCount < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-          } else {
-            throw new Error(`Calendar not found after ${maxRetries} attempts`);
-          }
-        } else {
-          calendarCheck = data;
-        }
-      }
-      
       // Check if schedule already exists
       const { data: existingSchedule } = await supabase
         .from('availability_schedules')
         .select('id')
         .eq('calendar_id', defaultCalendar.id)
         .eq('is_default', true)
-        .single();
+        .maybeSingle();
       
-      if (existingSchedule) {
-        console.log('Default schedule already exists:', existingSchedule.id);
-        return existingSchedule;
+      let scheduleId = existingSchedule?.id;
+      
+      if (!scheduleId) {
+        // Create new schedule
+        const { data, error } = await supabase
+          .from('availability_schedules')
+          .insert({
+            calendar_id: defaultCalendar.id,
+            name: 'Default Schedule',
+            is_default: true
+          })
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Error creating default schedule:', error);
+          throw error;
+        }
+        
+        scheduleId = data.id;
+        console.log('Default schedule created:', scheduleId);
       }
       
-      const { data, error } = await supabase
-        .from('availability_schedules')
-        .insert({
-          calendar_id: defaultCalendar.id,
-          name: 'Default Schedule',
-          is_default: true
-        })
-        .select()
-        .single();
+      // Check if rules exist for this schedule
+      const { data: existingRules } = await supabase
+        .from('availability_rules')
+        .select('id')
+        .eq('schedule_id', scheduleId)
+        .limit(1);
       
-      if (error) {
-        console.error('Error creating default schedule:', error);
-        throw error;
+      if (!existingRules || existingRules.length === 0) {
+        // Create default rules: Mon-Fri 9:00-18:00
+        const defaultRules = DAYS.map(day => ({
+          schedule_id: scheduleId,
+          day_of_week: day.dayOfWeek,
+          start_time: '09:00',
+          end_time: '18:00',
+          is_available: !day.isWeekend // Mon-Fri enabled, Sat-Sun disabled
+        }));
+        
+        const { error: rulesError } = await supabase
+          .from('availability_rules')
+          .insert(defaultRules);
+        
+        if (rulesError) {
+          console.error('Error creating default rules:', rulesError);
+          throw rulesError;
+        }
+        
+        console.log('Default availability rules created (Mon-Fri 9:00-18:00)');
       }
       
-      console.log('Default schedule created successfully:', data);
-      
-      // OPTIMIZED: Immediate refresh for fast UI updates
+      // Refresh rules to update UI
       await refreshRules();
       onChange();
       
-      return data;
+      return { id: scheduleId };
       
     } catch (error) {
       console.error('Error creating default schedule:', error);
