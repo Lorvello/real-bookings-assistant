@@ -29,35 +29,14 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
 
       console.log('✅ Linked existing WhatsApp conversations to calendars');
 
-      // Stap 2: Voeg session_id toe aan conversations die dit missen
-      const { data: conversationsWithoutSession } = await supabase
+      // Stap 2: Count conversations linked to this calendar
+      const { data: conversationsLinked } = await supabase
         .from('whatsapp_conversations')
-        .select(`
-          id,
-          whatsapp_contacts!inner (
-            phone_number
-          )
-        `)
-        .eq('calendar_id', calendarId)
-        .is('session_id', null);
+        .select('id')
+        .eq('calendar_id', calendarId);
 
-      let sessionsCreated = 0;
-      for (const conv of conversationsWithoutSession || []) {
-        const phoneNumber = conv.whatsapp_contacts?.phone_number;
-        if (phoneNumber) {
-          const newSessionId = `session_${phoneNumber.substring(1)}_${Date.now()}`;
-          
-          const { error: updateError } = await supabase
-            .from('whatsapp_conversations')
-            .update({ session_id: newSessionId })
-            .eq('id', conv.id);
-
-          if (!updateError) {
-            sessionsCreated++;
-            console.log(`✅ Created session_id for conversation ${conv.id}: ${newSessionId}`);
-          }
-        }
-      }
+      const conversationsCount = conversationsLinked?.length || 0;
+      console.log(`✅ Found ${conversationsCount} conversations linked to calendar`);
 
       // Stap 3: Maak booking_intents aan voor bookings zonder intents
       const { data: bookingsNeedingIntents } = await supabase
@@ -92,7 +71,7 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
             .select(`
               id,
               whatsapp_conversations!inner (
-                id, session_id
+                id
               )
             `)
             .eq('phone_number', booking.customer_phone)
@@ -111,8 +90,7 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
                 booking_id: booking.id,
                 collected_data: {
                   customer_name: booking.customer_name,
-                  linked_retroactively: true,
-                  session_id: conversation.session_id
+                  linked_retroactively: true
                 }
               });
 
@@ -127,7 +105,7 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
       }
 
       const repairResults: RepairResult = {
-        updated_bookings: sessionsCreated,
+        updated_bookings: conversationsCount,
         created_intents: intentsCreated
       };
 
@@ -135,7 +113,7 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
 
       toast({
         title: "Enhanced koppeling gerepareerd",
-        description: `${sessionsCreated} session_ids aangemaakt, ${intentsCreated} booking_intents gekoppeld`,
+        description: `${conversationsCount} conversations gelinkt, ${intentsCreated} booking_intents gekoppeld`,
       });
 
     } catch (error) {

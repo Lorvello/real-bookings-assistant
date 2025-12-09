@@ -128,14 +128,6 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
               </div>
             )}
             
-            {conversation.last_message_at && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Last message:</span>
-                <span className="text-sm text-gray-200">
-                  {format(new Date(conversation.last_message_at), 'dd MMM HH:mm', { locale: nl })}
-                </span>
-              </div>
-            )}
 
             {conversation.calendar_id && (
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mt-3">

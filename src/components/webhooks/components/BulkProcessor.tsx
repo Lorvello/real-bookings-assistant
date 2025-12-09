@@ -76,22 +76,20 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
           // Enhanced session_id lookup via multiple strategies
           let sessionId = null;
           
-          // Strategy 1: Via booking_intents
+          // Strategy 1: Via booking_intents - get conversation id
           if (booking.customer_phone) {
             const { data: intentData } = await supabase
               .from('booking_intents')
               .select(`
                 id,
-                whatsapp_conversations!inner (
-                  session_id
-                )
+                conversation_id
               `)
               .eq('booking_id', booking.id)
               .single();
 
-            if (intentData?.whatsapp_conversations?.session_id) {
-              sessionId = intentData.whatsapp_conversations.session_id;
-              console.log(`✅ Found session_id via booking_intent for booking ${booking.id}: ${sessionId}`);
+            if (intentData?.conversation_id) {
+              sessionId = `conv_${intentData.conversation_id}`;
+              console.log(`✅ Found conversation via booking_intent for booking ${booking.id}: ${sessionId}`);
             }
           }
 
@@ -108,16 +106,16 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
               
               const { data: conversationData } = await supabase
                 .from('whatsapp_conversations')
-                .select('session_id')
+                .select('id')
                 .eq('calendar_id', calendarId)
                 .in('contact_id', contactIdList)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .single();
 
-              if (conversationData?.session_id) {
-                sessionId = conversationData.session_id;
-                console.log(`✅ Found session_id via phone lookup for booking ${booking.id}: ${sessionId}`);
+              if (conversationData?.id) {
+                sessionId = `conv_${conversationData.id}`;
+                console.log(`✅ Found conversation via phone lookup for booking ${booking.id}: ${sessionId}`);
               }
             }
           }
@@ -138,24 +136,23 @@ export function BulkProcessor({ calendarId, onResultsUpdate }: BulkProcessorProp
               .single();
 
             if (!contactError && contact) {
-              // Create or update conversation with session_id
-              const newSessionId = `session_${booking.customer_phone.substring(1)}_${Date.now()}`;
-              
-              const { error: convError } = await supabase
+              // Create or update conversation
+              const { data: newConv, error: convError } = await supabase
                 .from('whatsapp_conversations')
                 .upsert(
                   {
                     contact_id: contact.id,
                     calendar_id: calendarId,
-                    session_id: newSessionId,
                     status: 'active'
                   },
                   { onConflict: 'calendar_id,contact_id' }
-                );
+                )
+                .select('id')
+                .single();
 
-              if (!convError) {
-                sessionId = newSessionId;
-                console.log(`✅ Created new session_id for booking ${booking.id}: ${sessionId}`);
+              if (!convError && newConv) {
+                sessionId = `conv_${newConv.id}`;
+                console.log(`✅ Created new conversation for booking ${booking.id}: ${sessionId}`);
               }
             }
           }
