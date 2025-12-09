@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
+import { Button } from '@/components/ui/button';
+import { Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface DailyAvailabilityProps {
   onChange: () => void;
@@ -11,43 +14,42 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     DAYS,
     availability,
     setAvailability,
-    pendingUpdates,
-    syncingRules,
     defaultCalendar,
     defaultSchedule,
     syncToDatabase,
     createDefaultSchedule
   } = useDailyAvailabilityManager(onChange);
 
+  const { toast } = useToast();
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
-  const [debounceTimeouts, setDebounceTimeouts] = useState<Map<string, NodeJS.Timeout>>(new Map());
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [changedDays, setChangedDays] = useState<Set<string>>(new Set());
+  const initialLoadRef = useRef(true);
 
-  const updateDayEnabled = async (dayKey: string, enabled: boolean) => {
+  // Track changes after initial load
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+  }, [availability]);
+
+  const markDayChanged = (dayKey: string) => {
+    setChangedDays(prev => new Set(prev).add(dayKey));
+    setHasUnsavedChanges(true);
+  };
+
+  const updateDayEnabled = (dayKey: string, enabled: boolean) => {
     const newAvailability = {
       ...availability,
       [dayKey]: { ...availability[dayKey], enabled }
     };
-    
     setAvailability(newAvailability);
-    
-    const existingTimeout = debounceTimeouts.get(dayKey);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-    }
-    
-    const timeout = setTimeout(() => {
-      syncToDatabase(dayKey, newAvailability[dayKey]);
-      setDebounceTimeouts(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(dayKey);
-        return newMap;
-      });
-    }, 800);
-    
-    setDebounceTimeouts(prev => new Map(prev).set(dayKey, timeout));
+    markDayChanged(dayKey);
   };
 
-  const updateTimeBlock = async (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
+  const updateTimeBlock = (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => {
     const currentBlocks = availability[dayKey].timeBlocks;
     const updatedBlocks = currentBlocks.map(block =>
       block.id === blockId ? { ...block, [field]: value } : block
@@ -71,26 +73,10 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
-    
-    const timeoutKey = `${dayKey}-${blockId}-${field}`;
-    const existingTimeout = debounceTimeouts.get(timeoutKey);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-    }
-    
-    const timeout = setTimeout(() => {
-      syncToDatabase(dayKey, newAvailability[dayKey]);
-      setDebounceTimeouts(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(timeoutKey);
-        return newMap;
-      });
-    }, 1500);
-    
-    setDebounceTimeouts(prev => new Map(prev).set(timeoutKey, timeout));
+    markDayChanged(dayKey);
   };
 
-  const addTimeBlock = async (dayKey: string) => {
+  const addTimeBlock = (dayKey: string) => {
     const currentBlocks = availability[dayKey].timeBlocks;
     const newBlockId = `${dayKey}-${Date.now()}`; 
     const lastBlock = currentBlocks[currentBlocks.length - 1];
@@ -127,10 +113,10 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
-    await syncToDatabase(dayKey, newAvailability[dayKey]);
+    markDayChanged(dayKey);
   };
 
-  const removeTimeBlock = async (dayKey: string, blockId: string) => {
+  const removeTimeBlock = (dayKey: string, blockId: string) => {
     if (availability[dayKey].timeBlocks.length <= 1) {
       console.log('Cannot remove the last time block');
       return;
@@ -145,7 +131,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
-    await syncToDatabase(dayKey, newAvailability[dayKey]);
+    markDayChanged(dayKey);
   };
 
   const copyDayToNext = (dayKey: string) => {
@@ -155,7 +141,6 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     const nextDay = DAYS[dayIndex + 1];
     const currentDayData = availability[dayKey];
     
-    // Copy time blocks with new IDs
     const copiedBlocks = currentDayData.timeBlocks.map(block => ({
       ...block,
       id: `${nextDay.key}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -170,7 +155,38 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     };
     
     setAvailability(newAvailability);
-    syncToDatabase(nextDay.key, newAvailability[nextDay.key]);
+    markDayChanged(nextDay.key);
+  };
+
+  const handleSave = async () => {
+    if (!hasUnsavedChanges || changedDays.size === 0) return;
+    
+    setIsSaving(true);
+    try {
+      // Save all changed days
+      for (const dayKey of changedDays) {
+        await syncToDatabase(dayKey, availability[dayKey]);
+      }
+      
+      setHasUnsavedChanges(false);
+      setChangedDays(new Set());
+      
+      toast({
+        title: "Saved",
+        description: "Your availability has been updated.",
+      });
+      
+      onChange();
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save availability. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const toggleDropdown = (dropdownId: string) => {
@@ -213,7 +229,6 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     );
   }
 
-  // Show loading while schedule is being created
   if (!defaultSchedule) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -223,31 +238,48 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   }
 
   return (
-    <div className="divide-y divide-border/30">
-      {DAYS.map((day) => {
-        const dayAvailability = availability[day.key];
-        const dayKey = day.key;
-        const hasPendingUpdates = Array.from(pendingUpdates).some(id => id.startsWith(dayKey));
-        const hasSyncingRules = false;
-        
-        return (
-          <AvailabilityDayRow
-            key={day.key}
-            day={day}
-            dayAvailability={dayAvailability}
-            openDropdowns={openDropdowns}
-            hasPendingUpdates={hasPendingUpdates}
-            hasSyncingRules={hasSyncingRules}
-            onUpdateDayEnabled={updateDayEnabled}
-            onUpdateTimeBlock={updateTimeBlock}
-            onAddTimeBlock={addTimeBlock}
-            onRemoveTimeBlock={removeTimeBlock}
-            onCopyDay={copyDayToNext}
-            onToggleDropdown={toggleDropdown}
-            onCloseDropdown={closeDropdown}
-          />
-        );
-      })}
+    <div className="space-y-4">
+      <div className="divide-y divide-border/30">
+        {DAYS.map((day) => {
+          const dayAvailability = availability[day.key];
+          const dayKey = day.key;
+          const hasPendingUpdates = changedDays.has(dayKey);
+          
+          return (
+            <AvailabilityDayRow
+              key={day.key}
+              day={day}
+              dayAvailability={dayAvailability}
+              openDropdowns={openDropdowns}
+              hasPendingUpdates={hasPendingUpdates}
+              hasSyncingRules={false}
+              onUpdateDayEnabled={updateDayEnabled}
+              onUpdateTimeBlock={updateTimeBlock}
+              onAddTimeBlock={addTimeBlock}
+              onRemoveTimeBlock={removeTimeBlock}
+              onCopyDay={copyDayToNext}
+              onToggleDropdown={toggleDropdown}
+              onCloseDropdown={closeDropdown}
+            />
+          );
+        })}
+      </div>
+      
+      {/* Save Button */}
+      <div className="flex justify-end pt-4 border-t border-border/30">
+        <Button
+          onClick={handleSave}
+          disabled={!hasUnsavedChanges || isSaving}
+          className="min-w-[120px]"
+        >
+          {isSaving ? (
+            <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          {isSaving ? 'Saving...' : 'Save'}
+        </Button>
+      </div>
     </div>
   );
 };
