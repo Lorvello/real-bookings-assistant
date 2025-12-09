@@ -27,10 +27,10 @@ interface AvailabilityDayRowProps {
   openDropdowns: Record<string, boolean>;
   hasPendingUpdates: boolean;
   hasSyncingRules: boolean;
-  onUpdateDayEnabled: (dayKey: string, enabled: boolean) => Promise<void>;
-  onUpdateTimeBlock: (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => Promise<void>;
-  onAddTimeBlock: (dayKey: string) => Promise<void>;
-  onRemoveTimeBlock: (dayKey: string, blockId: string) => Promise<void>;
+  onUpdateDayEnabled: (dayKey: string, enabled: boolean) => void;
+  onUpdateTimeBlock: (dayKey: string, blockId: string, field: 'startTime' | 'endTime', value: string) => void;
+  onAddTimeBlock: (dayKey: string) => void;
+  onRemoveTimeBlock: (dayKey: string, blockId: string) => void;
   onCopyDay?: (dayKey: string) => void;
   onToggleDropdown: (dropdownId: string) => void;
   onCloseDropdown: (dropdownId: string) => void;
