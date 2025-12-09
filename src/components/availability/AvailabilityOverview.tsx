@@ -1,231 +1,61 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Edit2, Plus } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { SingleDayEditModal } from './SingleDayEditModal';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
+import { DailyAvailability } from './DailyAvailability';
 
 interface AvailabilityOverviewProps {
   onChange?: () => void;
 }
 
 export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onChange }) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
-  const [editDay, setEditDay] = useState<number | null>(null);
   
   const {
-    DAYS,
-    availability,
     defaultCalendar,
     defaultSchedule
   } = useDailyAvailabilityManager(onChange || (() => {}));
 
-  // Get refreshCalendars from CalendarContext
   const { refreshCalendars } = useCalendarContext();
-  
-  // Production: Debug logging removed for performance
-
-  const handleEditDay = (dayIndex: number) => {
-    setEditDay(dayIndex);
-    setIsEditModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsEditModalOpen(false);
-    setEditDay(null);
-  };
-
-  const handleModalComplete = () => {
-    onChange?.();
-    handleModalClose();
-  };
 
   const handleGuidedComplete = () => {
     onChange?.();
     setIsGuidedModalOpen(false);
   };
 
-  const formatTimeRange = (timeBlocks: any[]) => {
-    if (!timeBlocks || timeBlocks.length === 0) return 'Not available';
-    
-    return timeBlocks
-      .map(block => {
-        // Ensure proper formatting: HH:MM
-        const formatTime = (time: string) => {
-          if (!time) return '09:00';
-          return time.length === 5 ? time : time.substring(0, 5);
-        };
-        return `${formatTime(block.startTime)} - ${formatTime(block.endTime)}`;
-      })
-      .join(', ');
-  };
-
-  const getAvailabilityStatus = () => {
-    if (!availability) return { total: 7, configured: 0, isComplete: false };
-    
-    // Count days that are either enabled with time blocks OR explicitly disabled
-    const configuredDays = DAYS.filter(day => {
-      const dayData = availability[day.key];
-      return dayData && (
-        (dayData.enabled && dayData.timeBlocks?.length > 0) ||
-        (!dayData.enabled)
-      );
-    });
-    
-    return {
-      total: DAYS.length,
-      configured: configuredDays.length,
-      isComplete: configuredDays.length === DAYS.length
-    };
-  };
-
-  const status = getAvailabilityStatus();
-
   if (!defaultCalendar || !defaultSchedule) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="w-8 h-8 bg-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-lg text-muted-foreground">Loading availability...</div>
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="text-muted-foreground">Loading availability...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-4 sm:p-6 shadow-lg">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center space-x-4 min-w-0 flex-1">
-            <div className="p-3 bg-primary/20 rounded-2xl flex-shrink-0">
-              <Calendar className="h-6 w-6 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground">Your Availability</h2>
-              <p className="text-sm text-muted-foreground">
-                {status.isComplete ? 'Schedule configured' : `${status.configured} of ${status.total} days configured`}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-end sm:justify-start flex-shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsGuidedModalOpen(true)}
-              className="flex items-center space-x-2 text-primary border-primary/20 hover:bg-primary/10 w-full sm:w-auto"
-            >
-              <Edit2 className="h-4 w-4" />
-              <span className="hidden xs:inline">Reconfigure All</span>
-              <span className="xs:hidden">Reconfigure</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {DAYS.map((day, dayIndex) => {
-          const dayData = availability[day.key];
-          const isConfigured = dayData?.enabled && dayData?.timeBlocks?.length > 0;
-          
-          return (
-            <Card 
-              key={day.key} 
-              className={`bg-card/90 backdrop-blur-sm border transition-all duration-200 hover:shadow-lg ${
-                isConfigured 
-                  ? 'border-primary/30 hover:border-primary/50' 
-                  : 'border-border/60 hover:border-border'
-              }`}
-            >
-              <CardContent className="p-5">
-                <div className="space-y-4">
-                  {/* Day Header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        isConfigured ? 'bg-green-500' : 'bg-muted'
-                      }`} />
-                      <div>
-                        <h3 className="font-semibold text-foreground">{day.label}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {day.isWeekend ? 'Weekend' : 'Weekday'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => handleEditDay(dayIndex)}
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* Availability Info */}
-                  <div className="space-y-2">
-                    {isConfigured ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-emerald-600">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm font-medium">Available</span>
-                        </div>
-                        <div className="text-sm text-foreground/90 font-medium">
-                          {formatTimeRange(dayData.timeBlocks)}
-                        </div>
-                        {dayData.timeBlocks.length > 1 && (
-                          <div className="text-xs text-muted-foreground">
-                            {dayData.timeBlocks.length} time blocks
-                          </div>
-                        )}
-                      </div>
-                    ) : dayData?.enabled === false ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm">Unavailable</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Day marked as unavailable
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2 text-muted-foreground">
-                          <Plus className="h-4 w-4" />
-                          <span className="text-sm">Not configured</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Click to set availability
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-
-      {/* Edit Modal */}
-      {editDay !== null && availability[DAYS[editDay]?.key] && (
-        <SingleDayEditModal
-          isOpen={isEditModalOpen}
-          onClose={handleModalClose}
-          onComplete={handleModalComplete}
-          dayIndex={editDay}
-          dayData={availability[DAYS[editDay].key]}
-          dayLabel={DAYS[editDay].label}
-        />
-      )}
+    <div className="space-y-6">
+      <Card className="bg-card border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <CardTitle className="text-lg font-semibold">Weekly Hours</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsGuidedModalOpen(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Edit2 className="h-4 w-4 mr-2" />
+            Edit All
+          </Button>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <DailyAvailability onChange={onChange || (() => {})} />
+        </CardContent>
+      </Card>
 
       {/* Guided Reconfiguration Modal */}
       <GuidedAvailabilityModal
