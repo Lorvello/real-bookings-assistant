@@ -163,11 +163,11 @@ export function ConversationsList({
                         <span className="font-mono truncate">{contact?.phone_number}</span>
                       </div>
                       
-                      {conversation.last_message_at && (
+                      {conversation.created_at && (
                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                           <Clock className="w-3 h-3" />
                           <span>
-                            {format(new Date(conversation.last_message_at), 'dd MMM HH:mm', { locale: nl })}
+                            {format(new Date(conversation.created_at), 'dd MMM HH:mm', { locale: nl })}
                           </span>
                         </div>
                       )}
