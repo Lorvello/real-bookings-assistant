@@ -36,7 +36,8 @@ const DEFAULT_FORM_DATA: ServiceTypeFormData = {
 };
 export function ServiceTypesManager() {
   const {
-    selectedCalendar
+    selectedCalendar,
+    calendars
   } = useCalendarContext();
   const {
     toast
@@ -90,7 +91,17 @@ export function ServiceTypesManager() {
     setShowDialog(true);
   };
   const handleSave = async () => {
-    if (!selectedCalendar?.id) return;
+    const targetCalendarId = selectedCalendar?.id || calendars[0]?.id;
+    
+    if (!targetCalendarId) {
+      toast({
+        title: "Geen kalender beschikbaar",
+        description: "Je hebt een kalender nodig om services aan te maken.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setSaving(true);
     try {
       if (editingService) {
@@ -116,7 +127,7 @@ export function ServiceTypesManager() {
         });
       } else {
         const serviceData = {
-          calendar_id: selectedCalendar.id,
+          calendar_id: targetCalendarId,
           name: formData.name,
           description: formData.description,
           duration: parseInt(formData.duration),
