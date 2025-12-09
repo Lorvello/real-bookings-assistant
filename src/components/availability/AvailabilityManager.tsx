@@ -8,6 +8,7 @@ import { useCalendars } from '@/hooks/useCalendars';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
+import { AllCalendarsAvailability } from './AllCalendarsAvailability';
 import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
 import { AccessBlockedOverlay } from '@/components/user-status/AccessBlockedOverlay';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
@@ -43,18 +44,9 @@ export const AvailabilityManager = () => {
     return null;
   }
 
-  // Show message when "All Calendars" is selected
+  // Show all calendars overview when "All Calendars" is selected
   if (viewingAllCalendars) {
-    return (
-      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
-        <div className="text-center space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Select a specific calendar</h2>
-          <p className="text-muted-foreground">
-            Availability settings are configured per calendar. Please select a specific calendar from the header to manage its availability.
-          </p>
-        </div>
-      </div>
-    );
+    return <AllCalendarsAvailability calendars={calendars} />;
   }
 
   // Show message when no calendars exist
