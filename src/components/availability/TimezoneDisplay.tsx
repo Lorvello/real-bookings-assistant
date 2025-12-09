@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,13 +17,14 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState(currentTimezone);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentTime, setCurrentTime] = useState('');
 
   const currentTimezoneLabel = COMPREHENSIVE_TIMEZONES.find(tz => tz.value === currentTimezone)?.label || currentTimezone;
   
-  const getCurrentTime = () => {
+  const formatTime = (timezone: string) => {
     try {
       return new Intl.DateTimeFormat('en-US', {
-        timeZone: currentTimezone,
+        timeZone: timezone,
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
@@ -32,6 +33,17 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
       return '00:00';
     }
   };
+
+  // Update time every minute
+  useEffect(() => {
+    setCurrentTime(formatTime(currentTimezone));
+    
+    const interval = setInterval(() => {
+      setCurrentTime(formatTime(currentTimezone));
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, [currentTimezone]);
 
   const handleSave = async () => {
     if (selectedTimezone === currentTimezone) {
@@ -105,7 +117,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">Local time</div>
               <div className="font-mono text-lg font-semibold text-primary">
-                {getCurrentTime()}
+                {currentTime}
               </div>
             </div>
             
