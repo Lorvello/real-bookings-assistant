@@ -11,6 +11,8 @@ import { ServiceType } from '@/types/calendar';
 import { Lock, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TeamMemberSelector } from '@/components/service-types/TeamMemberSelector';
+import { ServiceCalendarSelector } from './ServiceCalendarSelector';
+import { Calendar as CalendarType } from '@/types/database';
 
 interface ServiceTypeFormData {
   name: string;
@@ -36,6 +38,11 @@ interface ServiceTypeFormProps {
   calendarId?: string;
   selectedTeamMembers?: string[];
   onTeamMembersChange?: (memberIds: string[]) => void;
+  // New props for calendar selection
+  calendars?: CalendarType[];
+  selectedCalendarId?: string | null;
+  onCalendarSelect?: (calendarId: string) => void;
+  onCalendarCreated?: (calendar: CalendarType) => void;
 }
 
 const colorOptions = [
@@ -64,7 +71,11 @@ export function ServiceTypeForm({
   onRefreshTaxStatus,
   calendarId,
   selectedTeamMembers = [],
-  onTeamMembersChange
+  onTeamMembersChange,
+  calendars = [],
+  selectedCalendarId,
+  onCalendarSelect,
+  onCalendarCreated
 }: ServiceTypeFormProps) {
   const navigate = useNavigate();
   const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
@@ -168,6 +179,17 @@ export function ServiceTypeForm({
           />
         </div>
       </div>
+
+      {/* Calendar Selection Section - only show when creating new service */}
+      {!isEditing && calendars.length > 0 && onCalendarSelect && onCalendarCreated && (
+        <ServiceCalendarSelector
+          calendars={calendars}
+          selectedCalendarId={selectedCalendarId || null}
+          onCalendarSelect={onCalendarSelect}
+          onCalendarCreated={onCalendarCreated}
+          disabled={saving}
+        />
+      )}
 
       {/* Tax Configuration Section - Coming Soon */}
       <div className="space-y-4 border-t border-border pt-6">
