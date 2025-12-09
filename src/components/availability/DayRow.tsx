@@ -74,6 +74,7 @@ export const DayRow: React.FC<DayRowProps> = ({
               dayKey={day.key}
               canDelete={dayAvailability.timeBlocks.length > 1}
               isLastBlock={index === dayAvailability.timeBlocks.length - 1}
+              isFirstBlock={index === 0}
               openDropdowns={openDropdowns}
               onUpdateTimeBlock={onUpdateTimeBlock}
               onAddTimeBlock={onAddTimeBlock}
