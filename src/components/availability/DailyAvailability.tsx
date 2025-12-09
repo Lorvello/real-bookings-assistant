@@ -1,9 +1,6 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
-import { Button } from '@/components/ui/button';
-import { Clock } from 'lucide-react';
 
 interface DailyAvailabilityProps {
   onChange: () => void;
@@ -194,33 +191,33 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     }));
   };
 
+  // Auto-create schedule if calendar exists but no schedule
+  useEffect(() => {
+    const initSchedule = async () => {
+      if (defaultCalendar && !defaultSchedule) {
+        try {
+          await createDefaultSchedule();
+        } catch (error) {
+          console.error('Failed to auto-create schedule:', error);
+        }
+      }
+    };
+    initSchedule();
+  }, [defaultCalendar?.id, defaultSchedule?.id]);
+
   if (!defaultCalendar) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-muted-foreground">Loading availability...</div>
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
+  // Show loading while schedule is being created
   if (!defaultSchedule) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-          <Clock className="w-8 h-8 text-primary" />
-        </div>
-        <h3 className="text-xl font-semibold text-foreground mb-2">Set Your Availability</h3>
-        <p className="text-muted-foreground text-center mb-6 max-w-md">
-          Configure your working hours to let customers know when you're available for bookings.
-        </p>
-        <Button 
-          onClick={async () => {
-            await createDefaultSchedule();
-            onChange();
-          }}
-          size="lg"
-        >
-          Configure Availability
-        </Button>
+      <div className="flex items-center justify-center py-8">
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
