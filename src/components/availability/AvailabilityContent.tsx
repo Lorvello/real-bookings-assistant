@@ -179,8 +179,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
   }
 
   if (activeTab === 'schedule') {
-    // OPTIMIZED: Instant state resolution - show final content immediately
-    if (availabilityState.setupState === 'needs_calendar' || availabilityState.setupState === 'needs_config') {
+    // Show create calendar prompt only when no calendar exists
+    if (availabilityState.setupState === 'needs_calendar') {
       return (
         <div className="max-w-2xl mx-auto">
           <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-3xl p-8 text-center space-y-6">
@@ -189,34 +189,21 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
             </div>
             
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-foreground">Configure Your Availability</h2>
+              <h2 className="text-2xl font-bold text-foreground">Create Your Calendar</h2>
               <p className="text-muted-foreground text-lg">
-                {availabilityState.setupState === 'needs_calendar' 
-                  ? 'Create a calendar to start managing your availability schedule.'
-                  : 'Set up your availability schedule to start accepting bookings.'
-                }
+                Create a calendar to start managing your availability schedule.
               </p>
             </div>
 
             <Button
-              onClick={handleConfigureAvailability}
+              onClick={() => setIsCalendarDialogOpen(true)}
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8"
-              disabled={isCompletingSetup}
             >
               <Settings className="w-5 h-5 mr-2" />
-              {availabilityState.setupState === 'needs_calendar' ? 'Create Calendar' : 'Configure Availability'}
+              Create Calendar
             </Button>
           </div>
-
-          {/* Modals */}
-          <GuidedAvailabilityModal
-            isOpen={isGuidedModalOpen}
-            onClose={() => setIsGuidedModalOpen(false)}
-            onComplete={handleGuidedComplete}
-            selectedCalendar={selectedCalendar ? { id: selectedCalendar.id, timezone: selectedCalendar.timezone } : undefined}
-            refreshCalendars={refreshCalendars}
-          />
 
           <CreateCalendarDialog
             open={isCalendarDialogOpen}
@@ -227,7 +214,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
       );
     }
 
-    // OPTIMIZED: Direct rendering of configured state
+    // Show availability layout directly (auto-creates schedule if needed)
     return (
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main availability overview */}
