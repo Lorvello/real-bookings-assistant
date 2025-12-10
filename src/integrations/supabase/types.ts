@@ -397,6 +397,13 @@ export type Database = {
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "booking_intents_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
+            referencedColumns: ["id"]
+          },
         ]
       }
       booking_payments: {
@@ -669,6 +676,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
             referencedColumns: ["id"]
           },
         ]
@@ -1300,6 +1314,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
             referencedColumns: ["id"]
           },
         ]
@@ -2467,6 +2488,13 @@ export type Database = {
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "service_installment_configs_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: true
+            referencedRelation: "service_types_overview"
+            referencedColumns: ["id"]
+          },
         ]
       }
       service_types: {
@@ -3029,6 +3057,13 @@ export type Database = {
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_member_services_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -3484,6 +3519,13 @@ export type Database = {
             columns: ["service_type_id"]
             isOneToOne: false
             referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
             referencedColumns: ["id"]
           },
         ]
@@ -4058,6 +4100,13 @@ export type Database = {
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
+            referencedColumns: ["id"]
+          },
         ]
       }
       whatsapp_templates: {
@@ -4426,6 +4475,13 @@ export type Database = {
             referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bookings_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
+            referencedColumns: ["id"]
+          },
         ]
       }
       public_calendar_view: {
@@ -4587,6 +4643,61 @@ export type Database = {
           service_name: string | null
           service_type_id: string | null
           total_revenue: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      service_types_overview: {
+        Row: {
+          calendar_active: boolean | null
+          calendar_id: string | null
+          calendar_name: string | null
+          calendar_slug: string | null
+          color: string | null
+          created_at: string | null
+          description: string | null
+          duration: number | null
+          id: string | null
+          is_active: boolean | null
+          opening_hours: Json | null
+          price: number | null
+          service_name: string | null
+          timezone: string | null
         }
         Relationships: [
           {
