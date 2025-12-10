@@ -919,6 +919,96 @@ export type Database = {
           },
         ]
       }
+      business_overview_v2: {
+        Row: {
+          business_city: string | null
+          business_country: string | null
+          business_description: string | null
+          business_email: string | null
+          business_name: string | null
+          business_number: string | null
+          business_phone: string | null
+          business_postal: string | null
+          business_street: string | null
+          business_type: string | null
+          business_whatsapp: string | null
+          calendars: Json | null
+          created_at: string | null
+          facebook: string | null
+          instagram: string | null
+          last_updated: string | null
+          linkedin: string | null
+          total_bookings: number | null
+          total_calendars: number | null
+          total_revenue: number | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          business_city?: string | null
+          business_country?: string | null
+          business_description?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          business_number?: string | null
+          business_phone?: string | null
+          business_postal?: string | null
+          business_street?: string | null
+          business_type?: string | null
+          business_whatsapp?: string | null
+          calendars?: Json | null
+          created_at?: string | null
+          facebook?: string | null
+          instagram?: string | null
+          last_updated?: string | null
+          linkedin?: string | null
+          total_bookings?: number | null
+          total_calendars?: number | null
+          total_revenue?: number | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          business_city?: string | null
+          business_country?: string | null
+          business_description?: string | null
+          business_email?: string | null
+          business_name?: string | null
+          business_number?: string | null
+          business_phone?: string | null
+          business_postal?: string | null
+          business_street?: string | null
+          business_type?: string | null
+          business_whatsapp?: string | null
+          calendars?: Json | null
+          created_at?: string | null
+          facebook?: string | null
+          instagram?: string | null
+          last_updated?: string | null
+          linkedin?: string | null
+          total_bookings?: number | null
+          total_calendars?: number | null
+          total_revenue?: number | null
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_overview_v2_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_overview_v2_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_stripe_accounts: {
         Row: {
           account_owner_id: string | null
@@ -5176,6 +5266,10 @@ export type Database = {
       }
       refresh_business_overview: {
         Args: { p_calendar_id?: string }
+        Returns: undefined
+      }
+      refresh_business_overview_v2: {
+        Args: { p_user_id?: string }
         Returns: undefined
       }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }

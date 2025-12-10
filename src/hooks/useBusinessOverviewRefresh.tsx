@@ -7,33 +7,25 @@ export const useBusinessOverviewRefresh = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const refreshOverview = async (calendarId?: string) => {
+  const refreshOverview = async (userId?: string) => {
     setLoading(true);
     try {
-      if (calendarId) {
-        // Refresh specific calendar
-        const { error } = await supabase.rpc('refresh_business_overview', {
-          p_calendar_id: calendarId
-        });
-        
-        if (error) {
-          console.error('Error refreshing overview:', error);
-          toast({
-            title: "Fout bij verversen overzicht",
-            description: error.message,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Overzicht ververst",
-            description: "Het bedrijfsoverzicht is succesvol ververst",
-          });
-        }
-      } else {
-        // If no specific calendar, just show success - data will be fetched by the component
+      // Refresh business overview v2 (one row per business)
+      const { error } = await supabase.rpc('refresh_business_overview_v2', {
+        p_user_id: userId || null
+      });
+      
+      if (error) {
+        console.error('Error refreshing overview:', error);
         toast({
-          title: "Overzicht verversen",
-          description: "Het overzicht wordt bijgewerkt...",
+          title: "Fout bij verversen overzicht",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Overzicht ververst",
+          description: "Het bedrijfsoverzicht is succesvol ververst",
         });
       }
     } catch (error) {

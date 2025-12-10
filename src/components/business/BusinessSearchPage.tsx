@@ -151,7 +151,7 @@ export const BusinessSearchPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">
-            Results ({data.length})
+            Results ({data.length} business{data.length !== 1 ? 'es' : ''})
           </h2>
           {loading && (
             <div className="text-sm text-muted-foreground">
@@ -172,7 +172,7 @@ export const BusinessSearchPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {data.map((business) => (
               <BusinessOverviewCard
-                key={business.calendar_id}
+                key={business.user_id}
                 business={business}
                 onViewSlots={handleViewSlots}
                 showFullDetails={false}
