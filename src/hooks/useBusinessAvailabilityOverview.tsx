@@ -21,4 +21,4 @@ export const useBusinessAvailabilityOverview = () => {
 };
 
 // Re-export types for backward compatibility
-export type { BusinessAvailabilityOverview, BusinessSlot } from '@/types/businessAvailability';
+export type { BusinessOverview, BusinessSlot, CalendarOverview } from '@/types/businessAvailability';

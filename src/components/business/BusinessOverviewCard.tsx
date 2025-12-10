@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin, Phone, Mail, Globe, ExternalLink } from 'lucide-react';
-import { BusinessAvailabilityOverview } from '@/types/businessAvailability';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Calendar, Clock, MapPin, Phone, Mail, Globe, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { BusinessOverview, CalendarOverview } from '@/types/businessAvailability';
 
 interface BusinessOverviewCardProps {
-  business: BusinessAvailabilityOverview;
+  business: BusinessOverview;
   onViewSlots?: (calendarSlug: string) => void;
   showFullDetails?: boolean;
 }
@@ -16,6 +17,8 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
   onViewSlots,
   showFullDetails = false
 }) => {
+  const [expandedCalendars, setExpandedCalendars] = useState<string[]>([]);
+
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price on request';
     return `€${price.toFixed(2)}`;
@@ -37,8 +40,17 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
     return types[type || 'other'] || 'Unknown';
   };
 
-  // Get first service name for display
-  const primaryService = business.services[0]?.name || null;
+  const toggleCalendar = (calendarId: string) => {
+    setExpandedCalendars(prev => 
+      prev.includes(calendarId) 
+        ? prev.filter(id => id !== calendarId)
+        : [...prev, calendarId]
+    );
+  };
+
+  // Get all services from all calendars for primary display
+  const allServices = business.calendars.flatMap(cal => cal.services);
+  const primaryService = allServices[0]?.name || null;
 
   return (
     <Card className="w-full hover:shadow-lg transition-shadow">
@@ -48,9 +60,12 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
             <CardTitle className="text-xl">
               {business.business_name || 'Unnamed business'}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               <Badge variant="secondary">
                 {getBusinessTypeLabel(business.business_type)}
+              </Badge>
+              <Badge variant="outline">
+                {business.total_calendars} calendar{business.total_calendars !== 1 ? 's' : ''}
               </Badge>
               {primaryService && (
                 <Badge variant="outline">
@@ -59,16 +74,6 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
               )}
             </div>
           </div>
-          {onViewSlots && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewSlots(business.calendar_slug)}
-            >
-              <Calendar className="w-4 h-4 mr-1" />
-              View times
-            </Button>
-          )}
         </div>
       </CardHeader>
 
@@ -102,7 +107,7 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
                   href={business.website} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                 >
                   Website <ExternalLink className="w-3 h-3 inline" />
                 </a>
@@ -132,73 +137,140 @@ export const BusinessOverviewCard: React.FC<BusinessOverviewCardProps> = ({
           )}
         </div>
 
-        {/* Opening hours */}
+        {/* Calendars Section */}
         <div className="pt-2 border-t">
-          <h4 className="font-semibold text-sm mb-2">Opening Hours</h4>
-          {Object.keys(business.opening_hours).length > 0 ? (
-            <div className="text-sm space-y-1">
-              {Object.entries(business.opening_hours).map(([day, hours]) => (
-                <div key={day} className="flex justify-between">
-                  <span>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][parseInt(day)]}</span>
-                  <span>
-                    {hours.is_available 
-                      ? `${hours.start_time} - ${hours.end_time}`
-                      : 'Closed'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No opening hours set</p>
-          )}
+          <h4 className="font-semibold text-sm mb-3">Calendars ({business.calendars.length})</h4>
+          <div className="space-y-2">
+            {business.calendars.map((calendar) => (
+              <CalendarItem 
+                key={calendar.calendar_id}
+                calendar={calendar}
+                isExpanded={expandedCalendars.includes(calendar.calendar_id)}
+                onToggle={() => toggleCalendar(calendar.calendar_id)}
+                onViewSlots={onViewSlots}
+                formatPrice={formatPrice}
+                formatDuration={formatDuration}
+              />
+            ))}
+          </div>
         </div>
-
-        {/* Service informatie */}
-        {business.services.length > 0 && business.services[0] && (
-          <div className="space-y-2 pt-2 border-t">
-            <h4 className="font-semibold text-sm">Service details</h4>
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>{formatDuration(business.services[0].duration)}</span>
-              </div>
-              <div>
-                <span className="font-medium">{formatPrice(business.services[0].price)}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Calendar settings */}
-        {showFullDetails && (
-          <div className="space-y-2 pt-4 border-t">
-            <h4 className="font-semibold text-sm">Booking Settings</h4>
-            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-              <div>Min. notice: {business.minimum_notice_hours}h</div>
-              <div>Slot duration: {business.slot_duration} min</div>
-              <div>Booking window: {business.booking_window_days} days</div>
-              <div>Waitlist: {business.allow_waitlist ? 'Yes' : 'No'}</div>
-            </div>
-          </div>
-        )}
 
         {/* Statistics */}
         {showFullDetails && (
           <div className="space-y-2 pt-4 border-t">
-            <h4 className="font-semibold text-sm">Statistics</h4>
+            <h4 className="font-semibold text-sm">Total Statistics</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-muted-foreground">Bookings: </span>
+                <span className="text-muted-foreground">Total Bookings: </span>
                 <span className="font-medium">{business.total_bookings}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Revenue: </span>
-                <span className="font-medium">€{Number(business.total_revenue).toFixed(2)}</span>
+                <span className="text-muted-foreground">Total Revenue: </span>
+                <span className="font-medium">€{Number(business.total_revenue || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>
         )}
       </CardContent>
     </Card>
+  );
+};
+
+// Sub-component for individual calendar
+interface CalendarItemProps {
+  calendar: CalendarOverview;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onViewSlots?: (calendarSlug: string) => void;
+  formatPrice: (price: number | null) => string;
+  formatDuration: (duration: number | null) => string;
+}
+
+const CalendarItem: React.FC<CalendarItemProps> = ({
+  calendar,
+  isExpanded,
+  onToggle,
+  onViewSlots,
+  formatPrice,
+  formatDuration
+}) => {
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <div className="border rounded-lg">
+        <CollapsibleTrigger asChild>
+          <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: calendar.calendar_color || '#3B82F6' }}
+              />
+              <span className="font-medium text-sm">{calendar.calendar_name || 'Unnamed calendar'}</span>
+              {!calendar.calendar_active && (
+                <Badge variant="outline" className="text-xs">Inactive</Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {calendar.services.length} service{calendar.services.length !== 1 ? 's' : ''}
+              </span>
+              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+          </div>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="p-3 pt-0 space-y-3 border-t">
+            {/* Services */}
+            {calendar.services.length > 0 && (
+              <div>
+                <h5 className="text-xs font-semibold mb-2 text-muted-foreground uppercase">Services</h5>
+                <div className="space-y-1">
+                  {calendar.services.map((service) => (
+                    <div key={service.service_id} className="flex justify-between text-sm">
+                      <span>{service.name}</span>
+                      <span className="text-muted-foreground">
+                        {formatDuration(service.duration)} • {formatPrice(service.price)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Opening hours */}
+            {Object.keys(calendar.opening_hours).length > 0 && (
+              <div>
+                <h5 className="text-xs font-semibold mb-2 text-muted-foreground uppercase">Opening Hours</h5>
+                <div className="text-sm space-y-0.5">
+                  {Object.entries(calendar.opening_hours).map(([day, hours]) => (
+                    <div key={day} className="flex justify-between text-xs">
+                      <span>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][parseInt(day) - 1] || day}</span>
+                      <span>
+                        {hours.is_available 
+                          ? `${hours.start_time} - ${hours.end_time}`
+                          : 'Closed'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            {onViewSlots && calendar.calendar_slug && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => onViewSlots(calendar.calendar_slug!)}
+              >
+                <Calendar className="w-4 h-4 mr-1" />
+                View available times
+              </Button>
+            )}
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 };
