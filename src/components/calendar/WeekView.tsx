@@ -196,18 +196,20 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
   };
 
   return (
-    <div className="h-full overflow-auto bg-gradient-to-br from-background via-card to-background/95">
+    <div className="h-full overflow-auto bg-background">
       {/* Fixed header with days - more compact */}
-      <div className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm border-b border-border/60 shadow-sm">
-        <div className="grid grid-cols-8 gap-px">
-          <div className="w-8 sm:w-16 p-1 sm:p-2">
+      <div className="sticky top-0 z-20 bg-card border-b-2 border-border shadow-sm">
+        <div className="grid grid-cols-8">
+          <div className="w-8 sm:w-16 p-1 sm:p-2 border-r border-border">
             <div className="text-[10px] sm:text-xs font-semibold text-muted-foreground">Time</div>
           </div>
-          {weekDays.map((day) => (
-            <div key={day.toISOString()} className={`text-center py-1 sm:py-2 px-0.5 sm:px-1 rounded-lg mx-0.5 sm:mx-1 transition-all duration-200 ${
+          {weekDays.map((day, idx) => (
+            <div key={day.toISOString()} className={`text-center py-1 sm:py-2 px-0.5 sm:px-1 transition-all duration-200 ${
+              idx < weekDays.length - 1 ? 'border-r border-border' : ''
+            } ${
               isToday(day) 
-                ? 'bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30' 
-                : 'hover:bg-accent/50'
+                ? 'bg-primary/15' 
+                : ''
             }`}>
               <div className="text-[9px] sm:text-xs text-muted-foreground font-medium">
                 {format(day, 'EEE')}
@@ -229,27 +231,29 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
       <div className="relative">
         {/* Time slots */}
         {timeSlots.map((timeSlot, index) => (
-          <div key={timeSlot} className={`grid grid-cols-8 border-b border-border/20 ${
-            index % 2 === 0 ? 'bg-muted/10' : 'bg-transparent'
+          <div key={timeSlot} className={`grid grid-cols-8 border-b border-border ${
+            index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
           }`}>
             {/* Time label */}
-            <div className="w-8 sm:w-16 py-1 sm:py-2 px-1 sm:px-2 text-[9px] sm:text-xs font-medium text-muted-foreground text-right border-r border-border/20">
+            <div className="w-8 sm:w-16 py-1 sm:py-2 px-1 sm:px-2 text-[9px] sm:text-xs font-medium text-muted-foreground text-right border-r border-border bg-card">
               {timeSlot}
             </div>
             
             {/* Day columns */}
-            {weekDays.map((day) => {
+            {weekDays.map((day, idx) => {
               // Only get bookings that START in this time slot to avoid duplicates
               const dayBookings = getBookingsStartingInTimeSlot(bookings, day, timeSlot);
               
               return (
                 <div
                   key={`${day.toISOString()}-${timeSlot}`}
-                   className={`relative transition-colors min-h-[24px] sm:min-h-[40px] border-r border-border/20 ${
-                     isToday(day) 
-                       ? 'bg-primary/5 hover:bg-primary/10' 
-                       : 'bg-card/50 hover:bg-accent/30'
-                   }`}
+                  className={`relative transition-colors min-h-[24px] sm:min-h-[40px] ${
+                    idx < weekDays.length - 1 ? 'border-r border-border' : ''
+                  } ${
+                    isToday(day) 
+                      ? 'bg-primary/10 hover:bg-primary/15' 
+                      : 'hover:bg-accent/40'
+                  }`}
                 >
                   {dayBookings.map((booking) => (
                     <BookingBlock
