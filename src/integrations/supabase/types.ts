@@ -3859,6 +3859,7 @@ export type Database = {
           created_at: string | null
           From: string | null
           id: string
+          last_message_at: string | null
           message: string | null
           phone_number: string | null
           session_id: string | null
@@ -3871,6 +3872,7 @@ export type Database = {
           created_at?: string | null
           From?: string | null
           id?: string
+          last_message_at?: string | null
           message?: string | null
           phone_number?: string | null
           session_id?: string | null
@@ -3883,6 +3885,7 @@ export type Database = {
           created_at?: string | null
           From?: string | null
           id?: string
+          last_message_at?: string | null
           message?: string | null
           phone_number?: string | null
           session_id?: string | null
