@@ -78,13 +78,13 @@ export function BookingRepair({ calendarId, onResultsUpdate }: BookingRepairProp
             .single();
 
           if (contact && contact.whatsapp_conversations && contact.whatsapp_conversations.length > 0) {
-            const conversation = contact.whatsapp_conversations[0];
+            const conversationData = contact.whatsapp_conversations[0] as unknown as { id: string };
             
             // Create booking_intent
             const { error: intentError } = await supabase
               .from('booking_intents')
               .insert({
-                conversation_id: conversation.id,
+                conversation_id: conversationData.id,
                 service_type_id: booking.service_type_id,
                 status: 'booked',
                 booking_id: booking.id,

@@ -23,13 +23,14 @@ export function useWhatsAppConversationsList(
         .from('whatsapp_conversations')
         .select(`
           *,
-          whatsapp_contacts (
-            id,
+          whatsapp_contact_overview!whatsapp_conversations_contact_id_fkey (
+            contact_id,
             phone_number,
             display_name,
             first_name,
             last_name,
-            profile_picture_url
+            last_message_at,
+            contact_created_at
           )
         `)
         .eq('calendar_id', calendarId);
@@ -60,7 +61,7 @@ export function useWhatsAppConversationsList(
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         filteredData = filteredData.filter(conversation => {
-          const contact = conversation.whatsapp_contacts;
+          const contact = conversation.whatsapp_contact_overview;
           if (!contact) return false;
           
           return (

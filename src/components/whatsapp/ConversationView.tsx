@@ -10,11 +10,11 @@ import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 interface ConversationViewProps {
-  conversationId: string | null;
+  contactId: string | null;
 }
 
-export function ConversationView({ conversationId }: ConversationViewProps) {
-  const { data: messages, isLoading } = useWhatsAppMessages(conversationId || '');
+export function ConversationView({ contactId }: ConversationViewProps) {
+  const { data: messages, isLoading } = useWhatsAppMessages(contactId || '');
   const [newMessage, setNewMessage] = React.useState('');
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -26,7 +26,7 @@ export function ConversationView({ conversationId }: ConversationViewProps) {
     scrollToBottom();
   }, [messages]);
 
-  if (!conversationId) {
+  if (!contactId) {
     return (
       <Card className="bg-gray-800/90 border-gray-700 shadow-xl h-full flex flex-col">
         <CardHeader className="border-b border-gray-700 bg-gray-800/50">
