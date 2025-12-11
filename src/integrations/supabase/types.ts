@@ -3861,6 +3861,7 @@ export type Database = {
           id: string
           message: string | null
           phone_number: string | null
+          session_id: string | null
           status: string | null
         }
         Insert: {
@@ -3872,6 +3873,7 @@ export type Database = {
           id?: string
           message?: string | null
           phone_number?: string | null
+          session_id?: string | null
           status?: string | null
         }
         Update: {
@@ -3883,6 +3885,7 @@ export type Database = {
           id?: string
           message?: string | null
           phone_number?: string | null
+          session_id?: string | null
           status?: string | null
         }
         Relationships: [
