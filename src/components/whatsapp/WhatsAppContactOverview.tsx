@@ -9,7 +9,7 @@ import { WhatsAppContactCard } from './WhatsAppContactCard';
 import type { WhatsAppContactOverview as WhatsAppContact } from '@/types/whatsappOverview';
 
 interface WhatsAppContactOverviewProps {
-  calendarId: string;
+  calendarId?: string;
 }
 
 export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewProps) {
@@ -17,7 +17,8 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [expandedContact, setExpandedContact] = useState<string | null>(null);
 
-  const { data: contacts, isLoading, error } = useWhatsAppContactOverview(calendarId);
+  // showAll = true: toon ALLE contacts van alle businesses
+  const { data: contacts, isLoading, error } = useWhatsAppContactOverview(calendarId, true);
   const refreshMutation = useRefreshWhatsAppContactOverview();
 
   const filteredContacts = contacts?.filter((contact: WhatsAppContact) => {
