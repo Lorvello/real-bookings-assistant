@@ -135,14 +135,15 @@ const ConversationsContent = () => {
   // Show WhatsApp dashboard if calendar is selected
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-full p-3 md:p-8">
-        <div className="space-y-4 md:space-y-6">
+      <div className="bg-gray-900 h-full flex flex-col p-3 md:p-8">
+        {/* Header - fixed height */}
+        <div className="shrink-0 mb-4 md:mb-6">
           <SimplePageHeader title="WhatsApp" />
+        </div>
 
-          {/* Analytics Dashboard */}
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl">
-            <WhatsAppDashboard calendarId={selectedCalendarId} />
-          </div>
+        {/* Dashboard - takes remaining space */}
+        <div className="flex-1 min-h-0 bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl overflow-hidden">
+          <WhatsAppDashboard calendarId={selectedCalendarId} />
         </div>
       </div>
     </DashboardLayout>
