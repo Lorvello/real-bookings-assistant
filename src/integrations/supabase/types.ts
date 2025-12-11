@@ -3853,6 +3853,7 @@ export type Database = {
       }
       whatsapp_conversations: {
         Row: {
+          business_name: string | null
           calendar_id: string | null
           contact_id: string | null
           context: Json | null
@@ -3866,6 +3867,7 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          business_name?: string | null
           calendar_id?: string | null
           contact_id?: string | null
           context?: Json | null
@@ -3879,6 +3881,7 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          business_name?: string | null
           calendar_id?: string | null
           contact_id?: string | null
           context?: Json | null
