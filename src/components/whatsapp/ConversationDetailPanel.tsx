@@ -66,10 +66,10 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
 
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
-      case 'active': return 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-green-500/30 shadow-sm shadow-green-500/10';
-      case 'pending': return 'bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/30 shadow-sm shadow-amber-500/10';
-      case 'closed': return 'bg-muted/50 text-muted-foreground border-border/50';
-      default: return 'bg-muted/50 text-muted-foreground border-border/50';
+      case 'active': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'pending': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      case 'closed': return 'bg-muted text-muted-foreground border-border';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -83,13 +83,13 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
   };
 
   return (
-    <div className="flex flex-col h-full bg-card/80 backdrop-blur-sm rounded-xl border border-border/50 shadow-xl shadow-black/10">
-      {/* Premium Header with Gradient */}
-      <div className="p-4 border-b border-border/50 bg-gradient-to-r from-card via-card to-primary/5">
+    <div className="flex flex-col h-full bg-card rounded-lg border border-border">
+      {/* Header */}
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 ring-2 ring-primary/20 ring-offset-2 ring-offset-background shadow-lg shadow-primary/10">
-              <AvatarFallback className="bg-gradient-to-br from-primary to-emerald-500 text-primary-foreground font-semibold">
+            <Avatar className="h-12 w-12">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -107,7 +107,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all">
+            <Button variant="outline" size="sm" className="gap-2">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Plan Afspraak</span>
             </Button>
@@ -115,7 +115,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="gap-2 border-border/50 hover:border-green-500/50 hover:bg-green-500/5 hover:text-green-400 transition-all"
+                className="gap-2"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Sluiten</span>
@@ -129,7 +129,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 min-h-0 overflow-hidden">
         {/* Left: Contact Info */}
         <div className="lg:col-span-1 space-y-4 overflow-y-auto">
-          <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-lg shadow-black/5">
+          <Card>
             <CardHeader className="pb-3">
               <h3 className="font-medium text-sm text-foreground">Contact Informatie</h3>
             </CardHeader>
@@ -165,7 +165,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
 
           {/* Latest Appointment */}
           {contact.laatste_booking && (
-            <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-lg shadow-black/5">
+            <Card>
               <CardHeader className="pb-3">
                 <h3 className="font-medium text-sm text-foreground">Laatste Afspraak</h3>
               </CardHeader>
@@ -191,23 +191,21 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
 
         {/* Right: Conversation History */}
         <div className="lg:col-span-2 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0 backdrop-blur-sm bg-card/90 border-border/50 shadow-xl shadow-black/10">
-            <CardHeader className="pb-3 shrink-0 bg-gradient-to-r from-transparent to-primary/5">
+          <Card className="flex-1 flex flex-col min-h-0">
+            <CardHeader className="pb-3 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-primary/10">
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                </div>
+                <MessageSquare className="h-4 w-4 text-primary" />
                 <h3 className="font-medium text-sm text-foreground">Conversatie</h3>
                 {messages && (
-                  <span className="text-xs text-muted-foreground ml-auto bg-muted/50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-muted-foreground ml-auto">
                     {messages.length} berichten
                   </span>
                 )}
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col min-h-0 pt-0">
-              {/* Messages with WhatsApp background */}
-              <ScrollArea className="flex-1 pr-4 whatsapp-chat-bg rounded-lg" ref={scrollRef}>
+              {/* Messages */}
+              <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
                 {messagesLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map(i => (
@@ -231,17 +229,17 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                       >
                         <div
                           className={cn(
-                            "max-w-[80%] px-3 py-2 shadow-sm",
+                            "max-w-[80%] rounded-lg px-3 py-2",
                             msg.direction === 'outbound'
-                              ? 'whatsapp-bubble-user-modern'
-                              : 'whatsapp-bubble-ai-modern'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-foreground'
                           )}
                         >
                           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                           <p className={cn(
-                            "text-xs mt-1 opacity-70",
+                            "text-xs mt-1",
                             msg.direction === 'outbound' 
-                              ? 'text-primary-foreground' 
+                              ? 'text-primary-foreground/70' 
                               : 'text-muted-foreground'
                           )}>
                             {format(new Date(msg.created_at), 'HH:mm', { locale: nl })}
@@ -253,22 +251,17 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 )}
               </ScrollArea>
 
-              {/* Premium Message Input */}
-              <Separator className="my-3 bg-border/30" />
+              {/* Message Input */}
+              <Separator className="my-3" />
               <div className="flex gap-2 shrink-0">
                 <Input
                   placeholder="Typ een bericht..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="flex-1 bg-muted/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all"
+                  className="flex-1"
                 />
-                <Button 
-                  onClick={handleSendMessage} 
-                  size="icon" 
-                  disabled={!message.trim()}
-                  className="bg-gradient-to-r from-primary to-emerald-500 hover:from-primary/90 hover:to-emerald-500/90 shadow-lg shadow-primary/25 transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                >
+                <Button onClick={handleSendMessage} size="icon" disabled={!message.trim()}>
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
