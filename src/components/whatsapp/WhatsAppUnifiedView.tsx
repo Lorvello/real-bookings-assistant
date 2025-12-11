@@ -25,7 +25,7 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
   };
 
   return (
-    <div className="h-[calc(100vh-280px)] min-h-[500px]">
+    <div className="h-full">
       {/* Desktop Layout */}
       <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-full">
         <div className="lg:col-span-4 h-full">
