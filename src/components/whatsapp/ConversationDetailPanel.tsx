@@ -32,9 +32,9 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Use session_id as conversation_id for messages
+  // Use contact_id for fetching messages
   const { data: messages, isLoading: messagesLoading } = useWhatsAppMessages(
-    contact.session_id || ''
+    contact.contact_id || ''
   );
 
   const displayName = contact.display_name || 
@@ -224,13 +224,13 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                         key={msg.id}
                         className={cn(
                           "flex",
-                          msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'
+                          msg.direction === 'outbound' ? 'justify-end' : 'justify-start'
                         )}
                       >
                         <div
                           className={cn(
                             "max-w-[80%] rounded-lg px-3 py-2",
-                            msg.direction === 'outgoing'
+                            msg.direction === 'outbound'
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted text-foreground'
                           )}
@@ -238,7 +238,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                           <p className={cn(
                             "text-xs mt-1",
-                            msg.direction === 'outgoing' 
+                            msg.direction === 'outbound' 
                               ? 'text-primary-foreground/70' 
                               : 'text-muted-foreground'
                           )}>

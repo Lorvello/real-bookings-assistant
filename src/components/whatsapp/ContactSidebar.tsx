@@ -14,7 +14,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
   const { data: conversations } = useWhatsAppConversations(''); // We'll get the conversation from the list
   
   const conversation = conversations?.find(c => c.id === conversationId);
-  const contact = conversation?.whatsapp_contacts;
+  const contact = conversation?.whatsapp_contact_overview;
 
   if (!conversationId || !conversation) {
     return (
@@ -173,7 +173,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         </div>
 
         {/* Contact History */}
-        {contact?.created_at && (
+        {contact?.contact_created_at && (
           <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/30">
             <h4 className="font-medium text-white mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-purple-400" />
@@ -182,16 +182,15 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-gray-400" />
               <span className="text-gray-300">
-                Contact since {format(new Date(contact.created_at), 'dd MMM yyyy', { locale: nl })}
+                Contact since {format(new Date(contact.contact_created_at), 'dd MMM yyyy', { locale: nl })}
               </span>
             </div>
             
-            {/* Check if contact has last_seen_at property */}
-            {contact && 'last_seen_at' in contact && contact.last_seen_at && (
+            {contact.last_message_at && (
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-300">
-                  Last seen: {format(new Date(String(contact.last_seen_at)), 'dd MMM yyyy HH:mm', { locale: nl })}
+                  Last message: {format(new Date(contact.last_message_at), 'dd MMM yyyy HH:mm', { locale: nl })}
                 </span>
               </div>
             )}

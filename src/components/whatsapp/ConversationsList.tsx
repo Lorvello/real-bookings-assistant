@@ -23,7 +23,7 @@ export function ConversationsList({
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const filteredConversations = conversations?.filter(conversation => {
-    const contact = conversation.whatsapp_contacts;
+    const contact = conversation.whatsapp_contact_overview;
     const displayName = contact?.display_name || 
       `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
       'Unknown contact';
@@ -129,7 +129,7 @@ export function ConversationsList({
         ) : (
           <div className="space-y-1 p-2">
             {filteredConversations.map((conversation) => {
-              const contact = conversation.whatsapp_contacts;
+              const contact = conversation.whatsapp_contact_overview;
               const displayName = contact?.display_name || 
                 `${contact?.first_name || ''} ${contact?.last_name || ''}`.trim() || 
                 'Unknown contact';

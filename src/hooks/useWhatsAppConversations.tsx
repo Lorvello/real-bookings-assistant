@@ -16,14 +16,14 @@ export function useWhatsAppConversations(calendarId: string) {
         .from('whatsapp_conversations')
         .select(`
           *,
-          whatsapp_contacts (
-            id,
+          whatsapp_contact_overview!whatsapp_conversations_contact_id_fkey (
+            contact_id,
             phone_number,
             display_name,
             first_name,
             last_name,
-            profile_picture_url,
-            created_at
+            last_message_at,
+            contact_created_at
           )
         `)
         .eq('calendar_id', calendarId)
