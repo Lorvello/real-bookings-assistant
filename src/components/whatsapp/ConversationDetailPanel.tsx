@@ -126,9 +126,9 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
       </div>
 
       {/* Content Grid */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 min-h-0 overflow-hidden">
         {/* Left: Contact Info */}
-        <div className="lg:col-span-1 space-y-4">
+        <div className="lg:col-span-1 space-y-4 overflow-y-auto">
           <Card>
             <CardHeader className="pb-3">
               <h3 className="font-medium text-sm text-foreground">Contact Informatie</h3>
