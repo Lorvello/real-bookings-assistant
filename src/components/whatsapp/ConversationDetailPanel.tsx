@@ -29,7 +29,7 @@ interface ConversationDetailPanelProps {
 
 export function ConversationDetailPanel({ contact }: ConversationDetailPanelProps) {
   const [message, setMessage] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Use contact_id for fetching messages
@@ -48,10 +48,9 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     .toUpperCase()
     .slice(0, 2);
 
+  // Auto-scroll naar nieuwste bericht
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSendMessage = () => {
@@ -204,10 +203,10 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
               </div>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col min-h-0 pt-0">
-              {/* Messages */}
-              <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
+              {/* Messages - Fixed height for scrolling */}
+              <ScrollArea className="h-[calc(100vh-450px)] min-h-[300px] pr-4">
                 {messagesLoading ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 p-2">
                     {[1, 2, 3].map(i => (
                       <div key={i} className="h-12 bg-muted/50 rounded-lg animate-pulse" />
                     ))}
@@ -218,7 +217,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                     <p className="text-sm">Nog geen berichten</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 pb-4">
+                  <div className="space-y-4 py-4">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
@@ -229,17 +228,17 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                       >
                         <div
                           className={cn(
-                            "max-w-[80%] rounded-lg px-3 py-2",
+                            "max-w-[80%] px-4 py-2.5 shadow-sm relative",
                             msg.direction === 'outbound'
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-foreground'
+                              ? 'bg-[hsl(142,70%,35%)] text-white rounded-2xl rounded-br-md'
+                              : 'bg-muted text-foreground rounded-2xl rounded-bl-md border border-border'
                           )}
                         >
-                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                           <p className={cn(
-                            "text-xs mt-1",
+                            "text-xs mt-1.5 text-right",
                             msg.direction === 'outbound' 
-                              ? 'text-primary-foreground/70' 
+                              ? 'text-white/70' 
                               : 'text-muted-foreground'
                           )}>
                             {format(new Date(msg.created_at), 'HH:mm', { locale: nl })}
@@ -247,6 +246,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                         </div>
                       </div>
                     ))}
+                    <div ref={messagesEndRef} />
                   </div>
                 )}
               </ScrollArea>
