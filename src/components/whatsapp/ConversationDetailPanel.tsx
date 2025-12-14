@@ -1,10 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { WhatsAppContactOverview } from '@/types/whatsappOverview';
 import { useWhatsAppMessages } from '@/hooks/useWhatsAppMessages';
@@ -16,7 +14,6 @@ import {
   User, 
   Building2,
   Clock,
-  Send,
   MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -28,7 +25,6 @@ interface ConversationDetailPanelProps {
 }
 
 export function ConversationDetailPanel({ contact }: ConversationDetailPanelProps) {
-  const [message, setMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -53,15 +49,6 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    console.log('Sending message:', message);
-    toast({
-      title: "Bericht",
-      description: "Berichten versturen is nog niet geïmplementeerd."
-    });
-    setMessage('');
-  };
 
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
@@ -202,9 +189,9 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 )}
               </div>
             </CardHeader>
-            <CardContent className="flex-1 flex flex-col min-h-0 pt-0">
-              {/* Messages - Fixed height for scrolling */}
-              <ScrollArea className="h-[calc(100vh-450px)] min-h-[300px] pr-4">
+            <CardContent className="flex-1 min-h-0 pt-0">
+              {/* Messages */}
+              <ScrollArea className="h-full pr-4">
                 {messagesLoading ? (
                   <div className="space-y-3 p-2">
                     {[1, 2, 3].map(i => (
@@ -228,7 +215,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                       >
                         <div
                           className={cn(
-                            "max-w-[80%] px-4 py-2.5 shadow-sm relative",
+                            "max-w-[80%] px-4 py-2.5 shadow-sm",
                             msg.direction === 'outbound'
                               ? 'bg-[hsl(142,70%,35%)] text-white rounded-2xl rounded-br-md'
                               : 'bg-muted text-foreground rounded-2xl rounded-bl-md border border-border'
@@ -250,21 +237,6 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                   </div>
                 )}
               </ScrollArea>
-
-              {/* Message Input */}
-              <Separator className="my-3" />
-              <div className="flex gap-2 shrink-0">
-                <Input
-                  placeholder="Typ een bericht..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  className="flex-1"
-                />
-                <Button onClick={handleSendMessage} size="icon" disabled={!message.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
