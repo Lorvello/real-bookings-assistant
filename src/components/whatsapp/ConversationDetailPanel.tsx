@@ -44,9 +44,12 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     .toUpperCase()
     .slice(0, 2);
 
-  // Auto-scroll naar nieuwste bericht
+  // Auto-scroll naar nieuwste bericht met kleine delay voor ScrollArea
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
 
