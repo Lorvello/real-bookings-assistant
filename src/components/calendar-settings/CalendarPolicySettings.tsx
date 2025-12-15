@@ -172,6 +172,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 const numValue = value === '' ? 0 : Math.min(parseInt(value), 120);
                 onUpdate({ buffer_time: numValue });
               }}
+              onFocus={(e) => e.target.select()}
               className="bg-background border-border"
             />
           </div>
@@ -202,6 +203,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 const numValue = value === '' ? 1 : Math.min(parseInt(value), 168);
                 onUpdate({ minimum_notice_hours: numValue });
               }}
+              onFocus={(e) => e.target.select()}
               className="bg-background border-border"
             />
           </div>
@@ -229,6 +231,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 const numValue = value === '' ? 60 : Math.min(parseInt(value), 365);
                 onUpdate({ booking_window_days: numValue });
               }}
+              onFocus={(e) => e.target.select()}
               className="bg-background border-border"
             />
           </div>
