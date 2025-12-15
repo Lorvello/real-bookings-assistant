@@ -44,20 +44,46 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     .toUpperCase()
     .slice(0, 2);
 
-  // Auto-scroll naar nieuwste bericht - scroll de Radix viewport direct
+  // Custom smooth scroll functie met easing
+  const smoothScrollTo = (element: HTMLElement, targetPosition: number, duration: number = 600) => {
+    const startPosition = element.scrollTop;
+    const distance = targetPosition - startPosition;
+    let startTime: number | null = null;
+
+    const animation = (currentTime: number) => {
+      if (startTime === null) startTime = currentTime;
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease-out cubic voor natuurlijke animatie
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      element.scrollTop = startPosition + distance * easeOut;
+      
+      if (progress < 1) {
+        requestAnimationFrame(animation);
+      }
+    };
+    
+    requestAnimationFrame(animation);
+  };
+
+  // Auto-scroll naar nieuwste bericht met gegarandeerde animatie
   useEffect(() => {
     const timer = setTimeout(() => {
       const viewport = scrollAreaRef.current?.querySelector(
         '[data-radix-scroll-area-viewport]'
       ) as HTMLElement | null;
       
-      if (viewport) {
-        viewport.scrollTo({
-          top: viewport.scrollHeight,
-          behavior: 'smooth'
+      if (viewport && viewport.scrollHeight > viewport.clientHeight) {
+        // Eerst instant naar boven scrollen
+        viewport.scrollTop = 0;
+        
+        // Dan na kort moment smooth naar beneden met custom animatie
+        requestAnimationFrame(() => {
+          smoothScrollTo(viewport, viewport.scrollHeight, 800);
         });
       }
-    }, 200);
+    }, 300);
     return () => clearTimeout(timer);
   }, [messages]);
 
