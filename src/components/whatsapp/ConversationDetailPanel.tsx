@@ -47,14 +47,17 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
   // Auto-scroll naar nieuwste bericht - scroll de Radix viewport direct
   useEffect(() => {
     const timer = setTimeout(() => {
-      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      const viewport = scrollAreaRef.current?.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLElement | null;
+      
       if (viewport) {
         viewport.scrollTo({
           top: viewport.scrollHeight,
           behavior: 'smooth'
         });
       }
-    }, 150);
+    }, 200);
     return () => clearTimeout(timer);
   }, [messages]);
 
