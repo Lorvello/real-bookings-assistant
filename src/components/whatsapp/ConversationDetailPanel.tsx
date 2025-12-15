@@ -67,23 +67,38 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     requestAnimationFrame(animation);
   };
 
-  // Auto-scroll naar nieuwste bericht met gegarandeerde animatie
+  // Ref voor de content container
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll naar nieuwste bericht via content parentElement
   useEffect(() => {
     const timer = setTimeout(() => {
-      const viewport = scrollAreaRef.current?.querySelector(
-        '[data-radix-scroll-area-viewport]'
-      ) as HTMLElement | null;
+      const content = contentRef.current;
+      console.log('Content ref:', content);
+      
+      if (!content) {
+        console.log('Content ref niet gevonden!');
+        return;
+      }
+      
+      const viewport = content.parentElement as HTMLElement | null;
+      console.log('Viewport gevonden:', viewport);
+      console.log('ScrollHeight:', viewport?.scrollHeight, 'ClientHeight:', viewport?.clientHeight);
       
       if (viewport && viewport.scrollHeight > viewport.clientHeight) {
+        console.log('Start scroll animatie...');
         // Eerst instant naar boven scrollen
         viewport.scrollTop = 0;
         
         // Dan na kort moment smooth naar beneden met custom animatie
         requestAnimationFrame(() => {
           smoothScrollTo(viewport, viewport.scrollHeight, 800);
+          console.log('Scroll animatie gestart naar:', viewport.scrollHeight);
         });
+      } else {
+        console.log('Geen scroll nodig of viewport niet gevonden');
       }
-    }, 300);
+    }, 500);
     return () => clearTimeout(timer);
   }, [messages]);
 
@@ -242,7 +257,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                     <p className="text-sm">Nog geen berichten</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 py-4">
+                  <div ref={contentRef} className="space-y-4 py-4">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
