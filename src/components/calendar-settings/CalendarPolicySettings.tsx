@@ -164,12 +164,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               </Tooltip>
             </div>
             <Input
-              type="number"
-              value={settings.buffer_time ?? 0}
-              onChange={(e) => onUpdate({ buffer_time: parseInt(e.target.value) || 0 })}
+              type="text"
+              inputMode="numeric"
+              value={settings.buffer_time?.toString() ?? '0'}
+              onChange={(e) => {
+                const value = e.target.value.replace(/^0+(?=\d)/, '').replace(/[^0-9]/g, '');
+                const numValue = value === '' ? 0 : Math.min(parseInt(value), 120);
+                onUpdate({ buffer_time: numValue });
+              }}
               className="bg-background border-border"
-              min="0"
-              max="120"
             />
           </div>
         </div>
@@ -191,12 +194,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               </Tooltip>
             </div>
             <Input
-              type="number"
-              value={settings.minimum_notice_hours ?? 1}
-              onChange={(e) => onUpdate({ minimum_notice_hours: parseInt(e.target.value) || 1 })}
+              type="text"
+              inputMode="numeric"
+              value={settings.minimum_notice_hours?.toString() ?? '1'}
+              onChange={(e) => {
+                const value = e.target.value.replace(/^0+(?=\d)/, '').replace(/[^0-9]/g, '');
+                const numValue = value === '' ? 1 : Math.min(parseInt(value), 168);
+                onUpdate({ minimum_notice_hours: numValue });
+              }}
               className="bg-background border-border"
-              min="0"
-              max="168"
             />
           </div>
 
@@ -215,12 +221,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               </Tooltip>
             </div>
             <Input
-              type="number"
-              value={settings.booking_window_days ?? 60}
-              onChange={(e) => onUpdate({ booking_window_days: parseInt(e.target.value) || 60 })}
+              type="text"
+              inputMode="numeric"
+              value={settings.booking_window_days?.toString() ?? '60'}
+              onChange={(e) => {
+                const value = e.target.value.replace(/^0+(?=\d)/, '').replace(/[^0-9]/g, '');
+                const numValue = value === '' ? 60 : Math.min(parseInt(value), 365);
+                onUpdate({ booking_window_days: numValue });
+              }}
               className="bg-background border-border"
-              min="1"
-              max="365"
             />
           </div>
         </div>
@@ -240,12 +249,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
             </Tooltip>
           </div>
           <Input
-            type="number"
-            value={settings.max_bookings_per_day ?? ''}
-            onChange={(e) => onUpdate({ max_bookings_per_day: e.target.value ? parseInt(e.target.value) : null })}
+            type="text"
+            inputMode="numeric"
+            value={settings.max_bookings_per_day?.toString() ?? ''}
+            onChange={(e) => {
+              const value = e.target.value.replace(/^0+(?=\d)/, '').replace(/[^0-9]/g, '');
+              const numValue = value === '' ? null : Math.min(parseInt(value), 50);
+              onUpdate({ max_bookings_per_day: numValue });
+            }}
             className="bg-background border-border"
-            min="1"
-            max="50"
             placeholder="No limit"
           />
         </div>
