@@ -230,7 +230,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
 
         {/* Right: Conversation History */}
         <div className="lg:col-span-2 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0">
+          <Card className="flex-1 flex flex-col min-h-0 max-h-[calc(100vh-300px)]">
             <CardHeader className="pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
@@ -244,7 +244,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
             </CardHeader>
             <CardContent className="flex-1 flex flex-col min-h-0 pt-0">
               {/* Messages - Fixed height for scrolling */}
-              <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-[300px] pr-4">
+              <ScrollArea ref={scrollAreaRef} className="h-full max-h-[500px] pr-4">
                 {messagesLoading ? (
                   <div className="space-y-3 p-2">
                     {[1, 2, 3].map(i => (
