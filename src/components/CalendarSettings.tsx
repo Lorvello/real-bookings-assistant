@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CalendarBasicSettings } from './calendar-settings/CalendarBasicSettings';
@@ -18,8 +19,11 @@ export function CalendarSettings({
   const {
     settings,
     loading,
+    saving,
+    hasPendingChanges,
     updatePendingSettings,
-    updateCalendarName
+    updateCalendarName,
+    saveAllChanges
   } = useCalendarSettings(calendarId);
   const {
     selectedCalendar
@@ -100,6 +104,24 @@ export function CalendarSettings({
         </CardHeader>
         <CardContent>
           <CalendarPolicySettings settings={settings} onUpdate={updatePendingSettings} />
+          
+          {/* Save Button */}
+          <div className="flex justify-end pt-6 mt-6 border-t border-border/30">
+            <Button
+              onClick={saveAllChanges}
+              disabled={!hasPendingChanges || saving}
+              className="min-w-[120px]"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
