@@ -26,7 +26,7 @@ interface ConversationDetailPanelProps {
 }
 
 export function ConversationDetailPanel({ contact }: ConversationDetailPanelProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Use contact_id for fetching messages
   const { data: messages, isLoading: messagesLoading } = useWhatsAppMessages(
@@ -44,11 +44,17 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     .toUpperCase()
     .slice(0, 2);
 
-  // Auto-scroll naar nieuwste bericht met kleine delay voor ScrollArea
+  // Auto-scroll naar nieuwste bericht - scroll de Radix viewport direct
   useEffect(() => {
     const timer = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTo({
+          top: viewport.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 150);
     return () => clearTimeout(timer);
   }, [messages]);
 
@@ -194,7 +200,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
             </CardHeader>
             <CardContent className="flex-1 flex flex-col min-h-0 pt-0">
               {/* Messages - Fixed height for scrolling */}
-              <ScrollArea className="flex-1 min-h-[300px] pr-4">
+              <ScrollArea ref={scrollAreaRef} className="flex-1 min-h-[300px] pr-4">
                 {messagesLoading ? (
                   <div className="space-y-3 p-2">
                     {[1, 2, 3].map(i => (
@@ -236,7 +242,6 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                         </div>
                       </div>
                     ))}
-                    <div ref={messagesEndRef} />
                   </div>
                 )}
               </ScrollArea>
