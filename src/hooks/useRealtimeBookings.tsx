@@ -34,6 +34,9 @@ export function useRealtimeBookings(calendarIds: string[] = []) {
             queryClient.invalidateQueries({ queryKey: ['optimized-analytics', calendarId] });
             queryClient.invalidateQueries({ queryKey: ['todays-bookings', calendarId] });
             
+            // NIEUW: WhatsApp contact overview invalideren (trigger refresht de data, wij refreshen de query)
+            queryClient.invalidateQueries({ queryKey: ['whatsapp-contact-overview'] });
+            
             // Show toast for new bookings
             if (payload.eventType === 'INSERT') {
               toast({
