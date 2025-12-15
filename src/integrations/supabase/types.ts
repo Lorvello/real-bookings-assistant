@@ -4693,6 +4693,8 @@ export type Database = {
       }
       service_types_overview: {
         Row: {
+          booking_window_days: number | null
+          buffer_time: number | null
           calendar_active: boolean | null
           calendar_id: string | null
           calendar_name: string | null
@@ -4703,9 +4705,11 @@ export type Database = {
           duration: number | null
           id: string | null
           is_active: boolean | null
+          minimum_notice_hours: number | null
           opening_hours: Json | null
           price: number | null
           service_name: string | null
+          slot_duration: number | null
           timezone: string | null
         }
         Relationships: [
