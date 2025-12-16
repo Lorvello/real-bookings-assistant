@@ -929,7 +929,7 @@ export function PaymentSettingsTab() {
             </div>
 
             {/* Payout Options */}
-            <div className="bg-muted/50 p-4 rounded-lg">
+            <div id="payout-options-section" className="bg-muted/50 p-4 rounded-lg">
               <div className="mb-4">
                 <h4 className="font-medium text-foreground">Payout Options</h4>
                 <p className="text-sm text-muted-foreground">Choose how quickly you want to receive your payments</p>
@@ -1398,8 +1398,7 @@ export function PaymentSettingsTab() {
                           <h5 className="text-sm font-medium text-foreground">Funds arrive in your account</h5>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          After processing, funds are transferred to your bank. 
-                          {selectedPayoutOption === 'instant' ? ' Instant payout: within minutes.' : ' Standard payout: 2-3 business days.'}
+                          After processing, funds are transferred to your bank. <button onClick={() => document.getElementById('payout-options-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="text-primary hover:underline">Depending on the payout time you have selected.</button>
                         </p>
                       </div>
                     </div>
