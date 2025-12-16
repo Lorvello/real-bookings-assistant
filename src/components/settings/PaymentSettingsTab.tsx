@@ -923,7 +923,7 @@ export function PaymentSettingsTab() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Payment Methods */}
-            <div className="bg-muted/50 p-6 rounded-lg">
+            <div id="payment-methods-section" className="bg-muted/50 p-6 rounded-lg">
               <h4 className="font-medium mb-6 text-foreground">Payment Methods</h4>
               <PaymentOptions selectedMethods={selectedMethods} onSelectionChange={setSelectedMethods} onSave={handleSavePaymentMethods} onFeesOpen={() => setFeesInfoOpen(true)} hasUnsavedChanges={hasUnsavedChanges} />
             </div>
@@ -1064,7 +1064,7 @@ export function PaymentSettingsTab() {
             </div>
 
             {/* Payment Flexibility Section - Only show when Pay & Book is enabled */}
-            <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+            <div id="payment-flexibility-section" className="bg-muted/50 p-4 rounded-lg space-y-4">
               <div className="flex items-center space-x-2">
                 <Wallet className="h-5 w-5 text-primary" />
                 <h4 className="font-medium text-foreground">Payment Flexibility</h4>
@@ -1360,7 +1360,7 @@ export function PaymentSettingsTab() {
                         <p className="text-xs text-muted-foreground mt-1">
                           {settings?.payment_required_for_booking 
                             ? "Customer receives a secure payment link and must pay to confirm their booking."
-                            : "Customer can choose to pay now, later, or on-site at your location."}
+                            : (<>Customer can choose to pay now or on-site at your location. <button onClick={() => document.getElementById('payment-flexibility-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="text-primary hover:underline">Depending on the settings you choose above.</button></>)}
                         </p>
                       </div>
                     </div>
@@ -1373,7 +1373,7 @@ export function PaymentSettingsTab() {
                           <CreditCard className="h-4 w-4 text-primary" />
                           <h5 className="text-sm font-medium text-foreground">Customer completes payment</h5>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">Customer selects their preferred payment method ({selectedMethods.length > 0 ? selectedMethods.map(m => paymentMethodsFees.find(pm => pm.id === m)?.name).filter(Boolean).join(', ') : 'iDEAL, Card, etc.'}) and pays securely through Stripe.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Customer selects from the <button onClick={() => document.getElementById('payment-methods-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="text-primary hover:underline">payment methods you've enabled</button> and pays securely through Stripe.</p>
                       </div>
                     </div>
                     
