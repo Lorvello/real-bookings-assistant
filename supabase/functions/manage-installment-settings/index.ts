@@ -113,11 +113,24 @@ serve(async (req) => {
     
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
-    // Get user's Stripe account
+    // Get user's calendar IDs first (service_types are linked via calendar_id, not user_id)
+    const { data: userCalendars, error: calendarError } = await supabaseClient
+      .from('calendars')
+      .select('id')
+      .eq('user_id', userData.user.id);
+
+    if (calendarError) {
+      throw new Error('Failed to fetch user calendars: ' + calendarError.message);
+    }
+
+    const userCalendarIds = (userCalendars || []).map(c => c.id);
+    logStep("User calendars fetched", { count: userCalendarIds.length });
+
+    // Get user's Stripe account using account_owner_id (consistent with other edge functions)
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id')
-      .eq('user_id', userData.user.id)
+      .eq('account_owner_id', userData.user.id)
       .eq('account_status', 'active')
       .single();
 
@@ -131,16 +144,16 @@ serve(async (req) => {
       logStep("Processing service-specific configurations", { count: settings.serviceConfigs.length });
       
       for (const config of settings.serviceConfigs) {
-        // Get service type details
+        // Get service type details - filter by calendar_id (not user_id which doesn't exist)
         const { data: serviceType, error: serviceError } = await supabaseClient
           .from('service_types')
           .select('*')
           .eq('id', config.serviceTypeId)
-          .eq('user_id', userData.user.id)
+          .in('calendar_id', userCalendarIds)
           .single();
 
         if (serviceError || !serviceType) {
-          logStep("Service type not found", { serviceTypeId: config.serviceTypeId });
+          logStep("Service type not found or not owned by user", { serviceTypeId: config.serviceTypeId });
           continue;
         }
 
@@ -170,19 +183,23 @@ serve(async (req) => {
         logStep("Service configuration updated", { serviceTypeId: config.serviceTypeId });
       }
     } else if (settings.enabled && settings.applyToServices === 'all') {
-      // Apply to all services - update service_types table
-      const { error: allServicesError } = await supabaseClient
-        .from('service_types')
-        .update({
-          installments_enabled: true,
-          custom_installment_plan: settings.defaultPlan
-        })
-        .eq('user_id', userData.user.id);
+      // Apply to all services - update service_types table via calendar_id
+      if (userCalendarIds.length > 0) {
+        const { error: allServicesError } = await supabaseClient
+          .from('service_types')
+          .update({
+            installments_enabled: true,
+            custom_installment_plan: settings.defaultPlan
+          })
+          .in('calendar_id', userCalendarIds);
 
-      if (allServicesError) {
-        logStep("Error updating all services", { error: allServicesError.message });
+        if (allServicesError) {
+          logStep("Error updating all services", { error: allServicesError.message });
+        } else {
+          logStep("All services updated with installments");
+        }
       } else {
-        logStep("All services updated with installments");
+        logStep("No calendars found, skipping service updates");
       }
     }
 

@@ -51,6 +51,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceType } from '@/types/calendar';
+import { isTestMode } from '@/utils/stripeConfig';
 
 // Helper function to transform database data to our interface
 const transformServiceType = (data: any): ServiceType => {
@@ -189,7 +190,7 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
         const { data, error } = await supabase.functions.invoke('create-service-type-with-stripe', {
           body: {
             serviceData: transformForDatabase(serviceData),
-            testMode: true, // Could be configurable
+            testMode: isTestMode(),
           },
         });
 
