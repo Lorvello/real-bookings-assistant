@@ -4695,6 +4695,7 @@ export type Database = {
         Row: {
           booking_window_days: number | null
           buffer_time: number | null
+          business_name: string | null
           calendar_active: boolean | null
           calendar_id: string | null
           calendar_name: string | null
