@@ -32,7 +32,7 @@ import { UsageSummary } from '@/components/ui/UsageSummary';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getStripeConfig } from '@/utils/stripeConfig';
+import { getStripeConfig, isTestMode, getPriceId } from '@/utils/stripeConfig';
 
 
 export const BillingTab: React.FC = () => {
@@ -119,17 +119,21 @@ export const BillingTab: React.FC = () => {
 
     setLoading(true);
     try {
+      const testMode = isTestMode();
+      const priceId = getPriceId(selectedTier, billingCycle === 'yearly', testMode);
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: { 
+          priceId,
           tier_name: selectedTier.tier_name,
           price: billingCycle === 'yearly' ? selectedTier.price_yearly : selectedTier.price_monthly,
           is_annual: billingCycle === 'yearly',
           success_url: window.location.origin + '/success',
           cancel_url: window.location.origin + '/settings?tab=billing&canceled=true',
-          mode: 'test' // Will be determined by edge function based on environment
+          mode: testMode ? 'test' : 'live'
         }
       });
       
