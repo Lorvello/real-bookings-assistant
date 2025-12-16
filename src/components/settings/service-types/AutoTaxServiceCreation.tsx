@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle, AlertCircle, Globe, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { isTestMode } from '@/utils/stripeConfig';
 
 interface AutoTaxServiceCreationProps {
   calendarId: string;
@@ -37,7 +38,7 @@ export const AutoTaxServiceCreation: React.FC<AutoTaxServiceCreationProps> = ({
             calendar_id: calendarId,
             tax_enabled: false, // Let the system auto-assign
           },
-          testMode: true // Start with test mode
+          testMode: isTestMode()
         }
       });
 

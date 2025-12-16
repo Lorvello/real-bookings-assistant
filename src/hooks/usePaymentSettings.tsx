@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { isTestMode } from '@/utils/stripeConfig';
 import type { PaymentSettings } from '@/types/payments';
 
 export const usePaymentSettings = (calendarId?: string) => {
@@ -154,7 +155,7 @@ export const usePaymentSettings = (calendarId?: string) => {
           body: {
             calendarId,
             payoutOption: option,
-            testMode: true // TODO: Get from stripe config
+            testMode: isTestMode()
           }
         });
 
