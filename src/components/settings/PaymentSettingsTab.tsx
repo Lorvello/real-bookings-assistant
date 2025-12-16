@@ -22,7 +22,7 @@ import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
 import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
 import { StripeModeIndicator } from '@/components/developer/StripeModeIndicator';
-import { getStripeConfig } from '@/utils/stripeConfig';
+import { getStripeConfig, isTestMode } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
 import type { BusinessStripeAccount } from '@/types/payments';
 import { PaymentOptions } from '../payments/PaymentOptions';
@@ -558,7 +558,8 @@ export function PaymentSettingsTab() {
           } = await supabase.functions.invoke('sync-payment-methods', {
             body: {
               payment_methods: selectedMethods,
-              calendar_id: selectedCalendar.id
+              calendar_id: selectedCalendar.id,
+              test_mode: isTestMode()
             }
           });
           if (error) throw error;
