@@ -542,6 +542,7 @@ export type Database = {
           session_id: string | null
           start_time: string
           status: string | null
+          time_period: string | null
           total_amount_cents: number | null
           total_price: number | null
           updated_at: string | null
@@ -576,6 +577,7 @@ export type Database = {
           session_id?: string | null
           start_time: string
           status?: string | null
+          time_period?: string | null
           total_amount_cents?: number | null
           total_price?: number | null
           updated_at?: string | null
@@ -610,6 +612,7 @@ export type Database = {
           session_id?: string | null
           start_time?: string
           status?: string | null
+          time_period?: string | null
           total_amount_cents?: number | null
           total_price?: number | null
           updated_at?: string | null
