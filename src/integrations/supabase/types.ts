@@ -5519,6 +5519,7 @@ export type Database = {
         Returns: undefined
       }
       refresh_analytics_views: { Args: never; Returns: undefined }
+      refresh_booking_time_periods: { Args: never; Returns: undefined }
       refresh_business_availability_overview: {
         Args: never
         Returns: undefined
