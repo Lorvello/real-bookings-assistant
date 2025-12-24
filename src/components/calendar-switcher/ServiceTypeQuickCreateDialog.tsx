@@ -34,13 +34,15 @@ interface ServiceTypeQuickCreateDialogProps {
   onServiceCreated?: (serviceIdOrPending: string | PendingServiceType) => void;
   trigger?: React.ReactNode;
   open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function ServiceTypeQuickCreateDialog({ 
   calendarId,
   onServiceCreated,
   trigger,
-  open 
+  open,
+  onOpenChange
 }: ServiceTypeQuickCreateDialogProps) {
   const [isOpen, setIsOpen] = useState(open || false);
   const [formData, setFormData] = useState({
@@ -149,10 +151,15 @@ export function ServiceTypeQuickCreateDialog({
     }
   }, [open]);
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsOpen(newOpen);
+    onOpenChange?.(newOpen);
+  };
+
   const targetCalendarId = calendarId || selectedCalendar?.id || null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       {trigger && (
         <DialogTrigger asChild>
           {trigger}
