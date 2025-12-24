@@ -438,13 +438,12 @@ export function CreateCalendarDialog({
         </DialogContent>
       </Dialog>
 
-      {showServiceTypeDialog && (
-        <ServiceTypeQuickCreateDialog
-          open={showServiceTypeDialog}
-          onServiceCreated={handleServiceCreated}
-          trigger={null}
-        />
-      )}
+      <ServiceTypeQuickCreateDialog
+        open={showServiceTypeDialog}
+        onOpenChange={setShowServiceTypeDialog}
+        onServiceCreated={handleServiceCreated}
+        trigger={null}
+      />
 
       <CalendarUpgradeModal 
         open={showUpgradeModal}
