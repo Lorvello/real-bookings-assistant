@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Edit2 } from 'lucide-react';
@@ -13,13 +13,41 @@ interface AvailabilityOverviewProps {
 
 export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onChange }) => {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false);
+  const [isCreatingSchedule, setIsCreatingSchedule] = useState(false);
+  const hasAttemptedCreate = useRef(false);
   
   const {
     defaultCalendar,
-    defaultSchedule
+    defaultSchedule,
+    createDefaultSchedule
   } = useDailyAvailabilityManager(onChange || (() => {}));
 
   const { refreshCalendars } = useCalendarContext();
+
+  // Auto-create default schedule if calendar exists but no schedule
+  useEffect(() => {
+    const autoCreateSchedule = async () => {
+      if (defaultCalendar && !defaultSchedule && !isCreatingSchedule && !hasAttemptedCreate.current) {
+        hasAttemptedCreate.current = true;
+        setIsCreatingSchedule(true);
+        try {
+          console.log('Auto-creating default schedule for new calendar:', defaultCalendar.id);
+          await createDefaultSchedule();
+        } catch (error) {
+          console.error('Failed to auto-create schedule:', error);
+        } finally {
+          setIsCreatingSchedule(false);
+        }
+      }
+    };
+    
+    autoCreateSchedule();
+  }, [defaultCalendar, defaultSchedule, createDefaultSchedule, isCreatingSchedule]);
+
+  // Reset the attempt flag when calendar changes
+  useEffect(() => {
+    hasAttemptedCreate.current = false;
+  }, [defaultCalendar?.id]);
 
   const handleGuidedComplete = () => {
     onChange?.();
@@ -31,7 +59,9 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-          <div className="text-muted-foreground">Loading availability...</div>
+          <div className="text-muted-foreground">
+            {isCreatingSchedule ? 'Setting up availability...' : 'Loading availability...'}
+          </div>
         </div>
       </div>
     );
