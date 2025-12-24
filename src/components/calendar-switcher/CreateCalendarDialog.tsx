@@ -21,6 +21,7 @@ import { ServiceTypeQuickCreateDialog, PendingServiceType } from './ServiceTypeQ
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { CalendarUpgradeModal } from './CalendarUpgradeModal';
+import { AvailabilityQuickSetup, getDefaultAvailability, DayAvailability } from './AvailabilityQuickSetup';
 
 const colorOptions = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -60,6 +61,7 @@ export function CreateCalendarDialog({
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [availability, setAvailability] = useState<Record<string, DayAvailability>>(getDefaultAvailability);
 
   const { checkAccess, userStatus } = useAccessControl();
 
@@ -130,7 +132,8 @@ export function CreateCalendarDialog({
         location: newCalendar.location,
         serviceTypes: selectedServiceTypes,
         pendingServiceTypes: pendingServiceTypes,
-        teamMembers: teamMembersForCreation
+        teamMembers: teamMembersForCreation,
+        availability: availability
       });
       
       // Reset form
@@ -142,6 +145,7 @@ export function CreateCalendarDialog({
       setSelectedServiceTypes([]);
       setPendingServiceTypes([]);
       setSelectedTeamMembers([]);
+      setAvailability(getDefaultAvailability());
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
@@ -393,6 +397,12 @@ export function CreateCalendarDialog({
                 </p>
               </div>
             </div>
+
+            {/* Working Hours */}
+            <AvailabilityQuickSetup 
+              availability={availability}
+              onChange={setAvailability}
+            />
 
             {/* Color */}
             <div>

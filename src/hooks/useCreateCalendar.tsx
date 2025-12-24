@@ -22,6 +22,12 @@ interface PendingServiceType {
   isPending: true;
 }
 
+interface DayAvailability {
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+}
+
 interface CreateCalendarData {
   name: string;
   description?: string;
@@ -30,6 +36,7 @@ interface CreateCalendarData {
   serviceTypes?: string[];
   pendingServiceTypes?: PendingServiceType[];
   teamMembers?: TeamMember[];
+  availability?: Record<string, DayAvailability>;
 }
 
 export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
@@ -267,6 +274,60 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
           } catch (error) {
             console.error(`Error processing team member ${member.email}:`, error);
           }
+        }
+      }
+
+      // Update availability rules if custom availability was provided
+      if (data.availability) {
+        try {
+          // Wait a bit for the database trigger to create the default schedule
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Get the schedule that was auto-created by the database trigger
+          const { data: scheduleData, error: scheduleError } = await supabase
+            .from('availability_schedules')
+            .select('id')
+            .eq('calendar_id', calendar.id)
+            .eq('is_default', true)
+            .single();
+          
+          if (scheduleData && !scheduleError) {
+            // Day key to day_of_week mapping
+            const dayMapping: Record<string, number> = {
+              sunday: 0,
+              monday: 1,
+              tuesday: 2,
+              wednesday: 3,
+              thursday: 4,
+              friday: 5,
+              saturday: 6
+            };
+            
+            // Update each day's availability
+            for (const [dayKey, dayData] of Object.entries(data.availability)) {
+              const dayOfWeek = dayMapping[dayKey];
+              if (dayOfWeek === undefined) continue;
+              
+              // Update the existing rule created by the trigger
+              const { error: updateError } = await supabase
+                .from('availability_rules')
+                .update({
+                  start_time: dayData.startTime,
+                  end_time: dayData.endTime,
+                  is_available: dayData.enabled
+                })
+                .eq('schedule_id', scheduleData.id)
+                .eq('day_of_week', dayOfWeek);
+              
+              if (updateError) {
+                console.error(`Error updating availability for ${dayKey}:`, updateError);
+              }
+            }
+            
+            console.log('Custom availability rules applied successfully');
+          }
+        } catch (error) {
+          console.error('Error updating availability rules:', error);
         }
       }
 
