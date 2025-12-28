@@ -31,7 +31,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
     const matchesFilter = 
       filterStatus === 'all' ||
       (filterStatus === 'active' && contact.conversation_status === 'active') ||
-      (filterStatus === 'with_bookings' && contact.booking_id) ||
+      (filterStatus === 'with_bookings' && contact.all_bookings && contact.all_bookings.length > 0) ||
       (filterStatus === 'recent' && contact.last_message_at && 
         new Date(contact.last_message_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 

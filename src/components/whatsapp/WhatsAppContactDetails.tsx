@@ -2,15 +2,18 @@
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Calendar } from 'lucide-react';
+import { MessageCircle, Calendar, Clock } from 'lucide-react';
 import { formatDate, getBookingStatusColor } from './utils/contactFormatters';
-import type { WhatsAppContactOverview as WhatsAppContact } from '@/types/whatsappOverview';
+import type { WhatsAppContactOverview as WhatsAppContact, BookingInfo } from '@/types/whatsappOverview';
 
 interface WhatsAppContactDetailsProps {
   contact: WhatsAppContact;
 }
 
 export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps) {
+  const bookings = contact.all_bookings || [];
+  const latestBooking = bookings[0]; // Gesorteerd op datum, nieuwste eerst
+
   return (
     <>
       <Separator className="my-3" />
@@ -31,16 +34,29 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
         <div>
           <h4 className="font-medium mb-2 flex items-center gap-1">
             <Calendar className="w-4 h-4" />
-            Laatste booking
+            Boekingen ({bookings.length})
           </h4>
-          {contact.laatste_booking ? (
-            <div className="space-y-1 text-gray-600">
-              <p>Service: {contact.laatste_service || 'Onbekend'}</p>
-              <p>Datum: {formatDate(contact.laatste_booking)}</p>
-              {contact.booking_status && (
-                <Badge className={getBookingStatusColor(contact.booking_status)}>
-                  {contact.booking_status}
-                </Badge>
+          {bookings.length > 0 ? (
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {bookings.slice(0, 3).map((booking: BookingInfo) => (
+                <div key={booking.booking_id} className="text-gray-600 p-2 bg-gray-50 rounded">
+                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Clock className="w-3 h-3" />
+                    {formatDate(booking.start_time)}
+                  </div>
+                  <p className="font-medium">{booking.service_name || 'Onbekend'}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs">{booking.calendar_name}</span>
+                    {booking.status && (
+                      <Badge className={getBookingStatusColor(booking.status)} variant="secondary">
+                        {booking.status}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {bookings.length > 3 && (
+                <p className="text-xs text-gray-500">+{bookings.length - 3} meer boekingen</p>
               )}
             </div>
           ) : (

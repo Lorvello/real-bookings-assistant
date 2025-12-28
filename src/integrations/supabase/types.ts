@@ -3733,19 +3733,13 @@ export type Database = {
       }
       whatsapp_contact_overview: {
         Row: {
-          booking_id: string | null
-          booking_status: string | null
-          business_name: string | null
-          calendar_id: string | null
-          calendar_name: string | null
+          all_bookings: Json | null
           contact_created_at: string | null
           contact_id: string
           conversation_created_at: string | null
           conversation_status: string | null
           display_name: string | null
           first_name: string | null
-          laatste_booking: string | null
-          laatste_service: string | null
           last_message_at: string | null
           last_name: string | null
           last_seen_at: string | null
@@ -3755,19 +3749,13 @@ export type Database = {
           with_business: string | null
         }
         Insert: {
-          booking_id?: string | null
-          booking_status?: string | null
-          business_name?: string | null
-          calendar_id?: string | null
-          calendar_name?: string | null
+          all_bookings?: Json | null
           contact_created_at?: string | null
           contact_id?: string
           conversation_created_at?: string | null
           conversation_status?: string | null
           display_name?: string | null
           first_name?: string | null
-          laatste_booking?: string | null
-          laatste_service?: string | null
           last_message_at?: string | null
           last_name?: string | null
           last_seen_at?: string | null
@@ -3777,19 +3765,13 @@ export type Database = {
           with_business?: string | null
         }
         Update: {
-          booking_id?: string | null
-          booking_status?: string | null
-          business_name?: string | null
-          calendar_id?: string | null
-          calendar_name?: string | null
+          all_bookings?: Json | null
           contact_created_at?: string | null
           contact_id?: string
           conversation_created_at?: string | null
           conversation_status?: string | null
           display_name?: string | null
           first_name?: string | null
-          laatste_booking?: string | null
-          laatste_service?: string | null
           last_message_at?: string | null
           last_name?: string | null
           last_seen_at?: string | null
