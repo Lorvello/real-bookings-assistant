@@ -73,7 +73,7 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
 
         <div className="flex items-center justify-between mt-1">
           <span className="text-xs text-muted-foreground truncate">
-            {contact.business_name || contact.phone_number}
+            {contact.all_bookings?.[0]?.business_name || contact.phone_number}
           </span>
           {contact.last_message_at && (
             <span className="text-xs text-muted-foreground shrink-0">

@@ -25,10 +25,11 @@ export function ContactListSidebar({
     const query = searchQuery.toLowerCase();
     const displayName = contact.display_name || 
       [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+    const businessName = contact.all_bookings?.[0]?.business_name;
     return (
       displayName.toLowerCase().includes(query) ||
       contact.phone_number.includes(query) ||
-      contact.business_name?.toLowerCase().includes(query)
+      businessName?.toLowerCase().includes(query)
     );
   });
 

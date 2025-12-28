@@ -185,10 +185,10 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                   </span>
                 </div>
               )}
-              {contact.business_name && (
+              {contact.all_bookings?.[0]?.business_name && (
                 <div className="flex items-center gap-2 text-sm">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{contact.business_name}</span>
+                  <span className="text-foreground">{contact.all_bookings[0].business_name}</span>
                 </div>
               )}
               {contact.conversation_created_at && (
@@ -202,26 +202,40 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
             </CardContent>
           </Card>
 
-          {/* Latest Appointment */}
-          {contact.laatste_booking && (
+          {/* Boekingen */}
+          {contact.all_bookings && contact.all_bookings.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <h3 className="font-medium text-sm text-foreground">Laatste Afspraak</h3>
+                <h3 className="font-medium text-sm text-foreground">
+                  Boekingen ({contact.all_bookings.length})
+                </h3>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">
-                    {format(new Date(contact.laatste_booking), 'd MMMM yyyy', { locale: nl })}
-                  </span>
-                </div>
-                {contact.laatste_service && (
-                  <p className="text-sm text-muted-foreground">{contact.laatste_service}</p>
-                )}
-                {contact.booking_status && (
-                  <Badge variant="outline" className="text-xs">
-                    {contact.booking_status}
-                  </Badge>
+              <CardContent className="space-y-3 max-h-48 overflow-y-auto">
+                {contact.all_bookings.slice(0, 5).map((booking) => (
+                  <div key={booking.booking_id} className="p-2 bg-muted/30 rounded border border-border">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">
+                        {format(new Date(booking.start_time), 'd MMMM yyyy HH:mm', { locale: nl })}
+                      </span>
+                    </div>
+                    {booking.service_name && (
+                      <p className="text-sm text-muted-foreground mt-1">{booking.service_name}</p>
+                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-muted-foreground">{booking.calendar_name}</span>
+                      {booking.status && (
+                        <Badge variant="outline" className="text-xs">
+                          {booking.status}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {contact.all_bookings.length > 5 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    +{contact.all_bookings.length - 5} meer boekingen
+                  </p>
                 )}
               </CardContent>
             </Card>
