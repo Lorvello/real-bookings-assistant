@@ -3731,6 +3731,41 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_contact_business_overrides: {
+        Row: {
+          business_name: string
+          contact_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          business_name: string
+          contact_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          business_name?: string
+          contact_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contact_business_overrides_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_contact_overview: {
         Row: {
           all_bookings: Json | null

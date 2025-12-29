@@ -26,5 +26,6 @@ export interface WhatsAppContactOverview {
   last_message_at?: string;
   conversation_created_at?: string;
   updated_at?: string;
+  with_business?: string;
   all_bookings: BookingInfo[];
 }
