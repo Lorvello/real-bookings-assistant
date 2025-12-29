@@ -6,6 +6,7 @@ export interface BookingInfo {
   business_name: string | null;
   start_time: string;
   end_time: string;
+  service_type_id: string | null;
   service_name: string | null;
   status: string;
   customer_name: string;
