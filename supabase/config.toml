@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.test-ai-agent]
+verify_jwt = false
