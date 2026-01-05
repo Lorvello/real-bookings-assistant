@@ -1,10 +1,10 @@
-
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -271,15 +271,23 @@ export default function AIAgentTestPage() {
     setInputValue(e.target.value);
   };
 
-  const simulateAIResponse = (userMessage: string): string => {
-    const responses = [
-      "That's an interesting question! As an AI agent, I can help you automate your WhatsApp communication and improve your customer service.",
-      "Great! I can support you in setting up automated workflows that save you time and increase your conversion rate.",
-      "Excellent question! With my help, you can send personalized messages, qualify leads, and optimize your sales process.",
-      "Perfect! I can help you create chatbots, segment your target audience, and increase your customer satisfaction.",
-      "Fantastic! Let me show you how I can automate complex tasks and streamline your business processes.",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  const getAIResponse = async (userMessage: string, history: Message[]): Promise<string> => {
+    const { data, error } = await supabase.functions.invoke('test-ai-agent', {
+      body: {
+        message: userMessage,
+        conversation_history: history.map(m => ({
+          role: m.type === 'user' ? 'user' : 'assistant',
+          content: m.content,
+        })),
+      },
+    });
+
+    if (error) {
+      console.error('AI agent error:', error);
+      throw error;
+    }
+
+    return data.reply || "Sorry, ik kon geen antwoord genereren.";
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -293,20 +301,32 @@ export default function AIAgentTestPage() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInputValue("");
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const reply = await getAIResponse(inputValue, updatedMessages);
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "bot",
-        content: simulateAIResponse(inputValue),
+        content: reply,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Failed to get AI response:', error);
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "bot",
+        content: "Sorry, er ging iets mis. Probeer het opnieuw.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
