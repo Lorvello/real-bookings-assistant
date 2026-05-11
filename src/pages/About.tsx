@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
-import lucianoPhoto from '@/assets/luciano-photo.png';
+
 import mathewPhoto from '@/assets/mathew-photo.png';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { useSEO } from '@/hooks/useSEO';
@@ -65,10 +65,10 @@ const About = () => {
           <section className="py-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <ScrollAnimatedSection animation="fade-up" delay={0} as="h2" className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
-                Meet the Founders
+                Meet the Founder
               </ScrollAnimatedSection>
               
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-1 max-w-2xl mx-auto gap-8">
                 {/* Mathew */}
                 <ScrollAnimatedSection animation="fade-up" delay={100} as="div">
                   <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/40 transition-all duration-500 ease-out shadow-2xl shadow-black/20 hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer h-full">
@@ -109,45 +109,6 @@ const About = () => {
                   </Card>
                 </ScrollAnimatedSection>
 
-                {/* Luciano */}
-                <ScrollAnimatedSection animation="fade-up" delay={200} as="div">
-                  <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/40 transition-all duration-500 ease-out shadow-2xl shadow-black/20 hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer h-full">
-                    <CardContent className="p-8">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 border border-emerald-500/30 overflow-hidden group-hover:border-emerald-400/50 transition-all duration-500">
-                          <img 
-                            src={lucianoPhoto} 
-                            alt="Luciano Raatgever" 
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-white">Luciano Raatgever</h3>
-                          <p className="text-emerald-400 text-sm font-medium">Co-Founder & Systems Architect</p>
-                          <p className="text-slate-500 text-sm">26 January 2003 · Netherlands</p>
-                        </div>
-                      </div>
-                      <div className="space-y-4 text-slate-300 leading-relaxed">
-                        <p>
-                          The backend mastermind with 8+ years of hands-on experience in AI automation and enterprise 
-                          infrastructure. Luciano specializes in building robust, secure systems that handle thousands 
-                          of concurrent operations without breaking a sweat.
-                        </p>
-                        <p>
-                          His expertise spans database architecture, API development, and conversational AI design. 
-                          He engineered the entire backend infrastructure connecting Supabase, n8n workflows, and the 
-                          WhatsApp Business API into one seamless, secure booking experience.
-                        </p>
-                        <div className="flex flex-wrap gap-2 pt-2">
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">n8n Workflows</span>
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Supabase</span>
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">API Design</span>
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Security</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </ScrollAnimatedSection>
               </div>
             </div>
           </section>
