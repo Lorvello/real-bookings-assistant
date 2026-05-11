@@ -65,10 +65,10 @@ const About = () => {
           <section className="py-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <ScrollAnimatedSection animation="fade-up" delay={0} as="h2" className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
-                Meet the Founders
+                Meet the Founder
               </ScrollAnimatedSection>
               
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-1 max-w-2xl mx-auto gap-8">
                 {/* Mathew */}
                 <ScrollAnimatedSection animation="fade-up" delay={100} as="div">
                   <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/40 transition-all duration-500 ease-out shadow-2xl shadow-black/20 hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer h-full">
