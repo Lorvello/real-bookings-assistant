@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
-import lucianoPhoto from '@/assets/luciano-photo.png';
+
 import mathewPhoto from '@/assets/mathew-photo.png';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { useSEO } from '@/hooks/useSEO';
