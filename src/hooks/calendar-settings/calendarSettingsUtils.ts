@@ -30,7 +30,6 @@ export const createDefaultCalendarSettings = async (
   try {
     const defaultSettings = {
       calendar_id: calendarId,
-      user_id: userId,
       confirmation_required: true,
       allow_waitlist: false,
       whatsapp_bot_active: false,
