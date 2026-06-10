@@ -46,8 +46,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Processing team invitation for:', { calendar_id, email, full_name, role });
 
-    // Use the invite_team_member function to create invitation and get token
-    const { data: invitationResult, error: inviteError } = await supabase.rpc('invite_team_member', {
+    // Call the RPC with the user's auth context so auth.uid() resolves inside the
+    // SECURITY DEFINER function (used for the owner check and the invited_by column).
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: invitationResult, error: inviteError } = await userClient.rpc('invite_team_member', {
       p_calendar_id: calendar_id,
       p_email: email,
       p_full_name: full_name,
