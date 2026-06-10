@@ -20,7 +20,18 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
-    
+
+    // Server-side endpoint (called by the WhatsApp booking agent), not a logged-in user.
+    // Require a shared secret so the public anon key cannot mint Stripe payment links
+    // for any conversation id.
+    const expectedSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+    if (!expectedSecret || req.headers.get("x-internal-secret") !== expectedSecret) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",

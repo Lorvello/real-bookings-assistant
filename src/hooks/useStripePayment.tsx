@@ -7,14 +7,15 @@ export const useStripePayment = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const createPayment = async (bookingId: string, calendarId: string) => {
+  const createPayment = async (bookingId: string, calendarId: string, confirmationToken: string) => {
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('create-booking-payment', {
         body: {
           booking_id: bookingId,
           calendar_id: calendarId,
+          confirmation_token: confirmationToken,
         },
       });
 

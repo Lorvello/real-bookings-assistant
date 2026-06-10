@@ -27,7 +27,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { booking_id, calendar_id, test_mode = false, payment_method = 'card', payment_timing = 'pay_now' } = await req.json();
+    const { booking_id, calendar_id, confirmation_token, test_mode = false, payment_method = 'card', payment_timing = 'pay_now' } = await req.json();
     logStep("Request parsed", { booking_id, calendar_id, test_mode, payment_method, payment_timing });
 
     // Get booking details with complete service information including tax config
@@ -53,6 +53,17 @@ serve(async (req) => {
     if (bookingError || !booking) {
       throw new Error("Booking not found");
     }
+
+    // Authorize the caller: they must present this booking's confirmation token
+    // (handed out when the booking was created). Prevents strangers from creating
+    // checkouts or flipping payment status for arbitrary booking ids.
+    if (!confirmation_token || booking.confirmation_token !== confirmation_token) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid or missing confirmation token" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     logStep("Booking fetched", { bookingId: booking.id, serviceName: booking.service_types?.name });
 
     // Get payment settings for this calendar
