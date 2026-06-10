@@ -22,9 +22,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Service role: this is a controlled public endpoint that does its own thorough
+    // validation below (validate_booking_security + calendar/service + future-time
+    // checks, input sanitization and IP rate limiting). The anon client is blocked by
+    // the bookings public-insert RLS policy (a BEFORE-insert trigger rewrites the row
+    // before WITH CHECK runs), so a valid public booking 500s. The function's own
+    // validation is the security gate here, mirroring create-booking-payment et al.
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const ipAddress = getClientIp(req);
