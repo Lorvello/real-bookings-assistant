@@ -22,11 +22,12 @@ import { PagePrefetcher } from '@/components/loading/PagePrefetcher';
 import { RouteErrorBoundary } from '@/components/error-boundaries/RouteErrorBoundary';
 import { OfflineIndicator } from '@/components/ui/OfflineIndicator';
 
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+
 // Lazy-loaded pages with retry logic for chunk load failures
 const ForgotPassword = lazyWithRetry(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazyWithRetry(() => import('@/pages/ResetPassword'));
 const VerifyEmail = lazyWithRetry(() => import('@/pages/VerifyEmail'));
-const Testing = lazyWithRetry(() => import('@/pages/Testing'));
 const NotFound = lazyWithRetry(() => import('@/pages/NotFound'));
 const Settings = lazyWithRetry(() => import('@/pages/Settings'));
 const Availability = lazyWithRetry(() => import('@/pages/Availability'));
@@ -234,13 +235,6 @@ function App() {
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
-                    <Route path="/testing" element={
-                      <RouteErrorBoundary routeName="Testing">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Testing />
-                        </Suspense>
-                      </RouteErrorBoundary>
-                    } />
                     <Route path="/team-invite" element={
                       <RouteErrorBoundary routeName="Team Invite">
                         <Suspense fallback={<FullPageLoadingSkeleton />}>
@@ -312,11 +306,13 @@ function App() {
                       </RouteErrorBoundary>
                     } />
                     <Route path="/admin/security" element={
-                      <RouteErrorBoundary routeName="Security Audit">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <SecurityAudit />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Security Audit">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <SecurityAudit />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/blog" element={
                       <RouteErrorBoundary routeName="Blog">

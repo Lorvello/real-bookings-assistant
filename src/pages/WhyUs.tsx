@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
-import Testimonials from '@/components/ui/testimonials-columns-1';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { useVoiceflowChatbot } from '@/hooks/useVoiceflowChatbot';
 
@@ -873,10 +872,6 @@ const WhyUs = () => {
       {/* Data Disclaimer - After Case Studies */}
       <CaseStudiesDataDisclaimer onMethodologyClick={openCaseStudiesMethodologyModal} />
 
-      {/* Testimonials Section */}
-      <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
-        <Testimonials />
-      </ScrollAnimatedSection>
 
       {/* Streamlined Mobile-First Excellence Section */}
       <ScrollAnimatedSection as="section" className="py-12 md:py-16 relative overflow-hidden">

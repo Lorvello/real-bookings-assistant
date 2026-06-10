@@ -40,9 +40,36 @@ serve(async (req) => {
 
   try {
     const { calendar_id, period = 'current_month' } = await req.json();
-    
+
     if (!calendar_id) {
       throw new Error('Calendar ID is required');
+    }
+
+    // Require an authenticated caller and verify they own this calendar.
+    // Without this, anyone with the public anon key could read any tenant's revenue.
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    );
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { data: ownedCalendar, error: ownershipError } = await authClient
+      .from('calendars')
+      .select('id')
+      .eq('id', calendar_id)
+      .eq('user_id', user.id)
+      .single();
+    if (ownershipError || !ownedCalendar) {
+      return new Response(JSON.stringify({ error: 'Calendar not found or access denied' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const supabase = createClient(
