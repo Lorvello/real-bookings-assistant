@@ -39,6 +39,26 @@ serve(async (req) => {
       const data = JSON.parse(event.data)
       
       if (data.type === 'subscribe' && data.calendarId) {
+        // Require a valid access token and verify the caller owns this calendar,
+        // otherwise anyone could stream another tenant's live booking data.
+        const { data: { user } } = data.token
+          ? await supabase.auth.getUser(data.token)
+          : { data: { user: null } }
+        if (!user) {
+          socket.send(JSON.stringify({ type: 'error', message: 'Authentication required' }))
+          return
+        }
+        const { data: ownedCalendar } = await supabase
+          .from('calendars')
+          .select('id')
+          .eq('id', data.calendarId)
+          .eq('user_id', user.id)
+          .single()
+        if (!ownedCalendar) {
+          socket.send(JSON.stringify({ type: 'error', message: 'Access denied' }))
+          return
+        }
+
         calendarId = data.calendarId
         console.log(`📡 Subscribed to calendar: ${calendarId}`)
         

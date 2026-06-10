@@ -13,6 +13,20 @@ serve(async (req) => {
   }
 
   try {
+    // Require an authenticated caller; event ownership is verified after fetch.
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    )
+    const { data: { user }, error: authError } = await authClient.auth.getUser()
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { eventId } = await req.json()
 
     if (!eventId) {
@@ -44,10 +58,24 @@ serve(async (req) => {
     if (fetchError || !event) {
       return new Response(
         JSON.stringify({ error: 'Webhook event not found or endpoint inactive' }),
-        { 
+        {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
+      )
+    }
+
+    // Verify the event belongs to a calendar owned by the caller
+    const { data: ownedCalendar } = await authClient
+      .from('calendars')
+      .select('id')
+      .eq('id', event.calendar_id)
+      .eq('user_id', user.id)
+      .single()
+    if (!ownedCalendar) {
+      return new Response(
+        JSON.stringify({ error: 'Access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
