@@ -80,22 +80,24 @@ export function SimpleMultiSelect({
                       className="flex items-center gap-1 px-2 py-0.5 hover:bg-secondary"
                     >
                       <span>{option?.label || value}</span>
-                      <button
-                        type="button"
-                        className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Remove"
+                        className={`ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 ${disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                         }}
                         onClick={(e) => {
+                          if (disabled) return;
                           e.preventDefault();
                           e.stopPropagation();
                           handleUnselect(value);
                         }}
-                        disabled={disabled}
                       >
                         <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
-                      </button>
+                      </span>
                     </Badge>
                   );
                 })
