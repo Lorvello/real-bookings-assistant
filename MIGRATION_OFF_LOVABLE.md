@@ -75,3 +75,20 @@ Legenda: **[CLAUDE]** = ik doe het in de repo · **[JIJ]** = vereist jouw dashbo
 
 ## Bijlage — secrets die de eigenaar zelf beheert (12–13)
 `STRIPE_SECRET_KEY_LIVE`, `STRIPE_SECRET_KEY_TEST`, `STRIPE_WEBHOOK_SECRET_LIVE`, `STRIPE_WEBHOOK_SECRET_TEST`, `STRIPE_MODE`, `RESEND_API_KEY`, `OPENAI_API_KEY`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_NUMBER`, `APP_BASE_URL`, `APP_ENV`, `ALLOWED_ORIGINS`. Auto-geïnjecteerd door Supabase (niet zelf zetten): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+---
+## 🚦 CUTOVER — exacte volgorde wanneer je live wilt (toegevoegd 2026-06-10)
+*De code is af + geverifieerd op `migrate/off-lovable`. De edge functions die naar `bookingsassistant.com` herpunten (`stripe-connect-onboard`, `send-password-reset`, `customer-portal`, `_shared/headers.ts`-importers) zijn BEWUST nog NIET gedeployed — dat zou Connect-redirects op de huidige Lovable-site breken zolang het domein daar nog naartoe wijst. Deploy ze als stap 5.*
+
+1. **[JIJ] Live Stripe publishable key** sturen → Claude vult `pk_live_` in `stripeConfig.ts` (fixt P0 #7) + zet `VITE_STRIPE_MODE=live` in Vercel.
+2. **[JIJ] Luciano** levert WhatsApp `WHATSAPP_APP_SECRET/VERIFY_TOKEN/NUMBER` + nieuw nummer → Claude zet ze als Supabase-secrets; agent-e2e test.
+3. **[JIJ] Go voor `STRIPE_MODE=live`** (zodra je echt betalingen wilt) → Claude switcht + verifieert één live checkout.
+4. **[JIJ] DB-wipe-go** → Claude draait het schone-start-script (testdata weg, schema intact).
+5. **[CLAUDE] Deploy** alle resterende gewijzigde edge functions (de URL-herpunters) + de migratie (`supabase db push`).
+6. **[JIJ] Lovable loskoppelen** (project 96d90d93 → GitHub-koppeling verbreken) zodat het stopt met auto-committen.
+7. **[CLAUDE] Merge** `migrate/off-lovable` → `main` + push.
+8. **[JIJ] Hostinger DNS** van `bookingsassistant.com` naar Vercel (records geeft Claude) → Vercel-project op productie zetten.
+9. **[CLAUDE] Rooktest** op het echte domein: boeking (web), WhatsApp-boeking, abonnement-checkout, Connect-onboarding, password-reset.
+10. **[JIJ/CLAUDE] Stripe live opschonen:** dubbele Starter/Professional-producten + "Test Product" deactiveren.
+
+**Reversibel tot stap 7–8.** Alles vóór de DNS-wissel raakt de live (Lovable-)site niet.
