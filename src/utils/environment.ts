@@ -10,9 +10,8 @@ export const isProductionEnvironment = () => {
   
   // Production indicators
   const productionHosts = [
-    'brandevolves.lovable.app',
-    'lovable.app',
-    // Add your custom production domains here
+    'bookingsassistant.com',
+    'vercel.app', // Vercel preview/production deploys
   ];
   
   return productionHosts.some(host => hostname.includes(host));

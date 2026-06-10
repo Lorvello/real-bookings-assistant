@@ -196,8 +196,6 @@ serve(async (req) => {
       baseUrl = appBaseUrl;
     } else if (appEnv === 'production' || appEnv.includes('bookingsassistant.com')) {
       baseUrl = 'https://bookingsassistant.com';
-    } else if (appEnv === 'preview' || appEnv.includes('lovable.app')) {
-      baseUrl = 'https://preview--real-bookings-assistant.lovable.app';
     } else {
       baseUrl = 'https://bookingsassistant.com';
     }

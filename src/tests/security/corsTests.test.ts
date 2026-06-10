@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 
 describe('CORS (Cross-Origin Resource Sharing) Validation', () => {
   const validOrigins = [
-    'https://bookingsassistant.nl',
-    'https://www.bookingsassistant.nl',
+    'https://bookingsassistant.com',
+    'https://www.bookingsassistant.com',
     'http://localhost:5173',
     'http://localhost:3000',
   ];
@@ -12,7 +12,7 @@ describe('CORS (Cross-Origin Resource Sharing) Validation', () => {
     'https://evil.com',
     'https://attacker.com',
     'http://malicious-site.com',
-    'https://bookingsassistant.nl.evil.com', // Subdomain hijacking attempt
+    'https://bookingsassistant.com.evil.com', // Subdomain hijacking attempt
   ];
 
   describe('Edge Function CORS Headers', () => {

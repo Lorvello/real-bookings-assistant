@@ -17,7 +17,8 @@ export function getAllowedOrigins(): string[] {
   // Default origins by environment
   if (appEnv === 'production') {
     return [
-      'https://bookingsassistant.lovable.app',
+      'https://bookingsassistant.com',
+      'https://www.bookingsassistant.com',
       'https://grdgjhkygzciwwrxgvgy.supabase.co'
     ];
   }
@@ -28,7 +29,7 @@ export function getAllowedOrigins(): string[] {
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
-    'https://bookingsassistant.lovable.app',
+    'https://bookingsassistant.com',
     'https://grdgjhkygzciwwrxgvgy.supabase.co'
   ];
 }

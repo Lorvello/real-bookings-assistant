@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
     const ENV = Deno.env.get('APP_ENV') ?? 'prod';
     const ORIGIN_MAP: Record<string, string> = {
       prod: 'https://bookingsassistant.com',
-      preview: 'https://preview--real-bookings-assistant.lovable.app',
+      preview: 'https://bookingsassistant.com',
       local: 'http://localhost:5173',
     };
     const origin = ORIGIN_MAP[ENV] ?? ORIGIN_MAP.prod;

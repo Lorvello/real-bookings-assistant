@@ -10,7 +10,7 @@ export class ProductionSecurity {
     // Content Security Policy
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co https://cdn.voiceflow.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.voiceflow.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https: blob:",
       "font-src 'self' https://fonts.gstatic.com",

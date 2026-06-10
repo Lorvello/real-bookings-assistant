@@ -16,7 +16,7 @@ interface SEOProps {
 }
 
 const BASE_URL = 'https://bookingsassistant.com';
-const DEFAULT_IMAGE = 'https://lovable.dev/opengraph-image-p98pqg.png';
+const DEFAULT_IMAGE = 'https://bookingsassistant.com/og-image.png';
 const SITE_NAME = 'Bookings Assistant';
 
 export const useSEO = ({
