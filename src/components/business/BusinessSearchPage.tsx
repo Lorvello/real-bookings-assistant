@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -44,10 +45,10 @@ export const BusinessSearchPage: React.FC = () => {
     fetchBusinessOverview();
   };
 
+  const navigate = useNavigate();
+
   const handleViewSlots = (calendarSlug: string) => {
-    // Navigate to slots page or open modal
-    console.log('View slots for calendar:', calendarSlug);
-    // Example: navigate(`/calendar/${calendarSlug}/slots`);
+    navigate(`/book/${calendarSlug}`);
   };
 
   const businessTypes = [

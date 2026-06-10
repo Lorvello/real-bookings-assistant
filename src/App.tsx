@@ -53,6 +53,7 @@ const BusinessSearch = lazyWithRetry(() => import('@/pages/BusinessSearch'));
 const SecurityAudit = lazyWithRetry(() => import('@/pages/SecurityAudit'));
 const Blog = lazyWithRetry(() => import('@/pages/Blog'));
 const BlogArticle = lazyWithRetry(() => import('@/pages/BlogArticle'));
+const PublicBooking = lazyWithRetry(() => import('@/pages/PublicBooking'));
 
 
 const queryClient = new QueryClient();
@@ -302,6 +303,13 @@ function App() {
                       <RouteErrorBoundary routeName="Business Search">
                         <Suspense fallback={<FullPageLoadingSkeleton />}>
                           <BusinessSearch />
+                        </Suspense>
+                      </RouteErrorBoundary>
+                    } />
+                    <Route path="/book/:slug" element={
+                      <RouteErrorBoundary routeName="Public Booking">
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <PublicBooking />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />

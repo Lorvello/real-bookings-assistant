@@ -1,0 +1,13 @@
+-- Fix: get_available_slots intermittently failed with 42725
+-- ("could not choose a best candidate function") on days that had availability.
+--
+-- Cause: two overloads of check_booking_conflicts existed:
+--   (uuid, timestamptz, timestamptz, uuid)                 -- 4-arg
+--   (uuid, timestamptz, timestamptz, uuid, boolean=false)  -- 5-arg (superset)
+-- get_available_slots calls it with 4 args, which matched BOTH (the 5-arg via its
+-- default), making the call ambiguous and breaking availability + booking.
+--
+-- The 5-arg version with p_allow_double_bookings = false performs the identical
+-- conflict check, so the 4-arg overload is redundant. Drop it; all 4-arg callers
+-- now resolve unambiguously to the 5-arg version with the default.
+DROP FUNCTION IF EXISTS public.check_booking_conflicts(uuid, timestamptz, timestamptz, uuid);
