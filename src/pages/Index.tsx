@@ -8,6 +8,7 @@ import ProcessSection from "@/components/ProcessSection";
 import Solution from "@/components/Solution";
 import Features from "@/components/Features";
 import { Pricing } from "@/components/Pricing";
+import Testimonials from "@/components/ui/testimonials-columns-1";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import PublicPageWrapper from "@/components/PublicPageWrapper";
 import { useVoiceflowChatbot } from "@/hooks/useVoiceflowChatbot";
@@ -75,6 +76,11 @@ const Index = () => {
           {/* Features Section */}
           <ScrollAnimatedSection delay={50} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
             <Features />
+          </ScrollAnimatedSection>
+
+          {/* Testimonials Section */}
+          <ScrollAnimatedSection delay={100} config={{ threshold: 0.05, rootMargin: '200px 0px 0px 0px' }}>
+            <Testimonials />
           </ScrollAnimatedSection>
 
           {/* Pricing Section */}

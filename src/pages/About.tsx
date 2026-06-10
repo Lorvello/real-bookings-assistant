@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 
 import mathewPhoto from '@/assets/mathew-photo.png';
+import lucianoPhoto from '@/assets/luciano-photo.png';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { useSEO } from '@/hooks/useSEO';
 
@@ -65,10 +66,10 @@ const About = () => {
           <section className="py-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <ScrollAnimatedSection animation="fade-up" delay={0} as="h2" className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
-                Meet the Founder
+                Meet the Founders
               </ScrollAnimatedSection>
-              
-              <div className="grid md:grid-cols-1 max-w-2xl mx-auto gap-8">
+
+              <div className="grid md:grid-cols-2 max-w-5xl mx-auto gap-8">
                 {/* Mathew */}
                 <ScrollAnimatedSection animation="fade-up" delay={100} as="div">
                   <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/40 transition-all duration-500 ease-out shadow-2xl shadow-black/20 hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer h-full">
@@ -103,6 +104,46 @@ const About = () => {
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">TypeScript</span>
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">UX/UI</span>
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">AI Integration</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </ScrollAnimatedSection>
+
+                {/* Luciano */}
+                <ScrollAnimatedSection animation="fade-up" delay={200} as="div">
+                  <Card className="group bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border-slate-700/30 hover:border-emerald-500/40 transition-all duration-500 ease-out shadow-2xl shadow-black/20 hover:shadow-emerald-500/10 hover:scale-[1.02] cursor-pointer h-full">
+                    <CardContent className="p-8">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-600/30 border border-emerald-500/30 overflow-hidden group-hover:border-emerald-400/50 transition-all duration-500">
+                          <img
+                            src={lucianoPhoto}
+                            alt="Luciano"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Luciano</h3>
+                          <p className="text-emerald-400 text-sm font-medium">Co-Founder & Backend Expert</p>
+                          <p className="text-slate-500 text-sm">Netherlands</p>
+                        </div>
+                      </div>
+                      <div className="space-y-4 text-slate-300 leading-relaxed">
+                        <p>
+                          The backend and automation expert behind BookingsAssistant. Luciano built the brains of the
+                          product: the WhatsApp AI agent that holds the conversation, checks availability and books
+                          appointments automatically — wired together across Supabase and a real-time automation layer.
+                        </p>
+                        <p>
+                          With deep experience in AI agents, workflow automation and database architecture, he makes
+                          sure every booking, payment and message flows reliably from WhatsApp straight into the system.
+                          If Mathew builds what you see, Luciano builds what makes it actually work.
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Supabase</span>
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">AI Agents</span>
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Automation</span>
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Backend</span>
                         </div>
                       </div>
                     </CardContent>
