@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { createHmac } from "https://deno.land/std@0.224.0/crypto/mod.ts"
+import { createHmac } from "node:crypto"
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
 const corsHeaders = {
