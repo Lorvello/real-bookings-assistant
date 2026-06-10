@@ -20,6 +20,7 @@ import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { ServiceTypeQuickCreateDialog, PendingServiceType } from './ServiceTypeQuickCreateDialog';
 import { UpgradePrompt } from '@/components/ui/UpgradePrompt';
 import { useAccessControl } from '@/hooks/useAccessControl';
+import { toast } from 'sonner';
 import { CalendarUpgradeModal } from './CalendarUpgradeModal';
 import { AvailabilityQuickSetup, getDefaultAvailability, DayAvailability } from './AvailabilityQuickSetup';
 
@@ -108,10 +109,19 @@ export function CreateCalendarDialog({
   };
 
   const handleCreateCalendar = async () => {
-    if (!newCalendar.name.trim()) return;
+    if (!newCalendar.name.trim()) {
+      toast.error('Vul een kalendernaam in.');
+      return;
+    }
     // Allow creation if we have either existing or pending service types
-    if (selectedServiceTypes.length === 0 && pendingServiceTypes.length === 0) return;
-    if (selectedTeamMembers.length === 0) return;
+    if (selectedServiceTypes.length === 0 && pendingServiceTypes.length === 0) {
+      toast.error('Voeg minstens één dienst toe aan de kalender.');
+      return;
+    }
+    if (selectedTeamMembers.length === 0) {
+      toast.error('Selecteer minstens één teamlid.');
+      return;
+    }
 
     try {
       const teamMembersForCreation = selectedTeamMembers.map(email => {
@@ -149,6 +159,7 @@ export function CreateCalendarDialog({
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
+      toast.error('Kalender aanmaken mislukt. Probeer het opnieuw.');
     }
   };
 
