@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+import { nl } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvailableSlots } from '@/hooks/useAvailableSlots';
 import { usePublicBookingCreation } from '@/hooks/usePublicBookingCreation';
@@ -160,7 +161,7 @@ export default function PublicBooking() {
             <p>
               Bedankt {customer.name.split(' ')[0]}! Je afspraak voor{' '}
               <strong>{service?.name}</strong> op{' '}
-              <strong>{slot && format(new Date(slot.slot_start), "d MMMM 'om' HH:mm")}</strong> is
+              <strong>{slot && format(new Date(slot.slot_start), "d MMMM 'om' HH:mm", { locale: nl })}</strong> is
               ontvangen.
             </p>
             <p>Je ontvangt een bevestiging per e-mail.</p>
