@@ -138,9 +138,20 @@ serve(async (req) => {
             payment_method: 'cash'
           });
         } else {
-          // Handle percentage-based presets
-          installmentPlan.deposits?.forEach((deposit: any, index: number) => {
-            const amountCents = Math.round((servicePriceCents * (deposit.percentage || 0)) / 100);
+          // Handle percentage-based presets (50_50, 25_25_50). These always sum to
+          // 100%, so compute each from its percentage but make the LAST installment
+          // the exact remainder. Rounding each independently would drift: e.g. 50%
+          // of €99.99 = Math.round(4999.5) = 5000, twice = €100.00 — a 1-cent
+          // overcharge vs the €99.99 service price. Remainder-on-last guarantees the
+          // installments sum to servicePriceCents exactly.
+          const presetDeposits = installmentPlan.deposits || [];
+          let allocatedCents = 0;
+          presetDeposits.forEach((deposit: any, index: number) => {
+            const isLast = index === presetDeposits.length - 1;
+            const amountCents = isLast
+              ? servicePriceCents - allocatedCents
+              : Math.round((servicePriceCents * (deposit.percentage || 0)) / 100);
+            allocatedCents += amountCents;
             installments.push({
               amount_cents: amountCents,
               timing: deposit.timing,
