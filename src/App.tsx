@@ -54,6 +54,8 @@ const SecurityAudit = lazyWithRetry(() => import('@/pages/SecurityAudit'));
 const Blog = lazyWithRetry(() => import('@/pages/Blog'));
 const BlogArticle = lazyWithRetry(() => import('@/pages/BlogArticle'));
 const PublicBooking = lazyWithRetry(() => import('@/pages/PublicBooking'));
+const PaymentSuccess = lazyWithRetry(() => import('@/pages/PaymentSuccess'));
+const PaymentCancelled = lazyWithRetry(() => import('@/pages/PaymentCancelled'));
 
 // Developer-only floating overlay — internally gated to the developer account,
 // renders null for everyone else. Lazy so it never weighs on normal users.
@@ -323,6 +325,22 @@ function App() {
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
+                    {/* Customer-facing post-payment pages (Stripe redirect targets
+                        from whatsapp-payment-handler + installment flows). */}
+                    {['/payment-success', '/booking-success'].map((p) => (
+                      <Route key={p} path={p} element={
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <PaymentSuccess />
+                        </Suspense>
+                      } />
+                    ))}
+                    {['/payment-cancelled', '/booking-cancelled'].map((p) => (
+                      <Route key={p} path={p} element={
+                        <Suspense fallback={<FullPageLoadingSkeleton />}>
+                          <PaymentCancelled />
+                        </Suspense>
+                      } />
+                    ))}
                     <Route path="/admin/security" element={
                       <ProtectedRoute>
                         <RouteErrorBoundary routeName="Security Audit">
