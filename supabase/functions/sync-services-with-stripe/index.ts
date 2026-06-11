@@ -70,7 +70,7 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { test_mode = true } = await req.json();
+    const { test_mode = true } = await req.json().catch(() => ({}));
     logStep('Function started', { userId: user.id, testMode: test_mode });
 
     // Initialize Stripe

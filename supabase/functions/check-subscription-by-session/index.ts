@@ -26,8 +26,13 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { session_id } = await req.json();
-    if (!session_id) throw new Error("No session_id provided");
+    const { session_id } = await req.json().catch(() => ({}));
+    if (!session_id) {
+      return new Response(
+        JSON.stringify({ success: false, error: "No session_id provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     logStep("Session ID received", { session_id });
 

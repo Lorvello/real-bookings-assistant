@@ -40,7 +40,7 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: userData.user.id });
 
-    const { serviceData, testMode = false } = await req.json();
+    const { serviceData, testMode = false } = await req.json().catch(() => ({}));
     logStep("Request data parsed", { hasServiceData: !!serviceData, testMode });
 
     // Check if tax is enabled for this service
