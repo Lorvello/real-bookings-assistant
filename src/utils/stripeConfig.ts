@@ -1,4 +1,5 @@
 // Stripe configuration and helper functions
+import { isDeveloperEmail } from './environment';
 
 // getStripeMode() is called on many renders; log the resolved mode only ONCE so
 // the console isn't flooded (e.g. a per-call "LIVE MODE ACTIVE" warn in prod).
@@ -7,6 +8,67 @@ const logStripeModeOnce = (message: string, level: 'log' | 'warn' = 'log') => {
   if (stripeModeLogged) return;
   stripeModeLogged = true;
   console[level](message);
+};
+
+// --- Developer-only runtime Stripe-mode override -------------------------------
+// Lets the developer account simulate test/live mode from the dev dashboard
+// WITHOUT a redeploy. Strictly gated to the developer email: a forced override
+// set by anyone else is ignored, so a normal user can never push their own
+// checkout into test mode (which would let them "pay" with a test card). Only
+// affects the owner-side flows that read getStripeMode() (subscription /
+// Connect onboarding); end-customer booking payments resolve their mode from the
+// business's connected Stripe account, not from this.
+const SUPABASE_PROJECT_REF = 'grdgjhkygzciwwrxgvgy';
+const DEV_STRIPE_MODE_KEY = 'dev_stripe_mode_override';
+
+const getSessionEmail = (): string | null => {
+  try {
+    const raw = localStorage.getItem(`sb-${SUPABASE_PROJECT_REF}-auth-token`);
+    if (!raw) return null;
+    const session = JSON.parse(raw);
+    const token = session?.access_token || session?.currentSession?.access_token;
+    if (token) {
+      // JWT segments are base64url — normalise to base64 before atob.
+      let seg = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      seg += '='.repeat((4 - (seg.length % 4)) % 4);
+      const payload = JSON.parse(atob(seg));
+      return payload?.email ?? null;
+    }
+    return session?.user?.email ?? session?.currentSession?.user?.email ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const getDevStripeModeOverride = (): 'test' | 'live' | null => {
+  try {
+    const v = localStorage.getItem(DEV_STRIPE_MODE_KEY);
+    if (v !== 'test' && v !== 'live') return null;
+    if (!isDeveloperEmail(getSessionEmail())) return null;
+    return v;
+  } catch {
+    return null;
+  }
+};
+
+/** Set (or clear with null) the developer Stripe-mode override. */
+export const setDevStripeModeOverride = (mode: 'test' | 'live' | null): void => {
+  try {
+    if (mode === null) localStorage.removeItem(DEV_STRIPE_MODE_KEY);
+    else localStorage.setItem(DEV_STRIPE_MODE_KEY, mode);
+  } catch {
+    /* ignore */
+  }
+};
+
+/** The current raw override value (for the dev dashboard UI), regardless of gating. */
+export const getDevStripeModeOverrideRaw = (): 'test' | 'live' | null => {
+  try {
+    const v = localStorage.getItem(DEV_STRIPE_MODE_KEY);
+    return v === 'test' || v === 'live' ? v : null;
+  } catch {
+    return null;
+  }
 };
 
 /**
@@ -19,6 +81,12 @@ export const getStripeMode = (): 'test' | 'live' => {
   if (import.meta.env.DEV) {
     logStripeModeOnce('[STRIPE] Development environment detected - forcing TEST mode');
     return 'test';
+  }
+
+  // Developer-only runtime override (dev dashboard). Gated to the developer email.
+  const devOverride = getDevStripeModeOverride();
+  if (devOverride) {
+    return devOverride;
   }
 
   // Production: try to get env var, but gracefully fallback to test if missing

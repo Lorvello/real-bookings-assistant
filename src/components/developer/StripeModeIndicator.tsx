@@ -1,50 +1,87 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CreditCard } from 'lucide-react';
-import { getStripeConfig } from '@/utils/stripeConfig';
+import { CreditCard, RotateCcw } from 'lucide-react';
+import {
+  getStripeMode,
+  setDevStripeModeOverride,
+  getDevStripeModeOverrideRaw,
+} from '@/utils/stripeConfig';
 import { useDeveloperAccess } from '@/hooks/useDeveloperAccess';
 
+/**
+ * Developer-only Stripe mode control. Lets the developer simulate test/live mode
+ * at runtime (gated to the developer account in getStripeMode). Switching reloads
+ * so every consumer re-reads the mode cleanly. End-customer payments are
+ * unaffected — they resolve mode from the business's connected Stripe account.
+ */
 export const StripeModeIndicator = () => {
   const { isDeveloper } = useDeveloperAccess();
-  const config = getStripeConfig();
+  if (!isDeveloper) return null;
 
-  // Only render for developers
-  if (!isDeveloper) {
-    return null;
-  }
+  const mode = getStripeMode();
+  const override = getDevStripeModeOverrideRaw();
+  const isLive = mode === 'live';
+
+  const apply = (next: 'test' | 'live' | null) => {
+    setDevStripeModeOverride(next);
+    window.location.reload();
+  };
 
   return (
-    <Card className={config.mode === 'live' ? 'border-red-500 bg-red-50' : 'border-blue-500 bg-blue-50'}>
-      <CardHeader className="pb-2">
-        <CardTitle className={`flex items-center gap-2 text-sm ${config.mode === 'live' ? 'text-red-800' : 'text-blue-800'}`}>
-          <CreditCard className="h-4 w-4" />
-          Stripe Mode Status (Read-Only)
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className={`text-sm ${config.mode === 'live' ? 'text-red-700' : 'text-blue-700'}`}>
-            Current Mode:
-          </span>
-          <Badge 
-            variant={config.mode === 'live' ? 'destructive' : 'secondary'}
-            className={config.mode === 'live' ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600 text-white'}
+    <div className="rounded-xl border border-white/10 bg-white/[0.025] p-4 backdrop-blur">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/50">
+          <CreditCard className="h-3.5 w-3.5" /> Stripe Mode
+        </span>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+            isLive ? 'bg-red-500/15 text-red-400' : 'bg-primary/15 text-primary'
+          }`}
+        >
+          {isLive ? '🔴 LIVE' : '🟢 TEST'}
+        </span>
+      </div>
+
+      {/* Segmented toggle */}
+      <div className="grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-black/20 p-1">
+        <button
+          onClick={() => apply('test')}
+          className={`rounded-md py-1.5 text-sm font-medium transition ${
+            mode === 'test' ? 'bg-primary text-primary-foreground' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          Test
+        </button>
+        <button
+          onClick={() => apply('live')}
+          className={`rounded-md py-1.5 text-sm font-medium transition ${
+            mode === 'live' ? 'bg-red-500 text-white' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          Live
+        </button>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between text-xs text-white/40">
+        <span>
+          {override
+            ? 'Simulated (developer override)'
+            : 'Default (VITE_STRIPE_MODE env)'}
+        </span>
+        {override && (
+          <button
+            onClick={() => apply(null)}
+            className="inline-flex items-center gap-1 text-white/50 transition hover:text-white"
           >
-            {config.mode === 'live' ? '🔴 LIVE MODE' : '🟢 TEST MODE'}
-          </Badge>
-        </div>
-        
-        <div className={`text-xs p-2 rounded border ${config.mode === 'live' ? 'text-red-600 bg-red-100 border-red-200' : 'text-blue-600 bg-blue-100 border-blue-200'}`}>
-          <strong>ℹ️ Mode Control:</strong> Stripe mode is controlled by the <code className="bg-black/10 px-1 rounded">VITE_STRIPE_MODE</code> environment variable.
-          {config.mode === 'live' && (
-            <div className="mt-1 font-semibold">⚠️ Real payments will be processed!</div>
-          )}
-          {config.mode === 'test' && (
-            <div className="mt-1">Using Stripe test environment - safe for development.</div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            <RotateCcw className="h-3 w-3" /> Reset
+          </button>
+        )}
+      </div>
+
+      {isLive && (
+        <p className="mt-2 rounded-md bg-red-500/10 px-2 py-1.5 text-xs text-red-400">
+          ⚠️ Live mode — real payments are processed. Use Test to simulate safely.
+        </p>
+      )}
+    </div>
   );
 };
