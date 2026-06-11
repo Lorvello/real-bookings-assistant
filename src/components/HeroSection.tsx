@@ -61,19 +61,19 @@ const HeroSection: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 md:gap-8 pt-1 md:pt-4 animate-appear opacity-100 delay-700 px-4 sm:px-0 mb-2 md:mb-0">
             <div className="flex items-center gap-1.5 md:gap-3">
               <div className="flex -space-x-1 md:-space-x-2">
-                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
-                  <Scissors className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-white rounded-full border md:border-2 border-slate-800 flex items-center justify-center">
+                  <Scissors className="w-3 h-3 md:w-4 md:h-4 text-slate-700" />
                 </div>
-                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 md:w-4 md:h-4 bg-slate-700 rounded-t-full" style={{
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-white rounded-full border md:border-2 border-slate-800 flex items-center justify-center">
+                  <div className="w-3 h-3 md:w-4 md:h-4 bg-slate-700 rounded-t-full" style={{
                   clipPath: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)"
                 }}></div>
                 </div>
-                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
-                  <Dumbbell className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-white rounded-full border md:border-2 border-slate-800 flex items-center justify-center">
+                  <Dumbbell className="w-3 h-3 md:w-4 md:h-4 text-slate-700" />
                 </div>
-                <div className="w-3 h-3 md:w-8 md:h-8 bg-white rounded-full border-1 md:border-2 border-slate-800 flex items-center justify-center">
-                  <Stethoscope className="w-1.5 h-1.5 md:w-4 md:h-4 text-slate-700" />
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-white rounded-full border md:border-2 border-slate-800 flex items-center justify-center">
+                  <Stethoscope className="w-3 h-3 md:w-4 md:h-4 text-slate-700" />
                 </div>
               </div>
               <span className="text-slate-400 text-sm md:text-base font-garamond font-light">1000+ businesses automated</span>
