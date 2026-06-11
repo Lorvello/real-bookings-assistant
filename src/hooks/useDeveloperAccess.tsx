@@ -1,27 +1,17 @@
 
 import { useAuth } from './useAuth';
-import { getEnvironmentConfig } from '@/utils/environment';
+import { isDeveloperEmail } from '@/utils/environment';
 
-// Only this email has developer access
-const DEVELOPER_EMAIL = 'business01003@gmail.com';
-
+// Developer access is granted ONLY to the single developer account, in EVERY
+// environment (including production), so the live site can be tested as a
+// developer. The match is case-insensitive and works identically whether the
+// session came from email/password or Google sign-in. See DEVELOPER_EMAIL in
+// utils/environment.ts for the single source of truth.
 export const useDeveloperAccess = () => {
   const { user } = useAuth();
 
-  const isDeveloper = () => {
-    const { isProduction } = getEnvironmentConfig(user?.email);
-    
-    // NEVER show developer tools in production
-    if (isProduction) {
-      return false;
-    }
-    
-    // Only allow the specific developer email
-    return user?.email === DEVELOPER_EMAIL;
-  };
-
   return {
-    isDeveloper: isDeveloper(),
-    user
+    isDeveloper: isDeveloperEmail(user?.email),
+    user,
   };
 };

@@ -55,6 +55,12 @@ const Blog = lazyWithRetry(() => import('@/pages/Blog'));
 const BlogArticle = lazyWithRetry(() => import('@/pages/BlogArticle'));
 const PublicBooking = lazyWithRetry(() => import('@/pages/PublicBooking'));
 
+// Developer-only floating overlay — internally gated to the developer account,
+// renders null for everyone else. Lazy so it never weighs on normal users.
+const DeveloperOverlay = lazyWithRetry(() =>
+  import('@/components/layout/DeveloperOverlay').then(m => ({ default: m.DeveloperOverlay }))
+);
+
 
 const queryClient = new QueryClient();
 
@@ -131,6 +137,9 @@ function App() {
                   <RecoveryRedirector />
                   <PagePrefetcher />
                   <OfflineIndicator />
+                  <Suspense fallback={null}>
+                    <DeveloperOverlay />
+                  </Suspense>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
