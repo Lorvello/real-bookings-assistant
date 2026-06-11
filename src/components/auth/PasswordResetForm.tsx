@@ -24,7 +24,7 @@ export const PasswordResetForm: React.FC = () => {
 
   if (resetSent) {
     return (
-      <Card className="w-full max-w-md bg-card border-border shadow-xl">
+      <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <Mail className="w-6 h-6 text-green-600" />
@@ -70,7 +70,7 @@ export const PasswordResetForm: React.FC = () => {
   }
 
   return (
-    <Card className="w-full max-w-md bg-card border-border shadow-xl">
+    <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-foreground">
           Reset Your Password

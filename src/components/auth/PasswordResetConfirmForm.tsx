@@ -231,7 +231,7 @@ export const PasswordResetConfirmForm: React.FC = () => {
   // Show loading state while checking tokens
   if (hasValidTokens === null) {
     return (
-      <Card className="w-full max-w-md bg-card border-border shadow-xl">
+      <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
         <CardContent className="p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -245,7 +245,7 @@ export const PasswordResetConfirmForm: React.FC = () => {
   // Show password reset form if we have valid tokens
   if (hasValidTokens === true) {
     return (
-      <Card className="w-full max-w-md bg-card border-border shadow-xl">
+      <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-foreground">
             Set New Password
@@ -309,7 +309,7 @@ export const PasswordResetConfirmForm: React.FC = () => {
 
   // Show information screen for users who navigated directly (no tokens)
   return (
-    <Card className="w-full max-w-md bg-card border-border shadow-xl">
+    <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-foreground">
           Reset Your Password
