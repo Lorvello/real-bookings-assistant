@@ -73,8 +73,13 @@ export function calculateApplicationFee(params: FeeCalculationParams): FeeCalcul
     amountCents * methodFees.percent + methodFees.fixed
   );
 
-  // Get payout fee
-  const payoutFeeCents = PAYOUT_FEES[payoutOption];
+  // Get payout fee. Fall back to 'standard' for any unexpected value so the
+  // application fee can never become NaN (PAYOUT_FEES[undefined] -> undefined ->
+  // platformFeeCents + undefined = NaN, which would be sent to Stripe as
+  // application_fee_amount and break the charge). Mirrors the PAYMENT_METHOD_FEES
+  // fallback above. The DB column is CHECK-constrained to standard|instant, so
+  // this is defensive depth for this shared money utility, not a normal path.
+  const payoutFeeCents = PAYOUT_FEES[payoutOption] ?? PAYOUT_FEES.standard;
 
   // Total application fee (platform fee + payout fee)
   // Note: Payment method fees are typically absorbed by Stripe, not passed to connected account
