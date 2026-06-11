@@ -40,7 +40,7 @@ export const getStripePublishableKey = (): string => {
   if (mode === 'test') {
     return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
   } else {
-    return 'pk_live_51RqIg2LcBboIITXgpublishable_key_KxOsGUjcBE78LbXnRvC8Qcb6OQJhM4fJF8KY7TiZTvnhY8Xf7QJdEzjCy7q00c8';
+    return 'pk_live_51RqIg2LcBboIITXg0n6rT0RPzpsmk4L2Z5Ymzxxfs2iZcHfJCH6aSq2ueinqjNsPti9U6fYxLprpxn9grpd7arZJ00KC2Va0D6';
   }
 };
 
