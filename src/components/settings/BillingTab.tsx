@@ -163,12 +163,21 @@ export const BillingTab: React.FC = () => {
         return <Badge className="bg-green-500/10 text-green-400 border-green-500/20">Active</Badge>;
       case 'canceled_subscriber':
         return <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">Canceled</Badge>;
-      case 'trial':
-        return null;
+      case 'canceled_and_inactive':
+        return <Badge className="bg-gray-500/10 text-gray-400 border-gray-500/20">Canceled</Badge>;
       case 'expired_trial':
         return <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Expired</Badge>;
+      case 'missed_payment':
+        return <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Payment failed</Badge>;
+      // Active trial (incl. brand-new accounts still finishing setup) carry no
+      // badge — the "Free during trial period" line communicates the state.
+      case 'trial':
+      case 'setup_incomplete':
+        return null;
+      // Never surface an alarming "Unknown" badge (e.g. while status is still
+      // loading) — show nothing rather than a scary label.
       default:
-        return <Badge className="bg-gray-500/10 text-gray-400 border-gray-500/20">Unknown</Badge>;
+        return null;
     }
   };
 
