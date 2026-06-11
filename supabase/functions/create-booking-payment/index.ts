@@ -27,7 +27,16 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { booking_id, calendar_id, confirmation_token, test_mode = false, payment_method = 'card', payment_timing = 'pay_now' } = await req.json();
+    // Default to {} on unparseable JSON so we return a clean 400 below instead
+    // of the catch-all 500.
+    const { booking_id, calendar_id, confirmation_token, test_mode = false, payment_method = 'card', payment_timing = 'pay_now' } = await req.json().catch(() => ({}));
+
+    if (!booking_id) {
+      return new Response(
+        JSON.stringify({ error: 'booking_id is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     logStep("Request parsed", { booking_id, calendar_id, test_mode, payment_method, payment_timing });
 
     // Get booking details with complete service information including tax config
@@ -51,7 +60,10 @@ serve(async (req) => {
       .single();
 
     if (bookingError || !booking) {
-      throw new Error("Booking not found");
+      return new Response(
+        JSON.stringify({ error: 'Booking not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Authorize the caller: they must present this booking's confirmation token

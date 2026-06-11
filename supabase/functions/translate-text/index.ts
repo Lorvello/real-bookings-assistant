@@ -26,7 +26,9 @@ serve(async (req) => {
 
   try {
     console.log('Translation request received');
-    const { text, targetLang, sourceLang = 'auto' } = await req.json();
+    // Default to {} on unparseable JSON so the validation below returns a clean
+    // 400 instead of the catch-all 500.
+    const { text, targetLang, sourceLang = 'auto' } = await req.json().catch(() => ({}));
     console.log(`Translating from ${sourceLang} to ${targetLang}: "${text}"`);
 
     if (!text || !targetLang) {

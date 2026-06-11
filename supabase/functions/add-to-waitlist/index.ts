@@ -43,7 +43,9 @@ Deno.serve(async (req) => {
       preferredTimeStart,
       preferredTimeEnd,
       flexibility = 'anytime'
-    } = await req.json();
+      // Default to {} on unparseable JSON so the required-field check returns a
+      // clean 400 instead of the catch-all 500.
+    } = await req.json().catch(() => ({}));
 
     if (!calendarSlug || !serviceTypeId || !customerName || !customerEmail || !preferredDate) {
       return new Response(
