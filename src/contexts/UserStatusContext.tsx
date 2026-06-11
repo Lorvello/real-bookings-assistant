@@ -469,8 +469,13 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       };
     }
 
-    // For active subscribers, provide full access based on tier
-    if (userType === 'subscriber' && profile?.subscription_tier) {
+    // For active subscribers — and missed-payment users still inside their grace
+    // window — provide full access based on tier. A failed payment must NOT cut a
+    // paying customer off immediately: they keep full access during the grace
+    // period (with a prominent "update payment" banner) and only lose it when the
+    // grace window expires (then userType=missed_payment with hasFullAccess=false
+    // falls through to the restricted block below).
+    if ((userType === 'subscriber' || (userType === 'missed_payment' && hasFullAccess)) && profile?.subscription_tier) {
       const tierLimits = getSubscriptionTierLimits(tier);
       
       const baseAccess = {
@@ -734,44 +739,16 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     // Get starter tier limits for trial users
     const starterTierLimits = getSubscriptionTierLimits('starter');
 
-    // Get free tier limits for expired/inactive users
-    const freeTierLimits = getSubscriptionTierLimits('free');
-
-    // Expired trial users - use free tier
+    // Expired trial users - NO access. They used the full product during the free
+    // trial but never subscribed, so once the trial ends access is revoked (data is
+    // retained, not deleted). canViewDashboard stays true so they can still reach
+    // the upgrade/billing screen to convert. Mirrors the missed_payment hard-lock.
     if (userType === 'expired_trial') {
       return {
         canViewDashboard: true,
-        canCreateBookings: true,
-        canEditBookings: true,
-        canManageSettings: true,
-        canAccessWhatsApp: false,
-        canAccessBookingAssistant: false,
-        canUseAI: true,
-        canExportData: true,
-        canInviteUsers: false,
-        canAccessAPI: false,
-        canUseWhiteLabel: false,
-        hasPrioritySupport: false,
-        canAccessFutureInsights: false,
-        canAccessBusinessIntelligence: false,
-        canAccessPerformance: false,
-        canAccessCustomerSatisfaction: false,
-        canAccessTeamMembers: false,
-        canAccessTaxCompliance: false,
-        maxCalendars: freeTierLimits?.max_calendars || 0,
-        maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month || null,
-        maxTeamMembers: freeTierLimits?.max_team_members || 1,
-        maxWhatsAppContacts: null
-      };
-    }
-
-    // Canceled and inactive users - use free tier
-    if (userType === 'canceled_and_inactive') {
-      return {
-        canViewDashboard: true,
-        canCreateBookings: true,
-        canEditBookings: true,
-        canManageSettings: true,
+        canCreateBookings: false,
+        canEditBookings: false,
+        canManageSettings: false,
         canAccessWhatsApp: false,
         canAccessBookingAssistant: false,
         canUseAI: false,
@@ -786,10 +763,41 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canAccessCustomerSatisfaction: false,
         canAccessTeamMembers: false,
         canAccessTaxCompliance: false,
-        maxCalendars: freeTierLimits?.max_calendars || 0,
-        maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month || null,
-        maxTeamMembers: freeTierLimits?.max_team_members || 1,
-        maxWhatsAppContacts: null
+        maxCalendars: 0,
+        maxBookingsPerMonth: 0,
+        maxTeamMembers: 0,
+        maxWhatsAppContacts: 0
+      };
+    }
+
+    // Canceled AND inactive users - NO access. They canceled and their paid period
+    // has fully elapsed (canceled_but_active keeps full access until period end —
+    // see the canceled_subscriber block above). canViewDashboard stays true so they
+    // can re-subscribe. Mirrors the missed_payment / expired_trial hard-lock.
+    if (userType === 'canceled_and_inactive') {
+      return {
+        canViewDashboard: true,
+        canCreateBookings: false,
+        canEditBookings: false,
+        canManageSettings: false,
+        canAccessWhatsApp: false,
+        canAccessBookingAssistant: false,
+        canUseAI: false,
+        canExportData: false,
+        canInviteUsers: false,
+        canAccessAPI: false,
+        canUseWhiteLabel: false,
+        hasPrioritySupport: false,
+        canAccessFutureInsights: false,
+        canAccessBusinessIntelligence: false,
+        canAccessPerformance: false,
+        canAccessCustomerSatisfaction: false,
+        canAccessTeamMembers: false,
+        canAccessTaxCompliance: false,
+        maxCalendars: 0,
+        maxBookingsPerMonth: 0,
+        maxTeamMembers: 0,
+        maxWhatsAppContacts: 0
       };
     }
 
