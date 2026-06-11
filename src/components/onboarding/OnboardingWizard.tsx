@@ -49,6 +49,23 @@ export const OnboardingWizard = () => {
     }
   };
 
+  // Clear, labelled call-to-action per step (an icon-only arrow leaves new users
+  // guessing what each step does).
+  const getStepCta = (step: any) => {
+    switch (step.key) {
+      case 'business_info':
+        return 'Set up';
+      case 'service_types':
+        return 'Add services';
+      case 'calendar_creation':
+        return 'Create';
+      case 'availability':
+        return 'Set hours';
+      default:
+        return 'Start';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
@@ -111,11 +128,12 @@ export const OnboardingWizard = () => {
                   </div>
                   
                   {!isCompleted && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={getStepAction(step)}
-                      className="flex-shrink-0 bg-primary hover:bg-primary/90"
+                      className="flex-shrink-0 gap-1.5 bg-primary hover:bg-primary/90"
                     >
+                      {getStepCta(step)}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   )}
