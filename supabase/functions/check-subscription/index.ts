@@ -64,12 +64,14 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No customer found, updating unsubscribed state");
       
-      // Update user record in database
+      // Update user record in database (no Stripe customer = no subscription, so
+      // also clear any stale grace window).
       await supabaseClient.from("users").update({
         subscription_status: 'expired',
         subscription_tier: null,
         subscription_end_date: null,
         payment_status: 'unpaid',
+        grace_period_end: null,
         updated_at: new Date().toISOString(),
       }).eq('id', user.id);
 
@@ -253,13 +255,23 @@ serve(async (req) => {
     }
 
     // Update user record in database with detailed logging
-    const updateResult = await supabaseClient.from("users").update({
+    const userUpdate: Record<string, unknown> = {
       subscription_status: subscriptionStatus,
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: paymentStatus,
       updated_at: new Date().toISOString(),
-    }).eq('id', user.id);
+    };
+    // Clear any stale grace window when the subscription is active or
+    // expired/canceled (those states never carry a grace period). Mirrors the
+    // stripe-webhook handlers. The missed_payment grace window is owned by the
+    // webhook (set once on invoice.payment_failed) — do NOT touch it here, or a
+    // repeated check-subscription call (e.g. each billing-page visit) would keep
+    // resetting the 7-day window so it never expires.
+    if (subscriptionStatus !== 'missed_payment') {
+      userUpdate.grace_period_end = null;
+    }
+    const updateResult = await supabaseClient.from("users").update(userUpdate).eq('id', user.id);
     
     logStep("Database update result", { 
       error: updateResult.error, 
