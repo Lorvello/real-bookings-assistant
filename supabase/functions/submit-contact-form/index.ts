@@ -38,20 +38,29 @@ Deno.serve(async (req) => {
       return RateLimiter.createRateLimitResponse(rateLimitResult, corsHeaders);
     }
 
-    const { 
-      name, 
-      email, 
+    let parsedBody;
+    try {
+      parsedBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const {
+      name,
+      email,
       phone,
-      company, 
+      company,
       subject,
       budget,
       platform,
-      message, 
+      message,
       requestMeeting,
       meetingDate,
       meetingTime,
-      formType = 'general' 
-    } = await req.json();
+      formType = 'general'
+    } = parsedBody;
 
     // Validate required fields
     if (!name || name.length > 100) {

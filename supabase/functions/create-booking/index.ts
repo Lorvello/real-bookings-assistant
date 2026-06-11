@@ -50,7 +50,15 @@ Deno.serve(async (req) => {
       return RateLimiter.createRateLimitResponse(rateLimitResult, corsHeaders);
     }
 
-    const bookingData = await req.json();
+    let bookingData;
+    try {
+      bookingData = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Server-side validation
     if (!bookingData.customerName || bookingData.customerName.length > 100) {
