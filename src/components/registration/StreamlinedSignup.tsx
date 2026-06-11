@@ -300,7 +300,7 @@ export const StreamlinedSignup: React.FC = () => {
             {/* Password */}
             <div className="space-y-2">
               <PasswordInput
-                label="Password *"
+                label="Password"
                 placeholder="Create a strong password (8+ chars, numbers, special chars)"
                 value={formData.password}
                 onChange={(value) => updateFormData('password', value)}
