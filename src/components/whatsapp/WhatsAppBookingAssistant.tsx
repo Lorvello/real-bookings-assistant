@@ -37,7 +37,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         .eq('id', userId)
         .single();
       
-      setBusinessName(data?.business_name || 'Our business');
+      // Natural generic greeting until the business name is set, instead of the
+      // awkward "Hello Our business!".
+      setBusinessName(data?.business_name || 'there');
     };
     
     loadBusinessData();
