@@ -29,14 +29,20 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Authorization header required");
+      return new Response(
+        JSON.stringify({ success: false, error: "Authorization header required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Authenticate user
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user) {
-      throw new Error("Authentication failed");
+      return new Response(
+        JSON.stringify({ success: false, error: "Authentication failed" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
     logStep("User authenticated", { userId: userData.user.id });
 

@@ -67,7 +67,10 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !user) {
-      throw new Error('User not authenticated');
+      return new Response(
+        JSON.stringify({ success: false, error: 'User not authenticated' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { test_mode = true } = await req.json().catch(() => ({}));
