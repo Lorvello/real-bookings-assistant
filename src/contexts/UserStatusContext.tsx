@@ -708,97 +708,63 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       };
     }
 
-    // Missed payment users - restricted access like expired trial
+    // Free-tier downgrade set. Lapsed states (missed_payment after grace,
+    // expired_trial, canceled_and_inactive) drop to the REAL Free plan rather than
+    // being hard-locked: basic single-calendar booking stays usable, but the paid
+    // core value (WhatsApp AI, multi-calendar, team, analytics, exports) stays
+    // behind the paywall. Existing over-limit data is retained — the maxCalendars
+    // limit only blocks creating MORE, it never deletes what's there — so
+    // re-subscribing instantly restores everything. Upgrade prompts still show
+    // (needsUpgrade/showUpgradePrompt include these states).
+    const freeTierLimits = getSubscriptionTierLimits('free');
+    const freeTierAccess: AccessControl = {
+      canViewDashboard: true,
+      canCreateBookings: true,
+      canEditBookings: true,
+      canManageSettings: true,
+      canAccessWhatsApp: false,
+      canAccessBookingAssistant: false,
+      canUseAI: false,
+      canExportData: false,
+      canInviteUsers: false,
+      canAccessAPI: false,
+      canUseWhiteLabel: false,
+      hasPrioritySupport: false,
+      canAccessFutureInsights: false,
+      canAccessBusinessIntelligence: false,
+      canAccessPerformance: false,
+      canAccessCustomerSatisfaction: false,
+      canAccessTeamMembers: false,
+      canAccessTaxCompliance: false,
+      maxCalendars: freeTierLimits?.max_calendars ?? 1,
+      maxBookingsPerMonth: freeTierLimits?.max_bookings_per_month ?? null,
+      maxTeamMembers: freeTierLimits?.max_team_members ?? 1,
+      maxWhatsAppContacts: 0
+    };
+
+    // Missed payment users — AFTER the grace window. During grace they keep full
+    // paid access (subscriber block above, gated on hasFullAccess). Once grace
+    // expires they downgrade to Free, not a hard lock.
     if (userType === 'missed_payment') {
-      return {
-        canViewDashboard: true,
-        canCreateBookings: false,
-        canEditBookings: false,
-        canManageSettings: false,
-        canAccessWhatsApp: false,
-        canAccessBookingAssistant: false,
-        canUseAI: false,
-        canExportData: false,
-        canInviteUsers: false,
-        canAccessAPI: false,
-        canUseWhiteLabel: false,
-        hasPrioritySupport: false,
-        canAccessFutureInsights: false,
-        canAccessBusinessIntelligence: false,
-        canAccessPerformance: false,
-        canAccessCustomerSatisfaction: false,
-        canAccessTeamMembers: false,
-        canAccessTaxCompliance: false,
-        maxCalendars: 0,
-        maxBookingsPerMonth: 0,
-        maxTeamMembers: 0,
-        maxWhatsAppContacts: 0
-      };
+      return freeTierAccess;
     }
 
     // Get starter tier limits for trial users
     const starterTierLimits = getSubscriptionTierLimits('starter');
 
-    // Expired trial users - NO access. They used the full product during the free
-    // trial but never subscribed, so once the trial ends access is revoked (data is
-    // retained, not deleted). canViewDashboard stays true so they can still reach
-    // the upgrade/billing screen to convert. Mirrors the missed_payment hard-lock.
+    // Expired trial — used the full product during the trial but never subscribed.
+    // Downgrade to Free (single calendar, no WhatsApp AI / analytics) rather than a
+    // hard lock, so they stay engaged and can convert. Data retained.
     if (userType === 'expired_trial') {
-      return {
-        canViewDashboard: true,
-        canCreateBookings: false,
-        canEditBookings: false,
-        canManageSettings: false,
-        canAccessWhatsApp: false,
-        canAccessBookingAssistant: false,
-        canUseAI: false,
-        canExportData: false,
-        canInviteUsers: false,
-        canAccessAPI: false,
-        canUseWhiteLabel: false,
-        hasPrioritySupport: false,
-        canAccessFutureInsights: false,
-        canAccessBusinessIntelligence: false,
-        canAccessPerformance: false,
-        canAccessCustomerSatisfaction: false,
-        canAccessTeamMembers: false,
-        canAccessTaxCompliance: false,
-        maxCalendars: 0,
-        maxBookingsPerMonth: 0,
-        maxTeamMembers: 0,
-        maxWhatsAppContacts: 0
-      };
+      return freeTierAccess;
     }
 
-    // Canceled AND inactive users - NO access. They canceled and their paid period
-    // has fully elapsed (canceled_but_active keeps full access until period end —
-    // see the canceled_subscriber block above). canViewDashboard stays true so they
-    // can re-subscribe. Mirrors the missed_payment / expired_trial hard-lock.
+    // Canceled AND inactive — they canceled and the paid period has fully elapsed
+    // (canceled_but_active keeps full access until period end, see the
+    // canceled_subscriber block above). Downgrade to Free, not a hard lock, so they
+    // can keep a single calendar running and re-subscribe anytime. Data retained.
     if (userType === 'canceled_and_inactive') {
-      return {
-        canViewDashboard: true,
-        canCreateBookings: false,
-        canEditBookings: false,
-        canManageSettings: false,
-        canAccessWhatsApp: false,
-        canAccessBookingAssistant: false,
-        canUseAI: false,
-        canExportData: false,
-        canInviteUsers: false,
-        canAccessAPI: false,
-        canUseWhiteLabel: false,
-        hasPrioritySupport: false,
-        canAccessFutureInsights: false,
-        canAccessBusinessIntelligence: false,
-        canAccessPerformance: false,
-        canAccessCustomerSatisfaction: false,
-        canAccessTeamMembers: false,
-        canAccessTaxCompliance: false,
-        maxCalendars: 0,
-        maxBookingsPerMonth: 0,
-        maxTeamMembers: 0,
-        maxWhatsAppContacts: 0
-      };
+      return freeTierAccess;
     }
 
     // CRITICAL FIX: Check subscription tier for active trial users
