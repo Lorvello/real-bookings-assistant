@@ -290,36 +290,46 @@ function calculateInstallments(plan: InstallmentPlan, servicePriceCents: number)
         });
         break;
         
-      case '50_50':
+      case '50_50': {
+        // Last installment is the exact remainder so the two halves sum to the
+        // service price (round(servicePriceCents*0.5) twice would over/undercharge
+        // by a cent for odd-cent prices, e.g. €99.99 -> €100.00).
+        const firstHalf = Math.round(servicePriceCents * 0.5);
         installments.push({
-          amount_cents: Math.round(servicePriceCents * 0.5),
+          amount_cents: firstHalf,
           timing: 'now',
           payment_method: 'online'
         });
         installments.push({
-          amount_cents: Math.round(servicePriceCents * 0.5),
+          amount_cents: servicePriceCents - firstHalf,
           timing: 'appointment',
           payment_method: 'cash'
         });
         break;
-        
-      case '25_25_50':
+      }
+
+      case '25_25_50': {
+        // Last installment is the exact remainder so the parts sum to the service
+        // price regardless of cent rounding.
+        const q1 = Math.round(servicePriceCents * 0.25);
+        const q2 = Math.round(servicePriceCents * 0.25);
         installments.push({
-          amount_cents: Math.round(servicePriceCents * 0.25),
+          amount_cents: q1,
           timing: 'now',
           payment_method: 'online'
         });
         installments.push({
-          amount_cents: Math.round(servicePriceCents * 0.25),
+          amount_cents: q2,
           timing: 'appointment',
           payment_method: 'cash'
         });
         installments.push({
-          amount_cents: Math.round(servicePriceCents * 0.5),
+          amount_cents: servicePriceCents - q1 - q2,
           timing: 'appointment',
           payment_method: 'cash'
         });
         break;
+      }
         
       case 'fixed_deposit':
         const depositCents = Math.round((plan.fixed_deposit_amount || 50) * 100);
