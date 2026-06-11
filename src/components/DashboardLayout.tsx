@@ -211,8 +211,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className={`flex-1 h-full ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
+      {/* Main Content — min-w-0 lets this flex child shrink to the viewport on
+          mobile instead of being forced to its content's min-content width
+          (which overflowed to ~812px and clipped the logged-in app on phones). */}
+      <div className={`flex-1 min-w-0 h-full ${isMobile && !isSidebarOpen ? 'pt-16' : ''}`} style={isMobile ? { overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' } : {}}>
         <main className="w-full h-full overflow-y-auto dashboard-scrollbar">
           {children}
         </main>
