@@ -105,6 +105,8 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
         return <CheckCircle className={`h-4 w-4 ${getColorClass()}`} />;
       case 'canceled_subscriber':
         return <AlertTriangle className={`h-4 w-4 ${getColorClass()}`} />;
+      case 'canceled_and_inactive':
+        return <XCircle className={`h-4 w-4 ${getColorClass()}`} />;
       case 'setup_incomplete':
         return <Clock className={`h-4 w-4 ${getColorClass()}`} />;
       default:

@@ -27,12 +27,13 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
   const getButtonText = () => {
     if (userType === 'expired_trial') return 'Upgrade Now';
     if (userType === 'canceled_subscriber') return 'Reactivate';
+    if (userType === 'canceled_and_inactive') return 'Reactivate';
     if (userType === 'missed_payment') return 'Fix Payment';
     return 'Upgrade';
   };
 
   const getButtonIcon = () => {
-    if (userType === 'canceled_subscriber') return <RefreshCw className="h-4 w-4" />;
+    if (userType === 'canceled_subscriber' || userType === 'canceled_and_inactive') return <RefreshCw className="h-4 w-4" />;
     if (userType === 'missed_payment') return <CreditCard className="h-4 w-4" />;
     return <ArrowUp className="h-4 w-4" />;
   };
@@ -40,6 +41,7 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
   const getButtonColor = () => {
     if (userType === 'expired_trial') return 'bg-red-600 hover:bg-red-700';
     if (userType === 'canceled_subscriber') return 'bg-yellow-600 hover:bg-yellow-700';
+    if (userType === 'canceled_and_inactive') return 'bg-red-600 hover:bg-red-700';
     if (userType === 'missed_payment') return 'bg-red-600 hover:bg-red-700';
     return 'bg-green-600 hover:bg-green-700';
   };
@@ -55,7 +57,7 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
           {getButtonIcon()}
           {isExpanded ? getButtonText() : ''}
         </Button>
-        {isExpanded && userType === 'expired_trial' && (
+        {isExpanded && (userType === 'expired_trial' || userType === 'canceled_and_inactive') && (
           <p className="text-xs text-gray-400 text-center mt-2">
             Limited access until upgrade
           </p>
