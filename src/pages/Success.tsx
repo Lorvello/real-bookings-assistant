@@ -146,8 +146,15 @@ export default function Success() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
+    <div className="relative min-h-screen overflow-hidden bg-[#0a0f1a] flex items-center justify-center p-4 text-white">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-70"
+        style={{
+          background:
+            'radial-gradient(60% 80% at 50% 0%, hsl(142 69% 45% / 0.18), transparent 70%)',
+        }}
+      />
+      <Card className="relative w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] text-center shadow-2xl shadow-black/40 backdrop-blur">
         <CardHeader className="pb-4">
           <div className="mx-auto mb-4">
             {isVerifying ? (

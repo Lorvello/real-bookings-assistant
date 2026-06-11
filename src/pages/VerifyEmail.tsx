@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { EmailVerificationPending } from '@/components/auth/EmailVerificationPending';
+import { AuthShell } from '@/components/auth/AuthShell';
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -18,12 +19,12 @@ const VerifyEmail = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#2C3E50' }}>
-      <EmailVerificationPending 
+    <AuthShell>
+      <EmailVerificationPending
         email={email}
         onBackToLogin={handleBackToLogin}
       />
-    </div>
+    </AuthShell>
   );
 };
 
