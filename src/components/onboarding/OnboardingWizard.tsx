@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useUserStatus } from '@/contexts/UserStatusContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Circle, ArrowRight, Settings, Calendar, Clock, MessageCircle, Bot } from 'lucide-react';
+import { CheckCircle, Circle, ArrowRight, Settings, Calendar, Clock, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 
@@ -68,79 +66,97 @@ export const OnboardingWizard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Settings className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold text-white">Complete Your Setup</h2>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-300">
-              <span>Progress</span>
-              <span>{completedSteps}/{totalSteps} completed</span>
-            </div>
-            <Progress value={completionPercentage} className="h-2 bg-slate-700" />
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] p-6 shadow-2xl shadow-black/30 backdrop-blur sm:p-8">
+        {/* soft brand glow */}
+        <div
+          className="pointer-events-none absolute inset-x-0 -top-px h-40 opacity-60"
+          style={{
+            background:
+              'radial-gradient(50% 100% at 50% 0%, hsl(142 69% 45% / 0.12), transparent 70%)',
+          }}
+        />
+
+        {/* Header with circular progress */}
+        <div className="relative flex items-center gap-4">
+          <div className="relative h-16 w-16 shrink-0">
+            <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
+              <circle cx="18" cy="18" r="15.5" fill="none" strokeWidth="3" className="stroke-white/10" />
+              <circle
+                cx="18"
+                cy="18"
+                r="15.5"
+                fill="none"
+                strokeWidth="3"
+                strokeLinecap="round"
+                pathLength={100}
+                strokeDasharray={`${completionPercentage} 100`}
+                className="stroke-primary transition-all duration-500"
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-white">
+              {completedSteps}/{totalSteps}
+            </span>
           </div>
-          
-          <div className="space-y-3">
-            {allSteps.map((step) => {
-              const StepIcon = getStepIcon(step);
-              const isCompleted = step.completed;
-              
-              return (
-                <div 
-                  key={step.key}
-                  className={`flex items-center gap-3 p-4 rounded-lg border ${
-                    isCompleted 
-                      ? 'border-green-500/30 bg-green-500/10' 
-                      : 'border-slate-600 bg-slate-700/50'
+          <div>
+            <h2 className="text-xl font-semibold text-white">Complete your setup</h2>
+            <p className="mt-0.5 text-sm text-white/50">
+              {completedSteps === 0
+                ? `${totalSteps} quick steps to your first booking.`
+                : `${totalSteps - completedSteps} step${
+                    totalSteps - completedSteps === 1 ? '' : 's'
+                  } to go — almost there.`}
+            </p>
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div className="relative mt-6 space-y-2.5">
+          {allSteps.map((step) => {
+            const StepIcon = getStepIcon(step);
+            const isCompleted = step.completed;
+
+            return (
+              <div
+                key={step.key}
+                className={`flex items-center gap-4 rounded-xl border p-4 transition-all ${
+                  isCompleted
+                    ? 'border-primary/20 bg-primary/[0.06]'
+                    : 'border-white/10 bg-white/[0.02] hover:border-primary/30 hover:bg-primary/[0.04]'
+                }`}
+              >
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                    isCompleted ? 'bg-primary/15 text-primary' : 'bg-white/5 text-white/60'
                   }`}
                 >
-                  <div className={`flex-shrink-0 ${
-                    isCompleted ? 'text-green-500' : 'text-gray-400'
-                  }`}>
-                    {isCompleted ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      <StepIcon className="h-5 w-5" />
+                  {isCompleted ? <CheckCircle className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className={`font-medium ${isCompleted ? 'text-primary' : 'text-white'}`}>
+                      {step.name}
+                    </h4>
+                    {isCompleted && (
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                        Done
+                      </span>
                     )}
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className={`font-medium ${
-                        isCompleted ? 'text-green-500' : 'text-gray-300'
-                      }`}>
-                        {step.name}
-                      </h4>
-                      {isCompleted && (
-                        <span className="text-xs bg-green-500/20 text-green-500 px-2 py-1 rounded-full">
-                          Complete
-                        </span>
-                      )}
-                    </div>
-                    <p className={`text-sm ${
-                      isCompleted ? 'text-green-500/80' : 'text-gray-400'
-                    }`}>
-                      {step.description}
-                    </p>
-                  </div>
-                  
-                  {!isCompleted && (
-                    <Button
-                      size="sm"
-                      onClick={getStepAction(step)}
-                      className="flex-shrink-0 gap-1.5 bg-primary hover:bg-primary/90"
-                    >
-                      {getStepCta(step)}
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <p className={`mt-0.5 text-sm ${isCompleted ? 'text-primary/60' : 'text-white/45'}`}>
+                    {step.description}
+                  </p>
                 </div>
-              );
-            })}
-          </div>
+
+                {!isCompleted && (
+                  <Button size="sm" onClick={getStepAction(step)} className="shrink-0 gap-1.5 rounded-lg">
+                    {getStepCta(step)}
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
       
