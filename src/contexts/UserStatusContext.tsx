@@ -212,7 +212,37 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       } catch (error) {
         console.error('Error caching new status:', error);
       }
-      
+
+      // Background verify-and-correct: for non-paid statuses the DB write has
+      // already completed before this call (dev status apply, cancellation, etc.),
+      // so the DB is authoritative. If the optimistic value ever diverges from
+      // get_user_status_type, self-correct the UI + cache instead of waiting for a
+      // full reload. (The paid_subscriber branch intentionally keeps optimistic to
+      // tolerate Stripe webhook propagation lag — this branch has no such lag.)
+      setTimeout(async () => {
+        try {
+          const { data } = await supabase.rpc('get_user_status_type', { p_user_id: profile.id });
+          if (data && data !== normalizedStatus) {
+            console.log('[UserStatusContext] DB status diverged from optimistic:', data, '!=', normalizedStatus, '- correcting UI');
+            setUserStatusType(data);
+            try {
+              sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+                version: CACHE_VERSION,
+                data: { userStatusType: data },
+                userId: profile.id,
+                timestamp: Date.now()
+              }));
+            } catch (cacheError) {
+              console.error('Error caching corrected status:', cacheError);
+            }
+          } else {
+            console.log('[UserStatusContext] Background verification confirmed status:', normalizedStatus);
+          }
+        } catch (error) {
+          console.error('[UserStatusContext] Background verification error:', error);
+        }
+      }, 1500);
+
       return;
     }
     
