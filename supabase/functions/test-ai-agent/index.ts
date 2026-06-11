@@ -14,7 +14,23 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history } = await req.json();
+    let parsed;
+    try {
+      parsed = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { message, conversation_history } = parsed;
+
+    if (!message || typeof message !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'message is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     console.log("Received message:", message);
     console.log("Conversation history length:", conversation_history?.length || 0);
