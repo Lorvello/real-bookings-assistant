@@ -22,11 +22,8 @@ const NotFound = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Page Not Found
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-8">
             The page you are looking for does not exist or has been moved.
-          </p>
-          <p className="text-sm text-gray-500 mb-8">
-            Route: <code className="bg-gray-100 px-2 py-1 rounded">{location.pathname}</code>
           </p>
         </div>
 
