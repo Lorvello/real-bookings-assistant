@@ -7,7 +7,7 @@ import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarCon
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
 import { useEffect, Suspense } from 'react';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, AuthProvider } from '@/hooks/useAuth';
 import SecurityAlertsMonitor from '@/components/security/SecurityAlertsMonitor';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
 
@@ -120,6 +120,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthProvider>
       <UserStatusProvider>
         <CalendarProvider>
           <ConversationCalendarProvider>
@@ -361,6 +362,7 @@ function App() {
           </ConversationCalendarProvider>
         </CalendarProvider>
       </UserStatusProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

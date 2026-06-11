@@ -1,5 +1,14 @@
 // Stripe configuration and helper functions
 
+// getStripeMode() is called on many renders; log the resolved mode only ONCE so
+// the console isn't flooded (e.g. a per-call "LIVE MODE ACTIVE" warn in prod).
+let stripeModeLogged = false;
+const logStripeModeOnce = (message: string, level: 'log' | 'warn' = 'log') => {
+  if (stripeModeLogged) return;
+  stripeModeLogged = true;
+  console[level](message);
+};
+
 /**
  * SECURITY: Get Stripe mode from environment variable ONLY
  * Users cannot manipulate this through browser dev tools
@@ -8,28 +17,29 @@
 export const getStripeMode = (): 'test' | 'live' => {
   // In Vite development mode, ALWAYS use test (safety first)
   if (import.meta.env.DEV) {
-    console.log('[STRIPE] Development environment detected - forcing TEST mode');
+    logStripeModeOnce('[STRIPE] Development environment detected - forcing TEST mode');
     return 'test';
   }
-  
+
   // Production: try to get env var, but gracefully fallback to test if missing
   const envMode = import.meta.env.VITE_STRIPE_MODE as 'test' | 'live' | undefined;
-  
+
   if (envMode === 'live' || envMode === 'test') {
     if (envMode === 'live') {
-      console.warn('[STRIPE] ⚠️  LIVE MODE ACTIVE - Real payments will be processed');
+      logStripeModeOnce('[STRIPE] ⚠️  LIVE MODE ACTIVE - Real payments will be processed', 'warn');
     } else {
-      console.log('[STRIPE] TEST MODE ACTIVE - Using Stripe test environment');
+      logStripeModeOnce('[STRIPE] TEST MODE ACTIVE - Using Stripe test environment');
     }
     return envMode;
   }
-  
+
   // FALLBACK: log warning and use test mode (NO CRASH)
-  console.warn(
+  logStripeModeOnce(
     '[STRIPE CONFIG] VITE_STRIPE_MODE not configured in production. ' +
-    'Falling back to TEST mode for safety. Configure runtime Stripe mode later.'
+    'Falling back to TEST mode for safety. Configure runtime Stripe mode later.',
+    'warn'
   );
-  
+
   return 'test'; // Safe fallback, prevents crash
 };
 

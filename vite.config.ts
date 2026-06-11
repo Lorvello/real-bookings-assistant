@@ -76,6 +76,12 @@ export default defineConfig(({ mode }) => ({
     include: ['react', 'react-dom', 'react/jsx-runtime'],
     force: true,
   },
+  // Strip debug logging from production builds so the live console stays clean
+  // (dozens of console.log/info/debug calls live in contexts/hooks). Dev keeps
+  // every log; console.warn/error are preserved in production for real issues.
+  esbuild: {
+    pure: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
+  },
   build: {
     rollupOptions: {
       output: {
