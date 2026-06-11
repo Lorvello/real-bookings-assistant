@@ -152,6 +152,7 @@ async function handleSubscriptionCreated(
       subscription_tier: tier,
       subscription_end_date: endDate.toISOString(),
       payment_status: 'paid',
+      grace_period_end: null,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -225,6 +226,15 @@ async function handleSubscriptionUpdated(
     subscriptionStatus = 'missed_payment';
   }
 
+  // Keep grace_period_end consistent with the new status. Only missed-payment
+  // states carry a 7-day grace window (matches handlePaymentFailed); recovery to
+  // active or a cancellation must CLEAR it. The frontend folds gracePeriodActive
+  // into hasFullAccess regardless of subscription_status, so a stale grace window
+  // would otherwise leak full access into a recovered/canceled account.
+  const graceEnd = subscriptionStatus === 'missed_payment'
+    ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
+
   // Update users table
   const { error: userError } = await supabase
     .from('users')
@@ -232,6 +242,7 @@ async function handleSubscriptionUpdated(
       subscription_status: subscriptionStatus,
       subscription_tier: subscriptionStatus === 'active' ? tier : null,
       subscription_end_date: endDate.toISOString(),
+      grace_period_end: graceEnd,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -283,11 +294,15 @@ async function handleSubscriptionDeleted(
 
   const userId = subscriber.user_id;
 
-  // Update users table - keep end date if it's in the future
+  // Update users table - keep end date if it's in the future (canceled_but_active
+  // vs canceled_and_inactive is decided by subscription_end_date in
+  // get_user_status_type). Clear any grace window so a customer who failed payment
+  // and then cancelled doesn't retain full access via a stale grace_period_end.
   const { error: userError } = await supabase
     .from('users')
     .update({
       subscription_status: 'canceled',
+      grace_period_end: null,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -301,6 +316,7 @@ async function handleSubscriptionDeleted(
     .from('subscribers')
     .update({
       subscribed: false,
+      subscription_tier: null,
       updated_at: new Date().toISOString()
     })
     .eq('user_id', userId);
