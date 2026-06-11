@@ -204,8 +204,8 @@ export const StreamlinedSignup: React.FC = () => {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#2C3E50' }}>
-      <Card className="w-full max-w-md bg-card border-border shadow-xl relative">
+    <div className="flex w-full justify-center">
+      <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur relative">
         <Button 
           variant="ghost" 
           onClick={() => navigate(-1)}

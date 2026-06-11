@@ -210,7 +210,7 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md bg-card border-border shadow-xl relative">
+    <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur relative">
       <Button 
         variant="ghost" 
         onClick={() => navigate(-1)}
