@@ -17,6 +17,7 @@ interface InstallmentPaymentRequest {
     phone: string;
     email?: string;
   };
+  test_mode?: boolean;
 }
 
 serve(async (req) => {
@@ -30,16 +31,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     );
-
-    // For installments, use test mode by default since it's likely development/testing
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY_TEST') || Deno.env.get('STRIPE_SECRET_KEY_LIVE');
-    if (!stripeKey) {
-      throw new Error('Missing Stripe secret key');
-    }
-    
-    const stripe = new Stripe(stripeKey, {
-      apiVersion: '2023-10-16',
-    });
 
     // Validate subscription tier first
     const authHeader = req.headers.get('Authorization');
@@ -69,13 +60,24 @@ serve(async (req) => {
       throw new Error('Installment payments require Professional plan or higher');
     }
 
-    const { 
-      conversationId, 
-      serviceTypeId, 
-      appointmentDate, 
-      installmentPlan, 
-      customerData 
+    const {
+      conversationId,
+      serviceTypeId,
+      appointmentDate,
+      installmentPlan,
+      customerData,
+      test_mode = false,
     }: InstallmentPaymentRequest = await req.json();
+
+    // Pick the Stripe key for the requested mode (mirrors create-booking-payment).
+    // NEVER live money in our own testing — callers pass test_mode for sandbox.
+    const stripeKey = test_mode
+      ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
+      : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
+    if (!stripeKey) {
+      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+    }
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
     // Get conversation and service type data
     const { data: conversation, error: convError } = await supabaseClient
@@ -136,11 +138,14 @@ serve(async (req) => {
       );
     }
 
-    // Get Stripe account for this calendar
+    // Get the connected Stripe account for this calendar IN THE REQUESTED MODE.
+    // Without the environment filter a live account could be charged with the test
+    // key (or vice versa) -> installments broke for live businesses.
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('stripe_account_id')
       .eq('calendar_id', conversation.calendar_id)
+      .eq('environment', test_mode ? 'test' : 'live')
       .eq('account_status', 'active')
       .single();
 
