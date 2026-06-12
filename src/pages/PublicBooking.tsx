@@ -109,9 +109,17 @@ export default function PublicBooking() {
     };
   }, [calendar, service, date]);
 
+  // Inline email-format check so a typo'd address is caught before submit (the
+  // server-side validateEmail still rejects it, but inline is more premium and
+  // prevents a confirmation email silently never arriving).
+  const emailValid = useMemo(
+    () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email.trim()),
+    [customer.email]
+  );
+
   const canSubmit = useMemo(
-    () => !!(slot && customer.name.trim() && customer.email.trim()),
-    [slot, customer]
+    () => !!(slot && customer.name.trim() && emailValid),
+    [slot, customer.name, emailValid]
   );
 
   const handleSubmit = async () => {
@@ -383,8 +391,11 @@ export default function PublicBooking() {
                       type="email"
                       value={customer.email}
                       onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
-                      className="border-white/10 bg-white/[0.03]"
+                      className={`bg-white/[0.03] ${customer.email.trim() && !emailValid ? 'border-red-500/70' : 'border-white/10'}`}
                     />
+                    {customer.email.trim() && !emailValid && (
+                      <p className="text-xs text-red-400">Voer een geldig e-mailadres in (bijv. naam@voorbeeld.nl).</p>
+                    )}
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="phone" className="text-white/70">
