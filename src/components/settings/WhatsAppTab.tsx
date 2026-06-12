@@ -69,15 +69,29 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
       return;
     }
 
+    // A WhatsApp number must be a valid international phone number (8–15 digits,
+    // optional leading +). Reject junk so the QR / agent connection can't break.
+    const normalized = phoneNumber.replace(/[\s()-]/g, '');
+    if (!/^\+?[1-9]\d{7,14}$/.test(normalized)) {
+      toast({
+        title: 'Ongeldig nummer',
+        description: 'Voer een geldig internationaal nummer in, bijv. +31612345678',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setSaving(true);
     try {
+      // Upsert: a plain .update() affects 0 rows (and silently "succeeds") when the
+      // calendar_settings row is missing — same pitfall as the other settings hooks.
       const { error } = await supabase
         .from('calendar_settings')
-        .update({ whatsapp_phone_number: phoneNumber })
-        .eq('calendar_id', calendarId);
+        .upsert({ calendar_id: calendarId, whatsapp_phone_number: normalized }, { onConflict: 'calendar_id' });
 
       if (error) throw error;
 
+      setPhoneNumber(normalized);
       toast({
         title: 'Opgeslagen',
         description: 'WhatsApp nummer is opgeslagen'
