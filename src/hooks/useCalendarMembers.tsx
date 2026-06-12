@@ -124,16 +124,16 @@ export const useCalendarMembers = (calendarId?: string) => {
 
   // New invitation system using email invitations
   const inviteMember = async (
-    email: string, 
-    calendarIdForInvite: string, 
-    role: 'editor' | 'viewer' = 'viewer', 
+    email: string,
+    calendarIdForInvite: string,
+    role: 'editor' | 'viewer' = 'viewer',
     fullName: string = ''
-  ) => {
+  ): Promise<boolean> => {
     try {
       setLoading(true);
-      
+
       console.log('Inviting member via new system:', { email, calendarIdForInvite, role, fullName });
-      
+
       // Use the new edge function to send invitation
       const { error } = await supabase.functions.invoke('send-team-invitation', {
         body: {
@@ -146,22 +146,31 @@ export const useCalendarMembers = (calendarId?: string) => {
 
       if (error) {
         console.error('Error sending invitation:', error);
+        // The edge function returns a 400 with a specific reason (e.g. team-member
+        // limit reached). supabase-js puts the response body on error.context — read
+        // it so the user sees the real reason instead of a generic failure.
+        let description = error.message || "Kon uitnodiging niet versturen.";
+        try {
+          const body = await (error as any).context?.json?.();
+          if (body?.error) description = body.error;
+        } catch (_) { /* body not JSON — keep generic message */ }
         toast({
           title: "Fout",
-          description: error.message || "Kon uitnodiging niet versturen.",
+          description,
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
       // Refresh the members list to show any updates
       await fetchMembers();
-      
+
       toast({
         title: "Uitnodiging verzonden! 📧",
         description: `Een uitnodiging is verzonden naar ${email}. Ze hebben 48 uur om te accepteren.`,
       });
-      
+      return true;
+
     } catch (error) {
       console.error('Error inviting member:', error);
       toast({
@@ -169,6 +178,7 @@ export const useCalendarMembers = (calendarId?: string) => {
         description: "Er ging iets mis bij het versturen van de uitnodiging.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setLoading(false);
     }

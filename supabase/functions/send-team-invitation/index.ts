@@ -65,6 +65,19 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Failed to create invitation: ${inviteError.message}`);
     }
 
+    // invite_team_member returns { success:false, error, error_code } as a PAYLOAD
+    // (team-member limit reached, or caller is not the owner) WITHOUT raising a DB
+    // error. Honor it — otherwise we'd email a broken (token-less) invite link and
+    // report HTTP 200 success while no invitation row was created.
+    if (!invitationResult || invitationResult.success === false) {
+      const message = invitationResult?.error || 'Failed to create invitation';
+      console.warn('invite_team_member rejected:', message);
+      return new Response(
+        JSON.stringify({ success: false, error: message, error_code: invitationResult?.error_code ?? null }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     // Get calendar and business information
     const { data: calendarData, error: calendarError } = await supabase
       .from('calendars')

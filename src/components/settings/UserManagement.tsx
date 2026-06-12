@@ -222,31 +222,27 @@ export const UserManagement = ({
 
     setIsSubmitting(true);
     try {
-      await inviteMember(
-        newUserEmail, 
-        defaultCalendar.id, 
-        newUserRole, 
+      // inviteMember owns its own success/error toasts (incl. the specific reason,
+      // e.g. team-member limit reached). Only clear + close the form when the invite
+      // actually succeeded — previously this always showed "User invited" even when
+      // the invite failed.
+      const ok = await inviteMember(
+        newUserEmail,
+        defaultCalendar.id,
+        newUserRole,
         newUserName
       );
-      setNewUserEmail('');
-      setNewUserName('');
-      setNewUserRole('viewer');
-      setIsAddUserOpen(false);
-      toast({
-        title: "User invited",
-        description: "User has been added successfully",
-      });
-      stableRefetch();
-    } catch (error) {
-      toast({
-        title: "Error adding user",
-        description: "Could not add the user. Please try again.",
-        variant: "destructive",
-      });
+      if (ok) {
+        setNewUserEmail('');
+        setNewUserName('');
+        setNewUserRole('viewer');
+        setIsAddUserOpen(false);
+        stableRefetch();
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [newUserEmail, newUserName, newUserRole, calendars, inviteMember, toast, stableRefetch]);
+  }, [newUserEmail, newUserName, newUserRole, calendars, inviteMember, stableRefetch, toast]);
 
   const handleRoleChange = useCallback(async (memberId: string, newRole: 'editor' | 'viewer') => {
     try {
