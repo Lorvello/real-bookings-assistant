@@ -91,6 +91,31 @@ serve(async (req) => {
       throw new Error('Conversation not found');
     }
 
+    // SECURITY: the conversation's calendar must belong to the authenticated user
+    // (or their team account). Without this, any professional/enterprise user could
+    // create bookings + payment sessions on ANOTHER tenant's calendar / connected
+    // Stripe account by passing a foreign conversationId (IDOR / cross-tenant write).
+    const calendarOwnerId = conversation.calendar?.user_id;
+    if (!calendarOwnerId) {
+      throw new Error('Calendar not found for conversation');
+    }
+    if (calendarOwnerId !== userData.user.id) {
+      const { data: owners } = await supabaseClient
+        .from('users')
+        .select('id, account_owner_id')
+        .in('id', [calendarOwnerId, userData.user.id]);
+      const acct = (id: string) => {
+        const r = owners?.find((o: any) => o.id === id);
+        return r?.account_owner_id || id;
+      };
+      if (acct(calendarOwnerId) !== acct(userData.user.id)) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Access denied: calendar not owned by caller' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     const { data: serviceType, error: serviceError } = await supabaseClient
       .from('service_types')
       .select('*')
@@ -99,6 +124,16 @@ serve(async (req) => {
 
     if (serviceError || !serviceType) {
       throw new Error('Service type not found');
+    }
+
+    // SECURITY: the service type must belong to the same calendar as the
+    // conversation, so a caller can't graft a foreign/mismatched service (and its
+    // price) onto this calendar's booking.
+    if (serviceType.calendar_id !== conversation.calendar_id) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Service type does not belong to this calendar' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Get Stripe account for this calendar
