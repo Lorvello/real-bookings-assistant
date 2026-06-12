@@ -12,6 +12,9 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-SERVICE-TYPE-WITH-STRIPE] ${step}${detailsStr}`);
 };
 
+const json = (body: any, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -19,8 +22,7 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
-    
-    // Initialize Supabase client with service role key
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -29,204 +31,219 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authorization header required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, error: "Authorization header required" }, 401);
     }
 
-    // Authenticate user
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authentication failed" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return json({ success: false, error: "Authentication failed" }, 401);
     }
     logStep("User authenticated", { userId: userData.user.id });
 
-    const { serviceData, testMode = false } = await req.json().catch(() => ({}));
-    logStep("Request data parsed", { hasServiceData: !!serviceData, testMode });
+    // Two supported contracts:
+    //  A) { serviceData: {...new service...} }   -> create a new service_type + Stripe price
+    //  B) { serviceTypeId, name?, price?, currency?, calendarId } -> service row already
+    //     exists; create a Stripe price for it and store the price id on the row.
+    const body = await req.json().catch(() => ({}));
+    const { serviceData, serviceTypeId, name, price, currency, calendarId, testMode = false } = body;
+    const isExisting = !!serviceTypeId && !serviceData;
+    logStep("Request parsed", { mode: isExisting ? 'existing' : 'create', hasServiceData: !!serviceData, testMode });
 
-    // Check if tax is enabled for this service
-    if (serviceData.tax_enabled) {
-      logStep("Tax enabled for service, checking user tax configuration");
-      
-      // Check if user has completed tax configuration
+    // Resolve the target calendar + the price inputs for both contracts.
+    let calId: string | undefined;
+    let svcName: string | undefined;
+    let svcPrice: number | undefined;
+    let svcDuration: number | string | undefined;
+    let existingService: any = null;
+
+    if (isExisting) {
+      const { data: svc, error: svcErr } = await supabaseClient
+        .from('service_types')
+        .select('*')
+        .eq('id', serviceTypeId)
+        .single();
+      if (svcErr || !svc) {
+        return json({ success: false, error: 'Service type not found' }, 404);
+      }
+      existingService = svc;
+      calId = svc.calendar_id;
+      svcName = name || svc.name;
+      svcPrice = (price ?? svc.price) as number;
+      svcDuration = svc.duration;
+      if (calendarId && calendarId !== calId) {
+        return json({ success: false, error: 'calendarId does not match the service type' }, 400);
+      }
+    } else {
+      if (!serviceData || !serviceData.calendar_id) {
+        return json({ success: false, error: 'serviceData (with calendar_id) or serviceTypeId is required' }, 400);
+      }
+      calId = serviceData.calendar_id;
+      svcName = serviceData.name;
+      svcPrice = serviceData.price;
+      svcDuration = serviceData.duration;
+    }
+
+    // SECURITY: the service-role client bypasses RLS, so verify the caller owns the
+    // target calendar (directly or via the same team account) before creating Stripe
+    // prices / service rows on it. Without this, any authenticated user could write
+    // services + prices onto another tenant's calendar (cross-tenant write / IDOR).
+    const { data: cal, error: calErr } = await supabaseClient
+      .from('calendars')
+      .select('user_id')
+      .eq('id', calId)
+      .single();
+    if (calErr || !cal) {
+      return json({ success: false, error: 'Calendar not found' }, 404);
+    }
+    if (cal.user_id !== userData.user.id) {
+      const { data: owners } = await supabaseClient
+        .from('users')
+        .select('id, account_owner_id')
+        .in('id', [cal.user_id, userData.user.id]);
+      const acct = (id: string) => owners?.find((o: any) => o.id === id)?.account_owner_id || id;
+      if (acct(cal.user_id) !== acct(userData.user.id)) {
+        return json({ success: false, error: 'Access denied: calendar not owned by caller' }, 403);
+      }
+    }
+
+    // Tax configuration only applies to the create-new contract (the existing row
+    // already carries its own tax config).
+    if (serviceData && serviceData.tax_enabled) {
+      logStep("Tax enabled, checking user tax configuration");
       const { data: userTaxData, error: userTaxError } = await supabaseClient
         .from('users')
         .select('tax_configured, default_tax_behavior')
         .eq('id', userData.user.id)
         .single();
-
       if (userTaxError) {
-        logStep("Error fetching user tax configuration", userTaxError);
         throw new Error('Failed to check tax configuration: ' + userTaxError.message);
       }
-
       if (!userTaxData.tax_configured) {
-        logStep("User has not configured tax yet");
         throw new Error('Configure tax first. Please complete your tax settings before enabling tax on services.');
       }
-
-      // Validate tax data for the service
       if (!serviceData.tax_code) {
         throw new Error('Tax code is required when tax is enabled');
       }
-
       if (!serviceData.tax_behavior) {
-        // Use user's default tax behavior as fallback
         serviceData.tax_behavior = userTaxData.default_tax_behavior || 'exclusive';
-        logStep("Using fallback tax behavior", { tax_behavior: serviceData.tax_behavior });
       }
-
       if (!['inclusive', 'exclusive'].includes(serviceData.tax_behavior)) {
         throw new Error('Tax behavior must be either "inclusive" or "exclusive"');
       }
-
-    logStep("Tax validation passed", { 
-      tax_code: serviceData.tax_code, 
-      tax_behavior: serviceData.tax_behavior 
-    });
-  } else {
-    // Auto-assign tax codes for services without explicit tax configuration
-    logStep("Auto-assigning tax codes for service");
-    
-    try {
-      // Call assign-tax-codes function to automatically configure tax
-      const { data: taxAssignmentResult } = await supabaseClient.functions.invoke('assign-tax-codes', {
-        body: {
-          calendar_id: serviceData.calendar_id,
-          service_data: {
-            name: serviceData.name,
-            category: serviceData.service_category || 'general',
-            description: serviceData.description
+      logStep("Tax validation passed", { tax_code: serviceData.tax_code, tax_behavior: serviceData.tax_behavior });
+    } else if (serviceData) {
+      // Auto-assign tax codes for create-new services without explicit tax config.
+      logStep("Auto-assigning tax codes for service");
+      try {
+        const { data: taxAssignmentResult } = await supabaseClient.functions.invoke('assign-tax-codes', {
+          body: {
+            calendar_id: serviceData.calendar_id,
+            service_data: {
+              name: serviceData.name,
+              category: serviceData.service_category || 'general',
+              description: serviceData.description
+            }
           }
-        }
-      });
-
-      if (taxAssignmentResult?.success && taxAssignmentResult?.tax_code) {
-        serviceData.tax_enabled = true;
-        serviceData.tax_code = taxAssignmentResult.tax_code;
-        serviceData.tax_behavior = taxAssignmentResult.tax_behavior || 'exclusive';
-        serviceData.applicable_tax_rate = taxAssignmentResult.applicable_tax_rate;
-        serviceData.business_country = taxAssignmentResult.business_country || 'NL';
-        
-        logStep("Tax codes auto-assigned successfully", {
-          tax_code: serviceData.tax_code,
-          business_country: serviceData.business_country,
-          tax_rate: serviceData.applicable_tax_rate
         });
+        if (taxAssignmentResult?.success && taxAssignmentResult?.tax_code) {
+          serviceData.tax_enabled = true;
+          serviceData.tax_code = taxAssignmentResult.tax_code;
+          serviceData.tax_behavior = taxAssignmentResult.tax_behavior || 'exclusive';
+          serviceData.applicable_tax_rate = taxAssignmentResult.applicable_tax_rate;
+          serviceData.business_country = taxAssignmentResult.business_country || 'NL';
+          logStep("Tax codes auto-assigned");
+        }
+      } catch (taxError) {
+        logStep("Auto tax assignment failed, continuing without tax", { error: (taxError as any).message });
       }
-    } catch (taxError) {
-      logStep("Auto tax assignment failed, continuing without tax", { error: taxError.message });
     }
-  }
 
-  // Initialize Stripe with appropriate key based on mode
-    const stripeKey = testMode 
+    // Initialize Stripe.
+    const stripeKey = testMode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
     if (!stripeKey) {
       throw new Error(`Stripe ${testMode ? 'test' : 'live'} secret key not configured`);
     }
-    logStep("Stripe key retrieved", { mode: testMode ? 'test' : 'live' });
-
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    console.log('Creating Stripe price for service:', serviceData.name)
-
-    // Create Stripe Price
-    // Note: product_data only supports 'name', 'metadata', and 'tax_code' - NOT 'description'
+    // Build the Stripe price. product_data supports name/metadata/tax_code (no description).
     const priceData: any = {
-      currency: 'eur',
-      unit_amount: Math.round((serviceData.price || 0) * 100), // Convert to cents
+      currency: currency || 'eur',
+      unit_amount: Math.round((svcPrice || 0) * 100),
       product_data: {
-        name: serviceData.name,
+        name: svcName,
         metadata: {
-          service_duration: serviceData.duration.toString(),
-          calendar_id: serviceData.calendar_id || '',
-          description: serviceData.description || '', // Store description in metadata instead
+          service_duration: svcDuration != null ? String(svcDuration) : '',
+          calendar_id: calId || '',
+          description: (serviceData?.description ?? existingService?.description) || '',
         },
       },
-    }
-
-    // Add tax configuration to Stripe Price if tax is enabled
-    if (serviceData.tax_enabled && serviceData.tax_code) {
-      logStep("Adding tax configuration to Stripe Price", {
-        tax_code: serviceData.tax_code,
-        tax_behavior: serviceData.tax_behavior
-      });
-
-      // Set tax code on the product
+    };
+    if (serviceData?.tax_enabled && serviceData?.tax_code) {
       priceData.product_data.tax_code = serviceData.tax_code;
-
-      // Set tax behavior on the price
       priceData.tax_behavior = serviceData.tax_behavior;
-
-      logStep("Tax configuration added to price data");
+    }
+    if (serviceData?.allow_installments) {
+      priceData.product_data.metadata.allow_installments = 'true';
+      priceData.product_data.metadata.installment_plans = JSON.stringify(serviceData.installment_plans || []);
     }
 
-    // Add installment-specific metadata if present
-    if (serviceData.allow_installments) {
-      priceData.product_data.metadata.allow_installments = 'true'
-      priceData.product_data.metadata.installment_plans = JSON.stringify(serviceData.installment_plans || [])
-    }
+    const stripePrice = await stripe.prices.create(priceData);
+    logStep("Stripe price created", { priceId: stripePrice.id });
 
-    const price = await stripe.prices.create(priceData)
-    console.log('Stripe price created:', price.id)
+    const priceIdField = testMode ? { stripe_test_price_id: stripePrice.id } : { stripe_live_price_id: stripePrice.id };
 
-    // Update serviceData with Stripe price IDs
-    const updatedServiceData = {
-      ...serviceData,
-      user_id: userData.user.id,
-      // Store price ID based on mode
-      ...(testMode ? {
-        stripe_test_price_id: price.id
-      } : {
-        stripe_live_price_id: price.id
-      })
-    }
-
-    // Save to Supabase
-    const { data: savedService, error: saveError } = await supabaseClient
-      .from('service_types')
-      .insert(updatedServiceData)
-      .select()
-      .single()
-
-    if (saveError) {
-      console.error('Error saving service to Supabase:', saveError)
-      throw new Error('Failed to save service: ' + saveError.message)
-    }
-
-    console.log('Service saved to Supabase:', savedService.id)
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        service: savedService,
-        stripe_price_id: price.id,
-        test_mode: testMode
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+    // Persist. On any DB failure, deactivate the just-created Stripe price/product so
+    // we don't orphan it (the original bug: a failed insert left a dangling price).
+    let savedService: any = null;
+    try {
+      if (isExisting) {
+        const { data, error } = await supabaseClient
+          .from('service_types')
+          .update(priceIdField)
+          .eq('id', serviceTypeId)
+          .select()
+          .single();
+        if (error) throw error;
+        savedService = data;
+      } else {
+        // NOTE: service_types has NO user_id column — the previous version spread
+        // user_id into the insert, which failed every time. Insert only real columns.
+        const insertData: any = { ...serviceData, ...priceIdField };
+        delete insertData.user_id;
+        const { data, error } = await supabaseClient
+          .from('service_types')
+          .insert(insertData)
+          .select()
+          .single();
+        if (error) throw error;
+        savedService = data;
       }
-    )
+    } catch (dbErr: any) {
+      logStep("DB persist failed, cleaning up orphaned Stripe price", { error: dbErr.message });
+      try {
+        await stripe.prices.update(stripePrice.id, { active: false });
+        if (stripePrice.product) {
+          await stripe.products.update(stripePrice.product as string, { active: false });
+        }
+      } catch (cleanupErr) {
+        logStep("Stripe cleanup failed (price left inactive-pending)", { error: (cleanupErr as any).message });
+      }
+      throw new Error('Failed to save service: ' + dbErr.message);
+    }
+
+    logStep("Service persisted", { serviceId: savedService.id });
+    return json({
+      success: true,
+      service: savedService,
+      stripe_price_id: stripePrice.id,
+      test_mode: testMode,
+    }, 200);
+
   } catch (error: any) {
-    console.error('Error in create-service-type-with-stripe:', error)
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    )
+    console.error('Error in create-service-type-with-stripe:', error);
+    return json({ success: false, error: error.message }, 500);
   }
 })
