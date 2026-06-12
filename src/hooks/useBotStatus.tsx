@@ -34,13 +34,15 @@ export function useBotStatus(calendarId?: string) {
     mutationFn: async (isActive: boolean) => {
       if (!calendarId) throw new Error('Calendar ID required');
 
+      // Upsert: a plain .update() affects 0 rows (and reports success) when the
+      // calendar_settings row is missing — the bot toggle would silently do nothing.
       const { error } = await supabase
         .from('calendar_settings')
-        .update({ 
+        .upsert({
+          calendar_id: calendarId,
           whatsapp_bot_active: isActive,
           last_bot_activity: isActive ? new Date().toISOString() : undefined
-        })
-        .eq('calendar_id', calendarId);
+        }, { onConflict: 'calendar_id' });
 
       if (error) throw error;
       return isActive;
