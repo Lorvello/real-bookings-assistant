@@ -189,6 +189,10 @@ serve(async (req) => {
             customer_name
           )
         `)
+        // SECURITY: scope to the caller's connected account. Without this filter
+        // the fallback summed booking_payments across EVERY tenant on the
+        // platform into totalRevenue (service-role client bypasses RLS).
+        .eq('stripe_account_id', stripeAccount.stripe_account_id)
         .eq('status', 'succeeded')
         .gte('created_at', startDate)
         .lte('created_at', endDate);
