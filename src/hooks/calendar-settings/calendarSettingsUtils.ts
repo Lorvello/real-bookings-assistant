@@ -66,10 +66,12 @@ export const updateCalendarSettings = async (
   try {
     console.log('Saving calendar settings changes:', updates);
 
+    // UPSERT on calendar_id: a plain .update() silently affects 0 rows (no error)
+    // when the calendar_settings row is missing (legacy calendar / trigger miss) —
+    // the UI would report success while nothing was saved. Upsert saves regardless.
     const { error } = await supabase
       .from('calendar_settings')
-      .update(updates)
-      .eq('calendar_id', calendarId);
+      .upsert({ calendar_id: calendarId, ...updates }, { onConflict: 'calendar_id' });
 
     if (error) {
       console.error('Error saving calendar settings:', error);
