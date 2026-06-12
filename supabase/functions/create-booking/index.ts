@@ -89,6 +89,10 @@ Deno.serve(async (req) => {
       ...bookingData,
       customerName: sanitizeBookingText(bookingData.customerName),
       customerEmail: bookingData.customerEmail.toLowerCase().trim(),
+      // customer_phone came straight from ...bookingData (raw, uncapped) while
+      // name/notes were sanitized — sanitize it too for consistency: strips <>
+      // and caps length (defense-in-depth + prevents oversized-string DB bloat).
+      customerPhone: bookingData.customerPhone ? sanitizeBookingText(bookingData.customerPhone) : null,
       notes: bookingData.notes ? sanitizeBookingText(bookingData.notes) : null
     };
 
