@@ -74,7 +74,31 @@ serve(async (req) => {
     console.log(`[CREATE-ACCOUNT-SESSION] Looking for account - Owner: ${accountOwnerId}, Environment: ${environment}, Platform: ${platformAccountId}`)
 
     // Get connected account ID if not provided
-    let connectedAccountId = account_id
+    let connectedAccountId = null
+    if (account_id) {
+      // SECURITY: a caller-supplied account_id must belong to the caller's own
+      // account (same account_owner_id / environment / platform). Without this
+      // check, any authenticated user could pass another tenant's acct_... id and
+      // receive an embedded account session into their Stripe tax settings
+      // (view/edit registrations, export tax transactions) — cross-tenant control.
+      const { data: ownedAccount } = await supabase
+        .from('business_stripe_accounts')
+        .select('stripe_account_id')
+        .eq('stripe_account_id', account_id)
+        .eq('account_owner_id', accountOwnerId)
+        .eq('environment', environment)
+        .eq('platform_account_id', platformAccountId)
+        .maybeSingle()
+
+      if (!ownedAccount) {
+        console.log('[CREATE-ACCOUNT-SESSION] Supplied account_id not owned by caller')
+        return new Response(
+          JSON.stringify({ success: false, code: 'ACCOUNT_NOT_OWNED' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        )
+      }
+      connectedAccountId = account_id
+    }
     if (!connectedAccountId) {
       // Primary lookup: business_stripe_accounts with proper tenant isolation
       const { data: stripeAccount } = await supabase
