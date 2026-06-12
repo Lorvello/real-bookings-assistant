@@ -39,6 +39,19 @@ serve(async (req) => {
       );
     }
 
+    // This endpoint is public (verify_jwt=false) and proxies an external API.
+    // Cap the payload size so it can't be abused to push huge bodies through the
+    // function / upstream. Legit callers (conversational messages) are short. NOTE:
+    // a per-IP request-rate limit would further bound spam, but is intentionally
+    // NOT added here because the n8n WhatsApp agent may call this at volume from a
+    // single IP — set that only once the agent's call pattern is known.
+    if (typeof text !== 'string' || text.length > 5000) {
+      return new Response(
+        JSON.stringify({ error: 'Text too long (max 5000 characters)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // If target language is English and source is auto, just return the text
     if (targetLang === 'en' && sourceLang === 'auto') {
       console.log('Returning original text for English');
