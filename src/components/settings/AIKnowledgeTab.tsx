@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { businessTypes } from '@/constants/settingsOptions';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
+import { validateWebsite, validateSocial, SOCIAL_PLATFORMS } from '@/utils/socialValidation';
 
 export const AIKnowledgeTab: React.FC = () => {
   const {
@@ -22,6 +23,7 @@ export const AIKnowledgeTab: React.FC = () => {
   const [localBusinessData, setLocalBusinessData] = useState(businessData);
   const [isSaving, setIsSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [socialErrors, setSocialErrors] = useState<{ website?: string; instagram?: string; facebook?: string }>({});
 
   // Sync local state when REAL server data is loaded (has id)
   useEffect(() => {
@@ -61,13 +63,44 @@ export const AIKnowledgeTab: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // Validate + canonicalize the website/social fields. Rejects random text and
+  // normalizes valid input (e.g. "@handle" -> https://instagram.com/handle).
+  const validateAndNormalizeProfile = () => {
+    const w = validateWebsite(localProfileData?.website);
+    const ig = validateSocial(SOCIAL_PLATFORMS.instagram, localProfileData?.instagram);
+    const fb = validateSocial(SOCIAL_PLATFORMS.facebook, localProfileData?.facebook);
+    const errors = {
+      website: w.ok ? undefined : w.error,
+      instagram: ig.ok ? undefined : ig.error,
+      facebook: fb.ok ? undefined : fb.error,
+    };
+    const valid = w.ok && ig.ok && fb.ok;
+    const normalized = valid
+      ? { ...localProfileData, website: w.normalized, instagram: ig.normalized, facebook: fb.normalized }
+      : localProfileData;
+    return { valid, errors, normalized };
+  };
+
   // Save all changes
   const saveAllChanges = async () => {
+    // Block saving invalid links; show inline errors.
+    const { valid, errors, normalized } = validateAndNormalizeProfile();
+    if (!valid) {
+      setSocialErrors(errors);
+      toast({
+        title: "Check your links",
+        description: "Some website or social fields aren't valid. Fix the highlighted fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSocialErrors({});
+    setLocalProfileData(normalized); // reflect canonicalized values in the UI
     setIsSaving(true);
-    
+
     try {
-      const success = await handleBatchUpdate(localProfileData, localBusinessData);
-      
+      const success = await handleBatchUpdate(normalized, localBusinessData);
+
       if (success) {
         await refetch();
         toast({
@@ -100,6 +133,35 @@ export const AIKnowledgeTab: React.FC = () => {
 
   const updateProfileField = (field: string, value: string) => {
     setLocalProfileData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Website/social input with onBlur validation + inline error (rejects random text).
+  const renderValidatedField = (
+    field: 'website' | 'instagram' | 'facebook',
+    value: string,
+    placeholder: string,
+    validate: (v: string) => { ok: boolean; error?: string }
+  ) => {
+    const err = socialErrors[field];
+    return (
+      <>
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => {
+            updateProfileField(field, e.target.value);
+            if (err) setSocialErrors(prev => ({ ...prev, [field]: undefined }));
+          }}
+          onBlur={(e) => {
+            const r = validate(e.target.value);
+            setSocialErrors(prev => ({ ...prev, [field]: r.ok ? undefined : r.error }));
+          }}
+          className={`w-full px-4 py-2 bg-gray-900 border rounded-lg text-white focus:ring-2 focus:border-transparent transition-colors ${err ? 'border-red-500 focus:ring-red-600' : 'border-gray-700 focus:ring-green-600'}`}
+          placeholder={placeholder}
+        />
+        {err && <p className="mt-1 text-xs text-red-400">{err}</p>}
+      </>
+    );
   };
 
   // Render input field
@@ -325,11 +387,11 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Website
               </label>
-              {renderInputField(
+              {renderValidatedField(
                 'website',
                 localProfileData.website,
-                (value) => updateProfileField('website', value),
-                'https://www.example.com'
+                'www.example.com',
+                (v) => validateWebsite(v)
               )}
             </div>
 
@@ -337,11 +399,11 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Instagram
               </label>
-              {renderInputField(
+              {renderValidatedField(
                 'instagram',
                 localProfileData.instagram,
-                (value) => updateProfileField('instagram', value),
-                '@username'
+                '@yourhandle',
+                (v) => validateSocial(SOCIAL_PLATFORMS.instagram, v)
               )}
             </div>
 
@@ -349,11 +411,11 @@ export const AIKnowledgeTab: React.FC = () => {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Facebook
               </label>
-              {renderInputField(
+              {renderValidatedField(
                 'facebook',
                 localProfileData.facebook,
-                (value) => updateProfileField('facebook', value),
-                'facebook.com/pagename'
+                'facebook.com/yourpage',
+                (v) => validateSocial(SOCIAL_PLATFORMS.facebook, v)
               )}
             </div>
           </div>
