@@ -61,6 +61,22 @@ serve(async (req) => {
       throw new Error("Calendar ID is required");
     }
 
+    // SECURITY: service-role client bypasses RLS, so verify the caller owns this
+    // calendar before syncing payment methods onto its connected Stripe account —
+    // otherwise any authenticated user could pass another tenant's calendar_id.
+    const { data: ownedCal } = await supabaseClient
+      .from('calendars')
+      .select('id')
+      .eq('id', calendarId)
+      .eq('user_id', userData.user.id)
+      .maybeSingle();
+    if (!ownedCal) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
+    }
+
     logStep("Request validated", { calendarId, paymentMethods, userId: userData.user.id, testMode: test_mode });
 
     // Initialize Stripe client
