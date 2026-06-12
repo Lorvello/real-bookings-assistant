@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -83,6 +84,7 @@ const subscriptionTierOptions = [
 
 export const DeveloperStatusManager = () => {
   const { isDeveloper } = useDeveloperAccess();
+  const queryClient = useQueryClient();
   const { profile, refetch } = useProfile();
   const { userStatus, invalidateCache } = useUserStatus();
   const { applyDeveloperStatus, isLoading } = useAdminControls();
@@ -249,7 +251,15 @@ export const DeveloperStatusManager = () => {
       // Step 3: Clear user status cache and force re-fetch with the correct status
       console.log('Step 3: Clearing user status cache and re-fetch...');
       await invalidateCache(selectedUserStatus);
-      
+
+      // Step 4: Invalidate subscription-derived React Query caches so the billing
+      // view re-syncs immediately. useBillingData (['billing-data']) has its own
+      // query cache that the steps above don't touch, so without this the
+      // billing-weergave could linger stale after a status switch (DOEL 1 step 2:
+      // "geen stale cache, geen refresh nodig").
+      console.log('Step 4: Invalidating billing/subscription query caches...');
+      await queryClient.invalidateQueries({ queryKey: ['billing-data'] });
+
       // Clear selections
       setSelectedUserStatus('');
       setSelectedTier('');
