@@ -71,10 +71,21 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get origin from request headers for URL construction
-    const origin = req.headers.get("origin") || "https://bookingsassistant.com";
-    const finalSuccessUrl = success_url || `${origin}/success`;
-    const finalCancelUrl = cancel_url || `${origin}/dashboard`;
+    // SECURITY: success_url/cancel_url end up as Stripe Checkout redirect targets.
+    // Taking them straight from the request body (or from a spoofable Origin
+    // header) is an open-redirect/phishing vector: an attacker could craft a
+    // checkout link that sends the victim to evil.com after a trusted-looking
+    // bookingsassistant.com payment. Only allow our own hosts; otherwise fall back
+    // to the canonical domain.
+    const ALLOWED_REDIRECT_HOSTS = ['bookingsassistant.com', 'www.bookingsassistant.com', 'localhost', '127.0.0.1'];
+    const isAllowedUrl = (u: string | undefined): boolean => {
+      if (!u) return false;
+      try { return ALLOWED_REDIRECT_HOSTS.includes(new URL(u).hostname); } catch { return false; }
+    };
+    const headerOrigin = req.headers.get("origin");
+    const origin = isAllowedUrl(headerOrigin ?? undefined) ? headerOrigin! : "https://bookingsassistant.com";
+    const finalSuccessUrl = isAllowedUrl(success_url) ? success_url : `${origin}/success`;
+    const finalCancelUrl = isAllowedUrl(cancel_url) ? cancel_url : `${origin}/dashboard`;
     
     logStep("Request data parsed", { 
       priceId, tier_name, price, is_annual, 
