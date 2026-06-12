@@ -34,8 +34,26 @@ serve(async (req) => {
     )
 
     const { source, calendar_id, force, test } = await req.json()
-    
+
     console.log(`🚀 Enhanced webhook processing - Source: ${source}, Calendar: ${calendar_id}, Force: ${force}, Test: ${test}`)
+
+    // SECURITY: this is an owner-facing tool (webhook management UI). Scope every
+    // run to the CALLER's own calendars. Without this, any authenticated user
+    // could pass another tenant's calendar_id — or force:true (which previously
+    // skipped the calendar filter) — to trigger delivery of OTHER businesses'
+    // pending webhook events.
+    const { data: userCals } = await supabaseClient
+      .from('calendars')
+      .select('id')
+      .eq('user_id', user.id)
+    const userCalendarIds = (userCals || []).map((c: { id: string }) => c.id)
+
+    if (calendar_id && !userCalendarIds.includes(calendar_id)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // Haal pending webhook events op met prioriteit voor nieuwe events
     let query = supabaseClient
@@ -45,8 +63,12 @@ serve(async (req) => {
       .order('created_at', { ascending: true })
       .limit(100) // Verhoogd van 50 naar 100 voor snellere batch processing
 
-    if (calendar_id && !force) {
+    if (calendar_id) {
       query = query.eq('calendar_id', calendar_id)
+    } else {
+      // No specific calendar (incl. force): still confined to the caller's own
+      // calendars — never the whole platform.
+      query = query.in('calendar_id', userCalendarIds.length > 0 ? userCalendarIds : ['00000000-0000-0000-0000-000000000000'])
     }
 
     const { data: webhookEvents, error: webhookError } = await query
