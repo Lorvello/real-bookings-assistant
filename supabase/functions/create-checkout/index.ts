@@ -38,38 +38,48 @@ serve(async (req) => {
       paymentMethod = 'card',
     } = await req.json();
     
-    // SECURITY: Server-side validation of Stripe mode
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    
-    const stripeConfig = await validateStripeConfig(
-      mode as 'test' | 'live' | undefined,
-      supabaseUrl,
-      supabaseAnonKey
-    );
-    
-    const stripeMode = stripeConfig.mode;
-    const stripeKey = stripeConfig.secretKey;
-    const isTestMode = stripeMode === 'test';
-    
-    logStep("Stripe configuration validated", { mode: stripeMode, isTestMode, clientRequested: mode });
 
     // Create Supabase clients
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } });
 
-    // Authenticate user
+    // Authenticate user FIRST — the mode validation below needs to know whether the
+    // caller is the developer (who may simulate test↔live from the dev dashboard).
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
-    logStep("Authorization header found");
-
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    // Developers/admins drive test↔live via the dashboard StripeModeIndicator and
+    // may use whichever mode they request. Normal users stay pinned to the server's
+    // STRIPE_MODE (anti-tamper: a user must not be able to force test mode to obtain
+    // a free subscription via a test-card "payment").
+    let isDeveloper = false;
+    try {
+      const { data: adminFlag } = await supabaseAdmin.rpc('has_role', { _user_id: user.id, _role: 'admin' });
+      isDeveloper = adminFlag === true;
+    } catch (_) { isDeveloper = false; }
+
+    // SECURITY: Server-side validation of Stripe mode
+    const stripeConfig = await validateStripeConfig(
+      mode as 'test' | 'live' | undefined,
+      supabaseUrl,
+      supabaseAnonKey,
+      isDeveloper
+    );
+
+    const stripeMode = stripeConfig.mode;
+    const stripeKey = stripeConfig.secretKey;
+    const isTestMode = stripeMode === 'test';
+
+    logStep("Stripe configuration validated", { mode: stripeMode, isTestMode, clientRequested: mode, isDeveloper });
 
     // SECURITY: success_url/cancel_url end up as Stripe Checkout redirect targets.
     // Taking them straight from the request body (or from a spoofable Origin

@@ -15,13 +15,20 @@ export interface StripeModeValidation {
  * Validate and get Stripe mode on server-side
  * This prevents client-side manipulation of payment mode
  */
-export function validateStripeMode(requestedMode?: 'test' | 'live'): StripeModeValidation {
+export function validateStripeMode(requestedMode?: 'test' | 'live', allowRequestedMode = false): StripeModeValidation {
   // Get mode from environment (only source of truth on server)
   const envMode = Deno.env.get('STRIPE_MODE') as 'test' | 'live' | undefined;
-  
+
   // Default to test for safety
   const actualMode: 'test' | 'live' = envMode === 'live' ? 'live' : 'test';
-  
+
+  // Developer override: when the caller is trusted (the admin dev dashboard), honor
+  // the explicitly requested mode so test↔live can be simulated regardless of the
+  // server's STRIPE_MODE. Gating this to admins is the CALLER's responsibility.
+  if (allowRequestedMode && (requestedMode === 'test' || requestedMode === 'live')) {
+    return { isValid: true, mode: requestedMode };
+  }
+
   // If client requested a specific mode, validate it matches server config
   if (requestedMode && requestedMode !== actualMode) {
     return {
@@ -82,10 +89,11 @@ export async function logStripeModeEvent(
 export async function validateStripeConfig(
   requestedMode: 'test' | 'live' | undefined,
   supabaseUrl: string,
-  supabaseKey: string
+  supabaseKey: string,
+  allowRequestedMode = false
 ): Promise<{ mode: 'test' | 'live'; secretKey: string }> {
   // Validate mode
-  const modeValidation = validateStripeMode(requestedMode);
+  const modeValidation = validateStripeMode(requestedMode, allowRequestedMode);
   
   if (!modeValidation.isValid) {
     await logStripeModeEvent(supabaseUrl, supabaseKey, 'mode_mismatch', {
