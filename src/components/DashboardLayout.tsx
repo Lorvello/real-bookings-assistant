@@ -14,7 +14,6 @@ import { StatusIndicator } from '@/components/user-status/StatusIndicator';
 import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
-import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { AuthenticatedPageWrapper } from '@/components/AuthenticatedPageWrapper';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Menu } from 'lucide-react';
@@ -58,7 +57,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   });
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [tooltipsDisabled, setTooltipsDisabled] = useState(false);
 
   // Close sidebar on mobile when screen size changes
@@ -102,10 +100,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     if (!isMobile) {
       localStorage.setItem('sidebar-expanded', JSON.stringify(newState));
     }
-  };
-
-  const handleUpgrade = () => {
-    setShowSubscriptionModal(true);
   };
 
   const currentPageTitle = getPageTitle(location.pathname);
@@ -161,11 +155,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               tooltipsDisabled={tooltipsDisabled}
             />
 
-            {/* Upgrade Prompt - Shows for expired/canceled users */}
-            <UpgradePrompt 
-              userStatus={userStatus} 
-              isExpanded={isSidebarOpen} 
-              onUpgrade={handleUpgrade} 
+            {/* Upgrade Prompt - Shows for expired/canceled users.
+                No onUpgrade override: UpgradePrompt routes lapsed PAID states
+                (missed_payment / canceled) to the Stripe billing portal
+                (manage-subscription) and only trial/fallback to the plan picker.
+                Passing onUpgrade here previously forced the plan picker for everyone,
+                bypassing that routing. */}
+            <UpgradePrompt
+              userStatus={userStatus}
+              isExpanded={isSidebarOpen}
             />
 
             {/* Visual Separator */}
@@ -219,12 +217,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
-      
-      <SubscriptionModal
-        isOpen={showSubscriptionModal}
-        onClose={() => setShowSubscriptionModal(false)}
-        userType={userStatus.userType}
-      />
       </div>
       </TooltipProvider>
     </AuthenticatedPageWrapper>
