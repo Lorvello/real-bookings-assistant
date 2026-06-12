@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Settings, 
-  MessageSquare, 
+  Settings,
+  MessageSquare,
   ExternalLink,
-  Download,
-  Send
+  Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
@@ -127,16 +126,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <Download className="h-4 w-4 mr-2" />
             Export Data
           </Button>
-          <Button 
-            className="w-full justify-start" 
-            variant="outline"
-            onClick={() => alert('Broadcast feature coming soon!')}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Broadcast Message
-          </Button>
-          <Button 
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" 
+          <Button
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
             variant="outline"
             onClick={onSignOut}
           >
