@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { isTestMode } from '@/utils/stripeConfig';
 
 interface WhatsAppPaymentOptions {
   conversationId: string;
@@ -16,8 +17,11 @@ export const useWhatsAppPaymentFlow = () => {
   const createPaymentSession = async (options: WhatsAppPaymentOptions) => {
     setLoading(true);
     try {
+      // whatsapp-payment-handler defaults testMode to false (= LIVE Stripe keys)
+      // when omitted. Always send the current dashboard Stripe mode so this path
+      // can never silently charge real money in a test/dev context.
       const { data, error } = await supabase.functions.invoke('whatsapp-payment-handler', {
-        body: options,
+        body: { ...options, testMode: isTestMode() },
       });
 
       if (error) {
