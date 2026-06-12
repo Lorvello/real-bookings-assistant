@@ -58,32 +58,20 @@ export const usePaymentSettings = (calendarId?: string) => {
 
     try {
       setSaving(true);
-      
-      // If no settings exist, create them
-      if (!settings) {
-        const { data, error } = await supabase
-          .from('payment_settings')
-          .insert({
-            calendar_id: calendarId,
-            ...updates
-          })
-          .select()
-          .single();
 
-        if (error) throw error;
-        setSettings(parseSettings(data));
-      } else {
-        // Update existing settings
-        const { data, error } = await supabase
-          .from('payment_settings')
-          .update(updates)
-          .eq('calendar_id', calendarId)
-          .select()
-          .single();
+      // UPSERT on calendar_id. Branching insert-vs-update on local `settings` state
+      // was buggy: a default payment_settings row is auto-created by a trigger when
+      // the calendar is created, so when local state was stale-null the insert path
+      // hit the calendar_id UNIQUE constraint -> 'Failed to update payment settings'.
+      // Upsert handles both cases atomically regardless of local state.
+      const { data, error } = await supabase
+        .from('payment_settings')
+        .upsert({ calendar_id: calendarId, ...updates }, { onConflict: 'calendar_id' })
+        .select()
+        .single();
 
-        if (error) throw error;
-        setSettings(parseSettings(data));
-      }
+      if (error) throw error;
+      setSettings(parseSettings(data));
 
       toast({
         title: "Success",
