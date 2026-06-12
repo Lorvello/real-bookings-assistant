@@ -62,12 +62,25 @@ serve(async (req) => {
       );
     }
 
-    // Get service type and verify ownership
+    // Get service type and verify ownership. service_types has NO user_id column
+    // (it's linked to a calendar) — the previous .eq('user_id', user.id) errored
+    // on every call, so tax-code updates always failed. Verify ownership via the
+    // caller's calendars instead (same pattern as manage-installment-settings).
+    const { data: userCalendars, error: calError } = await supabaseClient
+      .from('calendars')
+      .select('id')
+      .eq('user_id', user.id);
+
+    if (calError) {
+      throw new Error(`Failed to fetch user calendars: ${calError.message}`);
+    }
+    const userCalendarIds = (userCalendars || []).map((c: { id: string }) => c.id);
+
     const { data: serviceType, error: serviceError } = await supabaseClient
       .from('service_types')
       .select('*')
       .eq('id', service_type_id)
-      .eq('user_id', user.id)
+      .in('calendar_id', userCalendarIds)
       .single();
 
     if (serviceError || !serviceType) {
