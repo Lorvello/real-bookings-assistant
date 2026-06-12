@@ -537,9 +537,11 @@ export function TaxManagementPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    {/* Only CSV is actually produced by the export-tax-report edge
+                        function. PDF/XML were offered but returned CSV content under a
+                        .pdf/.xml name (corrupt downloads) — removed until really
+                        implemented rather than ship a broken option. */}
                     <SelectItem value="csv">CSV</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="xml">XML</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
