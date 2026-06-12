@@ -144,6 +144,9 @@ serve(async (req) => {
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: hasActiveSub ? 'paid' : 'unpaid',
+      // active/expired never carry a grace window — clear any stale one (same
+      // grace-consistency fix as check-subscription / the webhook handlers).
+      grace_period_end: null,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
     
