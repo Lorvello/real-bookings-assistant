@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,23 @@ import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalen
 
 export const OnboardingWizard = () => {
   const { completionPercentage, completedSteps, totalSteps, nextSteps, allSteps } = useOnboardingProgress();
-  const { userStatus } = useUserStatus();
+  const { userStatus, invalidateCache } = useUserStatus();
   const navigate = useNavigate();
   const [showCreateCalendarDialog, setShowCreateCalendarDialog] = useState(false);
+  const promotedRef = useRef(false);
+
+  // When all setup steps are done, the per-step checklist (useOnboardingProgress)
+  // flips to 100%, but the GLOBAL user status is fetched once on mount and never
+  // refetched during navigation — so it stays 'setup_incomplete' (overlays + gating
+  // stay up) until a hard reload, even though setup is finished. Force a status
+  // re-query the moment we reach 100% so the trial unlocks seamlessly. The ref guards
+  // against repeat calls; once the status leaves setup_incomplete the guard below stops.
+  useEffect(() => {
+    if (completionPercentage === 100 && userStatus.isSetupIncomplete && !promotedRef.current) {
+      promotedRef.current = true;
+      invalidateCache();
+    }
+  }, [completionPercentage, userStatus.isSetupIncomplete, invalidateCache]);
 
   // Hide setup section when all steps are completed
   if (!userStatus.isSetupIncomplete || completionPercentage === 100) {
