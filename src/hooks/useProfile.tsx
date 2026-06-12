@@ -53,6 +53,22 @@ export const useProfile = () => {
     }
   }, [user?.id]); // Only depend on user.id to prevent unnecessary refetches
 
+  // useProfile is per-component state (each caller gets its own instance), so a
+  // refetch in one place — e.g. the dev dashboard applying a status, or BillingTab —
+  // would otherwise leave every OTHER instance (sidebar StatusIndicator, etc.) stale.
+  // Re-sync all instances whenever any of them fetches fresh data for this user.
+  useEffect(() => {
+    const onProfileUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.data && detail?.userId && user?.id && detail.userId === user.id) {
+        setProfile(detail.data);
+        setLoading(false);
+      }
+    };
+    window.addEventListener('ba:profile-updated', onProfileUpdated);
+    return () => window.removeEventListener('ba:profile-updated', onProfileUpdated);
+  }, [user?.id]);
+
   const fetchProfile = async () => {
     if (fetchInProgress.current || !user?.id) return;
     
@@ -84,7 +100,14 @@ export const useProfile = () => {
       } catch (error) {
         console.error('Error caching profile:', error);
       }
-      
+
+      // Broadcast so every other useProfile instance re-syncs immediately.
+      try {
+        window.dispatchEvent(new CustomEvent('ba:profile-updated', {
+          detail: { userId: user.id, data: profileData }
+        }));
+      } catch (_) { /* no window (SSR) */ }
+
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
