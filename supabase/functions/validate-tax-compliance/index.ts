@@ -44,6 +44,25 @@ serve(async (req) => {
     const { test_mode = true, calendar_id } = await req.json();
     logStep('Compliance validation started', { userId: user.id, testMode: test_mode, calendarId: calendar_id });
 
+    // SECURITY: the service-role client bypasses RLS, so the body calendar_id must
+    // be ownership-checked. Without this, any authenticated user could pass another
+    // tenant's calendar_id and read back their booking revenue (this function sums
+    // bookings.total_price into the returned compliance details) + tax status.
+    if (calendar_id) {
+      const { data: ownedCal } = await supabaseClient
+        .from('calendars')
+        .select('id')
+        .eq('id', calendar_id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!ownedCal) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+    }
+
     // Initialize Stripe
     const stripeSecretKey = test_mode 
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")

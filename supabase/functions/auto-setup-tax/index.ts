@@ -92,6 +92,25 @@ serve(async (req) => {
     const { test_mode = true, calendar_id } = await req.json();
     logStep('Auto tax setup started', { userId: user.id, testMode: test_mode, calendarId: calendar_id });
 
+    // SECURITY: the service-role client bypasses RLS, so the body calendar_id
+    // must be ownership-checked — otherwise any authenticated user could set up
+    // tax configuration on another tenant's calendar. (Pattern matches
+    // manage-installment-settings: calendars.user_id = the caller.)
+    if (calendar_id) {
+      const { data: ownedCal } = await supabaseClient
+        .from('calendars')
+        .select('id')
+        .eq('id', calendar_id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!ownedCal) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+    }
+
     // Check user's subscription tier
     const { data: userData } = await supabaseClient
       .from('users')
