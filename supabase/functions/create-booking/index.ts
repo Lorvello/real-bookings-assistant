@@ -142,7 +142,18 @@ Deno.serve(async (req) => {
       .select()
       .single();
 
-    if (bookingError) throw bookingError;
+    if (bookingError) {
+      // The bookings_no_overlap exclusion constraint rejects an overlapping
+      // booking (the slot was taken between availability display and submit).
+      // Return a clean, actionable 409 instead of a generic 500.
+      if (bookingError.code === '23P01' || /no_overlap|exclusion/i.test(bookingError.message || '')) {
+        return new Response(
+          JSON.stringify({ error: 'This time slot is no longer available. Please choose another time.', code: 'SLOT_TAKEN' }),
+          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw bookingError;
+    }
 
     return new Response(
       JSON.stringify({ success: true, booking }),
