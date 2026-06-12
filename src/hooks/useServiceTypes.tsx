@@ -250,6 +250,13 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const updateServiceType = async (id: string, serviceData: Partial<ServiceType>) => {
     try {
+      // Detect a price change BEFORE the update so we can re-mint the Stripe price.
+      const existing = serviceTypes.find(s => s.id === id);
+      const priceChanged =
+        typeof serviceData.price === 'number' &&
+        existing != null &&
+        Number(existing.price) !== Number(serviceData.price);
+
       const serviceDataForDb = transformForDatabase(serviceData);
       const { error } = await supabase
         .from('service_types')
@@ -260,8 +267,28 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
         throw error;
       }
 
+      // Stripe Prices are IMMUTABLE: when the amount changes we must mint a NEW
+      // price and store its id, otherwise create-checkout keeps using the old
+      // stripe_*_price_id and charges the previous amount. Best-effort — a Stripe
+      // hiccup must not fail the (already-persisted) DB update.
+      if (priceChanged && (serviceData.price as number) > 0) {
+        try {
+          await supabase.functions.invoke('create-service-type-with-stripe', {
+            body: {
+              serviceTypeId: id,
+              name: serviceData.name ?? existing?.name,
+              price: serviceData.price,
+              currency: 'eur',
+              testMode: isTestMode(),
+            },
+          });
+        } catch (stripeErr) {
+          console.error('Failed to re-create Stripe price after price change:', stripeErr);
+        }
+      }
+
       // Update local state
-      setServiceTypes(prev => prev.map(service => 
+      setServiceTypes(prev => prev.map(service =>
         service.id === id ? { ...service, ...serviceData } : service
       ));
 
