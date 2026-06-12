@@ -15,8 +15,10 @@ interface StatusIndicatorProps {
 
 const formatSubscriptionTier = (tier?: string) => {
   if (!tier) return null;
-  
+
   switch (tier) {
+    case 'free':
+      return 'Free Plan';
     case 'starter':
       return 'Starter Plan';
     case 'professional':
@@ -24,7 +26,9 @@ const formatSubscriptionTier = (tier?: string) => {
     case 'enterprise':
       return 'Enterprise Plan';
     default:
-      return null;
+      // Never silently blank on a real (e.g. newly-added) tier — the goal is that
+      // the indicator ALWAYS shows the real plan. Title-case the raw value instead.
+      return `${tier.charAt(0).toUpperCase()}${tier.slice(1)} Plan`;
   }
 };
 
