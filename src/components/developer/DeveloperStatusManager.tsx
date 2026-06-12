@@ -90,6 +90,12 @@ export const DeveloperStatusManager = () => {
   const { toast } = useToast();
   const [selectedUserStatus, setSelectedUserStatus] = useState<string>('');
   const [selectedTier, setSelectedTier] = useState<string>('');
+  // Whole-chain in-flight guard. isLoading (from useAdminControls) only covers the
+  // RPC itself; the apply chain continues afterwards (refetch -> refreshCalendars
+  // -> invalidateCache + its background verify). Without this, a rapid second click
+  // ("race bij snel wisselen") could start an overlapping apply during that tail and
+  // flash a stale optimistic status. This serializes applies across the full chain.
+  const [isApplying, setIsApplying] = useState(false);
 
   // Only render for developers
   if (!isDeveloper) {
@@ -216,14 +222,16 @@ export const DeveloperStatusManager = () => {
 
   const handleApplyChanges = async () => {
     if (!profile?.id || !selectedUserStatus) return;
+    if (isApplying) return; // ignore overlapping clicks during the full apply chain
 
     const selectedStatusOption = getSelectedUserStatusOption();
     if (!selectedStatusOption) return;
 
-    const effectiveTier = selectedStatusOption.tierRequired 
-      ? selectedStatusOption.tier 
+    const effectiveTier = selectedStatusOption.tierRequired
+      ? selectedStatusOption.tier
       : availableTiers.length === 0 ? undefined : (selectedTier || 'professional');
 
+    setIsApplying(true);
     try {
       console.log('Applying developer status:', selectedUserStatus, 'with tier:', effectiveTier);
       
@@ -254,6 +262,8 @@ export const DeveloperStatusManager = () => {
         description: error instanceof Error ? error.message : "Failed to apply developer status",
         variant: "destructive",
       });
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -358,17 +368,17 @@ export const DeveloperStatusManager = () => {
         </div>
 
         {/* Apply Button */}
-        <Button 
+        <Button
           onClick={handleApplyChanges}
-          disabled={!selectedUserStatus || isLoading}
+          disabled={!selectedUserStatus || isLoading || isApplying}
           className="w-full bg-purple-600 hover:bg-purple-700"
         >
-          {isLoading ? (
+          {(isLoading || isApplying) ? (
             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
           ) : (
             <Settings className="h-4 w-4 mr-2" />
           )}
-          {isLoading ? 'Applying Changes...' : 'Apply Changes'}
+          {(isLoading || isApplying) ? 'Applying Changes...' : 'Apply Changes'}
         </Button>
 
         <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded">
