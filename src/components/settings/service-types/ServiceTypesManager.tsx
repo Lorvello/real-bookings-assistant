@@ -71,6 +71,7 @@ export function ServiceTypesManager() {
   } = useServiceTypes(selectedCalendar?.id);
   const {
     assignMultipleMembers,
+    unassignService,
     services: teamMemberServices
   } = useTeamMemberServices(selectedCalendar?.id);
   
@@ -127,12 +128,20 @@ export function ServiceTypesManager() {
           color: formData.color
         } as any);
 
-        // Sync team member assignments for edited service
-        if (calendarIdToUse && selectedTeamMembers.length > 0) {
-          const existingAssignments = teamMemberServices.filter(tms => tms.service_type_id === editingService.id).map(tms => tms.user_id);
-          const toAdd = selectedTeamMembers.filter(id => !existingAssignments.includes(id));
+        // Sync team member assignments for edited service (add AND remove).
+        // Previously only additions were applied — de-selecting a member on edit
+        // silently left them assigned, and de-selecting all was skipped entirely
+        // by the length>0 guard.
+        if (calendarIdToUse) {
+          const existing = teamMemberServices.filter(tms => tms.service_type_id === editingService.id);
+          const existingUserIds = existing.map(tms => tms.user_id);
+          const toAdd = selectedTeamMembers.filter(id => !existingUserIds.includes(id));
+          const toRemove = existing.filter(tms => !selectedTeamMembers.includes(tms.user_id));
           if (toAdd.length > 0) {
             await assignMultipleMembers(editingService.id, toAdd, calendarIdToUse);
+          }
+          for (const tms of toRemove) {
+            await unassignService(tms.id);
           }
         }
         toast({
