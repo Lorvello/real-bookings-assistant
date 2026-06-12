@@ -519,9 +519,51 @@ export const AIKnowledgeTab: React.FC = () => {
               </TooltipContent>
             </Tooltip>
           </div>
-          <p className="text-sm text-gray-400 mb-6">This information is used by the AI booking agent to help customers with questions</p>
-          
+          <p className="text-sm text-gray-400 mb-6">The more you fill in here, the better the AI agent can answer customer questions on WhatsApp without you. Leave a field blank and the agent simply won't claim to know it.</p>
+
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Cancellation &amp; Reschedule Policy
+              </label>
+              {renderInputField(
+                'cancellation_policy',
+                localBusinessData.cancellation_policy,
+                (value) => updateBusinessField('cancellation_policy', value),
+                'e.g. Free cancellation up to 24h before; later cancellations or no-shows are charged 50%. Rescheduling is free anytime.',
+                true,
+                3
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Payment &amp; Deposit
+              </label>
+              {renderInputField(
+                'payment_info',
+                localBusinessData.payment_info,
+                (value) => updateBusinessField('payment_info', value),
+                'e.g. Pay in the salon by card or cash; a 20% deposit is required to confirm appointments over €100.',
+                true,
+                3
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                How to Prepare / What to Bring
+              </label>
+              {renderInputField(
+                'preparation_info',
+                localBusinessData.preparation_info,
+                (value) => updateBusinessField('preparation_info', value),
+                'e.g. Come with clean, dry hair. Bring any reference photos. Arrive 5 minutes early.',
+                true,
+                3
+              )}
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Parking Information
