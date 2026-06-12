@@ -131,11 +131,29 @@ serve(async (req) => {
       bulkUpdate: bulk_update
     });
 
-    // Get services to classify
+    // SECURITY: the service-role client bypasses RLS. service_types has no
+    // user_id column (the old `.eq('user_id', user.id)` errored), and filtering by
+    // a body calendar_id/service_ids alone let any authenticated user fetch+update
+    // ANOTHER tenant's services. Always constrain to the caller's own calendars.
+    const { data: userCals } = await supabaseClient
+      .from('calendars')
+      .select('id')
+      .eq('user_id', user.id);
+    const userCalendarIds = (userCals || []).map((c: { id: string }) => c.id);
+
+    if (calendar_id && !userCalendarIds.includes(calendar_id)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get services to classify — only ever the caller's own.
     let query = supabaseClient
       .from('service_types')
       .select('*')
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .in('calendar_id', userCalendarIds.length > 0 ? userCalendarIds : ['00000000-0000-0000-0000-000000000000']);
 
     if (calendar_id) {
       query = query.eq('calendar_id', calendar_id);
@@ -143,9 +161,6 @@ serve(async (req) => {
 
     if (service_ids && service_ids.length > 0) {
       query = query.in('id', service_ids);
-    } else if (!bulk_update) {
-      // If no specific services and not bulk update, get services owned by user
-      query = query.eq('user_id', user.id);
     }
 
     const { data: services, error: servicesError } = await query;
