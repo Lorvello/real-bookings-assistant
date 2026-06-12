@@ -23,7 +23,10 @@ export const AIKnowledgeTab: React.FC = () => {
   const [localBusinessData, setLocalBusinessData] = useState(businessData);
   const [isSaving, setIsSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [socialErrors, setSocialErrors] = useState<{ website?: string; instagram?: string; facebook?: string }>({});
+  const [socialErrors, setSocialErrors] = useState<{
+    website?: string; instagram?: string; facebook?: string;
+    linkedin?: string; tiktok?: string; youtube?: string; x?: string;
+  }>({});
 
   // Sync local state when REAL server data is loaded (has id)
   useEffect(() => {
@@ -69,14 +72,26 @@ export const AIKnowledgeTab: React.FC = () => {
     const w = validateWebsite(localProfileData?.website);
     const ig = validateSocial(SOCIAL_PLATFORMS.instagram, localProfileData?.instagram);
     const fb = validateSocial(SOCIAL_PLATFORMS.facebook, localProfileData?.facebook);
+    const li = validateSocial(SOCIAL_PLATFORMS.linkedin, localProfileData?.linkedin);
+    const tt = validateSocial(SOCIAL_PLATFORMS.tiktok, localProfileData?.tiktok);
+    const yt = validateSocial(SOCIAL_PLATFORMS.youtube, localProfileData?.youtube);
+    const x = validateSocial(SOCIAL_PLATFORMS.x, localProfileData?.x);
     const errors = {
       website: w.ok ? undefined : w.error,
       instagram: ig.ok ? undefined : ig.error,
       facebook: fb.ok ? undefined : fb.error,
+      linkedin: li.ok ? undefined : li.error,
+      tiktok: tt.ok ? undefined : tt.error,
+      youtube: yt.ok ? undefined : yt.error,
+      x: x.ok ? undefined : x.error,
     };
-    const valid = w.ok && ig.ok && fb.ok;
+    const valid = w.ok && ig.ok && fb.ok && li.ok && tt.ok && yt.ok && x.ok;
     const normalized = valid
-      ? { ...localProfileData, website: w.normalized, instagram: ig.normalized, facebook: fb.normalized }
+      ? {
+          ...localProfileData,
+          website: w.normalized, instagram: ig.normalized, facebook: fb.normalized,
+          linkedin: li.normalized, tiktok: tt.normalized, youtube: yt.normalized, x: x.normalized,
+        }
       : localProfileData;
     return { valid, errors, normalized };
   };
@@ -137,7 +152,7 @@ export const AIKnowledgeTab: React.FC = () => {
 
   // Website/social input with onBlur validation + inline error (rejects random text).
   const renderValidatedField = (
-    field: 'website' | 'instagram' | 'facebook',
+    field: 'website' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'youtube' | 'x',
     value: string,
     placeholder: string,
     validate: (v: string) => { ok: boolean; error?: string }
@@ -437,6 +452,54 @@ export const AIKnowledgeTab: React.FC = () => {
                 localProfileData.facebook,
                 'facebook.com/yourpage',
                 (v) => validateSocial(SOCIAL_PLATFORMS.facebook, v)
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                LinkedIn
+              </label>
+              {renderValidatedField(
+                'linkedin',
+                localProfileData.linkedin,
+                'linkedin.com/company/yourco',
+                (v) => validateSocial(SOCIAL_PLATFORMS.linkedin, v)
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                TikTok
+              </label>
+              {renderValidatedField(
+                'tiktok',
+                localProfileData.tiktok,
+                '@yourhandle',
+                (v) => validateSocial(SOCIAL_PLATFORMS.tiktok, v)
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                YouTube
+              </label>
+              {renderValidatedField(
+                'youtube',
+                localProfileData.youtube,
+                'youtube.com/@yourchannel',
+                (v) => validateSocial(SOCIAL_PLATFORMS.youtube, v)
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                X (Twitter)
+              </label>
+              {renderValidatedField(
+                'x',
+                localProfileData.x,
+                '@yourhandle',
+                (v) => validateSocial(SOCIAL_PLATFORMS.x, v)
               )}
             </div>
           </div>

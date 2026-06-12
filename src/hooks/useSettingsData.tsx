@@ -154,6 +154,8 @@ export const useSettingsData = () => {
           instagram: dataToUse.instagram || null,
           linkedin: dataToUse.linkedin || null,
           tiktok: dataToUse.tiktok || null,
+          youtube: dataToUse.youtube || null,
+          x: dataToUse.x || null,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
