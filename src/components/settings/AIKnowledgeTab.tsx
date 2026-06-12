@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Select from 'react-select';
-import { Info, AlertCircle } from 'lucide-react';
+import { Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { businessTypes } from '@/constants/settingsOptions';
@@ -214,7 +214,28 @@ export const AIKnowledgeTab: React.FC = () => {
               </TooltipContent>
             </Tooltip>
           </div>
-          
+
+          {/* Make the setup requirement unmistakable: only name + type are needed to
+              finish onboarding; everything else here is optional. */}
+          {(() => {
+            const hasName = !!localBusinessData?.business_name?.trim();
+            const hasType = !!localBusinessData?.business_type;
+            const missing = [!hasName && 'Business Name', !hasType && 'Business Type'].filter(Boolean) as string[];
+            return missing.length > 0 ? (
+              <div className="mb-6 flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3">
+                <AlertCircle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                <p className="text-sm text-amber-200">
+                  <span className="font-medium">Required to finish setup:</span> {missing.join(' + ')}. Everything else on this page is optional.
+                </p>
+              </div>
+            ) : (
+              <div className="mb-6 flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-500/10 px-4 py-3">
+                <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
+                <p className="text-sm text-green-200">Required business info complete — the other fields below are optional.</p>
+              </div>
+            );
+          })()}
+
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -297,7 +318,7 @@ export const AIKnowledgeTab: React.FC = () => {
             {/* Address Section within Business Information */}
             <div className="pt-6 border-t border-gray-700">
               <div className="flex items-center gap-2 mb-4">
-                <h3 className="text-lg font-medium text-white">Address Details</h3>
+                <h3 className="text-lg font-medium text-white">Address Details <span className="text-sm font-normal text-gray-500">(optional)</span></h3>
                 <span className="text-xs text-gray-500">optional</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -368,7 +389,7 @@ export const AIKnowledgeTab: React.FC = () => {
         {/* Social Media */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-white">Social Media & Website</h2>
+            <h2 className="text-xl font-semibold text-white">Social Media & Website <span className="text-sm font-normal text-gray-500">(optional)</span></h2>
             <span className="text-xs text-gray-500">optional</span>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -424,7 +445,7 @@ export const AIKnowledgeTab: React.FC = () => {
         {/* Business Knowledge Base */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-white">Booking Agent Knowledge Base</h2>
+            <h2 className="text-xl font-semibold text-white">Booking Agent Knowledge Base <span className="text-sm font-normal text-gray-500">(optional)</span></h2>
             <span className="text-xs text-gray-500">optional</span>
             <Tooltip>
               <TooltipTrigger>
