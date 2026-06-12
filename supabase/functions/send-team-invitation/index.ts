@@ -87,9 +87,13 @@ const handler = async (req: Request): Promise<Response> => {
     // Create invitation acceptance URL
     const inviteUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/team-invite?token=${invitationToken}`;
 
-    // Send invitation email
+    // Send invitation email. Use the verified production domain (consistent with
+    // send-password-reset / send-enterprise-contact). The Resend sandbox sender
+    // onboarding@resend.dev can ONLY deliver to the Resend account owner, so it was
+    // non-functional for real invitees. Requires the bookingsassistant.com domain to
+    // be verified in Resend (the documented email launch step).
     const emailResponse = await resend.emails.send({
-      from: `${businessName} <onboarding@resend.dev>`,
+      from: `${businessName} <noreply@bookingsassistant.com>`,
       to: [email],
       subject: `Team uitnodiging voor ${businessName}`,
       html: `
