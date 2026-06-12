@@ -181,20 +181,21 @@ const handler = async (req: Request): Promise<Response> => {
       `
     });
 
+    // SECURITY: return the SAME neutral 200 response whether or not the email was
+    // sent, matching the "no such user" branch above. Previously the success path
+    // returned a distinct "Password reset email sent successfully" + emailId, and
+    // a Resend failure returned 500 — both let an attacker distinguish registered
+    // from unregistered emails (enumeration), defeating the neutral response. Log
+    // failures server-side only.
     if (emailResult.error) {
-      console.error('❌ Resend email error:', emailResult.error);
-      return new Response(JSON.stringify({ error: 'Failed to send email' }), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      console.error('❌ Resend email error (returning neutral response):', emailResult.error);
+    } else {
+      console.log('✅ Password reset email sent successfully:', emailResult.data);
     }
 
-    console.log('✅ Password reset email sent successfully:', emailResult.data);
-
-    return new Response(JSON.stringify({ 
-      success: true, 
-      message: 'Password reset email sent successfully',
-      emailId: emailResult.data?.id 
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'If an account with that email exists, a password reset link has been sent.',
     }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
