@@ -181,7 +181,16 @@ export const usePublicBookingCreation = () => {
       }
 
       if (error) {
-        throw error;
+        // Surface the edge function's own message (e.g. the 409 SLOT_TAKEN conflict:
+        // "This time slot is no longer available...") instead of the generic
+        // "Edge Function returned a non-2xx status code" — otherwise a customer whose
+        // slot was just taken is wrongly told to "try again".
+        let message = error.message;
+        try {
+          const body = await (error as any).context?.json?.();
+          if (body?.error) message = body.error;
+        } catch { /* keep the default message */ }
+        throw new Error(message);
       }
 
       if (!data?.success || !data?.booking) {
