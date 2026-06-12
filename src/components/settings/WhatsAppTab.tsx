@@ -8,6 +8,7 @@ import { MessageSquare, Phone, QrCode, Loader2, Save } from 'lucide-react';
 import { QRCodeDisplay } from '@/components/profile/QRCodeDisplay';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useBotStatus } from '@/hooks/useBotStatus';
 
 export interface WhatsAppTabProps {
   calendarId?: string;
@@ -21,10 +22,14 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
   setWhatsappSettings = () => {} 
 }) => {
   const { toast } = useToast();
-  const [isConnected, setIsConnected] = useState(false);
+  const { data: botStatus, toggleBot, isToggling } = useBotStatus(calendarId);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [botActive, setBotActive] = useState(false);
   const [qrUrl, setQrUrl] = useState<string | null>(null);
+
+  // The status indicator reflects real setup state: a generated QR (with a saved
+  // number) means the customer-facing WhatsApp entry point is live.
+  const isConnected = !!qrUrl;
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
   const [generatingQr, setGeneratingQr] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -34,6 +39,14 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
       loadSettings();
     }
   }, [calendarId]);
+
+  // Keep the toggle in sync with the persisted bot status (source of truth =
+  // calendar_settings.whatsapp_bot_active via useBotStatus).
+  useEffect(() => {
+    if (botStatus) {
+      setBotActive(!!botStatus.whatsapp_bot_active);
+    }
+  }, [botStatus]);
 
   const loadSettings = async () => {
     if (!calendarId) return;
@@ -164,9 +177,9 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                 {isConnected ? 'Verbonden' : 'Niet verbonden'}
               </span>
             </div>
-            <Button variant="outline" size="sm">
-              {isConnected ? 'Ontkoppelen' : 'Verbinden'}
-            </Button>
+            <span className="text-xs text-gray-400">
+              {isConnected ? 'QR-code actief' : 'Genereer een QR-code om te verbinden'}
+            </span>
           </div>
 
           <div className="space-y-6">
@@ -244,7 +257,14 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
               </div>
               <Switch
                 checked={botActive}
-                onCheckedChange={setBotActive}
+                disabled={isToggling}
+                onCheckedChange={(v) => {
+                  // Optimistic local flip + persist to calendar_settings (upsert).
+                  // Previously this only set local state, so the toggle silently
+                  // reset on refresh and never reached the DB.
+                  setBotActive(v);
+                  toggleBot(v);
+                }}
               />
             </div>
           </div>
