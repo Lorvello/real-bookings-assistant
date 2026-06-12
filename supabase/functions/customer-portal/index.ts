@@ -60,8 +60,15 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const origin = req.headers.get("origin") || "https://bookingsassistant.com";
-    
+    // SECURITY: the portal return_url comes from the Origin header, which is
+    // spoofable — validate it against our own hosts (same hardening as
+    // create-checkout) so it can't be turned into an off-site redirect.
+    const ALLOWED_REDIRECT_HOSTS = ['bookingsassistant.com', 'www.bookingsassistant.com', 'localhost', '127.0.0.1'];
+    const headerOrigin = req.headers.get("origin");
+    let originIsAllowed = false;
+    try { originIsAllowed = !!headerOrigin && ALLOWED_REDIRECT_HOSTS.includes(new URL(headerOrigin).hostname); } catch { originIsAllowed = false; }
+    const origin = originIsAllowed ? headerOrigin! : "https://bookingsassistant.com";
+
     // Try to create customer portal session
     try {
       const portalSession = await stripe.billingPortal.sessions.create({
