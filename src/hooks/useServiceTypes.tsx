@@ -104,12 +104,14 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
             *,
             calendar_service_types!inner(calendar_id)
           `)
-          .eq('calendar_service_types.calendar_id', calendarId);
+          .eq('calendar_service_types.calendar_id', calendarId)
+          .or('is_deleted.is.null,is_deleted.eq.false');
 
         const { data: directData, error: directError } = await supabase
           .from('service_types')
           .select('*')
-          .eq('calendar_id', calendarId);
+          .eq('calendar_id', calendarId)
+          .or('is_deleted.is.null,is_deleted.eq.false');
 
         if (junctionError || directError) {
           throw junctionError || directError;
@@ -138,6 +140,7 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
           .from('service_types')
           .select('*')
           .in('calendar_id', activeCalendarIds)
+          .or('is_deleted.is.null,is_deleted.eq.false')
           .order('created_at', { ascending: false });
         
         if (error) {
@@ -278,7 +281,14 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
 
   const deleteServiceType = async (id: string) => {
     try {
-      const { error } = await supabase.from('service_types').delete().eq('id', id);
+      // SOFT delete: a hard delete fails for any service that has ever been booked
+      // (bookings.service_type_id FK is RESTRICT) and would destroy booking history.
+      // Mark it deleted + inactive so it disappears from lists and the booking flow
+      // while existing bookings keep their reference.
+      const { error } = await supabase
+        .from('service_types')
+        .update({ is_deleted: true, deleted_at: new Date().toISOString(), is_active: false })
+        .eq('id', id);
 
       if (error) {
         throw error;
