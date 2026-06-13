@@ -176,6 +176,19 @@ serve(async (req) => {
 
     // Calculate payment amount based on type
     let amountCents = Math.round(serviceType.price * 100);
+
+    // Tax (mirror create-booking-payment so the WhatsApp payment matches the web
+    // payment — previously the WhatsApp path charged the untaxed price, an
+    // inconsistent amount for the same service). Exclusive tax is added on top;
+    // inclusive tax is already in the price so the amount is unchanged.
+    if (serviceType.tax_enabled && serviceType.tax_code && serviceType.applicable_tax_rate) {
+      const taxRate = serviceType.applicable_tax_rate / 100;
+      if (serviceType.tax_behavior !== 'inclusive') {
+        amountCents = Math.round(serviceType.price * (1 + taxRate) * 100);
+      }
+      logStep("Tax applied", { taxRate: serviceType.applicable_tax_rate, behavior: serviceType.tax_behavior, amountCents });
+    }
+
     if (paymentType === 'installment' && installmentPlan) {
       const plan = serviceType.installment_plans?.find((p: any) => p.id === installmentPlan.id)
       if (plan) {
