@@ -30,6 +30,11 @@ export const useTeamInvitations = (calendarId?: string) => {
           *,
           calendars!inner(name)
         `)
+        // Only show invitations that are still actionable. 'accepted' members
+        // already appear as a real calendar_members row (badge 'Active'), and
+        // 'cancelled' invites were dismissed by the user — showing either leaves
+        // a ghost/duplicate row with an empty status badge + empty actions.
+        .in('status', ['pending', 'expired'])
         .order('created_at', { ascending: false });
 
       // If a specific calendarId is provided, filter by it
