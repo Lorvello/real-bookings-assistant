@@ -7,6 +7,7 @@ import { businessTypes } from '@/constants/settingsOptions';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
 import { validateWebsite, validateSocial, SOCIAL_PLATFORMS } from '@/utils/socialValidation';
+import { SettingsSection } from './SettingsSection';
 
 export const AIKnowledgeTab: React.FC = () => {
   const {
@@ -215,20 +216,7 @@ export const AIKnowledgeTab: React.FC = () => {
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8 pb-24">
         {/* Business Information with Address */}
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-foreground">Business Information</h2>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The AI agent can use this information in its messages</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+        <SettingsSection title="Business Information" tooltip="The AI agent can use this information in its messages">
 
           {/* Make the setup requirement unmistakable: only name + type are needed to
               finish onboarding; everything else here is optional. */}
@@ -446,25 +434,11 @@ export const AIKnowledgeTab: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </SettingsSection>
 
         {/* Social Media */}
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-foreground">Social Media & Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></h2>
-            <span className="text-xs text-muted-foreground">optional</span>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
-                  <Info className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The AI agent can use this information in its messages</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          
+        <SettingsSection title={<>Social Media &amp; Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages">
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
@@ -550,22 +524,10 @@ export const AIKnowledgeTab: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </SettingsSection>
 
         {/* Business Knowledge Base */}
-        <div className="bg-card rounded-xl p-6 border border-border">
-          <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-foreground">Booking Agent Knowledge Base <span className="text-sm font-normal text-muted-foreground">(optional)</span></h2>
-            <span className="text-xs text-muted-foreground">optional</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The AI agent can use this information in its messages</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+        <SettingsSection title={<>Booking Agent Knowledge Base <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages">
           <p className="text-sm text-muted-foreground mb-6">The more you fill in here, the better the AI agent can answer customer questions on WhatsApp without you. Leave a field blank and the agent simply won't claim to know it.</p>
 
           <div className="space-y-4">
@@ -667,7 +629,7 @@ export const AIKnowledgeTab: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </SettingsSection>
 
         {/* Sticky Save Bar */}
         {hasUnsavedChanges && (
