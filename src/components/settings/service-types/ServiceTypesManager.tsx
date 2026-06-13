@@ -23,6 +23,10 @@ interface ServiceTypeFormData {
   tax_enabled: boolean;
   tax_behavior: 'inclusive' | 'exclusive';
   tax_code: string;
+  // Buffer minutes before/after the appointment — get_available_slots uses these in
+  // the conflict check, but the form never exposed them so they were stuck at 0.
+  preparation_time: string;
+  cleanup_time: string;
 }
 const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   name: '',
@@ -32,7 +36,9 @@ const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   color: '#3B82F6',
   tax_enabled: false,
   tax_behavior: 'exclusive',
-  tax_code: ''
+  tax_code: '',
+  preparation_time: '0',
+  cleanup_time: '0'
 };
 export function ServiceTypesManager() {
   const {
@@ -93,7 +99,9 @@ export function ServiceTypesManager() {
       color: service.color || '#3B82F6',
       tax_enabled: (service as any).tax_enabled || false,
       tax_behavior: (service as any).tax_behavior || 'exclusive',
-      tax_code: (service as any).tax_code || ''
+      tax_code: (service as any).tax_code || '',
+      preparation_time: ((service as any).preparation_time ?? 0).toString(),
+      cleanup_time: ((service as any).cleanup_time ?? 0).toString()
     });
 
     // Set the calendar ID from the service being edited
@@ -109,8 +117,8 @@ export function ServiceTypesManager() {
     
     if (!calendarIdToUse) {
       toast({
-        title: "Geen kalender beschikbaar",
-        description: "Selecteer of maak eerst een kalender aan.",
+        title: "No calendar available",
+        description: "Please select or create a calendar first.",
         variant: "destructive"
       });
       return;
@@ -125,7 +133,9 @@ export function ServiceTypesManager() {
           description: formData.description,
           duration: parseInt(formData.duration),
           price: parseFloat(formData.price),
-          color: formData.color
+          color: formData.color,
+          preparation_time: parseInt(formData.preparation_time) || 0,
+          cleanup_time: parseInt(formData.cleanup_time) || 0
         } as any);
 
         // Sync team member assignments for edited service (add AND remove).
@@ -159,7 +169,9 @@ export function ServiceTypesManager() {
           is_active: true,
           tax_enabled: formData.tax_enabled,
           tax_behavior: formData.tax_behavior,
-          tax_code: formData.tax_code || null
+          tax_code: formData.tax_code || null,
+          preparation_time: parseInt(formData.preparation_time) || 0,
+          cleanup_time: parseInt(formData.cleanup_time) || 0
         };
         const newService = await createServiceType(serviceData as any);
 

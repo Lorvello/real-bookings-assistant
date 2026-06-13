@@ -23,6 +23,8 @@ interface ServiceTypeFormData {
   tax_enabled: boolean;
   tax_behavior: 'inclusive' | 'exclusive';
   tax_code: string;
+  preparation_time: string;
+  cleanup_time: string;
 }
 
 interface ServiceTypeFormProps {
@@ -131,7 +133,40 @@ export function ServiceTypeForm({
             placeholder="30"
           />
         </div>
-        
+
+        {/* Prep/cleanup buffers — get_available_slots blocks these minutes around the
+            appointment in its conflict check. Previously not editable -> stuck at 0. */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Prep time (minutes)
+            </label>
+            <input
+              type="number"
+              value={formData.preparation_time}
+              onChange={(e) => setFormData(prev => ({ ...prev, preparation_time: e.target.value }))}
+              className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+              min="0"
+              placeholder="0"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Reserved before the appointment.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Cleanup time (minutes)
+            </label>
+            <input
+              type="number"
+              value={formData.cleanup_time}
+              onChange={(e) => setFormData(prev => ({ ...prev, cleanup_time: e.target.value }))}
+              className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+              min="0"
+              placeholder="0"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">Reserved after the appointment.</p>
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">
             Price (€)
