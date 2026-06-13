@@ -21,11 +21,11 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
         <div>
           <h4 className="font-medium mb-2 flex items-center gap-1">
             <MessageCircle className="w-4 h-4" />
-            Gesprek informatie
+            Conversation info
           </h4>
           <div className="space-y-1 text-gray-600">
-            <p>Laatste bericht: {formatDate(contact.last_message_at)}</p>
-            <p>Gesprek gestart: {formatDate(contact.conversation_created_at)}</p>
+            <p>Last message: {formatDate(contact.last_message_at)}</p>
+            <p>Conversation started: {formatDate(contact.conversation_created_at)}</p>
             <p>Laatst gezien: {formatDate(contact.last_seen_at)}</p>
             <p>Contact aangemaakt: {formatDate(contact.contact_created_at)}</p>
           </div>
@@ -34,7 +34,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
         <div>
           <h4 className="font-medium mb-2 flex items-center gap-1">
             <Calendar className="w-4 h-4" />
-            Boekingen ({bookings.length})
+            Bookings ({bookings.length})
           </h4>
           {bookings.length > 0 ? (
             <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -44,7 +44,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
                     <Clock className="w-3 h-3" />
                     {formatDate(booking.start_time)}
                   </div>
-                  <p className="font-medium">{booking.service_name || 'Onbekend'}</p>
+                  <p className="font-medium">{booking.service_name || 'Unknown'}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs">{booking.calendar_name}</span>
                     {booking.status && (

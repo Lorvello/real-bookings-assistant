@@ -30,7 +30,7 @@ export function WhatsAppContactHeader({
   
   const displayName = contact.display_name || 
     `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 
-    'Onbekend contact';
+    'Unknown contact';
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);

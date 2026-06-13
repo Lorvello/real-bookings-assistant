@@ -51,7 +51,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
             </div>
             <Progress value={retentionPercentage} className="h-2" />
             <p className="text-xs text-gray-600 mt-1">
-              {totalMessages - oldMessages} van {totalMessages} berichten binnen bewaartermijn
+              {totalMessages - oldMessages} of {totalMessages} messages within the retention period
             </p>
           </div>
 
@@ -76,34 +76,34 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
               <Clock className="h-4 w-4 text-blue-600" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Automatische Berichten Verwijdering</p>
+                <p className="text-sm font-medium">Automatic Message Deletion</p>
                 <p className="text-xs text-gray-600">
-                  Berichten ouder dan {retentionSettings?.message_retention_days || 90} dagen worden automatisch verwijderd
+                  Messages older than {retentionSettings?.message_retention_days || 90} days are automatically deleted
                 </p>
               </div>
-              <Badge className="bg-blue-100 text-blue-800">Actief</Badge>
+              <Badge className="bg-blue-100 text-blue-800">Active</Badge>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
               <Archive className="h-4 w-4 text-orange-600" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Gesprek Archivering</p>
+                <p className="text-sm font-medium">Conversation Archiving</p>
                 <p className="text-xs text-gray-600">
-                  Gesprekken worden gearchiveerd na {retentionSettings?.conversation_inactive_days || 30} dagen inactiviteit
+                  Conversations are archived after {retentionSettings?.conversation_inactive_days || 30} days of inactivity
                 </p>
               </div>
-              <Badge className="bg-orange-100 text-orange-800">Actief</Badge>
+              <Badge className="bg-orange-100 text-orange-800">Active</Badge>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
               <Trash2 className="h-4 w-4 text-red-600" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Verlaten Booking Intents</p>
+                <p className="text-sm font-medium">Abandoned Booking Intents</p>
                 <p className="text-xs text-gray-600">
-                  Verlaten booking pogingen worden na {retentionSettings?.booking_intent_abandoned_days || 7} dagen verwijderd
+                  Abandoned booking attempts are deleted after {retentionSettings?.booking_intent_abandoned_days || 7} days
                 </p>
               </div>
-              <Badge className="bg-red-100 text-red-800">Actief</Badge>
+              <Badge className="bg-red-100 text-red-800">Active</Badge>
             </div>
           </div>
         </div>

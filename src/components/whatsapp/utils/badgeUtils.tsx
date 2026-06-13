@@ -35,7 +35,7 @@ export const getStatusBadge = (status?: string) => {
       return (
         <Badge variant="outline" className="bg-gray-600/20 text-gray-400 border-gray-600/30">
           <AlertCircle className="w-3 h-3 mr-1" />
-          Onbekend
+          Unknown
         </Badge>
       );
   }

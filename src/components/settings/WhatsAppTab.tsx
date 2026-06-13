@@ -75,8 +75,8 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
   const handleSaveNumber = async () => {
     if (!calendarId || !phoneNumber) {
       toast({
-        title: 'Fout',
-        description: 'Voer een telefoonnummer in',
+        title: 'Error',
+        description: 'Enter a phone number',
         variant: 'destructive'
       });
       return;
@@ -87,8 +87,8 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
     const normalized = phoneNumber.replace(/[\s()-]/g, '');
     if (!/^\+?[1-9]\d{7,14}$/.test(normalized)) {
       toast({
-        title: 'Ongeldig nummer',
-        description: 'Voer een geldig internationaal nummer in, bijv. +31612345678',
+        title: 'Invalid number',
+        description: 'Enter a valid international number, e.g. +31612345678',
         variant: 'destructive'
       });
       return;
@@ -106,14 +106,14 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
 
       setPhoneNumber(normalized);
       toast({
-        title: 'Opgeslagen',
-        description: 'WhatsApp nummer is opgeslagen'
+        title: 'Saved',
+        description: 'WhatsApp number saved'
       });
     } catch (error: any) {
       console.error('Save error:', error);
       toast({
-        title: 'Fout',
-        description: error.message || 'Kon nummer niet opslaan',
+        title: 'Error',
+        description: error.message || 'Could not save number',
         variant: 'destructive'
       });
     } finally {
@@ -124,8 +124,8 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
   const handleGenerateQr = async () => {
     if (!phoneNumber || !calendarId) {
       toast({
-        title: 'Fout',
-        description: 'Voer eerst een WhatsApp telefoonnummer in',
+        title: 'Error',
+        description: 'Enter a WhatsApp phone number first',
         variant: 'destructive'
       });
       return;
@@ -149,7 +149,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
     } catch (error: any) {
       console.error('QR generation error:', error);
       toast({
-        title: 'Fout',
+        title: 'Error',
         description: error.message || 'Kon QR-code niet genereren',
         variant: 'destructive'
       });
@@ -174,11 +174,11 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
             <div className="flex items-center space-x-3">
               <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
               <span className="text-white font-medium">
-                {isConnected ? 'Verbonden' : 'Niet verbonden'}
+                {isConnected ? 'Connected' : 'Not connected'}
               </span>
             </div>
             <span className="text-xs text-gray-400">
-              {isConnected ? 'QR-code actief' : 'Genereer een QR-code om te verbinden'}
+              {isConnected ? 'QR code active' : 'Generate a QR code to connect'}
             </span>
           </div>
 
@@ -203,12 +203,12 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Opslaan...
+                      Saving...
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Opslaan
+                      Save
                     </>
                   )}
                 </Button>
@@ -245,7 +245,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
                 </h3>
                 <QRCodeDisplay data={whatsappLink} size={200} />
                 <p className="text-xs text-gray-400 mt-2">
-                  Klanten kunnen deze QR-code scannen om direct een WhatsApp gesprek met je te starten
+                  Customers can scan this QR code to start a WhatsApp conversation with you directly
                 </p>
               </div>
             )}

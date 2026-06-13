@@ -117,7 +117,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
       case 'active': return 'Actief';
       case 'pending': return 'Wachtend';
       case 'closed': return 'Gesloten';
-      default: return 'Onbekend';
+      default: return 'Unknown';
     }
   };
 
@@ -202,12 +202,12 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
             </CardContent>
           </Card>
 
-          {/* Boekingen */}
+          {/* Bookings */}
           {contact.all_bookings && contact.all_bookings.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
                 <h3 className="font-medium text-sm text-foreground">
-                  Boekingen ({contact.all_bookings.length})
+                  Bookings ({contact.all_bookings.length})
                 </h3>
               </CardHeader>
               <CardContent className="space-y-3 max-h-48 overflow-y-auto">
@@ -251,7 +251,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 <h3 className="font-medium text-sm text-foreground">Conversatie</h3>
                 {messages && (
                   <span className="text-xs text-muted-foreground ml-auto">
-                    {messages.length} berichten
+                    {messages.length} messages
                   </span>
                 )}
               </div>
@@ -268,7 +268,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 ) : !messages || messages.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nog geen berichten</p>
+                    <p className="text-sm">Nog geen messages</p>
                   </div>
                 ) : (
                   <div ref={contentRef} className="space-y-4 py-4">

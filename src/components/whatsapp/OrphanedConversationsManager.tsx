@@ -27,7 +27,7 @@ export function OrphanedConversationsManager() {
         <CardHeader className="border-b border-gray-700 bg-gray-800/50">
           <CardTitle className="flex items-center gap-2 text-white">
             <MessageCircle className="w-5 h-5 text-orange-400" />
-            Ontkoppelde Gesprekken
+            Orphaned Conversations
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -45,7 +45,7 @@ export function OrphanedConversationsManager() {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-white">
             <MessageCircle className="w-5 h-5 text-orange-400" />
-            Ontkoppelde Gesprekken
+            Orphaned Conversations
             {orphanedConversations && orphanedConversations.length > 0 && (
               <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/30">
                 {orphanedConversations.length}
@@ -73,7 +73,7 @@ export function OrphanedConversationsManager() {
                 className="bg-orange-600 hover:bg-orange-700 text-white"
               >
                 <Link className={`w-4 h-4 mr-2 ${linkMutation.isPending ? 'animate-spin' : ''}`} />
-                Automatisch Koppelen
+                Auto Link
               </Button>
             )}
           </div>
@@ -86,9 +86,9 @@ export function OrphanedConversationsManager() {
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-green-400" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">Alle gesprekken zijn gekoppeld</h3>
+            <h3 className="text-lg font-medium text-white mb-2">All conversations are linked</h3>
             <p className="text-gray-400">
-              Er zijn geen ontkoppelde WhatsApp gesprekken gevonden.
+              No orphaned WhatsApp conversations found.
             </p>
           </div>
         ) : (
@@ -97,10 +97,10 @@ export function OrphanedConversationsManager() {
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-orange-400 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-orange-300 mb-1">Ontkoppelde Gesprekken Gevonden</h4>
+                  <h4 className="font-medium text-orange-300 mb-1">Orphaned Conversations Found</h4>
                   <p className="text-sm text-orange-200">
-                    Deze WhatsApp gesprekken hebben bijbehorende afspraken maar zijn niet automatisch gekoppeld. 
-                    Klik op "Automatisch Koppelen" om deze te koppelen.
+                    These WhatsApp conversations have matching appointments but are not automatically linked. 
+                    Click "Auto Link" to link them.
                   </p>
                 </div>
               </div>
@@ -115,16 +115,16 @@ export function OrphanedConversationsManager() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-white">
-                        {conversation.contact_name || 'Onbekend contact'}
+                        {conversation.contact_name || 'Unknown contact'}
                       </h4>
                       <p className="text-sm text-gray-400 font-mono">
                         {conversation.contact_phone}
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                        <span>{conversation.message_count} berichten</span>
+                        <span>{conversation.message_count} messages</span>
                         {conversation.last_activity && (
                           <span>
-                            Laatste activiteit: {format(new Date(conversation.last_activity), 'dd MMM HH:mm', { locale: nl })}
+                            Last activity: {format(new Date(conversation.last_activity), 'dd MMM HH:mm', { locale: nl })}
                           </span>
                         )}
                       </div>

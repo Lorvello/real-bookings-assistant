@@ -41,7 +41,7 @@ export function BusinessOverrideDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Business koppelen</DialogTitle>
+          <DialogTitle>Link business</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -54,19 +54,19 @@ export function BusinessOverrideDialog({
               autoFocus
             />
             <p className="text-sm text-muted-foreground">
-              Deze koppeling blijft behouden, ook na data refresh.
+              This link is preserved, even after a data refresh.
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuleren
+            Cancel
           </Button>
           <Button 
             onClick={handleSave} 
             disabled={!businessName.trim() || setOverride.isPending}
           >
-            {setOverride.isPending ? 'Opslaan...' : 'Opslaan'}
+            {setOverride.isPending ? 'Saving...' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>

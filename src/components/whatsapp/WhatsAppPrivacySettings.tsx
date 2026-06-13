@@ -60,8 +60,8 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
     },
     onError: (error) => {
       toast({
-        title: "Fout bij Data Opschoning",
-        description: "Er is een fout opgetreden bij het opschonen van de data. Probeer het opnieuw.",
+        title: "Data cleanup failed",
+        description: "Something went wrong while cleaning up the data. Please try again.",
         variant: "destructive",
       });
     },
@@ -97,8 +97,8 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
     },
     onError: (error) => {
       toast({
-        title: "Fout bij Data Export",
-        description: "Er is een fout opgetreden bij het exporteren van uw data.",
+        title: "Data export failed",
+        description: "Something went wrong while exporting your data.",
         variant: "destructive",
       });
     },
@@ -169,8 +169,8 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
             <Alert>
               <Clock className="h-4 w-4" />
               <AlertDescription>
-                WhatsApp berichten worden automatisch verwijderd na 90 dagen. 
-                Gesprekken worden gearchiveerd na 30 dagen inactiviteit.
+                WhatsApp messages are automatically deleted after 90 days. 
+                Conversations are archived after 30 days of inactivity.
               </AlertDescription>
             </Alert>
           </div>
@@ -196,7 +196,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                         disabled={isExporting || exportDataMutation.isPending}
                         size="sm"
                       >
-                        {isExporting ? 'Exporteren...' : 'Export Data'}
+                        {isExporting ? 'Exporting...' : 'Export Data'}
                       </Button>
                     </div>
                   </div>
@@ -209,9 +209,9 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                   <div className="flex items-start gap-3">
                     <Trash2 className="h-5 w-5 text-orange-600 mt-1" />
                     <div className="flex-1">
-                      <h4 className="font-medium">Oude Data Opschonen</h4>
+                      <h4 className="font-medium">Clean Up Old Data</h4>
                       <p className="text-sm text-gray-600 mb-3">
-                        Verwijder handmatig oude berichten en gearchiveerde gesprekken
+                        Manually delete old messages and archived conversations
                       </p>
                       <Button 
                         onClick={() => cleanupDataMutation.mutate()}
@@ -219,7 +219,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                         variant="outline"
                         size="sm"
                       >
-                        {cleanupDataMutation.isPending ? 'Opschonen...' : 'Data Opschonen'}
+                        {cleanupDataMutation.isPending ? 'Cleaning up...' : 'Clean Up Data'}
                       </Button>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
                   <p className="font-medium">Automatische Verwijdering</p>
-                  <p className="text-sm text-gray-600">Oude berichten worden automatisch verwijderd volgens GDPR richtlijnen</p>
+                  <p className="text-sm text-gray-600">Oude messages worden automatisch verwijderd volgens GDPR richtlijnen</p>
                 </div>
               </div>
               
@@ -266,9 +266,9 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Belangrijk:</strong> Deze applicatie voldoet aan GDPR-vereisten. 
-          Uw WhatsApp data wordt veilig opgeslagen en alleen gebruikt voor het faciliteren van uw boekingen. 
-          U heeft het recht om uw data in te zien, te wijzigen of te verwijderen.
+          <strong>Important:</strong> This application complies with GDPR requirements. 
+          Your WhatsApp data is stored securely and used only to facilitate your bookings. 
+          You have the right to view, modify or delete your data.
         </AlertDescription>
       </Alert>
     </div>

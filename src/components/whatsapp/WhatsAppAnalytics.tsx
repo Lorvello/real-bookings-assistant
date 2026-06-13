@@ -137,14 +137,14 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{analytics?.total_contacts || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {analytics?.active_conversations || 0} actieve gesprekken
+              {analytics?.active_conversations || 0} active conversations
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Totaal Berichten</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
             <MessageCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -183,7 +183,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
               }
             </div>
             <p className="text-xs text-muted-foreground">
-              Reactietijd op berichten
+              Response time to messages
             </p>
           </CardContent>
         </Card>
@@ -226,7 +226,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
         {/* Message Volume per Hour */}
         <Card>
           <CardHeader>
-            <CardTitle>Berichten per Uur (Gemiddeld)</CardTitle>
+            <CardTitle>Messages per Hour (Average)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -246,7 +246,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
         {/* Conversation Topics */}
         <Card>
           <CardHeader>
-            <CardTitle>Gesprek Onderwerpen</CardTitle>
+            <CardTitle>Conversation Topics</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -275,7 +275,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
       {/* Daily Message Trend */}
       <Card>
         <CardHeader>
-          <CardTitle>Bericht Volume Trend (Laatste 30 Dagen)</CardTitle>
+          <CardTitle>Message Volume Trend (Last 30 Days)</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
@@ -298,7 +298,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
                 dataKey="messages" 
                 stroke="#3B82F6" 
                 strokeWidth={2}
-                name="Totaal Berichten"
+                name="Total Messages"
               />
               <Line 
                 type="monotone" 
@@ -338,7 +338,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
                       {topicLabels[topic.topic_category] || topic.topic_category}
                     </h4>
                     <p className="text-sm text-gray-500">
-                      {topic.conversation_count} gesprekken
+                      {topic.conversation_count} conversations
                     </p>
                   </div>
                 </div>

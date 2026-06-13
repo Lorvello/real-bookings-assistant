@@ -38,7 +38,7 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
       case 'active': return 'Actief';
       case 'pending': return 'Wachtend';
       case 'closed': return 'Gesloten';
-      default: return 'Onbekend';
+      default: return 'Unknown';
     }
   };
 

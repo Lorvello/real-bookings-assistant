@@ -27,8 +27,8 @@ export const WhatsAppWebhookManager: React.FC = () => {
       refetch();
     } catch (error) {
       toast({
-        title: "Fout bij verwerken queue",
-        description: "Er is een fout opgetreden bij het verwerken van de webhook queue",
+        title: "Failed to process queue",
+        description: "Something went wrong while processing the webhook queue",
         variant: "destructive",
       });
     }
@@ -78,7 +78,7 @@ export const WhatsAppWebhookManager: React.FC = () => {
   }, [refetch]);
 
   if (isLoading) {
-    return <div>WhatsApp webhook queue laden...</div>;
+    return <div>Loading WhatsApp webhook queue...</div>;
   }
 
   return (
@@ -165,7 +165,7 @@ export const WhatsAppWebhookManager: React.FC = () => {
                       {getStatusBadge(webhook)}
                       {webhook.retry_count > 0 && (
                         <Badge variant="outline">
-                          {webhook.retry_count} pogingen
+                          {webhook.retry_count} attempts
                         </Badge>
                       )}
                     </div>
@@ -177,7 +177,7 @@ export const WhatsAppWebhookManager: React.FC = () => {
                     </p>
                     {webhook.error && (
                       <p className="text-xs text-red-600 mt-1">
-                        Fout: {webhook.error}
+                        Error: {webhook.error}
                       </p>
                     )}
                   </div>
@@ -189,7 +189,7 @@ export const WhatsAppWebhookManager: React.FC = () => {
             </div>
           ) : (
             <p className="text-gray-500 text-center py-8">
-              Geen webhooks gevonden. Webhooks verschijnen hier wanneer ze binnenkomen.
+              No webhooks found. Webhooks appear here when they arrive.
             </p>
           )}
         </CardContent>
