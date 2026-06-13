@@ -531,12 +531,11 @@ export function PaymentSettingsTab() {
       await loadStripeAccount();
     }
   };
+  // Slaat het refund/annulerings-beleid op. Bewust ALLEEN refund_policy_text:
+  // platform_fee is niet business-editbaar (vast 1,9%, R87) en payment_deadline_hours
+  // heeft hier geen invoer. De waarde stroomt via business_overview naar de AI-agent.
   const handleUpdateSettings = async () => {
-    await updateSettings({
-      platform_fee_percentage: parseFloat(platformFee),
-      payment_deadline_hours: parseInt(paymentDeadline),
-      refund_policy_text: refundPolicy
-    });
+    await updateSettings({ refund_policy_text: refundPolicy });
   };
   const handleToggleMethod = (methodId: string) => {
     setSelectedMethods(prev => prev.includes(methodId) ? prev.filter(id => id !== methodId) : [...prev, methodId]);
@@ -1076,6 +1075,26 @@ export function PaymentSettingsTab() {
               <div className="flex items-center space-x-2">
                 <Wallet className="h-5 w-5 text-primary" />
                 <h4 className="font-medium text-foreground">Payment Flexibility</h4>
+              </div>
+
+              {/* Refund & cancellation policy — wordt via business_overview aan de
+                  AI-assistent gegeven, zodat die refund/annulerings-vragen correct
+                  beantwoordt. Tot nu toe read-only/dood; nu echt opslaanbaar. */}
+              <div className="space-y-2 border-b border-border/40 pb-4">
+                <Label className="text-base font-medium">Refund &amp; cancellation policy</Label>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Shown to your AI assistant so it can answer refund and cancellation questions correctly.
+                </p>
+                <Textarea
+                  value={refundPolicy}
+                  onChange={(e) => setRefundPolicy(e.target.value)}
+                  placeholder="e.g. Free cancellation up to 24h before the appointment; no refund afterwards."
+                  rows={3}
+                  className="max-w-xl"
+                />
+                <Button size="sm" onClick={handleUpdateSettings} disabled={settingsSaving}>
+                  {settingsSaving ? 'Saving…' : 'Save policy'}
+                </Button>
               </div>
 
               {/* Make Payment Optional Toggle */}
