@@ -46,15 +46,10 @@ export const SettingsLayout = () => {
       return; // Don't change the tab
     }
     
-    // Tax compliance is coming soon - block access for everyone
-    if (value === 'tax') {
-      toast({
-        title: "Coming Soon",
-        description: "Tax Compliance features are coming soon. Stay tuned!",
-      });
-      return;
-    }
-    
+    // (Removed the 'tax' Coming-Soon toast branch: the Tax TabsTrigger is
+    // `disabled`, so a Radix disabled trigger never fires onValueChange and this
+    // branch was unreachable dead code.)
+
     setActiveTab(value);
     // Clear the URL parameter after navigating
     setSearchParams({});
