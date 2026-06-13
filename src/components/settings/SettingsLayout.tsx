@@ -12,19 +12,23 @@ import { BillingTab } from './BillingTab';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 
-import { SettingsProvider } from '@/contexts/SettingsContext';
+import { SettingsProvider, useSettingsContext } from '@/contexts/SettingsContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { SettingsSkeleton } from './SettingsSkeleton';
 
-export const SettingsLayout = () => {
+// Inner component: lives INSIDE SettingsProvider so it can read the settings data
+// and show a cold-load skeleton until the real profile has loaded.
+const SettingsTabs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('users');
   const { userStatus } = useUserStatus();
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
   const { selectedCalendar } = useCalendarContext();
+  const { profileData } = useSettingsContext();
 
   // Handle tab from URL parameters
   useEffect(() => {
@@ -54,21 +58,13 @@ export const SettingsLayout = () => {
     setSearchParams({});
   };
 
-  return (
-    <SettingsProvider>
-      {/* Activate dark design tokens for the whole settings subtree. The app never
-          mounts a ThemeProvider, so without this `dark` class every token-based
-          element here (shadcn <Card>=bg-card, text-foreground, text-muted-foreground,
-          border-border) rendered with LIGHT values on the dark gray-900 shell —
-          white cards in Operations/Services/Pay&Book and a near-invisible page title.
-          Scoping `dark` here (not globally) makes all token elements render dark to
-          match the shell, with zero effect on hardcoded gray-* elements or any page
-          outside Settings. This is the foundation for migrating the remaining
-          gray-hardcoded tabs onto tokens. */}
-      <div className="dark min-h-screen bg-gray-900 p-2 md:p-8">
-        <SimplePageHeader title="Settings" />
+  // Cold-load: until the real profile data has arrived (it has an id once fetched),
+  // show a skeleton instead of a flash of empty inputs.
+  if (!profileData?.id) {
+    return <SettingsSkeleton />;
+  }
 
-        {/* Settings Tabs */}
+  return (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
             <TabsList className="grid w-full grid-cols-6 bg-muted/50 border-border min-w-max p-1 md:p-2 h-12 md:h-14">
@@ -139,6 +135,24 @@ export const SettingsLayout = () => {
           </TabsContent>
 
         </Tabs>
+  );
+};
+
+export const SettingsLayout = () => {
+  return (
+    <SettingsProvider>
+      {/* Activate dark design tokens for the whole settings subtree. The app never
+          mounts a ThemeProvider, so without this `dark` class every token-based
+          element here (shadcn <Card>=bg-card, text-foreground, text-muted-foreground,
+          border-border) rendered with LIGHT values on the dark gray-900 shell —
+          white cards in Operations/Services/Pay&Book and a near-invisible page title.
+          Scoping `dark` here (not globally) makes all token elements render dark to
+          match the shell, with zero effect on hardcoded gray-* elements or any page
+          outside Settings. This is the foundation for migrating the remaining
+          gray-hardcoded tabs onto tokens. */}
+      <div className="dark min-h-screen bg-gray-900 p-2 md:p-8">
+        <SimplePageHeader title="Settings" />
+        <SettingsTabs />
       </div>
     </SettingsProvider>
   );
