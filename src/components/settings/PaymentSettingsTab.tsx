@@ -177,7 +177,7 @@ export function PaymentSettingsTab() {
   const { profile, refetch: refetchProfile } = useProfile();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
-  const [platformFee, setPlatformFee] = useState('2.50');
+  const [platformFee, setPlatformFee] = useState('1.90');
   const [paymentDeadline, setPaymentDeadline] = useState('24');
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
