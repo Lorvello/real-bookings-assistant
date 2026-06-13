@@ -186,6 +186,8 @@ export function PaymentSettingsTab() {
   const [selectedMethods, setSelectedMethods] = useState<string[]>(['ideal']);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingMethods, setSavingMethods] = useState(false);
+  // Local buffer for the payment-deadline input so we save on blur, not per keystroke.
+  const [deadlineHours, setDeadlineHours] = useState('24');
   const [installmentConfigOpen, setInstallmentConfigOpen] = useState(false);
 
   // Payout options state
@@ -218,6 +220,7 @@ export function PaymentSettingsTab() {
   useEffect(() => {
     if (settings) {
       setRefundPolicy(settings.refund_policy_text || '');
+      setDeadlineHours(String(settings.payment_deadline_hours ?? 24));
     }
   }, [settings]);
 
@@ -1068,13 +1071,55 @@ export function PaymentSettingsTab() {
 
               {/* Dynamic status display based on toggle state */}
               {settings?.payment_required_for_booking ? (
-                <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <Lock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">Payment Required Upfront</span> — Customers must pay online before their booking is confirmed.
-                      </p>
+                <div className="space-y-3">
+                  <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg">
+                    <div className="flex items-start space-x-3">
+                      <Lock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">Payment Required Upfront</span> — Customers must pay online before their booking is confirmed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment deadline + auto-cancel: how long an unpaid booking is held.
+                      Both persist to payment_settings and now project into business_overview
+                      (LR-R138). Auto-cancel runs via the cancel_overdue_unpaid_bookings RPC
+                      once its pg_cron job is enabled (see hub DEVICE_CHECK.md). */}
+                  <div className="bg-background/50 border border-border/50 p-4 rounded-lg space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium text-foreground">Payment deadline</Label>
+                        <p className="text-sm text-muted-foreground">How long a customer has to pay before the slot can be released.</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Input
+                          type="number"
+                          min={1}
+                          value={deadlineHours}
+                          onChange={(e) => setDeadlineHours(e.target.value)}
+                          onBlur={() => {
+                            const h = Math.max(1, parseInt(deadlineHours || '24', 10) || 24);
+                            setDeadlineHours(String(h));
+                            if (h !== (settings?.payment_deadline_hours ?? 24)) updateSettings({ payment_deadline_hours: h });
+                          }}
+                          disabled={settingsSaving}
+                          className="w-20 bg-background border-border text-foreground"
+                        />
+                        <span className="text-sm text-muted-foreground">hours</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-medium text-foreground">Auto-cancel unpaid bookings</Label>
+                        <p className="text-sm text-muted-foreground">Automatically release the slot when the deadline passes without payment.</p>
+                      </div>
+                      <Switch
+                        checked={!!settings?.auto_cancel_unpaid_bookings}
+                        onCheckedChange={(checked) => updateSettings({ auto_cancel_unpaid_bookings: checked })}
+                        disabled={settingsSaving}
+                      />
                     </div>
                   </div>
                 </div>
