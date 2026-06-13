@@ -177,8 +177,11 @@ async function handleSubscriptionCreated(
       subscription_tier: tier,
       subscription_end: endDate.toISOString(),
       stripe_subscription_id: subscription.id,
+      // Zonder stripe_customer_id vinden handlePaymentFailed/Succeeded de user niet
+      // (ze zoeken op stripe_customer_id) -> grace-period werd nooit gezet.
+      stripe_customer_id: subscription.customer as string,
       updated_at: new Date().toISOString()
-    });
+    }, { onConflict: 'email' });
 
   if (subscriberError) {
     console.error("❌ Error updating subscribers table:", subscriberError);
