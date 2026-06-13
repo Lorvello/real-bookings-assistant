@@ -216,7 +216,7 @@ export const AIKnowledgeTab: React.FC = () => {
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8 pb-24">
         {/* Business Information with Address */}
-        <SettingsSection title="Business Information" tooltip="The AI agent can use this information in its messages">
+        <SettingsSection title="Business Information" tooltip="The AI agent can use this information in its messages" usedByAgent>
 
           {/* Make the setup requirement unmistakable: only name + type are needed to
               finish onboarding; everything else here is optional. */}
@@ -437,7 +437,7 @@ export const AIKnowledgeTab: React.FC = () => {
         </SettingsSection>
 
         {/* Social Media */}
-        <SettingsSection title={<>Social Media &amp; Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages">
+        <SettingsSection title={<>Social Media &amp; Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages" usedByAgent>
 
           <div className="space-y-4">
             <div>
@@ -527,7 +527,7 @@ export const AIKnowledgeTab: React.FC = () => {
         </SettingsSection>
 
         {/* Business Knowledge Base */}
-        <SettingsSection title={<>Booking Agent Knowledge Base <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages">
+        <SettingsSection title={<>Booking Agent Knowledge Base <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages" usedByAgent>
           <p className="text-sm text-muted-foreground mb-6">The more you fill in here, the better the AI agent can answer customer questions on WhatsApp without you. Leave a field blank and the agent simply won't claim to know it.</p>
 
           <div className="space-y-4">
