@@ -56,7 +56,16 @@ export const SettingsLayout = () => {
 
   return (
     <SettingsProvider>
-      <div className="min-h-screen bg-gray-900 p-2 md:p-8">
+      {/* Activate dark design tokens for the whole settings subtree. The app never
+          mounts a ThemeProvider, so without this `dark` class every token-based
+          element here (shadcn <Card>=bg-card, text-foreground, text-muted-foreground,
+          border-border) rendered with LIGHT values on the dark gray-900 shell —
+          white cards in Operations/Services/Pay&Book and a near-invisible page title.
+          Scoping `dark` here (not globally) makes all token elements render dark to
+          match the shell, with zero effect on hardcoded gray-* elements or any page
+          outside Settings. This is the foundation for migrating the remaining
+          gray-hardcoded tabs onto tokens. */}
+      <div className="dark min-h-screen bg-gray-900 p-2 md:p-8">
         <SimplePageHeader title="Settings" />
 
         {/* Settings Tabs */}
