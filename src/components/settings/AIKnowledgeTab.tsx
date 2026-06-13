@@ -329,7 +329,54 @@ export const AIKnowledgeTab: React.FC = () => {
                 4
               )}
             </div>
-            
+
+            {/* Contact Details — these were projected into business_overview and saved
+                by handleUpdateBusiness, but had no input anywhere, so they stayed NULL
+                and the agent could never share them. Now editable here. */}
+            <div className="pt-6 border-t border-gray-700">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-lg font-medium text-white">Contact Details <span className="text-sm font-normal text-gray-500">(optional)</span></h3>
+              </div>
+              <p className="text-sm text-gray-400 mb-4">
+                The WhatsApp agent shares these when a customer asks how to reach you. Leave a field blank and the agent won't mention it.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Business Email
+                  </label>
+                  {renderInputField(
+                    'business_email',
+                    localBusinessData.business_email,
+                    (value) => updateBusinessField('business_email', value),
+                    'name@yourbusiness.com'
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Business Phone
+                  </label>
+                  {renderInputField(
+                    'business_phone',
+                    localBusinessData.business_phone,
+                    (value) => updateBusinessField('business_phone', value),
+                    '+31 6 12345678'
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Business WhatsApp
+                  </label>
+                  {renderInputField(
+                    'business_whatsapp',
+                    localBusinessData.business_whatsapp,
+                    (value) => updateBusinessField('business_whatsapp', value),
+                    '+31 6 12345678'
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Address Section within Business Information */}
             <div className="pt-6 border-t border-gray-700">
               <div className="flex items-center gap-2 mb-4">
