@@ -439,7 +439,15 @@ async function handleCheckoutCompleted(
   isTestMode: boolean
 ) {
   console.log(`✅ Checkout completed: ${session.id}`);
-  
+
+  // Pay & Book: een hosted Checkout voor een BOEKING (mode=payment) draagt een
+  // booking_id in de metadata en heeft GEEN subscription. Bevestig + mail de boeking.
+  const bookingId = session.metadata?.booking_id;
+  if (bookingId) {
+    await confirmBookingPaid(supabase, bookingId, session.payment_intent as string);
+    return;
+  }
+
   const userId = session.metadata?.user_id;
   const subscriptionId = session.subscription as string;
 
@@ -511,7 +519,18 @@ async function handleBookingPaymentSucceeded(
     return;
   }
   console.log(`💳 Booking payment succeeded: PI ${paymentIntent.id} -> booking ${bookingId}`);
+  await confirmBookingPaid(supabase, bookingId, paymentIntent.id);
+}
 
+// Gedeeld door beide betaal-routes (hosted Checkout: checkout.session.completed,
+// en Elements/installments: payment_intent.succeeded). Bevestigt de boeking +
+// stuurt de in create-booking ingehouden bevestigingsmail. Idempotent: webhook-
+// retries én het dubbel-event (beide routes vuren soms) mogen niet dubbel mailen.
+async function confirmBookingPaid(
+  supabase: any,
+  bookingId: string,
+  paymentIntentId?: string | null
+) {
   const { data: booking } = await supabase
     .from('bookings')
     .select('id, payment_status')
@@ -519,7 +538,7 @@ async function handleBookingPaymentSucceeded(
     .maybeSingle();
 
   if (!booking) {
-    console.error(`❌ Booking ${bookingId} not found for PI ${paymentIntent.id}`);
+    console.error(`❌ Booking ${bookingId} not found`);
     return;
   }
   if (booking.payment_status === 'paid') {
@@ -533,11 +552,16 @@ async function handleBookingPaymentSucceeded(
     .update({ payment_status: 'paid', status: 'confirmed' })
     .eq('id', bookingId);
 
-  // Werk de bijbehorende payment-rij bij.
-  await supabase
-    .from('booking_payments')
-    .update({ status: 'succeeded' })
-    .eq('stripe_payment_intent_id', paymentIntent.id);
+  // Werk de payment-rij bij (op PI-id indien bekend, anders op booking_id).
+  if (paymentIntentId) {
+    await supabase.from('booking_payments')
+      .update({ status: 'succeeded' })
+      .eq('stripe_payment_intent_id', paymentIntentId);
+  } else {
+    await supabase.from('booking_payments')
+      .update({ status: 'succeeded' })
+      .eq('booking_id', bookingId);
+  }
 
   // Stuur nu de bevestigingsmail die create-booking inhield tot na betaling.
   try {
@@ -548,7 +572,7 @@ async function handleBookingPaymentSucceeded(
     console.error('Bevestigingsmail na betaling mislukt (niet-fataal):', mailErr);
   }
 
-  console.log(`✅ Booking ${bookingId} confirmed + paid via PI ${paymentIntent.id}`);
+  console.log(`✅ Booking ${bookingId} confirmed + paid`);
 }
 
 async function getTierFromPriceId(
