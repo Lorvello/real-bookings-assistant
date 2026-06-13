@@ -8,7 +8,6 @@ import { AIKnowledgeTab } from './AIKnowledgeTab';
 import { CalendarTab } from './CalendarTab';
 import { ServicesTab } from './ServicesTab';
 import { PaymentSettingsTab } from './PaymentSettingsTab';
-import { TaxTab } from './TaxTab';
 import { BillingTab } from './BillingTab';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
@@ -63,7 +62,7 @@ export const SettingsLayout = () => {
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-7 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
+            <TabsList className="grid w-full grid-cols-6 bg-gray-800/50 border-gray-700 min-w-max p-1 md:p-2 h-12 md:h-14">
               <TabsTrigger value="users" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Users</span>
@@ -99,17 +98,9 @@ export const SettingsLayout = () => {
                   </>
                 )}
               </TabsTrigger>
-              <TabsTrigger 
-                value="tax" 
-                className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3 opacity-60 cursor-not-allowed"
-                disabled
-              >
-                <Lock className="h-3 w-3 md:h-4 md:w-4" />
-                <span className="text-xs md:text-sm">Tax</span>
-                <span className="bg-slate-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                  Soon
-                </span>
-              </TabsTrigger>
+              {/* (Removed the disabled "Tax — Soon" tab: a permanently greyed-out
+                  Coming-Soon nav item undermines the premium feel. Re-add when the
+                  Tax-compliance tab has real content.) */}
               <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-gray-700 px-2 md:px-4 py-1.5 md:py-3">
                 <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Billing</span>
@@ -135,10 +126,6 @@ export const SettingsLayout = () => {
 
           <TabsContent value="payments" className="space-y-4 md:space-y-6">
             <PaymentSettingsTab />
-          </TabsContent>
-
-          <TabsContent value="tax" className="space-y-4 md:space-y-6">
-            <TaxTab />
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-4 md:space-y-6">
