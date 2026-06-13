@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeConfig } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,24 +21,19 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Parse request body to get mode
-    const body = await req.json().catch(() => ({}));
-    const mode = body.mode || 'test'; // Default to test mode for safety
-    logStep("Request mode", { mode });
-
-    // Get appropriate Stripe key based on mode
-    const stripeKey = mode === 'live' 
-      ? Deno.env.get("STRIPE_SECRET_KEY_LIVE")
-      : Deno.env.get("STRIPE_SECRET_KEY_TEST");
-    
-    if (!stripeKey) {
-      throw new Error(`Stripe ${mode} secret key is not configured`);
-    }
-    logStep("Stripe key verified", { mode });
+    // SECURITY: pin the Stripe mode on the server STRIPE_MODE (cannot be set by
+    // the client). Previously this trusted body.mode (default 'test'), so a spoofed
+    // or stale client mode could mix test/live keys. Same hardening as
+    // check-subscription via the shared validateStripeConfig.
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const stripeConfig = await validateStripeConfig(undefined, supabaseUrl, supabaseServiceKey);
+    const stripeKey = stripeConfig.secretKey;
+    logStep("Stripe configuration validated (server mode)", { mode: stripeConfig.mode });
 
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      supabaseUrl,
+      supabaseServiceKey,
       { auth: { persistSession: false } }
     );
 
