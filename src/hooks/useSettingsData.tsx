@@ -26,6 +26,8 @@ export const useSettingsData = () => {
     instagram: '',
     linkedin: '',
     tiktok: '',
+    youtube: '',
+    x: '',
     subscription_tier: null as string | null
   });
 
@@ -98,6 +100,8 @@ export const useSettingsData = () => {
           instagram: data.instagram || '',
           linkedin: data.linkedin || '',
           tiktok: data.tiktok || '',
+          youtube: data.youtube || '',
+          x: data.x || '',
           subscription_tier: data.subscription_tier || null
         });
 
@@ -302,6 +306,8 @@ export const useSettingsData = () => {
           instagram: profileChanges.instagram || null,
           linkedin: profileChanges.linkedin || null,
           tiktok: profileChanges.tiktok || null,
+          youtube: profileChanges.youtube || null,
+          x: profileChanges.x || null,
           // Business fields
           business_name: businessChanges.business_name || null,
           business_type: businessChanges.business_type || null,
