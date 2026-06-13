@@ -1,22 +1,19 @@
 
 import React from 'react';
-import { Clock, Euro, Users, Edit2, Trash2, MessageCircle } from 'lucide-react';
+import { Clock, Euro, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ServiceType } from '@/types/calendar';
 import { TaxBadge } from '@/components/tax/TaxBadge';
-import { InstallmentBadge } from './InstallmentBadge';
 import { StripeStatusBadge } from './StripeStatusBadge';
 
 interface ServiceTypeCardProps {
   service: ServiceType;
   onEdit: (service: ServiceType) => void;
   onDelete: (id: string) => void;
-  onInstallmentConfig?: (service: ServiceType) => void;
 }
 
-export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig }: ServiceTypeCardProps) {
+export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardProps) {
   const formatPrice = (price?: number) => {
     if (!price) return 'Gratis';
     return `€${price.toFixed(2)}`;
@@ -49,32 +46,14 @@ export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig
                 stripeTestPriceId={(service as any).stripe_test_price_id}
                 stripeLivePriceId={(service as any).stripe_live_price_id}
               />
-              <TaxBadge 
+              <TaxBadge
                 taxEnabled={service.tax_enabled || false}
                 taxBehavior={service.tax_behavior}
                 taxCode={service.tax_code}
               />
-              <InstallmentBadge 
-                enabled={!!(service as any).installments_enabled}
-                plan={(() => {
-                  // custom_installment_plan is a jsonb column -> supabase-js already
-                  // returns a parsed object. JSON.parse on an object throws (white
-                  // card on the Services page). Parse only the legacy string case;
-                  // otherwise use the object as-is.
-                  const p = (service as any).custom_installment_plan;
-                  if (!p) return undefined;
-                  return typeof p === 'string' ? JSON.parse(p) : p;
-                })()}
-                isOverride={!!(service as any).installments_enabled}
-              />
             </div>
           </div>
           <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-            {onInstallmentConfig && (
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onInstallmentConfig(service)}>
-                <MessageCircle className="h-4 w-4" />
-              </Button>
-            )}
             <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(service)}>
               <Edit2 className="h-4 w-4" />
             </Button>

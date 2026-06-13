@@ -7,7 +7,6 @@ import { Plus } from 'lucide-react';
 import { ServiceTypeForm } from './ServiceTypeForm';
 import { ServiceTypeCard } from './ServiceTypeCard';
 import { ServiceTypesEmptyState } from './ServiceTypesEmptyState';
-import { ServiceTypeInstallmentConfig } from './ServiceTypeInstallmentConfig';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
@@ -60,7 +59,6 @@ export function ServiceTypesManager() {
   const [deletingService, setDeletingService] = useState<ServiceType | null>(null);
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
-  const [installmentConfigService, setInstallmentConfigService] = useState<ServiceType | null>(null);
   
   // State for calendar selection in the form
   const [targetCalendarId, setTargetCalendarId] = useState<string | null>(
@@ -241,30 +239,6 @@ export function ServiceTypesManager() {
     setShowDeleteDialog(false);
     setDeletingService(null);
   };
-  const handleInstallmentConfig = (service: ServiceType) => {
-    setInstallmentConfigService(service);
-  };
-  const handleInstallmentUpdate = async (serviceId: string, enabled: boolean, plan?: any) => {
-    try {
-      await updateServiceType(serviceId, {
-        installments_enabled: enabled,
-        custom_installment_plan: plan || null
-      } as any);
-      toast({
-        title: "Installment settings updated",
-        description: "Service installment configuration has been updated successfully"
-      });
-      setInstallmentConfigService(null);
-      await refetch();
-    } catch (error) {
-      console.error('Error updating installment settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update installment settings. Please try again.",
-        variant: "destructive"
-      });
-    }
-  };
   if (loading) {
     return <Card>
         <CardContent className="p-8 text-center">
@@ -292,7 +266,7 @@ export function ServiceTypesManager() {
 
         <CardContent>
           {serviceTypes.length === 0 ? <ServiceTypesEmptyState onAddService={handleCreate} /> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {serviceTypes.map(service => <ServiceTypeCard key={service.id} service={service} onEdit={() => handleEdit(service)} onDelete={() => handleDelete(service)} onInstallmentConfig={() => handleInstallmentConfig(service)} />)}
+              {serviceTypes.map(service => <ServiceTypeCard key={service.id} service={service} onEdit={() => handleEdit(service)} onDelete={() => handleDelete(service)} />)}
             </div>}
         </CardContent>
       </Card>
@@ -330,22 +304,5 @@ export function ServiceTypesManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Installment Configuration Dialog */}
-      {installmentConfigService && <Dialog open={!!installmentConfigService} onOpenChange={() => setInstallmentConfigService(null)}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Installment Settings</DialogTitle>
-              <DialogDescription>
-                Configure installment payment options for {installmentConfigService.name}
-              </DialogDescription>
-            </DialogHeader>
-            <ServiceTypeInstallmentConfig serviceType={installmentConfigService} businessInstallmentsEnabled={false} businessDefaultPlan={null} onUpdate={(updates: any) => {
-          if ('installments_enabled' in updates || 'custom_installment_plan' in updates) {
-            handleInstallmentUpdate(installmentConfigService.id, updates.installments_enabled || false, updates.custom_installment_plan);
-          }
-        }} />
-          </DialogContent>
-        </Dialog>}
     </div>;
 }

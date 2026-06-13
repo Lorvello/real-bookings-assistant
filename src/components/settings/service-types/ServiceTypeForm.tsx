@@ -2,13 +2,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ServiceTypeStripeConfig } from './ServiceTypeStripeConfig';
 import { ServiceType } from '@/types/calendar';
-import { Lock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TeamMemberSelector } from '@/components/service-types/TeamMemberSelector';
 import { ServiceCalendarSelector } from './ServiceCalendarSelector';
@@ -226,36 +225,10 @@ export function ServiceTypeForm({
         />
       )}
 
-      {/* Tax Configuration Section - Coming Soon */}
-      <div className="space-y-4 border-t border-border pt-6">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-foreground">Tax Configuration</h3>
-          <span className="bg-slate-500/20 text-slate-400 border border-slate-500/30 text-xs px-2 py-1 rounded-full font-medium">
-            Coming Soon
-          </span>
-        </div>
-        
-        <div className="opacity-50 pointer-events-none">
-          <p className="text-sm text-muted-foreground mb-4">
-            Tax configuration features are coming soon. You'll be able to configure tax behavior and tax codes for your services.
-          </p>
-          
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
-            <div className="space-y-0.5">
-              <Label className="text-sm font-medium text-muted-foreground">
-                Enable Tax for this service
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Configure tax behavior and tax codes for this service
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-muted-foreground" />
-              <Switch disabled checked={false} />
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* (Removed the disabled "Tax Configuration — Coming Soon" placeholder: a
+          hard-disabled Lock + dead Switch that can never be turned on (the create
+          path hardcodes tax_enabled:false). Same dead Coming-Soon pattern the owner
+          has been deleting elsewhere (cf. R108). Re-add when tax config is real.) */}
 
       {/* Team Member Assignment Section */}
       {calendarId && onTeamMembersChange && (
