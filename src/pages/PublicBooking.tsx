@@ -5,6 +5,7 @@ import { nl } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvailableSlots } from '@/hooks/useAvailableSlots';
 import { usePublicBookingCreation } from '@/hooks/usePublicBookingCreation';
+import { BookingPaymentForm } from '@/components/booking/BookingPaymentForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,6 +57,7 @@ export default function PublicBooking() {
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '' });
   const [confirmed, setConfirmed] = useState(false);
   const [paymentRequired, setPaymentRequired] = useState(false);
+  const [bookingForPayment, setBookingForPayment] = useState<{ id: string; calendar_id: string; confirmation_token: string } | null>(null);
 
   // Load the calendar + its active services for this slug
   useEffect(() => {
@@ -137,6 +139,7 @@ export default function PublicBooking() {
     // PAY & BOOK: bij verplichte vooruitbetaling is de boeking gereserveerd maar nog
     // niet bevestigd. Toon dan het betaal-vereist-scherm i.p.v. een valse bevestiging.
     if (result.payment_required) {
+      setBookingForPayment(result.booking);
       setPaymentRequired(true);
     } else if (result.success) {
       setConfirmed(true);
@@ -187,44 +190,17 @@ export default function PublicBooking() {
     );
   }
 
-  if (paymentRequired) {
+  if (paymentRequired && bookingForPayment) {
     return (
       <Shell>
-        <div className="mt-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
-          <div className="flex flex-col items-center px-8 pt-10 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-400/15 ring-1 ring-amber-400/30">
-              <Clock className="h-9 w-9 text-amber-300" />
-            </div>
-            <h1 className="mt-5 text-2xl font-semibold">Vooruitbetaling vereist</h1>
-            <p className="mt-1.5 text-sm text-white/50">
-              {customer.name.split(' ')[0]}, je plek is gereserveerd. Deze afspraak wordt
-              pas definitief bevestigd na vooruitbetaling.
-            </p>
-          </div>
-          <div className="mt-6 space-y-3 border-t border-white/10 px-8 py-6 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-white/45">Dienst</span>
-              <span className="font-medium">{service?.name}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-white/45">Datum</span>
-              <span className="font-medium">
-                {slot && format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: nl })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-white/45">Tijd</span>
-              <span className="font-medium">
-                {slot && format(new Date(slot.slot_start), 'HH:mm')}
-                {slot && ` – ${format(new Date(slot.slot_end), 'HH:mm')}`}
-              </span>
-            </div>
-          </div>
-          <p className="border-t border-white/10 px-8 py-4 text-center text-xs text-white/40">
-            Online betalen vanaf deze pagina komt eraan. De ondernemer neemt contact met
-            je op om de betaling af te ronden, of betaal ter plaatse als dat is toegestaan.
-          </p>
-        </div>
+        <BookingPaymentForm
+          booking={bookingForPayment}
+          serviceName={service?.name}
+          onPaid={() => {
+            setPaymentRequired(false);
+            setConfirmed(true);
+          }}
+        />
       </Shell>
     );
   }

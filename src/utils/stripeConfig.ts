@@ -111,15 +111,17 @@ export const getStripeMode = (): 'test' | 'live' => {
   return 'test'; // Safe fallback, prevents crash
 };
 
+// Publishable keys are safe to expose (not secret). Mode-explicit variant so callers
+// (e.g. the public booking checkout) can use the key matching the mode the SERVER
+// minted the PaymentIntent in — avoiding a client/server test↔live mismatch.
+export const getPublishableKeyForMode = (mode: 'test' | 'live'): string => {
+  return mode === 'live'
+    ? 'pk_live_51RqIg2LcBboIITXg0n6rT0RPzpsmk4L2Z5Ymzxxfs2iZcHfJCH6aSq2ueinqjNsPti9U6fYxLprpxn9grpd7arZJ00KC2Va0D6'
+    : 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
+};
+
 export const getStripePublishableKey = (): string => {
-  const mode = getStripeMode();
-  
-  // These are safe to hardcode as they are publishable keys (not secret)
-  if (mode === 'test') {
-    return 'pk_test_51RqIgEPyiLcfGjGYOLNQiJdmchHRGvAA5gFET2PfbZYAY2jsqmGrdKH5RbOEH4NyRwoZVMLatkRl1k7bnmBTQUvE00LwV1G5xJ';
-  } else {
-    return 'pk_live_51RqIg2LcBboIITXg0n6rT0RPzpsmk4L2Z5Ymzxxfs2iZcHfJCH6aSq2ueinqjNsPti9U6fYxLprpxn9grpd7arZJ00KC2Va0D6';
-  }
+  return getPublishableKeyForMode(getStripeMode());
 };
 
 export const isTestMode = (): boolean => {
