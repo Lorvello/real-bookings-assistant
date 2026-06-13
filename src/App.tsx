@@ -32,7 +32,6 @@ const NotFound = lazyWithRetry(() => import('@/pages/NotFound'));
 const Settings = lazyWithRetry(() => import('@/pages/Settings'));
 const Availability = lazyWithRetry(() => import('@/pages/Availability'));
 const Conversations = lazyWithRetry(() => import('@/pages/Conversations'));
-const ConversationDetail = lazyWithRetry(() => import('@/pages/ConversationDetail'));
 const SeeHowItWorks = lazyWithRetry(() => import('@/pages/SeeHowItWorks'));
 const WhyUs = lazyWithRetry(() => import('@/pages/WhyUs'));
 const FAQ = lazyWithRetry(() => import('@/pages/FAQ'));
@@ -217,13 +216,6 @@ function App() {
                       <RouteErrorBoundary routeName="Conversations">
                         <Suspense fallback={<FullPageLoadingSkeleton />}>
                           <Conversations />
-                        </Suspense>
-                      </RouteErrorBoundary>
-                    } />
-                    <Route path="/conversations/:id" element={
-                      <RouteErrorBoundary routeName="Conversation Detail">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <ConversationDetail />
                         </Suspense>
                       </RouteErrorBoundary>
                     } />
