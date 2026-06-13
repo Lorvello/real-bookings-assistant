@@ -147,7 +147,10 @@ export const useSettingsData = () => {
         .from('users')
         .update({
           full_name: dataToUse.full_name,
-          email: dataToUse.email,
+          // email intentionally NOT written here: it is the login email
+          // (auth.users.email) and the settings field is read-only. Writing only
+          // public.users.email would let it diverge from the actual login. A proper
+          // change must go through supabase.auth.updateUser + verification.
           phone: dataToUse.phone,
           date_of_birth: dataToUse.date_of_birth || null,
           // NOTE: gender, language, timezone, avatar_url and the personal address_*

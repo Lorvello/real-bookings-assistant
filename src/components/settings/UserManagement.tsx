@@ -435,16 +435,24 @@ export const UserManagement = ({
                       />
                     </div>
 
-                    {/* Email */}
+                    {/* Email — read-only. This is the LOGIN email (auth.users.email).
+                        The old editable field only wrote public.users.email and never
+                        touched Supabase Auth, so the displayed email and the actual
+                        login could silently diverge. Until a proper verified
+                        email-change flow (auth.updateUser + confirmation) is built, we
+                        show the real login email read-only so it can never lie. */}
                     <div>
                       <Label className="block text-sm font-medium text-gray-300 mb-2">Email</Label>
                       <Input
                         type="email"
                         value={localProfileData.email || ''}
-                        onChange={(e) => updateLocalProfile('email', e.target.value)}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        placeholder="Enter your email"
+                        readOnly
+                        disabled
+                        className="bg-gray-800/60 border-gray-700 text-gray-400 cursor-not-allowed"
                       />
+                      <p className="mt-1 text-xs text-gray-500">
+                        This is your login email. To change it, contact support.
+                      </p>
                     </div>
 
                     {/* Phone Number with Country Code */}
