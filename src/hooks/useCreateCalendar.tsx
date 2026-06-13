@@ -293,8 +293,11 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
           
           if (scheduleData && !scheduleError) {
             // Day key to day_of_week mapping
+            // availability_rules.day_of_week is ISODOW 1-7 (Ma=1..Zo=7), de conventie die
+            // de trigger + slot-functies hanteren. Zondag = 7 (NIET 0), anders matcht de
+            // custom-zondag-update geen enkele rule en verdwijnen de zondag-uren.
             const dayMapping: Record<string, number> = {
-              sunday: 0,
+              sunday: 7,
               monday: 1,
               tuesday: 2,
               wednesday: 3,
