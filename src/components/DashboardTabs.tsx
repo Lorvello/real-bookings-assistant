@@ -29,26 +29,15 @@ interface DashboardTabsProps {
 export function DashboardTabs({ calendarIds, dateRange, onTabChange }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const { checkAccess, requireAccess } = useAccessControl();
+  const { checkAccess } = useAccessControl();
   const { userStatus } = useUserStatus();
 
   const handleTabChange = (value: string) => {
-    // Check access for restricted tabs
-    if (value === 'business-intelligence' && !checkAccess('canAccessBusinessIntelligence')) {
-      requireAccess('canAccessBusinessIntelligence');
-      return;
-    }
-    
-    if (value === 'performance-efficiency' && !checkAccess('canAccessPerformance')) {
-      requireAccess('canAccessPerformance');
-      return;
-    }
-    
-    if (value === 'future-insights' && !checkAccess('canAccessFutureInsights')) {
-      requireAccess('canAccessFutureInsights');
-      return;
-    }
-    
+    // Restricted (Pro) tabs still switch: their TabsContent renders the
+    // AccessBlockedOverlay with its upgrade CTA. Previously an early return after
+    // a transient toast meant setActiveTab never ran, so the upgrade overlay (the
+    // conversion driver) was unreachable dead code — only the toast showed. The
+    // per-tab access gate + lock badge live in the TabsContent/TabsTrigger.
     setActiveTab(value);
     onTabChange?.(value);
   };
