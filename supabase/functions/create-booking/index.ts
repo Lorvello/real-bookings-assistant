@@ -159,6 +159,17 @@ Deno.serve(async (req) => {
       throw bookingError;
     }
 
+    // LR-R57: stuur de klant een bevestigingsmail. Web-klanten hebben geen
+    // WhatsApp-chat waarin de agent bevestigt, dus zonder dit krijgen ze niets.
+    // Fire-and-forget: een mailfout mag de geslaagde boeking nooit breken.
+    try {
+      await supabaseClient.functions.invoke('send-booking-confirmation', {
+        body: { booking_id: booking.id },
+      });
+    } catch (mailErr) {
+      console.error('Bevestigingsmail mislukt (niet-fataal):', mailErr);
+    }
+
     return new Response(
       JSON.stringify({ success: true, booking }),
       { 
