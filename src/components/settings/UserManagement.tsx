@@ -82,20 +82,12 @@ const TIMEZONE_OPTIONS = COMPREHENSIVE_TIMEZONES.map(tz => ({
 interface UserManagementProps {
   externalBusinessData?: any;
   externalProfileData?: any;
-  onBusinessDataChange?: (data: any) => void;
-  onProfileDataChange?: (data: any) => void;
-  onUpdateBusiness?: () => void;
-  onUpdateProfile?: () => void;
   externalLoading?: boolean;
 }
 
 export const UserManagement = ({
   externalBusinessData,
   externalProfileData,
-  onBusinessDataChange,
-  onProfileDataChange,
-  onUpdateBusiness,
-  onUpdateProfile,
   externalLoading
 }: UserManagementProps = {}) => {
   const { calendars } = useCalendarContext();
