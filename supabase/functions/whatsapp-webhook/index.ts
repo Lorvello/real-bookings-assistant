@@ -363,6 +363,92 @@ serve(async (req) => {
         }
       }
 
+      // OPTIE B (LR-R52): access-gated forward naar de n8n-agent.
+      // INERT tot N8N_WHATSAPP_FORWARD_URL is gezet → verandert niets aan de huidige
+      // situatie tot het Rinkel-nummer live is en de env-var bewust wordt gezet.
+      // Flow: resolve de business-eigenaar → check WhatsApp-toegang (lapsed/gratis →
+      // NIET forwarden = agent draait niet, sluit access-gating-gat task_f2e05c8b) →
+      // forward het RAUWE payload + Meta-signature naar de n8n WhatsApp Trigger.
+      const N8N_FORWARD_URL = Deno.env.get('N8N_WHATSAPP_FORWARD_URL');
+      if (webhookType === 'message' && N8N_FORWARD_URL) {
+        try {
+          const messages = payload.entry?.[0]?.changes?.[0]?.value?.messages;
+          const contacts = payload.entry?.[0]?.changes?.[0]?.value?.contacts;
+          if (messages && messages.length > 0 && contacts && contacts.length > 0) {
+            const message = messages[0];
+            const contact = contacts[0];
+            const messageText = message.text?.body || '';
+
+            // 1. Resolve owner user_id + calendar_id: via tracking-code, anders via bestaande conversatie
+            let ownerId: string | null = null;
+            let calendarId: string | null = null;
+            const tm = messageText.match(/Code:\s*([A-F0-9]{8})/i);
+            if (tm) {
+              const { data: u } = await supabaseClient
+                .from('users').select('id, calendars!inner(id)').ilike('id', `${tm[1].toLowerCase()}%`).limit(1).maybeSingle();
+              ownerId = u?.id ?? null;
+              calendarId = (u as any)?.calendars?.[0]?.id ?? null;
+            }
+            if (!ownerId && contact.wa_id) {
+              // returning customer (geen code): phone → contact → laatste conversatie → calendar → owner
+              const { data: ct } = await supabaseClient
+                .from('whatsapp_contacts').select('id').eq('phone_number', contact.wa_id).maybeSingle();
+              if (ct?.id) {
+                const { data: conv } = await supabaseClient
+                  .from('whatsapp_conversations')
+                  .select('calendar_id, calendars!inner(user_id)')
+                  .eq('contact_id', ct.id)
+                  .order('last_message_at', { ascending: false })
+                  .limit(1).maybeSingle();
+                ownerId = (conv as any)?.calendars?.user_id ?? null;
+                calendarId = (conv as any)?.calendar_id ?? null;
+              }
+            }
+
+            // 2. Access-gating: alleen forwarden als de eigenaar WhatsApp-toegang heeft.
+            let entitled = false;
+            if (ownerId) {
+              const { data: status } = await supabaseClient.rpc('get_user_status_type', { p_user_id: ownerId });
+              entitled = ['active_trial', 'paid_subscriber', 'canceled_but_active', 'missed_payment_grace'].includes(status as string);
+              if (!entitled) {
+                console.log(`WhatsApp-agent NIET geforward: eigenaar ${ownerId} heeft status '${status}' (geen WhatsApp-toegang)`);
+                await logSecurityEvent(supabaseClient, 'whatsapp_forward_gated', 'info', { owner: ownerId, status }, ipAddress);
+              }
+            } else {
+              console.log('Kon business-eigenaar niet resolven → niet forwarden (veilig).');
+            }
+
+            // 2b. Bot-toggle: een business die z'n WhatsApp-bot UIT zet mag niet
+            // geforward worden (anders is de aan/uit-toggle puur decoratief). Alleen
+            // droppen bij een EXPLICIETE false; ontbrekende setting -> niet blokkeren.
+            let botActive = true;
+            if (entitled && calendarId) {
+              const { data: cs } = await supabaseClient
+                .from('calendar_settings').select('whatsapp_bot_active').eq('calendar_id', calendarId).maybeSingle();
+              if (cs && cs.whatsapp_bot_active === false) {
+                botActive = false;
+                console.log(`WhatsApp-agent NIET geforward: bot staat UIT voor calendar ${calendarId}`);
+                await logSecurityEvent(supabaseClient, 'whatsapp_forward_bot_off', 'info', { calendar: calendarId }, ipAddress);
+              }
+            }
+
+            // 3. Forward het rauwe payload + Meta-signature naar n8n (agent vuurt).
+            if (entitled && botActive) {
+              const sigHeader = req.headers.get('x-hub-signature-256') || req.headers.get('x-hub-signature') || '';
+              const fwd = await fetch(N8N_FORWARD_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-hub-signature-256': sigHeader },
+                body: rawBody,
+              });
+              console.log(`Forwarded naar n8n-agent (HTTP ${fwd.status}) voor eigenaar ${ownerId}`);
+            }
+          }
+        } catch (fwdError) {
+          console.error('Error bij forward naar n8n:', fwdError);
+          // Niet fatal — bericht staat al in de queue.
+        }
+      }
+
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { 
