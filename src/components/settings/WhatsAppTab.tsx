@@ -150,7 +150,7 @@ export const WhatsAppTab: React.FC<WhatsAppTabProps> = ({
       console.error('QR generation error:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Kon QR-code niet genereren',
+        description: error.message || 'Could not generate QR code',
         variant: 'destructive'
       });
     } finally {

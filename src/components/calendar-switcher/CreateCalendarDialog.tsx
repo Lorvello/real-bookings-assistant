@@ -159,7 +159,7 @@ export function CreateCalendarDialog({
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
-      toast.error('Kalender aanmaken mislukt. Probeer het opnieuw.');
+      toast.error('Could not create calendar. Please try again.');
     }
   };
 
