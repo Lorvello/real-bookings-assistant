@@ -127,7 +127,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             : `${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300 ease-in-out flex-shrink-0 relative h-full max-h-full`
           }
         `}
-        style={{ backgroundColor: '#0F172A' }}
+        style={{ backgroundColor: 'hsl(var(--surface-1))' }}
       >
         {/* Only render sidebar content when visible on mobile or always on desktop */}
         {(!isMobile || isSidebarOpen) && (
@@ -146,7 +146,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             />
 
             {/* Visual Separator */}
-            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+            <div className="w-8 h-px bg-white/[0.08] mx-auto my-4"></div>
 
             {/* User Status Indicator - Shows for all users */}
             <StatusIndicator 
@@ -167,7 +167,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             />
 
             {/* Visual Separator */}
-            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+            <div className="w-8 h-px bg-white/[0.08] mx-auto my-4"></div>
 
             {/* Access Controlled Navigation - Adapts to user status */}
             <AccessControlledNavigation 
@@ -178,12 +178,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             />
 
             {/* Visual Separator */}
-            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+            <div className="w-8 h-px bg-white/[0.08] mx-auto my-4"></div>
 
             <CalendarSwitcherSection isSidebarOpen={isSidebarOpen} />
 
             {/* Visual Separator */}
-            <div className="w-8 h-px bg-gray-700 mx-auto my-4"></div>
+            <div className="w-8 h-px bg-white/[0.08] mx-auto my-4"></div>
 
             <UserProfileSection 
               isSidebarOpen={isSidebarOpen} 
@@ -196,16 +196,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Mobile Header - Only visible when sidebar is closed on mobile */}
       {isMobile && !isSidebarOpen && (
-        <div className="fixed top-0 left-0 right-0 h-16 bg-slate-900/95 backdrop-blur-md border-b border-gray-700 z-30 flex items-center px-4" style={{ touchAction: 'pan-y' }}>
+        <div className="fixed top-0 left-0 right-0 h-16 bg-surface-1/95 backdrop-blur-md border-b border-white/[0.08] z-30 flex items-center px-4" style={{ touchAction: 'pan-y' }}>
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-colors"
+            className="text-muted-foreground hover:text-foreground p-2 rounded-md hover:bg-white/[0.06] transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="ml-3 text-lg font-semibold text-white">{currentPageTitle}</h1>
+          <h1 className="ml-3 text-lg font-semibold text-foreground">{currentPageTitle}</h1>
         </div>
       )}
 
