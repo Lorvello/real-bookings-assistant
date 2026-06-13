@@ -66,6 +66,17 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         throw historicalError;
       }
 
+      // The 12-month seasonal-patterns chart needs a full year of history, not the
+      // 60-day trend window — otherwise 10 of 12 months are always 0 (a window
+      // artifact, not real data). Separate query so the trend/forecast calcs above
+      // keep their 60-day window.
+      const { data: seasonalBookings } = await supabase
+        .from('bookings')
+        .select('start_time')
+        .in('calendar_id', calendarIds)
+        .gte('start_time', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()) // 12 months
+        .neq('status', 'cancelled');
+
       // Calculate customer growth rate including WhatsApp contacts
       const currentMonth = new Date();
       const startOfCurrentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -191,17 +202,18 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         });
       }
 
-      // Real seasonal patterns based on historical booking data
-      const monthNames = ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 
-                         'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'];
-      
+      // Real seasonal patterns from a full year of history (seasonalBookings),
+      // so each month reflects actual bookings rather than the 60-day window.
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                         'July', 'August', 'September', 'October', 'November', 'December'];
+
       const seasonalPatterns = [];
       for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-        const monthBookings = historicalBookings?.filter(booking => {
+        const monthBookings = seasonalBookings?.filter(booking => {
           const bookingDate = new Date(booking.start_time);
           return bookingDate.getMonth() === monthIndex;
         }) || [];
-        
+
         seasonalPatterns.push({
           month_name: monthNames[monthIndex],
           avg_bookings: monthBookings.length
