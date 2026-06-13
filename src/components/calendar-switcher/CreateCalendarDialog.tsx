@@ -110,16 +110,16 @@ export function CreateCalendarDialog({
 
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) {
-      toast.error('Vul een kalendernaam in.');
+      toast.error('Please enter a calendar name.');
       return;
     }
-    // Allow creation if we have either existing or pending service types
-    if (selectedServiceTypes.length === 0 && pendingServiceTypes.length === 0) {
-      toast.error('Voeg minstens één dienst toe aan de kalender.');
-      return;
-    }
+    // Service types are OPTIONAL in this dialog. The onboarding wizard has a
+    // dedicated "Add services" step, and get_user_status_type keeps the account
+    // setup_incomplete until at least one active service exists — so nothing is
+    // skipped. Forcing a service here duplicated that step and blocked users with
+    // a confusing "do it here or there?" requirement (website-audit, UX).
     if (selectedTeamMembers.length === 0) {
-      toast.error('Selecteer minstens één teamlid.');
+      toast.error('Please select at least one team member.');
       return;
     }
 
@@ -244,8 +244,6 @@ export function CreateCalendarDialog({
     setShowServiceTypeDialog(false);
   };
 
-  const totalServiceCount = selectedServiceTypes.length + pendingServiceTypes.length;
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>      
@@ -253,7 +251,7 @@ export function CreateCalendarDialog({
           <DialogHeader>
             <DialogTitle>Create new calendar</DialogTitle>
             <DialogDescription>
-              Create a new calendar with team members and service types. All fields are required.
+              Name your calendar and pick at least one team member. You can add services now or later from the Services step.
             </DialogDescription>
           </DialogHeader>
           
@@ -329,7 +327,7 @@ export function CreateCalendarDialog({
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Settings className="h-4 w-4" />
-                <h4 className="font-medium text-foreground">Service Types *</h4>
+                <h4 className="font-medium text-foreground">Service Types <span className="text-muted-foreground font-normal">(optional)</span></h4>
               </div>
               
               <div className="space-y-3">
@@ -446,9 +444,8 @@ export function CreateCalendarDialog({
                 onClick={handleCreateCalendar}
                 disabled={
                   !canCreateMore ||
-                  !newCalendar.name.trim() || 
-                  totalServiceCount === 0 || 
-                  selectedTeamMembers.length === 0 || 
+                  !newCalendar.name.trim() ||
+                  selectedTeamMembers.length === 0 ||
                   creating
                 }
               >
