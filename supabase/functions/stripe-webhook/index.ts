@@ -593,8 +593,13 @@ async function getTierFromPriceId(
     return tiers[0].tier_name.toLowerCase();
   }
 
-  console.warn(`⚠️ Unknown price ID: ${priceId}, defaulting to 'professional'`);
-  return 'professional';
+  // Unknown price ID (e.g. a new Stripe price minted after a price change, not yet in
+  // subscription_tiers). Fall back CONSERVATIVELY to the lowest paid tier — never the
+  // most expensive ('professional') — so a misconfiguration can't silently grant a
+  // customer more access than they paid for. Log it so it gets noticed + fixed.
+  console.warn(`⚠️ Unknown price ID: ${priceId}, defaulting to the lowest paid tier 'starter'`);
+  await logSecurityEvent(supabase, 'unknown_price_id_tier_fallback', null, { priceId, isTestMode });
+  return 'starter';
 }
 
 async function logSecurityEvent(
