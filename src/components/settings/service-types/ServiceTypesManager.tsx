@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { ServiceTypeForm } from './ServiceTypeForm';
 import { ServiceTypeCard } from './ServiceTypeCard';
 import { ServiceTypesEmptyState } from './ServiceTypesEmptyState';
+import { ServiceTypesLoadingState } from './ServiceTypesLoadingState';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
@@ -240,11 +241,7 @@ export function ServiceTypesManager() {
     setDeletingService(null);
   };
   if (loading) {
-    return <Card>
-        <CardContent className="p-8 text-center">
-          <p className="text-muted-foreground">Loading services...</p>
-        </CardContent>
-      </Card>;
+    return <ServiceTypesLoadingState />;
   }
   return <div className="space-y-6">
       <Card>

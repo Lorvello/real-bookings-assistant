@@ -15,7 +15,7 @@ interface ServiceTypeCardProps {
 
 export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardProps) {
   const formatPrice = (price?: number) => {
-    if (!price) return 'Gratis';
+    if (!price) return 'Free';
     return `€${price.toFixed(2)}`;
   };
 
@@ -23,8 +23,8 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
     if (minutes < 60) return `${minutes} min`;
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
-    if (remainingMinutes === 0) return `${hours}u`;
-    return `${hours}u ${remainingMinutes}min`;
+    if (remainingMinutes === 0) return `${hours}h`;
+    return `${hours}h ${remainingMinutes}min`;
   };
 
   return (
