@@ -69,7 +69,7 @@ export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig
               />
             </div>
           </div>
-          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
             {onInstallmentConfig && (
               <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onInstallmentConfig(service)}>
                 <MessageCircle className="h-4 w-4" />
