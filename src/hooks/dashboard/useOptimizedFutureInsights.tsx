@@ -186,7 +186,7 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         const prevWeekBookings = bookingsByWeek.get(week - 1) || 0;
         weeklyTrends.push({
           week_number: week,
-          bookings: Math.max(1, bookings + Math.floor(Math.random() * 3)), // Add some forecast variation
+          bookings: bookings, // echte boekingen per week (geen verzonnen ruis/ophoging)
           trend_direction: bookings > prevWeekBookings ? 'up' : bookings < prevWeekBookings ? 'down' : 'stable'
         });
       }

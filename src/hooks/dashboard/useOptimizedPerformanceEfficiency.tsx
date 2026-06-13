@@ -7,7 +7,7 @@ import { getMockPerformanceData } from '@/hooks/useMockDataGenerator';
 interface PerformanceEfficiencyData {
   no_show_rate: number;
   cancellation_rate: number;
-  customer_satisfaction_score: number;
+  customer_satisfaction_score: number | null;
   booking_completion_rate: number;
   unique_customers: number;
   returning_customers: number;
@@ -40,7 +40,7 @@ export function useOptimizedPerformanceEfficiency(
         return {
           no_show_rate: mockData.no_show_rate || 8.2,
           cancellation_rate: mockData.cancellation_rate || 12.5,
-          customer_satisfaction_score: 4.2 + Math.random() * 0.8,
+          customer_satisfaction_score: null,
           booking_completion_rate: 87.5,
           unique_customers: 24,
           returning_customers: 18,
@@ -122,7 +122,7 @@ export function useOptimizedPerformanceEfficiency(
       return {
         no_show_rate: totalBookings > 0 ? (noShowBookings.length / totalBookings) * 100 : 0,
         cancellation_rate: totalBookings > 0 ? (cancelledBookings.length / totalBookings) * 100 : 0,
-        customer_satisfaction_score: 4.2 + Math.random() * 0.8, // Mock score 4.2-5.0
+        customer_satisfaction_score: null, // geen databron (geen review/rating-pijplijn) -> niet verzinnen
         booking_completion_rate: totalBookings > 0 ? (confirmedBookings.length / totalBookings) * 100 : 0,
         unique_customers: uniqueCustomers,
         returning_customers: returningCustomers,

@@ -182,7 +182,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 >
                   <MetricCard
                     title="Customer Satisfaction"
-                    value={`${performance?.customer_satisfaction_score?.toFixed(1) || '0.0'}/5`}
+                    value={performance?.customer_satisfaction_score != null ? `${performance.customer_satisfaction_score.toFixed(1)}/5` : '—'}
                     subtitle={getMetricSubtitle('service quality')}
                     icon={Star}
                     variant="blue"
