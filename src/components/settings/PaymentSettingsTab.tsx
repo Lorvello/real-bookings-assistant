@@ -160,6 +160,7 @@ export function PaymentSettingsTab() {
     updateSettings,
     toggleSecurePayments,
     togglePaymentRequired,
+    togglePaymentOptional,
     updatePaymentMethods,
     updatePayoutOption,
     updateAllowedPaymentTiming
@@ -277,11 +278,17 @@ export function PaymentSettingsTab() {
       await Promise.all([
         updateAllowedPaymentTiming(['pay_now']),
         updateInstallmentSettings({ enabled: false }),
-        togglePaymentRequired(true) // inverted: !optional = true
+        togglePaymentRequired(true), // inverted: !optional = true
+        togglePaymentOptional(false) // houd payment_optional coherent met de toggle
       ]);
     } else {
-      // When optional=true, payment is NOT required (inverted logic)
-      await togglePaymentRequired(false);
+      // When optional=true, payment is NOT required (inverted logic). Het
+      // payment_optional-veld MOET ook gezet worden, anders ziet de agent/booking-flow
+      // de incoherente staat 'niet verplicht én niet optioneel' (audit: dode toggle).
+      await Promise.all([
+        togglePaymentRequired(false),
+        togglePaymentOptional(true)
+      ]);
     }
   };
 
