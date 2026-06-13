@@ -4,10 +4,10 @@ import { CalendarSettings } from '@/components/CalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle } from 'lucide-react';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { CalendarSelectionCard } from './CalendarSelectionCard';
 import { GlobalSettings } from '@/components/calendar-settings/GlobalSettings';
+import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
 
 export function CalendarTab() {
   const { selectedCalendar, calendars } = useCalendarContext();
@@ -30,17 +30,10 @@ export function CalendarTab() {
       <div className="space-y-6">
         {renderGlobalSettings()}
         <Separator />
-        <Card className="border-border">
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No calendar found</h3>
-              <p className="text-muted-foreground">
-                You don't have any calendars yet. Create a calendar first to modify settings.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <CalendarRequiredEmptyState
+          title="No calendar found"
+          description="You don't have any calendars yet. Create one to start managing your operations settings."
+        />
       </div>
     );
   }

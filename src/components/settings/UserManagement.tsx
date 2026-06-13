@@ -55,6 +55,11 @@ export const UserManagement = ({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'editor' | 'viewer'>('viewer');
+  // Which calendar the invited member joins. Empty = fall back to the default
+  // calendar in handleAddUser. Previously the invite silently always used the
+  // default calendar with no way to choose, which was confusing for owners with
+  // multiple calendars (the table shows a Calendar column they couldn't control).
+  const [newUserCalendarId, setNewUserCalendarId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Local state for buffered profile changes (no auto-save)
@@ -164,6 +169,8 @@ export const UserManagement = ({
       });
       return;
     }
+    // Honor the calendar picked in the dialog; fall back to the default calendar.
+    const targetCalendarId = newUserCalendarId || defaultCalendar.id;
 
     setIsSubmitting(true);
     try {
@@ -173,7 +180,7 @@ export const UserManagement = ({
       // the invite failed.
       const ok = await inviteMember(
         newUserEmail,
-        defaultCalendar.id,
+        targetCalendarId,
         newUserRole,
         newUserName
       );
@@ -181,13 +188,14 @@ export const UserManagement = ({
         setNewUserEmail('');
         setNewUserName('');
         setNewUserRole('viewer');
+        setNewUserCalendarId('');
         setIsAddUserOpen(false);
         stableRefetch();
       }
     } finally {
       setIsSubmitting(false);
     }
-  }, [newUserEmail, newUserName, newUserRole, calendars, inviteMember, stableRefetch, toast]);
+  }, [newUserEmail, newUserName, newUserRole, newUserCalendarId, calendars, inviteMember, stableRefetch, toast]);
 
   const handleRoleChange = useCallback(async (memberId: string, newRole: 'editor' | 'viewer') => {
     try {
@@ -558,6 +566,22 @@ export const UserManagement = ({
                             placeholder="user@example.com"
                             className="bg-background border-border text-foreground"
                           />
+                        </div>
+                        <div>
+                          <Label className="text-foreground">Calendar</Label>
+                          <Select
+                            value={newUserCalendarId || (calendars.find(cal => cal.is_default) || calendars[0])?.id || ''}
+                            onValueChange={(value) => setNewUserCalendarId(value)}
+                          >
+                            <SelectTrigger className="bg-background border-border text-foreground">
+                              <SelectValue placeholder="Select a calendar" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card border-border">
+                              {calendars.map((cal) => (
+                                <SelectItem key={cal.id} value={cal.id}>{cal.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div>
                           <Label className="text-foreground">Role</Label>
