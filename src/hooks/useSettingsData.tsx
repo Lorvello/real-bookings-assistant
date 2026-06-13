@@ -286,20 +286,16 @@ export const useSettingsData = () => {
       const { error } = await supabase
         .from('users')
         .update({
-          // Profile fields
+          // Profile fields. This is the LIVE save path (AIKnowledgeTab + UserManagement
+          // call handleBatchUpdate). email is intentionally NOT written: it's the login
+          // email (auth.users.email), the UI field is read-only, and writing only
+          // public.users.email would let it diverge. gender, language, timezone,
+          // avatar_url and the personal address_* fields have no edit-UI or consumer and
+          // were being blindly re-written with hardcoded defaults on every save (which
+          // could clobber real data) -> dropped here too, matching handleUpdateProfile.
           full_name: profileChanges.full_name,
-          email: profileChanges.email,
           phone: profileChanges.phone,
           date_of_birth: profileChanges.date_of_birth || null,
-          gender: profileChanges.gender || null,
-          language: profileChanges.language,
-          timezone: profileChanges.timezone,
-          avatar_url: profileChanges.avatar_url || null,
-          address_street: profileChanges.address_street || null,
-          address_number: profileChanges.address_number || null,
-          address_postal: profileChanges.address_postal || null,
-          address_city: profileChanges.address_city || null,
-          address_country: profileChanges.address_country,
           website: profileChanges.website || null,
           facebook: profileChanges.facebook || null,
           instagram: profileChanges.instagram || null,

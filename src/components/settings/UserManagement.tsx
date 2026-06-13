@@ -85,7 +85,9 @@ export const UserManagement = ({
     if (!isProfileInitialized) return false;
     if (!localProfileData || !baseProfile) return false;
     
-    const fieldsToCompare = ['full_name', 'email', 'phone', 'date_of_birth', 'language', 'timezone'];
+    // email is read-only; language/timezone controls were removed -> none of those
+    // change via the UI, so only compare the fields the user can actually edit.
+    const fieldsToCompare = ['full_name', 'phone', 'date_of_birth'];
     return fieldsToCompare.some(field => {
       const localVal = localProfileData[field] || '';
       const baseVal = baseProfile[field] || '';
