@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { calculateApplicationFee } from "../_shared/feeCalculator.ts";
+import { validateStripeMode, getStripeSecretKey } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,6 +39,12 @@ serve(async (req) => {
       );
     }
     logStep("Request parsed", { booking_id, calendar_id, test_mode, payment_method, payment_timing });
+
+    // SECURITY: pin the Stripe mode to the server's STRIPE_MODE — never trust the
+    // client's test_mode (mirrors the customer-portal R73 fix). A public booking
+    // customer is anonymous, so the client param is ignored. We also return the mode
+    // so the Elements UI can pick the matching publishable key (no test/live mismatch).
+    const serverIsTest = validateStripeMode().mode === 'test';
 
     // Get booking details with complete service information including tax config
     const { data: booking, error: bookingError } = await supabaseClient
@@ -153,7 +160,7 @@ serve(async (req) => {
       .from("business_stripe_accounts")
       .select("*")
       .eq("account_owner_id", accountOwnerId)
-      .eq("environment", test_mode ? 'test' : 'live')
+      .eq("environment", serverIsTest ? 'test' : 'live')
       .eq("charges_enabled", true)
       .eq("onboarding_completed", true)
       .order("created_at", { ascending: false })
@@ -165,13 +172,11 @@ serve(async (req) => {
     }
     logStep("Stripe account found", { accountId: stripeAccount.stripe_account_id });
 
-    // Initialize Stripe with appropriate key based on mode
-    const stripeKey = test_mode 
-      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
-      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+    // Initialize Stripe with the server-validated mode's secret key.
+    const stripeKey = getStripeSecretKey(serverIsTest ? 'test' : 'live');
+
     if (!stripeKey) {
-      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+      throw new Error(`Stripe ${serverIsTest ? 'test' : 'live'} secret key not configured`);
     }
     
     const stripe = new Stripe(stripeKey, {
@@ -321,6 +326,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
+        mode: serverIsTest ? 'test' : 'live',
         client_secret: paymentIntent.client_secret,
         payment_intent_id: paymentIntent.id,
         application_fee: feeCalculation.applicationFeeCents,
