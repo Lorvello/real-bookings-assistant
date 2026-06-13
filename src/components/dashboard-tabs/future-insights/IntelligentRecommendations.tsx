@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   TrendingUp, Users, Calendar, Target, Lightbulb, Heart, Zap, UserPlus, 
-  Clock, Euro, BarChart3, CalendarDays, ArrowUp, AlertTriangle, CheckCircle 
+  Clock, Euro, BarChart3, ArrowUp, AlertTriangle, CheckCircle 
 } from 'lucide-react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
@@ -97,9 +97,6 @@ export function IntelligentRecommendations({
       });
     }
 
-    // Customer retention recommendations moved to Performance tab analysis
-    // TODO: Update to use performance data when available
-
     // 5. SINGLE SERVICE RECOMMENDATION
     if (businessIntel?.service_performance && businessIntel.service_performance.length === 1) {
       recommendations.push({
@@ -138,26 +135,10 @@ export function IntelligentRecommendations({
       }
     }
 
-    // 7. WEEKEND OPPORTUNITY
-    const weekendBookings = performance?.peak_hours?.filter(h => {
-      // Assuming peak hours includes weekend data - this is a simplified check
-      return false; // Would need weekend-specific data
-    }) || [];
-    
-    if (weekendBookings.length === 0) {
-      recommendations.push({
-        icon: CalendarDays,
-        title: "Weekend Opportunity!",
-        message: "No weekend appointments detected. Consider opening Saturdays/Sundays to capture additional revenue.",
-        variant: "purple" as const,
-        priority: 3,
-        actionItems: [
-          "Test weekend availability",
-          "Survey customers for weekend demand",
-          "Offer weekend-specific services"
-        ]
-      });
-    }
+    // (Removed "Weekend Opportunity": it was gated on a stub filter that always
+    // returned [], so the recommendation always fired regardless of real weekend
+    // activity — a fake, non-data-driven suggestion. Re-add only once peak_hours
+    // carries day-of-week data to gate it on real Saturday/Sunday bookings.)
 
     // 8. PRICING OPTIMIZATION
     if (performance?.booking_completion_rate !== undefined && performance.booking_completion_rate > 90) {
@@ -190,9 +171,6 @@ export function IntelligentRecommendations({
         ]
       });
     }
-
-    // Customer loyalty recommendations moved to Performance tab analysis
-    // TODO: Update to use performance data when available
 
     // Sort by priority and return top 3 most relevant
     return recommendations
