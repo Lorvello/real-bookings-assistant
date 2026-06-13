@@ -135,147 +135,6 @@ export const useSettingsData = () => {
     }
   };
 
-  // Silent update for profile - no toast (used by batch update)
-  const handleUpdateProfile = async (customProfileData?: any, showToast = true) => {
-    if (!user) return false;
-    
-    setLoading(true);
-    const dataToUse = customProfileData || profileData;
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          full_name: dataToUse.full_name,
-          // email intentionally NOT written here: it is the login email
-          // (auth.users.email) and the settings field is read-only. Writing only
-          // public.users.email would let it diverge from the actual login. A proper
-          // change must go through supabase.auth.updateUser + verification.
-          phone: dataToUse.phone,
-          date_of_birth: dataToUse.date_of_birth || null,
-          // NOTE: gender, language, timezone, avatar_url and the personal address_*
-          // fields are intentionally NOT written here. They have no edit-UI anywhere
-          // and no consumer; the previous code blindly re-wrote them with hardcoded
-          // defaults (e.g. address_country:'Nederland', team_size:'1') on every save,
-          // which could clobber real data. Drop them from the payload entirely.
-          website: dataToUse.website || null,
-          facebook: dataToUse.facebook || null,
-          instagram: dataToUse.instagram || null,
-          linkedin: dataToUse.linkedin || null,
-          tiktok: dataToUse.tiktok || null,
-          youtube: dataToUse.youtube || null,
-          x: dataToUse.x || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Error updating profile:', error);
-        if (showToast) {
-          toast({
-            title: "Error",
-            description: "An error occurred while saving your profile.",
-            variant: "destructive",
-          });
-        }
-        return false;
-      }
-
-      if (showToast) {
-        toast({
-          title: "Success",
-          description: "Your profile has been updated successfully!",
-        });
-      }
-      return true;
-
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      if (showToast) {
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Silent update for business - no toast (used by batch update)
-  const handleUpdateBusiness = async (customBusinessData?: any, showToast = true) => {
-    if (!user) return false;
-    
-    setLoading(true);
-    const dataToUse = customBusinessData || businessData;
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          business_name: dataToUse.business_name || null,
-          business_type: dataToUse.business_type || null,
-          business_type_other: dataToUse.business_type_other || null,
-          business_phone: dataToUse.business_phone || null,
-          business_email: dataToUse.business_email || null,
-          business_whatsapp: dataToUse.business_whatsapp || null,
-          business_street: dataToUse.business_street || null,
-          business_number: dataToUse.business_number || null,
-          business_postal: dataToUse.business_postal || null,
-          business_city: dataToUse.business_city || null,
-          business_country: dataToUse.business_country,
-          business_description: dataToUse.business_description || null,
-          parking_info: dataToUse.parking_info || null,
-          public_transport_info: dataToUse.public_transport_info || null,
-          accessibility_info: dataToUse.accessibility_info || null,
-          other_info: dataToUse.other_info || null,
-          cancellation_policy: dataToUse.cancellation_policy || null,
-          payment_info: dataToUse.payment_info || null,
-          preparation_info: dataToUse.preparation_info || null,
-          show_opening_hours: dataToUse.show_opening_hours,
-          opening_hours_note: dataToUse.opening_hours_note || null,
-          team_size: dataToUse.team_size,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Error updating business:', error);
-        if (showToast) {
-          toast({
-            title: "Error",
-            description: "An error occurred while saving your business information.",
-            variant: "destructive",
-          });
-        }
-        return false;
-      }
-
-      if (showToast) {
-        toast({
-          title: "Success",
-          description: "Your business information has been updated successfully!",
-        });
-      }
-      return true;
-
-    } catch (error) {
-      console.error('Error updating business:', error);
-      if (showToast) {
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred.",
-          variant: "destructive",
-        });
-      }
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Batch update - combines profile and business updates in one call, no individual toasts
   const handleBatchUpdate = async (profileChanges: any, businessChanges: any) => {
     if (!user) return false;
@@ -292,7 +151,8 @@ export const useSettingsData = () => {
           // public.users.email would let it diverge. gender, language, timezone,
           // avatar_url and the personal address_* fields have no edit-UI or consumer and
           // were being blindly re-written with hardcoded defaults on every save (which
-          // could clobber real data) -> dropped here too, matching handleUpdateProfile.
+          // could clobber real data) -> dropped. handleBatchUpdate is now the single
+          // save path (the old per-section handleUpdateProfile/Business were dead).
           full_name: profileChanges.full_name,
           phone: profileChanges.phone,
           date_of_birth: profileChanges.date_of_birth || null,
@@ -361,8 +221,6 @@ export const useSettingsData = () => {
     businessData,
     setBusinessData,
     loading,
-    handleUpdateProfile,
-    handleUpdateBusiness,
     handleBatchUpdate,
     refetch: fetchUserData
   };
