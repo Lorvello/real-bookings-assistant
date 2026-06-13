@@ -15,6 +15,16 @@ export const SetupIncompleteOverlay: React.FC<SetupIncompleteOverlayProps> = ({ 
   // Show exactly which steps are still missing instead of a vague "finish setup".
   const remaining = allSteps.filter((s) => !s.completed);
 
+  // Send the CTA straight to the first missing step (same routes as the
+  // OnboardingWizard) instead of dumping the user on /dashboard to hunt for it.
+  const stepRoutes: Record<string, string> = {
+    business_info: '/settings?tab=knowledge',
+    service_types: '/settings?tab=services',
+    calendar_creation: '/settings',
+    availability: '/availability',
+  };
+  const setupTarget = remaining[0] ? (stepRoutes[remaining[0].key] ?? '/settings') : '/dashboard';
+
   return (
     <div className="relative">
       {/* Background content */}
@@ -59,7 +69,7 @@ export const SetupIncompleteOverlay: React.FC<SetupIncompleteOverlayProps> = ({ 
             )}
 
             <Button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(setupTarget)}
               className="bg-primary hover:bg-primary/90 text-white"
               size="lg"
             >
