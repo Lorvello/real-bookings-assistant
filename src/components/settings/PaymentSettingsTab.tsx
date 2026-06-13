@@ -899,7 +899,7 @@ export function PaymentSettingsTab() {
                 {/* Standard Payout Card */}
                 <div className="relative">
                   <input type="radio" id="standard-payout" name="payout-option" className="sr-only peer" checked={selectedPayoutOption === 'standard'} onChange={() => setSelectedPayoutOption('standard')} />
-                  <label htmlFor="standard-payout" className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-slate-800/50">
+                  <label htmlFor="standard-payout" className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-muted">
                     <div className="mb-2">
                       <div className="font-semibold text-foreground">Standard Payout</div>
                     </div>
@@ -955,7 +955,7 @@ export function PaymentSettingsTab() {
                 {/* Instant Payout Card */}
                 <div className="relative">
                   <input type="radio" id="instant-payout" name="payout-option" className="sr-only peer" checked={selectedPayoutOption === 'instant'} onChange={() => setSelectedPayoutOption('instant')} />
-                  <label htmlFor="instant-payout" className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-slate-800/50">
+                  <label htmlFor="instant-payout" className="block cursor-pointer p-4 bg-background border-2 border-border rounded-lg transition-all duration-200 hover:border-primary/50 peer-checked:border-primary peer-checked:bg-muted">
                     <div className="mb-2">
                       <div className="font-semibold text-foreground">Instant Payout</div>
                     </div>
