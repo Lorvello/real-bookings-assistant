@@ -22,62 +22,15 @@ import { cn } from '@/lib/utils';
 import PhoneInput from 'react-phone-number-input';
 import { parsePhoneNumber, isValidPhoneNumber } from 'react-phone-number-input';
 import './phone-input.css';
-import { COMPREHENSIVE_TIMEZONES } from '@/components/availability/TimezoneData';
-import { SearchableSelect } from './SearchableSelect';
 import { CountryPhoneInput } from './CountryPhoneInput';
 import { EnhancedDatePicker } from './EnhancedDatePicker';
 import { businessTypes } from '@/constants/settingsOptions';
 import ReactSelect from 'react-select';
 import { SetPasswordSection } from './SetPasswordSection';
 
-
-// Enhanced language options - alphabetically sorted with more languages
-const LANGUAGE_OPTIONS = [
-  { value: 'ar', label: '🇸🇦 العربية (Arabic)' },
-  { value: 'bg', label: '🇧🇬 Български (Bulgarian)' },
-  { value: 'ca', label: '🇪🇸 Català (Catalan)' },
-  { value: 'cs', label: '🇨🇿 Čeština (Czech)' },
-  { value: 'da', label: '🇩🇰 Dansk (Danish)' },
-  { value: 'de', label: '🇩🇪 Deutsch (German)' },
-  { value: 'el', label: '🇬🇷 Ελληνικά (Greek)' },
-  { value: 'en', label: '🇺🇸 English' },
-  { value: 'es', label: '🇪🇸 Español (Spanish)' },
-  { value: 'et', label: '🇪🇪 Eesti (Estonian)' },
-  { value: 'fi', label: '🇫🇮 Suomi (Finnish)' },
-  { value: 'fr', label: '🇫🇷 Français (French)' },
-  { value: 'he', label: '🇮🇱 עברית (Hebrew)' },
-  { value: 'hi', label: '🇮🇳 हिन्दी (Hindi)' },
-  { value: 'hr', label: '🇭🇷 Hrvatski (Croatian)' },
-  { value: 'hu', label: '🇭🇺 Magyar (Hungarian)' },
-  { value: 'id', label: '🇮🇩 Bahasa Indonesia (Indonesian)' },
-  { value: 'it', label: '🇮🇹 Italiano (Italian)' },
-  { value: 'ja', label: '🇯🇵 日本語 (Japanese)' },
-  { value: 'ko', label: '🇰🇷 한국어 (Korean)' },
-  { value: 'lt', label: '🇱🇹 Lietuvių (Lithuanian)' },
-  { value: 'lv', label: '🇱🇻 Latviešu (Latvian)' },
-  { value: 'ms', label: '🇲🇾 Bahasa Melayu (Malay)' },
-  { value: 'nl', label: '🇳🇱 Nederlands (Dutch)' },
-  { value: 'no', label: '🇳🇴 Norsk (Norwegian)' },
-  { value: 'pl', label: '🇵🇱 Polski (Polish)' },
-  { value: 'pt', label: '🇵🇹 Português (Portuguese)' },
-  { value: 'ro', label: '🇷🇴 Română (Romanian)' },
-  { value: 'ru', label: '🇷🇺 Русский (Russian)' },
-  { value: 'sk', label: '🇸🇰 Slovenčina (Slovak)' },
-  { value: 'sl', label: '🇸🇮 Slovenščina (Slovenian)' },
-  { value: 'sv', label: '🇸🇪 Svenska (Swedish)' },
-  { value: 'th', label: '🇹🇭 ไทย (Thai)' },
-  { value: 'tr', label: '🇹🇷 Türkçe (Turkish)' },
-  { value: 'uk', label: '🇺🇦 Українська (Ukrainian)' },
-  { value: 'vi', label: '🇻🇳 Tiếng Việt (Vietnamese)' },
-  { value: 'zh', label: '🇨🇳 中文 (Chinese)' },
-];
-
-// Convert comprehensive timezones to searchable format
-const TIMEZONE_OPTIONS = COMPREHENSIVE_TIMEZONES.map(tz => ({
-  value: tz.value,
-  label: tz.label,
-  searchText: `${tz.label} UTC${tz.offset >= 0 ? '+' : ''}${tz.offset}`
-}));
+// NOTE: LANGUAGE_OPTIONS / TIMEZONE_OPTIONS (and the SearchableSelect +
+// COMPREHENSIVE_TIMEZONES imports) were removed together with the dead
+// Language/Timezone profile selects. They had no consumer anywhere in the app.
 
 interface UserManagementProps {
   externalBusinessData?: any;
@@ -509,37 +462,20 @@ export const UserManagement = ({
                       <EnhancedDatePicker
                         value={localProfileData.date_of_birth ? new Date(localProfileData.date_of_birth) : undefined}
                         onChange={(date) => {
-                          if (date) {
-                            updateLocalProfile('date_of_birth', format(date, 'yyyy-MM-dd'));
-                          }
+                          // Pass '' when cleared so the user can actually remove a DOB
+                          // (the save layer coalesces '' -> null). The old `if (date)`
+                          // guard silently swallowed clears, making DOB un-removable.
+                          updateLocalProfile('date_of_birth', date ? format(date, 'yyyy-MM-dd') : '');
                         }}
                         placeholder="Select your date of birth"
                       />
                     </div>
 
-                    {/* Language */}
-                    <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Language</Label>
-                      <SearchableSelect
-                        value={localProfileData.language || 'nl'}
-                        onValueChange={(value) => updateLocalProfile('language', value)}
-                        options={LANGUAGE_OPTIONS}
-                        placeholder="Select language"
-                        searchPlaceholder="Search languages..."
-                      />
-                    </div>
-
-                    {/* Timezone */}
-                    <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Timezone</Label>
-                      <SearchableSelect
-                        value={localProfileData.timezone || 'Europe/Amsterdam'}
-                        onValueChange={(value) => updateLocalProfile('timezone', value)}
-                        options={TIMEZONE_OPTIONS}
-                        placeholder="Select timezone"
-                        searchPlaceholder="Search timezones..."
-                      />
-                    </div>
+                    {/* NOTE: the Language and Timezone selects were removed here.
+                        Neither had a consumer: users.language is read nowhere, and the
+                        WhatsApp agent reads calendars.timezone (per-calendar), never
+                        users.timezone. They presented as working controls but changed
+                        nothing, which is misleading. Re-add only when a real consumer exists. */}
                   </div>
 
                 </div>

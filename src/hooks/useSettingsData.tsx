@@ -150,15 +150,11 @@ export const useSettingsData = () => {
           email: dataToUse.email,
           phone: dataToUse.phone,
           date_of_birth: dataToUse.date_of_birth || null,
-          gender: dataToUse.gender || null,
-          language: dataToUse.language,
-          timezone: dataToUse.timezone,
-          avatar_url: dataToUse.avatar_url || null,
-          address_street: dataToUse.address_street || null,
-          address_number: dataToUse.address_number || null,
-          address_postal: dataToUse.address_postal || null,
-          address_city: dataToUse.address_city || null,
-          address_country: dataToUse.address_country,
+          // NOTE: gender, language, timezone, avatar_url and the personal address_*
+          // fields are intentionally NOT written here. They have no edit-UI anywhere
+          // and no consumer; the previous code blindly re-wrote them with hardcoded
+          // defaults (e.g. address_country:'Nederland', team_size:'1') on every save,
+          // which could clobber real data. Drop them from the payload entirely.
           website: dataToUse.website || null,
           facebook: dataToUse.facebook || null,
           instagram: dataToUse.instagram || null,
