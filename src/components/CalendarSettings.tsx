@@ -60,11 +60,7 @@ export function CalendarSettings({
               </p>
             </CardHeader>
             <CardContent>
-              <GlobalSettings 
-                settings={settings} 
-                onUpdate={updatePendingSettings} 
-                calendarId={calendarId}
-              />
+              <GlobalSettings />
             </CardContent>
           </Card>
 

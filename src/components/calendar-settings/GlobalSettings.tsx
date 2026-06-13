@@ -7,14 +7,7 @@ import { useGlobalBotStatus } from '@/hooks/useGlobalBotStatus';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { WhatsAppUpgradeModal } from './WhatsAppUpgradeModal';
 
-interface GlobalSettingsProps {
-  // Legacy props for compatibility - not used anymore
-  settings?: any;
-  onUpdate?: (updates: any) => void;
-  calendarId?: string;
-}
-
-export function GlobalSettings({}: GlobalSettingsProps) {
+export function GlobalSettings() {
   const { data: botStatus, isLoading, toggleBot, isToggling } = useGlobalBotStatus();
   const { accessControl, userStatus } = useAccessControl();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
