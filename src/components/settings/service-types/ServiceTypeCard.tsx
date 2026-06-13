@@ -56,10 +56,15 @@ export function ServiceTypeCard({ service, onEdit, onDelete, onInstallmentConfig
               />
               <InstallmentBadge 
                 enabled={!!(service as any).installments_enabled}
-                plan={(service as any).custom_installment_plan ? 
-                  JSON.parse((service as any).custom_installment_plan) : 
-                  undefined
-                }
+                plan={(() => {
+                  // custom_installment_plan is a jsonb column -> supabase-js already
+                  // returns a parsed object. JSON.parse on an object throws (white
+                  // card on the Services page). Parse only the legacy string case;
+                  // otherwise use the object as-is.
+                  const p = (service as any).custom_installment_plan;
+                  if (!p) return undefined;
+                  return typeof p === 'string' ? JSON.parse(p) : p;
+                })()}
                 isOverride={!!(service as any).installments_enabled}
               />
             </div>
