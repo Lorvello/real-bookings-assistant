@@ -128,6 +128,24 @@ Deno.serve(async (req) => {
       );
     }
 
+    // PAY & BOOK AFDWINGING (autoritatief, server-side). Lees de payment-settings van
+    // deze kalender. Heeft de ondernemer 'beveiligd betalen' + 'betaling verplicht'
+    // aanstaan (en is betaling niet optioneel), dan mag dit endpoint GEEN gratis,
+    // bevestigd-ogende boeking opleveren: de boeking wordt als ONBETAALD (pending)
+    // vastgehouden en de bevestigingsmail volgt pas NA betaling, niet hier. Anders
+    // verliest de ondernemer de vooruitbetaling + de platform-fee, en wekt de
+    // boeking valselijk de indruk bevestigd te zijn (audit CRITICAL — Pay & Book).
+    const { data: paymentSettings } = await supabaseClient
+      .from('payment_settings')
+      .select('secure_payments_enabled, payment_required_for_booking, payment_optional')
+      .eq('calendar_id', calendar.id)
+      .maybeSingle();
+
+    const paymentRequired =
+      paymentSettings?.secure_payments_enabled === true &&
+      paymentSettings?.payment_required_for_booking === true &&
+      paymentSettings?.payment_optional !== true;
+
     // Create booking in database
     const { data: booking, error: bookingError } = await supabaseClient
       .from('bookings')
@@ -141,7 +159,11 @@ Deno.serve(async (req) => {
         end_time: sanitized.endTime,
         notes: sanitized.notes,
         status: 'pending',
-        confirmation_token: crypto.randomUUID()
+        confirmation_token: crypto.randomUUID(),
+        // Markeer de boeking expliciet als onbetaald wanneer betaling vereist is, zodat
+        // de betaal-flow (create-booking-payment) + eventuele auto-cancel-unpaid hierop
+        // kunnen acteren en de boeking niet als 'klaar' telt.
+        ...(paymentRequired ? { payment_required: true, payment_status: 'pending' } : {})
       })
       .select()
       .single();
@@ -162,22 +184,29 @@ Deno.serve(async (req) => {
     // LR-R57: stuur de klant een bevestigingsmail. Web-klanten hebben geen
     // WhatsApp-chat waarin de agent bevestigt, dus zonder dit krijgen ze niets.
     // Fire-and-forget: een mailfout mag de geslaagde boeking nooit breken.
-    try {
-      await supabaseClient.functions.invoke('send-booking-confirmation', {
-        body: { booking_id: booking.id },
-      });
-    } catch (mailErr) {
-      console.error('Bevestigingsmail mislukt (niet-fataal):', mailErr);
+    // PAY & BOOK: bij een verplichte betaling is de boeking nog NIET definitief —
+    // de bevestiging volgt pas na een geslaagde betaling, dus hier NIET mailen.
+    if (!paymentRequired) {
+      try {
+        await supabaseClient.functions.invoke('send-booking-confirmation', {
+          body: { booking_id: booking.id },
+        });
+      } catch (mailErr) {
+        console.error('Bevestigingsmail mislukt (niet-fataal):', mailErr);
+      }
     }
 
+    // payment_required vertelt de frontend dat de boeking nog betaald moet worden
+    // (→ betaal-flow) i.p.v. 'Boeking aangemaakt' te tonen. De boeking bestaat al
+    // (pending) zodat create-booking-payment er via id + confirmation_token op kan haken.
     return new Response(
-      JSON.stringify({ success: true, booking }),
-      { 
-        headers: { 
-          ...corsHeaders, 
+      JSON.stringify({ success: true, payment_required: paymentRequired, booking }),
+      {
+        headers: {
+          ...corsHeaders,
           ...RateLimiter.getRateLimitHeaders(rateLimitResult),
-          'Content-Type': 'application/json' 
-        } 
+          'Content-Type': 'application/json'
+        }
       }
     );
 

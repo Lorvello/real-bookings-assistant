@@ -21,6 +21,7 @@ interface BookingResult {
   success: boolean;
   booking?: any;
   error?: string;
+  payment_required?: boolean;
 }
 
 export const usePublicBookingCreation = () => {
@@ -198,21 +199,27 @@ export const usePublicBookingCreation = () => {
       }
 
       const booking = data.booking;
-
+      // PAY & BOOK: de server geeft payment_required=true terug wanneer de ondernemer
+      // vooruitbetaling verplicht heeft. De boeking is dan nog NIET bevestigd — niet
+      // 'succesvol' tonen, maar de betaal-flow laten starten (PublicBooking).
+      const paymentRequired = data.payment_required === true;
 
       // Log successful booking creation
-      secureLogger.success('Booking created successfully', { 
+      secureLogger.success('Booking created successfully', {
         component: 'usePublicBookingCreation',
-        bookingId: booking.id 
+        bookingId: booking.id
       });
 
-      toast({
-        title: "Boeking aangemaakt",
-        description: "Je boeking is succesvol aangemaakt.",
-      });
+      if (!paymentRequired) {
+        toast({
+          title: "Boeking aangemaakt",
+          description: "Je boeking is succesvol aangemaakt.",
+        });
+      }
 
       return {
         success: true,
+        payment_required: paymentRequired,
         booking
       };
     } catch (error: any) {
