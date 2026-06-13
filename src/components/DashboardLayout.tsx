@@ -107,7 +107,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <AuthenticatedPageWrapper>
       <TooltipProvider delayDuration={0} skipDelayDuration={0}>
-        <div className="flex h-full bg-gray-900 w-full relative overflow-hidden">
+        <div className="flex h-full bg-background w-full relative overflow-hidden">
       {/* Mobile Overlay */}
       {isMobile && isSidebarOpen && (
         <div 

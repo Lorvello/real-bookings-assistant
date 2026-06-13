@@ -22,20 +22,22 @@ export default {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
 			colors: {
+				'surface-1': 'hsl(var(--surface-1))',
+				'subtle-foreground': 'hsl(var(--subtle-foreground))',
 				// Bookings Assistant Design System Colors
 				primary: {
-					DEFAULT: '#10B981', // Primary green for CTAs and highlights
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--primary))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: '#34D399', // Lighter green tint
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				background: {
-					DEFAULT: '#1F2937', // Dark grey-blue
-					secondary: '#111827' // Even darker for contrast
+					DEFAULT: 'hsl(var(--background))',
+					secondary: 'hsl(var(--surface-1))'
 				},
-				foreground: '#FFFFFF', // Primary text
+				foreground: 'hsl(var(--foreground))',
 				
 				// Accent colors
 				whatsapp: {
@@ -48,30 +50,30 @@ export default {
 					'msg-bg': '#dcf8c6',
 					header: '#25D366'
 				},
-				success: '#10B981',
-				warning: '#F59E0B',
-				destructive: '#EF4444',
+				success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+				warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+				destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
 				
 				// Additional design system colors
 				card: {
-					DEFAULT: '#1F2937',
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--card))',
+					foreground: 'hsl(var(--card-foreground))'
 				},
-				border: '#374151', // Subtle border for cards
-				input: '#374151',
-				ring: '#10B981',
+				border: 'hsl(var(--border))',
+				input: 'hsl(var(--input))',
+				ring: 'hsl(var(--ring))',
 				
 				muted: {
-					DEFAULT: '#374151',
-					foreground: '#9CA3AF' // Secondary text
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#34D399',
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
-					DEFAULT: '#1F2937',
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--popover))',
+					foreground: 'hsl(var(--popover-foreground))'
 				},
 				
 				// Chat specific colors
