@@ -81,6 +81,8 @@ export function ServiceTypeForm({
   const navigate = useNavigate();
   const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
   const [previousTaxBehavior] = useState(formData.tax_behavior);
+  // Surface WHY Save is disabled instead of a silently-greyed button.
+  const [nameTouched, setNameTouched] = useState(false);
 
   // Validation function
   const isValidForm = () => {
@@ -114,9 +116,17 @@ export function ServiceTypeForm({
             type="text"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
+            onBlur={() => setNameTouched(true)}
+            className={`w-full p-3 border rounded-md bg-background text-foreground focus:ring-2 focus:border-transparent ${
+              nameTouched && !formData.name.trim()
+                ? 'border-red-500 focus:ring-red-600'
+                : 'border-border focus:ring-primary'
+            }`}
             placeholder="e.g. Haircut"
           />
+          {nameTouched && !formData.name.trim() && (
+            <p className="mt-1 text-xs text-red-400">Service name is required.</p>
+          )}
         </div>
         
         <div>
