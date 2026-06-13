@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { CalendarBasicSettings } from './calendar-settings/CalendarBasicSettings';
 import { CalendarPolicySettings } from './calendar-settings/CalendarPolicySettings';
 import { CalendarRequiredFields } from './calendar-settings/CalendarRequiredFields';
 import { GlobalSettings } from './calendar-settings/GlobalSettings';
@@ -73,26 +72,9 @@ export function CalendarSettings({
         </>
       )}
 
-      {/* Per-Calendar Settings */}
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground">Per-Calendar Settings</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Settings specific to {selectedCalendar?.name || 'this calendar'}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <CalendarBasicSettings 
-            settings={settings} 
-            onUpdate={updatePendingSettings} 
-            calendarName={selectedCalendar?.name} 
-            onUpdateCalendarName={updateCalendarName} 
-            calendarId={calendarId}
-          />
-        </CardContent>
-      </Card>
-
-      <Separator />
+      {/* (Removed the "Per-Calendar Settings" card: it contained only a disabled
+          "Booking Notifications — Coming Soon" toggle, i.e. an empty/dead card that
+          undermined the premium feel. Re-add when a real per-calendar setting lands.) */}
 
       {/* Booking Policies */}
       <Card className="border-border">
