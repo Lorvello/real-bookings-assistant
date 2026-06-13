@@ -29,7 +29,7 @@ export const SettingsLayout = () => {
   // Handle tab from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['users', 'knowledge', 'operations', 'services', 'payments', 'tax', 'billing'].includes(tabParam)) {
+    if (tabParam && ['users', 'knowledge', 'operations', 'services', 'payments', 'billing'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -92,10 +92,7 @@ export const SettingsLayout = () => {
                 }`} />
                 <span className="text-xs md:text-sm">Pay & Book</span>
                 {userStatus.isSetupIncomplete && (
-                  <>
-                    <Lock className="h-3 w-3 md:h-4 md:w-4 text-gray-500" />
-                    <Lock className="absolute -top-1 -right-1 h-3 w-3 text-red-400" />
-                  </>
+                  <Lock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
                 )}
               </TabsTrigger>
               {/* (Removed the disabled "Tax — Soon" tab: a permanently greyed-out
