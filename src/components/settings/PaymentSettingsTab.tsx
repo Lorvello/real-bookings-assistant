@@ -20,7 +20,6 @@ import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import { ResearchModal } from './ResearchModal';
-import { StripeEmbeddedOnboardingModal } from './StripeEmbeddedOnboardingModal';
 import { StripeModeIndicator } from '@/components/developer/StripeModeIndicator';
 import { getStripeConfig, isTestMode } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
@@ -178,11 +177,8 @@ export function PaymentSettingsTab() {
   const { profile, refetch: refetchProfile } = useProfile();
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
-  const [platformFee, setPlatformFee] = useState('1.90');
-  const [paymentDeadline, setPaymentDeadline] = useState('24');
   const [refundPolicy, setRefundPolicy] = useState('');
   const [researchModal, setResearchModal] = useState<'no-shows' | 'cashflow' | 'compliance' | 'professionalism' | null>(null);
-  const [showEmbeddedOnboarding, setShowEmbeddedOnboarding] = useState(false);
   const [feesInfoOpen, setFeesInfoOpen] = useState(false);
   const [fundFlowOpen, setFundFlowOpen] = useState(false);
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
@@ -221,8 +217,6 @@ export function PaymentSettingsTab() {
   }, [isAccountOwner, accountOwnerId, roleLoading, searchParams, setSearchParams]);
   useEffect(() => {
     if (settings) {
-      setPlatformFee(settings.platform_fee_percentage.toString());
-      setPaymentDeadline(settings.payment_deadline_hours.toString());
       setRefundPolicy(settings.refund_policy_text || '');
     }
   }, [settings]);
@@ -477,46 +471,6 @@ export function PaymentSettingsTab() {
         description: "Failed to start onboarding",
         variant: "destructive"
       });
-    }
-  };
-  const handleOnboardingComplete = async () => {
-    setShowEmbeddedOnboarding(false);
-    console.log('[PAYMENT SETTINGS] Onboarding completed, refreshing all data...');
-    
-    try {
-      // Step 1: Refresh Stripe account status
-      const refreshedAccount = await refreshAccountStatus();
-      if (refreshedAccount) {
-        setStripeAccount(refreshedAccount);
-        console.log('[PAYMENT SETTINGS] Account refreshed:', {
-          onboarding_completed: refreshedAccount.onboarding_completed,
-          charges_enabled: refreshedAccount.charges_enabled,
-          payouts_enabled: refreshedAccount.payouts_enabled
-        });
-      }
-
-      // Step 2: Clear session storage cache
-      sessionStorage.clear();
-      
-      // Step 3: Refresh profile and invalidate user status cache
-      await refetchProfile();
-      await invalidateCache();
-      
-      // Step 4: Show success and reload page to ensure clean state
-      toast({
-        title: "Stripe setup completed!",
-        description: "Your account is ready. Refreshing page...",
-      });
-      
-      // Reload after short delay to ensure all caches are cleared
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-      
-    } catch (error) {
-      console.error('[PAYMENT SETTINGS] Error during completion:', error);
-      // Force reload as fallback
-      window.location.reload();
     }
   };
   const handleResetStripeConnection = async () => {
@@ -1661,21 +1615,6 @@ export function PaymentSettingsTab() {
 
       {/* Research Modal */}
       <ResearchModal type={researchModal} onClose={() => setResearchModal(null)} />
-
-      {/* Embedded Onboarding Modal */}
-      {showEmbeddedOnboarding && <StripeEmbeddedOnboardingModal isOpen={showEmbeddedOnboarding} onComplete={() => {
-      // Refresh account status after completion
-      refreshAccountStatus().then(account => {
-        if (account) {
-          setStripeAccount(account);
-        }
-      });
-      setShowEmbeddedOnboarding(false);
-      toast({
-        title: "Setup Complete!",
-        description: "Your Stripe account is ready to accept payments."
-      });
-    }} onClose={() => setShowEmbeddedOnboarding(false)} />}
 
       {/* Currency Conversion Modal */}
       {currencyConversionModalOpen && <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setCurrencyConversionModalOpen(false)}>
