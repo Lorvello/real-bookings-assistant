@@ -41,38 +41,57 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 142 69% 58%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 142 69% 58%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 94.1%;
-    --sidebar-primary-foreground: 240 5.9% 10%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 10.6% 64.9%;
+    /* PREMIUM dark token system (see ~/Bookings Assistant/PREMIUM_DESIGN_PLAYBOOK.md
+       §2). Depth comes from a layered surface ladder (~+3-4% L per rung), NOT from
+       drop-shadows. One blue accent; green is freed for the "confirmed" status. */
+
+    /* surface ladder */
+    --background: 224 24% 5%;          /* #0B0D11 canvas */
+    --surface-1: 224 20% 7%;           /* #10131A sidebar / topbar */
+    --card: 224 18% 9%;                /* #15181F raised card (+4%, the key fix) */
+    --card-foreground: 210 20% 96%;
+    --popover: 224 16% 14%;            /* #1F232D dropdowns / modals / tooltips */
+    --popover-foreground: 210 20% 96%;
+    --secondary: 224 16% 12%;          /* #1A1E27 surface-2 / secondary buttons */
+    --secondary-foreground: 210 20% 96%;
+    --muted: 224 16% 12%;              /* surface-2 / hover rows / table header / inputs */
+
+    /* 3-tier off-white text ramp (all >= 4.5:1, never pure white) */
+    --foreground: 210 20% 96%;         /* #EEF0F3 primary (AAA) */
+    --muted-foreground: 215 14% 65%;   /* #A2A9B4 secondary (7.5:1) */
+    --subtle-foreground: 216 9% 50%;   /* #767C87 tertiary / placeholders (4.6:1) */
+
+    /* one accent (blue #0070F3) */
+    --primary: 214 100% 48%;
+    --primary-foreground: 0 0% 100%;
+    --accent: 214 90% 52%;             /* used at /0.12 as the selected wash */
+    --accent-foreground: 214 95% 72%;  /* #5AA9FF accent text + links */
+    --ring: 214 100% 56%;
+
+    /* hairline fallbacks (prefer border-white/[0.05-0.16] in classes) */
+    --border: 220 9% 18%;
+    --input: 220 9% 20%;
+
+    /* semantics */
+    --destructive: 0 84% 60%;          --destructive-foreground: 0 90% 71%;
+    --success: 142 71% 45%;            --success-foreground: 142 70% 62%;
+    --warning: 38 95% 54%;             --warning-foreground: 38 95% 66%;
+
+    --radius: 0.75rem;                 /* 12px cards; buttons/inputs derive 8px */
+
+    --chart-1: 214 100% 48%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 38 95% 54%;
+    --chart-4: 262 83% 62%;
+    --chart-5: 0 84% 60%;
+    --sidebar-background: 224 20% 7%;
+    --sidebar-foreground: 215 14% 65%;
+    --sidebar-primary: 214 100% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 16% 12%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 220 9% 18%;
+    --sidebar-ring: 214 100% 56%;
   }
 }
 
@@ -87,6 +106,16 @@
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    /* Premium type polish (PLAYBOOK §3): Inter stylistic sets + ligatures globally;
+       tabular figures on all numerics so columns never jitter. */
+    font-feature-settings: "cv11", "ss01", "calt", "liga";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  /* Booking counts, times, prices, table cells: tabular + slashed zero. */
+  table, .tabular-nums, [data-numeric] {
+    font-feature-settings: "tnum", "zero", "cv11", "ss01";
   }
   
   html {
