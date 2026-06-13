@@ -51,14 +51,14 @@ export function useBotStatus(calendarId?: string) {
       queryClient.invalidateQueries({ queryKey: ['bot-status', calendarId] });
       
       toast({
-        title: isActive ? "WhatsApp Bot geactiveerd" : "WhatsApp Bot gepauzeerd",
-        description: isActive ? "Je bot is nu actief en reageert op berichten" : "Je bot is gepauzeerd",
+        title: isActive ? "WhatsApp bot activated" : "WhatsApp bot paused",
+        description: isActive ? "Your bot is now active and responding to messages" : "Your bot is paused",
       });
     },
     onError: (error) => {
       toast({
-        title: "Fout bij wijzigen bot status",
-        description: error instanceof Error ? error.message : "Onbekende fout",
+        title: "Error changing bot status",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     },
