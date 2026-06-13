@@ -60,7 +60,7 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
             <div className="relative p-4 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-500/20 rounded-xl">
               <div className="flex items-center gap-3 mb-2">
                 <Euro className="h-4 w-4 text-emerald-400" />
-                <span className="text-sm font-medium text-emerald-300">Hoogste Omzet</span>
+                <span className="text-sm font-medium text-emerald-300">Highest Revenue</span>
               </div>
               <p className="text-lg font-bold text-slate-100">{topRevenueService.service_name}</p>
               <p className="text-sm text-slate-400">€{maxRevenue.toFixed(2)}</p>
@@ -84,7 +84,7 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
             <div className="relative p-4 bg-gradient-to-br from-purple-500/10 to-fuchsia-500/5 border border-purple-500/20 rounded-xl">
               <div className="flex items-center gap-3 mb-2">
                 <TrendingUp className="h-4 w-4 text-purple-400" />
-                <span className="text-sm font-medium text-purple-300">Hoogste Gemiddelde</span>
+                <span className="text-sm font-medium text-purple-300">Highest Average</span>
               </div>
               <p className="text-lg font-bold text-slate-100">{topAvgPriceService.service_name}</p>
               <p className="text-sm text-slate-400">€{topAvgPriceService.avg_price.toFixed(2)} gem.</p>

@@ -32,7 +32,7 @@ export function ChartTooltip({ active, payload, label }: any) {
                       <Euro className="h-4 w-4 text-emerald-400" />
                     )}
                     <span className="text-sm text-slate-300">
-                      {entry.dataKey === 'booking_count' ? 'Boekingen' : 'Omzet'}
+                      {entry.dataKey === 'booking_count' ? 'Bookings' : 'Revenue'}
                     </span>
                   </div>
                 </div>

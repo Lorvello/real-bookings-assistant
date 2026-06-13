@@ -13,7 +13,7 @@ export const DashboardMetrics = () => {
         <Card className="bg-gray-800/50 border-gray-700">
           <CardContent className="p-6 text-center">
             <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-400">Selecteer een kalender om metrics te bekijken</p>
+            <p className="text-gray-400">Select a calendar to view metrics</p>
           </CardContent>
         </Card>
       </div>
@@ -49,7 +49,7 @@ export const DashboardMetrics = () => {
 
   const metricCards = [
     {
-      title: 'Vandaag',
+      title: 'Today',
       value: metrics.today_bookings,
       icon: Calendar,
       color: 'text-blue-400',
@@ -65,28 +65,28 @@ export const DashboardMetrics = () => {
       suffix: metrics.pending_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'Deze Week',
+      title: 'This Week',
       value: metrics.week_bookings,
       icon: TrendingUp,
       color: 'text-green-400',
       bgColor: 'bg-green-900/20',
-      suffix: metrics.week_bookings === 1 ? ' afspraak' : ' afspraken'
+      suffix: metrics.week_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'Deze Maand',
+      title: 'This Month',
       value: metrics.month_bookings,
       icon: Users,
       color: 'text-purple-400',
       bgColor: 'bg-purple-900/20',
-      suffix: metrics.month_bookings === 1 ? ' afspraak' : ' afspraken'
+      suffix: metrics.month_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'Omzet',
+      title: 'Revenue',
       value: `€${metrics.total_revenue.toFixed(2)}`,
       icon: Euro,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-900/20',
-      suffix: ' deze maand'
+      suffix: ' this month'
     },
     {
       title: 'Conversie',

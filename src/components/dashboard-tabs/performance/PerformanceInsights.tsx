@@ -16,36 +16,36 @@ export function PerformanceInsights({
   calendarUtilization 
 }: PerformanceInsightsProps) {
   const getResponseTimeInsight = () => {
-    if (!avgResponseTime) return "Nog geen reactietijd data beschikbaar.";
-    if (avgResponseTime < 5) return "Uitstekende reactietijd! Klanten krijgen snel antwoord.";
-    if (avgResponseTime < 15) return "Goede reactietijd, maar er is ruimte voor verbetering.";
-    return "Reactietijd kan verbeterd worden voor betere klanttevredenheid.";
+    if (!avgResponseTime) return "No response time data available yet.";
+    if (avgResponseTime < 5) return "Excellent response time! Customers get quick replies.";
+    if (avgResponseTime < 15) return "Good response time, but there's room for improvement.";
+    return "Response time could be improved for better customer satisfaction.";
   };
 
   const getNoShowInsight = () => {
-    if (noShowRate === undefined) return "Nog geen no-show data beschikbaar.";
+    if (noShowRate === undefined) return "No no-show data available yet.";
     if (noShowRate < 5) return "Lage no-show rate toont goede klantbetrokkenheid.";
     if (noShowRate < 15) return "Gemiddelde no-show rate, overweeg herinneringen te versturen.";
     return "Hoge no-show rate - versterk je reminder systeem.";
   };
 
   const getCancellationInsight = () => {
-    if (cancellationRate === undefined) return "Nog geen annulering data beschikbaar.";
-    if (cancellationRate < 10) return "Lage annuleringsrate toont tevreden klanten.";
+    if (cancellationRate === undefined) return "No cancellation data available yet.";
+    if (cancellationRate < 10) return "Low cancellation rate shows satisfied customers.";
     if (cancellationRate < 25) return "Gemiddelde annuleringsrate, monitor trends.";
     return "Hoge annuleringsrate - analyseer mogelijke oorzaken.";
   };
 
   const getUtilizationInsight = () => {
-    if (calendarUtilization === undefined) return "Nog geen bezettingsdata beschikbaar.";
-    if (calendarUtilization > 80) return "Hoge kalender bezetting - overweeg extra capaciteit.";
-    if (calendarUtilization > 60) return "Goede kalender bezetting met ruimte voor groei.";
-    return "Kalender bezetting kan verbeterd worden met marketing.";
+    if (calendarUtilization === undefined) return "No utilization data available yet.";
+    if (calendarUtilization > 80) return "High calendar utilization - consider adding capacity.";
+    if (calendarUtilization > 60) return "Good calendar utilization with room to grow.";
+    return "Calendar utilization could be improved with marketing.";
   };
 
   const insights = [
     {
-      title: "Reactietijd Optimalisatie",
+      title: "Response Time Optimization",
       insight: getResponseTimeInsight(),
       icon: Clock,
       variant: "blue" as const
@@ -57,7 +57,7 @@ export function PerformanceInsights({
       variant: "blue" as const
     },
     {
-      title: "Annulering Management",
+      title: "Cancellation Management",
       insight: getCancellationInsight(),
       icon: Users,
       variant: "blue" as const

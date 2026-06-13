@@ -173,7 +173,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               axisLine={{ stroke: 'rgb(59, 130, 246)', strokeWidth: 2, opacity: 0.8 }}
               tickLine={{ stroke: 'rgb(59, 130, 246)', strokeWidth: 1, opacity: 0.6 }}
               label={{ 
-                value: 'Aantal Boekingen', 
+                value: 'Number of Bookings', 
                 angle: -90, 
                 position: 'insideLeft',
                 style: { textAnchor: 'middle', fill: 'rgb(59, 130, 246)', fontSize: 12, fontWeight: 600 }
@@ -188,7 +188,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               axisLine={{ stroke: 'rgb(16, 185, 129)', strokeWidth: 2, opacity: 0.8 }}
               tickLine={{ stroke: 'rgb(16, 185, 129)', strokeWidth: 1, opacity: 0.6 }}
               label={{ 
-                value: 'Omzet (€)', 
+                value: 'Revenue (€)', 
                 angle: 90, 
                 position: 'insideRight',
                 style: { textAnchor: 'middle', fill: 'rgb(16, 185, 129)', fontSize: 12, fontWeight: 600 }
@@ -210,7 +210,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               dataKey="booking_count" 
               fill="url(#enhancedBookingGradient)"
               radius={[6, 6, 0, 0]}
-              name="Aantal Boekingen"
+              name="Number of Bookings"
               strokeWidth={1}
               stroke="rgba(59, 130, 246, 0.3)"
             />
@@ -220,7 +220,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               dataKey="revenue" 
               fill="url(#enhancedRevenueGradient)"
               radius={[6, 6, 0, 0]}
-              name="Omzet (€)"
+              name="Revenue (€)"
               strokeWidth={1}
               stroke="rgba(16, 185, 129, 0.3)"
             />

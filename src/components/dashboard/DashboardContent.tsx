@@ -50,7 +50,7 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
         <p className="text-gray-400 text-lg">
           {calendarIds.length > 1 
             ? `Overzicht van ${calendarIds.length} kalenders`
-            : 'Overzicht van je boekingen en prestaties'
+            : 'Overview of your bookings and performance'
           }
         </p>
       </div>
@@ -63,7 +63,7 @@ export function DashboardContent({ calendarIds, calendarName }: DashboardContent
 
       {/* Calendar View Section */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-white mb-4">Kalender</h2>
+        <h2 className="text-xl font-semibold text-white mb-4">Calendar</h2>
         <CalendarDashboard calendarIds={calendarIds} />
       </div>
     </div>

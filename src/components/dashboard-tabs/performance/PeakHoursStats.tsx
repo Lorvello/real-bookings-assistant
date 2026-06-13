@@ -15,7 +15,7 @@ export function PeakHoursStats({ totalBookings, totalRevenue, topPeakHour }: Pea
         <div className="flex items-center gap-3">
           <Calendar className="h-8 w-8 text-slate-300" />
           <div>
-            <p className="text-sm font-medium text-slate-400">Totaal Boekingen</p>
+            <p className="text-sm font-medium text-slate-400">Total Bookings</p>
             <p className="text-2xl font-bold text-slate-100">{totalBookings}</p>
           </div>
         </div>
@@ -25,7 +25,7 @@ export function PeakHoursStats({ totalBookings, totalRevenue, topPeakHour }: Pea
         <div className="flex items-center gap-3">
           <Euro className="h-8 w-8 text-emerald-400" />
           <div>
-            <p className="text-sm font-medium text-emerald-300">Omzet</p>
+            <p className="text-sm font-medium text-emerald-300">Revenue</p>
             <p className="text-2xl font-bold text-emerald-100">€{totalRevenue.toFixed(2)}</p>
           </div>
         </div>

@@ -47,7 +47,7 @@ export const TodaysScheduleCard = () => {
           <Calendar className="h-5 w-5 text-green-600" />
           Vandaag's Planning
           <Badge variant="outline" className="ml-auto">
-            {bookings.length} afspraken
+            {bookings.length} appointments
           </Badge>
           <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
         </CardTitle>
@@ -56,9 +56,9 @@ export const TodaysScheduleCard = () => {
         {bookings.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-lg font-medium mb-2">Geen afspraken vandaag</p>
-            <p className="text-sm">Je agenda is vrij voor vandaag</p>
-            <p className="text-xs text-green-600 mt-2">Klik om kalender te bekijken</p>
+            <p className="text-lg font-medium mb-2">No appointments today</p>
+            <p className="text-sm">Your schedule is clear for today</p>
+            <p className="text-xs text-green-600 mt-2">Click to view calendar</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -91,7 +91,7 @@ export const TodaysScheduleCard = () => {
               </div>
             ))}
             <div className="text-center pt-4 border-t border-muted">
-              <p className="text-xs text-green-600">Klik om volledige kalender te bekijken</p>
+              <p className="text-xs text-green-600">Click to view full calendar</p>
             </div>
           </div>
         )}

@@ -24,7 +24,7 @@ export function PeakHoursRecommendations({ peakHours, quietHours }: PeakHoursRec
         {quietHours[0] && (
           <p>• Gebruik rustige uren ({quietHours[0].hour}:00-{quietHours[0].hour + 1}:00) voor administratie of marketing</p>
         )}
-        <p>• Implementeer dynamische prijsstelling voor piekuren om vraag te spreiden</p>
+        <p>• Implement dynamic pricing for peak hours to spread demand</p>
       </div>
     </div>
   );

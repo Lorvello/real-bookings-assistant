@@ -22,7 +22,7 @@ export function DashboardHeader({ calendarName }: DashboardHeaderProps) {
               </div>
             </div>
             <p className="text-muted-foreground text-lg font-medium">
-              Realtime overzicht van je boekingen en performance voor{' '}
+              Real-time overview of your bookings and performance for{' '}
               <span className="font-bold text-foreground bg-gradient-to-r from-primary/20 to-transparent px-2 py-1 rounded-xl">
                 {calendarName}
               </span>
@@ -31,7 +31,7 @@ export function DashboardHeader({ calendarName }: DashboardHeaderProps) {
           
           <div className="flex items-center gap-6">
             <div className="text-right space-y-2">
-              <div className="text-sm text-muted-foreground font-semibold">Actieve kalender</div>
+              <div className="text-sm text-muted-foreground font-semibold">Active calendar</div>
               <div className="font-bold text-foreground text-lg">{calendarName}</div>
             </div>
             <div className="relative">

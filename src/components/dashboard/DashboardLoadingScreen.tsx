@@ -26,7 +26,7 @@ export function DashboardLoadingScreen() {
           <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground via-primary to-purple-400 bg-clip-text text-transparent">
             Dashboard wordt geladen
           </h2>
-          <p className="text-muted-foreground">Een moment geduld, we bereiden alles voor...</p>
+          <p className="text-muted-foreground">One moment, we're getting everything ready...</p>
         </div>
       </div>
     </div>

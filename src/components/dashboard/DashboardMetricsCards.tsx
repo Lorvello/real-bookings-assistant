@@ -59,7 +59,7 @@ export function DashboardMetricsCards({ analytics }: DashboardMetricsCardsProps)
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Deze Week</p>
+              <p className="text-sm font-medium text-muted-foreground">This Week</p>
               <p className="text-2xl font-bold">{analytics?.week_bookings || 0}</p>
               <div className="flex items-center gap-1">
                 {weekChange > 0 ? (
@@ -85,9 +85,9 @@ export function DashboardMetricsCards({ analytics }: DashboardMetricsCardsProps)
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Deze Maand</p>
+              <p className="text-sm font-medium text-muted-foreground">This Month</p>
               <p className="text-2xl font-bold">{analytics?.month_bookings || 0}</p>
-              <p className="text-xs text-muted-foreground">afspraken</p>
+              <p className="text-xs text-muted-foreground">appointments</p>
             </div>
             <Calendar className="h-8 w-8 text-purple-600" />
           </div>
@@ -98,7 +98,7 @@ export function DashboardMetricsCards({ analytics }: DashboardMetricsCardsProps)
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Omzet (maand)</p>
+              <p className="text-sm font-medium text-muted-foreground">Revenue (month)</p>
               <p className="text-2xl font-bold">€{(analytics?.total_revenue || 0).toFixed(2)}</p>
               <div className="flex items-center gap-1">
                 {revenueChange > 0 ? (

@@ -14,7 +14,7 @@ export function ServiceChartLegend() {
                 <Users className="h-4 w-4 text-blue-400" />
                 <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded shadow-lg shadow-blue-500/25"></div>
               </div>
-              <span className="text-sm font-medium text-slate-300">Aantal Boekingen</span>
+              <span className="text-sm font-medium text-slate-300">Number of Bookings</span>
               <Info className="h-3 w-3 text-slate-400" />
             </div>
           </TooltipTrigger>
@@ -34,7 +34,7 @@ export function ServiceChartLegend() {
                 <Euro className="h-4 w-4 text-emerald-400" />
                 <div className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded shadow-lg shadow-emerald-500/25"></div>
               </div>
-              <span className="text-sm font-medium text-slate-300">Omzet (€)</span>
+              <span className="text-sm font-medium text-slate-300">Revenue (€)</span>
               <Info className="h-3 w-3 text-slate-400" />
             </div>
           </TooltipTrigger>

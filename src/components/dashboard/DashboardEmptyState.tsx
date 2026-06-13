@@ -29,7 +29,7 @@ export function DashboardEmptyState() {
             Geen kalender beschikbaar
           </h3>
           <p className="text-muted-foreground leading-relaxed">
-            Maak eerst een kalender aan om het dashboard te kunnen gebruiken en je afspraken te beheren
+            Maak eerst een kalender aan om het dashboard te kunnen gebruiken en je appointments te beheren
           </p>
         </div>
       </div>
