@@ -5,7 +5,6 @@ import { useNextAppointment } from '@/hooks/dashboard/useNextAppointment';
 import { usePopularService } from '@/hooks/dashboard/usePopularService';
 import { useWeeklyInsights } from '@/hooks/dashboard/useWeeklyInsights';
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
-import { DateRange } from '@/components/dashboard/DateRangeFilter';
 import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target, ArrowUp, ArrowDown, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,10 +13,9 @@ import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
 
 interface OverviewTabProps {
   calendarIds: string[];
-  dateRange: DateRange;
 }
 
-export function OverviewTab({ calendarIds, dateRange }: OverviewTabProps) {
+export function OverviewTab({ calendarIds }: OverviewTabProps) {
   const { calendars } = useCalendarContext();
   
   // Fetch data using the aggregated hooks

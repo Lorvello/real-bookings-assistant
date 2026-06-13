@@ -131,7 +131,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Monthly Growth"
+                  title="Period Growth"
                   value={`${businessIntel?.monthly_growth >= 0 ? '+' : ''}${businessIntel?.monthly_growth?.toFixed(1) || '0.0'}%`}
                   subtitle={getMetricSubtitle('growth')}
                   icon={TrendingUp}
