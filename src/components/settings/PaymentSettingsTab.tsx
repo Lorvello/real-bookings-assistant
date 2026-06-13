@@ -1020,7 +1020,7 @@ export function PaymentSettingsTab() {
                       Selected payout option: {selectedPayoutOption === 'standard' ? 'Standard (3 business days)' : 'Instant (within minutes)'}
                     </span>
                   </div>
-                  <button onClick={() => handleSavePayoutOption(selectedPayoutOption)} disabled={!hasUnsavedPayoutChanges || savingMethods} aria-disabled={!hasUnsavedPayoutChanges || savingMethods} className={cn("px-4 py-2 text-sm font-medium rounded-md transition-colors", "bg-primary text-primary-foreground hover:bg-primary/90", (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary")} title={!hasUnsavedPayoutChanges ? "Geen wijzigingen om op te slaan" : undefined}>
+                  <button onClick={() => handleSavePayoutOption(selectedPayoutOption)} disabled={!hasUnsavedPayoutChanges || savingMethods} aria-disabled={!hasUnsavedPayoutChanges || savingMethods} className={cn("px-4 py-2 text-sm font-medium rounded-md transition-colors", "bg-primary text-primary-foreground hover:bg-primary/90", (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary")} title={!hasUnsavedPayoutChanges ? "No changes to save" : undefined}>
                     {savingMethods ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
