@@ -94,12 +94,23 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Check all subscription statuses, not just active
-    const subscriptions = await stripe.subscriptions.list({
+    // Prefer an ACTIVE subscription. Stripe's default list returns ALL statuses
+    // (canceled, incomplete, past_due) created-desc, so limit:1 could return an old
+    // canceled sub and miss a newer active one (reactivation / plan-switch) -> the
+    // customer would be wrongly treated as expired. Query active first; only fall back
+    // to the general list (for past_due/incomplete detection) when there's no active.
+    let subscriptions = await stripe.subscriptions.list({
       customer: customerId,
+      status: 'active',
       limit: 1,
     });
-    
+    if (subscriptions.data.length === 0) {
+      subscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        limit: 1,
+      });
+    }
+
     const hasActiveSub = subscriptions.data.length > 0 && subscriptions.data[0].status === 'active';
     const hasPastDueSub = subscriptions.data.length > 0 && subscriptions.data[0].status === 'past_due';
     const hasIncompletePayment = subscriptions.data.length > 0 && subscriptions.data[0].status === 'incomplete';
