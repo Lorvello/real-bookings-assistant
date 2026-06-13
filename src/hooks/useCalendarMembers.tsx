@@ -64,8 +64,8 @@ export const useCalendarMembers = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching calendar members:', error);
       toast({
-        title: "Fout bij laden leden",
-        description: "Kon kalender leden niet laden",
+        title: "Error loading members",
+        description: "Could not load calendar members",
         variant: "destructive",
       });
     } finally {
@@ -149,13 +149,13 @@ export const useCalendarMembers = (calendarId?: string) => {
         // The edge function returns a 400 with a specific reason (e.g. team-member
         // limit reached). supabase-js puts the response body on error.context — read
         // it so the user sees the real reason instead of a generic failure.
-        let description = error.message || "Kon uitnodiging niet versturen.";
+        let description = error.message || "Could not send invitation.";
         try {
           const body = await (error as any).context?.json?.();
           if (body?.error) description = body.error;
         } catch (_) { /* body not JSON — keep generic message */ }
         toast({
-          title: "Fout",
+          title: "Error",
           description,
           variant: "destructive",
         });
@@ -166,16 +166,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       await fetchMembers();
 
       toast({
-        title: "Uitnodiging verzonden! 📧",
-        description: `Een uitnodiging is verzonden naar ${email}. Ze hebben 48 uur om te accepteren.`,
+        title: "Invitation sent! 📧",
+        description: `An invitation has been sent to ${email}. They have 48 hours to accept.`,
       });
       return true;
 
     } catch (error) {
       console.error('Error inviting member:', error);
       toast({
-        title: "Fout",
-        description: "Er ging iets mis bij het versturen van de uitnodiging.",
+        title: "Error",
+        description: "Something went wrong while sending the invitation.",
         variant: "destructive",
       });
       return false;

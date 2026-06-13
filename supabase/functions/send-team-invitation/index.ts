@@ -108,14 +108,14 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: `${businessName} <noreply@bookingsassistant.com>`,
       to: [email],
-      subject: `Team uitnodiging voor ${businessName}`,
+      subject: `Team invitation for ${businessName}`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Team Uitnodiging</title>
+          <title>Team Invitation</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
             .container { max-width: 600px; margin: 0 auto; background-color: white; }
@@ -131,48 +131,48 @@ const handler = async (req: Request): Promise<Response> => {
         <body>
           <div class="container">
             <div class="header">
-              <h1 style="margin: 0; font-size: 28px;">Team Uitnodiging</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.9;">Je bent uitgenodigd om deel te nemen aan ons team</p>
+              <h1 style="margin: 0; font-size: 28px;">Team Invitation</h1>
+              <p style="margin: 10px 0 0 0; opacity: 0.9;">You've been invited to join our team</p>
             </div>
-            
+
             <div class="content">
-              <p>Hallo ${full_name || email.split('@')[0]},</p>
-              
-              <p>Je bent uitgenodigd door <strong>${businessName}</strong> om toegang te krijgen tot de kalender <strong>${calendarName}</strong>.</p>
-              
-              <p><strong>Jouw rol:</strong> <span class="role-badge">${role === 'editor' ? 'Editor (Kan bewerken)' : 'Viewer (Alleen bekijken)'}</span></p>
-              
+              <p>Hi ${full_name || email.split('@')[0]},</p>
+
+              <p>You've been invited by <strong>${businessName}</strong> to get access to the calendar <strong>${calendarName}</strong>.</p>
+
+              <p><strong>Your role:</strong> <span class="role-badge">${role === 'editor' ? 'Editor (can edit)' : 'Viewer (view only)'}</span></p>
+
               <div class="expire-notice">
-                <strong>⏰ Belangrijk:</strong> Deze uitnodiging verloopt over 48 uur. Accepteer zo snel mogelijk!
+                <strong>⏰ Important:</strong> This invitation expires in 48 hours. Please accept it as soon as possible!
               </div>
-              
-              <p>Klik op de knop hieronder om je uitnodiging te accepteren:</p>
-              
+
+              <p>Click the button below to accept your invitation:</p>
+
               <div style="text-align: center;">
-                <a href="${inviteUrl}" class="button">Uitnodiging Accepteren</a>
+                <a href="${inviteUrl}" class="button">Accept Invitation</a>
               </div>
-              
+
               <p style="margin-top: 30px; color: #6B7280; font-size: 14px;">
-                Als de knop niet werkt, kopieer en plak deze link in je browser:<br>
+                If the button doesn't work, copy and paste this link into your browser:<br>
                 <a href="${inviteUrl}" style="color: #3B82F6; word-break: break-all;">${inviteUrl}</a>
               </p>
-              
+
               <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">
-              
+
               <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin: 0 0 10px 0; color: #374151;">Wat kun je verwachten?</h3>
+                <h3 style="margin: 0 0 10px 0; color: #374151;">What can you expect?</h3>
                 <ul style="margin: 0; padding-left: 20px; color: #6B7280;">
-                  <li>Toegang tot de agenda van ${businessName}</li>
-                  <li>Je eigen persoonlijke kalender</li>
-                  <li>${role === 'editor' ? 'Mogelijkheid om afspraken in te plannen en te bewerken' : 'Overzicht van alle geplande afspraken'}</li>
-                  <li>Samenwerken met het team</li>
+                  <li>Access to ${businessName}'s calendar</li>
+                  <li>Your own personal calendar</li>
+                  <li>${role === 'editor' ? 'The ability to schedule and edit appointments' : 'An overview of all scheduled appointments'}</li>
+                  <li>Collaboration with the team</li>
                 </ul>
               </div>
             </div>
-            
+
             <div class="footer">
-              <p>Deze uitnodiging is verstuurd door ${businessName}</p>
-              <p>Als je deze uitnodiging niet verwachtte, kun je deze email negeren.</p>
+              <p>This invitation was sent by ${businessName}</p>
+              <p>If you weren't expecting this invitation, you can ignore this email.</p>
             </div>
           </div>
         </body>
