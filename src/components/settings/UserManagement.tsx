@@ -224,9 +224,9 @@ export const UserManagement = ({
       case 'editor':
         return <User className="h-4 w-4 text-blue-500" />;
       case 'viewer':
-        return <Eye className="h-4 w-4 text-gray-500" />;
+        return <Eye className="h-4 w-4 text-muted-foreground" />;
       default:
-        return <User className="h-4 w-4 text-gray-500" />;
+        return <User className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -262,7 +262,7 @@ export const UserManagement = ({
           );
         case 'cancelled':
           return (
-            <Badge variant="outline" className="text-gray-400 border-gray-600 bg-gray-900/20">
+            <Badge variant="outline" className="text-muted-foreground border-border bg-background/20">
               <X className="h-3 w-3 mr-1" />
               Cancelled
             </Badge>
@@ -377,11 +377,11 @@ export const UserManagement = ({
   }, []);
 
   return (
-    <Card className="border-gray-700 bg-gray-800">
+    <Card className="border-border bg-card">
       <CardHeader>
         <div>
-          <CardTitle className="text-white">Users & Team Management</CardTitle>
-          <p className="text-sm text-gray-400 mt-1">
+          <CardTitle className="text-foreground">Users & Team Management</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
             Manage your profile and team access
           </p>
         </div>
@@ -390,15 +390,15 @@ export const UserManagement = ({
       <CardContent>
         {currentLoading ? (
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="bg-gray-900 mb-6">
-              <TabsTrigger value="profile" className="data-[state=active]:bg-gray-700">Your Profile</TabsTrigger>
+            <TabsList className="bg-background mb-6">
+              <TabsTrigger value="profile" className="data-[state=active]:bg-muted">Your Profile</TabsTrigger>
               <TabsTrigger 
                 value="team" 
-                className="data-[state=active]:bg-gray-700 flex items-center gap-2"
+                className="data-[state=active]:bg-muted flex items-center gap-2"
                 disabled={!accessControl.canAccessTeamMembers}
                 onClick={(e) => {
                   if (!accessControl.canAccessTeamMembers) {
@@ -411,7 +411,7 @@ export const UserManagement = ({
                 {!accessControl.canAccessTeamMembers && (
                   <>
                     <Lock className="h-3 w-3" />
-                    <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
+                    <span className="text-xs bg-orange-500 text-foreground px-1 rounded ml-1">Pro</span>
                   </>
                 )}
               </TabsTrigger>
@@ -422,15 +422,15 @@ export const UserManagement = ({
               <SetPasswordSection />
               
               {localProfileData && (
-                <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+                <div className="bg-background rounded-lg p-6 border border-border">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Full Name */}
                     <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Full Name</Label>
+                      <Label className="block text-sm font-medium text-foreground mb-2">Full Name</Label>
                       <Input
                         value={localProfileData.full_name || ''}
                         onChange={(e) => updateLocalProfile('full_name', e.target.value)}
-                        className="bg-gray-800 border-gray-700 text-white"
+                        className="bg-card border-border text-foreground"
                         placeholder="Enter your full name"
                       />
                     </div>
@@ -442,22 +442,22 @@ export const UserManagement = ({
                         email-change flow (auth.updateUser + confirmation) is built, we
                         show the real login email read-only so it can never lie. */}
                     <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Email</Label>
+                      <Label className="block text-sm font-medium text-foreground mb-2">Email</Label>
                       <Input
                         type="email"
                         value={localProfileData.email || ''}
                         readOnly
                         disabled
-                        className="bg-gray-800/60 border-gray-700 text-gray-400 cursor-not-allowed"
+                        className="bg-card/60 border-border text-muted-foreground cursor-not-allowed"
                       />
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         This is your login email. To change it, contact support.
                       </p>
                     </div>
 
                     {/* Phone Number with Country Code */}
                     <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</Label>
+                      <Label className="block text-sm font-medium text-foreground mb-2">Phone Number</Label>
                       <CountryPhoneInput
                         value={localProfileData.phone || ''}
                         onChange={(value) => updateLocalProfile('phone', value)}
@@ -466,7 +466,7 @@ export const UserManagement = ({
 
                     {/* Date of Birth with Year Selector */}
                     <div>
-                      <Label className="block text-sm font-medium text-gray-300 mb-2">Date of Birth</Label>
+                      <Label className="block text-sm font-medium text-foreground mb-2">Date of Birth</Label>
                       <EnhancedDatePicker
                         value={localProfileData.date_of_birth ? new Date(localProfileData.date_of_birth) : undefined}
                         onChange={(date) => {
@@ -492,7 +492,7 @@ export const UserManagement = ({
 
             {/* Fixed Save Bar at bottom of screen */}
             {hasUnsavedChanges && (
-              <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 shadow-lg">
+              <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50 shadow-lg">
                 <div className="max-w-4xl mx-auto flex justify-between items-center">
                   <span className="text-amber-400 flex items-center gap-2">
                     <AlertCircle className="h-4 w-4" />
@@ -502,14 +502,14 @@ export const UserManagement = ({
                     <Button 
                       variant="outline" 
                       onClick={discardChanges}
-                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      className="border-border text-foreground hover:bg-muted"
                     >
                       Discard
                     </Button>
                     <Button 
                       onClick={saveAllChanges} 
                       disabled={isSaving}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-primary hover:bg-primary/90"
                     >
                       {isSaving ? 'Saving...' : 'Save Changes'}
                     </Button>
@@ -522,50 +522,50 @@ export const UserManagement = ({
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="text-lg font-medium text-white">Team Members</h3>
-                    <p className="text-sm text-gray-400">Manage your team access and permissions</p>
+                    <h3 className="text-lg font-medium text-foreground">Team Members</h3>
+                    <p className="text-sm text-muted-foreground">Manage your team access and permissions</p>
                   </div>
                   <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
                     <DialogTrigger asChild>
                       <Button 
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-primary hover:bg-primary/90"
                         disabled={calendars.length === 0}
                       >
                         <UserPlus className="h-4 w-4 mr-2" />
                         Add Team Member
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-gray-800 border-gray-700">
+                    <DialogContent className="bg-card border-border">
                       <DialogHeader>
-                        <DialogTitle className="text-white">Add New Team Member</DialogTitle>
+                        <DialogTitle className="text-foreground">Add New Team Member</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <Label className="text-gray-300">Full Name</Label>
+                          <Label className="text-foreground">Full Name</Label>
                           <Input
                             value={newUserName}
                             onChange={(e) => setNewUserName(e.target.value)}
                             placeholder="John Doe"
-                            className="bg-gray-900 border-gray-700 text-white"
+                            className="bg-background border-border text-foreground"
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300">Email Address</Label>
+                          <Label className="text-foreground">Email Address</Label>
                           <Input
                             type="email"
                             value={newUserEmail}
                             onChange={(e) => setNewUserEmail(e.target.value)}
                             placeholder="user@example.com"
-                            className="bg-gray-900 border-gray-700 text-white"
+                            className="bg-background border-border text-foreground"
                           />
                         </div>
                         <div>
-                          <Label className="text-gray-300">Role</Label>
+                          <Label className="text-foreground">Role</Label>
                           <Select value={newUserRole} onValueChange={(value: 'editor' | 'viewer') => setNewUserRole(value)}>
-                            <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                            <SelectTrigger className="bg-background border-border text-foreground">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-gray-800 border-gray-700">
+                            <SelectContent className="bg-card border-border">
                               <SelectItem value="viewer">Viewer - Can only view bookings</SelectItem>
                               <SelectItem value="editor">Editor - Can manage bookings and settings</SelectItem>
                             </SelectContent>
@@ -575,14 +575,14 @@ export const UserManagement = ({
                           <Button
                             variant="outline"
                             onClick={() => setIsAddUserOpen(false)}
-                            className="border-gray-700 text-gray-300 hover:bg-gray-700"
+                            className="border-border text-foreground hover:bg-muted"
                           >
                             Cancel
                           </Button>
                           <Button
                             onClick={handleAddUser}
                             disabled={isSubmitting}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-primary hover:bg-primary/90"
                           >
                             {isSubmitting ? 'Adding...' : 'Add Team Member'}
                           </Button>
@@ -592,29 +592,29 @@ export const UserManagement = ({
                   </Dialog>
                 </div>
                 
-                <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+                <div className="bg-background rounded-lg overflow-hidden border border-border">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-gray-700">
-                        <TableHead className="text-gray-300">User</TableHead>
-                        <TableHead className="text-gray-300">Role</TableHead>
-                        <TableHead className="text-gray-300">Status</TableHead>
-                        <TableHead className="text-gray-300">Calendar</TableHead>
-                        <TableHead className="text-gray-300">Actions</TableHead>
+                      <TableRow className="border-border">
+                        <TableHead className="text-foreground">User</TableHead>
+                        <TableHead className="text-foreground">Role</TableHead>
+                        <TableHead className="text-foreground">Status</TableHead>
+                        <TableHead className="text-foreground">Calendar</TableHead>
+                        <TableHead className="text-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allUsers.length > 0 ? (
                         allUsers.map((user) => (
-                          <TableRow key={user.id} className="border-gray-700">
+                          <TableRow key={user.id} className="border-border">
                             <TableCell>
                               <div>
-                                <p className="text-white font-medium">
+                                <p className="text-foreground font-medium">
                                   {user.user?.full_name || 'Unknown User'}
                                 </p>
-                                <p className="text-sm text-gray-400">{user.user?.email}</p>
+                                <p className="text-sm text-muted-foreground">{user.user?.email}</p>
                                 {user.type === 'invitation' && user.status === 'pending' && (
-                                  <p className="text-xs text-gray-500 mt-1">
+                                  <p className="text-xs text-muted-foreground mt-1">
                                     Expires: {new Date(user.expires_at).toLocaleDateString()}
                                   </p>
                                 )}
@@ -623,7 +623,7 @@ export const UserManagement = ({
                             <TableCell>
                               <div className="flex items-center space-x-2">
                                 {getRoleIcon(user.role)}
-                                <span className="text-gray-300">{getRoleName(user.role)}</span>
+                                <span className="text-foreground">{getRoleName(user.role)}</span>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -635,7 +635,7 @@ export const UserManagement = ({
                                   All Calendars
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="text-gray-300 border-gray-600">
+                                <Badge variant="outline" className="text-foreground border-border">
                                   {user.calendar?.name || 'Unknown Calendar'}
                                 </Badge>
                               )}
@@ -688,10 +688,10 @@ export const UserManagement = ({
                                     value={user.role} 
                                     onValueChange={(value: 'editor' | 'viewer') => handleRoleChange(user.id, value)}
                                   >
-                                    <SelectTrigger className="h-8 w-24 bg-gray-800 border-gray-700 text-white">
+                                    <SelectTrigger className="h-8 w-24 bg-card border-border text-foreground">
                                       <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-gray-800 border-gray-700">
+                                    <SelectContent className="bg-card border-border">
                                       <SelectItem value="viewer">Viewer</SelectItem>
                                       <SelectItem value="editor">Editor</SelectItem>
                                     </SelectContent>
@@ -712,7 +712,7 @@ export const UserManagement = ({
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-gray-400">
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                             No team members yet. Add your first team member to get started.
                           </TableCell>
                         </TableRow>

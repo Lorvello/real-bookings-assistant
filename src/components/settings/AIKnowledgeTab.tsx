@@ -171,7 +171,7 @@ export const AIKnowledgeTab: React.FC = () => {
             const r = validate(e.target.value);
             setSocialErrors(prev => ({ ...prev, [field]: r.ok ? undefined : r.error }));
           }}
-          className={`w-full px-4 py-2 bg-gray-900 border rounded-lg text-white focus:ring-2 focus:border-transparent transition-colors ${err ? 'border-red-500 focus:ring-red-600' : 'border-gray-700 focus:ring-green-600'}`}
+          className={`w-full px-4 py-2 bg-background border rounded-lg text-foreground focus:ring-2 focus:border-transparent transition-colors ${err ? 'border-red-500 focus:ring-red-600' : 'border-border focus:ring-primary'}`}
           placeholder={placeholder}
         />
         {err && <p className="mt-1 text-xs text-red-400">{err}</p>}
@@ -194,7 +194,7 @@ export const AIKnowledgeTab: React.FC = () => {
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           rows={rows || 3}
-          className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
           placeholder={placeholder}
         />
       );
@@ -205,7 +205,7 @@ export const AIKnowledgeTab: React.FC = () => {
         type="text"
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent transition-colors"
+        className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
         placeholder={placeholder}
       />
     );
@@ -215,12 +215,12 @@ export const AIKnowledgeTab: React.FC = () => {
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8 pb-24">
         {/* Business Information with Address */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-white">Business Information</h2>
+            <h2 className="text-xl font-semibold text-foreground">Business Information</h2>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" className="h-4 w-4 text-gray-400 hover:text-white transition-colors">
+                <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
                   <Info className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
@@ -253,7 +253,7 @@ export const AIKnowledgeTab: React.FC = () => {
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Business Name *
               </label>
               {renderInputField(
@@ -265,7 +265,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Business Type *
               </label>
               <Select 
@@ -311,13 +311,13 @@ export const AIKnowledgeTab: React.FC = () => {
                   value={localBusinessData.business_type_other || ''} 
                   onChange={e => updateBusinessField('business_type_other', e.target.value)}
                   placeholder="Specify business type..." 
-                  className="mt-2 w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-green-600 focus:border-transparent" 
+                  className="mt-2 w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:ring-2 focus:ring-primary focus:border-transparent" 
                 />
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Business Description
               </label>
               {renderInputField(
@@ -333,16 +333,16 @@ export const AIKnowledgeTab: React.FC = () => {
             {/* Contact Details — these were projected into business_overview and saved
                 by handleUpdateBusiness, but had no input anywhere, so they stayed NULL
                 and the agent could never share them. Now editable here. */}
-            <div className="pt-6 border-t border-gray-700">
+            <div className="pt-6 border-t border-border">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-lg font-medium text-white">Contact Details <span className="text-sm font-normal text-gray-500">(optional)</span></h3>
+                <h3 className="text-lg font-medium text-foreground">Contact Details <span className="text-sm font-normal text-muted-foreground">(optional)</span></h3>
               </div>
-              <p className="text-sm text-gray-400 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 The WhatsApp agent shares these when a customer asks how to reach you. Leave a field blank and the agent won't mention it.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Business Email
                   </label>
                   {renderInputField(
@@ -353,7 +353,7 @@ export const AIKnowledgeTab: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Business Phone
                   </label>
                   {renderInputField(
@@ -364,7 +364,7 @@ export const AIKnowledgeTab: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Business WhatsApp
                   </label>
                   {renderInputField(
@@ -378,14 +378,14 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             {/* Address Section within Business Information */}
-            <div className="pt-6 border-t border-gray-700">
+            <div className="pt-6 border-t border-border">
               <div className="flex items-center gap-2 mb-4">
-                <h3 className="text-lg font-medium text-white">Address Details <span className="text-sm font-normal text-gray-500">(optional)</span></h3>
-                <span className="text-xs text-gray-500">optional</span>
+                <h3 className="text-lg font-medium text-foreground">Address Details <span className="text-sm font-normal text-muted-foreground">(optional)</span></h3>
+                <span className="text-xs text-muted-foreground">optional</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Street Name
                   </label>
                   {renderInputField(
@@ -397,7 +397,7 @@ export const AIKnowledgeTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     House Number
                   </label>
                   {renderInputField(
@@ -409,7 +409,7 @@ export const AIKnowledgeTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Postal Code
                   </label>
                   {renderInputField(
@@ -421,7 +421,7 @@ export const AIKnowledgeTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     City
                   </label>
                   {renderInputField(
@@ -433,7 +433,7 @@ export const AIKnowledgeTab: React.FC = () => {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Country
                   </label>
                   {renderInputField(
@@ -449,13 +449,13 @@ export const AIKnowledgeTab: React.FC = () => {
         </div>
 
         {/* Social Media */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-white">Social Media & Website <span className="text-sm font-normal text-gray-500">(optional)</span></h2>
-            <span className="text-xs text-gray-500">optional</span>
+            <h2 className="text-xl font-semibold text-foreground">Social Media & Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></h2>
+            <span className="text-xs text-muted-foreground">optional</span>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" className="h-4 w-4 text-gray-400 hover:text-white transition-colors">
+                <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
                   <Info className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
@@ -467,7 +467,7 @@ export const AIKnowledgeTab: React.FC = () => {
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Website
               </label>
               {renderValidatedField(
@@ -479,7 +479,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Instagram
               </label>
               {renderValidatedField(
@@ -491,7 +491,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Facebook
               </label>
               {renderValidatedField(
@@ -503,7 +503,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 LinkedIn
               </label>
               {renderValidatedField(
@@ -515,7 +515,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 TikTok
               </label>
               {renderValidatedField(
@@ -527,7 +527,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 YouTube
               </label>
               {renderValidatedField(
@@ -539,7 +539,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 X (Twitter)
               </label>
               {renderValidatedField(
@@ -553,24 +553,24 @@ export const AIKnowledgeTab: React.FC = () => {
         </div>
 
         {/* Business Knowledge Base */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="bg-card rounded-xl p-6 border border-border">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-semibold text-white">Booking Agent Knowledge Base <span className="text-sm font-normal text-gray-500">(optional)</span></h2>
-            <span className="text-xs text-gray-500">optional</span>
+            <h2 className="text-xl font-semibold text-foreground">Booking Agent Knowledge Base <span className="text-sm font-normal text-muted-foreground">(optional)</span></h2>
+            <span className="text-xs text-muted-foreground">optional</span>
             <Tooltip>
               <TooltipTrigger>
-                <Info className="h-4 w-4 text-gray-400 hover:text-white transition-colors" />
+                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
               </TooltipTrigger>
               <TooltipContent>
                 <p>The AI agent can use this information in its messages</p>
               </TooltipContent>
             </Tooltip>
           </div>
-          <p className="text-sm text-gray-400 mb-6">The more you fill in here, the better the AI agent can answer customer questions on WhatsApp without you. Leave a field blank and the agent simply won't claim to know it.</p>
+          <p className="text-sm text-muted-foreground mb-6">The more you fill in here, the better the AI agent can answer customer questions on WhatsApp without you. Leave a field blank and the agent simply won't claim to know it.</p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Cancellation &amp; Reschedule Policy
               </label>
               {renderInputField(
@@ -584,7 +584,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Payment &amp; Deposit
               </label>
               {renderInputField(
@@ -598,7 +598,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 How to Prepare / What to Bring
               </label>
               {renderInputField(
@@ -612,7 +612,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Parking Information
               </label>
               {renderInputField(
@@ -626,7 +626,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Public Transport
               </label>
               {renderInputField(
@@ -640,7 +640,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Accessibility
               </label>
               {renderInputField(
@@ -654,7 +654,7 @@ export const AIKnowledgeTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Other Information
               </label>
               {renderInputField(
@@ -671,7 +671,7 @@ export const AIKnowledgeTab: React.FC = () => {
 
         {/* Sticky Save Bar */}
         {hasUnsavedChanges && (
-          <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-4 z-50 shadow-lg">
+          <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50 shadow-lg">
             <div className="max-w-4xl mx-auto flex justify-between items-center">
               <span className="text-amber-400 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4" />
@@ -681,14 +681,14 @@ export const AIKnowledgeTab: React.FC = () => {
                 <Button 
                   variant="outline" 
                   onClick={discardChanges}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-800"
+                  className="border-border text-foreground hover:bg-card"
                 >
                   Discard
                 </Button>
                 <Button 
                   onClick={saveAllChanges} 
                   disabled={isSaving}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
                 </Button>

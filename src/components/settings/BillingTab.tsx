@@ -164,7 +164,7 @@ export const BillingTab: React.FC = () => {
       case 'canceled_subscriber':
         return <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">Canceled</Badge>;
       case 'canceled_and_inactive':
-        return <Badge className="bg-gray-500/10 text-gray-400 border-gray-500/20">Canceled</Badge>;
+        return <Badge className="bg-muted text-muted-foreground border-border">Canceled</Badge>;
       case 'expired_trial':
         return <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Expired</Badge>;
       case 'missed_payment':
@@ -298,8 +298,8 @@ export const BillingTab: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Billing & Subscription</h1>
-          <p className="text-gray-400 mt-1">Manage your subscription and billing preferences</p>
+          <h1 className="text-2xl font-bold text-foreground">Billing & Subscription</h1>
+          <p className="text-muted-foreground mt-1">Manage your subscription and billing preferences</p>
         </div>
         <div className="flex items-center gap-4">
           {getStatusBadge()}
@@ -309,10 +309,10 @@ export const BillingTab: React.FC = () => {
       {/* Current Plan & Subscription Usage - Combined Top Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Current Plan */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-card border-border">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-white flex items-center gap-2">
+              <CardTitle className="text-foreground flex items-center gap-2">
                 <Crown className="w-5 h-5 text-yellow-500" />
                 Current Plan
               </CardTitle>
@@ -332,17 +332,17 @@ export const BillingTab: React.FC = () => {
               <div>
                 {(userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') ? (
                   <>
-                    <h3 className="text-xl font-semibold text-white">
+                    <h3 className="text-xl font-semibold text-foreground">
                       No Active Subscription
                     </h3>
-                    <p className="text-gray-400">Start your subscription to access all features</p>
+                    <p className="text-muted-foreground">Start your subscription to access all features</p>
                   </>
                 ) : (
                   <>
-                    <h3 className="text-xl font-semibold text-white capitalize">
+                    <h3 className="text-xl font-semibold text-foreground capitalize">
                       {currentPlan?.display_name || currentPlan?.tier_name || 'Free'} Plan
                     </h3>
-                    <p className="text-gray-400">{currentPlan?.description}</p>
+                    <p className="text-muted-foreground">{currentPlan?.description}</p>
                     {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 && (
                       <p className="text-yellow-400 text-sm mt-1">
                         {userStatus.daysRemaining} days remaining in trial
@@ -353,23 +353,23 @@ export const BillingTab: React.FC = () => {
               </div>
               <div className="text-right">
                 {(userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') ? (
-                  <div className="text-2xl font-bold text-gray-400">
+                  <div className="text-2xl font-bold text-muted-foreground">
                     No Plan
                   </div>
                 ) : (
                   <>
-                    <div className="text-2xl font-bold text-white">
+                    <div className="text-2xl font-bold text-foreground">
                       {getCurrentPrice().amount === 0 ? (
                         getCurrentPrice().displayText
                       ) : (
                         <>
                           {getCurrentPrice().currency}{getCurrentPrice().amount}
-                          <span className="text-sm text-gray-400 font-normal">{getCurrentPrice().period}</span>
+                          <span className="text-sm text-muted-foreground font-normal">{getCurrentPrice().period}</span>
                         </>
                       )}
                     </div>
                     {currentPlan && getCurrentPrice().amount > 0 && (
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-muted-foreground">
                         {getBillingStatus()}
                       </p>
                     )}
@@ -381,53 +381,53 @@ export const BillingTab: React.FC = () => {
             {/* Billing Timeline - Only show for users with subscriptions */}
             {(userStatus.userType !== 'expired_trial' && userStatus.userType !== 'canceled_and_inactive') && (
               <>
-                <Separator className="bg-gray-700" />
+                <Separator className="bg-border" />
                 <div>
-                  <h4 className="text-white font-medium mb-4 flex items-center gap-2">
+                  <h4 className="text-foreground font-medium mb-4 flex items-center gap-2">
                     <CalendarClock className="w-4 h-4" />
                     Billing Timeline
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">
+                        <span className="text-muted-foreground text-sm">
                           {userStatus.userType === 'canceled_subscriber' ? 'Access Until' : 'Next Billing'}
                         </span>
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-blue-400" />
-                          <span className="text-white text-sm font-medium">
+                          <span className="text-foreground text-sm font-medium">
                             {getBillingTimelineData().nextBilling}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Last Payment</span>
-                        <span className="text-gray-300 text-sm">
+                        <span className="text-muted-foreground text-sm">Last Payment</span>
+                        <span className="text-foreground text-sm">
                           {getBillingTimelineData().lastPayment}
                         </span>
                       </div>
                     </div>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Billing Cycle</span>
-                        <span className="text-gray-300 text-sm">
+                        <span className="text-muted-foreground text-sm">Billing Cycle</span>
+                        <span className="text-foreground text-sm">
                           {getBillingTimelineData().billingCycle}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Payment Status</span>
+                        <span className="text-muted-foreground text-sm">Payment Status</span>
                         <div className="flex items-center gap-1">
                           {getBillingTimelineData().paymentStatus === 'Active' ? (
                             <CheckCircle className="w-3 h-3 text-green-400" />
                           ) : getBillingTimelineData().paymentStatus === 'Failed' ? (
                             <AlertCircle className="w-3 h-3 text-red-400" />
                           ) : (
-                            <AlertCircle className="w-3 h-3 text-gray-400" />
+                            <AlertCircle className="w-3 h-3 text-muted-foreground" />
                           )}
                           <span className={`text-sm ${
                             getBillingTimelineData().paymentStatus === 'Active' ? 'text-green-400' :
                             getBillingTimelineData().paymentStatus === 'Failed' ? 'text-red-400' :
-                            'text-gray-400'
+                            'text-muted-foreground'
                           }`}>
                             {getBillingTimelineData().paymentStatus}
                           </span>
@@ -443,14 +443,14 @@ export const BillingTab: React.FC = () => {
         </Card>
 
         {/* Subscription Usage */}
-        <UsageSummary className="bg-gray-800 border-gray-700" />
+        <UsageSummary className="bg-card border-border" />
       </div>
 
       {/* Billing History - Middle Section */}
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-card border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
               Billing History
             </CardTitle>
@@ -470,18 +470,18 @@ export const BillingTab: React.FC = () => {
           {billingLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              <p className="text-gray-400 text-sm mt-2">Loading billing history...</p>
+              <p className="text-muted-foreground text-sm mt-2">Loading billing history...</p>
             </div>
           ) : (billingData?.billing_history && Array.isArray(billingData.billing_history) && billingData.billing_history.length > 0) ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-gray-400">Date</TableHead>
-                    <TableHead className="text-gray-400">Amount</TableHead>
-                    <TableHead className="text-gray-400">Description</TableHead>
-                    <TableHead className="text-gray-400">Status</TableHead>
-                    <TableHead className="text-gray-400 text-right">Invoice</TableHead>
+                    <TableHead className="text-muted-foreground">Date</TableHead>
+                    <TableHead className="text-muted-foreground">Amount</TableHead>
+                    <TableHead className="text-muted-foreground">Description</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground text-right">Invoice</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -490,16 +490,16 @@ export const BillingTab: React.FC = () => {
                     .slice(0, showAllHistory ? undefined : 3) // Show only 3 items unless viewing all
                     .map((invoice) => (
                     <TableRow key={invoice.id}>
-                      <TableCell className="text-white">
+                      <TableCell className="text-foreground">
                         {invoice.date ? format(new Date(invoice.date), "MMM d, yyyy") : "Date unavailable"}
                       </TableCell>
-                      <TableCell className="text-white">
+                      <TableCell className="text-foreground">
                         {invoice.amount && typeof invoice.amount === 'number' 
                           ? `${invoice.currency || '€'}${(invoice.amount / 100).toFixed(2)}`
                           : "Amount unavailable"
                         }
                       </TableCell>
-                      <TableCell className="text-white">
+                      <TableCell className="text-foreground">
                         {invoice.description || "No description"}
                       </TableCell>
                       <TableCell>
@@ -527,7 +527,7 @@ export const BillingTab: React.FC = () => {
                             <Download className="w-3 h-3" />
                           </Button>
                         ) : (
-                          <span className="text-gray-500 text-xs">Not available</span>
+                          <span className="text-muted-foreground text-xs">Not available</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -537,9 +537,9 @@ export const BillingTab: React.FC = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <h3 className="text-white font-medium mb-2">No Billing History</h3>
-              <p className="text-gray-400 text-sm mb-4">
+              <CreditCard className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-foreground font-medium mb-2">No Billing History</h3>
+              <p className="text-muted-foreground text-sm mb-4">
                 {(() => {
                   if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
                     return "No billing history found for your account.";
@@ -567,23 +567,23 @@ export const BillingTab: React.FC = () => {
       </Card>
 
       {/* Available Plans - Bottom Section */}
-      <Card id="available-plans" className="bg-gray-800 border-gray-700">
+      <Card id="available-plans" className="bg-card border-border">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle className="text-white">Available Plans</CardTitle>
-              <p className="text-gray-400">Choose the plan that best fits your needs</p>
+              <CardTitle className="text-foreground">Available Plans</CardTitle>
+              <p className="text-muted-foreground">Choose the plan that best fits your needs</p>
             </div>
             {/* Billing Cycle Toggle */}
             <div className="flex items-center gap-4">
-              <span className={`text-sm ${billingCycle === 'monthly' ? 'text-white' : 'text-gray-400'}`}>
+              <span className={`text-sm ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Monthly
               </span>
               <Switch 
                 checked={billingCycle === 'yearly'}
                 onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
               />
-              <span className={`text-sm ${billingCycle === 'yearly' ? 'text-white' : 'text-gray-400'}`}>
+              <span className={`text-sm ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
                 Yearly
               </span>
               {billingCycle === 'yearly' && (
@@ -639,8 +639,8 @@ export const BillingTab: React.FC = () => {
                   key={tier.id} 
                   className={`border rounded-lg p-6 relative ${
                     isCurrentPlan 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-gray-700 bg-gray-900'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border bg-background'
                   }`}
                 >
                   {isCurrentPlan && (
@@ -650,16 +650,16 @@ export const BillingTab: React.FC = () => {
                   )}
                   
                   <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-white capitalize mb-2">
+                    <h3 className="text-xl font-semibold text-foreground capitalize mb-2">
                       {tier.display_name}
                     </h3>
-                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' && !isEnterprise ? 'text-green-400' : 'text-white'}`}>
+                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' && !isEnterprise ? 'text-green-400' : 'text-foreground'}`}>
                        {displayPrice}
-                       <span className="text-sm text-gray-400 font-normal">
+                       <span className="text-sm text-muted-foreground font-normal">
                          {billingText}
                        </span>
                      </div>
-                    <p className="text-gray-400 text-sm mt-2">
+                    <p className="text-muted-foreground text-sm mt-2">
                       {savingsText}
                     </p>
                   </div>
@@ -696,7 +696,7 @@ export const BillingTab: React.FC = () => {
                     ]).map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                        <span className="text-gray-300 text-sm">{feature}</span>
+                        <span className="text-foreground text-sm">{feature}</span>
                       </div>
                     ))}
                   </div>
