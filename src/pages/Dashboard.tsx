@@ -76,7 +76,7 @@ const Dashboard = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-background">
-          <div className="w-8 h-8 bg-cyan-600 rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
         </div>
       </DashboardLayout>
     );
