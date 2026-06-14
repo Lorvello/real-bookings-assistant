@@ -39,7 +39,7 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
 
         <div className="lg:col-span-8 h-full">
           {selectedContact ? (
-            <ConversationDetailPanel contact={selectedContact} />
+            <ConversationDetailPanel key={selectedContact.contact_id} contact={selectedContact} calendarId={calendarId} />
           ) : (
             <div className="h-full bg-card rounded-lg border border-border flex items-center justify-center">
               <div className="text-center text-muted-foreground">
@@ -61,7 +61,7 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
               Back to list
             </Button>
             <div className="flex-1 min-h-0">
-              <ConversationDetailPanel contact={selectedContact} />
+              <ConversationDetailPanel key={selectedContact.contact_id} contact={selectedContact} calendarId={calendarId} />
             </div>
           </div>
         ) : (

@@ -14,9 +14,14 @@ interface NewBookingModalProps {
   onClose: () => void;
   calendarId: string;
   onBookingCreated?: () => void;
+  prefill?: {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+  };
 }
 
-export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }: NewBookingModalProps) {
+export function NewBookingModal({ open, onClose, calendarId, onBookingCreated, prefill }: NewBookingModalProps) {
   const handleBookingSuccess = () => {
     // Booking success callback executed
     onBookingCreated?.();
@@ -36,10 +41,11 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated }:
     handleServiceTypeChange,
     getDuration,
     onSubmit,
-  } = useBookingForm({ 
-    calendarId, 
-    onBookingCreated: handleBookingSuccess, 
-    onClose 
+  } = useBookingForm({
+    calendarId,
+    onBookingCreated: handleBookingSuccess,
+    onClose,
+    prefill,
   });
 
   return (

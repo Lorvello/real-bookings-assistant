@@ -1,14 +1,19 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { WhatsAppContactOverview } from '@/types/whatsappOverview';
 import { useWhatsAppMessages } from '@/hooks/useWhatsAppMessages';
+import { useCloseConversation } from '@/hooks/useWhatsAppConversations';
+import { NewBookingModal } from '@/components/NewBookingModal';
+import { useToast } from '@/hooks/use-toast';
 
 import {
   Calendar,
+  CheckCircle2,
   Phone,
   User,
   Building2,
@@ -21,10 +26,31 @@ import { cn } from '@/lib/utils';
 
 interface ConversationDetailPanelProps {
   contact: WhatsAppContactOverview;
+  calendarId: string;
 }
 
-export function ConversationDetailPanel({ contact }: ConversationDetailPanelProps) {
+export function ConversationDetailPanel({ contact, calendarId }: ConversationDetailPanelProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [isLocallyClosed, setIsLocallyClosed] = useState(false);
+  const closeConversation = useCloseConversation();
+
+  const isClosed = isLocallyClosed || contact.conversation_status === 'closed';
+
+  const handleCloseConversation = () => {
+    closeConversation.mutate(contact.contact_id, {
+      onSuccess: () => {
+        setIsLocallyClosed(true);
+        toast({ title: 'Conversation closed' });
+      },
+      onError: (e) => toast({
+        title: 'Could not close conversation',
+        description: e instanceof Error ? e.message : 'Please try again',
+        variant: 'destructive',
+      }),
+    });
+  };
 
   // Use contact_id for fetching messages
   const { data: messages, isLoading: messagesLoading } = useWhatsAppMessages(
@@ -106,22 +132,43 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     <div className="flex flex-col h-full bg-card rounded-lg border border-border">
       {/* Header */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-12 w-12">
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">{displayName}</h2>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge
-                variant="outline"
-                className={cn("text-xs", getStatusColor(contact.conversation_status))}
-              >
-                {getStatusLabel(contact.conversation_status)}
-              </Badge>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Avatar className="h-12 w-12">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-foreground truncate">{displayName}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge
+                  variant="outline"
+                  className={cn("text-xs", getStatusColor(isClosed ? 'closed' : contact.conversation_status))}
+                >
+                  {getStatusLabel(isClosed ? 'closed' : contact.conversation_status)}
+                </Badge>
+              </div>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setBookingModalOpen(true)}>
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Schedule appointment</span>
+            </Button>
+            {!isClosed && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                disabled={closeConversation.isPending}
+                onClick={handleCloseConversation}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="hidden sm:inline">{closeConversation.isPending ? 'Closing...' : 'Close'}</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -270,6 +317,13 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
           </Card>
         </div>
       </div>
+
+      <NewBookingModal
+        open={bookingModalOpen}
+        onClose={() => setBookingModalOpen(false)}
+        calendarId={calendarId}
+        prefill={{ customerName: displayName, customerPhone: contact.phone_number }}
+      />
     </div>
   );
 }

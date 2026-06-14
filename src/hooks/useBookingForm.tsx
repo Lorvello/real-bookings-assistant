@@ -20,13 +20,20 @@ interface ServiceType {
   price: number;
 }
 
+interface BookingPrefill {
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+}
+
 interface UseBookingFormProps {
   calendarId: string;
   onBookingCreated?: () => void;
   onClose: () => void;
+  prefill?: BookingPrefill;
 }
 
-export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBookingFormProps) {
+export function useBookingForm({ calendarId, onBookingCreated, onClose, prefill }: UseBookingFormProps) {
   const { toast } = useToast();
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [autoUpdateEndTime, setAutoUpdateEndTime] = useState(true);
@@ -36,9 +43,9 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
     resolver: zodResolver(bookingSchema),
     defaultValues: {
       title: '',
-      customerName: '',
-      customerEmail: '',
-      customerPhone: '',
+      customerName: prefill?.customerName || '',
+      customerEmail: prefill?.customerEmail || '',
+      customerPhone: prefill?.customerPhone || '',
       location: '',
       date: new Date(),
       startTime: '13:00',
@@ -145,8 +152,8 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
       const duration = getDuration();
       if (duration <= 0) {
         toast({
-          title: "Ongeldige tijden",
-          description: "Eindtijd moet na starttijd zijn",
+          title: "Invalid times",
+          description: "End time must be after the start time",
           variant: "destructive",
         });
         return;
@@ -154,8 +161,8 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
 
       if (duration > 480) { // 8 hours max
         toast({
-          title: "Te lange afspraak",
-          description: "Afspraken kunnen maximaal 8 uur duren",
+          title: "Appointment too long",
+          description: "Appointments can be at most 8 hours",
           variant: "destructive",
         });
         return;
@@ -180,7 +187,7 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
         end_time: endTime,
         status: 'confirmed' as const,
         notes: notesContent,
-        internal_notes: `Handmatig aangemaakt - ${duration} minuten`,
+        internal_notes: `Created manually - ${duration} minutes`,
       };
 
       console.log('Creating booking with data:', bookingData);
@@ -197,10 +204,10 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose }: UseBoo
       console.error('=== BOOKING CREATION ERROR ===');
       console.error('Error details:', error);
       
-      const errorMessage = error instanceof Error ? error.message : 'Onbekende fout opgetreden';
-      
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+
       toast({
-        title: "Fout bij aanmaken afspraak",
+        title: "Failed to create appointment",
         description: errorMessage,
         variant: "destructive",
       });

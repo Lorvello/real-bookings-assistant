@@ -60,6 +60,31 @@ export function useCreateWhatsAppConversation() {
   });
 }
 
+// Close all of a contact's conversation(s) from the operator inbox. The
+// whatsapp_contact_overview is a materialized view, so we refresh it after the
+// write and invalidate the overview query for both this contact and the list.
+export function useCloseConversation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (contactId: string) => {
+      const { error } = await supabase
+        .from('whatsapp_conversations')
+        .update({ status: 'closed' })
+        .eq('contact_id', contactId);
+
+      if (error) throw error;
+
+      // Reflect the new status in the materialized overview.
+      await supabase.rpc('refresh_whatsapp_contact_overview');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-contact-overview'] });
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-conversations'] });
+    },
+  });
+}
+
 export function useUpdateConversationStatus() {
   const queryClient = useQueryClient();
 
