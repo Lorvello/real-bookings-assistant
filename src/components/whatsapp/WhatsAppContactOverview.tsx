@@ -48,19 +48,19 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
 
   if (isLoading) {
     return (
-      <Card className="bg-gray-800/90 border-gray-700 shadow-xl">
-        <CardHeader className="border-b border-gray-700 bg-gray-800/50">
+      <Card className="bg-card border-white/[0.08] shadow-xl">
+        <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-3 text-lg">
             <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-green-400" />
             </div>
-            <span className="text-white">WhatsApp Contact Overview</span>
+            <span className="text-foreground">WhatsApp Contact Overview</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-700/50 rounded-lg animate-pulse" />
+              <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
             ))}
           </div>
         </CardContent>
@@ -70,7 +70,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
 
   if (error) {
     return (
-      <Card className="bg-gray-800/90 border-red-500/30 shadow-xl">
+      <Card className="bg-card border-red-500/30 shadow-xl">
         <CardHeader className="border-b border-red-500/30 bg-red-900/20">
           <CardTitle className="flex items-center gap-3 text-lg text-red-300">
             <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
@@ -101,16 +101,16 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
   }
 
   return (
-    <Card className="bg-gray-800/90 border-gray-700 shadow-xl">
-      <CardHeader className="border-b border-gray-700 bg-gray-800/50">
+    <Card className="bg-card border-white/[0.08] shadow-xl">
+      <CardHeader className="border-b border-white/[0.08] bg-card">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-lg">
             <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-green-400" />
             </div>
             <div>
-              <div className="text-lg font-semibold text-white">WhatsApp Contacts</div>
-              <div className="text-sm text-gray-400 font-normal flex items-center gap-2 mt-1">
+              <div className="text-lg font-semibold text-foreground">WhatsApp Contacts</div>
+              <div className="text-sm text-muted-foreground font-normal flex items-center gap-2 mt-1">
                 <Users className="w-4 h-4" />
                 {filteredContacts.length} {filteredContacts.length === 1 ? 'contact' : 'contacts'}
               </div>
@@ -122,7 +122,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
             variant="outline" 
             size="sm"
             disabled={refreshMutation.isPending}
-            className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500"
+            className="border-white/[0.08] text-foreground hover:bg-white/[0.06] hover:border-white/[0.08]"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${refreshMutation.isPending ? 'animate-spin' : ''}`} />
             Refresh
@@ -142,17 +142,17 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
       <CardContent className="p-6">
         {filteredContacts.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               {searchTerm ? (
-                <Search className="w-8 h-8 text-gray-500" />
+                <Search className="w-8 h-8 text-muted-foreground" />
               ) : (
-                <MessageCircle className="w-8 h-8 text-gray-500" />
+                <MessageCircle className="w-8 h-8 text-muted-foreground" />
               )}
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">
+            <h3 className="text-lg font-medium text-foreground mb-2">
               {searchTerm ? 'No results found' : 'No contacts'}
             </h3>
-            <p className="text-gray-400 mb-4">
+            <p className="text-muted-foreground mb-4">
               {searchTerm 
                 ? `No contacts found for "${searchTerm}"`
                 : 'There are no WhatsApp contacts in this system yet.'
@@ -162,7 +162,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
               <Button 
                 variant="outline" 
                 onClick={() => setSearchTerm('')}
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="border-white/[0.08] text-foreground hover:bg-white/[0.06]"
               >
                 <Search className="w-4 h-4 mr-2" />
                 Clear search

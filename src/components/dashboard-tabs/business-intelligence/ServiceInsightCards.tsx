@@ -30,7 +30,7 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-slate-700/30">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-white/[0.08]">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="relative p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-blue-500/20 rounded-xl">
@@ -38,15 +38,15 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
                 <Activity className="h-4 w-4 text-blue-400" />
                 <span className="text-sm font-medium text-blue-300">Populairste Service</span>
               </div>
-              <p className="text-lg font-bold text-slate-100">{topBookingService.service_name}</p>
-              <p className="text-sm text-slate-400">{topBookingService.booking_count} boekingen</p>
-              <div className="absolute top-2 right-2 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+              <p className="text-lg font-bold text-foreground">{topBookingService.service_name}</p>
+              <p className="text-sm text-muted-foreground">{topBookingService.booking_count} boekingen</p>
+              <div className="absolute top-2 right-2 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                 <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
               </div>
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+            className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
             side="top"
             align="center"
             sideOffset={8}
@@ -62,15 +62,15 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
                 <Euro className="h-4 w-4 text-emerald-400" />
                 <span className="text-sm font-medium text-emerald-300">Highest Revenue</span>
               </div>
-              <p className="text-lg font-bold text-slate-100">{topRevenueService.service_name}</p>
-              <p className="text-sm text-slate-400">€{maxRevenue.toFixed(2)}</p>
-              <div className="absolute top-2 right-2 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+              <p className="text-lg font-bold text-foreground">{topRevenueService.service_name}</p>
+              <p className="text-sm text-muted-foreground">€{maxRevenue.toFixed(2)}</p>
+              <div className="absolute top-2 right-2 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                 <Info className="h-3 w-3 text-emerald-400/70 hover:text-emerald-300 transition-colors" />
               </div>
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-sm bg-slate-900/95 border border-emerald-500/30 text-slate-100 z-50"
+            className="max-w-sm bg-background/95 border border-emerald-500/30 text-foreground z-50"
             side="top"
             align="center"
             sideOffset={8}
@@ -86,15 +86,15 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
                 <TrendingUp className="h-4 w-4 text-purple-400" />
                 <span className="text-sm font-medium text-purple-300">Highest Average</span>
               </div>
-              <p className="text-lg font-bold text-slate-100">{topAvgPriceService.service_name}</p>
-              <p className="text-sm text-slate-400">€{topAvgPriceService.avg_price.toFixed(2)} gem.</p>
-              <div className="absolute top-2 right-2 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+              <p className="text-lg font-bold text-foreground">{topAvgPriceService.service_name}</p>
+              <p className="text-sm text-muted-foreground">€{topAvgPriceService.avg_price.toFixed(2)} gem.</p>
+              <div className="absolute top-2 right-2 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                 <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
               </div>
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-sm bg-slate-900/95 border border-purple-500/30 text-slate-100 z-50"
+            className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
             side="top"
             align="center"
             sideOffset={8}

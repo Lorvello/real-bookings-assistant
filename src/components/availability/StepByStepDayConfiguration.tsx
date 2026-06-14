@@ -280,7 +280,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
                   index === currentDayIndex
                     ? 'bg-primary text-primary-foreground shadow-lg'
                     : getDayStatus(index) === 'configured'
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    ? 'bg-success/20 text-success border border-success/30'
                     : 'bg-muted text-muted-foreground border border-border'
                 }`}
               >

@@ -78,12 +78,12 @@ export function MetricCard({
       <div className={`absolute -inset-1 md:-inset-2 bg-gradient-to-br ${colors.gradientFrom} ${colors.gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
       
       {/* Card container with mobile-first responsive height */}
-      <div className={`relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border ${colors.borderColor} rounded-xl md:rounded-2xl shadow-xl ${colors.glowColor} hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 flex flex-col justify-between p-3 md:p-6`}>
+      <div className={`relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border ${colors.borderColor} rounded-xl md:rounded-2xl shadow-xl ${colors.glowColor} hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 flex flex-col justify-between p-3 md:p-6`}>
         
         {/* Header with title and icon - Mobile optimized */}
         <div className="flex items-center justify-between mb-2 md:mb-4">
           <div className="flex-1">
-            <div className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider mb-1">{title}</div>
+            <div className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider mb-1">{title}</div>
           </div>
           <div className={`w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br ${colors.iconBgFrom} ${colors.iconBgTo} rounded-lg md:rounded-xl flex items-center justify-center shadow-lg min-w-[32px] min-h-[32px] md:min-w-[48px] md:min-h-[48px]`}>
             <Icon className={`h-4 w-4 md:h-6 md:w-6 ${colors.iconColor}`} />
@@ -92,7 +92,7 @@ export function MetricCard({
 
         {/* Main value - Mobile optimized text scaling */}
         <div className="flex-1 flex items-center">
-          <p className={`text-2xl md:text-4xl font-black text-slate-100 leading-none tabular-nums`}>
+          <p className={`text-2xl md:text-4xl font-black text-foreground leading-none tabular-nums`}>
             {value}
           </p>
         </div>
@@ -111,7 +111,7 @@ export function MetricCard({
               </div>
             </div>
           ) : (
-            <p className="text-xs md:text-sm text-slate-400 font-medium truncate">{subtitle}</p>
+            <p className="text-xs md:text-sm text-muted-foreground font-medium truncate">{subtitle}</p>
           )}
         </div>
       </div>

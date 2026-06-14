@@ -80,7 +80,7 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
   return (
     <div className="space-y-6">
       {/* Real-time indicator */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
         <span>Live data - including WhatsApp statistics</span>
         {analytics.last_updated && (
@@ -95,19 +95,19 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
         {metricCards.map((metric, index) => {
           const Icon = metric.icon;
           return (
-            <Card key={index} className={`${metric.bgColor} border-gray-700 hover:scale-105 transition-transform duration-200`}>
+            <Card key={index} className={`${metric.bgColor} border-white/[0.08] hover:scale-105 transition-transform duration-200`}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-300">
+                <CardTitle className="text-sm font-medium text-foreground">
                   {metric.title}
                 </CardTitle>
                 <Icon className={`h-4 w-4 ${metric.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-foreground">
                   {typeof metric.value === 'string' ? metric.value : metric.value.toLocaleString()}
-                  <span className="text-sm font-normal text-gray-400">{metric.suffix}</span>
+                  <span className="text-sm font-normal text-muted-foreground">{metric.suffix}</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {metric.subtitle}
                 </p>
               </CardContent>

@@ -17,9 +17,9 @@ export function DashboardDebugInfo({ calendarId, analytics }: DashboardDebugInfo
   }
 
   return (
-    <Card className="bg-gray-800/50 border-gray-700">
+    <Card className="bg-card/50 border-white/[0.08]">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-gray-300">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Code className="w-4 h-4" />
           Debug Info (Development Only)
         </CardTitle>
@@ -27,12 +27,12 @@ export function DashboardDebugInfo({ calendarId, analytics }: DashboardDebugInfo
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-gray-400">Calendar ID:</p>
-            <p className="text-white font-mono text-xs break-all">{calendarId}</p>
+            <p className="text-muted-foreground">Calendar ID:</p>
+            <p className="text-foreground font-mono text-xs break-all">{calendarId}</p>
           </div>
           <div>
-            <p className="text-gray-400">Last Updated:</p>
-            <p className="text-white">{new Date(analytics.last_updated).toLocaleString('nl-NL')}</p>
+            <p className="text-muted-foreground">Last Updated:</p>
+            <p className="text-foreground">{new Date(analytics.last_updated).toLocaleString('nl-NL')}</p>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ export function DashboardDebugInfo({ calendarId, analytics }: DashboardDebugInfo
           </Badge>
         </div>
 
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-subtle-foreground">
           <p>✅ Real-time updates enabled</p>
           <p>✅ WhatsApp analytics integration active</p>
           <p>✅ Dashboard metrics function: get_dashboard_metrics</p>

@@ -45,11 +45,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-44 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
+              className="h-44 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"
             />
           ))}
         </div>
-        <div className="h-96 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"></div>
+        <div className="h-96 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"></div>
       </div>
     );
   }
@@ -74,11 +74,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-44 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"
+              className="h-44 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"
             />
           ))}
         </div>
-        <div className="h-96 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl animate-pulse border border-slate-700/30"></div>
+        <div className="h-96 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"></div>
       </div>
     );
   }
@@ -87,7 +87,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
     return (
       <div className="text-center py-16">
         <p className="text-red-400 mb-2">Error loading performance data</p>
-        <p className="text-sm text-slate-400">Please try refreshing the page</p>
+        <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
       </div>
     );
   }
@@ -124,13 +124,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.1}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -155,13 +155,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.2}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -188,13 +188,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                     variant="blue"
                     delay={0.3}
                   />
-                  <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                  <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                     <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                   </div>
                 </motion.div>
               </TooltipTrigger>
               <TooltipContent 
-                className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
                 side="top"
                 align="center"
                 sideOffset={8}
@@ -220,13 +220,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -254,13 +254,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.5}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -285,13 +285,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.6}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -316,13 +316,13 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.7}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -335,23 +335,23 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
         {/* Enhanced Peak Hours Chart - Mobile optimized */}
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-cyan-500/15 to-blue-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/90 via-slate-900/80 to-slate-800/90 backdrop-blur-2xl border border-blue-500/30 rounded-xl md:rounded-2xl shadow-2xl">
+          <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-blue-500/30 rounded-xl md:rounded-2xl shadow-2xl">
             <div className="p-4 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
                   <Activity className="h-6 w-6 text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                     Peak Hours Analysis
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                        <div className="cursor-help p-1 rounded-full bg-card/50 backdrop-blur-sm">
                           <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent 
-                        className="max-w-sm bg-slate-900/95 border border-blue-500/30 text-slate-100 z-50"
+                        className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
                         side="top"
                         align="center"
                         sideOffset={8}
@@ -360,7 +360,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                       </TooltipContent>
                     </Tooltip>
                   </h3>
-                  <p className="text-sm text-slate-400 mt-1">{dateRange.label}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{dateRange.label}</p>
                 </div>
               </div>
               

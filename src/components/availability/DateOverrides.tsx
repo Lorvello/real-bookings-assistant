@@ -246,7 +246,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                           className={cn(
                             "rounded-full",
                             override.is_available 
-                              ? "bg-green-500/20 text-green-400 border-green-500/30" 
+                              ? "bg-success/20 text-success border-success/30"
                               : "bg-red-500/20 text-red-400 border-red-500/30"
                           )}
                         >

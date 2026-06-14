@@ -118,8 +118,8 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
       <Card>
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
         </CardContent>
       </Card>
@@ -142,19 +142,19 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Contacten</span>
+                  <span className="text-sm text-subtle-foreground">Contacten</span>
                   <Badge variant="secondary">{dataStats?.total_contacts || 0}</Badge>
                 </div>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Gesprekken</span>
+                  <span className="text-sm text-subtle-foreground">Gesprekken</span>
                   <Badge variant="secondary">{dataStats?.total_conversations || 0}</Badge>
                 </div>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Berichten</span>
+                  <span className="text-sm text-subtle-foreground">Berichten</span>
                   <Badge variant="secondary">{dataStats?.total_messages || 0}</Badge>
                 </div>
               </div>
@@ -188,7 +188,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                     <Download className="h-5 w-5 text-blue-600 mt-1" />
                     <div className="flex-1">
                       <h4 className="font-medium">Data Exporteren</h4>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-sm text-subtle-foreground mb-3">
                         Download al uw WhatsApp data in JSON formaat
                       </p>
                       <Button 
@@ -210,7 +210,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                     <Trash2 className="h-5 w-5 text-orange-600 mt-1" />
                     <div className="flex-1">
                       <h4 className="font-medium">Clean Up Old Data</h4>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="text-sm text-subtle-foreground mb-3">
                         Manually delete old messages and archived conversations
                       </p>
                       <Button 
@@ -238,7 +238,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
                   <p className="font-medium">Veilige Toegang</p>
-                  <p className="text-sm text-gray-600">Alleen u heeft toegang tot uw WhatsApp conversaties</p>
+                  <p className="text-sm text-subtle-foreground">Alleen u heeft toegang tot uw WhatsApp conversaties</p>
                 </div>
               </div>
               
@@ -246,7 +246,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
                   <p className="font-medium">Automatische Verwijdering</p>
-                  <p className="text-sm text-gray-600">Oude messages worden automatisch verwijderd volgens GDPR richtlijnen</p>
+                  <p className="text-sm text-subtle-foreground">Oude messages worden automatisch verwijderd volgens GDPR richtlijnen</p>
                 </div>
               </div>
               
@@ -254,7 +254,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                 <div>
                   <p className="font-medium">Data Portabiliteit</p>
-                  <p className="text-sm text-gray-600">U kunt uw data op elk moment exporteren</p>
+                  <p className="text-sm text-subtle-foreground">U kunt uw data op elk moment exporteren</p>
                 </div>
               </div>
             </div>

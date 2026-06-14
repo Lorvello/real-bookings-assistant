@@ -83,7 +83,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
       case 'cancelled':
         return 'text-red-400';
       default:
-        return 'text-slate-400';
+        return 'text-muted-foreground';
     }
   };
 
@@ -103,7 +103,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
   const modalContent = (
     <div 
       data-popup="true"
-      className="absolute z-[9999] bg-slate-900/95 border border-slate-600/50 rounded-lg backdrop-blur-sm shadow-2xl min-w-[180px] max-w-[200px] sm:min-w-[280px] sm:max-w-[320px] pointer-events-auto"
+      className="absolute z-[9999] bg-background/95 border border-white/[0.08] rounded-lg backdrop-blur-sm shadow-2xl min-w-[180px] max-w-[200px] sm:min-w-[280px] sm:max-w-[320px] pointer-events-auto"
       style={{
         left: `${position?.x || 0}px`,
         top: `${position?.y || 0}px`,
@@ -113,16 +113,16 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
       {!showDetail ? (
         <>
           {/* Header */}
-          <div className="p-2 sm:p-3 border-b border-slate-700/50">
+          <div className="p-2 sm:p-3 border-b border-white/[0.08]">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-semibold text-white">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground">
                 {format(date, 'EEE d MMM', { locale: enUS })}
               </h3>
               <button
                 onClick={onClose}
-                className="p-1 hover:bg-slate-700/50 rounded-sm transition-colors"
+                className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
               >
-                <X className="w-3 h-3 text-slate-400" />
+                <X className="w-3 h-3 text-muted-foreground" />
               </button>
             </div>
           </div>
@@ -130,7 +130,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
           {/* Content */}
           <div className="p-2 sm:p-3 max-h-48 sm:max-h-64 overflow-y-auto">
             {sortedBookings.length === 0 ? (
-              <div className="text-center py-3 sm:py-4 text-slate-400 text-xs">
+              <div className="text-center py-3 sm:py-4 text-muted-foreground text-xs">
                 No appointments
               </div>
             ) : (
@@ -138,7 +138,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                 {sortedBookings.map((booking) => (
                   <div
                     key={booking.id}
-                    className="p-1.5 sm:p-2 rounded-md border border-slate-700/30 bg-slate-800/30 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                    className="p-1.5 sm:p-2 rounded-md border border-white/[0.08] bg-card/30 hover:bg-white/[0.06] transition-colors cursor-pointer"
                     onClick={() => handleBookingClick(booking)}
                   >
                     <div className="flex items-start gap-1.5 sm:gap-2">
@@ -149,7 +149,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="text-[10px] sm:text-xs font-medium text-white truncate">
+                        <div className="text-[10px] sm:text-xs font-medium text-foreground truncate">
                           {booking.service_types?.name || booking.service_name || 'Appointment'}
                         </div>
                         {viewingAllCalendars && booking.calendar && (
@@ -158,21 +158,21 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                               className="w-1.5 h-1.5 rounded-full"
                               style={{ backgroundColor: booking.calendar.color }}
                             />
-                            <span className="text-[9px] sm:text-xs text-slate-400 truncate">
+                            <span className="text-[9px] sm:text-xs text-muted-foreground truncate">
                               {booking.calendar.name}
                             </span>
                           </div>
                         )}
                         <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
-                          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
-                          <span className="text-[9px] sm:text-xs text-slate-300">
+                          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+                          <span className="text-[9px] sm:text-xs text-foreground">
                             {format(new Date(booking.start_time), 'HH:mm')} - 
                             {format(new Date(booking.end_time), 'HH:mm')}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
-                          <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
-                          <span className="text-[9px] sm:text-xs text-slate-300 truncate">
+                          <User className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+                          <span className="text-[9px] sm:text-xs text-foreground truncate">
                             {booking.customer_name}
                           </span>
                         </div>
@@ -188,24 +188,24 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
         selectedBooking && (
           <>
             {/* Detail Header */}
-            <div className="p-2 sm:p-3 border-b border-slate-700/50">
+            <div className="p-2 sm:p-3 border-b border-white/[0.08]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={handleBackToList}
-                    className="p-1 hover:bg-slate-700/50 rounded-sm transition-colors"
+                    className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
                   >
-                    <ArrowLeft className="w-3 h-3 text-slate-400" />
+                    <ArrowLeft className="w-3 h-3 text-muted-foreground" />
                   </button>
-                  <h3 className="text-xs sm:text-sm font-semibold text-white">
+                  <h3 className="text-xs sm:text-sm font-semibold text-foreground">
                     Booking Details
                   </h3>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-1 hover:bg-slate-700/50 rounded-sm transition-colors"
+                  className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
                 >
-                  <X className="w-3 h-3 text-slate-400" />
+                  <X className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
             </div>
@@ -222,11 +222,11 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                     }}
                   />
                   <div>
-                    <h4 className="text-xs sm:text-sm font-medium text-white">
+                    <h4 className="text-xs sm:text-sm font-medium text-foreground">
                       {selectedBooking.service_types?.name || selectedBooking.service_name || 'Appointment'}
                     </h4>
                     {selectedBooking.service_types?.description && (
-                      <p className="text-[10px] sm:text-xs text-slate-400">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         {selectedBooking.service_types.description}
                       </p>
                     )}
@@ -243,7 +243,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                       style={{ backgroundColor: selectedBooking.calendar.color }}
                     />
                     <div>
-                      <div className="text-xs sm:text-sm text-white">
+                      <div className="text-xs sm:text-sm text-foreground">
                         Calendar: {selectedBooking.calendar.name}
                       </div>
                     </div>
@@ -254,16 +254,16 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Time Information */}
               <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                   <div>
-                    <div className="text-xs sm:text-sm text-white">
+                    <div className="text-xs sm:text-sm text-foreground">
                       {format(new Date(selectedBooking.start_time), 'EEEE, MMMM d, yyyy')}
                     </div>
-                    <div className="text-xs sm:text-sm text-slate-300">
+                    <div className="text-xs sm:text-sm text-foreground">
                       {format(new Date(selectedBooking.start_time), 'h:mm a')} - {format(new Date(selectedBooking.end_time), 'h:mm a')}
                     </div>
                     {selectedBooking.service_types?.duration && (
-                      <div className="text-[10px] sm:text-xs text-slate-400">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">
                         Duration: {selectedBooking.service_types.duration} minutes
                       </div>
                     )}
@@ -274,23 +274,23 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Customer Information */}
               <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                   <div>
-                    <div className="text-xs sm:text-sm font-medium text-white">
+                    <div className="text-xs sm:text-sm font-medium text-foreground">
                       {selectedBooking.customer_name}
                     </div>
                     {selectedBooking.customer_email && (
                       <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
-                        <Mail className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
-                        <span className="text-[10px] sm:text-xs text-slate-300">
+                        <Mail className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+                        <span className="text-[10px] sm:text-xs text-foreground">
                           {selectedBooking.customer_email}
                         </span>
                       </div>
                     )}
                     {selectedBooking.customer_phone && (
                       <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
-                        <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
-                        <span className="text-[10px] sm:text-xs text-slate-300">
+                        <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+                        <span className="text-[10px] sm:text-xs text-foreground">
                           {selectedBooking.customer_phone}
                         </span>
                       </div>
@@ -301,7 +301,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
 
               {/* Status */}
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm text-slate-400">Status</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">Status</span>
                 <span className={`text-xs sm:text-sm font-medium ${getStatusColor(selectedBooking.status)}`}>
                   {getStatusLabel(selectedBooking.status)}
                 </span>
@@ -310,8 +310,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Price */}
               {selectedBooking.total_price && (
                 <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm text-slate-400">Price</span>
-                  <span className="text-xs sm:text-sm font-medium text-white">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Price</span>
+                  <span className="text-xs sm:text-sm font-medium text-foreground">
                     €{selectedBooking.total_price}
                   </span>
                 </div>
@@ -320,8 +320,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Notes */}
               {selectedBooking.notes && (
                 <div className="space-y-1">
-                  <h5 className="text-xs sm:text-sm font-medium text-white">Notes</h5>
-                  <p className="text-[10px] sm:text-xs text-slate-300 bg-slate-800/50 p-1.5 sm:p-2 rounded">
+                  <h5 className="text-xs sm:text-sm font-medium text-foreground">Notes</h5>
+                  <p className="text-[10px] sm:text-xs text-foreground bg-card/50 p-1.5 sm:p-2 rounded">
                     {selectedBooking.notes}
                   </p>
                 </div>
@@ -330,8 +330,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Internal Notes */}
               {selectedBooking.internal_notes && (
                 <div className="space-y-1">
-                  <h5 className="text-xs sm:text-sm font-medium text-white">Internal Notes</h5>
-                  <p className="text-[10px] sm:text-xs text-slate-300 bg-slate-800/50 p-1.5 sm:p-2 rounded">
+                  <h5 className="text-xs sm:text-sm font-medium text-foreground">Internal Notes</h5>
+                  <p className="text-[10px] sm:text-xs text-foreground bg-card/50 p-1.5 sm:p-2 rounded">
                     {selectedBooking.internal_notes}
                   </p>
                 </div>

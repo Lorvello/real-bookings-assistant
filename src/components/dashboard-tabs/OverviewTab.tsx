@@ -60,9 +60,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">
+              <h3 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider">
                 Next Appointment
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center shadow-lg">
@@ -73,19 +73,19 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {nextAppointment ? (
                 <>
-                  <div className="text-xs md:text-4xl font-black text-slate-100 leading-none tabular-nums mb-0 md:mb-2">
+                  <div className="text-xs md:text-4xl font-black text-foreground leading-none tabular-nums mb-0 md:mb-2">
                     {nextAppointment.time_until}
                   </div>
-                  <div className="text-xs md:text-sm text-slate-400 font-medium truncate hidden md:block">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium truncate hidden md:block">
                     {nextAppointment.service_name} • {nextAppointment.customer_name}
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-xs md:text-4xl font-black text-slate-100 leading-none tabular-nums mb-0 md:mb-2">
+                  <div className="text-xs md:text-4xl font-black text-foreground leading-none tabular-nums mb-0 md:mb-2">
                     --:--
                   </div>
-                  <div className="text-xs md:text-sm text-slate-400 font-medium hidden md:block">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium hidden md:block">
                     No appointments today
                   </div>
                 </>
@@ -102,9 +102,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">
+              <h3 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider">
                 Popular Service
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center shadow-lg">
@@ -115,19 +115,19 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {popularService ? (
                 <>
-                  <div className="text-lg md:text-4xl font-black text-slate-100 leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-black text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
                     {popularService.percentage.toFixed(0)}%
                   </div>
-                  <div className="text-xs md:text-sm text-slate-400 font-medium truncate">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium truncate">
                     {popularService.service_name} • {popularService.booking_count} bookings
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-black text-slate-100 leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-black text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
                     --%
                   </div>
-                  <div className="text-xs md:text-sm text-slate-400 font-medium">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium">
                     No data available
                   </div>
                 </>
@@ -144,9 +144,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/95 via-slate-900/90 to-slate-800/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-wider">
+              <h3 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider">
                 Weekly Growth
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center shadow-lg">
@@ -157,20 +157,20 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {weeklyInsights ? (
                 <>
-                  <div className="text-lg md:text-4xl font-black text-slate-100 leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-black text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
                     {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
                     {Math.abs(weeklyInsights.growth_percentage)}%
                   </div>
-                  <div className="text-xs md:text-sm text-slate-400 font-medium truncate">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium truncate">
                     {weeklyInsights.trend === 'up' ? '↗️ Rising' : weeklyInsights.trend === 'down' ? '↘️ Falling' : 'Stable'} • vs last week
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-black text-slate-100 leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-black text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
                     --.--%
                   </div>
-                  <div className="text-xs md:text-sm text-slate-400 font-medium">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium">
                     No data available
                   </div>
                 </>

@@ -95,10 +95,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
   if (loading) {
     return (
       <div className="max-w-[1400px] mx-auto">
-        <Card className="bg-slate-800 rounded-xl">
+        <Card className="bg-card rounded-xl">
           <CardContent className="p-12">
             <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-sm text-slate-400">Loading...</div>
+              <div className="text-sm text-muted-foreground">Loading...</div>
             </div>
           </CardContent>
         </Card>
@@ -112,7 +112,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
       <div className="grid lg:grid-cols-[70%_30%] gap-6">
         
         {/* LEFT: QR Code Hero */}
-        <Card className="relative overflow-hidden bg-slate-800 rounded-2xl border border-slate-700">
+        <Card className="relative overflow-hidden bg-card rounded-2xl border border-white/[0.08]">
           <CardContent className="relative p-12 flex flex-col items-center space-y-6">
             {/* QR Code Display - 400x400 */}
             <div className="bg-white p-8 rounded-xl shadow-lg">
@@ -128,8 +128,8 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               ) : whatsappLink && (qrExists || imgBroken) ? (
                 <QRCodeSVG value={whatsappLink} size={400} className="w-full h-auto max-w-[400px]" />
               ) : (
-                <div className="w-full max-w-[400px] aspect-square bg-slate-100 rounded-lg flex items-center justify-center">
-                  <span className="text-slate-400 text-sm">QR code will appear here</span>
+                <div className="w-full max-w-[400px] aspect-square bg-muted rounded-lg flex items-center justify-center">
+                  <span className="text-muted-foreground text-sm">QR code will appear here</span>
                 </div>
               )}
             </div>
@@ -139,29 +139,29 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             <div className="w-full max-w-md space-y-3">
               {qrUrl || (whatsappLink && qrExists) ? (
                 <>
-                  <Button 
-                    onClick={downloadQRCode} 
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                  <Button
+                    onClick={downloadQRCode}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     size="lg"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download QR Code
                   </Button>
-                  <Button 
-                    onClick={() => generateQR()} 
+                  <Button
+                    onClick={() => generateQR()}
                     disabled={generating}
                     variant="outline"
-                    className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                    className="w-full border-white/[0.08] text-foreground hover:bg-white/[0.06]"
                     size="lg"
                   >
                     {generating ? 'Regenerating...' : 'Regenerate QR Code'}
                   </Button>
                 </>
               ) : (
-                <Button 
-                  onClick={() => generateQR()} 
+                <Button
+                  onClick={() => generateQR()}
                   disabled={generating}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   size="lg"
                 >
                   {generating ? 'Generating...' : 'Generate QR Code'}
@@ -173,7 +173,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             {(qrUrl || (whatsappLink && qrExists)) && (
               <button
                 onClick={handleCopyLink}
-                className="text-sm text-slate-400 hover:text-slate-300 transition-colors"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {linkCopied ? 'Link copied!' : 'Copy WhatsApp Link'}
               </button>
@@ -185,24 +185,24 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         <div className="space-y-6">
           
           {/* Quick Info Card */}
-          <Card className="bg-slate-800 rounded-xl border border-slate-700">
+          <Card className="bg-card rounded-xl border border-white/[0.08]">
             <CardContent className="p-6 space-y-4">
-              <p className="text-sm text-slate-400">Your WhatsApp Line</p>
-              
+              <p className="text-sm text-muted-foreground">Your WhatsApp Line</p>
+
               <div className="flex items-center justify-between">
-                <div className="font-mono text-2xl text-white">
+                <div className="font-mono text-2xl text-foreground">
                   {platformNumber}
                 </div>
                 <Button
                   onClick={handleCopyNumber}
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-slate-700"
+                  className="hover:bg-white/[0.06]"
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Copy className="w-4 h-4 text-slate-400" />
+                    <Copy className="w-4 h-4 text-muted-foreground" />
                   )}
                 </Button>
               </div>
@@ -211,12 +211,12 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           </Card>
 
           {/* Message Preview Card */}
-          <Card className="bg-slate-800 rounded-xl border border-slate-700">
+          <Card className="bg-card rounded-xl border border-white/[0.08]">
             <CardContent className="p-6 space-y-4">
-              <p className="text-sm text-slate-400">Customer Message</p>
-              
-              <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
-                <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-muted-foreground">Customer Message</p>
+
+              <div className="bg-background p-4 rounded-lg border border-white/[0.08]">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
                   Hello {businessName}!{'\n'}
                   (Send this message to save the chat, then you can always book via WhatsApp.)
                 </p>
@@ -230,11 +230,11 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         
         {/* How It Works */}
-        <Card className="bg-slate-800/50 rounded-lg border border-slate-700/50">
+        <Card className="bg-card rounded-lg border border-white/[0.08]">
           <CardContent className="p-6">
-            <h3 className="text-base text-slate-300 font-medium mb-4">How It Works</h3>
-            
-            <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
+            <h3 className="text-base text-foreground font-medium mb-4">How It Works</h3>
+
+            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
               <p>1. Customer scans QR code with their phone</p>
               <p>2. WhatsApp opens with a pre-filled message</p>
               <p>3. Customer sends the message to save the chat</p>
@@ -244,11 +244,11 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         </Card>
 
         {/* Where To Share */}
-        <Card className="bg-slate-800/50 rounded-lg border border-slate-700/50">
+        <Card className="bg-card rounded-lg border border-white/[0.08]">
           <CardContent className="p-6">
-            <h3 className="text-base text-slate-300 font-medium mb-4">Where To Share Your QR Code</h3>
-            
-            <ul className="space-y-2 text-sm text-slate-400 leading-relaxed">
+            <h3 className="text-base text-foreground font-medium mb-4">Where To Share Your QR Code</h3>
+
+            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
               <li>• On business cards and flyers</li>
               <li>• At reception or checkout desk</li>
               <li>• In confirmation emails</li>

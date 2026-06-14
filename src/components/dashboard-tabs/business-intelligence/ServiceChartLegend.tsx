@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 export function ServiceChartLegend() {
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-center gap-8 p-4 bg-slate-800/20 rounded-xl border border-slate-700/30">
+      <div className="flex items-center justify-center gap-8 p-4 bg-card/20 rounded-xl border border-white/[0.08]">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-3 cursor-help">
@@ -14,12 +14,12 @@ export function ServiceChartLegend() {
                 <Users className="h-4 w-4 text-blue-400" />
                 <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded shadow-lg shadow-blue-500/25"></div>
               </div>
-              <span className="text-sm font-medium text-slate-300">Number of Bookings</span>
-              <Info className="h-3 w-3 text-slate-400" />
+              <span className="text-sm font-medium text-foreground">Number of Bookings</span>
+              <Info className="h-3 w-3 text-muted-foreground" />
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-xs bg-slate-900/95 border border-blue-500/30 text-slate-100"
+            className="max-w-xs bg-background/95 border border-blue-500/30 text-foreground"
             side="top"
             align="center"
           >
@@ -34,12 +34,12 @@ export function ServiceChartLegend() {
                 <Euro className="h-4 w-4 text-emerald-400" />
                 <div className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded shadow-lg shadow-emerald-500/25"></div>
               </div>
-              <span className="text-sm font-medium text-slate-300">Revenue (€)</span>
-              <Info className="h-3 w-3 text-slate-400" />
+              <span className="text-sm font-medium text-foreground">Revenue (€)</span>
+              <Info className="h-3 w-3 text-muted-foreground" />
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-xs bg-slate-900/95 border border-emerald-500/30 text-slate-100"
+            className="max-w-xs bg-background/95 border border-emerald-500/30 text-foreground"
             side="top"
             align="center"
           >

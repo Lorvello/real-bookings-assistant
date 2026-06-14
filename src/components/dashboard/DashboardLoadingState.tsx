@@ -8,7 +8,7 @@ export function DashboardLoadingState() {
       {[...Array(4)].map((_, i) => (
         <Card key={i} className="animate-pulse">
           <CardContent className="p-6">
-            <div className="h-20 bg-gray-200 dark:bg-gray-800 rounded"></div>
+            <div className="h-20 bg-muted dark:bg-card rounded"></div>
           </CardContent>
         </Card>
       ))}

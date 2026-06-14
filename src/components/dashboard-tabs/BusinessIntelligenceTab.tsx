@@ -59,7 +59,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
     return (
       <div className="text-center py-16">
         <p className="text-red-400 mb-2">Error loading business intelligence data</p>
-        <p className="text-sm text-slate-400">Please try refreshing the page</p>
+        <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
       </div>
     );
   }
@@ -107,13 +107,13 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                     icon: TrendingUp
                   }}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -138,13 +138,13 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   variant="orange"
                   delay={0.2}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -169,13 +169,13 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   variant="orange"
                   delay={0.3}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -200,13 +200,13 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   variant="orange"
                   delay={0.4}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-slate-800/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
                   <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-50"
+              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}

@@ -26,11 +26,11 @@ export const DashboardMainContent: React.FC<DashboardMainContentProps> = ({
   return (
     <div className="xl:col-span-3 space-y-6">
       {/* Welcome Section */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="bg-card rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold text-foreground mb-2">
           Welcome to your Dashboard
         </h2>
-        <p className="text-gray-600">
+        <p className="text-subtle-foreground">
           Your fresh Supabase project is ready to go. Start building your application!
         </p>
       </div>

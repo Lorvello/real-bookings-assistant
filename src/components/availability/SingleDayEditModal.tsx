@@ -167,7 +167,7 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
               </>
             ) : (
               <>
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <div className="w-2 h-2 bg-success rounded-full" />
                 <span>All changes saved</span>
               </>
             )}
@@ -289,8 +289,8 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
               </Button>
             )}
             {!hasUnsavedChanges && !isSaving && (
-              <div className="flex items-center space-x-2 text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <div className="flex items-center space-x-2 text-sm text-success">
+                <div className="w-2 h-2 bg-success rounded-full" />
                 <span>Saved</span>
               </div>
             )}

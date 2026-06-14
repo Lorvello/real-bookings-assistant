@@ -7,16 +7,16 @@ export function ChartTooltip({ active, payload, label }: any) {
     const data = payload[0]?.payload;
     
     return (
-      <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-600/40 shadow-2xl p-5 rounded-xl min-w-[280px]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
+      <div className="bg-background/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl p-5 rounded-xl min-w-[280px]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
         <div className="space-y-4">
           {/* Service Name Header */}
-          <div className="flex items-center gap-3 border-b border-slate-700/30 pb-3">
+          <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3">
             <div className="p-2 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-lg">
               <TrendingUp className="h-4 w-4 text-orange-400" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-200">{label}</p>
-              <p className="text-xs text-slate-400">Service Performance</p>
+              <p className="text-sm font-bold text-foreground">{label}</p>
+              <p className="text-xs text-muted-foreground">Service Performance</p>
             </div>
           </div>
 
@@ -31,18 +31,18 @@ export function ChartTooltip({ active, payload, label }: any) {
                     ) : (
                       <Euro className="h-4 w-4 text-emerald-400" />
                     )}
-                    <span className="text-sm text-slate-300">
+                    <span className="text-sm text-foreground">
                       {entry.dataKey === 'booking_count' ? 'Bookings' : 'Revenue'}
                     </span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-slate-100">
+                  <div className="text-sm font-bold text-foreground">
                     {entry.dataKey === 'revenue' 
                       ? `€${Number(entry.value).toFixed(2)}` 
                       : entry.value}
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-muted-foreground">
                     {entry.dataKey === 'booking_count' && data?.booking_percentage
                       ? `${data.booking_percentage.toFixed(1)}% van totaal`
                       : entry.dataKey === 'revenue' && data?.revenue_percentage
@@ -56,10 +56,10 @@ export function ChartTooltip({ active, payload, label }: any) {
 
           {/* Additional Info */}
           {data?.avg_price && (
-            <div className="border-t border-slate-700/30 pt-3">
+            <div className="border-t border-white/[0.08] pt-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">Gemiddelde prijs</span>
-                <span className="text-sm font-semibold text-slate-200">
+                <span className="text-xs text-muted-foreground">Gemiddelde prijs</span>
+                <span className="text-sm font-semibold text-foreground">
                   €{Number(data.avg_price).toFixed(2)}
                 </span>
               </div>

@@ -90,15 +90,15 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
               className={`
                 group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
                 ${isActive || isSubActive
-                  ? 'bg-green-600 text-white shadow-lg' 
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-primary/[0.12] text-accent-foreground shadow-lg'
+                  : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
                 }
               `}
               title={item.name}
             >
               <item.icon
                 className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
-                  isActive || isSubActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                  isActive || isSubActive ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground'
                 }`}
               />
               <span className={`transition-all duration-300 ${isSidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 w-0 overflow-hidden'}`}>
@@ -126,16 +126,16 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
                       onClick={() => onNavigate(subItem.href)}
                       className={`
                         group flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
-                        ${isSubActive 
-                          ? 'bg-green-500 text-white shadow-lg' 
-                          : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                        ${isSubActive
+                          ? 'bg-primary/[0.12] text-accent-foreground shadow-lg'
+                          : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
                         }
                       `}
                       title={subItem.name}
                     >
                       <subItem.icon
                         className={`mr-3 h-4 w-4 flex-shrink-0 transition-colors duration-200 ${
-                          isSubActive ? 'text-white' : 'text-gray-400 group-hover:text-white'
+                          isSubActive ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-foreground'
                         }`}
                       />
                       <span className="transition-all duration-300 opacity-100 translate-x-0">

@@ -19,8 +19,8 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
       <Card>
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
           </div>
         </CardContent>
       </Card>
@@ -50,7 +50,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
               </Badge>
             </div>
             <Progress value={retentionPercentage} className="h-2" />
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-subtle-foreground mt-1">
               {totalMessages - oldMessages} of {totalMessages} messages within the retention period
             </p>
           </div>
@@ -62,7 +62,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                 {Number(dataStats?.archived_conversations || 0)}
               </Badge>
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-600">
+            <div className="flex items-center gap-2 text-xs text-subtle-foreground">
               <Archive className="h-3 w-3" />
               Inactief na {retentionSettings?.conversation_inactive_days || 30} dagen
             </div>
@@ -77,7 +77,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
               <Clock className="h-4 w-4 text-blue-600" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Automatic Message Deletion</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-subtle-foreground">
                   Messages older than {retentionSettings?.message_retention_days || 90} days are automatically deleted
                 </p>
               </div>
@@ -88,7 +88,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
               <Archive className="h-4 w-4 text-orange-600" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Conversation Archiving</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-subtle-foreground">
                   Conversations are archived after {retentionSettings?.conversation_inactive_days || 30} days of inactivity
                 </p>
               </div>
@@ -99,7 +99,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
               <Trash2 className="h-4 w-4 text-red-600" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Abandoned Booking Intents</p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-subtle-foreground">
                   Abandoned booking attempts are deleted after {retentionSettings?.booking_intent_abandoned_days || 7} days
                 </p>
               </div>
@@ -109,11 +109,11 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
         </div>
 
         {/* Next Cleanup Schedule */}
-        <div className="p-4 bg-gray-50 rounded-lg">
+        <div className="p-4 bg-muted rounded-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Volgende Automatische Opschoning</p>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-subtle-foreground">
                 Dagelijks om 02:00 (server tijd)
               </p>
             </div>

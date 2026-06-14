@@ -19,7 +19,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Peak Hours */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-slate-200 flex items-center gap-2">
+        <h4 className="font-semibold text-foreground flex items-center gap-2">
           🔥 Drukste Uren
         </h4>
         <div className="space-y-2">
@@ -35,7 +35,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
                 <Badge variant="destructive" className="text-xs bg-red-700/80">
                   #{index + 1}
                 </Badge>
-                <span className="font-medium text-slate-200">{hour.hour}:00 - {hour.hour + 1}:00</span>
+                <span className="font-medium text-foreground">{hour.hour}:00 - {hour.hour + 1}:00</span>
               </div>
               <div className="text-right">
                 <p className="font-bold text-red-300">{hour.count} boekingen</p>
@@ -50,7 +50,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
 
       {/* Quiet Hours */}
       <div className="space-y-3">
-        <h4 className="font-semibold text-slate-200 flex items-center gap-2">
+        <h4 className="font-semibold text-foreground flex items-center gap-2">
           😌 Rustige Uren
         </h4>
         <div className="space-y-2">
@@ -66,7 +66,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
                 <Badge variant="secondary" className="text-xs bg-green-800/50 text-green-300 border-green-700/50">
                   #{index + 1}
                 </Badge>
-                <span className="font-medium text-slate-200">{hour.hour}:00 - {hour.hour + 1}:00</span>
+                <span className="font-medium text-foreground">{hour.hour}:00 - {hour.hour + 1}:00</span>
               </div>
               <div className="text-right">
                 <p className="font-bold text-green-300">{hour.count} boekingen</p>

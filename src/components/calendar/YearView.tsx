@@ -162,7 +162,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                         >
                           {/* Info icon */}
                           <div className="absolute top-0 sm:top-0.5 right-0 sm:right-0.5">
-                            <Info className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-gray-700" />
+                            <Info className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-subtle-foreground" />
                           </div>
                           {format(day, 'd')}
                         </div>

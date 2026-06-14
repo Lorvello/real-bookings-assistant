@@ -13,11 +13,11 @@ interface PeakHoursRecommendationsProps {
 
 export function PeakHoursRecommendations({ peakHours, quietHours }: PeakHoursRecommendationsProps) {
   return (
-    <div className="bg-gradient-to-r from-slate-800/60 to-slate-700/50 rounded-xl p-4 border border-slate-600/40">
-      <h4 className="font-semibold text-slate-200 mb-3 flex items-center gap-2">
+    <div className="bg-gradient-to-r from-card/60 to-muted/50 rounded-xl p-4 border border-white/[0.08]">
+      <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
         💡 Aanbevelingen
       </h4>
-      <div className="space-y-2 text-sm text-slate-300">
+      <div className="space-y-2 text-sm text-foreground">
         {peakHours[0] && (
           <p>• Overweeg extra personeel in te zetten tijdens piekuur ({peakHours[0].hour}:00-{peakHours[0].hour + 1}:00)</p>
         )}

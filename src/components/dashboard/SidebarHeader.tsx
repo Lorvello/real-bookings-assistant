@@ -12,7 +12,7 @@ interface SidebarHeaderProps {
 
 export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false, tooltipsDisabled = false }: SidebarHeaderProps) {
   return (
-    <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-gray-700">
+    <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-white/[0.08]">
       {/* Logo - only show when expanded */}
       {isSidebarOpen && (
         <div className="transition-all duration-300 select-none">
@@ -31,7 +31,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
       {/* Toggle Button - positioned correctly */}
       <button
         onClick={onToggleSidebar}
-        className={`text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-700 transition-all duration-200 hover:scale-105 group flex-shrink-0 ${
+        className={`text-muted-foreground hover:text-foreground p-2 rounded-md hover:bg-white/[0.06] transition-all duration-200 hover:scale-105 group flex-shrink-0 ${
           isMobile ? 'p-3' : 'p-2'
         }`}
       >

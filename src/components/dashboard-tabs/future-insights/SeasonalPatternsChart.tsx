@@ -12,15 +12,15 @@ export function SeasonalPatternsChart({ data }: SeasonalPatternsChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="p-8 text-center">
-        <h3 className="text-lg font-semibold text-slate-100 mb-2">Seasonal Patterns</h3>
-        <p className="text-slate-400">No seasonal data available</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Seasonal Patterns</h3>
+        <p className="text-muted-foreground">No seasonal data available</p>
       </div>
     );
   }
 
   return (
     <div className="p-8">
-      <h3 className="text-lg font-semibold text-slate-100 mb-6">Seasonal Patterns</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-6">Seasonal Patterns</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgb(51, 65, 85)" />

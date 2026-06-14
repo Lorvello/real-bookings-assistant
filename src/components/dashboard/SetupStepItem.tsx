@@ -39,28 +39,28 @@ export const SetupStepItem: React.FC<SetupStepItemProps> = ({
   return (
     <div
       className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${
-        completed 
-          ? 'border-green-200 bg-green-50' 
-          : 'border-gray-200 bg-gray-50'
+        completed
+          ? 'border-green-200 bg-green-50'
+          : 'border-white/[0.08] bg-muted'
       }`}
     >
       <div className={`p-2 rounded-full ${
-        completed ? 'bg-green-100' : 'bg-gray-100'
+        completed ? 'bg-green-100' : 'bg-muted'
       }`}>
         {completed ? (
           <CheckCircle className="h-5 w-5 text-green-600" />
         ) : (
-          <IconComponent className="h-5 w-5 text-gray-500" />
+          <IconComponent className="h-5 w-5 text-muted-foreground" />
         )}
       </div>
       
       <div className="flex-1">
         <h4 className={`font-medium ${
-          completed ? 'text-green-900' : 'text-gray-900'
+          completed ? 'text-green-900' : 'text-foreground'
         }`}>
           {title}
         </h4>
-        <p className="text-sm text-gray-600">{description}</p>
+        <p className="text-sm text-subtle-foreground">{description}</p>
       </div>
 
       <Button

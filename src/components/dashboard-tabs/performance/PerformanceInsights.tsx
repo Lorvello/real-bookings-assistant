@@ -90,7 +90,7 @@ export function PerformanceInsights({
             <item.icon className="h-5 w-5" />
             {item.title}
           </h4>
-          <p className="text-slate-300 text-sm leading-relaxed">
+          <p className="text-foreground text-sm leading-relaxed">
             {item.insight}
           </p>
         </div>

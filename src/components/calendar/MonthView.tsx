@@ -133,7 +133,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                         title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'})`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="text-white text-xs font-semibold">
+                          <div className="text-foreground text-xs font-semibold">
                             {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                           </div>
                           <div className={`w-1 h-1 rounded-full ${
@@ -142,10 +142,10 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                             'bg-red-300/90'
                           }`} />
                         </div>
-                        <div className="text-white/95 text-xs font-medium truncate mt-0.5">
+                        <div className="text-foreground/95 text-xs font-medium truncate mt-0.5">
                           {dayBookings[0].customer_name}
                         </div>
-                        <div className="text-white/80 text-xs truncate">
+                        <div className="text-foreground/80 text-xs truncate">
                           {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'}
                         </div>
                       </div>

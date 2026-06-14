@@ -11,7 +11,7 @@ interface ServicePerformanceHeaderProps {
 
 export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: ServicePerformanceHeaderProps) {
   return (
-    <div className="p-8 border-b border-slate-700/30">
+    <div className="p-8 border-b border-white/[0.08]">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-xl backdrop-blur-sm border border-orange-500/20">
@@ -19,15 +19,15 @@ export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: S
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h3 className="text-2xl font-bold text-slate-100">Service Performance</h3>
+              <h3 className="text-2xl font-bold text-foreground">Service Performance</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="cursor-help p-1 rounded-full bg-slate-800/50 backdrop-blur-sm hover:bg-slate-700/50 transition-colors">
+                  <div className="cursor-help p-1 rounded-full bg-card/50 backdrop-blur-sm hover:bg-white/[0.06] transition-colors">
                     <Info className="h-4 w-4 text-orange-400/70 hover:text-orange-300 transition-colors" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent 
-                  className="max-w-sm bg-slate-900/95 border border-orange-500/30 text-slate-100 z-[9999]"
+                  className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-[9999]"
                   side="top"
                   align="center"
                   sideOffset={8}
@@ -36,15 +36,15 @@ export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: S
                 </TooltipContent>
               </Tooltip>
             </div>
-            <p className="text-slate-400 mt-1">{selectedTimeRange} revenue and bookings per service</p>
+            <p className="text-muted-foreground mt-1">{selectedTimeRange} revenue and bookings per service</p>
           </div>
         </div>
         
         {hasData && data && (
           <div className="grid grid-cols-2 gap-6">
-            <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/60 backdrop-blur-sm border border-slate-600/30 rounded-xl p-4 min-h-[80px] flex flex-col justify-center">
-              <p className="text-xs font-medium text-slate-400 mb-1 uppercase tracking-wider">Total Services</p>
-              <p className="text-2xl font-bold text-slate-100 leading-tight">{data.length}</p>
+            <div className="bg-gradient-to-br from-muted/40 to-card/60 backdrop-blur-sm border border-white/[0.08] rounded-xl p-4 min-h-[80px] flex flex-col justify-center">
+              <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Total Services</p>
+              <p className="text-2xl font-bold text-foreground leading-tight">{data.length}</p>
             </div>
             
             <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/20 backdrop-blur-sm border border-orange-500/30 rounded-xl p-4 min-h-[80px] flex flex-col justify-center">

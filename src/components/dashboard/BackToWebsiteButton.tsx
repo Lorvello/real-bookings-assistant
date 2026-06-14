@@ -11,11 +11,11 @@ interface BackToWebsiteButtonProps {
 
 export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite, tooltipsDisabled = false }: BackToWebsiteButtonProps) {
   return (
-    <div className="px-2 py-2 border-b border-gray-700">
+    <div className="px-2 py-2 border-b border-white/[0.08]">
         <button
           onClick={onBackToWebsite}
           className={`
-            group flex items-center rounded-lg transition-all duration-200 text-gray-300 hover:bg-gray-700 hover:text-white hover:scale-105
+            group flex items-center rounded-lg transition-all duration-200 text-muted-foreground hover:bg-white/[0.06] hover:text-foreground hover:scale-105
             ${isSidebarOpen 
               ? 'px-2 py-2 text-sm font-medium w-full text-left' 
               : 'w-12 h-12 justify-center mx-auto'
@@ -23,7 +23,7 @@ export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite, tooltipsDi
           `}
         >
           <ArrowLeft
-            className={`${isSidebarOpen ? 'mr-3' : ''} h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-white transition-colors duration-200`}
+            className={`${isSidebarOpen ? 'mr-3' : ''} h-5 w-5 flex-shrink-0 text-muted-foreground group-hover:text-foreground transition-colors duration-200`}
           />
           {isSidebarOpen && (
             <span className="transition-all duration-300 opacity-100 translate-x-0">

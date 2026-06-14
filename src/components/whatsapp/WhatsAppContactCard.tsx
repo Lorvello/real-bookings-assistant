@@ -17,7 +17,7 @@ export function WhatsAppContactCard({
   onToggleExpanded,
 }: WhatsAppContactCardProps) {
   return (
-    <Card className="bg-gray-800/50 border-gray-700 hover:border-gray-600 hover:shadow-lg hover:bg-gray-800/70 transition-all duration-200">
+    <Card className="bg-card border-white/[0.08] hover:border-white/[0.08] hover:shadow-lg hover:bg-white/[0.06] transition-all duration-200">
       <CardContent className="p-5">
         <WhatsAppContactHeader
           contact={contact}

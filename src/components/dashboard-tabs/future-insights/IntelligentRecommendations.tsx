@@ -186,8 +186,8 @@ export function IntelligentRecommendations({
         <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
           <Target className="h-8 w-8 text-purple-400" />
         </div>
-        <p className="text-slate-300 font-medium mb-2">Everything looks great!</p>
-        <p className="text-sm text-slate-400">Your performance is strong. We'll keep monitoring the metrics for new opportunities.</p>
+        <p className="text-foreground font-medium mb-2">Everything looks great!</p>
+        <p className="text-sm text-muted-foreground">Your performance is strong. We'll keep monitoring the metrics for new opportunities.</p>
       </div>
     );
   }
@@ -210,7 +210,7 @@ export function IntelligentRecommendations({
               <h4 className="font-bold mb-2 text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
                 {rec.title}
               </h4>
-              <p className="text-slate-300 text-sm leading-relaxed mb-4">
+              <p className="text-foreground text-sm leading-relaxed mb-4">
                 {rec.message}
               </p>
               {rec.actionItems && (
@@ -220,7 +220,7 @@ export function IntelligentRecommendations({
                   </p>
                   <ul className="space-y-1">
                     {rec.actionItems.map((action, actionIndex) => (
-                      <li key={actionIndex} className="flex items-center gap-2 text-xs text-slate-400">
+                      <li key={actionIndex} className="flex items-center gap-2 text-xs text-muted-foreground">
                         <div className="w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0"></div>
                         {action}
                       </li>

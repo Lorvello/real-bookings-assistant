@@ -125,18 +125,18 @@ export function CalendarDayCell({
 
                   {/* Info icon in top-right corner */}
                   <div className="absolute top-0 sm:top-0.5 right-0 sm:right-0.5">
-                    <Info className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 text-gray-700" />
+                    <Info className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 text-subtle-foreground" />
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="text-white text-[9px] sm:text-xs font-semibold">
+                    <div className="text-foreground text-[9px] sm:text-xs font-semibold">
                       {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                     </div>
                   </div>
-                  <div className="text-white/95 text-[9px] sm:text-xs font-medium truncate mt-0.5">
+                  <div className="text-foreground/95 text-[9px] sm:text-xs font-medium truncate mt-0.5">
                     {dayBookings[0].customer_name}
                   </div>
-                  <div className="text-white/80 text-[8px] sm:text-xs truncate">
+                  <div className="text-foreground/80 text-[8px] sm:text-xs truncate">
                     {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}
                   </div>
                 </div>

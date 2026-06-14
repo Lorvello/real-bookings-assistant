@@ -284,15 +284,15 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                           className={cn(
                             "max-w-[80%] px-4 py-2.5 shadow-sm relative",
                             msg.direction === 'outbound'
-                              ? 'bg-[hsl(142,70%,35%)] text-white rounded-2xl rounded-br-md'
+                              ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-md'
                               : 'bg-muted text-foreground rounded-2xl rounded-bl-md border border-border'
                           )}
                         >
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                           <p className={cn(
                             "text-xs mt-1.5 text-right",
-                            msg.direction === 'outbound' 
-                              ? 'text-white/70' 
+                            msg.direction === 'outbound'
+                              ? 'text-primary-foreground/70'
                               : 'text-muted-foreground'
                           )}>
                             {format(new Date(msg.created_at), 'HH:mm', { locale: nl })}

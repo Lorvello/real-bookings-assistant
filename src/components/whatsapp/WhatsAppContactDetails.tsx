@@ -23,7 +23,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
             <MessageCircle className="w-4 h-4" />
             Conversation info
           </h4>
-          <div className="space-y-1 text-gray-600">
+          <div className="space-y-1 text-subtle-foreground">
             <p>Last message: {formatDate(contact.last_message_at)}</p>
             <p>Conversation started: {formatDate(contact.conversation_created_at)}</p>
             <p>Laatst gezien: {formatDate(contact.last_seen_at)}</p>
@@ -39,8 +39,8 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
           {bookings.length > 0 ? (
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {bookings.slice(0, 3).map((booking: BookingInfo) => (
-                <div key={booking.booking_id} className="text-gray-600 p-2 bg-gray-50 rounded">
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div key={booking.booking_id} className="text-subtle-foreground p-2 bg-muted rounded">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     {formatDate(booking.start_time)}
                   </div>
@@ -56,11 +56,11 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
                 </div>
               ))}
               {bookings.length > 3 && (
-                <p className="text-xs text-gray-500">+{bookings.length - 3} meer boekingen</p>
+                <p className="text-xs text-muted-foreground">+{bookings.length - 3} meer boekingen</p>
               )}
             </div>
           ) : (
-            <p className="text-gray-500">Geen boekingen gevonden</p>
+            <p className="text-muted-foreground">Geen boekingen gevonden</p>
           )}
         </div>
       </div>

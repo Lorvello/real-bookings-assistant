@@ -56,8 +56,8 @@ export const DayRow: React.FC<DayRowProps> = ({
           />
           <span className={`text-base font-medium ${
             dayAvailability.enabled 
-              ? 'text-white' 
-              : 'text-gray-400'
+              ? 'text-foreground'
+              : 'text-muted-foreground'
           }`}>
             {day.label}
           </span>

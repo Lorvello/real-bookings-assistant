@@ -34,7 +34,7 @@ export const AvailabilityManager = () => {
   // Only show loading on INITIAL page load, not on tab switches
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-gray-900">
+      <div className="flex items-center justify-center h-full bg-background">
         <div className="w-6 h-6 bg-primary rounded-full animate-spin mx-auto"></div>
       </div>
     );

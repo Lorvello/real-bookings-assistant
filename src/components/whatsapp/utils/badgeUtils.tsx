@@ -19,7 +19,7 @@ export const getStatusBadge = (status?: string) => {
       );
     case 'closed':
       return (
-        <Badge variant="secondary" className="bg-gray-600/20 text-gray-300 border-gray-600/30">
+        <Badge variant="secondary" className="bg-muted text-foreground border-white/[0.08]">
           <Archive className="w-3 h-3 mr-1" />
           Gesloten
         </Badge>
@@ -33,7 +33,7 @@ export const getStatusBadge = (status?: string) => {
       );
     default:
       return (
-        <Badge variant="outline" className="bg-gray-600/20 text-gray-400 border-gray-600/30">
+        <Badge variant="outline" className="bg-muted text-muted-foreground border-white/[0.08]">
           <AlertCircle className="w-3 h-3 mr-1" />
           Unknown
         </Badge>

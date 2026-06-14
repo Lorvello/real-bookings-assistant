@@ -40,15 +40,15 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <p className="text-sm text-gray-500">Email</p>
+            <p className="text-sm text-muted-foreground">Email</p>
             <p className="font-medium">{user.email}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Name</p>
+            <p className="text-sm text-muted-foreground">Name</p>
             <p className="font-medium">{profile?.full_name || 'Not set'}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Business</p>
+            <p className="text-sm text-muted-foreground">Business</p>
             <p className="font-medium">{profile?.business_name || 'Not set'}</p>
           </div>
         </CardContent>
@@ -63,8 +63,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                  <div className="h-2 bg-gray-200 rounded" />
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+                  <div className="h-2 bg-muted rounded" />
                 </div>
               ))}
             </div>
@@ -72,17 +72,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             popularServices.slice(0, 5).map((service, index) => (
               <div key={index}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">{service.service_name}</span>
-                  <span className="text-sm text-gray-500">{service.percentage}%</span>
+                  <span className="text-sm font-medium text-foreground">{service.service_name}</span>
+                  <span className="text-sm text-muted-foreground">{service.percentage}%</span>
                 </div>
                 <Progress value={service.percentage} className="h-2" />
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {service.booking_count} bookings
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-4 text-gray-500 text-sm">
+            <div className="text-center py-4 text-muted-foreground text-sm">
               No booking data available yet
             </div>
           )}

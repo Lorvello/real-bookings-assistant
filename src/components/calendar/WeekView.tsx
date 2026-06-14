@@ -131,15 +131,15 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
           >
             {/* Info icon in top-right corner */}
             <div className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1">
-              <Info className="w-2 h-2 sm:w-3 sm:h-3 text-gray-700" />
+              <Info className="w-2 h-2 sm:w-3 sm:h-3 text-subtle-foreground" />
             </div>
 
-            <div className="text-white overflow-hidden">
+            <div className="text-foreground overflow-hidden">
               <div className="font-bold text-[9px] sm:text-xs truncate mb-0.5 sm:mb-1">{booking.customer_name}</div>
-              <div className="text-white/90 text-[8px] sm:text-xs font-medium truncate mb-0.5 sm:mb-1">
+              <div className="text-foreground/90 text-[8px] sm:text-xs font-medium truncate mb-0.5 sm:mb-1">
                 {booking.service_types?.name || 'Appointment'}
               </div>
-              <div className="text-white/80 text-[8px] sm:text-xs truncate">
+              <div className="text-foreground/80 text-[8px] sm:text-xs truncate">
                 {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
               </div>
             </div>

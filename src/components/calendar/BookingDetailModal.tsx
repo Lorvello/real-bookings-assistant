@@ -58,9 +58,9 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
       case 'completed':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'no-show':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 

@@ -23,16 +23,16 @@ export function OrphanedConversationsManager() {
 
   if (isLoading) {
     return (
-      <Card className="bg-gray-800/90 border-gray-700 shadow-xl">
-        <CardHeader className="border-b border-gray-700 bg-gray-800/50">
-          <CardTitle className="flex items-center gap-2 text-white">
+      <Card className="bg-card border-white/[0.08] shadow-xl">
+        <CardHeader className="border-b border-white/[0.08] bg-card">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageCircle className="w-5 h-5 text-orange-400" />
             Orphaned Conversations
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex items-center justify-center py-8">
-            <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />
+            <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
       </Card>
@@ -40,10 +40,10 @@ export function OrphanedConversationsManager() {
   }
 
   return (
-    <Card className="bg-gray-800/90 border-gray-700 shadow-xl">
-      <CardHeader className="border-b border-gray-700 bg-gray-800/50">
+    <Card className="bg-card border-white/[0.08] shadow-xl">
+      <CardHeader className="border-b border-white/[0.08] bg-card">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-white">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageCircle className="w-5 h-5 text-orange-400" />
             Orphaned Conversations
             {orphanedConversations && orphanedConversations.length > 0 && (
@@ -59,7 +59,7 @@ export function OrphanedConversationsManager() {
               size="sm"
               onClick={() => refetch()}
               disabled={isLoading}
-              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+              className="border-white/[0.08] text-foreground hover:bg-white/[0.06]"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Vernieuwen
@@ -70,7 +70,7 @@ export function OrphanedConversationsManager() {
                 onClick={handleLinkExisting}
                 disabled={linkMutation.isPending}
                 size="sm"
-                className="bg-orange-600 hover:bg-orange-700 text-white"
+                className="bg-orange-600 hover:bg-orange-700 text-primary-foreground"
               >
                 <Link className={`w-4 h-4 mr-2 ${linkMutation.isPending ? 'animate-spin' : ''}`} />
                 Auto Link
@@ -86,8 +86,8 @@ export function OrphanedConversationsManager() {
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-green-400" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">All conversations are linked</h3>
-            <p className="text-gray-400">
+            <h3 className="text-lg font-medium text-foreground mb-2">All conversations are linked</h3>
+            <p className="text-muted-foreground">
               No orphaned WhatsApp conversations found.
             </p>
           </div>
@@ -110,17 +110,17 @@ export function OrphanedConversationsManager() {
               {orphanedConversations.map((conversation) => (
                 <div
                   key={conversation.conversation_id}
-                  className="bg-gray-700/30 rounded-lg p-4 border border-gray-700/50"
+                  className="bg-muted/30 rounded-lg p-4 border border-white/[0.08]"
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-white">
+                      <h4 className="font-medium text-foreground">
                         {conversation.contact_name || 'Unknown contact'}
                       </h4>
-                      <p className="text-sm text-gray-400 font-mono">
+                      <p className="text-sm text-muted-foreground font-mono">
                         {conversation.contact_phone}
                       </p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                         <span>{conversation.message_count} messages</span>
                         {conversation.last_activity && (
                           <span>

@@ -20,15 +20,15 @@ export const AiBotStatusCard: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Bot className="h-5 w-5 text-gray-500" />
+            <Bot className="h-5 w-5 text-muted-foreground" />
             WhatsApp AI Bot
-            <div className="ml-auto h-6 w-16 bg-gray-200 rounded animate-pulse" />
+            <div className="ml-auto h-6 w-16 bg-muted rounded animate-pulse" />
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
-            <div className="h-16 bg-gray-200 rounded" />
-            <div className="h-8 bg-gray-200 rounded" />
+            <div className="h-16 bg-muted rounded" />
+            <div className="h-8 bg-muted rounded" />
           </div>
         </CardContent>
       </Card>
@@ -44,18 +44,18 @@ export const AiBotStatusCard: React.FC = () => {
     </div>
   ) : (
     <div className="flex items-center gap-2">
-      <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-      <Badge className="bg-gray-100 text-gray-800 border-gray-200" variant="outline">
+      <div className="w-3 h-3 bg-muted-foreground rounded-full"></div>
+      <Badge className="bg-muted text-foreground border-white/[0.08]" variant="outline">
         Paused
       </Badge>
     </div>
   );
 
   return (
-    <Card className={`${isActive ? 'border-green-200 bg-green-50/50' : 'border-gray-200'}`}>
+    <Card className={`${isActive ? 'border-green-200 bg-green-50/50' : 'border-white/[0.08]'}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
-          <Bot className={`h-5 w-5 ${isActive ? 'text-green-600' : 'text-gray-500'}`} />
+          <Bot className={`h-5 w-5 ${isActive ? 'text-green-600' : 'text-muted-foreground'}`} />
           WhatsApp AI Bot
           {statusIndicator}
         </CardTitle>
@@ -104,7 +104,7 @@ export const AiBotStatusCard: React.FC = () => {
             className={`w-full ${
               isActive 
                 ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200" 
-                : "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground"
             }`}
           >
             {isToggling ? (

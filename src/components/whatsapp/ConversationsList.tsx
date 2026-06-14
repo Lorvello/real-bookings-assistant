@@ -34,9 +34,9 @@ export function ConversationsList({
 
   if (isLoading) {
     return (
-      <Card className="bg-gray-800/90 border-gray-700 shadow-xl h-full">
-        <CardHeader className="border-b border-gray-700 bg-gray-800/50">
-          <CardTitle className="flex items-center gap-2 text-white">
+      <Card className="bg-card border-white/[0.08] shadow-xl h-full">
+        <CardHeader className="border-b border-white/[0.08] bg-card">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageSquare className="w-5 h-5 text-green-400" />
             Conversations
           </CardTitle>
@@ -44,7 +44,7 @@ export function ConversationsList({
         <CardContent className="p-4">
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-700/50 rounded-lg animate-pulse" />
+              <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
             ))}
           </div>
         </CardContent>
@@ -62,7 +62,7 @@ export function ConversationsList({
         );
       case 'closed':
         return (
-          <Badge variant="secondary" className="bg-gray-600/20 text-gray-300 border-gray-600/30">
+          <Badge variant="secondary" className="bg-muted text-foreground border-white/[0.08]">
             Closed
           </Badge>
         );
@@ -74,7 +74,7 @@ export function ConversationsList({
         );
       default:
         return (
-          <Badge variant="outline" className="bg-gray-600/20 text-gray-400 border-gray-600/30">
+          <Badge variant="outline" className="bg-muted text-muted-foreground border-white/[0.08]">
             Unknown
           </Badge>
         );
@@ -86,21 +86,21 @@ export function ConversationsList({
   };
 
   return (
-    <Card className="bg-gray-800/90 border-gray-700 shadow-xl h-full flex flex-col">
-      <CardHeader className="border-b border-gray-700 bg-gray-800/50 pb-4">
-        <CardTitle className="flex items-center gap-2 text-white mb-4">
+    <Card className="bg-card border-white/[0.08] shadow-xl h-full flex flex-col">
+      <CardHeader className="border-b border-white/[0.08] bg-card pb-4">
+        <CardTitle className="flex items-center gap-2 text-foreground mb-4">
           <MessageSquare className="w-5 h-5 text-green-400" />
           Conversations ({filteredConversations.length})
         </CardTitle>
-        
+
         {/* Search Input */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
             placeholder="Search conversations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-gray-600 bg-gray-700/50 text-white placeholder:text-gray-400 focus:border-green-500 focus:ring-green-500/20"
+            className="pl-10 border-white/[0.08] bg-muted text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-ring"
           />
         </div>
       </CardHeader>
@@ -108,21 +108,21 @@ export function ConversationsList({
       <CardContent className="flex-1 overflow-y-auto p-0">
         {!conversations || conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-8 px-4">
-            <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mb-4">
-              <MessageSquare className="w-8 h-8 text-gray-500" />
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <MessageSquare className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">No conversations</h3>
-            <p className="text-gray-400 text-center">
+            <h3 className="text-lg font-medium text-foreground mb-2">No conversations</h3>
+            <p className="text-muted-foreground text-center">
               No WhatsApp conversations found for this calendar yet.
             </p>
           </div>
         ) : filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-8 px-4">
-            <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mb-4">
-              <Search className="w-8 h-8 text-gray-500" />
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <Search className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">No results</h3>
-            <p className="text-gray-400 text-center">
+            <h3 className="text-lg font-medium text-foreground mb-2">No results</h3>
+            <p className="text-muted-foreground text-center">
               No conversations found for "{searchTerm}"
             </p>
           </div>
@@ -141,30 +141,30 @@ export function ConversationsList({
                   key={conversation.id}
                   onClick={() => onConversationSelect(conversation.id)}
                   className={`p-4 rounded-lg cursor-pointer transition-all duration-200 border ${
-                    isSelected 
-                      ? 'bg-green-500/20 border-green-500/30 shadow-lg' 
-                      : 'hover:bg-gray-700/50 border-transparent hover:border-gray-600/50'
+                    isSelected
+                      ? 'bg-primary/20 border-primary/30 shadow-lg'
+                      : 'hover:bg-white/[0.06] border-transparent hover:border-white/[0.08]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-medium text-sm shadow-sm flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm shadow-sm flex-shrink-0">
                       {getInitials(displayName)}
                     </div>
-                    
+
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium text-white truncate">{displayName}</h4>
+                        <h4 className="font-medium text-foreground truncate">{displayName}</h4>
                         {getStatusBadge(conversation.status)}
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span className="font-mono truncate">{contact?.phone_number}</span>
                       </div>
-                      
+
                       {conversation.created_at && (
-                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                           <Clock className="w-3 h-3" />
                           <span>
                             {format(new Date(conversation.created_at), 'dd MMM HH:mm', { locale: nl })}

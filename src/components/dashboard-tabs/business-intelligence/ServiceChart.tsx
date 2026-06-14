@@ -71,23 +71,23 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
   return (
     <div className="space-y-6">
       {/* Chart Configuration - All controls in one section */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-slate-800/30 rounded-xl border border-slate-700/30">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-card/30 rounded-xl border border-white/[0.08]">
         <div className="flex items-center gap-2">
-          <Settings2 className="h-4 w-4 text-slate-400" />
-          <span className="text-sm font-medium text-slate-300">Chart Configuration</span>
+          <Settings2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Chart Configuration</span>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 whitespace-nowrap">Service:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Service:</span>
             <Select value={selectedService} onValueChange={(value: FilterOption) => setSelectedService(value)}>
-              <SelectTrigger className="w-40 h-8 bg-slate-700/50 border-slate-600/50 text-slate-300">
+              <SelectTrigger className="w-40 h-8 bg-muted/50 border-white/[0.08] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
-                <SelectItem value="all" className="text-slate-300 focus:bg-slate-700">All Services</SelectItem>
+              <SelectContent className="bg-card border-white/[0.08]">
+                <SelectItem value="all" className="text-foreground focus:bg-white/[0.06]">All Services</SelectItem>
                 {data.map(service => (
-                  <SelectItem key={service.service_name} value={service.service_name} className="text-slate-300 focus:bg-slate-700">
+                  <SelectItem key={service.service_name} value={service.service_name} className="text-foreground focus:bg-white/[0.06]">
                     {service.service_name}
                   </SelectItem>
                 ))}
@@ -96,14 +96,14 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 whitespace-nowrap">Bookings Scale:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Bookings Scale:</span>
             <Select value={bookingScale} onValueChange={(value: ScaleOption) => setBookingScale(value)}>
-              <SelectTrigger className="w-32 h-8 bg-slate-700/50 border-slate-600/50 text-slate-300">
+              <SelectTrigger className="w-32 h-8 bg-muted/50 border-white/[0.08] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="bg-card border-white/[0.08]">
                 {scaleOptions.slice(0, 6).map(option => (
-                  <SelectItem key={option.value} value={option.value} className="text-slate-300 focus:bg-slate-700">
+                  <SelectItem key={option.value} value={option.value} className="text-foreground focus:bg-white/[0.06]">
                     {option.label}
                   </SelectItem>
                 ))}
@@ -112,14 +112,14 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 whitespace-nowrap">Revenue Scale:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Revenue Scale:</span>
             <Select value={revenueScale} onValueChange={(value: ScaleOption) => setRevenueScale(value)}>
-              <SelectTrigger className="w-32 h-8 bg-slate-700/50 border-slate-600/50 text-slate-300">
+              <SelectTrigger className="w-32 h-8 bg-muted/50 border-white/[0.08] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="bg-card border-white/[0.08]">
                 {scaleOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value} className="text-slate-300 focus:bg-slate-700">
+                  <SelectItem key={option.value} value={option.value} className="text-foreground focus:bg-white/[0.06]">
                     {option.label}
                   </SelectItem>
                 ))}

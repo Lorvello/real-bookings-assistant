@@ -11,12 +11,12 @@ interface PeakHoursStatsProps {
 export function PeakHoursStats({ totalBookings, totalRevenue, topPeakHour }: PeakHoursStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="bg-gradient-to-br from-slate-800/70 to-slate-700/50 rounded-xl p-4 border border-slate-600/30">
+      <div className="bg-gradient-to-br from-card/70 to-muted/50 rounded-xl p-4 border border-white/[0.08]">
         <div className="flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-slate-300" />
+          <Calendar className="h-8 w-8 text-foreground" />
           <div>
-            <p className="text-sm font-medium text-slate-400">Total Bookings</p>
-            <p className="text-2xl font-bold text-slate-100">{totalBookings}</p>
+            <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+            <p className="text-2xl font-bold text-foreground">{totalBookings}</p>
           </div>
         </div>
       </div>

@@ -23,15 +23,15 @@ export const TodaysScheduleCard = () => {
           <CardTitle className="flex items-center gap-3">
             <Calendar className="h-5 w-5 text-green-600" />
             Vandaag's Planning
-            <div className="ml-auto h-4 w-16 bg-gray-200 rounded animate-pulse" />
+            <div className="ml-auto h-4 w-16 bg-muted rounded animate-pulse" />
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div className="h-4 bg-muted rounded w-3/4 mb-2" />
+                <div className="h-3 bg-muted rounded w-1/2" />
               </div>
             ))}
           </div>

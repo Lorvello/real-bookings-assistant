@@ -20,27 +20,27 @@ export function WhatsAppContactFilters({
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input
           placeholder="Search by name or phone number..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 border-gray-600 bg-gray-700/50 text-white placeholder:text-gray-400 focus:border-green-500 focus:ring-green-500/20"
+          className="pl-10 border-white/[0.08] bg-muted text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-ring"
         />
       </div>
-      
+
       <Select value={filterStatus} onValueChange={setFilterStatus}>
-        <SelectTrigger className="w-full sm:w-48 border-gray-600 bg-gray-700/50 text-white focus:border-green-500 focus:ring-green-500/20">
+        <SelectTrigger className="w-full sm:w-48 border-white/[0.08] bg-muted text-foreground focus:border-primary focus:ring-ring">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400" />
+            <Filter className="w-4 h-4 text-muted-foreground" />
             <SelectValue placeholder="Filter status" />
           </div>
         </SelectTrigger>
-        <SelectContent className="bg-gray-800 border-gray-600 text-white">
-          <SelectItem value="all" className="focus:bg-gray-700 focus:text-white">Alle contacten</SelectItem>
-          <SelectItem value="active" className="focus:bg-gray-700 focus:text-white">Actieve conversations</SelectItem>
-          <SelectItem value="with_bookings" className="focus:bg-gray-700 focus:text-white">Met boekingen</SelectItem>
-          <SelectItem value="recent" className="focus:bg-gray-700 focus:text-white">Recent actief</SelectItem>
+        <SelectContent className="bg-popover border-white/[0.08] text-foreground">
+          <SelectItem value="all" className="focus:bg-white/[0.06] focus:text-foreground">Alle contacten</SelectItem>
+          <SelectItem value="active" className="focus:bg-white/[0.06] focus:text-foreground">Actieve conversations</SelectItem>
+          <SelectItem value="with_bookings" className="focus:bg-white/[0.06] focus:text-foreground">Met boekingen</SelectItem>
+          <SelectItem value="recent" className="focus:bg-white/[0.06] focus:text-foreground">Recent actief</SelectItem>
         </SelectContent>
       </Select>
     </div>

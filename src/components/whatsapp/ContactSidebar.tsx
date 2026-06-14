@@ -18,20 +18,20 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
 
   if (!conversationId || !conversation) {
     return (
-      <Card className="bg-gray-800/90 border-gray-700 shadow-xl h-full">
-        <CardHeader className="border-b border-gray-700 bg-gray-800/50">
-          <CardTitle className="flex items-center gap-2 text-white">
+      <Card className="bg-card border-white/[0.08] shadow-xl h-full">
+        <CardHeader className="border-b border-white/[0.08] bg-card">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <User className="w-5 h-5 text-green-400" />
             Contact Info
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-8 h-8 text-gray-500" />
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">No contact selected</h3>
-            <p className="text-gray-400 text-center">
+            <h3 className="text-lg font-medium text-foreground mb-2">No contact selected</h3>
+            <p className="text-muted-foreground text-center">
               Select a conversation to view contact information
             </p>
           </div>
@@ -58,7 +58,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         );
       case 'closed':
         return (
-          <Badge variant="secondary" className="bg-gray-600/20 text-gray-300 border-gray-600/30">
+          <Badge variant="secondary" className="bg-muted text-foreground border-white/[0.08]">
             Closed
           </Badge>
         );
@@ -70,7 +70,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         );
       default:
         return (
-          <Badge variant="outline" className="bg-gray-600/20 text-gray-400 border-gray-600/30">
+          <Badge variant="outline" className="bg-muted text-muted-foreground border-white/[0.08]">
             Unknown
           </Badge>
         );
@@ -78,9 +78,9 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
   };
 
   return (
-    <Card className="bg-gray-800/90 border-gray-700 shadow-xl h-full">
-      <CardHeader className="border-b border-gray-700 bg-gray-800/50">
-        <CardTitle className="flex items-center gap-2 text-white">
+    <Card className="bg-card border-white/[0.08] shadow-xl h-full">
+      <CardHeader className="border-b border-white/[0.08] bg-card">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <User className="w-5 h-5 text-green-400" />
           Contact Info
           {conversation.calendar_id && (
@@ -94,12 +94,12 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
       <CardContent className="p-6 space-y-6">
         {/* Contact Avatar & Name */}
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-medium text-lg shadow-lg">
+          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-medium text-lg shadow-lg">
             {getInitials(displayName)}
           </div>
-          <h3 className="font-semibold text-xl text-white mb-2">{displayName}</h3>
+          <h3 className="font-semibold text-xl text-foreground mb-2">{displayName}</h3>
           {contact?.phone_number && (
-            <div className="flex items-center justify-center gap-2 text-gray-400">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Phone className="w-4 h-4" />
               <span className="font-mono">{contact.phone_number}</span>
             </div>
@@ -107,22 +107,22 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         </div>
 
         {/* Conversation Status */}
-        <div className="bg-gray-700/30 rounded-lg p-4 border border-gray-700/50">
-          <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+        <div className="bg-muted/30 rounded-lg p-4 border border-white/[0.08]">
+          <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-green-400" />
             Conversation Status
           </h4>
-          
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Status:</span>
+              <span className="text-sm text-muted-foreground">Status:</span>
               {getStatusBadge(conversation.status)}
             </div>
-            
+
             {conversation.created_at && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Started:</span>
-                <span className="text-sm text-gray-200">
+                <span className="text-sm text-muted-foreground">Started:</span>
+                <span className="text-sm text-foreground">
                   {format(new Date(conversation.created_at), 'dd MMM yyyy', { locale: nl })}
                 </span>
               </div>
@@ -142,31 +142,31 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
 
         {/* Contact Details */}
         <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/30">
-          <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+          <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
             <User className="w-4 h-4 text-blue-400" />
             Contact Details
           </h4>
-          
+
           <div className="space-y-2 text-sm">
             {contact?.first_name && (
               <div className="flex justify-between">
-                <span className="text-gray-400">First name:</span>
-                <span className="text-gray-200">{contact.first_name}</span>
+                <span className="text-muted-foreground">First name:</span>
+                <span className="text-foreground">{contact.first_name}</span>
               </div>
             )}
-            
+
             {contact?.last_name && (
               <div className="flex justify-between">
-                <span className="text-gray-400">Last name:</span>
-                <span className="text-gray-200">{contact.last_name}</span>
+                <span className="text-muted-foreground">Last name:</span>
+                <span className="text-foreground">{contact.last_name}</span>
               </div>
             )}
-            
+
             {/* Check if contact has linked_customer_email property */}
             {contact && 'linked_customer_email' in contact && contact.linked_customer_email && (
               <div className="flex justify-between">
-                <span className="text-gray-400">Email:</span>
-                <span className="text-gray-200 font-mono text-xs">{String(contact.linked_customer_email)}</span>
+                <span className="text-muted-foreground">Email:</span>
+                <span className="text-foreground font-mono text-xs">{String(contact.linked_customer_email)}</span>
               </div>
             )}
           </div>
@@ -175,21 +175,21 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         {/* Contact History */}
         {contact?.contact_created_at && (
           <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/30">
-            <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+            <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-purple-400" />
               Contact History
             </h4>
             <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-300">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="text-foreground">
                 Contact since {format(new Date(contact.contact_created_at), 'dd MMM yyyy', { locale: nl })}
               </span>
             </div>
-            
+
             {contact.last_message_at && (
               <div className="flex items-center gap-2 text-sm mt-2">
-                <Clock className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-300">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-foreground">
                   Last message: {format(new Date(contact.last_message_at), 'dd MMM yyyy HH:mm', { locale: nl })}
                 </span>
               </div>
@@ -199,11 +199,11 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
 
         {/* Quick Actions */}
         <div className="bg-emerald-500/10 rounded-lg p-4 border border-emerald-500/30">
-          <h4 className="font-medium text-white mb-3 flex items-center gap-2">
+          <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-emerald-400" />
             Quick Actions
           </h4>
-          <div className="space-y-2 text-sm text-gray-300">
+          <div className="space-y-2 text-sm text-foreground">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
               <span>Create new appointment</span>

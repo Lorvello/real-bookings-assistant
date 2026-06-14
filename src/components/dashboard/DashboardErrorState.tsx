@@ -14,7 +14,7 @@ export function DashboardErrorState({ error }: DashboardErrorStateProps) {
       <CardContent className="p-6">
         <div className="text-center text-red-600">
           <p>Error loading dashboard data</p>
-          <p className="text-sm text-gray-500">{error.message}</p>
+          <p className="text-sm text-muted-foreground">{error.message}</p>
         </div>
       </CardContent>
     </Card>

@@ -114,8 +114,8 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-muted rounded w-1/2"></div>
                 </div>
               </CardContent>
             </Card>
@@ -337,7 +337,7 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
                     <h4 className="font-medium">
                       {topicLabels[topic.topic_category] || topic.topic_category}
                     </h4>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {topic.conversation_count} conversations
                     </p>
                   </div>
