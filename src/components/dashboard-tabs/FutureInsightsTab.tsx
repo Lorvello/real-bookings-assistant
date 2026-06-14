@@ -121,8 +121,8 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               >
                 <MetricCard
                   title="Demand Forecast"
-                  value={`+${((futureInsights?.demand_forecast?.[0]?.bookings || 0) * 0.15).toFixed(1)}%`}
-                  subtitle="next week projection"
+                  value={`${futureInsights?.demand_forecast?.[0]?.bookings ?? 0}`}
+                  subtitle="bookings projected next week"
                   icon={Calendar}
                   variant="purple"
                   delay={0.3}
@@ -138,7 +138,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Demand Forecast predicts next week's booking volume based on historical data, seasonal trends, and current booking patterns to help with resource planning.</p>
+              <p className="text-sm">Demand Forecast shows the number of bookings already on your calendar for the coming week, so you can plan capacity and staffing ahead of time.</p>
             </TooltipContent>
           </Tooltip>
         </div>

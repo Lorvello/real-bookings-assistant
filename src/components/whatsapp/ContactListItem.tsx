@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { WhatsAppContactOverview } from '@/types/whatsappOverview';
 import { formatDistanceToNow } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface ContactListItemProps {
@@ -35,9 +35,9 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
 
   const getStatusLabel = (status: string | undefined) => {
     switch (status) {
-      case 'active': return 'Actief';
-      case 'pending': return 'Wachtend';
-      case 'closed': return 'Gesloten';
+      case 'active': return 'Active';
+      case 'pending': return 'Pending';
+      case 'closed': return 'Closed';
       default: return 'Unknown';
     }
   };
@@ -77,9 +77,9 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
           </span>
           {contact.last_message_at && (
             <span className="text-xs text-muted-foreground shrink-0">
-              {formatDistanceToNow(new Date(contact.last_message_at), { 
-                addSuffix: true, 
-                locale: nl 
+              {formatDistanceToNow(new Date(contact.last_message_at), {
+                addSuffix: true,
+                locale: enUS
               })}
             </span>
           )}

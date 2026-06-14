@@ -22,7 +22,7 @@ export function QuickActions({
           onClick={onWeekdaySchedule}
           className="border-border"
         >
-          Ma-Vr 9:00-17:00
+          Mon-Fri 9:00-17:00
         </Button>
         
         <Button

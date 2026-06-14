@@ -39,9 +39,9 @@ export function ContactListSidebar({
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
           <Users className="h-5 w-5 text-primary" />
-          <h2 className="font-semibold text-foreground">Contacten</h2>
+          <h2 className="font-semibold text-foreground">Contacts</h2>
           <span className="text-xs text-muted-foreground ml-auto tabular-nums">
-            {contacts.length} totaal
+            {contacts.length} total
           </span>
         </div>
         
@@ -68,7 +68,7 @@ export function ContactListSidebar({
           ) : filteredContacts.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-10 w-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Geen contacten gevonden</p>
+              <p className="text-sm">No contacts found</p>
             </div>
           ) : (
             filteredContacts.map(contact => (

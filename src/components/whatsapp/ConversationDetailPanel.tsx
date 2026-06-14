@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,17 +7,16 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { WhatsAppContactOverview } from '@/types/whatsappOverview';
 import { useWhatsAppMessages } from '@/hooks/useWhatsAppMessages';
 
-import { 
-  Calendar, 
-  CheckCircle2, 
-  Phone, 
-  User, 
+import {
+  Calendar,
+  Phone,
+  User,
   Building2,
   Clock,
   MessageSquare
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface ConversationDetailPanelProps {
@@ -33,8 +31,8 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     contact.contact_id || ''
   );
 
-  const displayName = contact.display_name || 
-    [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 
+  const displayName = contact.display_name ||
+    [contact.first_name, contact.last_name].filter(Boolean).join(' ') ||
     contact.phone_number;
 
   const initials = displayName
@@ -44,7 +42,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     .toUpperCase()
     .slice(0, 2);
 
-  // Custom smooth scroll functie met easing
+  // Custom smooth scroll with ease-out cubic for a natural settle.
   const smoothScrollTo = (element: HTMLElement, targetPosition: number, duration: number = 600) => {
     const startPosition = element.scrollTop;
     const distance = targetPosition - startPosition;
@@ -54,49 +52,32 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
       if (startTime === null) startTime = currentTime;
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
-      // Ease-out cubic voor natuurlijke animatie
+
       const easeOut = 1 - Math.pow(1 - progress, 3);
       element.scrollTop = startPosition + distance * easeOut;
-      
+
       if (progress < 1) {
         requestAnimationFrame(animation);
       }
     };
-    
+
     requestAnimationFrame(animation);
   };
 
-  // Ref voor de content container
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll naar nieuwste bericht via content parentElement
+  // Auto-scroll to the newest message via the content's scroll viewport parent.
   useEffect(() => {
     const timer = setTimeout(() => {
       const content = contentRef.current;
-      console.log('Content ref:', content);
-      
-      if (!content) {
-        console.log('Content ref niet gevonden!');
-        return;
-      }
-      
+      if (!content) return;
+
       const viewport = content.parentElement as HTMLElement | null;
-      console.log('Viewport gevonden:', viewport);
-      console.log('ScrollHeight:', viewport?.scrollHeight, 'ClientHeight:', viewport?.clientHeight);
-      
       if (viewport && viewport.scrollHeight > viewport.clientHeight) {
-        console.log('Start scroll animatie...');
-        // Eerst instant naar boven scrollen
         viewport.scrollTop = 0;
-        
-        // Dan na kort moment smooth naar beneden met custom animatie
         requestAnimationFrame(() => {
           smoothScrollTo(viewport, viewport.scrollHeight, 800);
-          console.log('Scroll animatie gestart naar:', viewport.scrollHeight);
         });
-      } else {
-        console.log('Geen scroll nodig of viewport niet gevonden');
       }
     }, 500);
     return () => clearTimeout(timer);
@@ -114,9 +95,9 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
 
   const getStatusLabel = (status: string | undefined) => {
     switch (status) {
-      case 'active': return 'Actief';
-      case 'pending': return 'Wachtend';
-      case 'closed': return 'Gesloten';
+      case 'active': return 'Active';
+      case 'pending': return 'Pending';
+      case 'closed': return 'Closed';
       default: return 'Unknown';
     }
   };
@@ -125,41 +106,22 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
     <div className="flex flex-col h-full bg-card rounded-lg border border-border">
       {/* Header */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">{displayName}</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge 
-                  variant="outline" 
-                  className={cn("text-xs", getStatusColor(contact.conversation_status))}
-                >
-                  {getStatusLabel(contact.conversation_status)}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Plan Afspraak</span>
-            </Button>
-            {contact.conversation_status !== 'closed' && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
+        <div className="flex items-center gap-3">
+          <Avatar className="h-12 w-12">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">{displayName}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge
+                variant="outline"
+                className={cn("text-xs", getStatusColor(contact.conversation_status))}
               >
-                <CheckCircle2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Sluiten</span>
-              </Button>
-            )}
+                {getStatusLabel(contact.conversation_status)}
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
@@ -170,7 +132,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
         <div className="lg:col-span-1 space-y-4 overflow-y-auto">
           <Card>
             <CardHeader className="pb-3">
-              <h3 className="font-medium text-sm text-foreground">Contact Informatie</h3>
+              <h3 className="font-medium text-sm text-foreground">Contact Information</h3>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
@@ -195,7 +157,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground tabular-nums">
-                    Contact sinds {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: nl })}
+                    Contact since {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: enUS })}
                   </span>
                 </div>
               )}
@@ -216,7 +178,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-foreground tabular-nums">
-                        {format(new Date(booking.start_time), 'd MMMM yyyy HH:mm', { locale: nl })}
+                        {format(new Date(booking.start_time), 'd MMMM yyyy HH:mm', { locale: enUS })}
                       </span>
                     </div>
                     {booking.service_name && (
@@ -234,7 +196,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 ))}
                 {contact.all_bookings.length > 5 && (
                   <p className="text-xs text-muted-foreground text-center">
-                    +{contact.all_bookings.length - 5} meer boekingen
+                    +{contact.all_bookings.length - 5} more bookings
                   </p>
                 )}
               </CardContent>
@@ -248,7 +210,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
             <CardHeader className="pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                <h3 className="font-medium text-sm text-foreground">Conversatie</h3>
+                <h3 className="font-medium text-sm text-foreground">Conversation</h3>
                 {messages && (
                   <span className="text-xs text-muted-foreground ml-auto tabular-nums">
                     {messages.length} messages
@@ -268,7 +230,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 ) : !messages || messages.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Nog geen messages</p>
+                    <p className="text-sm">No messages yet</p>
                   </div>
                 ) : (
                   <div ref={contentRef} className="space-y-4 py-4">
@@ -295,7 +257,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                               ? 'text-primary-foreground/70'
                               : 'text-muted-foreground'
                           )}>
-                            {format(new Date(msg.created_at), 'HH:mm', { locale: nl })}
+                            {format(new Date(msg.created_at), 'HH:mm', { locale: enUS })}
                           </p>
                         </div>
                       </div>

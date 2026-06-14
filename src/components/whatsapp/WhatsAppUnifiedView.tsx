@@ -44,8 +44,8 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
             <div className="h-full bg-card rounded-lg border border-border flex items-center justify-center">
               <div className="text-center text-muted-foreground">
                 <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Selecteer een contact</h3>
-                <p className="text-sm">Klik op een contact links om de conversatie te bekijken</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">Select a contact</h3>
+                <p className="text-sm">Click a contact on the left to view the conversation</p>
               </div>
             </div>
           )}
@@ -58,7 +58,7 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
           <div className="h-full flex flex-col">
             <Button variant="ghost" size="sm" onClick={handleBackToList} className="self-start mb-3 gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Terug naar lijst
+              Back to list
             </Button>
             <div className="flex-1 min-h-0">
               <ConversationDetailPanel contact={selectedContact} />
