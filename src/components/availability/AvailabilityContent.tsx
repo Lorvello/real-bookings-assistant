@@ -183,13 +183,13 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     if (availabilityState.setupState === 'needs_calendar') {
       return (
         <div className="max-w-2xl mx-auto">
-          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-3xl p-8 text-center space-y-6">
-            <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto">
-              <CalendarIcon className="h-8 w-8 text-primary" />
+          <div className="bg-card border border-white/[0.08] rounded-2xl p-8 text-center space-y-6">
+            <div className="w-16 h-16 bg-primary/10 ring-1 ring-primary/20 rounded-2xl flex items-center justify-center mx-auto">
+              <CalendarIcon className="h-8 w-8 text-accent-foreground" />
             </div>
-            
+
             <div className="space-y-3">
-              <h2 className="text-2xl font-bold text-foreground">Create Your Calendar</h2>
+              <h2 className="text-2xl font-semibold tracking-[-0.015em] text-foreground">Create Your Calendar</h2>
               <p className="text-muted-foreground text-lg">
                 Create a calendar to start managing your availability schedule.
               </p>

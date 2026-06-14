@@ -239,7 +239,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
 
   return (
     <div className="space-y-4">
-      <div className="divide-y divide-border/30">
+      <div className="divide-y divide-white/[0.06]">
         {DAYS.map((day) => {
           const dayAvailability = availability[day.key];
           const dayKey = day.key;
@@ -266,7 +266,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
       </div>
       
       {/* Save Button */}
-      <div className="flex justify-end pt-4 border-t border-border/30">
+      <div className="flex justify-end pt-4 border-t border-white/[0.06]">
         <Button
           onClick={handleSave}
           disabled={!hasUnsavedChanges || isSaving}

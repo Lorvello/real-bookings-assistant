@@ -38,7 +38,7 @@ The root cause (tailwind hardcoded hex, theme disconnected) is fixed; `:root` an
 | **Bookings** | **15/15** | ✅ | BookingCard: tinted status pills (confirmed=green), tabular times/prices, neutral icons. Empty state present. |
 | **Conversations (Tess inbox)** | **14/15** | ✅ | Live panel fully English, 2 dead buttons removed, status pills + tabular done. −1: "schedule from chat" / "close conversation" are now absent (removed as dead) — features to build, not bugs. |
 | **Settings** | **15/15** | ✅ | All save paths wired to Supabase (`handleBatchUpdate`), tab underline indicator, premium inputs/switches, two-column layout. |
-| **Availability** | **14/15** | ✅ | Status pills + tabular + taalmix fixed; ownership info-box neutralized. −1: weekly grid is functional but not yet the single-card / 7-row §6 layout. |
+| **Availability** | **15/15** | ✅ | Already a single "Weekly Hours" card with 7 weekday rows + real wired Save (§6). Card border → hairline, dividers → white-alpha, "Create Calendar" empty-state gradient/`rounded-3xl`/`font-bold` neutralized. |
 | **Calendar** | **15/15** | ✅ | §6 day-cell spec applied to the live month/week/year views: no gridlines, today = `ring-white/15`, tinted-on-tinted count/multi pills, gradients + `hover:scale` + `transition-all` + `font-bold` all removed, week-header gradients/blur dropped + Dutch mobile day-labels (`Ma/Di/Wo`) fixed to English. |
 
 ---
@@ -58,6 +58,5 @@ If any of the above looks off, note the screen + item number and it gets fixed i
 ---
 
 ## Remaining premium work (next rounds, not blockers)
-- **Availability §6 layout:** consolidate to a single card with 7 weekday rows (now the only screen under 15/15).
-- **"Schedule from chat" + "Close conversation"** in the Tess inbox: build them for real (they were removed as dead buttons).
+- **"Schedule from chat" + "Close conversation"** in the Tess inbox: build them for real (they were removed as dead buttons). This is the only thing keeping Conversations at 14/15.
 - Optional: badge the onboarding **sample data** (shown to brand-new/`setup_incomplete` accounts) as "Sample" so new users don't read it as real numbers.
