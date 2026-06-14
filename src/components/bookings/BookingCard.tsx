@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, User, Phone, Mail, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
@@ -13,21 +12,24 @@ interface BookingCardProps {
 
 export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      confirmed: { label: 'Confirmed', variant: 'default' as const, color: 'bg-green-500' },
-      pending: { label: 'Pending', variant: 'secondary' as const, color: 'bg-yellow-500' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' as const, color: 'bg-red-500' },
-      completed: { label: 'Completed', variant: 'outline' as const, color: 'bg-blue-500' },
-      'no-show': { label: 'No Show', variant: 'destructive' as const, color: 'bg-muted' }
+    // PLAYBOOK §6 booking status, tinted-on-tinted: confirmed = emerald (the one place
+    // green is used, freed by the blue accent), pending = amber, cancelled/no-show =
+    // neutral, completed = a subtle accent tint. A dot in the matching tone.
+    const statusConfig: Record<string, { label: string; cls: string }> = {
+      confirmed: { label: 'Confirmed', cls: 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' },
+      pending: { label: 'Pending', cls: 'bg-amber-500/10 text-amber-400 ring-amber-500/20' },
+      cancelled: { label: 'Cancelled', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' },
+      completed: { label: 'Completed', cls: 'bg-primary/10 text-accent-foreground ring-primary/20' },
+      'no-show': { label: 'No Show', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' }
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    
+
+    const config = statusConfig[status] || statusConfig.pending;
+
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <div className={`w-2 h-2 rounded-full ${config.color}`} />
+      <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${config.cls}`}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
         {config.label}
-      </Badge>
+      </span>
     );
   };
 
@@ -40,12 +42,12 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-green-400" />
+            <Calendar className="w-5 h-5 text-subtle-foreground" />
             <div>
               <CardTitle className="text-foreground text-lg">
                 {format(new Date(booking.start_time), 'EEEE d MMMM yyyy', { locale: enUS })}
               </CardTitle>
-              <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1 tabular-nums">
                 <Clock className="w-4 h-4" />
                 {format(new Date(booking.start_time), 'HH:mm')} - {format(new Date(booking.end_time), 'HH:mm')}
               </div>
@@ -94,7 +96,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
             {booking.total_price && (
               <div className="text-sm">
                 <span className="text-muted-foreground">Price: </span>
-                <span className="text-green-400 font-medium">€{booking.total_price}</span>
+                <span className="text-foreground font-medium tabular-nums">€{booking.total_price}</span>
               </div>
             )}
           </div>
