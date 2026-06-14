@@ -212,7 +212,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={`outer-${i}`}
-          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 hover:shadow-lg transition-all duration-200 flex items-center justify-center text-base font-semibold text-foreground rounded-full"
+          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 transition-all duration-200 flex items-center justify-center text-base font-semibold text-foreground rounded-full"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
@@ -249,7 +249,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={`inner-${actualHour}`}
-          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 hover:shadow-lg transition-all duration-200 flex items-center justify-center text-sm font-semibold text-foreground rounded-full"
+          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 transition-all duration-200 flex items-center justify-center text-sm font-semibold text-foreground rounded-full"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
@@ -284,7 +284,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       marks.push(
         <div
           key={i}
-          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary hover:bg-primary/10 hover:scale-110 hover:shadow-lg transition-all duration-200 rounded-full flex items-center justify-center"
+          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary hover:bg-primary/10 hover:scale-110 transition-all duration-200 rounded-full flex items-center justify-center"
           style={{
             left: `calc(50% + ${x}px - 6px)`,
             top: `calc(50% + ${y}px - 6px)`,
@@ -346,7 +346,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           }}
         >
           <div 
-            className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95 relative"
+            className="bg-card border border-border rounded-2xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95 relative"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -363,7 +363,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 <div className="flex flex-col items-center space-y-4">
                      <div 
                       ref={clockRef}
-                      className="relative w-72 h-72 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 hover:border-primary/60 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                      className="relative w-72 h-72 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 hover:border-primary/60 transition-all duration-300 transform hover:scale-[1.02]"
                     >
                      {/* Clock face inner circle */}
                      <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner transition-all duration-300">
@@ -372,7 +372,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                        
                         {/* Prominent clock hands */}
                         <div 
-                          className="absolute top-1/2 left-1/2 origin-bottom bg-primary/90 rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 z-10 transition-all duration-300"
+                          className="absolute top-1/2 left-1/2 origin-bottom bg-primary/90 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 transition-all duration-300"
                           style={{
                             width: '3px',
                             height: '45px',
@@ -406,7 +406,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                         )}
                         
                         {/* Center dot - enhanced */}
-                        <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 shadow-lg border-2 border-background" />
+                        <div className="absolute top-1/2 left-1/2 w-4 h-4 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 z-20 border-2 border-background" />
                      </div>
                    </div>
                   

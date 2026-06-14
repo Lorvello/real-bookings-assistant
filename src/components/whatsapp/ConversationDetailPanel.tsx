@@ -282,7 +282,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                       >
                         <div
                           className={cn(
-                            "max-w-[80%] px-4 py-2.5 shadow-sm relative",
+                            "max-w-[80%] px-4 py-2.5 relative",
                             msg.direction === 'outbound'
                               ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-md'
                               : 'bg-muted text-foreground rounded-2xl rounded-bl-md border border-border'

@@ -41,7 +41,7 @@ export const TodaysScheduleCard = () => {
   }
 
   return (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow group" onClick={handleScheduleClick}>
+    <Card className="cursor-pointer transition-shadow group" onClick={handleScheduleClick}>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <Calendar className="h-5 w-5 text-green-600" />

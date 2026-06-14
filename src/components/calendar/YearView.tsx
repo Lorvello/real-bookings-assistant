@@ -108,7 +108,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
     const monthBookings = getBookingsCountForMonth(month);
 
     return (
-      <div className="group bg-card/80 backdrop-blur-sm border border-border/60 rounded-3xl p-2 sm:p-4 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200 hover:border-primary/30">
+      <div className="group bg-card/80 backdrop-blur-sm border border-border/60 rounded-3xl p-2 sm:p-4 transition-all duration-200 hover:border-primary/30">
         <div className="text-center mb-2 sm:mb-4">
           <div className="text-sm sm:text-lg font-bold text-foreground mb-1">
             {format(month, 'MMMM', { locale: enUS })}
@@ -155,7 +155,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                         <div
                           className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-all duration-150 relative ${
                             isCurrentMonth 
-                              ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110 cursor-pointer'
+                              ? 'bg-primary text-primary-foreground font-bold transform hover:scale-110 cursor-pointer'
                               : 'text-muted-foreground/50'
                           }`}
                           onClick={handleDayClickEvent}
@@ -202,7 +202,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                     className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-all duration-150 ${
                       isCurrentMonth 
                         ? hasBookings 
-                          ? 'bg-primary text-primary-foreground font-bold shadow-sm hover:shadow-md transform hover:scale-110 cursor-pointer' 
+                          ? 'bg-primary text-primary-foreground font-bold transform hover:scale-110 cursor-pointer'
                           : isToday 
                             ? 'bg-accent text-primary font-bold border-2 border-primary/50' 
                             : 'text-foreground hover:bg-accent/50'
@@ -231,7 +231,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
       </div>
       
       {/* Year summary */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-3 sm:p-8 shadow-lg">
+      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-3 sm:p-8">
         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-6">
           <div className="p-1.5 sm:p-3 bg-primary/20 rounded-2xl">
             <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />

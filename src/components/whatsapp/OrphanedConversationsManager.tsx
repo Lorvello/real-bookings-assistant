@@ -23,7 +23,7 @@ export function OrphanedConversationsManager() {
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-white/[0.08] shadow-xl">
+      <Card className="bg-card border-white/[0.08]">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageCircle className="w-5 h-5 text-orange-400" />
@@ -40,7 +40,7 @@ export function OrphanedConversationsManager() {
   }
 
   return (
-    <Card className="bg-card border-white/[0.08] shadow-xl">
+    <Card className="bg-card border-white/[0.08]">
       <CardHeader className="border-b border-white/[0.08] bg-card">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-foreground">

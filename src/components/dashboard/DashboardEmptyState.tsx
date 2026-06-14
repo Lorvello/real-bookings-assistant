@@ -14,7 +14,7 @@ export function DashboardEmptyState() {
         {/* Organic Icon Container */}
         <div className="relative w-32 h-32 mx-auto">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/15 to-blue-500/10 rounded-full blur-xl"></div>
-          <div className="relative w-full h-full bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-xl border border-primary/20 shadow-xl"
+          <div className="relative w-full h-full bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-xl border border-primary/20"
                style={{
                  borderRadius: '30% 70% 60% 40% / 40% 50% 60% 30%'
                }}>

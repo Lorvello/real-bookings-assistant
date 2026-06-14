@@ -74,7 +74,7 @@ export const AvailabilityManager = () => {
   if (userStatus.isExpired || !accessControl.canEditBookings) {
     return (
       <>
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-8">
+        <div className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-lg p-8">
           <AccessBlockedOverlay
             userStatus={userStatus}
             feature="Availability Settings"
@@ -90,7 +90,7 @@ export const AvailabilityManager = () => {
             onTabChange={setActiveTab}
           />
 
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
+          <div className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-lg p-4">
             <AvailabilityContent
               activeTab={activeTab}
             />
@@ -113,7 +113,7 @@ export const AvailabilityManager = () => {
         onTabChange={setActiveTab}
       />
 
-      <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-lg p-4">
+      <div className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-lg p-4">
         <AvailabilityContent
           activeTab={activeTab}
         />

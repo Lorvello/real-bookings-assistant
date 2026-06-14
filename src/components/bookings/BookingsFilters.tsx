@@ -23,7 +23,7 @@ export function BookingsFilters({
   setSortBy
 }: BookingsFiltersProps) {
   return (
-    <div className="bg-card border border-border shadow-sm rounded-lg p-6 mb-6">
+    <div className="bg-card border border-border rounded-lg p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <div className="flex-1 relative">

@@ -120,7 +120,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div
-            className="absolute inset-x-0 mx-0.5 sm:mx-1 p-1 sm:p-2 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative overflow-hidden"
+            className="absolute inset-x-0 mx-0.5 sm:mx-1 p-1 sm:p-2 rounded-lg cursor-pointer transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative overflow-hidden"
             style={{
               background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
               height: `${height}px`,
@@ -198,7 +198,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
   return (
     <div className="h-full overflow-auto bg-background">
       {/* Fixed header with days - more compact */}
-      <div className="sticky top-0 z-20 bg-card border-b-2 border-border shadow-sm">
+      <div className="sticky top-0 z-20 bg-card border-b-2 border-border">
         <div className="grid grid-cols-8">
           <div className="w-8 sm:w-16 p-1 sm:p-2 border-r border-border">
             <div className="text-[10px] sm:text-xs font-semibold text-muted-foreground">Time</div>

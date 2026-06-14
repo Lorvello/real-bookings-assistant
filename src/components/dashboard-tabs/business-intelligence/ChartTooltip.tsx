@@ -7,7 +7,7 @@ export function ChartTooltip({ active, payload, label }: any) {
     const data = payload[0]?.payload;
     
     return (
-      <div className="bg-background/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl p-5 rounded-xl min-w-[280px]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
+      <div className="bg-background/95 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] p-5 rounded-xl min-w-[280px]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)' }}>
         <div className="space-y-4">
           {/* Service Name Header */}
           <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3">

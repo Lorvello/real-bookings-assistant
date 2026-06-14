@@ -115,7 +115,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         <Card className="relative overflow-hidden bg-card rounded-2xl border border-white/[0.08]">
           <CardContent className="relative p-12 flex flex-col items-center space-y-6">
             {/* QR Code Display - 400x400 */}
-            <div className="bg-white p-8 rounded-xl shadow-lg">
+            <div className="bg-white p-8 rounded-xl">
               {qrUrl && !imgBroken ? (
                 <img
                   src={`${qrUrl}?v=${cacheBust}`}

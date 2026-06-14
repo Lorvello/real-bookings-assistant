@@ -123,7 +123,7 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   }, [timeRange]);
 
   return (
-    <div className="bg-gradient-to-br from-card via-card/98 to-card/95 rounded-3xl border border-border/40 h-full max-h-full flex flex-col overflow-hidden shadow-2xl shadow-black/10 backdrop-blur-xl">
+    <div className="bg-gradient-to-br from-card via-card/98 to-card/95 rounded-3xl border border-border/40 h-full max-h-full flex flex-col overflow-hidden backdrop-blur-xl">
       <CalendarHeader
         currentView={currentView}
         currentDate={currentDate}

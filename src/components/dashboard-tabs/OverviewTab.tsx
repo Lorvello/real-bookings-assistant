@@ -60,12 +60,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider">
                 Next Appointment
               </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <Clock className="h-2 w-2 md:h-6 md:w-6 text-cyan-400" />
               </div>
             </div>
@@ -102,12 +102,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider">
                 Popular Service
               </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <TrendingUp className="h-2 w-2 md:h-6 md:w-6 text-cyan-400" />
               </div>
             </div>
@@ -144,12 +144,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           className="relative group"
         >
           <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
-          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border border-cyan-500/30 rounded-lg md:rounded-2xl transition-all duration-300 group-hover:scale-[1.02] h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider">
                 Weekly Growth
               </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-4 h-4 md:w-12 md:h-12 bg-gradient-to-br from-cyan-500/20 to-cyan-400/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <BarChart3 className="h-2 w-2 md:h-6 md:w-6 text-cyan-400" />
               </div>
             </div>

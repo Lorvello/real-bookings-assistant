@@ -12,7 +12,7 @@ export function ServiceChartLegend() {
             <div className="flex items-center gap-3 cursor-help">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-blue-400" />
-                <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded shadow-lg shadow-blue-500/25"></div>
+                <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded"></div>
               </div>
               <span className="text-sm font-medium text-foreground">Number of Bookings</span>
               <Info className="h-3 w-3 text-muted-foreground" />
@@ -32,7 +32,7 @@ export function ServiceChartLegend() {
             <div className="flex items-center gap-3 cursor-help">
               <div className="flex items-center gap-2">
                 <Euro className="h-4 w-4 text-emerald-400" />
-                <div className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded shadow-lg shadow-emerald-500/25"></div>
+                <div className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded"></div>
               </div>
               <span className="text-sm font-medium text-foreground">Revenue (€)</span>
               <Info className="h-3 w-3 text-muted-foreground" />

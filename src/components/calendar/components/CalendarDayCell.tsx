@@ -73,12 +73,12 @@ export function CalendarDayCell({
 
   return (
     <div
-      className={`group rounded-xl p-0.5 sm:p-1.5 min-h-[60px] sm:min-h-[80px] transition-all duration-200 hover:shadow-lg ${
+      className={`group rounded-xl p-0.5 sm:p-1.5 min-h-[60px] sm:min-h-[80px] transition-all duration-200 ${
         dayBookings.length > 0 ? 'cursor-pointer' : ''
       } ${
         isCurrentMonth 
           ? isToday
-            ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40 shadow-lg shadow-primary/10'
+            ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40'
             : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
           : 'bg-muted/30 border border-border/30 opacity-60'
       }`}
@@ -89,7 +89,7 @@ export function CalendarDayCell({
       }`}>
         <div className={`text-xs sm:text-sm font-bold ${
           isToday 
-            ? 'bg-primary text-primary-foreground w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[10px] sm:text-xs shadow-lg' 
+            ? 'bg-primary text-primary-foreground w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[10px] sm:text-xs'
             : ''
         }`}>
           {format(day, 'd')}
@@ -115,7 +115,7 @@ export function CalendarDayCell({
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div
-                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md relative"
+                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 relative"
                   style={{
                     backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
                     backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`

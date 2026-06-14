@@ -163,7 +163,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 gap-2 sm:gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
+              <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-pulse"></div>
               <div className="absolute inset-0 w-4 h-4 bg-green-400 rounded-full animate-ping opacity-75"></div>
             </div>
             <div>
@@ -320,7 +320,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           {/* Enhanced System Status */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl shadow-2xl">
+            <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl">
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl">
@@ -337,10 +337,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <div className={`w-2 h-2 ${
                             calendarStatus.color === 'green' ? 'bg-green-400' : 
                             calendarStatus.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
-                          } rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''} shadow-sm ${
-                            calendarStatus.color === 'green' ? 'shadow-green-400/50' : 
-                            calendarStatus.color === 'yellow' ? 'shadow-yellow-400/50' : 'shadow-red-400/50'
-                          }`}></div>
+                          } rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''}`}></div>
                           <span className="text-sm font-medium text-foreground">Calendar Status</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -378,10 +375,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <div className={`w-2 h-2 ${
                             bookingsAssistantStatus.color === 'green' ? 'bg-green-400' : 
                             bookingsAssistantStatus.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
-                          } rounded-full ${bookingsAssistantStatus.color === 'green' ? 'animate-pulse' : ''} shadow-sm ${
-                            bookingsAssistantStatus.color === 'green' ? 'shadow-green-400/50' : 
-                            bookingsAssistantStatus.color === 'yellow' ? 'shadow-yellow-400/50' : 'shadow-red-400/50'
-                          }`}></div>
+                          } rounded-full ${bookingsAssistantStatus.color === 'green' ? 'animate-pulse' : ''}`}></div>
                           <span className="text-sm font-medium text-foreground">Bookings Assistant</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -444,7 +438,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
             <div 
-              className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl shadow-2xl cursor-pointer hover:border-green-500/50 transition-colors"
+              className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl cursor-pointer hover:border-green-500/50 transition-colors"
               onClick={handleTodayScheduleClick}
             >
               <div className="p-8">

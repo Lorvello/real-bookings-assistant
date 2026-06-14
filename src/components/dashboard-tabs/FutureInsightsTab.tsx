@@ -150,7 +150,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
             <TooltipTrigger asChild>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
+                <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl">
                   <DemandForecastChart data={futureInsights?.demand_forecast} />
                 </div>
                 <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50 backdrop-blur-sm">
@@ -173,7 +173,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
             <TooltipTrigger asChild>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
+                <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl">
                   <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
                 </div>
                 <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50 backdrop-blur-sm">
@@ -197,7 +197,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <TooltipTrigger asChild>
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl shadow-2xl">
+              <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl">
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">

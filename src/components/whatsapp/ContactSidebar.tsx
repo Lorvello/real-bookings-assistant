@@ -18,7 +18,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
 
   if (!conversationId || !conversation) {
     return (
-      <Card className="bg-card border-white/[0.08] shadow-xl h-full">
+      <Card className="bg-card border-white/[0.08] h-full">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <User className="w-5 h-5 text-green-400" />
@@ -78,7 +78,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
   };
 
   return (
-    <Card className="bg-card border-white/[0.08] shadow-xl h-full">
+    <Card className="bg-card border-white/[0.08] h-full">
       <CardHeader className="border-b border-white/[0.08] bg-card">
         <CardTitle className="flex items-center gap-2 text-foreground">
           <User className="w-5 h-5 text-green-400" />
@@ -94,7 +94,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
       <CardContent className="p-6 space-y-6">
         {/* Contact Avatar & Name */}
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-medium text-lg shadow-lg">
+          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-medium text-lg">
             {getInitials(displayName)}
           </div>
           <h3 className="font-semibold text-xl text-foreground mb-2">{displayName}</h3>

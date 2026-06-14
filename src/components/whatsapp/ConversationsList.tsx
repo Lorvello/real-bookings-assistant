@@ -34,7 +34,7 @@ export function ConversationsList({
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-white/[0.08] shadow-xl h-full">
+      <Card className="bg-card border-white/[0.08] h-full">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageSquare className="w-5 h-5 text-green-400" />
@@ -86,7 +86,7 @@ export function ConversationsList({
   };
 
   return (
-    <Card className="bg-card border-white/[0.08] shadow-xl h-full flex flex-col">
+    <Card className="bg-card border-white/[0.08] h-full flex flex-col">
       <CardHeader className="border-b border-white/[0.08] bg-card pb-4">
         <CardTitle className="flex items-center gap-2 text-foreground mb-4">
           <MessageSquare className="w-5 h-5 text-green-400" />
@@ -142,13 +142,13 @@ export function ConversationsList({
                   onClick={() => onConversationSelect(conversation.id)}
                   className={`p-4 rounded-lg cursor-pointer transition-all duration-200 border ${
                     isSelected
-                      ? 'bg-primary/20 border-primary/30 shadow-lg'
+                      ? 'bg-primary/20 border-primary/30'
                       : 'hover:bg-white/[0.06] border-transparent hover:border-white/[0.08]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm shadow-sm flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm flex-shrink-0">
                       {getInitials(displayName)}
                     </div>
 

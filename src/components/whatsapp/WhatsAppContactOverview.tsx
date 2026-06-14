@@ -48,7 +48,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-white/[0.08] shadow-xl">
+      <Card className="bg-card border-white/[0.08]">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-3 text-lg">
             <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
@@ -70,7 +70,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
 
   if (error) {
     return (
-      <Card className="bg-card border-red-500/30 shadow-xl">
+      <Card className="bg-card border-red-500/30">
         <CardHeader className="border-b border-red-500/30 bg-red-900/20">
           <CardTitle className="flex items-center gap-3 text-lg text-red-300">
             <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
@@ -101,7 +101,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
   }
 
   return (
-    <Card className="bg-card border-white/[0.08] shadow-xl">
+    <Card className="bg-card border-white/[0.08]">
       <CardHeader className="border-b border-white/[0.08] bg-card">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-lg">

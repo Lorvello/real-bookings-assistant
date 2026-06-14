@@ -18,7 +18,7 @@ export function BusinessIntelligenceLoading() {
                  style={{
                    borderRadius: '40% 60% 50% 70% / 60% 40% 70% 50%'
                  }}></div>
-            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-primary/20 shadow-2xl p-8"
+            <div className="relative bg-gradient-to-br from-card/95 via-card/80 to-card/60 backdrop-blur-2xl border border-primary/20 p-8"
                  style={{
                    borderRadius: '1.5rem 3rem 1.5rem 3rem / 2rem 1.5rem 2.5rem 1.5rem'
                  }}>

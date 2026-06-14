@@ -335,7 +335,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
         {/* Enhanced Peak Hours Chart - Mobile optimized */}
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-cyan-500/15 to-blue-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-blue-500/30 rounded-xl md:rounded-2xl shadow-2xl">
+          <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-blue-500/30 rounded-xl md:rounded-2xl">
             <div className="p-4 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">

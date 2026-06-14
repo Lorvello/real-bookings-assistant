@@ -226,7 +226,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
   if (!defaultSchedule) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="bg-card/90 backdrop-blur-sm border-border/60 shadow-2xl">
+        <Card className="bg-card/90 backdrop-blur-sm border-border/60">
           <CardHeader className="text-center pb-6">
             <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Clock className="w-10 h-10 text-primary" />
@@ -242,7 +242,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
           <CardContent className="text-center">
             <Button 
               onClick={createDefaultSchedule}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium transition-all duration-200 hover:scale-105"
             >
               Start Configuration
             </Button>
@@ -255,7 +255,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-6 shadow-lg">
+      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-primary/20 rounded-xl">
@@ -278,7 +278,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
                 key={day.key}
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 ${
                   index === currentDayIndex
-                    ? 'bg-primary text-primary-foreground shadow-lg'
+                    ? 'bg-primary text-primary-foreground'
                     : getDayStatus(index) === 'configured'
                     ? 'bg-success/20 text-success border border-success/30'
                     : 'bg-muted text-muted-foreground border border-border'
@@ -304,7 +304,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
       </div>
 
       {/* Day Configuration */}
-      <Card className="bg-card/90 backdrop-blur-sm border border-border/60 shadow-lg">
+      <Card className="bg-card/90 backdrop-blur-sm border border-border/60">
         <CardContent className="p-6">
           <AvailabilityDayRow
             day={currentDay}

@@ -41,7 +41,7 @@ export function WhatsAppContactHeader({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Modern Avatar - gradient backgrounds */}
-          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm shadow-sm">
+          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm">
             {getInitials(displayName)}
           </div>
 

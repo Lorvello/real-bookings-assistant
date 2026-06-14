@@ -33,7 +33,7 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
   };
 
   return (
-    <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1 border border-border/60 shadow-sm">
+    <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1 border border-border/60">
       <div className="flex items-center gap-1.5 px-2">
         <Clock className="h-3 w-3 text-muted-foreground" />
         <span className="text-xs font-medium text-muted-foreground">Show times:</span>

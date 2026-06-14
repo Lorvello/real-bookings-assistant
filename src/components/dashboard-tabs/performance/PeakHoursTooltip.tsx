@@ -16,7 +16,7 @@ export function PeakHoursTooltip({ active, payload, label }: PeakHoursTooltipPro
       <motion.div 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gradient-to-br from-background/98 via-card/95 to-background/90 backdrop-blur-3xl border border-white/[0.08] shadow-2xl p-4 rounded-2xl"
+        className="bg-gradient-to-br from-background/98 via-card/95 to-background/90 backdrop-blur-3xl border border-white/[0.08] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] p-4 rounded-2xl"
       >
         <div className="space-y-3">
           <div className="flex items-center gap-2">

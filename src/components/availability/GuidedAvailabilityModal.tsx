@@ -471,7 +471,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="sm:max-w-xl bg-background border-border/50 shadow-2xl"
+        className="sm:max-w-xl bg-background border-border/50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader className="space-y-4">

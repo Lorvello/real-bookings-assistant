@@ -63,7 +63,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-background via-card to-background/95">
       {/* Fixed Week day headers - simplified without extra text */}
-      <div className="flex-shrink-0 bg-card/90 backdrop-blur-sm rounded-2xl mx-3 mt-3 p-2 shadow-sm border border-border/40 sticky top-0 z-20">
+      <div className="flex-shrink-0 bg-card/90 backdrop-blur-sm rounded-2xl mx-3 mt-3 p-2 border border-border/40 sticky top-0 z-20">
         <div className="grid grid-cols-7">
           {weekDays.map(day => (
             <div key={day} className="text-center py-2">
@@ -86,12 +86,12 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`group rounded-xl p-1.5 min-h-[80px] transition-all duration-200 hover:shadow-lg ${
+                  className={`group rounded-xl p-1.5 min-h-[80px] transition-all duration-200 ${
                     hasMultipleBookings ? 'cursor-pointer' : ''
                   } ${
                     isCurrentMonth 
                       ? isToday
-                        ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40 shadow-lg shadow-primary/10'
+                        ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40'
                         : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
                       : 'bg-muted/30 border border-border/30 opacity-60'
                   }`}
@@ -102,7 +102,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                   }`}>
                     <div className={`text-sm font-bold ${
                       isToday 
-                        ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs shadow-lg' 
+                        ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs'
                         : ''
                     }`}>
                       {format(day, 'd')}
@@ -125,7 +125,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                     
                     {dayBookings.length === 1 && (
                       <div
-                        className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="group/booking p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200"
                         style={{
                           backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
                           backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`

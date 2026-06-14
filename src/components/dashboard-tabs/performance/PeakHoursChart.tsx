@@ -73,7 +73,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
       else activityLevel = 'Quiet 😌';
 
       return (
-        <div className="bg-background/95 border border-green-500/30 rounded-xl p-4 shadow-2xl backdrop-blur-sm">
+        <div className="bg-background/95 border border-green-500/30 rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-green-400" />
             <span className="text-foreground font-semibold">{label}</span>
