@@ -142,43 +142,41 @@
     display: none;
   }
 
-  /* Custom scrollbars for the entire website */
+  /* Premium thin scrollbars: transparent track, subtle white-alpha thumb. */
   body, html, .dashboard-scrollbar, .main-scrollbar {
-    /* Firefox */
     scrollbar-width: thin;
-    scrollbar-color: hsl(240 5.3% 26.1%) hsl(240 5.9% 10%);
+    scrollbar-color: hsl(0 0% 100% / 0.12) transparent;
   }
 
-  body::-webkit-scrollbar, 
+  body::-webkit-scrollbar,
   html::-webkit-scrollbar,
-  .dashboard-scrollbar::-webkit-scrollbar, 
+  .dashboard-scrollbar::-webkit-scrollbar,
   .main-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
-  body::-webkit-scrollbar-track, 
+  body::-webkit-scrollbar-track,
   html::-webkit-scrollbar-track,
-  .dashboard-scrollbar::-webkit-scrollbar-track, 
+  .dashboard-scrollbar::-webkit-scrollbar-track,
   .main-scrollbar::-webkit-scrollbar-track {
-    background: hsl(240 5.9% 10%);
-    border-radius: 3px;
+    background: transparent;
   }
 
-  body::-webkit-scrollbar-thumb, 
+  body::-webkit-scrollbar-thumb,
   html::-webkit-scrollbar-thumb,
-  .dashboard-scrollbar::-webkit-scrollbar-thumb, 
+  .dashboard-scrollbar::-webkit-scrollbar-thumb,
   .main-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(240 5.3% 26.1%);
-    border-radius: 3px;
-    transition: background-color 0.2s ease;
+    background: hsl(0 0% 100% / 0.10);
+    border-radius: 9999px;
+    transition: background-color 0.15s ease;
   }
 
-  body::-webkit-scrollbar-thumb:hover, 
+  body::-webkit-scrollbar-thumb:hover,
   html::-webkit-scrollbar-thumb:hover,
-  .dashboard-scrollbar::-webkit-scrollbar-thumb:hover, 
+  .dashboard-scrollbar::-webkit-scrollbar-thumb:hover,
   .main-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(240 4.8% 35%);
+    background: hsl(0 0% 100% / 0.18);
   }
 
   body::-webkit-scrollbar-corner, 

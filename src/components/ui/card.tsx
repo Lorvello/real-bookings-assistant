@@ -38,7 +38,9 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      // PLAYBOOK §3 card title (H3): 20px / 600 / tight tracking. (Was 24px = too big
+      // for a card; callers that need a section heading can still override.)
+      "text-xl font-semibold leading-7 tracking-[-0.015em]",
       className
     )}
     {...props}
