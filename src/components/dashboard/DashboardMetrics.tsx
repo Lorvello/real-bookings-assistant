@@ -38,9 +38,9 @@ export const DashboardMetrics = () => {
   if (error) {
     return (
       <div className="mb-8">
-        <Card className="bg-red-900/20 border-red-700">
+        <Card className="bg-destructive/10 border-destructive/20">
           <CardContent className="p-6 text-center">
-            <p className="text-red-400">{error}</p>
+            <p className="text-destructive-foreground">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -103,15 +103,17 @@ export const DashboardMetrics = () => {
       {metricCards.map((metric, index) => {
         const Icon = metric.icon;
         return (
-          <Card key={index} className={`${metric.bgColor} border-white/[0.08] hover:scale-105 transition-transform duration-200`}>
+          <Card key={index} className="bg-card border-white/[0.08] hover:border-white/[0.12] transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-foreground">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 {metric.title}
               </CardTitle>
-              <Icon className={`h-4 w-4 ${metric.color}`} />
+              <Icon className="h-4 w-4 text-subtle-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">
+              {/* PLAYBOOK §6 KPI: neutral hero number (only a delta would be colored),
+                  big + tabular so columns never jitter. Restraint over the old rainbow. */}
+              <div className="text-3xl font-semibold tracking-[-0.02em] tabular-nums text-foreground">
                 {typeof metric.value === 'string' ? metric.value : metric.value.toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
