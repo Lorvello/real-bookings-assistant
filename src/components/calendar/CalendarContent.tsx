@@ -57,7 +57,7 @@ export const CalendarContent = React.memo(function CalendarContent({
   if (error) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
-        <div className="text-center bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-3xl p-8 border border-red-500/20">
+        <div className="text-center bg-red-500/10 rounded-xl p-8 border border-red-500/20">
           <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <span className="text-red-500 text-xl">⚠️</span>
           </div>

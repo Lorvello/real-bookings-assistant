@@ -45,11 +45,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-44 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"
+              className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"
             />
           ))}
         </div>
-        <div className="h-96 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+        <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
       </div>
     );
   }
@@ -74,11 +74,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-44 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"
+              className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"
             />
           ))}
         </div>
-        <div className="h-96 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+        <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
       </div>
     );
   }
@@ -124,7 +124,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.1}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
@@ -155,7 +155,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.2}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
@@ -188,7 +188,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                     variant="blue"
                     delay={0.3}
                   />
-                  <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                  <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                     <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                   </div>
                 </motion.div>
@@ -220,7 +220,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
@@ -254,7 +254,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.5}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
@@ -285,7 +285,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.6}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
@@ -316,7 +316,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   variant="blue"
                   delay={0.7}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                 </div>
               </motion.div>
@@ -335,18 +335,18 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
         {/* Enhanced Peak Hours Chart - Mobile optimized */}
         <div className="relative group">
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-cyan-500/15 to-blue-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-blue-500/30 rounded-xl md:rounded-2xl">
+          <div className="relative bg-card border border-white/[0.08] rounded-xl md:rounded-2xl">
             <div className="p-4 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl">
+                <div className="p-2 bg-muted/40 rounded-xl">
                   <Activity className="h-6 w-6 text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
                     Peak Hours Analysis
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="cursor-help p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                        <div className="cursor-help p-1 rounded-full bg-card/50">
                           <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
                         </div>
                       </TooltipTrigger>

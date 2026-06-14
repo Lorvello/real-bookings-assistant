@@ -183,7 +183,7 @@ export function IntelligentRecommendations({
   if (recommendations.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-2xl flex items-center justify-center border border-purple-500/30">
+        <div className="w-16 h-16 mx-auto mb-4 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
           <Target className="h-8 w-8 text-purple-400" />
         </div>
         <p className="text-foreground font-medium mb-2">Everything looks great!</p>
@@ -197,17 +197,17 @@ export function IntelligentRecommendations({
       {recommendations.map((rec, index) => (
         <div
           key={index}
-          className="group p-6 bg-gradient-to-br from-purple-500/15 via-purple-500/10 to-transparent border border-purple-500/30 rounded-xl backdrop-blur-sm hover:from-purple-500/20 hover:border-purple-500/40 transition-all duration-300"
+          className="group p-6 bg-card border border-white/[0.08] rounded-xl hover:bg-muted/40 transition-colors duration-150"
           style={{
             animation: `fadeIn 0.6s ease-out ${index * 0.15}s both`
           }}
         >
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl flex items-center justify-center border border-purple-500/30 group-hover:from-purple-500/30 group-hover:border-purple-500/40 transition-all duration-300">
+            <div className="flex-shrink-0 w-12 h-12 bg-muted/40 rounded-xl flex items-center justify-center border border-white/[0.08] transition-colors duration-150">
               <rec.icon className="h-6 w-6 text-purple-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-bold mb-2 text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
+              <h4 className="font-semibold mb-2 text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
                 {rec.title}
               </h4>
               <p className="text-foreground text-sm leading-relaxed mb-4">

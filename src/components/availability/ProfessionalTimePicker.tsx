@@ -212,7 +212,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={`outer-${i}`}
-          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 transition-all duration-200 flex items-center justify-center text-base font-semibold text-foreground rounded-full"
+          className="absolute select-none cursor-pointer hover:text-primary hover:bg-primary/10 transition-colors duration-150 flex items-center justify-center text-base font-semibold text-foreground rounded-full"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
@@ -249,7 +249,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       hours.push(
         <div
           key={`inner-${actualHour}`}
-          className="absolute select-none cursor-pointer hover:text-primary hover:scale-110 hover:bg-primary/10 transition-all duration-200 flex items-center justify-center text-sm font-semibold text-foreground rounded-full"
+          className="absolute select-none cursor-pointer hover:text-primary hover:bg-primary/10 transition-colors duration-150 flex items-center justify-center text-sm font-semibold text-foreground rounded-full"
           style={{
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
@@ -284,7 +284,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       marks.push(
         <div
           key={i}
-          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary hover:bg-primary/10 hover:scale-110 transition-all duration-200 rounded-full flex items-center justify-center"
+          className="absolute text-xs font-medium text-foreground/60 select-none cursor-pointer hover:text-primary hover:bg-primary/10 transition-colors duration-150 rounded-full flex items-center justify-center"
           style={{
             left: `calc(50% + ${x}px - 6px)`,
             top: `calc(50% + ${y}px - 6px)`,
@@ -319,7 +319,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           onFocus={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           placeholder="00:00"
-          className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-all duration-200 pr-9"
+          className="font-mono text-center bg-background border-border hover:border-accent focus:border-accent focus:ring-accent/20 transition-colors duration-150 pr-9"
         />
         <Button
           type="button"
@@ -338,7 +338,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
       {/* Professional Modal Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/70 z-[99999] flex items-center justify-center p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               onClose();
@@ -346,7 +346,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           }}
         >
           <div 
-            className="bg-card border border-border rounded-2xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] w-full max-w-md transform transition-all duration-300 animate-in fade-in-0 zoom-in-95 relative"
+            className="bg-card border border-border rounded-2xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] w-full max-w-md transform transition-colors duration-150 animate-in fade-in-0 zoom-in-95 relative"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -363,16 +363,16 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 <div className="flex flex-col items-center space-y-4">
                      <div 
                       ref={clockRef}
-                      className="relative w-72 h-72 bg-gradient-to-br from-background to-muted/20 rounded-full border-4 border-border/60 hover:border-primary/60 transition-all duration-300 transform hover:scale-[1.02]"
+                      className="relative w-72 h-72 bg-muted/40 rounded-full border border-white/[0.08] hover:border-primary/60 transition-colors duration-150"
                     >
                      {/* Clock face inner circle */}
-                     <div className="absolute inset-4 rounded-full bg-background border-2 border-border/30 shadow-inner transition-all duration-300">
+                     <div className="absolute inset-4 rounded-full bg-background border border-white/[0.08] shadow-inner transition-colors duration-150">
                        {/* Hour numbers or minute marks */}
                        {isSelectingMinutes ? generateMinuteMarks() : generateHourNumbers()}
                        
                         {/* Prominent clock hands */}
                         <div 
-                          className="absolute top-1/2 left-1/2 origin-bottom bg-primary/90 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 transition-all duration-300"
+                          className="absolute top-1/2 left-1/2 origin-bottom bg-primary/90 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 transition-transform duration-300"
                           style={{
                             width: '3px',
                             height: '45px',
@@ -411,13 +411,13 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                    </div>
                   
                    {/* Current time display - directly editable */}
-                   <div className="text-center bg-accent/10 rounded-xl p-4 border border-accent/20">
+                   <div className="text-center bg-accent/10 rounded-xl p-4 border border-white/[0.08]">
                      <Input
                        type="text"
                        value={inputValue}
                        onChange={handleInputChange}
                        onKeyDown={handleInputKeyDown}
-                       className="text-5xl font-mono font-bold text-primary bg-transparent border-none text-center p-0 h-auto focus:ring-0 tracking-wider"
+                       className="text-5xl font-mono font-semibold text-primary bg-transparent border-none text-center p-0 h-auto focus:ring-0 tracking-wider"
                        placeholder="00:00"
                      />
                      <div className="text-sm text-muted-foreground font-medium mt-2">
@@ -432,7 +432,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                      variant={!isSelectingMinutes ? "default" : "outline"}
                      size="lg"
                      onClick={() => setIsSelectingMinutes(false)}
-                     className="min-w-[80px] transition-all duration-200 hover:scale-105 active:scale-95"
+                     className="min-w-[80px] transition-colors duration-150"
                    >
                      Hours
                    </Button>
@@ -440,7 +440,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                      variant={isSelectingMinutes ? "default" : "outline"}
                      size="lg"
                      onClick={() => setIsSelectingMinutes(true)}
-                     className="min-w-[80px] transition-all duration-200 hover:scale-105 active:scale-95"
+                     className="min-w-[80px] transition-colors duration-150"
                    >
                      Minutes
                    </Button>
@@ -449,11 +449,11 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end p-6 border-t border-border/40 space-x-3">
+            <div className="flex items-center justify-end p-6 border-t border-white/[0.08] space-x-3">
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="bg-background hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95 min-w-[80px]"
+                className="bg-background hover:bg-muted transition-colors duration-150 min-w-[80px]"
               >
                 Cancel
               </Button>
@@ -462,7 +462,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                   // PHASE 3: Simplified close without immediate onChange - let parent handle save
                   onClose();
                 }}
-                className="bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105 active:scale-95 min-w-[80px]"
+                className="bg-primary hover:bg-primary/90 transition-colors duration-150 min-w-[80px]"
               >
                 Done
               </Button>

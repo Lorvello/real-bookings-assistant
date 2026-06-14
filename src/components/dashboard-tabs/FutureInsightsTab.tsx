@@ -24,12 +24,12 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-44 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]" />
+            <div key={i} className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]" />
           ))}
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <div className="h-96 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"></div>
-          <div className="h-96 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+          <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+          <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
         </div>
       </div>
     );
@@ -65,7 +65,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.1}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
               </motion.div>
@@ -96,7 +96,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.2}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
               </motion.div>
@@ -127,7 +127,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   variant="purple"
                   delay={0.3}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
               </motion.div>
@@ -150,10 +150,10 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
             <TooltipTrigger asChild>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl">
+                <div className="relative bg-card border border-white/[0.08] rounded-2xl">
                   <DemandForecastChart data={futureInsights?.demand_forecast} />
                 </div>
-                <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
               </div>
@@ -173,10 +173,10 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
             <TooltipTrigger asChild>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl">
+                <div className="relative bg-card border border-white/[0.08] rounded-2xl">
                   <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
                 </div>
-                <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
                 </div>
               </div>
@@ -197,13 +197,13 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <TooltipTrigger asChild>
             <div className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-purple-500/30 rounded-2xl">
+              <div className="relative bg-card border border-white/[0.08] rounded-2xl">
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">
-                    <div className="p-2 bg-gradient-to-br from-purple-500/20 to-violet-500/20 rounded-xl">
+                    <div className="p-2 bg-muted/40 rounded-xl">
                       <Brain className="h-6 w-6 text-purple-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground">AI-Powered Recommendations</h3>
+                    <h3 className="text-xl font-semibold text-foreground">AI-Powered Recommendations</h3>
                   </div>
                   
                   <IntelligentRecommendations 
@@ -215,7 +215,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   />
                 </div>
               </div>
-              <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+              <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
                 <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
               </div>
             </div>

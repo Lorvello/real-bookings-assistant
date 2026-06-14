@@ -149,7 +149,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-gradient-to-br from-card/40 to-background/60 rounded-2xl animate-pulse border border-white/[0.08]" />
+            <div key={i} className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]" />
           ))}
         </div>
       </div>
@@ -200,7 +200,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   variant="green"
                   delay={0.1}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
                 </div>
               </motion.div>
@@ -232,7 +232,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   variant="green"
                   delay={0.2}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
                 </div>
               </motion.div>
@@ -264,7 +264,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   variant="green"
                   delay={0.3}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
                 </div>
               </motion.div>
@@ -297,7 +297,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   variant="green"
                   delay={0.4}
                 />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
+                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <ArrowRight className="h-3 w-3 text-green-400/70 group-hover:text-green-300 transition-colors group-hover:translate-x-0.5 transform duration-200" />
                 </div>
                 <div className="absolute inset-0 rounded-2xl border border-green-500/20 group-hover:border-green-500/40 transition-colors"></div>
@@ -320,10 +320,10 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           {/* Enhanced System Status */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl">
+            <div className="relative bg-card border border-white/[0.08] rounded-2xl">
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl">
+                  <div className="p-2 bg-muted/40 rounded-xl">
                     <Activity className="h-5 w-5 text-green-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">Live System Status</h3>
@@ -332,7 +332,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 <div className="space-y-4">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-center justify-between p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-white/[0.08] cursor-help relative">
+                      <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] cursor-help relative">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 ${
                             calendarStatus.color === 'green' ? 'bg-green-400' : 
@@ -366,7 +366,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div 
-                        className={`flex items-center justify-between p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-white/[0.08] relative transition-colors ${
+                        className={`flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] relative transition-colors ${
                           bookingsAssistantStatus.clickable ? 'cursor-pointer hover:bg-white/[0.06]' : 'cursor-help'
                         }`}
                         onClick={bookingsAssistantStatus.clickable ? handleBookingAssistantClick : undefined}
@@ -406,7 +406,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-center justify-between p-4 bg-card/50 backdrop-blur-sm rounded-xl border border-white/[0.08] cursor-help relative">
+                      <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] cursor-help relative">
                         <div className="flex items-center gap-3">
                           <Zap className={`h-4 w-4 ${realtimeSyncStatus.textColor}`} />
                           <span className="text-sm font-medium text-foreground">Real-time Sync</span>
@@ -437,24 +437,24 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           {/* Enhanced Today's Planning - Now Clickable */}
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-            <div 
-              className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-green-500/30 rounded-2xl cursor-pointer hover:border-green-500/50 transition-colors"
+            <div
+              className="relative bg-card border border-white/[0.08] rounded-2xl cursor-pointer hover:border-white/[0.14] transition-colors"
               onClick={handleTodayScheduleClick}
             >
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl">
+                  <div className="p-2 bg-muted/40 rounded-xl">
                     <Calendar className="h-5 w-5 text-green-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">Today's Schedule</h3>
-                  <ArrowRight className="h-4 w-4 text-green-400/70 group-hover:text-green-300 group-hover:translate-x-1 transition-all duration-200 ml-auto" />
+                  <ArrowRight className="h-4 w-4 text-green-400/70 group-hover:text-green-300 group-hover:translate-x-1 transition-transform duration-150 ml-auto" />
                 </div>
                 
                 {liveOps?.next_appointment_time ? (
                   <div className="space-y-4">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="p-4 bg-gradient-to-r from-green-500/10 via-emerald-500/5 to-transparent border border-green-500/20 rounded-xl cursor-pointer relative group-hover:border-green-500/40 transition-colors">
+                        <div className="p-4 bg-green-500/10 border border-white/[0.08] rounded-xl cursor-pointer relative group-hover:border-white/[0.14] transition-colors">
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="font-semibold text-foreground mb-1">Next Appointment</p>
@@ -496,7 +496,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-muted/50 to-card/50 rounded-2xl flex items-center justify-center border border-white/[0.08]">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
                       <Calendar className="h-10 w-10 text-muted-foreground" />
                     </div>
                     <p className="text-foreground font-medium mb-1">Free day today</p>

@@ -98,7 +98,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
 
         <div className="space-y-3 sm:space-y-6">
           {/* Service Information */}
-          <div className="bg-gradient-to-r from-card to-card/50 rounded-lg p-2 sm:p-4 border">
+          <div className="bg-card rounded-lg p-2 sm:p-4 border">
             <h3 className="text-sm sm:text-lg font-semibold text-foreground mb-1 sm:mb-2">
               {booking.service_types?.name || booking.service_name || 'Appointment'}
             </h3>

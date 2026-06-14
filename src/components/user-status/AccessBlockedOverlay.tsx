@@ -73,7 +73,7 @@ export function AccessBlockedOverlay({ userStatus, feature, description, onUpgra
           <div className="flex justify-center mb-4">
             {getIcon()}
           </div>
-          <CardTitle className="text-xl font-bold text-white">
+          <CardTitle className="text-xl font-semibold text-white">
             {getTitle()}
           </CardTitle>
           <CardDescription className="text-gray-400">
