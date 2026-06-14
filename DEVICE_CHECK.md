@@ -5,8 +5,8 @@
 > code-level read, and lists the few items that need your eyes on a real signed-in device.
 > Build passes (`npm run build`) at every commit below.
 
-**Premium overhaul commit range:** `8b7ffffd..cbf5a978` on `main` (live via Vercel).
-**Current premium HEAD:** `cbf5a978`
+**Premium overhaul commit range:** `8b7ffffd..f494adc4` on `main` (live via Vercel).
+**Current premium HEAD:** `f494adc4`
 **Pre-overhaul base (full revert target):** `91a9f798`
 
 - Revert one round: `git revert <sha>` (each round is its own commit).
@@ -64,4 +64,5 @@ If any of the above looks off, note the screen + item number and it gets fixed i
 - **"Schedule from chat" + "Close conversation"** in the Tess inbox: build them for real (they were removed as dead buttons). NOTE: conversation status is driven by the WhatsApp agent flow, so a manual "close" needs a product decision before building. This is the only thing keeping Conversations at 14/15.
 - **Dead-code deletion (maintainability, not visible):** several unmounted components still carry old gradients + Dutch strings (DashboardContent, MonthView, ConversationsList, ContactSidebar, WhatsAppContactOverview→Card→Header chain, AnalyticsPlaceholder, ScheduleSelector, the dead DayAvailability/AvailabilityPanel/WeeklyScheduleTab). They don't render; deleting them is safe cleanup but out of scope for the premium-look pass (flagged as a separate background task).
 - ~~Off-token files (AccessBlockedOverlay, ResearchModal)~~ — DONE (cbf5a978): both migrated to design tokens.
-- Optional: badge the onboarding **sample data** (shown to brand-new/`setup_incomplete` accounts) as "Sample" so new users don't read it as real numbers.
+- **SubscriptionModal** (`src/components/SubscriptionModal.tsx`, 659 lines, ~10 live upgrade entry points): a pricing/conversion modal with per-tier accent colors. NOT swept — needs a deliberate decision: keep its richer conversion styling (it borders on marketing) vs. align it to the premium app palette. Flag for your call before a sweep.
+- ~~Sample-data badge~~ — NOT NEEDED: verified `allowMockData = development && developer-email` only, and `setup_incomplete` users see the OnboardingWizard (not the mock dashboard), so mock numbers never reach real users. Dev tools (`DeveloperStatusManager`/`StripeModeIndicator`) confirmed self-gated to the developer account.
