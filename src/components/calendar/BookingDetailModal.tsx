@@ -50,17 +50,17 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 border-transparent';
       case 'completed':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-primary/10 text-accent-foreground ring-1 ring-primary/20 border-transparent';
       case 'no-show':
-        return 'bg-muted text-muted-foreground border-border';
+        return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
       default:
-        return 'bg-muted text-muted-foreground border-border';
+        return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
   };
 
@@ -112,7 +112,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 {getStatusLabel(booking.status)}
               </div>
               {booking.total_price && (
-                <div className="text-primary font-semibold text-xs sm:text-sm">
+                <div className="text-primary font-semibold text-xs sm:text-sm tabular-nums">
                   €{booking.total_price.toFixed(2)}
                 </div>
               )}
@@ -156,10 +156,10 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 <span className="font-medium text-xs sm:text-sm">Date & Time</span>
               </div>
               <div className="space-y-0.5 sm:space-y-1">
-                <div className="font-semibold text-foreground text-xs sm:text-sm">
+                <div className="font-semibold text-foreground text-xs sm:text-sm tabular-nums">
                   {format(startTime, 'EEEE d MMMM yyyy', { locale: enUS })}
                 </div>
-                <div className="text-muted-foreground text-xs sm:text-sm">
+                <div className="text-muted-foreground text-xs sm:text-sm tabular-nums">
                   {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
                 </div>
               </div>
@@ -170,7 +170,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="font-medium text-xs sm:text-sm">Duration</span>
               </div>
-              <div className="font-semibold text-foreground text-xs sm:text-sm">
+              <div className="font-semibold text-foreground text-xs sm:text-sm tabular-nums">
                 {duration} minutes
               </div>
             </div>
@@ -198,7 +198,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 <div>
                   <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground text-xs sm:text-sm">
                     <Phone className="w-2 h-2 sm:w-3 sm:h-3" />
-                    <span>{booking.customer_phone}</span>
+                    <span className="tabular-nums">{booking.customer_phone}</span>
                   </div>
                 </div>
               )}

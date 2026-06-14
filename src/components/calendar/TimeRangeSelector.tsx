@@ -40,12 +40,12 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
       </div>
       
       <Select value={startTime} onValueChange={handleStartTimeChange}>
-        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs">
+        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs tabular-nums">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {timeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
+            <SelectItem key={option.value} value={option.value} className="text-xs tabular-nums">
               {option.label}
             </SelectItem>
           ))}
@@ -55,12 +55,12 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
       <span className="text-xs text-muted-foreground">to</span>
 
       <Select value={endTime} onValueChange={handleEndTimeChange}>
-        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs">
+        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs tabular-nums">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {timeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
+            <SelectItem key={option.value} value={option.value} className="text-xs tabular-nums">
               {option.label}
             </SelectItem>
           ))}

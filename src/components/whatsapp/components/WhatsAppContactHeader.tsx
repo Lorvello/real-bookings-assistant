@@ -58,7 +58,7 @@ export function WhatsAppContactHeader({
             <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
               <div className="flex items-center gap-1.5">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <span className="font-mono text-foreground">{contact.phone_number}</span>
+                <span className="font-mono text-foreground tabular-nums">{contact.phone_number}</span>
               </div>
 
               {/* Business name - persistent via override, clickable to edit */}
@@ -81,7 +81,7 @@ export function WhatsAppContactHeader({
               {contact.last_message_at && (
                 <div className="flex items-center gap-1.5">
                   <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">
+                  <span className="text-muted-foreground tabular-nums">
                     {format(new Date(contact.last_message_at), 'dd MMM HH:mm', { locale: nl })}
                   </span>
                 </div>

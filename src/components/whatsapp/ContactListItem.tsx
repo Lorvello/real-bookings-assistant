@@ -26,10 +26,10 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
 
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
-      case 'active': return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'pending': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-      case 'closed': return 'bg-muted text-muted-foreground border-border';
-      default: return 'bg-muted text-muted-foreground border-border';
+      case 'active': return 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent';
+      case 'pending': return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
+      case 'closed': return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
+      default: return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
   };
 

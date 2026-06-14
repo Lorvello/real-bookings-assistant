@@ -135,8 +135,8 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.total_contacts || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold tabular-nums">{analytics?.total_contacts || 0}</div>
+            <p className="text-xs text-muted-foreground tabular-nums">
               {analytics?.active_conversations || 0} active conversations
             </p>
           </CardContent>
@@ -148,8 +148,8 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
             <MessageCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics?.total_messages || 0}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold tabular-nums">{analytics?.total_messages || 0}</div>
+            <p className="text-xs text-muted-foreground tabular-nums">
               {analytics?.inbound_messages || 0} inkomend, {analytics?.outbound_messages || 0} uitgaand
             </p>
           </CardContent>
@@ -161,10 +161,10 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold tabular-nums">
               {analytics?.conversation_to_booking_rate?.toFixed(1) || 0}%
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground tabular-nums">
               {analytics?.bookings_via_whatsapp || 0} boekingen via WhatsApp
             </p>
           </CardContent>
@@ -176,9 +176,9 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {analytics?.avg_response_time_minutes ? 
-                `${Math.round(analytics.avg_response_time_minutes)}m` : 
+            <div className="text-2xl font-bold tabular-nums">
+              {analytics?.avg_response_time_minutes ?
+                `${Math.round(analytics.avg_response_time_minutes)}m` :
                 'N/A'
               }
             </div>
@@ -200,19 +200,19 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-600 tabular-nums">
                 {analytics?.total_booking_intents || 0}
               </div>
               <div className="text-sm text-blue-600">Totaal Booking Intents</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600 tabular-nums">
                 {analytics?.completed_booking_intents || 0}
               </div>
               <div className="text-sm text-green-600">Voltooid</div>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-purple-600 tabular-nums">
                 {analytics?.booking_intent_conversion_rate?.toFixed(1) || 0}%
               </div>
               <div className="text-sm text-purple-600">Intent Conversie Rate</div>
@@ -337,12 +337,12 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
                     <h4 className="font-medium">
                       {topicLabels[topic.topic_category] || topic.topic_category}
                     </h4>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground tabular-nums">
                       {topic.conversation_count} conversations
                     </p>
                   </div>
                 </div>
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="tabular-nums">
                   {((topic.conversation_count / (conversationTopics?.reduce((sum, t) => sum + t.conversation_count, 0) || 1)) * 100).toFixed(1)}%
                 </Badge>
               </div>

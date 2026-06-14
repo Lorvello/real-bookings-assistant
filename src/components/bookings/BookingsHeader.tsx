@@ -15,8 +15,8 @@ export function BookingsHeader() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-lg md:text-3xl font-semibold text-foreground">{displayTitle}</h1>
-          <p className="text-muted-foreground mt-1 text-xs md:text-base">
-            {viewingAllCalendars 
+          <p className="text-muted-foreground mt-1 text-xs md:text-base tabular-nums">
+            {viewingAllCalendars
               ? `View bookings from ${calendars.length} calendars`
               : 'Overview of all your appointments'
             }

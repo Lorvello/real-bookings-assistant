@@ -81,7 +81,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
       case 'pending':
         return 'text-amber-400';
       case 'cancelled':
-        return 'text-red-400';
+        return 'text-muted-foreground';
       default:
         return 'text-muted-foreground';
     }
@@ -115,7 +115,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
           {/* Header */}
           <div className="p-2 sm:p-3 border-b border-white/[0.08]">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-semibold text-foreground">
+              <h3 className="text-xs sm:text-sm font-semibold text-foreground tabular-nums">
                 {format(date, 'EEE d MMM', { locale: enUS })}
               </h3>
               <button
@@ -165,8 +165,8 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                         )}
                         <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
                           <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
-                          <span className="text-[9px] sm:text-xs text-foreground">
-                            {format(new Date(booking.start_time), 'HH:mm')} - 
+                          <span className="text-[9px] sm:text-xs text-foreground tabular-nums">
+                            {format(new Date(booking.start_time), 'HH:mm')} -
                             {format(new Date(booking.end_time), 'HH:mm')}
                           </span>
                         </div>
@@ -256,14 +256,14 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                   <div>
-                    <div className="text-xs sm:text-sm text-foreground">
+                    <div className="text-xs sm:text-sm text-foreground tabular-nums">
                       {format(new Date(selectedBooking.start_time), 'EEEE, MMMM d, yyyy')}
                     </div>
-                    <div className="text-xs sm:text-sm text-foreground">
+                    <div className="text-xs sm:text-sm text-foreground tabular-nums">
                       {format(new Date(selectedBooking.start_time), 'h:mm a')} - {format(new Date(selectedBooking.end_time), 'h:mm a')}
                     </div>
                     {selectedBooking.service_types?.duration && (
-                      <div className="text-[10px] sm:text-xs text-muted-foreground">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground tabular-nums">
                         Duration: {selectedBooking.service_types.duration} minutes
                       </div>
                     )}
@@ -290,7 +290,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                     {selectedBooking.customer_phone && (
                       <div className="flex items-center gap-1 mt-0.5 sm:mt-1">
                         <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
-                        <span className="text-[10px] sm:text-xs text-foreground">
+                        <span className="text-[10px] sm:text-xs text-foreground tabular-nums">
                           {selectedBooking.customer_phone}
                         </span>
                       </div>
@@ -311,7 +311,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {selectedBooking.total_price && (
                 <div className="flex items-center justify-between">
                   <span className="text-xs sm:text-sm text-muted-foreground">Price</span>
-                  <span className="text-xs sm:text-sm font-medium text-foreground">
+                  <span className="text-xs sm:text-sm font-medium text-foreground tabular-nums">
                     €{selectedBooking.total_price}
                   </span>
                 </div>

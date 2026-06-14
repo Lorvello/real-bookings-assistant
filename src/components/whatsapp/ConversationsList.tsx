@@ -37,7 +37,7 @@ export function ConversationsList({
       <Card className="bg-card border-white/[0.08] h-full">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-2 text-foreground">
-            <MessageSquare className="w-5 h-5 text-green-400" />
+            <MessageSquare className="w-5 h-5 text-muted-foreground" />
             Conversations
           </CardTitle>
         </CardHeader>
@@ -56,25 +56,25 @@ export function ConversationsList({
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-green-500/20 text-green-300 border-green-500/30 hover:bg-green-500/30">
+          <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
             Active
           </Badge>
         );
       case 'closed':
         return (
-          <Badge variant="secondary" className="bg-muted text-foreground border-white/[0.08]">
+          <Badge variant="secondary" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
             Closed
           </Badge>
         );
       case 'archived':
         return (
-          <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+          <Badge variant="outline" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
             Archived
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="bg-muted text-muted-foreground border-white/[0.08]">
+          <Badge variant="outline" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
             Unknown
           </Badge>
         );
@@ -88,8 +88,8 @@ export function ConversationsList({
   return (
     <Card className="bg-card border-white/[0.08] h-full flex flex-col">
       <CardHeader className="border-b border-white/[0.08] bg-card pb-4">
-        <CardTitle className="flex items-center gap-2 text-foreground mb-4">
-          <MessageSquare className="w-5 h-5 text-green-400" />
+        <CardTitle className="flex items-center gap-2 text-foreground mb-4 tabular-nums">
+          <MessageSquare className="w-5 h-5 text-muted-foreground" />
           Conversations ({filteredConversations.length})
         </CardTitle>
 
@@ -160,13 +160,13 @@ export function ConversationsList({
                       </div>
 
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="font-mono truncate">{contact?.phone_number}</span>
+                        <span className="font-mono truncate tabular-nums">{contact?.phone_number}</span>
                       </div>
 
                       {conversation.created_at && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                           <Clock className="w-3 h-3" />
-                          <span>
+                          <span className="tabular-nums">
                             {format(new Date(conversation.created_at), 'dd MMM HH:mm', { locale: nl })}
                           </span>
                         </div>

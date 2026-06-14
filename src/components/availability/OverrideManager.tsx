@@ -47,10 +47,10 @@ export function OverrideManager({ calendarId }: OverrideManagerProps) {
               className="flex items-center justify-between p-3 bg-muted rounded-lg border"
             >
               <div className="flex-1">
-                <div className="text-foreground text-sm font-medium">
+                <div className="text-foreground text-sm font-medium tabular-nums">
                   {format(new Date(override.date), 'EEEE d MMMM yyyy', { locale: nl })}
                 </div>
-                <div className="text-muted-foreground text-xs mt-1">
+                <div className="text-muted-foreground text-xs mt-1 tabular-nums">
                   {override.is_available ? (
                     override.start_time && override.end_time ? (
                       `Custom times: ${override.start_time} - ${override.end_time}`

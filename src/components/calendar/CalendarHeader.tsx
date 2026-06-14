@@ -63,7 +63,7 @@ export function CalendarHeader({
             <Calendar className="h-4 w-4 text-muted-foreground" />
             
             <div>
-              <h1 className="text-lg font-semibold text-foreground">
+              <h1 className="text-lg font-semibold text-foreground tabular-nums">
                 {formatTitle()}
               </h1>
               <p className="text-xs text-muted-foreground">

@@ -129,7 +129,7 @@ export const CompactTimePicker: React.FC<CompactTimePickerProps> = ({
         onBlur={handleInputBlur}
         onClick={onToggle}
         placeholder="09:00"
-        className="w-20 h-9 text-center text-sm font-medium bg-muted/50 border-border/50 hover:border-border focus:border-primary rounded-lg cursor-pointer"
+        className="w-20 h-9 text-center text-sm font-medium bg-muted/50 border-border/50 hover:border-border focus:border-primary rounded-lg cursor-pointer tabular-nums"
       />
       
       {/* Dropdown with time options */}
@@ -141,7 +141,7 @@ export const CompactTimePicker: React.FC<CompactTimePickerProps> = ({
                 <button
                   key={time}
                   onClick={() => handleTimeSelect(time)}
-                  className={`w-full px-3 py-1.5 text-sm text-left rounded hover:bg-accent transition-colors ${
+                  className={`w-full px-3 py-1.5 text-sm text-left rounded hover:bg-accent transition-colors tabular-nums ${
                     time === formattedValue ? 'bg-primary/10 text-primary font-medium' : 'text-foreground'
                   }`}
                 >

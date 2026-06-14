@@ -45,12 +45,12 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
           <div className="p-4 border rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Berichten Bewaring</span>
-              <Badge variant="outline">
+              <Badge variant="outline" className="tabular-nums">
                 {retentionSettings?.message_retention_days || 90} dagen
               </Badge>
             </div>
             <Progress value={retentionPercentage} className="h-2" />
-            <p className="text-xs text-subtle-foreground mt-1">
+            <p className="text-xs text-subtle-foreground mt-1 tabular-nums">
               {totalMessages - oldMessages} of {totalMessages} messages within the retention period
             </p>
           </div>
@@ -58,11 +58,11 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
           <div className="p-4 border rounded-lg">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Gearchiveerde Gesprekken</span>
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="tabular-nums">
                 {Number(dataStats?.archived_conversations || 0)}
               </Badge>
             </div>
-            <div className="flex items-center gap-2 text-xs text-subtle-foreground">
+            <div className="flex items-center gap-2 text-xs text-subtle-foreground tabular-nums">
               <Archive className="h-3 w-3" />
               Inactief na {retentionSettings?.conversation_inactive_days || 30} dagen
             </div>
@@ -81,7 +81,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                   Messages older than {retentionSettings?.message_retention_days || 90} days are automatically deleted
                 </p>
               </div>
-              <Badge className="bg-blue-100 text-blue-800">Active</Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
@@ -92,7 +92,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                   Conversations are archived after {retentionSettings?.conversation_inactive_days || 30} days of inactivity
                 </p>
               </div>
-              <Badge className="bg-orange-100 text-orange-800">Active</Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
@@ -103,7 +103,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                   Abandoned booking attempts are deleted after {retentionSettings?.booking_intent_abandoned_days || 7} days
                 </p>
               </div>
-              <Badge className="bg-red-100 text-red-800">Active</Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
             </div>
           </div>
         </div>

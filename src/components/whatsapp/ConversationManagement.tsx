@@ -37,7 +37,7 @@ export function ConversationManagement() {
             <MessageCircle className="w-5 h-5 text-primary" />
             Conversation Management
             {unlinkedConversations && unlinkedConversations.length > 0 && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 tabular-nums">
                 {unlinkedConversations.length}
               </Badge>
             )}
@@ -101,18 +101,18 @@ export function ConversationManagement() {
                       
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                         <Phone className="w-4 h-4" />
-                        <span className="font-mono">{conversation.contact_phone}</span>
+                        <span className="font-mono tabular-nums">{conversation.contact_phone}</span>
                       </div>
                       
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <MessageCircle className="w-3 h-3" />
-                          <span>{conversation.message_count} messages</span>
+                          <span className="tabular-nums">{conversation.message_count} messages</span>
                         </div>
                         {conversation.last_activity && (
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            <span>
+                            <span className="tabular-nums">
                               {format(new Date(conversation.last_activity), 'dd MMM HH:mm', { locale: nl })}
                             </span>
                           </div>

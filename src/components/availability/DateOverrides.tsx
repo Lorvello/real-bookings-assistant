@@ -118,7 +118,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal bg-background/80 border-border/60 rounded-2xl hover:border-primary/40 transition-colors h-12",
+                      "w-full justify-start text-left font-normal bg-background/80 border-border/60 rounded-2xl hover:border-primary/40 transition-colors h-12 tabular-nums",
                       !selectedDate && "text-muted-foreground"
                     )}
                   >
@@ -239,15 +239,15 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                       <CalendarDays className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground">{formatDate(override.date)}</h4>
+                      <h4 className="font-semibold text-foreground tabular-nums">{formatDate(override.date)}</h4>
                       <div className="flex items-center space-x-2 mt-1">
-                        <Badge 
+                        <Badge
                           variant={override.is_available ? "default" : "secondary"}
                           className={cn(
-                            "rounded-full",
-                            override.is_available 
-                              ? "bg-success/20 text-success border-success/30"
-                              : "bg-red-500/20 text-red-400 border-red-500/30"
+                            "rounded-full ring-1 border-transparent",
+                            override.is_available
+                              ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+                              : "bg-muted text-muted-foreground ring-white/[0.08]"
                           )}
                         >
                           {override.is_available ? 'Available' : 'Not available'}
@@ -259,7 +259,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                   {override.is_available && override.start_time && override.end_time && (
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2">
                       <Clock className="h-3 w-3" />
-                      <span>{override.start_time} - {override.end_time}</span>
+                      <span className="tabular-nums">{override.start_time} - {override.end_time}</span>
                     </div>
                   )}
                   

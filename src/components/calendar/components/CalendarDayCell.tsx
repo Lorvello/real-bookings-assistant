@@ -87,15 +87,15 @@ export function CalendarDayCell({
       <div className={`flex items-center justify-between mb-0.5 sm:mb-1 ${
         isToday ? 'text-primary font-bold' : 'text-foreground'
       }`}>
-        <div className={`text-xs sm:text-sm font-bold ${
-          isToday 
+        <div className={`text-xs sm:text-sm font-bold tabular-nums ${
+          isToday
             ? 'bg-primary text-primary-foreground w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[10px] sm:text-xs'
             : ''
         }`}>
           {format(day, 'd')}
         </div>
         {dayBookings.length > 0 && (
-          <div className="text-[10px] sm:text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium">
+          <div className="text-[10px] sm:text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium tabular-nums">
             {dayBookings.length}
           </div>
         )}
@@ -129,7 +129,7 @@ export function CalendarDayCell({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="text-foreground text-[9px] sm:text-xs font-semibold">
+                    <div className="text-foreground text-[9px] sm:text-xs font-semibold tabular-nums">
                       {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                     </div>
                   </div>
@@ -148,7 +148,7 @@ export function CalendarDayCell({
                   className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3 z-[9999]"
                 >
                 <div className="space-y-1.5">
-                  <div className="text-xs font-semibold text-foreground">
+                  <div className="text-xs font-semibold text-foreground tabular-nums">
                     {format(new Date(dayBookings[0].start_time), 'HH:mm')} - {dayBookings[0].customer_name}
                   </div>
                   <div className="space-y-0.5 text-[10px]">
@@ -177,7 +177,7 @@ export function CalendarDayCell({
             className="text-center py-1 sm:py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105"
             onClick={handleMultipleBookingsClick}
           >
-            <div className="text-blue-600 font-semibold text-[9px] sm:text-xs mb-0.5">
+            <div className="text-blue-600 font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
               {dayBookings.length} appointments
             </div>
             <div className="text-[8px] sm:text-xs text-blue-600/70">

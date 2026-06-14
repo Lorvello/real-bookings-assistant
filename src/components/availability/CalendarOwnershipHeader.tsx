@@ -45,9 +45,9 @@ export const CalendarOwnershipHeader: React.FC<CalendarOwnershipHeaderProps> = (
             
             {/* Toon info als we een specifieke kalender tonen terwijl gebruiker "Alle kalenders" heeft geselecteerd */}
             {viewingAllCalendars && (
-              <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                <Info className="h-4 w-4 text-blue-600" />
-                <span className="text-sm text-blue-800">
+              <div className="flex items-center space-x-2 px-3 py-2 bg-muted border border-border rounded-lg">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
                   Availability is being set for specific calendar
                 </span>
               </div>

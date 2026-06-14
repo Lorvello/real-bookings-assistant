@@ -29,12 +29,12 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-muted-foreground block mb-1">Telefoon:</span>
-            <div className="font-medium text-foreground font-mono">{contact.phone_number}</div>
+            <div className="font-medium text-foreground font-mono tabular-nums">{contact.phone_number}</div>
           </div>
           {contact.contact_created_at && (
             <div>
               <span className="text-muted-foreground block mb-1">Aangemaakt:</span>
-              <div className="font-medium text-foreground">
+              <div className="font-medium text-foreground tabular-nums">
                 {format(new Date(contact.contact_created_at), 'd MMM yyyy', { locale: nl })}
               </div>
             </div>
@@ -44,8 +44,8 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
 
       {/* All bookings */}
       <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/30">
-        <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-blue-400" />
+        <h4 className="font-medium text-foreground mb-3 flex items-center gap-2 tabular-nums">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
           Bookings ({bookings.length})
         </h4>
 
@@ -59,7 +59,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium text-foreground">
+                    <span className="font-medium text-foreground tabular-nums">
                       {format(new Date(booking.start_time), 'd MMM yyyy HH:mm', { locale: nl })}
                     </span>
                   </div>
@@ -95,13 +95,13 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
       {contact.conversation_created_at && (
         <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/30">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-purple-400" />
+            <MessageCircle className="w-4 h-4 text-muted-foreground" />
             Conversation Status
           </h4>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-foreground">
+              <span className="text-foreground tabular-nums">
                 Gestart: {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: nl })}
               </span>
             </div>

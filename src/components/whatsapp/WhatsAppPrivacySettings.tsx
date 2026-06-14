@@ -143,19 +143,19 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-subtle-foreground">Contacten</span>
-                  <Badge variant="secondary">{dataStats?.total_contacts || 0}</Badge>
+                  <Badge variant="secondary" className="tabular-nums">{dataStats?.total_contacts || 0}</Badge>
                 </div>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-subtle-foreground">Gesprekken</span>
-                  <Badge variant="secondary">{dataStats?.total_conversations || 0}</Badge>
+                  <Badge variant="secondary" className="tabular-nums">{dataStats?.total_conversations || 0}</Badge>
                 </div>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-subtle-foreground">Berichten</span>
-                  <Badge variant="secondary">{dataStats?.total_messages || 0}</Badge>
+                  <Badge variant="secondary" className="tabular-nums">{dataStats?.total_messages || 0}</Badge>
                 </div>
               </div>
             </div>
@@ -185,7 +185,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <Download className="h-5 w-5 text-blue-600 mt-1" />
+                    <Download className="h-5 w-5 text-muted-foreground mt-1" />
                     <div className="flex-1">
                       <h4 className="font-medium">Data Exporteren</h4>
                       <p className="text-sm text-subtle-foreground mb-3">

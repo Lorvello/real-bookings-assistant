@@ -100,15 +100,15 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                   <div className={`flex items-center justify-between mb-1 ${
                     isToday ? 'text-primary font-bold' : 'text-foreground'
                   }`}>
-                    <div className={`text-sm font-bold ${
-                      isToday 
+                    <div className={`text-sm font-bold tabular-nums ${
+                      isToday
                         ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center text-xs'
                         : ''
                     }`}>
                       {format(day, 'd')}
                     </div>
                     {dayBookings.length > 0 && (
-                      <div className="text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium">
+                      <div className="text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium tabular-nums">
                         {dayBookings.length}
                       </div>
                     )}
@@ -133,7 +133,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                         title={`${format(new Date(dayBookings[0].start_time), 'HH:mm')} - ${dayBookings[0].customer_name} (${dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Afspraak'})`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="text-foreground text-xs font-semibold">
+                          <div className="text-foreground text-xs font-semibold tabular-nums">
                             {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                           </div>
                           <div className={`w-1 h-1 rounded-full ${
@@ -153,7 +153,7 @@ export function MonthView({ bookings, currentDate }: MonthViewProps) {
                     
                     {dayBookings.length > 1 && (
                       <div className="text-center py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105">
-                        <div className="text-blue-600 font-semibold text-xs mb-0.5">
+                        <div className="text-blue-600 font-semibold text-xs mb-0.5 tabular-nums">
                           {dayBookings.length} afspraken
                         </div>
                         <div className="text-xs text-blue-600/70">

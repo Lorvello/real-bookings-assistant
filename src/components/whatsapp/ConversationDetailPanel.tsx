@@ -105,10 +105,10 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
 
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
-      case 'active': return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'pending': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-      case 'closed': return 'bg-muted text-muted-foreground border-border';
-      default: return 'bg-muted text-muted-foreground border-border';
+      case 'active': return 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent';
+      case 'pending': return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
+      case 'closed': return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
+      default: return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
   };
 
@@ -175,7 +175,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-foreground">{contact.phone_number}</span>
+                <span className="text-foreground tabular-nums">{contact.phone_number}</span>
               </div>
               {contact.first_name && (
                 <div className="flex items-center gap-2 text-sm">
@@ -194,7 +194,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
               {contact.conversation_created_at && (
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">
+                  <span className="text-muted-foreground tabular-nums">
                     Contact sinds {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: nl })}
                   </span>
                 </div>
@@ -206,7 +206,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
           {contact.all_bookings && contact.all_bookings.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <h3 className="font-medium text-sm text-foreground">
+                <h3 className="font-medium text-sm text-foreground tabular-nums">
                   Bookings ({contact.all_bookings.length})
                 </h3>
               </CardHeader>
@@ -215,7 +215,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                   <div key={booking.booking_id} className="p-2 bg-muted/30 rounded border border-border">
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
+                      <span className="text-foreground tabular-nums">
                         {format(new Date(booking.start_time), 'd MMMM yyyy HH:mm', { locale: nl })}
                       </span>
                     </div>
@@ -250,7 +250,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                 <MessageSquare className="h-4 w-4 text-primary" />
                 <h3 className="font-medium text-sm text-foreground">Conversatie</h3>
                 {messages && (
-                  <span className="text-xs text-muted-foreground ml-auto">
+                  <span className="text-xs text-muted-foreground ml-auto tabular-nums">
                     {messages.length} messages
                   </span>
                 )}
@@ -290,7 +290,7 @@ export function ConversationDetailPanel({ contact }: ConversationDetailPanelProp
                         >
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
                           <p className={cn(
-                            "text-xs mt-1.5 text-right",
+                            "text-xs mt-1.5 text-right tabular-nums",
                             msg.direction === 'outbound'
                               ? 'text-primary-foreground/70'
                               : 'text-muted-foreground'

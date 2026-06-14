@@ -110,7 +110,7 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
             </div>
             <div>
               <div className="text-lg font-semibold text-foreground">WhatsApp Contacts</div>
-              <div className="text-sm text-muted-foreground font-normal flex items-center gap-2 mt-1">
+              <div className="text-sm text-muted-foreground font-normal flex items-center gap-2 mt-1 tabular-nums">
                 <Users className="w-4 h-4" />
                 {filteredContacts.length} {filteredContacts.length === 1 ? 'contact' : 'contacts'}
               </div>

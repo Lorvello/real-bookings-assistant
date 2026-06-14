@@ -139,7 +139,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
               <div className="text-foreground/90 text-[8px] sm:text-xs font-medium truncate mb-0.5 sm:mb-1">
                 {booking.service_types?.name || 'Appointment'}
               </div>
-              <div className="text-foreground/80 text-[8px] sm:text-xs truncate">
+              <div className="text-foreground/80 text-[8px] sm:text-xs truncate tabular-nums">
                 {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
               </div>
             </div>
@@ -150,7 +150,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
           className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
         >
           <div className="space-y-1.5">
-            <div className="text-xs font-semibold text-foreground">
+            <div className="text-xs font-semibold text-foreground tabular-nums">
               {format(new Date(booking.start_time), 'HH:mm')} - {booking.customer_name}
             </div>
             <div className="space-y-0.5 text-[10px]">
@@ -214,7 +214,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
               <div className="text-[9px] sm:text-xs text-muted-foreground font-medium">
                 {format(day, 'EEE')}
               </div>
-              <div className={`text-sm sm:text-lg font-bold mt-0.5 ${
+              <div className={`text-sm sm:text-lg font-bold mt-0.5 tabular-nums ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
               }`}>
                 {format(day, 'd')}
@@ -235,7 +235,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
             index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
           }`}>
             {/* Time label */}
-            <div className="w-8 sm:w-16 py-1 sm:py-2 px-1 sm:px-2 text-[9px] sm:text-xs font-medium text-muted-foreground text-right border-r border-border bg-card">
+            <div className="w-8 sm:w-16 py-1 sm:py-2 px-1 sm:px-2 text-[9px] sm:text-xs font-medium text-muted-foreground text-right border-r border-border bg-card tabular-nums">
               {timeSlot}
             </div>
             

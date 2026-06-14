@@ -21,7 +21,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
       <Card className="bg-card border-white/[0.08] h-full">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-2 text-foreground">
-            <User className="w-5 h-5 text-green-400" />
+            <User className="w-5 h-5 text-muted-foreground" />
             Contact Info
           </CardTitle>
         </CardHeader>
@@ -52,25 +52,25 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+          <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
             Active
           </Badge>
         );
       case 'closed':
         return (
-          <Badge variant="secondary" className="bg-muted text-foreground border-white/[0.08]">
+          <Badge variant="secondary" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
             Closed
           </Badge>
         );
       case 'archived':
         return (
-          <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+          <Badge variant="outline" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
             Archived
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="bg-muted text-muted-foreground border-white/[0.08]">
+          <Badge variant="outline" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
             Unknown
           </Badge>
         );
@@ -81,10 +81,10 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
     <Card className="bg-card border-white/[0.08] h-full">
       <CardHeader className="border-b border-white/[0.08] bg-card">
         <CardTitle className="flex items-center gap-2 text-foreground">
-          <User className="w-5 h-5 text-green-400" />
+          <User className="w-5 h-5 text-muted-foreground" />
           Contact Info
           {conversation.calendar_id && (
-            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 ml-auto">
+            <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent ml-auto">
               <Link className="w-3 h-3 mr-1" />
               Linked
             </Badge>
@@ -101,7 +101,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
           {contact?.phone_number && (
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Phone className="w-4 h-4" />
-              <span className="font-mono">{contact.phone_number}</span>
+              <span className="font-mono tabular-nums">{contact.phone_number}</span>
             </div>
           )}
         </div>
@@ -109,7 +109,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         {/* Conversation Status */}
         <div className="bg-muted/30 rounded-lg p-4 border border-white/[0.08]">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-green-400" />
+            <MessageSquare className="w-4 h-4 text-muted-foreground" />
             Conversation Status
           </h4>
 
@@ -122,7 +122,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             {conversation.created_at && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Started:</span>
-                <span className="text-sm text-foreground">
+                <span className="text-sm text-foreground tabular-nums">
                   {format(new Date(conversation.created_at), 'dd MMM yyyy', { locale: nl })}
                 </span>
               </div>
@@ -143,7 +143,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         {/* Contact Details */}
         <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/30">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-            <User className="w-4 h-4 text-blue-400" />
+            <User className="w-4 h-4 text-muted-foreground" />
             Contact Details
           </h4>
 
@@ -176,12 +176,12 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         {contact?.contact_created_at && (
           <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/30">
             <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-purple-400" />
+              <Clock className="w-4 h-4 text-muted-foreground" />
               Contact History
             </h4>
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span className="text-foreground">
+              <span className="text-foreground tabular-nums">
                 Contact since {format(new Date(contact.contact_created_at), 'dd MMM yyyy', { locale: nl })}
               </span>
             </div>
@@ -189,7 +189,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             {contact.last_message_at && (
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-foreground">
+                <span className="text-foreground tabular-nums">
                   Last message: {format(new Date(contact.last_message_at), 'dd MMM yyyy HH:mm', { locale: nl })}
                 </span>
               </div>
@@ -200,7 +200,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         {/* Quick Actions */}
         <div className="bg-emerald-500/10 rounded-lg p-4 border border-emerald-500/30">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-emerald-400" />
+            <MessageSquare className="w-4 h-4 text-muted-foreground" />
             Quick Actions
           </h4>
           <div className="space-y-2 text-sm text-foreground">

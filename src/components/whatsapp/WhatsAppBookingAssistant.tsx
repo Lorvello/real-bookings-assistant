@@ -190,7 +190,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               <p className="text-sm text-muted-foreground">Your WhatsApp Line</p>
 
               <div className="flex items-center justify-between">
-                <div className="font-mono text-2xl text-foreground">
+                <div className="font-mono text-2xl text-foreground tabular-nums">
                   {platformNumber}
                 </div>
                 <Button

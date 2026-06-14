@@ -12,21 +12,21 @@ export const getStatusBadge = (status?: string) => {
   switch (status) {
     case 'active':
       return (
-        <Badge className="bg-green-500/20 text-green-300 border-green-500/30 hover:bg-green-500/30">
+        <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
           Actief
         </Badge>
       );
     case 'closed':
       return (
-        <Badge variant="secondary" className="bg-muted text-foreground border-white/[0.08]">
+        <Badge variant="secondary" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
           <Archive className="w-3 h-3 mr-1" />
           Gesloten
         </Badge>
       );
     case 'archived':
       return (
-        <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+        <Badge variant="outline" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
           <Archive className="w-3 h-3 mr-1" />
           Gearchiveerd
         </Badge>
@@ -45,28 +45,28 @@ export const getBookingStatusBadge = (status?: string) => {
   switch (status) {
     case 'confirmed':
       return (
-        <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+        <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
           Bevestigd
         </Badge>
       );
     case 'pending':
       return (
-        <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+        <Badge className="bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent">
           <Clock className="w-3 h-3 mr-1" />
           In afwachting
         </Badge>
       );
     case 'cancelled':
       return (
-        <Badge className="bg-red-500/20 text-red-300 border-red-500/30">
+        <Badge className="bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 border-transparent">
           <AlertCircle className="w-3 h-3 mr-1" />
           Geannuleerd
         </Badge>
       );
     case 'completed':
       return (
-        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+        <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
           Voltooid
         </Badge>

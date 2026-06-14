@@ -71,7 +71,7 @@ export function DayScheduleRow({
         />
 
         {isAvailable && (
-          <Badge variant="default" className="bg-primary/10 text-primary">
+          <Badge variant="default" className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
             Available
           </Badge>
         )}

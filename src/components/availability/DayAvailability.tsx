@@ -113,8 +113,8 @@ export function DayAvailability({
       )}
       
       {hasChanges && (
-        <div className="flex items-center gap-1 text-xs text-yellow-600">
-          <div className="w-1 h-1 bg-yellow-600 rounded-full animate-pulse"></div>
+        <div className="flex items-center gap-1 text-xs text-amber-400">
+          <div className="w-1 h-1 bg-current rounded-full animate-pulse opacity-80"></div>
           <span>Opslaan...</span>
         </div>
       )}

@@ -79,7 +79,7 @@ export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> =
                       {day.dayName}
                     </span>
                     {day.isAvailable ? (
-                      <span className="text-muted-foreground">
+                      <span className="text-muted-foreground tabular-nums">
                         {formatTime(day.startTime)} - {formatTime(day.endTime)}
                       </span>
                     ) : (

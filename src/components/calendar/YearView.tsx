@@ -153,8 +153,8 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                     <Tooltip delayDuration={0}>
                       <TooltipTrigger asChild>
                         <div
-                          className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-all duration-150 relative ${
-                            isCurrentMonth 
+                          className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-all duration-150 relative tabular-nums ${
+                            isCurrentMonth
                               ? 'bg-primary text-primary-foreground font-bold transform hover:scale-110 cursor-pointer'
                               : 'text-muted-foreground/50'
                           }`}
@@ -172,7 +172,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                         className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
                       >
                         <div className="space-y-1.5">
-                          <div className="text-xs font-semibold text-foreground">
+                          <div className="text-xs font-semibold text-foreground tabular-nums">
                             {format(new Date(dayBookings[0].start_time), 'HH:mm')} - {dayBookings[0].customer_name}
                           </div>
                           <div className="space-y-0.5 text-[10px]">
@@ -199,12 +199,12 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-all duration-150 ${
-                      isCurrentMonth 
-                        ? hasBookings 
+                    className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-all duration-150 tabular-nums ${
+                      isCurrentMonth
+                        ? hasBookings
                           ? 'bg-primary text-primary-foreground font-bold transform hover:scale-110 cursor-pointer'
-                          : isToday 
-                            ? 'bg-accent text-primary font-bold border-2 border-primary/50' 
+                          : isToday
+                            ? 'bg-accent text-primary font-bold border-2 border-primary/50'
                             : 'text-foreground hover:bg-accent/50'
                         : 'text-muted-foreground/50'
                     }`}
@@ -237,7 +237,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg sm:text-2xl font-bold text-foreground">
+            <h3 className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">
               Year Overview {format(currentDate, 'yyyy')}
             </h3>
             <p className="text-xs sm:text-base text-muted-foreground">Complete statistics and performance</p>
@@ -249,7 +249,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="flex items-center justify-center mb-1 sm:mb-2">
               <Calendar className="h-3 w-3 sm:h-5 sm:w-5 text-primary mr-1 sm:mr-2" />
             </div>
-            <div className="text-lg sm:text-3xl font-bold text-primary mb-0.5 sm:mb-1">{bookings.length}</div>
+            <div className="text-lg sm:text-3xl font-bold text-primary mb-0.5 sm:mb-1 tabular-nums">{bookings.length}</div>
             <div className="text-xs sm:text-sm text-muted-foreground font-medium">Total appointments</div>
           </div>
           
@@ -257,7 +257,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="flex items-center justify-center mb-1 sm:mb-2">
               <CheckCircle className="h-3 w-3 sm:h-5 sm:w-5 text-green-600 mr-1 sm:mr-2" />
             </div>
-            <div className="text-lg sm:text-3xl font-bold text-green-600 mb-0.5 sm:mb-1">
+            <div className="text-lg sm:text-3xl font-bold text-green-600 mb-0.5 sm:mb-1 tabular-nums">
               {bookings.filter(b => b.status === 'confirmed').length}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground font-medium">Confirmed</div>
@@ -267,7 +267,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="flex items-center justify-center mb-1 sm:mb-2">
               <Clock className="h-3 w-3 sm:h-5 sm:w-5 text-blue-600 mr-1 sm:mr-2" />
             </div>
-            <div className="text-lg sm:text-3xl font-bold text-blue-600 mb-0.5 sm:mb-1">
+            <div className="text-lg sm:text-3xl font-bold text-blue-600 mb-0.5 sm:mb-1 tabular-nums">
               {bookings.filter(b => b.status === 'completed').length}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground font-medium">Completed</div>
@@ -277,7 +277,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="flex items-center justify-center mb-1 sm:mb-2">
               <TrendingUp className="h-3 w-3 sm:h-5 sm:w-5 text-purple-600 mr-1 sm:mr-2" />
             </div>
-            <div className="text-lg sm:text-3xl font-bold text-purple-600 mb-0.5 sm:mb-1">
+            <div className="text-lg sm:text-3xl font-bold text-purple-600 mb-0.5 sm:mb-1 tabular-nums">
               {Math.round((bookings.filter(b => b.status === 'completed').length / bookings.length) * 100) || 0}%
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground font-medium">Success rate</div>

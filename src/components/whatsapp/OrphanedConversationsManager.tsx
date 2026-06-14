@@ -47,7 +47,7 @@ export function OrphanedConversationsManager() {
             <MessageCircle className="w-5 h-5 text-orange-400" />
             Orphaned Conversations
             {orphanedConversations && orphanedConversations.length > 0 && (
-              <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/30">
+              <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/30 tabular-nums">
                 {orphanedConversations.length}
               </Badge>
             )}
@@ -117,13 +117,13 @@ export function OrphanedConversationsManager() {
                       <h4 className="font-medium text-foreground">
                         {conversation.contact_name || 'Unknown contact'}
                       </h4>
-                      <p className="text-sm text-muted-foreground font-mono">
+                      <p className="text-sm text-muted-foreground font-mono tabular-nums">
                         {conversation.contact_phone}
                       </p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>{conversation.message_count} messages</span>
+                        <span className="tabular-nums">{conversation.message_count} messages</span>
                         {conversation.last_activity && (
-                          <span>
+                          <span className="tabular-nums">
                             Last activity: {format(new Date(conversation.last_activity), 'dd MMM HH:mm', { locale: nl })}
                           </span>
                         )}
