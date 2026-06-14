@@ -22,11 +22,11 @@ export function DashboardEmptyState() {
         </div>
         
         <div className="space-y-4">
-          <h3 className="text-2xl font-semibold bg-gradient-to-r from-foreground via-primary to-purple-400 bg-clip-text text-transparent">
-            Geen kalender beschikbaar
+          <h3 className="text-2xl font-semibold tracking-[-0.015em] text-foreground">
+            No calendar available
           </h3>
           <p className="text-muted-foreground leading-relaxed">
-            Maak eerst een kalender aan om het dashboard te kunnen gebruiken en je appointments te beheren
+            Create a calendar first to start using the dashboard and managing your appointments
           </p>
         </div>
       </div>

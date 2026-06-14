@@ -20,8 +20,8 @@ export function DashboardLoadingScreen() {
         </div>
         
         <div className="space-y-4">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-foreground via-primary to-purple-400 bg-clip-text text-transparent">
-            Dashboard wordt geladen
+          <h2 className="text-2xl font-semibold tracking-[-0.015em] text-foreground">
+            Loading dashboard
           </h2>
           <p className="text-muted-foreground">One moment, we're getting everything ready...</p>
         </div>

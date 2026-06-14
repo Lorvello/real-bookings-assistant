@@ -163,7 +163,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 gap-2 sm:gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-4 h-4 bg-gradient-to-r from-green-400 to-green-500 rounded-full animate-pulse"></div>
+              <div className="w-4 h-4 bg-emerald-500 rounded-full animate-pulse"></div>
               <div className="absolute inset-0 w-4 h-4 bg-green-400 rounded-full animate-ping opacity-75"></div>
             </div>
             <div>

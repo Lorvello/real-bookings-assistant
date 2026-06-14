@@ -48,7 +48,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Key Research Finding
                 </h3>
@@ -66,7 +66,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Why It Works
                 </h3>
@@ -97,7 +97,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Real-World Examples
                 </h3>
@@ -124,7 +124,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Research Sources
                 </h3>
@@ -153,7 +153,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Key Research Finding
                 </h3>
@@ -171,7 +171,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Why It Matters
                 </h3>
@@ -202,7 +202,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Real-World Examples
                 </h3>
@@ -229,7 +229,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Research Sources
                 </h3>
@@ -258,7 +258,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Security & Compliance
                 </h3>
@@ -276,7 +276,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Security Certifications
                 </h3>
@@ -303,7 +303,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Regulatory Compliance & Protection
                 </h3>
@@ -342,7 +342,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Research Sources
                 </h3>
@@ -370,7 +370,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Key Research Finding
                 </h3>
@@ -388,7 +388,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Why It Works
                 </h3>
@@ -415,7 +415,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Real-World Examples
                 </h3>
@@ -448,7 +448,7 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
                 className="space-y-4"
                 config={{ threshold: 0.01, rootMargin: '50px 0px', triggerOnce: true, forceVisible: showContent }}
               >
-                <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-emerald-400 flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                   Research Sources
                 </h3>
@@ -474,16 +474,16 @@ export function ResearchModal({ type, onClose }: ResearchModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-3xl max-h-[80vh] overflow-y-auto bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 rounded-2xl border border-slate-600/40 shadow-[0_32px_64px_rgba(0,0,0,0.5)] animate-scale-in">
+      <div className="relative w-full max-w-[calc(100vw-32px)] sm:max-w-3xl max-h-[80vh] overflow-y-auto bg-popover rounded-2xl border border-white/[0.08] shadow-[0_32px_64px_rgba(0,0,0,0.5)] animate-scale-in">
         {/* Modal Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 sm:from-slate-900/95 sm:via-gray-900/95 sm:to-slate-800/95 backdrop-blur-md border-b border-slate-600/40 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent flex items-center gap-2">
+        <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-md border-b border-white/[0.08] px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl md:text-2xl font-semibold tracking-[-0.015em] text-foreground flex items-center gap-2">
             {content.icon}
             {content.title}
           </h2>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/50 hover:bg-slate-700/50 border border-slate-600/40 hover:border-slate-500/60 transition-all duration-300 group"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.14] transition-colors duration-150 group"
           >
             <X className="w-5 h-5 text-slate-400 group-hover:text-slate-300" />
           </button>
