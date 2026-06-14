@@ -87,24 +87,24 @@ const ConversationsContent = () => {
   if (!selectedCalendarId) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-full p-2 md:p-8">
+        <div className="bg-background min-h-full p-2 md:p-8">
           <div className="space-y-3 md:space-y-6">
             <SimplePageHeader title="WhatsApp" />
             
             {calendars.length > 0 ? (
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-card border-white/[0.08]">
                 <CardHeader className="text-center py-12">
-                  <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <CardTitle className="text-gray-300">Select a calendar</CardTitle>
-                  <CardDescription className="text-gray-400">
+                  <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <CardTitle className="text-foreground">Select a calendar</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     Choose a calendar to view your WhatsApp conversations
                   </CardDescription>
                   <div className="mt-6">
                     <Select onValueChange={setSelectedCalendarId}>
-                      <SelectTrigger className="w-64 mx-auto bg-gray-700 border-gray-600 text-white">
+                      <SelectTrigger className="w-64 mx-auto bg-muted border-white/[0.08] text-foreground">
                         <SelectValue placeholder="Select calendar" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-700 border-gray-600">
+                      <SelectContent className="bg-muted border-white/[0.08]">
                         {calendars.map((calendar) => (
                           <SelectItem key={calendar.id} value={calendar.id}>
                             {calendar.name}
@@ -116,11 +116,11 @@ const ConversationsContent = () => {
                 </CardHeader>
               </Card>
             ) : (
-              <Card className="bg-gray-800 border-gray-700">
+              <Card className="bg-card border-white/[0.08]">
                 <CardHeader className="text-center py-12">
-                  <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <CardTitle className="text-gray-300">No calendars found</CardTitle>
-                  <CardDescription className="text-gray-400">
+                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <CardTitle className="text-foreground">No calendars found</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     You haven't created any calendars yet.
                   </CardDescription>
                 </CardHeader>
@@ -135,7 +135,7 @@ const ConversationsContent = () => {
   // Show WhatsApp dashboard if calendar is selected
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 h-full flex flex-col p-3 md:p-8">
+      <div className="bg-background h-full flex flex-col p-3 md:p-8">
         {/* Header - fixed height */}
         <div className="shrink-0 mb-4 md:mb-6">
           <SimplePageHeader title="WhatsApp" />

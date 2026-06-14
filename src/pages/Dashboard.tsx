@@ -75,7 +75,7 @@ const Dashboard = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
+        <div className="flex items-center justify-center h-full bg-background">
           <div className="w-8 h-8 bg-cyan-600 rounded-full animate-spin mx-auto"></div>
         </div>
       </DashboardLayout>
@@ -93,7 +93,7 @@ const Dashboard = () => {
   if (!userStatus.isSetupIncomplete && calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
+        <div className="bg-background min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
           {/* Developer Tools Section */}
           <div className="mb-4 space-y-3 sm:space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
@@ -104,8 +104,8 @@ const Dashboard = () => {
 
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="text-lg text-gray-300">No calendar found</div>
-              <p className="text-gray-500 mt-2">Create your first calendar to get started</p>
+              <div className="text-lg text-foreground">No calendar found</div>
+              <p className="text-muted-foreground mt-2">Create your first calendar to get started</p>
             </div>
           </div>
         </div>
@@ -115,7 +115,7 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
+      <div className="bg-background min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
         {/* Developer Tools Section */}
         <div className="mb-1 space-y-1 sm:space-y-2">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-1 sm:gap-2">

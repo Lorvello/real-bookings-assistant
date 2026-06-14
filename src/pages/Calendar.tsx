@@ -33,7 +33,7 @@ const Calendar = () => {
   if (authLoading || calendarsLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full bg-gray-900">
+        <div className="flex items-center justify-center h-full bg-background">
           <div className="text-center">
             <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
             <div className="text-base text-muted-foreground">Loading Calendar...</div>
@@ -50,7 +50,7 @@ const Calendar = () => {
   if (calendars.length === 0) {
     return (
       <DashboardLayout>
-        <div className="bg-gray-900 min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
+        <div className="bg-background min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
           <div className="space-y-1 sm:space-y-2 md:space-y-6">
             <SimplePageHeader title="Calendar" />
 
@@ -94,7 +94,7 @@ const Calendar = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-900 min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
+      <div className="bg-background min-h-0 p-1 sm:p-1.5 md:p-8 pb-2 sm:pb-4 md:pb-12">
         <div className="space-y-1 sm:space-y-2 md:space-y-6">
           <SimplePageHeader title={displayTitle} />
           
