@@ -136,9 +136,6 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
       />
 
       <div className="flex-1 overflow-auto min-h-0 relative">
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/[0.02] to-transparent pointer-events-none"></div>
-        
         <div className="relative z-10 h-full min-h-0">
           <CalendarContent
             currentView={currentView}
