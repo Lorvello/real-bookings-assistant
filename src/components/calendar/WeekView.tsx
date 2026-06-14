@@ -120,9 +120,9 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div
-            className="absolute inset-x-0 mx-0.5 sm:mx-1 p-1 sm:p-2 rounded-lg cursor-pointer transition-all duration-200 z-10 group hover:scale-105 border border-white/20 relative overflow-hidden"
+            className="absolute inset-x-0 mx-0.5 sm:mx-1 p-1 sm:p-2 rounded-lg cursor-pointer transition-[filter] duration-150 z-10 group hover:brightness-110 border border-white/[0.08] relative overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${booking.service_types?.color || '#3B82F6'}, ${booking.service_types?.color || '#3B82F6'}dd)`,
+              backgroundColor: booking.service_types?.color || '#3B82F6',
               height: `${height}px`,
               top: `${topOffset}px`,
               boxShadow: `0 2px 10px ${booking.service_types?.color || '#3B82F6'}40`
@@ -135,7 +135,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
             </div>
 
             <div className="text-foreground overflow-hidden">
-              <div className="font-bold text-[9px] sm:text-xs truncate mb-0.5 sm:mb-1">{booking.customer_name}</div>
+              <div className="font-semibold text-[9px] sm:text-xs truncate mb-0.5 sm:mb-1">{booking.customer_name}</div>
               <div className="text-foreground/90 text-[8px] sm:text-xs font-medium truncate mb-0.5 sm:mb-1">
                 {booking.service_types?.name || 'Appointment'}
               </div>
@@ -204,7 +204,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
             <div className="text-[10px] sm:text-xs font-semibold text-muted-foreground">Time</div>
           </div>
           {weekDays.map((day, idx) => (
-            <div key={day.toISOString()} className={`text-center py-1 sm:py-2 px-0.5 sm:px-1 transition-all duration-200 ${
+            <div key={day.toISOString()} className={`text-center py-1 sm:py-2 px-0.5 sm:px-1 transition-colors duration-150 ${
               idx < weekDays.length - 1 ? 'border-r border-border' : ''
             } ${
               isToday(day) 
@@ -214,7 +214,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
               <div className="text-[9px] sm:text-xs text-muted-foreground font-medium">
                 {format(day, 'EEE')}
               </div>
-              <div className={`text-sm sm:text-lg font-bold mt-0.5 tabular-nums ${
+              <div className={`text-sm sm:text-lg font-semibold mt-0.5 tabular-nums ${
                 isToday(day) ? 'text-primary' : 'text-foreground'
               }`}>
                 {format(day, 'd')}

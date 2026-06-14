@@ -73,29 +73,27 @@ export function CalendarDayCell({
 
   return (
     <div
-      className={`group rounded-xl p-0.5 sm:p-1.5 min-h-[60px] sm:min-h-[80px] transition-all duration-200 ${
+      className={`group rounded-xl p-0.5 sm:p-1.5 min-h-[60px] sm:min-h-[80px] transition-colors duration-150 ${
         dayBookings.length > 0 ? 'cursor-pointer' : ''
       } ${
-        isCurrentMonth 
+        isCurrentMonth
           ? isToday
-            ? 'bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border-2 border-primary/40'
-            : 'bg-card/90 backdrop-blur-sm border border-border/60 hover:border-primary/30 hover:bg-card/95'
-          : 'bg-muted/30 border border-border/30 opacity-60'
+            ? 'ring-1 ring-inset ring-white/15 hover:bg-white/[0.04]'
+            : 'hover:bg-white/[0.04]'
+          : 'opacity-40'
       }`}
       onClick={handleDayCellClick}
     >
-      <div className={`flex items-center justify-between mb-0.5 sm:mb-1 ${
-        isToday ? 'text-primary font-bold' : 'text-foreground'
-      }`}>
-        <div className={`text-xs sm:text-sm font-bold tabular-nums ${
+      <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+        <div className={`text-xs sm:text-sm font-semibold tabular-nums ${
           isToday
             ? 'bg-primary text-primary-foreground w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[10px] sm:text-xs'
-            : ''
+            : 'text-foreground'
         }`}>
           {format(day, 'd')}
         </div>
         {dayBookings.length > 0 && (
-          <div className="text-[10px] sm:text-xs bg-blue-500/20 text-blue-600 px-1 py-0.5 rounded-full font-medium tabular-nums">
+          <div className="text-[10px] sm:text-xs bg-primary/10 text-accent-foreground ring-1 ring-primary/20 px-1 py-0.5 rounded-full font-medium tabular-nums">
             {dayBookings.length}
           </div>
         )}
@@ -115,10 +113,9 @@ export function CalendarDayCell({
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div
-                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-200 relative"
+                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:brightness-110 transition-[filter] duration-150 relative"
                   style={{
-                    backgroundColor: dayBookings[0].service_types?.color || '#3B82F6',
-                    backgroundImage: `linear-gradient(135deg, ${dayBookings[0].service_types?.color || '#3B82F6'}, ${dayBookings[0].service_types?.color || '#3B82F6'}dd)`
+                    backgroundColor: dayBookings[0].service_types?.color || 'hsl(var(--primary))'
                   }}
                   onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
                 >
@@ -173,14 +170,14 @@ export function CalendarDayCell({
         )}
         
         {hasMultipleBookings && (
-          <div 
-            className="text-center py-1 sm:py-2 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20 hover:from-blue-500/15 hover:to-blue-500/10 hover:border-blue-500/30 transition-all duration-200 cursor-pointer group-hover:scale-105"
+          <div
+            className="text-center py-1 sm:py-2 bg-primary/10 rounded-lg ring-1 ring-primary/20 hover:bg-primary/[0.16] transition-colors duration-150 cursor-pointer"
             onClick={handleMultipleBookingsClick}
           >
-            <div className="text-blue-600 font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
+            <div className="text-accent-foreground font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
               {dayBookings.length} appointments
             </div>
-            <div className="text-[8px] sm:text-xs text-blue-600/70">
+            <div className="text-[8px] sm:text-xs text-accent-foreground/70">
               Click for details
             </div>
           </div>

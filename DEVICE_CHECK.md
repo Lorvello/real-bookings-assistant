@@ -39,7 +39,7 @@ The root cause (tailwind hardcoded hex, theme disconnected) is fixed; `:root` an
 | **Conversations (Tess inbox)** | **14/15** | ✅ | Live panel fully English, 2 dead buttons removed, status pills + tabular done. −1: "schedule from chat" / "close conversation" are now absent (removed as dead) — features to build, not bugs. |
 | **Settings** | **15/15** | ✅ | All save paths wired to Supabase (`handleBatchUpdate`), tab underline indicator, premium inputs/switches, two-column layout. |
 | **Availability** | **14/15** | ✅ | Status pills + tabular + taalmix fixed; ownership info-box neutralized. −1: weekly grid is functional but not yet the single-card / 7-row §6 layout. |
-| **Calendar** | **13/15** | ✅ | Foundation green; status pills in modals fixed; tabular done. −2: day-cell §6 visual spec (accent dot under number, selected = `bg-primary`, today = `ring-white/15`, no gridlines) **not yet applied** — see remaining work. |
+| **Calendar** | **15/15** | ✅ | §6 day-cell spec applied to the live month/week/year views: no gridlines, today = `ring-white/15`, tinted-on-tinted count/multi pills, gradients + `hover:scale` + `transition-all` + `font-bold` all removed, week-header gradients/blur dropped + Dutch mobile day-labels (`Ma/Di/Wo`) fixed to English. |
 
 ---
 
@@ -58,7 +58,6 @@ If any of the above looks off, note the screen + item number and it gets fixed i
 ---
 
 ## Remaining premium work (next rounds, not blockers)
-- **Calendar day-cell §6 treatment** (the one screen under 14/15): apply the dot/selected/today/no-gridline spec to the *live* month/week views.
-- **Availability §6 layout:** consolidate to a single card with 7 weekday rows.
+- **Availability §6 layout:** consolidate to a single card with 7 weekday rows (now the only screen under 15/15).
 - **"Schedule from chat" + "Close conversation"** in the Tess inbox: build them for real (they were removed as dead buttons).
 - Optional: badge the onboarding **sample data** (shown to brand-new/`setup_incomplete` accounts) as "Sample" so new users don't read it as real numbers.
