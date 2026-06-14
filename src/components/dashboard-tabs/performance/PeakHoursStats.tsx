@@ -11,32 +11,32 @@ interface PeakHoursStatsProps {
 export function PeakHoursStats({ totalBookings, totalRevenue, topPeakHour }: PeakHoursStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="bg-gradient-to-br from-card/70 to-muted/50 rounded-xl p-4 border border-white/[0.08]">
+      <div className="bg-muted/40 rounded-xl p-4 border border-white/[0.08]">
         <div className="flex items-center gap-3">
-          <Calendar className="h-8 w-8 text-foreground" />
+          <Calendar className="h-8 w-8 text-subtle-foreground" />
           <div>
             <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-            <p className="text-2xl font-bold text-foreground">{totalBookings}</p>
+            <p className="text-2xl font-semibold text-foreground">{totalBookings}</p>
           </div>
         </div>
       </div>
-      
-      <div className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/30 rounded-xl p-4 border border-emerald-700/30">
+
+      <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
         <div className="flex items-center gap-3">
           <Euro className="h-8 w-8 text-emerald-400" />
           <div>
-            <p className="text-sm font-medium text-emerald-300">Revenue</p>
-            <p className="text-2xl font-bold text-emerald-100">€{totalRevenue.toFixed(2)}</p>
+            <p className="text-sm font-medium text-emerald-400">Revenue</p>
+            <p className="text-2xl font-semibold text-foreground">€{totalRevenue.toFixed(2)}</p>
           </div>
         </div>
       </div>
-      
-      <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/30 rounded-xl p-4 border border-blue-700/30">
+
+      <div className="bg-muted/40 rounded-xl p-4 border border-white/[0.08]">
         <div className="flex items-center gap-3">
-          <TrendingUp className="h-8 w-8 text-blue-400" />
+          <TrendingUp className="h-8 w-8 text-subtle-foreground" />
           <div>
-            <p className="text-sm font-medium text-blue-300">Piek Moment</p>
-            <p className="text-2xl font-bold text-blue-100">
+            <p className="text-sm font-medium text-muted-foreground">Piek Moment</p>
+            <p className="text-2xl font-semibold text-foreground">
               {topPeakHour !== null ? `${topPeakHour}:00` : 'N/A'}
             </p>
           </div>

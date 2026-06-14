@@ -27,7 +27,7 @@ const getBarColor = (count: number, maxCount: number) => {
 
 export function PeakHoursBarChart({ data, maxCount }: PeakHoursBarChartProps) {
   return (
-    <div className="bg-card/30 rounded-xl p-4 border border-white/[0.08]">
+    <div className="bg-muted/40 rounded-xl p-4 border border-white/[0.08]">
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgb(71, 85, 105)" />

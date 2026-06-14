@@ -13,7 +13,7 @@ interface PeakHoursRecommendationsProps {
 
 export function PeakHoursRecommendations({ peakHours, quietHours }: PeakHoursRecommendationsProps) {
   return (
-    <div className="bg-gradient-to-r from-card/60 to-muted/50 rounded-xl p-4 border border-white/[0.08]">
+    <div className="bg-muted/40 rounded-xl p-4 border border-white/[0.08]">
       <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
         💡 Aanbevelingen
       </h4>

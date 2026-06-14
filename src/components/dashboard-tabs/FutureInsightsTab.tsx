@@ -149,7 +149,6 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative bg-card border border-white/[0.08] rounded-2xl">
                   <DemandForecastChart data={futureInsights?.demand_forecast} />
                 </div>
@@ -172,7 +171,6 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative bg-card border border-white/[0.08] rounded-2xl">
                   <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
                 </div>
@@ -196,7 +194,6 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-violet-500/15 to-purple-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative bg-card border border-white/[0.08] rounded-2xl">
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">

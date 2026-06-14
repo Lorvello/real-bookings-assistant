@@ -71,7 +71,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
   return (
     <div className="space-y-6">
       {/* Chart Configuration - All controls in one section */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-card/30 rounded-xl border border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-muted/40 rounded-xl border border-white/[0.08]">
         <div className="flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">Chart Configuration</span>

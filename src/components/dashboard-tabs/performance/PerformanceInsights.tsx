@@ -75,19 +75,13 @@ export function PerformanceInsights({
       {insights.map((item, index) => (
         <div
           key={item.title}
-          className={`p-6 bg-gradient-to-br ${
-            item.variant === 'green' 
-              ? 'from-green-500/10 via-green-500/5 to-transparent border-green-500/20' 
-              : 'from-blue-500/10 via-blue-500/5 to-transparent border-blue-500/20'
-          } border rounded-xl backdrop-blur-sm`}
+          className="p-6 bg-muted/40 border border-white/[0.08] rounded-xl"
           style={{
             animation: `fadeIn 0.6s ease-out ${index * 0.1}s both`
           }}
         >
-          <h4 className={`font-bold mb-3 flex items-center gap-2 ${
-            item.variant === 'green' ? 'text-green-300' : 'text-blue-300'
-          }`}>
-            <item.icon className="h-5 w-5" />
+          <h4 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
+            <item.icon className="h-5 w-5 text-subtle-foreground" />
             {item.title}
           </h4>
           <p className="text-foreground text-sm leading-relaxed">

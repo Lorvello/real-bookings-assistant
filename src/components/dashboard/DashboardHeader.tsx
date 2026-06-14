@@ -8,7 +8,6 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ calendarName }: DashboardHeaderProps) {
   return (
     <div className="relative">
-      <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-purple-500/15 to-blue-500/20 blur-2xl rounded-xl"></div>
       
       <div className="relative bg-card border border-white/[0.08] p-8 rounded-xl">
         <div className="flex items-center justify-between">

@@ -22,11 +22,8 @@ export function ServicePerformanceChart({ data, selectedTimeRange }: ServicePerf
   const [filteredData, setFilteredData] = useState<ServicePerformanceData[]>(data || []);
 
   return (
-    <div className="relative group">
-      {/* Background glow effect - Orange Theme */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
-      
-      <div className="relative bg-gradient-to-br from-card/90 via-background/80 to-card/90 backdrop-blur-2xl border border-orange-500/30 rounded-2xl overflow-visible">
+    <div className="relative">
+      <div className="relative bg-card border border-white/[0.08] rounded-2xl overflow-visible">
         <ServicePerformanceHeader hasData={hasData} data={data} selectedTimeRange={selectedTimeRange} />
 
         <div className="p-8">

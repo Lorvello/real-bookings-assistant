@@ -19,14 +19,14 @@ interface PeakHoursChartProps {
 export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartProps) {
   if (isLoading) {
     return (
-      <div className="h-80 bg-gradient-to-br from-muted/30 to-card/40 rounded-xl animate-pulse border border-white/[0.08]"></div>
+      <div className="h-80 bg-muted/40 rounded-xl animate-pulse border border-white/[0.08]"></div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-muted/50 to-card/50 rounded-2xl flex items-center justify-center border border-white/[0.08]">
+        <div className="w-20 h-20 mx-auto mb-6 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
           <Activity className="h-10 w-10 text-muted-foreground" />
         </div>
         <p className="text-foreground font-medium mb-2">No peak hours data available</p>
@@ -73,7 +73,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
       else activityLevel = 'Quiet 😌';
 
       return (
-        <div className="bg-background/95 border border-green-500/30 rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm">
+        <div className="bg-popover border border-green-500/30 rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-green-400" />
             <span className="text-foreground font-semibold">{label}</span>
@@ -150,19 +150,19 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
 
             return (
               <>
-                <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-xl p-4">
+                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
                       Busiest time
                       <UITooltip>
                         <TooltipTrigger asChild>
-                          <div className="cursor-help p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                            <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                          <div className="cursor-help p-1 rounded-full bg-white/[0.04]">
+                            <Info className="h-3 w-3 text-subtle-foreground hover:text-foreground transition-colors" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent 
-                          className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+                        <TooltipContent
+                          className="max-w-sm bg-popover border border-white/[0.08] text-foreground z-50"
                           side="top"
                           align="center"
                           sideOffset={8}
@@ -172,23 +172,23 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                       </UITooltip>
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-foreground">{busiestHour.display_label}</p>
+                  <p className="text-lg font-semibold text-foreground">{busiestHour.display_label}</p>
                   <p className="text-sm text-foreground">{busiestHour.bookings} appointments</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl p-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
                       Quiet times
                       <UITooltip>
                         <TooltipTrigger asChild>
-                          <div className="cursor-help p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                            <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                          <div className="cursor-help p-1 rounded-full bg-white/[0.04]">
+                            <Info className="h-3 w-3 text-subtle-foreground hover:text-foreground transition-colors" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent 
-                          className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+                        <TooltipContent
+                          className="max-w-sm bg-popover border border-white/[0.08] text-foreground z-50"
                           side="top"
                           align="center"
                           sideOffset={8}
@@ -198,23 +198,23 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                       </UITooltip>
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-foreground">{quietestHours.length} hours</p>
+                  <p className="text-lg font-semibold text-foreground">{quietestHours.length} hours</p>
                   <p className="text-sm text-foreground">Without appointments</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 rounded-xl p-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
                       Average per hour
                       <UITooltip>
                         <TooltipTrigger asChild>
-                          <div className="cursor-help p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                            <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                          <div className="cursor-help p-1 rounded-full bg-white/[0.04]">
+                            <Info className="h-3 w-3 text-subtle-foreground hover:text-foreground transition-colors" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent 
-                          className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+                        <TooltipContent
+                          className="max-w-sm bg-popover border border-white/[0.08] text-foreground z-50"
                           side="top"
                           align="center"
                           sideOffset={8}
@@ -224,7 +224,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                       </UITooltip>
                     </span>
                   </div>
-                  <p className="text-lg font-bold text-foreground">{averageBookings.toFixed(1)}</p>
+                  <p className="text-lg font-semibold text-foreground">{averageBookings.toFixed(1)}</p>
                   <p className="text-sm text-foreground">appointments</p>
                 </div>
               </>

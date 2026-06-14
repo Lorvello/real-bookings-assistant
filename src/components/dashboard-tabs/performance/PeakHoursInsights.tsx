@@ -29,18 +29,18 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between p-3 bg-red-900/30 rounded-lg border border-red-800/40"
+              className="flex items-center justify-between p-3 bg-rose-500/10 rounded-lg border border-rose-500/20"
             >
               <div className="flex items-center gap-3">
-                <Badge variant="destructive" className="text-xs bg-red-700/80">
+                <Badge variant="destructive" className="text-xs bg-rose-500/20 text-rose-400">
                   #{index + 1}
                 </Badge>
                 <span className="font-medium text-foreground">{hour.hour}:00 - {hour.hour + 1}:00</span>
               </div>
               <div className="text-right">
-                <p className="font-bold text-red-300">{hour.count} boekingen</p>
+                <p className="font-semibold text-rose-400">{hour.count} boekingen</p>
                 {hour.revenue && hour.revenue > 0 && (
-                  <p className="text-xs text-red-400">€{hour.revenue.toFixed(2)}</p>
+                  <p className="text-xs text-rose-400">€{hour.revenue.toFixed(2)}</p>
                 )}
               </div>
             </motion.div>
@@ -60,18 +60,18 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="flex items-center justify-between p-3 bg-green-900/30 rounded-lg border border-green-800/40"
+              className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20"
             >
               <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="text-xs bg-green-800/50 text-green-300 border-green-700/50">
+                <Badge variant="secondary" className="text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/20">
                   #{index + 1}
                 </Badge>
                 <span className="font-medium text-foreground">{hour.hour}:00 - {hour.hour + 1}:00</span>
               </div>
               <div className="text-right">
-                <p className="font-bold text-green-300">{hour.count} boekingen</p>
+                <p className="font-semibold text-emerald-400">{hour.count} boekingen</p>
                 {hour.revenue && hour.revenue > 0 && (
-                  <p className="text-xs text-green-400">€{hour.revenue.toFixed(2)}</p>
+                  <p className="text-xs text-emerald-400">€{hour.revenue.toFixed(2)}</p>
                 )}
               </div>
             </motion.div>

@@ -319,7 +319,6 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-8">
           {/* Enhanced System Status */}
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative bg-card border border-white/[0.08] rounded-2xl">
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
@@ -436,7 +435,6 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
 
           {/* Enhanced Today's Planning - Now Clickable */}
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/20 rounded-2xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity"></div>
             <div
               className="relative bg-card border border-white/[0.08] rounded-2xl cursor-pointer hover:border-white/[0.14] transition-colors"
               onClick={handleTodayScheduleClick}

@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 export function ServiceChartLegend() {
   return (
     <TooltipProvider>
-      <div className="flex items-center justify-center gap-8 p-4 bg-card/20 rounded-xl border border-white/[0.08]">
+      <div className="flex items-center justify-center gap-8 p-4 bg-muted/40 rounded-xl border border-white/[0.08]">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-3 cursor-help">
@@ -19,7 +19,7 @@ export function ServiceChartLegend() {
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-xs bg-background/95 border border-blue-500/30 text-foreground"
+            className="max-w-xs bg-popover border border-white/[0.08] text-foreground"
             side="top"
             align="center"
           >
@@ -39,7 +39,7 @@ export function ServiceChartLegend() {
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-xs bg-background/95 border border-emerald-500/30 text-foreground"
+            className="max-w-xs bg-popover border border-white/[0.08] text-foreground"
             side="top"
             align="center"
           >

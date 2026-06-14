@@ -59,7 +59,6 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5 }}
           className="relative group"
         >
-          <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
           <div className="relative bg-card border border-white/[0.08] rounded-lg md:rounded-2xl transition-colors duration-150 h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-xs md:text-sm font-semibold text-foreground uppercase tracking-wider">
@@ -101,7 +100,6 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="relative group"
         >
-          <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
           <div className="relative bg-card border border-white/[0.08] rounded-lg md:rounded-2xl transition-colors duration-150 h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-xs md:text-sm font-semibold text-foreground uppercase tracking-wider">
@@ -143,7 +141,6 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="relative group"
         >
-          <div className="absolute -inset-1 md:-inset-2 bg-gradient-to-br from-cyan-500/40 to-cyan-400/30 blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300 rounded-2xl"></div>
           <div className="relative bg-card border border-white/[0.08] rounded-lg md:rounded-2xl transition-colors duration-150 h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-xs md:text-sm font-semibold text-foreground uppercase tracking-wider">
