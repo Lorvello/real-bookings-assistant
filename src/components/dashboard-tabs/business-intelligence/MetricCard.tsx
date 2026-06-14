@@ -8,7 +8,9 @@ interface MetricCardProps {
   value: string;
   subtitle: string;
   icon: LucideIcon;
-  variant: 'blue' | 'green' | 'orange' | 'purple';
+  // Kept for API compatibility with existing callers; color-coding was removed
+  // per the premium playbook (#3 one accent, #15 restraint) so all tiles are neutral.
+  variant?: 'blue' | 'green' | 'orange' | 'purple';
   delay: number;
   change?: {
     value: number;
@@ -22,90 +24,50 @@ export function MetricCard({
   value,
   subtitle,
   icon: Icon,
-  variant,
   delay,
   change
 }: MetricCardProps) {
-  const colorSchemes = {
-    blue: {
-      gradientFrom: 'from-blue-500/40',
-      gradientTo: 'to-cyan-500/30',
-      borderColor: 'border-blue-500/30',
-      iconBgFrom: 'from-blue-500/20',
-      iconBgTo: 'to-cyan-500/20',
-      iconColor: 'text-blue-400',
-      glowColor: 'shadow-blue-500/25'
-    },
-    green: {
-      gradientFrom: 'from-emerald-500/40',
-      gradientTo: 'to-teal-500/30',
-      borderColor: 'border-emerald-500/30',
-      iconBgFrom: 'from-emerald-500/20',
-      iconBgTo: 'to-teal-500/20',
-      iconColor: 'text-emerald-400',
-      glowColor: 'shadow-emerald-500/25'
-    },
-    orange: {
-      gradientFrom: 'from-orange-500/40',
-      gradientTo: 'to-amber-500/30',
-      borderColor: 'border-orange-500/30',
-      iconBgFrom: 'from-orange-500/20',
-      iconBgTo: 'to-amber-500/20',
-      iconColor: 'text-orange-400',
-      glowColor: 'shadow-orange-500/25'
-    },
-    purple: {
-      gradientFrom: 'from-purple-500/40',
-      gradientTo: 'to-violet-500/30',
-      borderColor: 'border-purple-500/30',
-      iconBgFrom: 'from-purple-500/20',
-      iconBgTo: 'to-violet-500/20',
-      iconColor: 'text-purple-400',
-      glowColor: 'shadow-purple-500/25'
-    }
-  };
-
-  const colors = colorSchemes[variant];
-
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 30 }}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay }}
-      className="relative group"
+      transition={{ duration: 0.4, delay }}
+      className="relative"
     >
-      {/* Background glow effect - Mobile optimized */}
-      <div className={`absolute -inset-1 md:-inset-2 bg-gradient-to-br ${colors.gradientFrom} ${colors.gradientTo} blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
-      
-      {/* Card container with mobile-first responsive height */}
-      <div className={`relative bg-gradient-to-br from-card/95 via-background/90 to-card/95 backdrop-blur-xl border ${colors.borderColor} rounded-xl md:rounded-2xl transition-all duration-300 group-hover:scale-[1.02] h-28 md:h-44 flex flex-col justify-between p-3 md:p-6`}>
-        
-        {/* Header with title and icon - Mobile optimized */}
+      {/* PLAYBOOK §4 KPI tile: neutral raised card, hairline border, NO gradient,
+          NO glow, NO hover-scale. Depth comes from the lighter card surface. */}
+      <div className="relative bg-card border border-white/[0.08] hover:border-white/[0.12] rounded-xl transition-colors duration-150 h-28 md:h-44 flex flex-col justify-between p-4 md:p-6">
+
+        {/* Header: uppercase micro-label overline + neutral icon chip */}
         <div className="flex items-center justify-between mb-2 md:mb-4">
-          <div className="flex-1">
-            <div className="text-xs md:text-sm font-bold text-foreground uppercase tracking-wider mb-1">{title}</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.06em] truncate">
+              {title}
+            </div>
           </div>
-          <div className={`w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br ${colors.iconBgFrom} ${colors.iconBgTo} rounded-lg md:rounded-xl flex items-center justify-center min-w-[32px] min-h-[32px] md:min-w-[48px] md:min-h-[48px]`}>
-            <Icon className={`h-4 w-4 md:h-6 md:w-6 ${colors.iconColor}`} />
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-white/[0.04] border border-white/[0.06] rounded-lg flex items-center justify-center shrink-0">
+            <Icon className="h-4 w-4 md:h-5 md:w-5 text-subtle-foreground" />
           </div>
         </div>
 
-        {/* Main value - Mobile optimized text scaling */}
+        {/* Main value: neutral hero number, tabular so columns never jitter */}
         <div className="flex-1 flex items-center">
-          <p className={`text-2xl md:text-4xl font-black text-foreground leading-none tabular-nums`}>
+          <p className="text-2xl md:text-4xl font-semibold tracking-[-0.02em] text-foreground leading-none tabular-nums">
             {value}
           </p>
         </div>
 
-        {/* Footer with subtitle or change indicator - Mobile optimized */}
+        {/* Footer: subtitle, or a tinted delta pill (semantic green/red is allowed for a real change) */}
         <div className="flex items-center justify-between mt-auto">
           {change ? (
             <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg min-h-[44px] md:min-h-auto ${
-                change.isPositive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+              <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium tabular-nums ring-1 ${
+                change.isPositive
+                  ? 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20'
+                  : 'bg-rose-500/10 text-rose-400 ring-rose-500/20'
               }`}>
                 <change.icon className="h-3 w-3" />
-                <span className="text-xs md:text-xs font-bold">
+                <span>
                   {change.isPositive ? '+' : ''}{Math.abs(change.value).toFixed(1)}%
                 </span>
               </div>
