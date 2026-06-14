@@ -9,7 +9,9 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      // PLAYBOOK §4 card: 12px radius, white-alpha hairline, NO drop shadow (depth
+      // comes from the lighter card surface over the canvas, not from a shadow).
+      "rounded-xl border border-white/[0.07] bg-card text-card-foreground",
       className
     )}
     {...props}
