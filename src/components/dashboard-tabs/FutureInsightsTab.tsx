@@ -149,7 +149,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative group">
-                <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+                <div className="relative surface-raised rounded-2xl">
                   <DemandForecastChart data={futureInsights?.demand_forecast} />
                 </div>
                 <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
@@ -171,7 +171,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative group">
-                <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+                <div className="relative surface-raised rounded-2xl">
                   <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
                 </div>
                 <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
@@ -194,7 +194,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="relative group">
-              <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+              <div className="relative surface-raised rounded-2xl">
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-muted/40 rounded-xl">

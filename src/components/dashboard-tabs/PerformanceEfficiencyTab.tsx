@@ -334,7 +334,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
 
         {/* Enhanced Peak Hours Chart - Mobile optimized */}
         <div className="relative group">
-          <div className="relative bg-card border border-white/[0.08] rounded-xl md:rounded-2xl">
+          <div className="relative surface-raised rounded-xl md:rounded-2xl">
             <div className="p-4 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-muted/40 rounded-xl">

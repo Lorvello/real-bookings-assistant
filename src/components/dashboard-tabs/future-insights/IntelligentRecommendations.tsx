@@ -197,7 +197,7 @@ export function IntelligentRecommendations({
       {recommendations.map((rec, index) => (
         <div
           key={index}
-          className="group p-6 bg-card border border-white/[0.08] rounded-xl hover:bg-muted/40 transition-colors duration-150"
+          className="group p-6 surface-raised rounded-xl hover:bg-muted/40 transition-colors duration-150"
           style={{
             animation: `fadeIn 0.6s ease-out ${index * 0.15}s both`
           }}
