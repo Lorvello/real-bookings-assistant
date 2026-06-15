@@ -13,7 +13,13 @@ interface State {
   hasError: boolean;
   error?: Error;
   isChunkError: boolean;
+  /** true once we've already auto-reloaded once for a chunk error this session */
+  reloadAttempted: boolean;
 }
+
+// Shared one-shot guard key (also used by lazyWithRetry) so a stale cached build
+// can trigger AT MOST ONE auto-reload, never an infinite loop that locks the user out.
+const RELOAD_FLAG = 'chunkReloadAttempted';
 
 // Detect chunk loading errors (common after deployments)
 function isChunkLoadError(error: Error): boolean {
@@ -27,26 +33,59 @@ function isChunkLoadError(error: Error): boolean {
   );
 }
 
+/**
+ * Unregister any service workers + clear all caches, then reload. This is the
+ * guaranteed escape from the "stale SW keeps serving an old index.html" trap:
+ * a plain reload would just refetch the same broken HTML and loop forever.
+ */
+async function hardReset(): Promise<void> {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    /* best-effort — reload regardless */
+  } finally {
+    try { sessionStorage.removeItem(RELOAD_FLAG); } catch { /* ignore */ }
+    window.location.reload();
+  }
+}
+
 export class RouteErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, isChunkError: false };
+    this.state = { hasError: false, isChunkError: false, reloadAttempted: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
     const isChunkError = isChunkLoadError(error);
-    return { hasError: true, error, isChunkError };
+    let reloadAttempted = false;
+    try { reloadAttempted = sessionStorage.getItem(RELOAD_FLAG) === '1'; } catch { /* ignore */ }
+    return { hasError: true, error, isChunkError, reloadAttempted };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const isChunkError = isChunkLoadError(error);
-    
-    // For chunk errors, auto-refresh after a short delay
+
     if (isChunkError) {
-      console.log('[RouteErrorBoundary] Chunk load error detected, auto-refreshing...');
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      let alreadyReloaded = false;
+      try { alreadyReloaded = sessionStorage.getItem(RELOAD_FLAG) === '1'; } catch { /* ignore */ }
+
+      if (!alreadyReloaded) {
+        // First chunk error this session: auto-reload ONCE to pull the fresh build.
+        try { sessionStorage.setItem(RELOAD_FLAG, '1'); } catch { /* ignore */ }
+        console.log('[RouteErrorBoundary] Chunk load error — auto-reloading once…');
+        setTimeout(() => window.location.reload(), 800);
+      } else {
+        // Already reloaded once and STILL broken → stop looping; show the
+        // hard-reset UI (clears the stuck service worker + caches) instead.
+        console.error('[RouteErrorBoundary] Chunk still failing after one reload — not looping; offering hard reset.');
+      }
       return;
     }
 
@@ -57,10 +96,12 @@ export class RouteErrorBoundary extends Component<Props, State> {
       url: window.location.href,
       metadata: {
         routeName: this.props.routeName,
-        componentStack: errorInfo.componentStack
-      }
+        componentStack: errorInfo.componentStack,
+      },
     }, 'critical');
   }
+
+  private handleHardReset = () => { void hardReset(); };
 
   private handleRetry = () => {
     this.setState({ hasError: false, error: undefined, isChunkError: false });
@@ -73,20 +114,26 @@ export class RouteErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // Show a simpler message for chunk errors since we auto-refresh
+      // Chunk error: if we've already auto-reloaded once and it's still broken,
+      // the service worker is serving a stale build — offer the guaranteed escape.
       if (this.state.isChunkError) {
+        const stuck = this.state.reloadAttempted;
         return (
           <div className="min-h-screen flex items-center justify-center p-4 bg-background">
             <Alert className="max-w-md">
-              <RefreshCw className="h-5 w-5 animate-spin" />
-              <AlertTitle className="text-lg">Updating page...</AlertTitle>
+              <RefreshCw className={`h-5 w-5 ${stuck ? '' : 'animate-spin'}`} />
+              <AlertTitle className="text-lg">
+                {stuck ? "Couldn't update automatically" : 'Updating page…'}
+              </AlertTitle>
               <AlertDescription className="space-y-4">
                 <p>
-                  A new version is available. The page will refresh automatically.
+                  {stuck
+                    ? 'A cached version is stuck. Click below to clear it and load the latest build.'
+                    : 'A new version is available. The page will refresh automatically.'}
                 </p>
-                <Button onClick={this.handleRetry} variant="default" className="w-full">
+                <Button onClick={this.handleHardReset} variant="default" className="w-full">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh now
+                  {stuck ? 'Clear cache & reload' : 'Refresh now'}
                 </Button>
               </AlertDescription>
             </Alert>
