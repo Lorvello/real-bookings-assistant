@@ -283,8 +283,11 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No schedule exceptions yet.</p>
+        <div className="flex flex-col items-center text-center py-8">
+          <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
+            <CalendarIcon className="h-5 w-5 text-accent-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">No schedule exceptions yet.</p>
         </div>
       )}
 

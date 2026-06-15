@@ -21,8 +21,8 @@ export function CalendarRequiredEmptyState({
   return (
     <div className="flex items-center justify-center min-h-[400px] p-6">
       <div className="text-center space-y-6 max-w-md">
-        <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto">
-          {icon || <Calendar className="h-8 w-8 text-muted-foreground" />}
+        <div className="glow-accent relative w-16 h-16 bg-primary/10 ring-1 ring-primary/20 rounded-2xl flex items-center justify-center mx-auto">
+          {icon || <Calendar className="h-7 w-7 text-accent-foreground" />}
         </div>
         
         <div className="space-y-2">
