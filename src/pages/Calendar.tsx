@@ -55,7 +55,7 @@ const Calendar = () => {
             <SimplePageHeader title="Calendar" />
 
             {/* Create Calendar Section */}
-            <div className="bg-card border border-border shadow-sm rounded-lg p-4 sm:p-6 md:p-8">
+            <div className="bg-card border border-white/[0.07] rounded-lg p-4 sm:p-6 md:p-8">
               <div className="text-center space-y-4 sm:space-y-6">
                 <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center">
                   <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
@@ -105,13 +105,13 @@ const Calendar = () => {
 
           {/* Read-only mode warning for expired/inactive users */}
           {(userStatus.isExpired || !accessControl.canEditBookings) && (
-            <Alert className="mb-4 border-yellow-600 bg-yellow-600/10">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-600">
+            <Alert className="mb-4 border-warning/30 bg-warning/10">
+              <AlertCircle className="h-4 w-4 text-warning-foreground" />
+              <AlertDescription className="text-warning-foreground">
                 Read-only mode - Your {userStatus.userType === 'expired_trial' ? 'trial has expired' : 'subscription is inactive'}.{' '}
                 <Button 
                   variant="link" 
-                  className="text-yellow-600 underline p-0 ml-1 h-auto font-semibold"
+                  className="text-warning-foreground underline p-0 ml-1 h-auto font-semibold"
                   onClick={() => navigate('/settings?tab=billing')}
                 >
                   Upgrade now
@@ -122,7 +122,7 @@ const Calendar = () => {
           )}
 
           {/* Calendar Content */}
-          <div className="bg-card border border-border shadow-sm rounded-lg p-2 sm:p-3 md:p-4">
+          <div className="bg-card border border-white/[0.07] rounded-lg p-2 sm:p-3 md:p-4">
             <CalendarView calendarIds={activeCalendarIds} viewingAllCalendars={viewingAllCalendars} />
           </div>
         </div>

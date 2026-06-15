@@ -26,7 +26,7 @@ export function PeakHoursTooltip({ active, payload, label }: PeakHoursTooltipPro
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-muted-foreground rounded-full"></div>
-              <span className="text-foreground">{data.count} boekingen</span>
+              <span className="text-foreground">{data.count} bookings</span>
             </div>
             {data.revenue && (
               <div className="flex items-center gap-2">

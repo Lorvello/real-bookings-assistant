@@ -11,15 +11,14 @@ export function useWeeklyInsights(calendarIds: string[]) {
     queryFn: async () => {
       if (!calendarIds || calendarIds.length === 0) return null;
 
-      console.log('📈 Fetching weekly insights for calendars:', calendarIds);
-
-      // Mock data for developers or setup_incomplete users
+      // Sample data for developers or setup_incomplete users (clearly labelled in the UI)
       if (useMockData) {
         return {
           current_week: 28,
           previous_week: 22,
           growth_percentage: 27.3,
-          trend: 'up' as const
+          trend: 'up' as const,
+          is_sample: true
         };
       }
 

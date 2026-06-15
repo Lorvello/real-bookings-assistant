@@ -18,8 +18,6 @@ interface CalendarContainerProps {
 }
 
 export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: CalendarContainerProps) {
-  console.log('CalendarContainer rendering with calendarIds:', calendarIds);
-  
   const [searchParams, setSearchParams] = useSearchParams();
   const viewParam = searchParams.get('view') as CalendarView;
   
@@ -90,19 +88,14 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   };
 
   const handleBookingCreated = () => {
-    console.log('📅 Booking created, refreshing calendar data');
     refetch();
     setIsNewBookingModalOpen(false);
   };
 
   const handleNewBooking = () => {
-    const canCreateBookings = checkAccess('canCreateBookings');
-    
-    if (canCreateBookings) {
-      console.log('Opening new booking modal');
+    if (checkAccess('canCreateBookings')) {
       setIsNewBookingModalOpen(true);
     } else {
-      console.log('Access denied - showing upgrade modal');
       setShowUpgradeModal(true);
     }
   };
@@ -143,6 +136,7 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
             currentDate={currentDate}
             loading={loading}
             error={error}
+            onRetry={refetch}
             timeRange={timeRange}
             viewingAllCalendars={viewingAllCalendars}
           />

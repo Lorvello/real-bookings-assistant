@@ -50,31 +50,35 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
   const hasPerformanceAccess = checkAccess('canAccessPerformance');
   const hasFutureInsightsAccess = checkAccess('canAccessFutureInsights');
 
+  // Premium underline tabs (one accent) — replaces the old 5-color pill bar.
+  const triggerClass =
+    'relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none';
+  const proBadgeClass =
+    'ml-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground ring-1 ring-primary/20';
+
   return (
     <div className="space-y-6">
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <div className="overflow-x-auto">
-          <TabsList className="flex bg-gray-800 h-auto p-1 md:p-2 flex-shrink-0 min-w-max w-max md:w-full md:grid md:grid-cols-5">
-            <TabsTrigger 
-              value="overview" 
-              className="flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-cyan-600 rounded-lg px-2 md:px-4 md:flex-1"
+          <TabsList className="flex h-auto w-max min-w-full justify-start gap-1 rounded-none border-b border-white/[0.06] bg-transparent p-0 md:w-full">
+            <TabsTrigger
+              value="overview"
+              className={triggerClass}
             >
               <LayoutDashboard className="h-3 w-3 md:h-4 md:w-4" />
               <span className="text-xs md:text-sm whitespace-nowrap">Overview</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="live-operations" 
-              className="flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-green-600 rounded-lg px-2 md:px-4 md:flex-1"
+            <TabsTrigger
+              value="live-operations"
+              className={triggerClass}
             >
               <Radio className="h-3 w-3 md:h-4 md:w-4" />
               <span className="text-xs md:text-sm whitespace-nowrap">Live Operations</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="business-intelligence" 
-              className={`flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-orange-600 rounded-lg px-2 md:px-4 md:flex-1 ${
-                !hasBusinessIntelligenceAccess ? 'opacity-60' : ''
-              }`}
+            <TabsTrigger
+              value="business-intelligence"
+              className={`${triggerClass} ${!hasBusinessIntelligenceAccess ? 'opacity-70' : ''}`}
             >
               {hasBusinessIntelligenceAccess ? (
                 <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
@@ -82,15 +86,11 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
               <span className="text-xs md:text-sm whitespace-nowrap">Business Intelligence</span>
-              {!hasBusinessIntelligenceAccess && (
-                <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
-              )}
+              {!hasBusinessIntelligenceAccess && <span className={proBadgeClass}>Pro</span>}
             </TabsTrigger>
-            <TabsTrigger 
-              value="performance-efficiency" 
-              className={`flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-blue-600 rounded-lg px-2 md:px-4 md:flex-1 ${
-                !hasPerformanceAccess ? 'opacity-60' : ''
-              }`}
+            <TabsTrigger
+              value="performance-efficiency"
+              className={`${triggerClass} ${!hasPerformanceAccess ? 'opacity-70' : ''}`}
             >
               {hasPerformanceAccess ? (
                 <Activity className="h-3 w-3 md:h-4 md:w-4" />
@@ -98,15 +98,11 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
               <span className="text-xs md:text-sm whitespace-nowrap">Performance</span>
-              {!hasPerformanceAccess && (
-                <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
-              )}
+              {!hasPerformanceAccess && <span className={proBadgeClass}>Pro</span>}
             </TabsTrigger>
-            <TabsTrigger 
-              value="future-insights" 
-              className={`flex items-center justify-center gap-1 md:gap-2 py-2 md:py-3 text-gray-300 data-[state=active]:text-white data-[state=active]:bg-purple-600 rounded-lg px-2 md:px-4 md:flex-1 ${
-                !hasFutureInsightsAccess ? 'opacity-60' : ''
-              }`}
+            <TabsTrigger
+              value="future-insights"
+              className={`${triggerClass} ${!hasFutureInsightsAccess ? 'opacity-70' : ''}`}
             >
               {hasFutureInsightsAccess ? (
                 <Brain className="h-3 w-3 md:h-4 md:w-4" />
@@ -114,22 +110,20 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
               <span className="text-xs md:text-sm whitespace-nowrap">Future Insights</span>
-              {!hasFutureInsightsAccess && (
-                <span className="text-xs bg-orange-500 text-white px-1 rounded ml-1">Pro</span>
-              )}
+              {!hasFutureInsightsAccess && <span className={proBadgeClass}>Pro</span>}
             </TabsTrigger>
           </TabsList>
         </div>
 
         {/* Tab Content */}
         <TabsContent value="overview">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-0.5 md:p-6">
+          <div className="bg-card border border-white/[0.07] rounded-xl p-0.5 md:p-6">
             <OverviewTab calendarIds={calendarIds} />
           </div>
         </TabsContent>
 
         <TabsContent value="business-intelligence">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-0.5 md:p-6">
+          <div className="bg-card border border-white/[0.07] rounded-xl p-0.5 md:p-6">
             {hasBusinessIntelligenceAccess ? (
               <BusinessIntelligenceTab 
                 calendarIds={calendarIds}
@@ -150,7 +144,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
         </TabsContent>
 
         <TabsContent value="performance-efficiency">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-0.5 md:p-6">
+          <div className="bg-card border border-white/[0.07] rounded-xl p-0.5 md:p-6">
             {hasPerformanceAccess ? (
               <PerformanceEfficiencyTab 
                 calendarIds={calendarIds}
@@ -171,13 +165,13 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
         </TabsContent>
 
         <TabsContent value="live-operations">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-0.5 md:p-6">
+          <div className="bg-card border border-white/[0.07] rounded-xl p-0.5 md:p-6">
             <LiveOperationsTab calendarIds={calendarIds} />
           </div>
         </TabsContent>
 
         <TabsContent value="future-insights">
-          <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-0.5 md:p-6">
+          <div className="bg-card border border-white/[0.07] rounded-xl p-0.5 md:p-6">
             {hasFutureInsightsAccess ? (
               <FutureInsightsTab calendarIds={calendarIds} />
             ) : (

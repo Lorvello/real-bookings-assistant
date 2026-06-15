@@ -68,9 +68,9 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
       
       let activityLevel = '';
       if (bookings === 0) activityLevel = 'No bookings';
-      else if (bookings / maxBookings >= 0.7) activityLevel = 'Busy 📈';
-      else if (bookings / maxBookings >= 0.4) activityLevel = 'Moderate 📊';
-      else activityLevel = 'Quiet 😌';
+      else if (bookings / maxBookings >= 0.7) activityLevel = 'Busy';
+      else if (bookings / maxBookings >= 0.4) activityLevel = 'Moderate';
+      else activityLevel = 'Quiet';
 
       return (
         <div className="bg-popover border border-green-500/30 rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]">

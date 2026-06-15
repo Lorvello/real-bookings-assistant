@@ -11,14 +11,13 @@ export function usePopularService(calendarIds: string[]) {
     queryFn: async () => {
       if (!calendarIds || calendarIds.length === 0) return null;
 
-      console.log('📊 Fetching popular service for calendars:', calendarIds);
-
-      // Mock data for developers or setup_incomplete users
+      // Sample data for developers or setup_incomplete users (clearly labelled in the UI)
       if (useMockData) {
         return {
           service_name: 'Knippen & Stylen',
           booking_count: 28,
-          percentage: 35
+          percentage: 35,
+          is_sample: true
         };
       }
 
@@ -42,8 +41,6 @@ export function usePopularService(calendarIds: string[]) {
       }
 
       if (!serviceStats || serviceStats.length === 0) return null;
-
-      console.log(`📊 Analyzing ${serviceStats.length} total bookings for popular service`);
 
       // Count bookings per service - simple and direct
       const serviceCounts = new Map();

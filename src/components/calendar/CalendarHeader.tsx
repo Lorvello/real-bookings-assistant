@@ -149,7 +149,7 @@ export function CalendarHeader({
 
       {/* Loading State */}
       {loading && (
-        <div className="absolute inset-0 bg-card/80 backdrop-blur-sm rounded-t-lg flex items-center justify-center">
+        <div className="absolute inset-0 bg-card/80 rounded-t-lg flex items-center justify-center">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
           </div>

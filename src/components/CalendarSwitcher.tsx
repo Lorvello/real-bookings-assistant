@@ -70,7 +70,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     <>
                       <div 
                         className="w-2 h-2 sm:w-3 sm:h-3 rounded-full border border-border" 
-                        style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
+                        style={{ backgroundColor: selectedCalendar?.color || 'hsl(var(--subtle-foreground))' }}
                       />
                       <span className="truncate text-xs sm:text-sm">
                         {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
@@ -123,7 +123,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 >
                   <div 
                     className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
-                    style={{ backgroundColor: calendar.color || '#6B7280' }}
+                    style={{ backgroundColor: calendar.color || 'hsl(var(--subtle-foreground))' }}
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
