@@ -119,8 +119,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar - Mobile: Complete hide/show, Desktop: Collapsible */}
       <div 
         className={`
-          sidebar-transform
-          ${isMobile 
+          sidebar-transform border-r border-white/[0.06]
+          ${isMobile
             ? `fixed left-0 top-0 h-full w-[85%] max-w-sm z-50 
                transition-transform duration-300 ease-out
                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}` 
@@ -129,9 +129,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         `}
         style={{ backgroundColor: 'hsl(var(--surface-1))' }}
       >
+        {/* Ambient accent glow at the top of the spine — atmosphere, not noise */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-40 z-0"
+          style={{ background: 'radial-gradient(80% 55% at 28% 0%, hsl(var(--primary) / 0.10), transparent 70%)' }}
+        />
         {/* Only render sidebar content when visible on mobile or always on desktop */}
         {(!isMobile || isSidebarOpen) && (
-          <div className={`flex flex-col ${isMobile ? 'h-screen' : 'h-full'} overflow-y-auto dashboard-scrollbar`}>
+          <div className={`relative z-10 flex flex-col ${isMobile ? 'h-screen' : 'h-full'} overflow-y-auto dashboard-scrollbar`}>
             <SidebarHeader 
               isSidebarOpen={isSidebarOpen} 
               onToggleSidebar={toggleSidebar}

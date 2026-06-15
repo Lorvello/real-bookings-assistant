@@ -25,6 +25,7 @@
     --accent: 214 90% 52%;
     --accent-foreground: 214 95% 72%;
     --ring: 214 100% 56%;
+    --highlight: 0 0% 100%;            /* inner top-edge light (used with alpha) */
     --border: 220 9% 18%;
     --input: 220 9% 20%;
     --destructive: 0 84% 60%;          --destructive-foreground: 0 90% 71%;
@@ -73,6 +74,7 @@
     --accent: 214 90% 52%;             /* used at /0.12 as the selected wash */
     --accent-foreground: 214 95% 72%;  /* #5AA9FF accent text + links */
     --ring: 214 100% 56%;
+    --highlight: 0 0% 100%;            /* inner top-edge light (used with alpha) */
 
     /* hairline fallbacks (prefer border-white/[0.05-0.16] in classes) */
     --border: 220 9% 18%;
@@ -661,5 +663,57 @@
 
   @media (prefers-reduced-motion: reduce) {
     .fade-up, .stagger-fade > * { animation: none; }
+  }
+
+  /* ============================================================
+     LUXURY-DARK MATERIAL SYSTEM (PREMIUM_APP_ELEVATION.md)
+     POV: luxury dark, glow & glass. Composable, token-based.
+     ============================================================ */
+
+  /* .surface-raised — the 4-property depth (border + top→bottom micro-gradient
+     + inner top highlight). Reveals more light on hover. Use on any raised card. */
+  .surface-raised {
+    background-color: hsl(var(--card));
+    background-image: linear-gradient(to bottom, hsl(var(--highlight) / 0.04), hsl(var(--highlight) / 0));
+    border: 1px solid hsl(var(--highlight) / 0.07);
+    box-shadow: inset 0 1px 0 0 hsl(var(--highlight) / 0.06);
+    transition: background-image 200ms cubic-bezier(0.23,1,0.32,1), border-color 200ms cubic-bezier(0.23,1,0.32,1);
+  }
+  .surface-raised:hover {
+    background-image: linear-gradient(to bottom, hsl(var(--highlight) / 0.07), hsl(var(--highlight) / 0));
+    border-color: hsl(var(--highlight) / 0.12);
+  }
+
+  /* .glow-accent — a soft accent halo bleeding from behind/above the element
+     (atmosphere, not noise). pointer-events-none, sits behind content. */
+  .glow-accent { position: relative; isolation: isolate; }
+  .glow-accent::after {
+    content: "";
+    position: absolute;
+    inset: -24%;
+    border-radius: inherit;
+    background: radial-gradient(55% 60% at 50% 0%, hsl(var(--primary) / 0.28), transparent 70%);
+    filter: blur(28px);
+    pointer-events: none;
+    z-index: -1;
+  }
+  /* stronger glow variant for hero / primary surfaces */
+  .glow-accent-strong::after { background: radial-gradient(60% 65% at 50% 0%, hsl(var(--primary) / 0.42), transparent 72%); }
+
+  /* .glass — frosted FLOATING layers only (menus, popovers, dialogs, the day-popover)
+     over a calm backdrop. Legibility wins: bump fill if contrast drops. */
+  .glass {
+    background-color: hsl(var(--popover) / 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--highlight) / 0.10);
+    box-shadow:
+      inset 0 1px 0 0 hsl(var(--highlight) / 0.08),
+      0 1px 2px -1px rgba(0,0,0,0.40),
+      0 8px 24px -8px rgba(0,0,0,0.50);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .surface-raised { transition: none; }
   }
 }
