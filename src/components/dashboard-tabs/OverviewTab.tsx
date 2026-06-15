@@ -43,22 +43,21 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="border border-white/[0.08] bg-card">
-              <CardHeader className="pb-2">
-                <div className="h-6 bg-muted animate-pulse rounded"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-8 bg-muted animate-pulse rounded"></div>
-                  <div className="h-4 bg-muted animate-pulse rounded w-3/4"></div>
-                </div>
-              </CardContent>
-            </Card>
+            // exact-shape skeleton: same surface, height & internal layout as the real
+            // KPI card (label top-left, icon chip top-right, big number, delta line) → no shift
+            <div key={i} className="surface-raised shimmer rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
+                <div className="h-3 w-20 rounded bg-white/[0.06]" />
+                <div className="h-8 w-8 md:h-12 md:w-12 rounded-xl bg-white/[0.04]" />
+              </div>
+              <div className="h-7 md:h-9 w-24 md:w-28 rounded bg-white/[0.07] mb-2 md:mb-3" />
+              <div className="hidden md:block h-3 w-32 rounded bg-white/[0.04]" />
+            </div>
           ))}
         </div>
-        <div className="h-64 bg-muted animate-pulse rounded-lg"></div>
+        <div className="surface-raised shimmer rounded-xl h-64" />
       </div>
     );
   }
@@ -94,7 +93,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
         </div>
       )}
       {/* Top Row - 3 Cards - Mobile optimized with smaller heights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-0.5 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
         {/* Next Appointment Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -102,7 +101,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5 }}
           className="relative group"
         >
-          <div className="relative glow-accent glow-accent-strong surface-raised rounded-lg md:rounded-2xl h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative glow-accent glow-accent-strong surface-raised rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
                 Next Appointment
@@ -115,7 +114,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {nextAppointment ? (
                 <>
-                  <div className="text-xs md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
+                  <div className="text-base md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
                     {nextAppointment.time_until}
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium truncate hidden md:block">
@@ -124,11 +123,11 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-xs md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
+                  <div className="text-base md:text-4xl font-semibold text-subtle-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
                     --:--
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium hidden md:block">
-                    No appointments today
+                    Nothing scheduled today
                   </div>
                 </>
               )}
@@ -143,12 +142,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="relative group"
         >
-          <div className="relative surface-raised rounded-lg md:rounded-2xl h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative glow-accent surface-raised rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
                 Popular Service
               </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
+              <div className="w-4 h-4 md:w-12 md:h-12 bg-primary/10 ring-1 ring-primary/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <TrendingUp className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
               </div>
             </div>
@@ -165,11 +164,11 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-semibold text-subtle-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
                     --%
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium">
-                    No data available
+                    No services booked yet
                   </div>
                 </>
               )}
@@ -184,12 +183,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="relative group"
         >
-          <div className="relative surface-raised rounded-lg md:rounded-2xl h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative glow-accent surface-raised rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
                 Weekly Growth
               </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
+              <div className="w-4 h-4 md:w-12 md:h-12 bg-primary/10 ring-1 ring-primary/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <BarChart3 className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
               </div>
             </div>
@@ -215,14 +214,42 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                     )}
                     <span className="text-subtle-foreground hidden md:inline">vs last week</span>
                   </div>
+                  {/* micro-chart: last vs this week — baseline gridline, labeled values,
+                      hover shows exact count, bars draw up on view (§5/§9) */}
+                  {(() => {
+                    const prev = weeklyInsights.previous_week || 0;
+                    const cur = weeklyInsights.current_week || 0;
+                    const max = Math.max(prev, cur, 1);
+                    const delta = cur - prev;
+                    return (
+                      <div className="hidden md:block mt-4">
+                        <div className="flex items-end gap-2 h-10 border-b border-white/[0.06]">
+                          <div
+                            title={`Last week: ${prev} bookings`}
+                            className="bar-grow flex-1 rounded-t-sm bg-white/[0.10] transition-colors hover:bg-white/[0.16]"
+                            style={{ height: `${Math.max(10, (prev / max) * 100)}%`, animationDelay: '0.25s' }}
+                          />
+                          <div
+                            title={`This week: ${cur} bookings (${delta >= 0 ? '+' : ''}${delta} vs last)`}
+                            className="bar-grow flex-1 rounded-t-sm bg-gradient-to-t from-primary/40 to-primary shadow-[0_0_16px_-4px_hsl(var(--primary)/0.5)]"
+                            style={{ height: `${Math.max(10, (cur / max) * 100)}%`, animationDelay: '0.35s' }}
+                          />
+                        </div>
+                        <div className="mt-1.5 flex justify-between text-[10px] font-medium text-subtle-foreground tabular-nums">
+                          <span>Last · {prev}</span>
+                          <span className="text-accent-foreground">This · {cur}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-semibold text-subtle-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
                     --.--%
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium">
-                    No data available
+                    Not enough data yet
                   </div>
                 </>
               )}

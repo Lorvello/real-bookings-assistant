@@ -716,4 +716,22 @@
   @media (prefers-reduced-motion: reduce) {
     .surface-raised { transition: none; }
   }
+
+  /* .shimmer — premium loading sweep for exact-shape skeletons (§6) */
+  .shimmer { position: relative; overflow: hidden; }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(var(--highlight) / 0.06), transparent);
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer { 100% { transform: translateX(100%); } }
+  @media (prefers-reduced-motion: reduce) { .shimmer::after { animation: none; } }
+
+  /* .bar-grow — mini-chart bars draw up on view (§6 animate-in) */
+  @keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  .bar-grow { transform-origin: bottom; animation: bar-grow 0.6s cubic-bezier(0.23,1,0.32,1) both; }
+  @media (prefers-reduced-motion: reduce) { .bar-grow { animation: none; } }
 }
