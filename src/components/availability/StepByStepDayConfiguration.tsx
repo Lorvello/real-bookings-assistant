@@ -226,7 +226,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
   if (!defaultSchedule) {
     return (
       <div className="max-w-2xl mx-auto">
-        <Card className="bg-card/90 backdrop-blur-sm border-border/60">
+        <Card className="surface-raised">
           <CardHeader className="text-center pb-6">
             <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Clock className="w-10 h-10 text-primary" />
@@ -242,7 +242,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
           <CardContent className="text-center">
             <Button 
               onClick={createDefaultSchedule}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium transition-all duration-200 hover:scale-105"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium transition-all duration-200"
             >
               Start Configuration
             </Button>
@@ -255,7 +255,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Progress Header */}
-      <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-2xl p-6">
+      <div className="surface-raised rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-primary/20 rounded-xl">
@@ -304,7 +304,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
       </div>
 
       {/* Day Configuration */}
-      <Card className="bg-card/90 backdrop-blur-sm border border-border/60">
+      <Card className="surface-raised">
         <CardContent className="p-6">
           <AvailabilityDayRow
             day={currentDay}

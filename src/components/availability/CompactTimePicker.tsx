@@ -134,7 +134,7 @@ export const CompactTimePicker: React.FC<CompactTimePickerProps> = ({
       
       {/* Dropdown with time options */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute top-full left-0 mt-1 z-50 glass rounded-lg overflow-hidden">
           <ScrollArea className="h-48 w-24">
             <div className="p-1">
               {TIME_OPTIONS.map((time) => (

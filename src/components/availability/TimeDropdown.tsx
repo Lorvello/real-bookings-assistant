@@ -92,7 +92,7 @@ export const TimeDropdown: React.FC<TimeDropdownProps> = ({
       </Button>
       
       <div
-        className={`absolute top-full left-0 w-17 bg-card border border-white/[0.08] rounded-md shadow-lg z-50 scrollbar-thin scrollbar-thumb-white/[0.08] scrollbar-track-card transition-all duration-200 ease-out ${
+        className={`absolute top-full left-0 w-17 glass rounded-md z-50 scrollbar-thin scrollbar-thumb-white/[0.08] scrollbar-track-card transition-all duration-200 ease-out ${
           isOpen 
             ? 'opacity-100 scale-100 max-h-40 overflow-y-auto' 
             : 'opacity-0 scale-95 max-h-0 overflow-hidden pointer-events-none'

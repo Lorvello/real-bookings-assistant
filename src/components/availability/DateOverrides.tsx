@@ -100,7 +100,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
       {/* Add New Override Form */}
       {showAddForm && (
-        <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6">
+        <div className="surface-raised rounded-2xl p-6">
           <div className="space-y-6">
             <div className="flex items-center space-x-3 mb-4">
               <div className="p-2 bg-primary/20 rounded-2xl">
@@ -231,7 +231,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
       ) : overrides.length > 0 ? (
         <div className="space-y-4">
           {overrides.map((override) => (
-            <div key={override.id} className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6">
+            <div key={override.id} className="surface-raised rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-3">
@@ -292,7 +292,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
       {!showAddForm && (
         <Button
           onClick={() => setShowAddForm(true)}
-          className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 border-2 border-dashed rounded-3xl h-14 font-medium"
+          className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 border-2 border-dashed rounded-2xl h-14 font-medium"
           variant="outline"
         >
           <Plus className="h-5 w-5 mr-2" />
