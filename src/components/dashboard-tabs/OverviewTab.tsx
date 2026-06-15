@@ -5,11 +5,13 @@ import { useNextAppointment } from '@/hooks/dashboard/useNextAppointment';
 import { usePopularService } from '@/hooks/dashboard/usePopularService';
 import { useWeeklyInsights } from '@/hooks/dashboard/useWeeklyInsights';
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
-import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target, ArrowUp, ArrowDown, BarChart3 } from 'lucide-react';
+import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target, ArrowUp, ArrowDown, BarChart3, RefreshCw, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
+import { useMockDataControl } from '@/hooks/useMockDataControl';
 
 interface OverviewTabProps {
   calendarIds: string[];
@@ -17,13 +19,25 @@ interface OverviewTabProps {
 
 export function OverviewTab({ calendarIds }: OverviewTabProps) {
   const { calendars } = useCalendarContext();
-  
-  // Fetch data using the aggregated hooks
-  const { data: nextAppointment, isLoading: nextLoading } = useNextAppointment(calendarIds);
-  const { data: popularService, isLoading: popularLoading } = usePopularService(calendarIds);
-  const { data: weeklyInsights, isLoading: weeklyLoading } = useWeeklyInsights(calendarIds);
+  const { useMockData } = useMockDataControl();
 
-  const isLoading = nextLoading || popularLoading || weeklyLoading;
+  // Fetch data using the aggregated hooks
+  const next = useNextAppointment(calendarIds);
+  const popular = usePopularService(calendarIds);
+  const weekly = useWeeklyInsights(calendarIds);
+
+  const { data: nextAppointment } = next;
+  const { data: popularService } = popular;
+  const { data: weeklyInsights } = weekly;
+
+  const isLoading = next.isLoading || popular.isLoading || weekly.isLoading;
+  const isError = next.isError || popular.isError || weekly.isError;
+
+  const retryAll = () => {
+    next.refetch();
+    popular.refetch();
+    weekly.refetch();
+  };
 
   if (isLoading) {
     return (
@@ -48,8 +62,30 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-white/[0.07] bg-card px-6 py-12 text-center">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10">
+          <AlertCircle className="h-5 w-5 text-destructive-foreground" />
+        </div>
+        <p className="text-sm font-medium text-foreground">Couldn't load your dashboard data</p>
+        <p className="text-xs text-subtle-foreground">Check your connection and try again.</p>
+        <Button variant="secondary" size="sm" onClick={retryAll} className="mt-1 gap-1.5">
+          <RefreshCw className="h-3.5 w-3.5" /> Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1 md:space-y-8">
+      {useMockData && (
+        <div className="flex items-center justify-end">
+          <Badge variant="secondary" className="bg-muted text-subtle-foreground ring-1 ring-white/[0.06] text-[10px] font-medium uppercase tracking-wider">
+            Sample data
+          </Badge>
+        </div>
+      )}
       {/* Top Row - 3 Cards - Mobile optimized with smaller heights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-0.5 md:gap-6">
         {/* Next Appointment Card */}

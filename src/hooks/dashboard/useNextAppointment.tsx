@@ -11,9 +11,7 @@ export function useNextAppointment(calendarIds: string[]) {
     queryFn: async () => {
       if (!calendarIds || calendarIds.length === 0) return null;
 
-      console.log('🔍 Fetching next appointment for calendars:', calendarIds);
-
-      // Mock data for developers or setup_incomplete users
+      // Sample data for developers or setup_incomplete users (clearly labelled in the UI)
       if (useMockData) {
         const nextTime = new Date();
         nextTime.setHours(nextTime.getHours() + 2, 30, 0, 0);
@@ -21,7 +19,8 @@ export function useNextAppointment(calendarIds: string[]) {
           customer_name: 'Emma van der Berg',
           service_name: 'Knippen & Stylen',
           start_time: nextTime.toISOString(),
-          time_until: '2h 30m'
+          time_until: '2h 30m',
+          is_sample: true
         };
       }
 
@@ -57,7 +56,7 @@ export function useNextAppointment(calendarIds: string[]) {
       
       let timeUntil = '';
       if (timeDiff <= 0) {
-        timeUntil = "Nu bezig";
+        timeUntil = "In progress";
       } else if (hours > 0) {
         timeUntil = `${hours}h ${minutes}m`;
       } else if (minutes > 0) {
