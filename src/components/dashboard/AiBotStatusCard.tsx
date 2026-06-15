@@ -78,13 +78,13 @@ export const AiBotStatusCard: React.FC = () => {
             <span className="text-muted-foreground">Auto-booking enabled</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <Activity className="h-4 w-4 text-blue-500" />
+            <Activity className="h-4 w-4 text-emerald-500" />
             <span className="text-muted-foreground">Calendar sync active</span>
           </div>
           {botStatus?.last_bot_activity && (
             <div className="flex items-center gap-3 text-sm">
               <div className="h-4 w-4 flex items-center justify-center">
-                <div className="h-2 w-2 bg-blue-500 rounded-full" />
+                <div className="h-2 w-2 bg-emerald-500 rounded-full" />
               </div>
               <span className="text-muted-foreground">
                 Laatste activiteit: {formatDistanceToNow(new Date(botStatus.last_bot_activity), { 

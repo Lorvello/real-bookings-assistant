@@ -79,7 +79,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
             <span className="text-foreground font-semibold">{label}</span>
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <Users className="h-4 w-4 text-blue-400" />
+            <Users className="h-4 w-4 text-emerald-400" />
             <span className="text-foreground">{bookings} appointments</span>
           </div>
           <div className="text-sm text-foreground mt-2 px-2 py-1 bg-card/50 rounded">

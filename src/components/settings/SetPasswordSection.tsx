@@ -118,14 +118,14 @@ export const SetPasswordSection: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-6">
+    <div className="surface-raised rounded-2xl p-6 mb-6">
       <div className="flex items-start gap-3 mb-4">
-        <div className="p-2 bg-primary/10 rounded-lg">
+        <div className="p-2 bg-primary/10 ring-1 ring-primary/20 rounded-xl">
           <Lock className="h-5 w-5 text-accent-foreground" />
         </div>
         <div>
-          <h3 className="text-lg font-medium text-white">Add Email/Password Login</h3>
-          <p className="text-sm text-gray-400 mt-1">
+          <h3 className="text-lg font-medium text-foreground">Add Email/Password Login</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Your account was created with Google. Add a password to also sign in with your email address.
           </p>
         </div>
@@ -140,7 +140,7 @@ export const SetPasswordSection: React.FC = () => {
 
       <div className="space-y-4">
         <div>
-          <Label className="block text-sm font-medium text-gray-300 mb-2">
+          <Label className="block text-sm font-medium text-muted-foreground mb-2">
             New Password
           </Label>
           <div className="relative">
@@ -148,24 +148,24 @@ export const SetPasswordSection: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white pr-10"
+              className="pr-10"
               placeholder="Enter a strong password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle-foreground hover:text-foreground transition-colors"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-subtle-foreground mt-1">
             At least 8 characters, including uppercase, lowercase, and a number
           </p>
         </div>
 
         <div>
-          <Label className="block text-sm font-medium text-gray-300 mb-2">
+          <Label className="block text-sm font-medium text-muted-foreground mb-2">
             Confirm Password
           </Label>
           <div className="relative">
@@ -173,13 +173,13 @@ export const SetPasswordSection: React.FC = () => {
               type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-white pr-10"
+              className="pr-10"
               placeholder="Confirm your password"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-subtle-foreground hover:text-foreground transition-colors"
             >
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -189,7 +189,7 @@ export const SetPasswordSection: React.FC = () => {
         <Button
           onClick={handleSetPassword}
           disabled={isSubmitting || !password || !confirmPassword}
-          className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+          className="w-full sm:w-auto"
         >
           {isSubmitting ? (
             <>

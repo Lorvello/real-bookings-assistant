@@ -150,7 +150,7 @@ export const SettingsLayout = () => {
           match the shell, with zero effect on hardcoded gray-* elements or any page
           outside Settings. This is the foundation for migrating the remaining
           gray-hardcoded tabs onto tokens. */}
-      <div className="dark min-h-screen bg-gray-900 p-2 md:p-8">
+      <div className="dark min-h-screen bg-background p-2 md:p-8">
         <SimplePageHeader title="Settings" />
         <SettingsTabs />
       </div>

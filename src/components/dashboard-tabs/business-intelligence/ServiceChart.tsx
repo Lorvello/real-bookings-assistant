@@ -135,14 +135,14 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
           <BarChart data={dataWithPercentages} margin={{ top: 20, right: 40, left: 20, bottom: 80 }}>
             <defs>
               <linearGradient id="enhancedRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(16, 185, 129)" stopOpacity={0.9} />
-                <stop offset="50%" stopColor="rgb(16, 185, 129)" stopOpacity={0.7} />
-                <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity={0.3} />
+                <stop offset="0%" stopColor="rgb(240, 188, 61)" stopOpacity={0.9} />
+                <stop offset="50%" stopColor="rgb(240, 188, 61)" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="rgb(240, 188, 61)" stopOpacity={0.3} />
               </linearGradient>
               <linearGradient id="enhancedBookingGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity={0.9} />
-                <stop offset="50%" stopColor="rgb(59, 130, 246)" stopOpacity={0.7} />
-                <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity={0.3} />
+                <stop offset="0%" stopColor="rgb(34, 197, 134)" stopOpacity={0.9} />
+                <stop offset="50%" stopColor="rgb(34, 197, 134)" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="rgb(34, 197, 134)" stopOpacity={0.3} />
               </linearGradient>
             </defs>
             
@@ -169,14 +169,14 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               yAxisId="bookings"
               orientation="left"
               domain={[0, bookingScaleMax]}
-              tick={{ fill: 'rgb(59, 130, 246)', fontSize: 12, fontWeight: 500 }}
-              axisLine={{ stroke: 'rgb(59, 130, 246)', strokeWidth: 2, opacity: 0.8 }}
-              tickLine={{ stroke: 'rgb(59, 130, 246)', strokeWidth: 1, opacity: 0.6 }}
+              tick={{ fill: 'rgb(34, 197, 134)', fontSize: 12, fontWeight: 500 }}
+              axisLine={{ stroke: 'rgb(34, 197, 134)', strokeWidth: 2, opacity: 0.8 }}
+              tickLine={{ stroke: 'rgb(34, 197, 134)', strokeWidth: 1, opacity: 0.6 }}
               label={{ 
                 value: 'Number of Bookings', 
                 angle: -90, 
                 position: 'insideLeft',
-                style: { textAnchor: 'middle', fill: 'rgb(59, 130, 246)', fontSize: 12, fontWeight: 600 }
+                style: { textAnchor: 'middle', fill: 'rgb(34, 197, 134)', fontSize: 12, fontWeight: 600 }
               }}
             />
             
@@ -184,14 +184,14 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               yAxisId="revenue"
               orientation="right"
               domain={[0, revenueScaleMax]}
-              tick={{ fill: 'rgb(16, 185, 129)', fontSize: 12, fontWeight: 500 }}
-              axisLine={{ stroke: 'rgb(16, 185, 129)', strokeWidth: 2, opacity: 0.8 }}
-              tickLine={{ stroke: 'rgb(16, 185, 129)', strokeWidth: 1, opacity: 0.6 }}
+              tick={{ fill: 'rgb(240, 188, 61)', fontSize: 12, fontWeight: 500 }}
+              axisLine={{ stroke: 'rgb(240, 188, 61)', strokeWidth: 2, opacity: 0.8 }}
+              tickLine={{ stroke: 'rgb(240, 188, 61)', strokeWidth: 1, opacity: 0.6 }}
               label={{ 
                 value: 'Revenue (€)', 
                 angle: 90, 
                 position: 'insideRight',
-                style: { textAnchor: 'middle', fill: 'rgb(16, 185, 129)', fontSize: 12, fontWeight: 600 }
+                style: { textAnchor: 'middle', fill: 'rgb(240, 188, 61)', fontSize: 12, fontWeight: 600 }
               }}
             />
             
@@ -212,7 +212,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               radius={[6, 6, 0, 0]}
               name="Number of Bookings"
               strokeWidth={1}
-              stroke="rgba(59, 130, 246, 0.3)"
+              stroke="rgba(34, 197, 134, 0.3)"
             />
             
             <Bar 
@@ -222,7 +222,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               radius={[6, 6, 0, 0]}
               name="Revenue (€)"
               strokeWidth={1}
-              stroke="rgba(16, 185, 129, 0.3)"
+              stroke="rgba(240, 188, 61, 0.3)"
             />
           </BarChart>
         </ResponsiveContainer>
