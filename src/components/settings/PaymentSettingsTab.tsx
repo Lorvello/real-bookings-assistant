@@ -637,7 +637,7 @@ export function PaymentSettingsTab() {
             {settings?.secure_payments_enabled && !isStripeSetupComplete && (
               <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg">
                 <div className="flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertCircle className="h-4 w-4 text-warning-foreground" />
                   <p className="text-sm text-warning-foreground">
                     {hasStripeAccount ? "Complete your Stripe account setup to enable Pay & Book" : "Connect your Stripe account to enable Pay & Book"}
                   </p>
@@ -756,11 +756,11 @@ export function PaymentSettingsTab() {
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                     <span className="flex items-center space-x-1">
-                      {stripeAccount.charges_enabled ? <CheckCircle className="h-3 w-3 text-success-foreground" /> : <AlertCircle className="h-3 w-3 text-amber-600" />}
+                      {stripeAccount.charges_enabled ? <CheckCircle className="h-3 w-3 text-success-foreground" /> : <AlertCircle className="h-3 w-3 text-warning-foreground" />}
                       <span>Charges {stripeAccount.charges_enabled ? 'Enabled' : 'Disabled'}</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      {stripeAccount.payouts_enabled ? <CheckCircle className="h-3 w-3 text-success-foreground" /> : <AlertCircle className="h-3 w-3 text-amber-600" />}
+                      {stripeAccount.payouts_enabled ? <CheckCircle className="h-3 w-3 text-success-foreground" /> : <AlertCircle className="h-3 w-3 text-warning-foreground" />}
                       <span>Payouts {stripeAccount.payouts_enabled ? 'Enabled' : 'Disabled'}</span>
                     </span>
                   </div>
@@ -783,7 +783,7 @@ export function PaymentSettingsTab() {
 
               {!stripeAccount.onboarding_completed && <div className="bg-muted/50 p-3 rounded-lg">
                   <div className="flex items-start space-x-3">
-                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                    <AlertCircle className="h-4 w-4 text-warning-foreground mt-0.5" />
                     <div>
                       <p className="text-sm font-medium">Setup Incomplete</p>
                       <p className="text-xs text-muted-foreground mb-2">
