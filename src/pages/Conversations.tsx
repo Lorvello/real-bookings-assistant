@@ -142,7 +142,7 @@ const ConversationsContent = () => {
         </div>
 
         {/* Dashboard - takes remaining space */}
-        <div className="flex-1 min-h-0 bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl overflow-hidden">
+        <div className="flex-1 min-h-0 surface-raised rounded-xl overflow-hidden">
           <WhatsAppDashboard calendarId={selectedCalendarId} />
         </div>
       </div>

@@ -46,8 +46,8 @@ const Profile = () => {
     <DashboardLayout>
       <div className="bg-background min-h-full p-3 md:p-8">
         <div className="mb-4 md:mb-8">
-          <div className="bg-card/90 border border-white/[0.08]/50 rounded-2xl shadow-lg p-3 md:p-6">
-            <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2">
+          <div className="surface-raised rounded-2xl p-3 md:p-6">
+            <h1 className="text-lg md:text-3xl font-semibold tracking-[-0.02em] text-foreground mb-1 md:mb-2">
               Profile
             </h1>
             <p className="text-muted-foreground text-xs md:text-base">
