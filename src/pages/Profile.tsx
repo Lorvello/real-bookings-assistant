@@ -30,7 +30,7 @@ const Profile = () => {
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-background">
           <div className="text-center">
-            <div className="w-8 h-8 bg-cyan-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
             <div className="text-lg text-foreground">Loading Profile...</div>
           </div>
         </div>
@@ -56,7 +56,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 md:p-6 border border-white/[0.08]">
+        <div className="surface-raised rounded-xl p-3 md:p-6">
           <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-6">Account Information</h2>
           
           <div className="space-y-3 md:space-y-4">
@@ -95,8 +95,8 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 md:p-6 border border-white/[0.08] mt-4 md:mt-6">
-          <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-2">Jouw QR-code</h2>
+        <div className="surface-raised rounded-xl p-3 md:p-6 mt-4 md:mt-6">
+          <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-2">Your QR code</h2>
           {profileLoading ? (
             <div className="h-40 bg-background/60 border border-white/[0.08] rounded-lg animate-pulse" />
           ) : (

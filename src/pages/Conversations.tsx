@@ -92,9 +92,11 @@ const ConversationsContent = () => {
             <SimplePageHeader title="WhatsApp" />
             
             {calendars.length > 0 ? (
-              <Card className="bg-card border-white/[0.08]">
+              <Card>
                 <CardHeader className="text-center py-12">
-                  <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                    <CalendarIcon className="h-6 w-6 text-accent-foreground" />
+                  </div>
                   <CardTitle className="text-foreground">Select a calendar</CardTitle>
                   <CardDescription className="text-muted-foreground">
                     Choose a calendar to view your WhatsApp conversations
@@ -116,9 +118,11 @@ const ConversationsContent = () => {
                 </CardHeader>
               </Card>
             ) : (
-              <Card className="bg-card border-white/[0.08]">
+              <Card>
                 <CardHeader className="text-center py-12">
-                  <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                    <AlertCircle className="h-6 w-6 text-accent-foreground" />
+                  </div>
                   <CardTitle className="text-foreground">No calendars found</CardTitle>
                   <CardDescription className="text-muted-foreground">
                     You haven't created any calendars yet.

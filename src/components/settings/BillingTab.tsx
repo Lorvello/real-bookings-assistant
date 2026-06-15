@@ -309,7 +309,7 @@ export const BillingTab: React.FC = () => {
       {/* Current Plan & Subscription Usage - Combined Top Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Current Plan */}
-        <Card className="bg-card border-border">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-foreground flex items-center gap-2">
@@ -443,11 +443,11 @@ export const BillingTab: React.FC = () => {
         </Card>
 
         {/* Subscription Usage */}
-        <UsageSummary className="bg-card border-border" />
+        <UsageSummary className="" />
       </div>
 
       {/* Billing History - Middle Section */}
-      <Card className="bg-card border-border">
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-foreground flex items-center gap-2">
@@ -567,7 +567,7 @@ export const BillingTab: React.FC = () => {
       </Card>
 
       {/* Available Plans - Bottom Section */}
-      <Card id="available-plans" className="bg-card border-border">
+      <Card id="available-plans">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -637,10 +637,10 @@ export const BillingTab: React.FC = () => {
               return (
                 <div 
                   key={tier.id} 
-                  className={`border rounded-lg p-6 relative ${
-                    isCurrentPlan 
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border bg-background'
+                  className={`surface-raised rounded-lg p-6 relative ${
+                    isCurrentPlan
+                      ? 'glow-accent ring-1 ring-primary/30'
+                      : ''
                   }`}
                 >
                   {isCurrentPlan && (
