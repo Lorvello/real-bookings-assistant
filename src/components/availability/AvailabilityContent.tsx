@@ -198,7 +198,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
             <Button
               onClick={() => setIsCalendarDialogOpen(true)}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8"
+              className=" font-medium px-8"
             >
               <Settings className="w-5 h-5 mr-2" />
               Create Calendar

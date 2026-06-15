@@ -346,7 +346,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           }}
         >
           <div 
-            className="bg-card border border-border rounded-2xl shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] w-full max-w-md transform transition-colors duration-150 animate-in fade-in-0 zoom-in-95 relative"
+            className="glass rounded-2xl w-full max-w-md transform transition-colors duration-150 animate-in fade-in-0 zoom-in-95 relative"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}

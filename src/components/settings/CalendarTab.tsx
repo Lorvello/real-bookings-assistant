@@ -19,7 +19,7 @@ export function CalendarTab() {
 
   // Always show Global Settings regardless of calendar selection
   const renderGlobalSettings = () => (
-    <Card className="border-border">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-foreground">Global Settings</CardTitle>
       </CardHeader>
@@ -33,7 +33,7 @@ export function CalendarTab() {
   // full editor lives on /availability; opening_hours genuinely reaches the WhatsApp
   // agent, so it directly shapes the slots customers are offered.
   const renderAvailabilityCard = () => (
-    <Card className="border-border">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
           <Clock className="h-5 w-5 text-muted-foreground" />
@@ -69,7 +69,10 @@ export function CalendarTab() {
       <div className="space-y-6">
         {renderGlobalSettings()}
         <Separator />
-        <div className="text-center mb-6">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="glow-accent relative mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+            <Settings className="h-6 w-6 text-accent-foreground" />
+          </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">Select a Calendar</h3>
           <p className="text-muted-foreground">
             Choose a calendar to manage its operations settings.

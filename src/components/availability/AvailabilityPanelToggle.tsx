@@ -11,7 +11,7 @@ export function AvailabilityPanelToggle({ isExpanded, onToggle }: AvailabilityPa
   return (
     <button
       onClick={onToggle}
-      className={`fixed top-1/2 -translate-y-1/2 z-20 bg-primary hover:bg-primary/90 text-primary-foreground p-2 rounded-l-lg shadow-lg transition-all duration-300 ${
+      className={`fixed top-1/2 -translate-y-1/2 z-20  p-2 rounded-l-lg shadow-lg transition-all duration-300 ${
         isExpanded ? 'right-80' : 'right-0'
       }`}
       title={isExpanded ? 'Collapse Availability' : 'Expand Availability'}

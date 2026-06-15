@@ -26,7 +26,7 @@ export function OverrideManager({ calendarId }: OverrideManagerProps) {
         <h3 className="text-sm font-medium text-foreground">Overrides & Holidays</h3>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-1 px-3 py-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded text-sm font-medium transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1  rounded text-sm font-medium transition-colors"
         >
           <Plus className="h-3 w-3" />
           Add

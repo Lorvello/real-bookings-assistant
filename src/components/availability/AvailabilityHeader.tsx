@@ -58,7 +58,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
             <Button 
               onClick={onSave}
               disabled={!hasUnsavedChanges || loading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl"
+              className=" rounded-2xl"
             >
               {loading ? 'Saving...' : 'Save'}
             </Button>

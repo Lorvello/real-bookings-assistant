@@ -215,7 +215,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="w-6 h-6 bg-primary rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
           <div className="text-base text-muted-foreground">Loading availability...</div>
         </div>
       </div>
@@ -228,7 +228,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
       <div className="max-w-2xl mx-auto">
         <Card className="surface-raised">
           <CardHeader className="text-center pb-6">
-            <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-primary/10 ring-1 ring-primary/20 rounded-2xl glow-accent flex items-center justify-center mx-auto mb-6">
               <Clock className="w-10 h-10 text-primary" />
             </div>
             <CardTitle className="text-2xl font-semibold text-foreground mb-3">
@@ -242,7 +242,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
           <CardContent className="text-center">
             <Button 
               onClick={createDefaultSchedule}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-medium transition-all duration-200"
+              className=" px-8 py-3 text-lg font-medium transition-all duration-200"
             >
               Start Configuration
             </Button>
@@ -297,7 +297,7 @@ export const StepByStepDayConfiguration: React.FC<StepByStepDayConfigurationProp
         {/* Progress Bar */}
         <div className="w-full bg-muted/50 rounded-full h-2">
           <div 
-            className="bg-primary h-2 rounded-full transition-all duration-500"
+            className="bg-gradient-to-r from-primary/60 to-primary h-2 rounded-full shadow-[0_0_12px_-2px_hsl(var(--primary)/0.6)] transition-all duration-500"
             style={{ width: `${((currentDayIndex + 1) / DAYS.length) * 100}%` }}
           />
         </div>

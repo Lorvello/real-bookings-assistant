@@ -214,7 +214,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               <Button
                 onClick={addOverride}
                 disabled={!selectedDate}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl"
+                className=" rounded-2xl"
               >
                 Add Exception
               </Button>
