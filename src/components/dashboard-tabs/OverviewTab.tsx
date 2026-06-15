@@ -158,8 +158,19 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                     {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
                     {Math.abs(weeklyInsights.growth_percentage)}%
                   </div>
-                  <div className="text-xs md:text-sm text-muted-foreground font-medium truncate">
-                    {weeklyInsights.trend === 'up' ? '↗️ Rising' : weeklyInsights.trend === 'down' ? '↘️ Falling' : 'Stable'} • vs last week
+                  <div className="flex items-center gap-1.5 text-xs md:text-sm font-medium truncate">
+                    {weeklyInsights.trend === 'up' ? (
+                      <span className="flex items-center gap-1 text-success-foreground">
+                        <TrendingUp className="h-3 w-3 md:h-4 md:w-4" /> Rising
+                      </span>
+                    ) : weeklyInsights.trend === 'down' ? (
+                      <span className="flex items-center gap-1 text-destructive-foreground">
+                        <TrendingDown className="h-3 w-3 md:h-4 md:w-4" /> Falling
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">Stable</span>
+                    )}
+                    <span className="text-subtle-foreground hidden md:inline">vs last week</span>
                   </div>
                 </>
               ) : (

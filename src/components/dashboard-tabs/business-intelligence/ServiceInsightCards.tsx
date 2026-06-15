@@ -39,7 +39,7 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
                 <span className="text-sm font-medium text-muted-foreground">Populairste Service</span>
               </div>
               <p className="text-lg font-semibold text-foreground">{topBookingService.service_name}</p>
-              <p className="text-sm text-muted-foreground">{topBookingService.booking_count} boekingen</p>
+              <p className="text-sm text-muted-foreground">{topBookingService.booking_count} bookings</p>
               <div className="absolute top-2 right-2 p-1 rounded-full bg-white/[0.04]">
                 <Info className="h-3 w-3 text-subtle-foreground hover:text-foreground transition-colors" />
               </div>

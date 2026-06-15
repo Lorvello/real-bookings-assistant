@@ -58,7 +58,7 @@ export function ChartTooltip({ active, payload, label }: any) {
           {data?.avg_price && (
             <div className="border-t border-white/[0.08] pt-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Gemiddelde prijs</span>
+                <span className="text-xs text-muted-foreground">Average price</span>
                 <span className="text-sm font-semibold text-foreground">
                   €{Number(data.avg_price).toFixed(2)}
                 </span>

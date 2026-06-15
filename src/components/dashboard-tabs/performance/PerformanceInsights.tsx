@@ -24,16 +24,16 @@ export function PerformanceInsights({
 
   const getNoShowInsight = () => {
     if (noShowRate === undefined) return "No no-show data available yet.";
-    if (noShowRate < 5) return "Lage no-show rate toont goede klantbetrokkenheid.";
-    if (noShowRate < 15) return "Gemiddelde no-show rate, overweeg herinneringen te versturen.";
-    return "Hoge no-show rate - versterk je reminder systeem.";
+    if (noShowRate < 5) return "Low no-show rate shows strong customer engagement.";
+    if (noShowRate < 15) return "Average no-show rate, consider sending reminders.";
+    return "High no-show rate, strengthen your reminder system.";
   };
 
   const getCancellationInsight = () => {
     if (cancellationRate === undefined) return "No cancellation data available yet.";
     if (cancellationRate < 10) return "Low cancellation rate shows satisfied customers.";
-    if (cancellationRate < 25) return "Gemiddelde annuleringsrate, monitor trends.";
-    return "Hoge annuleringsrate - analyseer mogelijke oorzaken.";
+    if (cancellationRate < 25) return "Average cancellation rate, monitor trends.";
+    return "High cancellation rate, analyze possible causes.";
   };
 
   const getUtilizationInsight = () => {
@@ -51,7 +51,7 @@ export function PerformanceInsights({
       variant: "blue" as const
     },
     {
-      title: "No-show Preventie",
+      title: "No-show Prevention",
       insight: getNoShowInsight(),
       icon: AlertTriangle,
       variant: "blue" as const
@@ -63,7 +63,7 @@ export function PerformanceInsights({
       variant: "blue" as const
     },
     {
-      title: "Capaciteit Optimalisatie",
+      title: "Capacity Optimization",
       insight: getUtilizationInsight(),
       icon: Target,
       variant: "green" as const

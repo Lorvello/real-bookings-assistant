@@ -20,7 +20,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
       {/* Peak Hours */}
       <div className="space-y-3">
         <h4 className="font-semibold text-foreground flex items-center gap-2">
-          🔥 Drukste Uren
+          Busiest Hours
         </h4>
         <div className="space-y-2">
           {peakHours.map((hour, index) => (
@@ -38,7 +38,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
                 <span className="font-medium text-foreground">{hour.hour}:00 - {hour.hour + 1}:00</span>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-rose-400">{hour.count} boekingen</p>
+                <p className="font-semibold text-rose-400">{hour.count} bookings</p>
                 {hour.revenue && hour.revenue > 0 && (
                   <p className="text-xs text-rose-400">€{hour.revenue.toFixed(2)}</p>
                 )}
@@ -51,7 +51,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
       {/* Quiet Hours */}
       <div className="space-y-3">
         <h4 className="font-semibold text-foreground flex items-center gap-2">
-          😌 Rustige Uren
+          Quiet Hours
         </h4>
         <div className="space-y-2">
           {quietHours.map((hour, index) => (
@@ -69,7 +69,7 @@ export function PeakHoursInsights({ peakHours, quietHours }: PeakHoursInsightsPr
                 <span className="font-medium text-foreground">{hour.hour}:00 - {hour.hour + 1}:00</span>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-emerald-400">{hour.count} boekingen</p>
+                <p className="font-semibold text-emerald-400">{hour.count} bookings</p>
                 {hour.revenue && hour.revenue > 0 && (
                   <p className="text-xs text-emerald-400">€{hour.revenue.toFixed(2)}</p>
                 )}
