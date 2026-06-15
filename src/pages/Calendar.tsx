@@ -105,13 +105,13 @@ const Calendar = () => {
 
           {/* Read-only mode warning for expired/inactive users */}
           {(userStatus.isExpired || !accessControl.canEditBookings) && (
-            <Alert className="mb-4 border-yellow-600 bg-yellow-600/10">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-600">
+            <Alert className="mb-4 border-warning/30 bg-warning/10">
+              <AlertCircle className="h-4 w-4 text-warning-foreground" />
+              <AlertDescription className="text-warning-foreground">
                 Read-only mode - Your {userStatus.userType === 'expired_trial' ? 'trial has expired' : 'subscription is inactive'}.{' '}
                 <Button 
                   variant="link" 
-                  className="text-yellow-600 underline p-0 ml-1 h-auto font-semibold"
+                  className="text-warning-foreground underline p-0 ml-1 h-auto font-semibold"
                   onClick={() => navigate('/settings?tab=billing')}
                 >
                   Upgrade now

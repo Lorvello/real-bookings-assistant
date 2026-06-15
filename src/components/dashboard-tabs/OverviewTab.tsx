@@ -65,7 +65,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 Next Appointment
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
-                <Clock className="h-2 w-2 md:h-6 md:w-6 text-cyan-400" />
+                <Clock className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
               </div>
             </div>
             
@@ -106,7 +106,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 Popular Service
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-2 w-2 md:h-6 md:w-6 text-cyan-400" />
+                <TrendingUp className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
               </div>
             </div>
             
@@ -147,7 +147,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 Weekly Growth
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
-                <BarChart3 className="h-2 w-2 md:h-6 md:w-6 text-cyan-400" />
+                <BarChart3 className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
               </div>
             </div>
             
