@@ -1134,7 +1134,7 @@ export function PaymentSettingsTab() {
                       {/* Pay Now - Always enabled, not toggleable */}
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <div className="w-2 h-2 rounded-full bg-success" />
                           <div>
                             <span className="text-foreground font-medium">Pay Now</span>
                             <p className="text-sm text-muted-foreground">Pay online immediately</p>
