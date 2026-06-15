@@ -287,7 +287,7 @@ export const BillingTab: React.FC = () => {
     return (
       <div className="space-y-8">
         <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
         </div>
       </div>
     );
@@ -469,7 +469,7 @@ export const BillingTab: React.FC = () => {
         <CardContent>
           {billingLoading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary/30 border-t-primary"></div>
               <p className="text-muted-foreground text-sm mt-2">Loading billing history...</p>
             </div>
           ) : (billingData?.billing_history && Array.isArray(billingData.billing_history) && billingData.billing_history.length > 0) ? (

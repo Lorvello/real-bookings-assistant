@@ -153,7 +153,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                     <Tooltip delayDuration={0}>
                       <TooltipTrigger asChild>
                         <div
-                          className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-colors duration-150 relative tabular-nums ${
+                          className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-lg transition-colors duration-150 relative tabular-nums ${
                             isCurrentMonth
                               ? 'bg-primary text-primary-foreground font-semibold cursor-pointer'
                               : 'text-muted-foreground/50'
@@ -199,7 +199,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-xl transition-colors duration-150 tabular-nums ${
+                    className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-lg transition-colors duration-150 tabular-nums ${
                       isCurrentMonth
                         ? hasBookings
                           ? 'bg-primary text-primary-foreground font-semibold cursor-pointer'
@@ -231,7 +231,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
       </div>
       
       {/* Year summary */}
-      <div className="surface-raised rounded-xl p-3 sm:p-8">
+      <div className="surface-raised rounded-2xl p-3 sm:p-8">
         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-6">
           <div className="p-1.5 sm:p-3 bg-primary/20 rounded-2xl">
             <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />

@@ -59,7 +59,7 @@ export function CalendarHeader({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         {/* Left Section - Title & Navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center space-x-3 px-3 py-2 bg-muted/50 rounded-lg border border-border">
+          <div className="flex items-center space-x-3 px-3 py-2 bg-muted/50 rounded-lg border border-white/[0.06]">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             
             <div>
@@ -73,7 +73,7 @@ export function CalendarHeader({
           </div>
 
           {/* Navigation Controls */}
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border">
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-white/[0.06]">
             <Button
               variant="ghost"
               size="icon"
@@ -110,7 +110,7 @@ export function CalendarHeader({
           )}
 
           {/* View Switcher */}
-          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border order-1 sm:order-none">
+          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-white/[0.06] order-1 sm:order-none">
             {(['month', 'week', 'year'] as const).map((view) => (
               <Button
                 key={view}
