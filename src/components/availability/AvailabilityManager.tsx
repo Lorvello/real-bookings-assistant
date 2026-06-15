@@ -74,7 +74,7 @@ export const AvailabilityManager = () => {
   if (userStatus.isExpired || !accessControl.canEditBookings) {
     return (
       <>
-        <div className="surface-raised rounded-lg p-8">
+        <div className="surface-raised rounded-xl p-8">
           <AccessBlockedOverlay
             userStatus={userStatus}
             feature="Availability Settings"
@@ -90,7 +90,7 @@ export const AvailabilityManager = () => {
             onTabChange={setActiveTab}
           />
 
-          <div className="surface-raised rounded-lg p-4">
+          <div className="surface-raised rounded-xl p-4">
             <AvailabilityContent
               activeTab={activeTab}
             />
@@ -113,7 +113,7 @@ export const AvailabilityManager = () => {
         onTabChange={setActiveTab}
       />
 
-      <div className="surface-raised rounded-lg p-4">
+      <div className="surface-raised rounded-xl p-4">
         <AvailabilityContent
           activeTab={activeTab}
         />

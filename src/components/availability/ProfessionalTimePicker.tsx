@@ -462,7 +462,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                   // PHASE 3: Simplified close without immediate onChange - let parent handle save
                   onClose();
                 }}
-                className="bg-primary hover:bg-primary/90 transition-colors duration-150 min-w-[80px]"
+                className=" transition-colors duration-150 min-w-[80px]"
               >
                 Done
               </Button>

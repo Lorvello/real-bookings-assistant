@@ -225,8 +225,10 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
       {/* Existing Overrides */}
       {loading ? (
-        <div className="text-center py-4">
-          <div className="text-sm text-muted-foreground">Loading overrides...</div>
+        <div className="space-y-3">
+          {[0, 1].map((i) => (
+            <div key={i} className="surface-raised shimmer rounded-xl h-16" />
+          ))}
         </div>
       ) : overrides.length > 0 ? (
         <div className="space-y-4">

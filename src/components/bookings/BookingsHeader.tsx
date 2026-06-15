@@ -11,7 +11,7 @@ export function BookingsHeader() {
     : selectedCalendar?.name || 'My Bookings';
 
   return (
-    <div className="surface-raised rounded-lg p-3 md:p-6">
+    <div className="surface-raised rounded-xl p-3 md:p-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-lg md:text-3xl font-semibold text-foreground">{displayTitle}</h1>

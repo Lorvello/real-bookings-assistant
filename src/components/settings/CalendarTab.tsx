@@ -5,7 +5,7 @@ import { CalendarSettings } from '@/components/CalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock } from 'lucide-react';
+import { Clock, Settings } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { CalendarSelectionCard } from './CalendarSelectionCard';
