@@ -668,7 +668,7 @@ export const UserManagement = ({
                             </TableCell>
                             <TableCell>
                               {user.role === 'owner' ? (
-                                <Badge variant="secondary" className="bg-blue-900/30 text-blue-400 border-blue-700">
+                                <Badge variant="secondary" className="bg-primary/10 text-accent-foreground border-primary/20">
                                   Owner
                                 </Badge>
                               ) : user.type === 'invitation' ? (
@@ -679,7 +679,7 @@ export const UserManagement = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleResendInvitation(user.id)}
-                                        className="h-8 px-2 border-blue-700 text-blue-400 hover:bg-blue-900/30"
+                                        className="h-8 px-2 border-primary/20 text-accent-foreground hover:bg-primary/10"
                                         title="Resend invitation"
                                       >
                                         <RotateCcw className="h-3 w-3" />
@@ -700,7 +700,7 @@ export const UserManagement = ({
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleResendInvitation(user.id)}
-                                      className="h-8 px-2 border-blue-700 text-blue-400 hover:bg-blue-900/30"
+                                      className="h-8 px-2 border-primary/20 text-accent-foreground hover:bg-primary/10"
                                       title="Resend invitation"
                                     >
                                       <RotateCcw className="h-3 w-3 mr-1" />

@@ -120,8 +120,8 @@ export const SetPasswordSection: React.FC = () => {
   return (
     <div className="bg-gray-900 rounded-lg p-6 border border-gray-700 mb-6">
       <div className="flex items-start gap-3 mb-4">
-        <div className="p-2 bg-blue-900/30 rounded-lg">
-          <Lock className="h-5 w-5 text-blue-400" />
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <Lock className="h-5 w-5 text-accent-foreground" />
         </div>
         <div>
           <h3 className="text-lg font-medium text-white">Add Email/Password Login</h3>
@@ -131,9 +131,9 @@ export const SetPasswordSection: React.FC = () => {
         </div>
       </div>
 
-      <Alert className="bg-blue-900/20 border-blue-700 mb-4">
-        <Info className="h-4 w-4 text-blue-400" />
-        <AlertDescription className="text-blue-200">
+      <Alert className="bg-primary/10 border-primary/20 mb-4">
+        <Info className="h-4 w-4 text-accent-foreground" />
+        <AlertDescription className="text-accent-foreground">
           After setting a password, you can sign in with either Google or your email/password.
         </AlertDescription>
       </Alert>

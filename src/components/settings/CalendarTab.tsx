@@ -89,10 +89,10 @@ export function CalendarTab() {
       
       {/* Auto-save indicator */}
       {saving && (
-        <div className="flex items-center justify-center bg-blue-800/90 border border-blue-700/50 rounded-2xl shadow-lg p-3">
+        <div className="glow-accent flex items-center justify-center glass rounded-2xl p-3">
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-            <p className="text-blue-200 text-sm">Saving...</p>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            <p className="text-accent-foreground text-sm font-medium">Saving…</p>
           </div>
         </div>
       )}

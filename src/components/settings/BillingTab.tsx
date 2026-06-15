@@ -394,7 +394,7 @@ export const BillingTab: React.FC = () => {
                           {userStatus.userType === 'canceled_subscriber' ? 'Access Until' : 'Next Billing'}
                         </span>
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-blue-400" />
+                          <Calendar className="w-3 h-3 text-accent-foreground" />
                           <span className="text-foreground text-sm font-medium">
                             {getBillingTimelineData().nextBilling}
                           </span>
