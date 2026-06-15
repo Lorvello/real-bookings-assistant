@@ -36,7 +36,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
   return (
     <Card 
       key={booking.id} 
-      className="bg-card border-white/[0.08] cursor-pointer hover:bg-white/[0.06] transition-colors"
+      className="surface-raised cursor-pointer"
       onClick={() => onBookingClick(booking)}
     >
       <CardHeader className="pb-3">
