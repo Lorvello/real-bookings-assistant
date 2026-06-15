@@ -46,7 +46,7 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
   const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
 
   return (
-    <Card className="border-border">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -58,9 +58,9 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
           <Button 
             onClick={handleNewCalendarClick}
             disabled={!canCreateCalendars}
-            className={canCreateCalendars 
-              ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
-              : "bg-muted text-muted-foreground cursor-not-allowed"
+            className={canCreateCalendars
+              ? ""
+              : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
             }
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -72,7 +72,7 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
         {calendars.length > 0 ? (
           <div className="space-y-4">
             {calendars.map((calendar) => (
-              <div key={calendar.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-border rounded-lg bg-background-secondary space-y-3 sm:space-y-0">
+              <div key={calendar.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-white/[0.06] rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors space-y-3 sm:space-y-0">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">

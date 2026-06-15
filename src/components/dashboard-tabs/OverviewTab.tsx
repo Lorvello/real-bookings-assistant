@@ -9,6 +9,7 @@ import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity,
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { CountUp } from '@/components/ui/CountUp';
 import { motion } from 'framer-motion';
 import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
 import { useMockDataControl } from '@/hooks/useMockDataControl';
@@ -78,7 +79,13 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
   }
 
   return (
-    <div className="space-y-1 md:space-y-8">
+    <div className="relative isolate space-y-1 md:space-y-8">
+      {/* Ambient accent haze across the top of the dashboard — atmosphere (§2) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-6 left-0 right-0 h-44 -z-10"
+        style={{ background: 'radial-gradient(45% 70% at 22% 0%, hsl(var(--primary) / 0.10), transparent 70%)' }}
+      />
       {useMockData && (
         <div className="flex items-center justify-end">
           <Badge variant="secondary" className="bg-muted text-subtle-foreground ring-1 ring-white/[0.06] text-[10px] font-medium uppercase tracking-wider">
@@ -95,12 +102,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5 }}
           className="relative group"
         >
-          <div className="relative bg-card border border-white/[0.08] rounded-lg md:rounded-2xl transition-colors duration-150 h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative glow-accent glow-accent-strong surface-raised rounded-lg md:rounded-2xl h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-semibold text-foreground uppercase tracking-wider">
+              <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
                 Next Appointment
               </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
+              <div className="w-4 h-4 md:w-12 md:h-12 bg-primary/10 ring-1 ring-primary/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <Clock className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
               </div>
             </div>
@@ -108,7 +115,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {nextAppointment ? (
                 <>
-                  <div className="text-xs md:text-4xl font-semibold text-foreground leading-none tabular-nums mb-0 md:mb-2">
+                  <div className="text-xs md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
                     {nextAppointment.time_until}
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium truncate hidden md:block">
@@ -117,7 +124,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-xs md:text-4xl font-semibold text-foreground leading-none tabular-nums mb-0 md:mb-2">
+                  <div className="text-xs md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
                     --:--
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium hidden md:block">
@@ -136,9 +143,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="relative group"
         >
-          <div className="relative bg-card border border-white/[0.08] rounded-lg md:rounded-2xl transition-colors duration-150 h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative surface-raised rounded-lg md:rounded-2xl h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-semibold text-foreground uppercase tracking-wider">
+              <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
                 Popular Service
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
@@ -149,8 +156,8 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {popularService ? (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
-                    {popularService.percentage.toFixed(0)}%
+                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
+                    <CountUp value={popularService.percentage} />%
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium truncate">
                     {popularService.service_name} • {popularService.booking_count} bookings
@@ -158,7 +165,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
                     --%
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium">
@@ -177,9 +184,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="relative group"
         >
-          <div className="relative bg-card border border-white/[0.08] rounded-lg md:rounded-2xl transition-colors duration-150 h-12 md:h-44 p-0.5 md:p-6">
+          <div className="relative surface-raised rounded-lg md:rounded-2xl h-12 md:h-44 p-0.5 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-xs md:text-sm font-semibold text-foreground uppercase tracking-wider">
+              <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
                 Weekly Growth
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-muted/40 rounded-md md:rounded-xl flex items-center justify-center">
@@ -190,9 +197,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             <div className="flex-1 flex flex-col justify-center">
               {weeklyInsights ? (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
                     {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
-                    {Math.abs(weeklyInsights.growth_percentage)}%
+                    <CountUp value={Math.abs(weeklyInsights.growth_percentage)} />%
                   </div>
                   <div className="flex items-center gap-1.5 text-xs md:text-sm font-medium truncate">
                     {weeklyInsights.trend === 'up' ? (
@@ -211,7 +218,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums mb-0.5 md:mb-2">
+                  <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
                     --.--%
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium">
