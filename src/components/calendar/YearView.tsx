@@ -108,7 +108,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
     const monthBookings = getBookingsCountForMonth(month);
 
     return (
-      <div className="group bg-card border border-white/[0.08] rounded-xl p-2 sm:p-4 transition-colors duration-150 hover:border-primary/30">
+      <div className="group surface-raised rounded-xl p-2 sm:p-4 transition-colors duration-150 hover:border-primary/30">
         <div className="text-center mb-2 sm:mb-4">
           <div className="text-sm sm:text-lg font-semibold text-foreground mb-1">
             {format(month, 'MMMM', { locale: enUS })}
@@ -231,7 +231,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
       </div>
       
       {/* Year summary */}
-      <div className="bg-card border border-white/[0.08] rounded-xl p-3 sm:p-8">
+      <div className="surface-raised rounded-xl p-3 sm:p-8">
         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-6">
           <div className="p-1.5 sm:p-3 bg-primary/20 rounded-2xl">
             <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />

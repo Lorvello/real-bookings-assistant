@@ -55,7 +55,7 @@ const Calendar = () => {
             <SimplePageHeader title="Calendar" />
 
             {/* Create Calendar Section */}
-            <div className="bg-card border border-white/[0.07] rounded-lg p-4 sm:p-6 md:p-8">
+            <div className="glow-accent surface-raised rounded-2xl p-4 sm:p-6 md:p-8">
               <div className="text-center space-y-4 sm:space-y-6">
                 <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full flex items-center justify-center">
                   <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
@@ -122,7 +122,7 @@ const Calendar = () => {
           )}
 
           {/* Calendar Content */}
-          <div className="bg-card border border-white/[0.07] rounded-lg p-2 sm:p-3 md:p-4">
+          <div className="p-2 sm:p-3 md:p-4">
             <CalendarView calendarIds={activeCalendarIds} viewingAllCalendars={viewingAllCalendars} />
           </div>
         </div>
