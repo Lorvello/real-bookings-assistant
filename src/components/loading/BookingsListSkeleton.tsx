@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export function BookingsListSkeleton() {
   return (
-    <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl p-6">
+    <div className="surface-raised shimmer rounded-xl p-6">
       <div className="space-y-4">
         {[...Array(5)].map((_, i) => (
           <Card key={i} className="border-border">

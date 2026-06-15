@@ -60,7 +60,7 @@ export function VirtualizedBookingsList({
   }
 
   return (
-    <div className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-xl p-6">
+    <div className="surface-raised rounded-xl p-6">
       {shouldVirtualize ? (
         <div
           ref={parentRef}
