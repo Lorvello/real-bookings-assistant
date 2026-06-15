@@ -21,11 +21,38 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   import('workbox-window').then(({ Workbox }) => {
     const wb = new Workbox('/sw.js');
 
-    // When a new SW takes control, reload once to pull the fresh build.
+    // Cross-reload one-shot guard (mirrors lazyWithRetry / RouteErrorBoundary).
+    // The old in-memory `reloadingForUpdate` flag reset on every page load, so a
+    // service worker that kept taking control on each load (e.g. a stale precache
+    // serving an index.html with dead chunk hashes) would reload forever and lock
+    // the user out. A sessionStorage flag survives the reload and caps us at ONE
+    // SW-update reload per session.
+    const SW_RELOAD_FLAG = 'swUpdateReloadAttempted';
+
+    // If the page stays alive and stable for a bit, we're on a good build — clear
+    // the flag so a genuine future deploy can still get its one allowed reload.
+    // In a real loop the page reloads long before this fires, so the flag sticks
+    // and breaks the loop.
+    window.setTimeout(() => {
+      try { sessionStorage.removeItem(SW_RELOAD_FLAG); } catch { /* ignore */ }
+    }, 10_000);
+
+    // When a NEW sw takes control, reload once to pull the fresh build. Only on a
+    // real update (isUpdate) — never on the first-ever install's clientsClaim —
+    // and at most once per session.
     let reloadingForUpdate = false;
-    wb.addEventListener('controlling', () => {
-      if (reloadingForUpdate) return;
+    wb.addEventListener('controlling', (event) => {
+      if (reloadingForUpdate || !event.isUpdate) return;
+
+      let alreadyReloaded = false;
+      try { alreadyReloaded = sessionStorage.getItem(SW_RELOAD_FLAG) === '1'; } catch { /* ignore */ }
+      if (alreadyReloaded) {
+        secureLogger.error('SW took control again after one update reload — not looping');
+        return;
+      }
+
       reloadingForUpdate = true;
+      try { sessionStorage.setItem(SW_RELOAD_FLAG, '1'); } catch { /* ignore */ }
       window.location.reload();
     });
 
