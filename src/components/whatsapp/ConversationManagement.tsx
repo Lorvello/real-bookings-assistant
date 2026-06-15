@@ -13,7 +13,7 @@ export function ConversationManagement() {
 
   if (isLoading) {
     return (
-      <Card className="bg-card border-border">
+      <Card>
         <CardHeader className="border-b border-border bg-muted/30">
           <CardTitle className="flex items-center gap-2 text-foreground">
             <MessageCircle className="w-5 h-5 text-primary" />
@@ -30,7 +30,7 @@ export function ConversationManagement() {
   }
 
   return (
-    <Card className="bg-card border-border">
+    <Card>
       <CardHeader className="border-b border-border bg-muted/30">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-foreground">

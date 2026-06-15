@@ -108,7 +108,7 @@ export function ScheduleTemplates({
                 Nieuw Schema
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-card border-border">
+            <DialogContent>
               <DialogHeader>
                 <DialogTitle className="text-foreground">Nieuw Schema Maken</DialogTitle>
                 <DialogDescription>

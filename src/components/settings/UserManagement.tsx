@@ -545,7 +545,7 @@ export const UserManagement = ({
                         Add Team Member
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-card border-border">
+                    <DialogContent>
                       <DialogHeader>
                         <DialogTitle className="text-foreground">Add New Team Member</DialogTitle>
                       </DialogHeader>
@@ -578,7 +578,7 @@ export const UserManagement = ({
                             <SelectTrigger className="bg-background border-border text-foreground">
                               <SelectValue placeholder="Select a calendar" />
                             </SelectTrigger>
-                            <SelectContent className="bg-card border-border">
+                            <SelectContent className="glass">
                               {calendars.map((cal) => (
                                 <SelectItem key={cal.id} value={cal.id}>{cal.name}</SelectItem>
                               ))}
@@ -591,7 +591,7 @@ export const UserManagement = ({
                             <SelectTrigger className="bg-background border-border text-foreground">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-card border-border">
+                            <SelectContent className="glass">
                               <SelectItem value="viewer">Viewer - Can only view bookings</SelectItem>
                               <SelectItem value="editor">Editor - Can manage bookings and settings</SelectItem>
                             </SelectContent>
@@ -717,7 +717,7 @@ export const UserManagement = ({
                                     <SelectTrigger className="h-8 w-24 bg-card border-border text-foreground">
                                       <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-card border-border">
+                                    <SelectContent className="glass">
                                       <SelectItem value="viewer">Viewer</SelectItem>
                                       <SelectItem value="editor">Editor</SelectItem>
                                     </SelectContent>
