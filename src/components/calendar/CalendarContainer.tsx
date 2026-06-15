@@ -116,7 +116,7 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   }, [timeRange]);
 
   return (
-    <div className="bg-card rounded-xl border border-white/[0.08] h-full max-h-full flex flex-col overflow-hidden">
+    <div className="surface-raised rounded-xl h-full max-h-full flex flex-col overflow-hidden">
       <CalendarHeader
         currentView={currentView}
         currentDate={currentDate}
