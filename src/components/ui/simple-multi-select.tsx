@@ -109,7 +109,7 @@ export function SimpleMultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="p-0 z-[999] bg-popover border border-border shadow-lg pointer-events-auto" 
+          className="p-0 z-[999] glass pointer-events-auto" 
           align="start"
           style={{ 
             width: triggerRef.current?.offsetWidth || 200,
