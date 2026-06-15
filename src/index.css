@@ -20,11 +20,13 @@
     --foreground: 210 20% 96%;         /* #EEF0F3 primary text */
     --muted-foreground: 215 14% 65%;   /* #A2A9B4 secondary */
     --subtle-foreground: 216 9% 50%;   /* #767C87 tertiary */
-    --primary: 214 100% 48%;           /* #0070F3 accent */
+    --primary: 150 66% 40%;            /* #22AB72 refined brand emerald (was blue #0070F3) */
     --primary-foreground: 0 0% 100%;
-    --accent: 214 90% 52%;
-    --accent-foreground: 214 95% 72%;
-    --ring: 214 100% 56%;
+    --accent: 150 58% 47%;             /* lighter emerald, used at /0.12 as selected wash */
+    --accent-foreground: 150 64% 64%;  /* #5FD8A2 mint — accent text + links */
+    --ring: 150 80% 44%;
+    --gold: 42 90% 56%;                /* #F0BC3D warm-gold secondary (ratings/premium highlight) */
+    --gold-foreground: 44 92% 68%;     /* gold text on dark */
     --highlight: 0 0% 100%;            /* inner top-edge light (used with alpha) */
     --border: 220 9% 18%;
     --input: 220 9% 20%;
@@ -32,25 +34,26 @@
     --success: 142 71% 45%;            --success-foreground: 142 70% 62%;
     --warning: 38 95% 54%;             --warning-foreground: 38 95% 66%;
     --radius: 0.75rem;
-    --chart-1: 214 100% 48%;
+    --chart-1: 150 66% 45%;
     --chart-2: 142 71% 45%;
     --chart-3: 38 95% 54%;
     --chart-4: 262 83% 62%;
     --chart-5: 0 84% 60%;
     --sidebar-background: 224 20% 7%;
     --sidebar-foreground: 215 14% 65%;
-    --sidebar-primary: 214 100% 48%;
+    --sidebar-primary: 150 66% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 16% 12%;
     --sidebar-accent-foreground: 210 20% 96%;
     --sidebar-border: 220 9% 18%;
-    --sidebar-ring: 214 100% 56%;
+    --sidebar-ring: 150 80% 44%;
   }
 
   .dark {
     /* PREMIUM dark token system (see ~/Bookings Assistant/PREMIUM_DESIGN_PLAYBOOK.md
        §2). Depth comes from a layered surface ladder (~+3-4% L per rung), NOT from
-       drop-shadows. One blue accent; green is freed for the "confirmed" status. */
+       drop-shadows. Brand emerald accent (matches the marketing site); warm gold = secondary;
+       success/confirmed shares the green family (differentiate by icon/label/intensity). */
 
     /* surface ladder */
     --background: 224 24% 5%;          /* #0B0D11 canvas */
@@ -68,12 +71,14 @@
     --muted-foreground: 215 14% 65%;   /* #A2A9B4 secondary (7.5:1) */
     --subtle-foreground: 216 9% 50%;   /* #767C87 tertiary / placeholders (4.6:1) */
 
-    /* one accent (blue #0070F3) */
-    --primary: 214 100% 48%;
+    /* brand emerald accent + warm-gold secondary; success/confirmed shares the green family */
+    --primary: 150 66% 40%;            /* #22AB72 refined brand emerald (was blue #0070F3) */
     --primary-foreground: 0 0% 100%;
-    --accent: 214 90% 52%;             /* used at /0.12 as the selected wash */
-    --accent-foreground: 214 95% 72%;  /* #5AA9FF accent text + links */
-    --ring: 214 100% 56%;
+    --accent: 150 58% 47%;             /* used at /0.12 as the selected wash */
+    --accent-foreground: 150 64% 64%;  /* #5FD8A2 accent text + links */
+    --ring: 150 80% 44%;
+    --gold: 42 90% 56%;                /* #F0BC3D warm-gold secondary (ratings/premium highlight) */
+    --gold-foreground: 44 92% 68%;     /* gold text on dark */
     --highlight: 0 0% 100%;            /* inner top-edge light (used with alpha) */
 
     /* hairline fallbacks (prefer border-white/[0.05-0.16] in classes) */
@@ -87,19 +92,19 @@
 
     --radius: 0.75rem;                 /* 12px cards; buttons/inputs derive 8px */
 
-    --chart-1: 214 100% 48%;
+    --chart-1: 150 66% 45%;
     --chart-2: 142 71% 45%;
     --chart-3: 38 95% 54%;
     --chart-4: 262 83% 62%;
     --chart-5: 0 84% 60%;
     --sidebar-background: 224 20% 7%;
     --sidebar-foreground: 215 14% 65%;
-    --sidebar-primary: 214 100% 48%;
+    --sidebar-primary: 150 66% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 16% 12%;
     --sidebar-accent-foreground: 210 20% 96%;
     --sidebar-border: 220 9% 18%;
-    --sidebar-ring: 214 100% 56%;
+    --sidebar-ring: 150 80% 44%;
   }
 }
 
