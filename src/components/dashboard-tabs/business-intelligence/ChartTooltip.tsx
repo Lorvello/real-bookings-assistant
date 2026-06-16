@@ -27,7 +27,7 @@ export function ChartTooltip({ active, payload, label }: any) {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     {entry.dataKey === 'booking_count' ? (
-                      <Users className="h-4 w-4 text-emerald-400" />
+                      <Users className="h-4 w-4 text-accent-foreground" />
                     ) : (
                       <Euro className="h-4 w-4 text-gold" />
                     )}

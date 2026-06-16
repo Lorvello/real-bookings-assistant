@@ -57,10 +57,10 @@ export function ServiceInsightCards({ data }: ServiceInsightCardsProps) {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="relative p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <div className="relative p-4 bg-gold/10 border border-gold/20 rounded-xl">
               <div className="flex items-center gap-3 mb-2">
-                <Euro className="h-4 w-4 text-emerald-400" />
-                <span className="text-sm font-medium text-emerald-400">Highest Revenue</span>
+                <Euro className="h-4 w-4 text-gold-foreground" />
+                <span className="text-sm font-medium text-gold-foreground">Highest Revenue</span>
               </div>
               <p className="text-lg font-semibold text-foreground">{topRevenueService.service_name}</p>
               <p className="text-sm text-muted-foreground">€{maxRevenue.toFixed(2)}</p>

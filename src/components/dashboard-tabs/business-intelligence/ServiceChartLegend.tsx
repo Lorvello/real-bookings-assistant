@@ -11,8 +11,8 @@ export function ServiceChartLegend() {
           <TooltipTrigger asChild>
             <div className="flex items-center gap-3 cursor-help">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-emerald-400" />
-                <div className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded"></div>
+                <Users className="h-4 w-4 text-accent-foreground" />
+                <div className="w-4 h-4 bg-gradient-to-r from-primary to-primary/70 rounded"></div>
               </div>
               <span className="text-sm font-medium text-foreground">Number of Bookings</span>
               <Info className="h-3 w-3 text-muted-foreground" />

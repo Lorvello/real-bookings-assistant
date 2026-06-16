@@ -30,7 +30,7 @@ export function PeakHoursTooltip({ active, payload, label }: PeakHoursTooltipPro
             </div>
             {data.revenue && (
               <div className="flex items-center gap-2">
-                <Euro className="h-3 w-3 text-emerald-400" />
+                <Euro className="h-3 w-3 text-gold-foreground" />
                 <span className="text-foreground">€{data.revenue.toFixed(2)}</span>
               </div>
             )}

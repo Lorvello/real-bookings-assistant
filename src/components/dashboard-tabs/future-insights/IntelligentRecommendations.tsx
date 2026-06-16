@@ -184,7 +184,7 @@ export function IntelligentRecommendations({
     return (
       <div className="text-center py-12">
         <div className="w-16 h-16 mx-auto mb-4 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
-          <Target className="h-8 w-8 text-purple-400" />
+          <Target className="h-8 w-8 text-accent-foreground" />
         </div>
         <p className="text-foreground font-medium mb-2">Everything looks great!</p>
         <p className="text-sm text-muted-foreground">Your performance is strong. We'll keep monitoring the metrics for new opportunities.</p>
@@ -204,10 +204,10 @@ export function IntelligentRecommendations({
         >
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0 w-12 h-12 bg-muted/40 rounded-xl flex items-center justify-center border border-white/[0.08] transition-colors duration-150">
-              <rec.icon className="h-6 w-6 text-purple-400" />
+              <rec.icon className="h-6 w-6 text-accent-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold mb-2 text-purple-300 group-hover:text-purple-200 transition-colors duration-300">
+              <h4 className="font-semibold mb-2 text-foreground group-hover:text-accent-foreground transition-colors duration-300">
                 {rec.title}
               </h4>
               <p className="text-foreground text-sm leading-relaxed mb-4">
@@ -215,13 +215,13 @@ export function IntelligentRecommendations({
               </p>
               {rec.actionItems && (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-purple-400 uppercase tracking-wider">
+                  <p className="text-xs font-medium text-accent-foreground uppercase tracking-wider">
                     Recommended Actions:
                   </p>
                   <ul className="space-y-1">
                     {rec.actionItems.map((action, actionIndex) => (
                       <li key={actionIndex} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="w-1.5 h-1.5 bg-purple-400 rounded-full flex-shrink-0"></div>
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></div>
                         {action}
                       </li>
                     ))}

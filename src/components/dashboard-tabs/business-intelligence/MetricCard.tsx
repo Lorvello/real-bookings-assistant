@@ -63,8 +63,8 @@ export function MetricCard({
             <div className="flex items-center gap-2">
               <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium tabular-nums ring-1 ${
                 change.isPositive
-                  ? 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20'
-                  : 'bg-rose-500/10 text-rose-400 ring-rose-500/20'
+                  ? 'bg-success/10 text-success-foreground ring-success/20'
+                  : 'bg-destructive/10 text-destructive-foreground ring-destructive/20'
               }`}>
                 <change.icon className="h-3 w-3" />
                 <span>

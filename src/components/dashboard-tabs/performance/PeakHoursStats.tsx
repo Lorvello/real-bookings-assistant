@@ -21,11 +21,11 @@ export function PeakHoursStats({ totalBookings, totalRevenue, topPeakHour }: Pea
         </div>
       </div>
 
-      <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
+      <div className="bg-gold/10 rounded-xl p-4 border border-gold/20">
         <div className="flex items-center gap-3">
-          <Euro className="h-8 w-8 text-emerald-400" />
+          <Euro className="h-8 w-8 text-gold-foreground" />
           <div>
-            <p className="text-sm font-medium text-emerald-400">Revenue</p>
+            <p className="text-sm font-medium text-gold-foreground">Revenue</p>
             <p className="text-2xl font-semibold text-foreground">€{totalRevenue.toFixed(2)}</p>
           </div>
         </div>
