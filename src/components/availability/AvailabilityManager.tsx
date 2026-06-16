@@ -31,11 +31,30 @@ export const AvailabilityManager = () => {
     }
   }, [authLoading, user]); // Minimal dependencies
 
-  // Only show loading on INITIAL page load, not on tab switches
+  // Only show loading on INITIAL page load, not on tab switches.
+  // Exact-shape skeleton (weekly-hours rows + timezone panel) instead of a bare spinner,
+  // so the real schedule cross-fades in rather than popping (MEGA_PLAN §3b / DoD §5).
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-background">
-        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
+      <div className="grid gap-6 p-1 md:p-2 lg:grid-cols-3">
+        <div className="surface-raised rounded-xl p-6 lg:col-span-2">
+          <div className="shimmer h-5 w-32 rounded bg-white/[0.06]" />
+          <div className="mt-6 space-y-4">
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="shimmer h-5 w-9 rounded-full bg-white/[0.06]" />
+                <div className="shimmer h-4 w-20 rounded bg-white/[0.05]" />
+                <div className="shimmer ml-auto h-8 w-24 rounded-md bg-white/[0.05]" />
+                <div className="shimmer h-8 w-24 rounded-md bg-white/[0.05]" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="surface-raised rounded-xl p-6">
+          <div className="shimmer h-4 w-24 rounded bg-white/[0.06]" />
+          <div className="shimmer mt-4 h-5 w-40 rounded bg-white/[0.05]" />
+          <div className="shimmer mt-3 h-8 w-20 rounded bg-white/[0.07]" />
+        </div>
       </div>
     );
   }
