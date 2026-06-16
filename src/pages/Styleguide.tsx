@@ -4,7 +4,6 @@ import {
   CalendarDays,
   MessageSquare,
   Settings as SettingsIcon,
-  Loader2,
   Users,
   CalendarCheck,
   TrendingUp,
@@ -25,12 +24,58 @@ import { Badge } from "@/components/ui/badge";
 import { StatusPill } from "@/components/ui/status-pill";
 import { KpiStat } from "@/components/ui/kpi-stat";
 import { NavItem } from "@/components/ui/nav-item";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AnimateIn } from "@/components/ui/AnimateIn";
+import { SkeletonSwap } from "@/components/ui/SkeletonSwap";
 
 /**
  * DESIGN_SPEC §7 — the primitives showcase. Every primitive, every state, on the real
  * dark canvas, so the system can be judged before any screen is rebuilt. Not a product
  * screen; a swatch board. Remove (and the /styleguide route) once the rebuild lands.
  */
+
+function MotionDemo() {
+  const [loading, setLoading] = React.useState(true);
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Button size="sm" variant="secondary" onClick={() => setLoading((v) => !v)}>
+          {loading ? "Load content" : "Reset to skeleton"}
+        </Button>
+        <span className="text-xs text-subtle-foreground">SkeletonSwap cross-fade</span>
+      </div>
+      <SkeletonSwap
+        loading={loading}
+        skeleton={
+          <div className="surface-raised rounded-xl p-5">
+            <div className="shimmer h-4 w-32 rounded bg-white/[0.06]" />
+            <div className="shimmer mt-3 h-8 w-20 rounded bg-white/[0.06]" />
+            <div className="shimmer mt-4 h-3 w-40 rounded bg-white/[0.06]" />
+          </div>
+        }
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue today</CardTitle>
+            <CardDescription>Across all calendars</CardDescription>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold tracking-[-0.02em] text-foreground tabular-nums">
+            € 1.240
+          </CardContent>
+        </Card>
+      </SkeletonSwap>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {["Reveals", "on scroll", "into view"].map((t, i) => (
+          <AnimateIn key={t} delay={i * 80} repeat>
+            <div className="surface-raised rounded-lg p-4 text-sm text-muted-foreground">{t}</div>
+          </AnimateIn>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Section({
   title,
@@ -138,10 +183,9 @@ export default function Styleguide() {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <Button disabled>Disabled</Button>
-              <Button disabled>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving…
-              </Button>
+              {/* the built-in loading prop: spinner replaces the label with zero layout shift */}
+              <Button loading>Confirm booking</Button>
+              <Button variant="secondary" loading>Saving…</Button>
             </div>
           </div>
         </Section>
@@ -239,6 +283,50 @@ export default function Styleguide() {
               />
             ))}
           </div>
+        </Section>
+
+        {/* CONTROLS — tabs, switch, checkbox */}
+        <Section title="Controls" sub="Tabs (lit + eased indicator), switch and checkbox (accent glow when on).">
+          <div className="space-y-6">
+            <Tabs defaultValue="today">
+              <TabsList>
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="week">This week</TabsTrigger>
+                <TabsTrigger value="month">This month</TabsTrigger>
+              </TabsList>
+              <TabsContent value="today" className="pt-3 text-sm text-muted-foreground">
+                14 bookings, 2 awaiting confirmation.
+              </TabsContent>
+              <TabsContent value="week" className="pt-3 text-sm text-muted-foreground">
+                86 bookings this week, up 8%.
+              </TabsContent>
+              <TabsContent value="month" className="pt-3 text-sm text-muted-foreground">
+                312 bookings this month.
+              </TabsContent>
+            </Tabs>
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+              <label className="flex items-center gap-3 text-sm text-foreground">
+                <Switch defaultChecked /> WhatsApp reminders
+              </label>
+              <label className="flex items-center gap-3 text-sm text-foreground">
+                <Switch /> Require deposit
+              </label>
+              <label className="flex items-center gap-3 text-sm text-foreground">
+                <Checkbox defaultChecked /> Send no-show follow-up
+              </label>
+              <label className="flex items-center gap-3 text-sm text-foreground">
+                <Checkbox /> Allow same-day booking
+              </label>
+            </div>
+          </div>
+        </Section>
+
+        {/* MOTION — the reusable view-triggered + skeleton-swap layer */}
+        <Section
+          title="Motion layer"
+          sub="AnimateIn reveals on scroll-into-view; SkeletonSwap cross-fades a skeleton into content (toggle it). Both honor reduced-motion."
+        >
+          <MotionDemo />
         </Section>
 
         <p className="pb-8 text-center text-xs text-subtle-foreground">
