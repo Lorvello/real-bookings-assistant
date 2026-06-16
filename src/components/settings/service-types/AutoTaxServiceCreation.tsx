@@ -117,7 +117,7 @@ export const AutoTaxServiceCreation: React.FC<AutoTaxServiceCreationProps> = ({
             <span className="text-sm">Auto country detection</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success-foreground" />
             <span className="text-sm">Smart tax assignment</span>
           </div>
           <div className="flex items-center gap-2">

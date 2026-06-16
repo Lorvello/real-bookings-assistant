@@ -76,11 +76,11 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
   };
 
   const getButtonColor = () => {
-    if (userType === 'expired_trial') return 'bg-red-600 hover:bg-red-700';
-    if (userType === 'canceled_subscriber') return 'bg-yellow-600 hover:bg-yellow-700';
-    if (userType === 'canceled_and_inactive') return 'bg-red-600 hover:bg-red-700';
-    if (userType === 'missed_payment') return 'bg-red-600 hover:bg-red-700';
-    return 'bg-green-600 hover:bg-green-700';
+    if (userType === 'expired_trial') return 'bg-primary hover:bg-primary/90';
+    if (userType === 'canceled_subscriber') return 'bg-primary hover:bg-primary/90';
+    if (userType === 'canceled_and_inactive') return 'bg-primary hover:bg-primary/90';
+    if (userType === 'missed_payment') return 'bg-primary hover:bg-primary/90';
+    return 'bg-primary hover:bg-primary/90';
   };
 
   return (
@@ -96,7 +96,7 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
           {isExpanded ? (loading ? 'Loading…' : getButtonText()) : ''}
         </Button>
         {isExpanded && (userType === 'expired_trial' || userType === 'canceled_and_inactive') && (
-          <p className="text-xs text-gray-400 text-center mt-2">
+          <p className="text-xs text-subtle-foreground text-center mt-2">
             Limited access until upgrade
           </p>
         )}

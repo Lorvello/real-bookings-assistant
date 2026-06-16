@@ -118,13 +118,13 @@ export function ServiceTypeForm({
             onBlur={() => setNameTouched(true)}
             className={`w-full p-3 border rounded-md bg-background text-foreground focus:ring-2 focus:border-transparent ${
               nameTouched && !formData.name.trim()
-                ? 'border-red-500 focus:ring-red-600'
+                ? 'border-destructive focus:ring-destructive'
                 : 'border-border focus:ring-primary'
             }`}
             placeholder="e.g. Haircut"
           />
           {nameTouched && !formData.name.trim() && (
-            <p className="mt-1 text-xs text-red-400">Service name is required.</p>
+            <p className="mt-1 text-xs text-destructive-foreground">Service name is required.</p>
           )}
         </div>
         

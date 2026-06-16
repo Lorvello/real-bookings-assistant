@@ -20,14 +20,14 @@ export const ExpiredTrialOverlay: React.FC<ExpiredTrialOverlayProps> = ({ childr
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
         <div className="text-center p-8 max-w-md mx-auto">
-          <div className="bg-slate-800/90 border border-slate-700/50 rounded-2xl shadow-lg p-6">
+          <div className="bg-popover/90 border border-white/[0.08] rounded-2xl shadow-lg p-6">
             <div className="flex items-center justify-center mb-4">
-              <Lock className="h-12 w-12 text-red-400" />
+              <Lock className="h-12 w-12 text-destructive-foreground" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">
               Trial Expired
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-subtle-foreground mb-6">
               Your free trial has ended. Upgrade to a premium plan to continue using the AI agent and access all features.
             </p>
             <Button 

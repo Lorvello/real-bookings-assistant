@@ -33,7 +33,7 @@ export function StripeStatusBadge({
           <TooltipTrigger asChild>
             <Badge 
               variant="outline" 
-              className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30 gap-1"
+              className="bg-success/10 text-success-foreground border-success/30 gap-1"
             >
               <Check className="h-3 w-3" />
               Payment Ready

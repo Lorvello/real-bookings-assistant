@@ -160,15 +160,15 @@ export const BillingTab: React.FC = () => {
   const getStatusBadge = () => {
     switch (userStatus.userType) {
       case 'subscriber':
-        return <Badge className="bg-green-500/10 text-green-400 border-green-500/20">Active</Badge>;
+        return <Badge className="bg-success/10 text-success-foreground border-success/20">Active</Badge>;
       case 'canceled_subscriber':
-        return <Badge className="bg-yellow-500/10 text-yellow-400 border-yellow-500/20">Canceled</Badge>;
+        return <Badge className="bg-warning/10 text-warning-foreground border-warning/20">Canceled</Badge>;
       case 'canceled_and_inactive':
         return <Badge className="bg-muted text-muted-foreground border-border">Canceled</Badge>;
       case 'expired_trial':
-        return <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Expired</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive-foreground border-destructive/20">Expired</Badge>;
       case 'missed_payment':
-        return <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Payment failed</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive-foreground border-destructive/20">Payment failed</Badge>;
       // Active trial (incl. brand-new accounts still finishing setup) carry no
       // badge — the "Free during trial period" line communicates the state.
       case 'trial':
@@ -313,7 +313,7 @@ export const BillingTab: React.FC = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-foreground flex items-center gap-2">
-                <Crown className="w-5 h-5 text-yellow-500" />
+                <Crown className="w-5 h-5 text-gold-foreground" />
                 Current Plan
               </CardTitle>
               <Button 
@@ -344,7 +344,7 @@ export const BillingTab: React.FC = () => {
                     </h3>
                     <p className="text-muted-foreground">{currentPlan?.description}</p>
                     {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 && (
-                      <p className="text-yellow-400 text-sm mt-1">
+                      <p className="text-warning-foreground text-sm mt-1">
                         {userStatus.daysRemaining} days remaining in trial
                       </p>
                     )}
@@ -418,15 +418,15 @@ export const BillingTab: React.FC = () => {
                         <span className="text-muted-foreground text-sm">Payment Status</span>
                         <div className="flex items-center gap-1">
                           {getBillingTimelineData().paymentStatus === 'Active' ? (
-                            <CheckCircle className="w-3 h-3 text-green-400" />
+                            <CheckCircle className="w-3 h-3 text-success-foreground" />
                           ) : getBillingTimelineData().paymentStatus === 'Failed' ? (
-                            <AlertCircle className="w-3 h-3 text-red-400" />
+                            <AlertCircle className="w-3 h-3 text-destructive-foreground" />
                           ) : (
                             <AlertCircle className="w-3 h-3 text-muted-foreground" />
                           )}
                           <span className={`text-sm ${
-                            getBillingTimelineData().paymentStatus === 'Active' ? 'text-green-400' :
-                            getBillingTimelineData().paymentStatus === 'Failed' ? 'text-red-400' :
+                            getBillingTimelineData().paymentStatus === 'Active' ? 'text-success-foreground' :
+                            getBillingTimelineData().paymentStatus === 'Failed' ? 'text-destructive-foreground' :
                             'text-muted-foreground'
                           }`}>
                             {getBillingTimelineData().paymentStatus}
@@ -505,10 +505,10 @@ export const BillingTab: React.FC = () => {
                       <TableCell>
                         <Badge className={
                           invoice.status === 'paid' 
-                            ? "bg-green-500/10 text-green-400 border-green-500/20"
+                            ? "bg-success/10 text-success-foreground border-success/20"
                             : invoice.status === 'open' || invoice.status === 'draft'
-                            ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                            : "bg-red-500/10 text-red-400 border-red-500/20"
+                            ? "bg-warning/10 text-warning-foreground border-warning/20"
+                            : "bg-destructive/10 text-destructive-foreground border-destructive/20"
                         }>
                           {invoice.status === 'paid' ? 'Paid' : 
                            invoice.status === 'open' ? 'Pending' :
@@ -587,7 +587,7 @@ export const BillingTab: React.FC = () => {
                 Yearly
               </span>
               {billingCycle === 'yearly' && (
-                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                <Badge className="bg-success/10 text-success-foreground border-success/20">
                   Save 20%
                 </Badge>
               )}
@@ -653,7 +653,7 @@ export const BillingTab: React.FC = () => {
                     <h3 className="text-xl font-semibold text-foreground capitalize mb-2">
                       {tier.display_name}
                     </h3>
-                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' && !isEnterprise ? 'text-green-400' : 'text-foreground'}`}>
+                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' && !isEnterprise ? 'text-success-foreground' : 'text-foreground'}`}>
                        {displayPrice}
                        <span className="text-sm text-muted-foreground font-normal">
                          {billingText}
@@ -695,7 +695,7 @@ export const BillingTab: React.FC = () => {
                       "White-glove onboarding & strategic integration consulting"
                     ]).map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                        <Check className="w-4 h-4 text-success-foreground flex-shrink-0" />
                         <span className="text-foreground text-sm">{feature}</span>
                       </div>
                     ))}
