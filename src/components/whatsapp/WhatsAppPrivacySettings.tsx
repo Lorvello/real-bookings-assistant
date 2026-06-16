@@ -207,7 +207,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
-                    <Trash2 className="h-5 w-5 text-orange-600 mt-1" />
+                    <Trash2 className="h-5 w-5 text-warning-foreground mt-1" />
                     <div className="flex-1">
                       <h4 className="font-medium">Clean Up Old Data</h4>
                       <p className="text-sm text-subtle-foreground mb-3">

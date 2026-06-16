@@ -59,7 +59,7 @@ export const getBookingStatusBadge = (status?: string) => {
       );
     case 'cancelled':
       return (
-        <Badge className="bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 border-transparent">
+        <Badge className="bg-destructive/10 text-destructive-foreground ring-1 ring-destructive/20 border-transparent">
           <AlertCircle className="w-3 h-3 mr-1" />
           Geannuleerd
         </Badge>
