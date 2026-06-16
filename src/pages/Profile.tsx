@@ -61,27 +61,27 @@ const Profile = () => {
           
           <div className="space-y-3 md:space-y-4">
             <div>
-              <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
+              <p className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 Email
-              </label>
+              </p>
               <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
                 {user.email}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
+              <p className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 User ID
-              </label>
+              </p>
               <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground font-mono text-xs md:text-sm">
                 {user.id}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
+              <p className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 Account Created
-              </label>
+              </p>
               <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
                 {new Date(user.created_at).toLocaleDateString('en-GB', {
                   year: 'numeric',
@@ -96,7 +96,7 @@ const Profile = () => {
         </div>
 
         <div className="surface-raised rounded-xl p-3 md:p-6 mt-4 md:mt-6">
-          <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-2">Your QR code</h2>
+          <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-6">Your QR code</h2>
           {profileLoading ? (
             <div className="h-40 bg-background/60 border border-white/[0.08] rounded-lg animate-pulse" />
           ) : (

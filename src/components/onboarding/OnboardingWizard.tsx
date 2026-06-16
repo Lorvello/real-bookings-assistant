@@ -104,7 +104,7 @@ export const OnboardingWizard = () => {
                 strokeLinecap="round"
                 pathLength={100}
                 strokeDasharray={`${completionPercentage} 100`}
-                className="stroke-primary transition-all duration-500"
+                className="stroke-primary transition-all duration-500 motion-reduce:transition-none"
               />
             </svg>
             <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-white">
@@ -112,9 +112,7 @@ export const OnboardingWizard = () => {
             </span>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-white">
-              Complete your <span className="font-serif italic font-normal">setup</span>
-            </h2>
+            <h2 className="text-xl font-semibold text-white">Complete your setup</h2>
             <p className="mt-0.5 text-sm text-white/50">
               {completedSteps === 0
                 ? `${totalSteps} quick steps to your first booking.`
@@ -134,7 +132,7 @@ export const OnboardingWizard = () => {
             return (
               <div
                 key={step.key}
-                className={`flex items-center gap-4 rounded-xl border p-4 transition-all ${
+                className={`flex items-center gap-4 rounded-xl border p-4 transition-colors motion-reduce:transition-none ${
                   isCompleted
                     ? 'border-primary/20 bg-primary/[0.06]'
                     : 'border-white/10 bg-white/[0.02] hover:border-primary/30 hover:bg-primary/[0.04]'

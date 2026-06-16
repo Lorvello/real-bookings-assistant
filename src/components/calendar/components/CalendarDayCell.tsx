@@ -1,7 +1,7 @@
 
 import { format, isSameMonth, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, Plus } from 'lucide-react';
+import { Info } from 'lucide-react';
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 interface Booking {
@@ -71,10 +71,25 @@ export function CalendarDayCell({
     }
   };
 
+  const interactive = dayBookings.length > 0;
+
   return (
     <div
-      className={`group rounded-xl p-0.5 sm:p-1.5 min-h-[60px] sm:min-h-[80px] transition-colors duration-150 ${
-        dayBookings.length > 0 ? 'cursor-pointer' : ''
+      {...(interactive
+        ? {
+            role: 'button',
+            tabIndex: 0,
+            'aria-label': `${dayBookings.length} appointment${dayBookings.length === 1 ? '' : 's'} on ${format(day, 'EEEE d MMMM')}`,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onDayClick(day, dayBookings);
+              }
+            },
+          }
+        : {})}
+      className={`group rounded-xl p-0.5 sm:p-1.5 min-h-[60px] sm:min-h-[80px] transition-colors duration-150 outline-none ${
+        interactive ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset' : ''
       } ${
         isCurrentMonth
           ? isToday
@@ -102,11 +117,11 @@ export function CalendarDayCell({
       <div className="space-y-0.5">
         {/* Show appointments differently based on count */}
         {dayBookings.length === 0 && isCurrentMonth && (
-          <div className="flex justify-center py-0.5 sm:py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            {/* contextual "add" affordance surfaces on hover (MEGA_PLAN §2.A) */}
-            <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-primary/10 text-accent-foreground ring-1 ring-primary/20">
-              <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-            </span>
+          <div className="text-center py-0.5 sm:py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 motion-reduce:transition-none">
+            {/* honest hover reveal: empty days have no click action, so this stays
+                informational (no fake "add" affordance — R3 gate). */}
+            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">No appointments</div>
+            <div className="w-2 sm:w-3 h-px bg-border mx-auto"></div>
           </div>
         )}
         
@@ -115,7 +130,7 @@ export function CalendarDayCell({
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div
-                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:brightness-110 transition-[filter] duration-150 relative"
+                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:brightness-110 transition-[filter] duration-150 motion-reduce:transition-none relative"
                   style={{
                     backgroundColor: dayBookings[0].service_types?.color || 'hsl(var(--primary))'
                   }}
@@ -124,7 +139,7 @@ export function CalendarDayCell({
 
                   {/* Info icon in top-right corner */}
                   <div className="absolute top-0 sm:top-0.5 right-0 sm:right-0.5">
-                    <Info className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 text-subtle-foreground" />
+                    <Info aria-hidden="true" className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 text-subtle-foreground" />
                   </div>
 
                   <div className="flex items-center justify-between">

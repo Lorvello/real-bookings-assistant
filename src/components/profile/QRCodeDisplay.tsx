@@ -42,7 +42,7 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 160 }
       </div>
       <div className="flex flex-col gap-2 w-full md:w-auto">
         <Button type="button" variant="secondary" onClick={handleDownload}>
-          <Download className="mr-2 h-4 w-4" />
+          <Download aria-hidden="true" className="mr-2 h-4 w-4" />
           Download QR (SVG)
         </Button>
         <p className="text-muted-foreground text-xs md:text-sm max-w-xs">
