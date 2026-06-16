@@ -83,7 +83,7 @@ const Profile = () => {
                 Account Created
               </label>
               <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
-                {new Date(user.created_at).toLocaleDateString('nl-NL', {
+                {new Date(user.created_at).toLocaleDateString('en-GB', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
