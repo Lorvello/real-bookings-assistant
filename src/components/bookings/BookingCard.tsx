@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, User, Phone, Mail, FileText } from 'lucide-react';
+import { Calendar, Clock, Phone, Mail, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 
@@ -10,6 +10,14 @@ interface BookingCardProps {
   onBookingClick: (booking: any) => void;
 }
 
+const initials = (name: string) =>
+  (name || '?')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('') || '?';
+
 export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
   const getStatusBadge = (status: string) => {
     // PLAYBOOK §6 booking status, tinted-on-tinted: confirmed = emerald (the one place
@@ -17,7 +25,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
     // neutral, completed = a subtle accent tint. A dot in the matching tone.
     const statusConfig: Record<string, { label: string; cls: string }> = {
       confirmed: { label: 'Confirmed', cls: 'bg-success/10 text-success-foreground ring-success/20' },
-      pending: { label: 'Pending', cls: 'bg-amber-500/10 text-amber-400 ring-amber-500/20' },
+      pending: { label: 'Pending', cls: 'bg-gold/10 text-gold-foreground ring-gold/20' },
       cancelled: { label: 'Cancelled', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' },
       completed: { label: 'Completed', cls: 'bg-primary/10 text-accent-foreground ring-primary/20' },
       'no-show': { label: 'No Show', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' }
@@ -34,9 +42,9 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
   };
 
   return (
-    <Card 
-      key={booking.id} 
-      className="surface-raised cursor-pointer"
+    <Card
+      key={booking.id}
+      className="surface-raised cursor-pointer transition-transform duration-150 active:scale-[0.99]"
       onClick={() => onBookingClick(booking)}
     >
       <CardHeader className="pb-3">
@@ -58,10 +66,15 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Customer Info */}
+          {/* Customer Info — an initial-avatar leads the row (MEGA_PLAN §2.B) */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-foreground">
-              <User className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-2.5 text-foreground">
+              <span
+                aria-hidden
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-accent-foreground ring-1 ring-primary/20"
+              >
+                {initials(booking.customer_name)}
+              </span>
               <span className="font-medium">{booking.customer_name}</span>
             </div>
             <div className="flex items-center gap-2 text-foreground text-sm">

@@ -102,7 +102,7 @@ export function VirtualizedBookingsList({
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 stagger-fade">
           {bookings.map((booking) => (
             <MemoizedBookingCard
               key={booking.id}
