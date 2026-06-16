@@ -55,8 +55,6 @@ const BlogArticle = lazyWithRetry(() => import('@/pages/BlogArticle'));
 const PublicBooking = lazyWithRetry(() => import('@/pages/PublicBooking'));
 const PaymentSuccess = lazyWithRetry(() => import('@/pages/PaymentSuccess'));
 const PaymentCancelled = lazyWithRetry(() => import('@/pages/PaymentCancelled'));
-const Styleguide = lazyWithRetry(() => import('@/pages/Styleguide'));
-const PreviewHarness = lazyWithRetry(() => import('@/pages/PreviewHarness'));
 
 // Developer-only floating overlay — internally gated to the developer account,
 // renders null for everyone else. Lazy so it never weighs on normal users.
@@ -149,18 +147,6 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/auth/callback" element={<AuthCallback />} />
-                    {/* DESIGN_SPEC §7 — primitives showcase (no auth; remove after rebuild) */}
-                    <Route path="/styleguide" element={
-                      <Suspense fallback={<FullPageLoadingSkeleton />}>
-                        <Styleguide />
-                      </Suspense>
-                    } />
-                    {/* GOAL_PROMPT_high_end_fluid §3a — visual harness (no auth; remove before final push) */}
-                    <Route path="/preview-harness" element={
-                      <Suspense fallback={<FullPageLoadingSkeleton />}>
-                        <PreviewHarness />
-                      </Suspense>
-                    } />
 
                     {/* Protected routes with error boundaries and loading states */}
                     <Route path="/forgot-password" element={
