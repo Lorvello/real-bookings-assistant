@@ -45,11 +45,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"
+              className="h-44 surface-raised shimmer rounded-2xl border border-white/[0.08]"
             />
           ))}
         </div>
-        <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+        <div className="h-96 surface-raised shimmer rounded-2xl border border-white/[0.08]"></div>
       </div>
     );
   }
@@ -74,11 +74,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
           {[1, 2, 3, 4].map((i) => (
             <div 
               key={i} 
-              className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"
+              className="h-44 surface-raised shimmer rounded-2xl border border-white/[0.08]"
             />
           ))}
         </div>
-        <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+        <div className="h-96 surface-raised shimmer rounded-2xl border border-white/[0.08]"></div>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-red-400 mb-2">Error loading performance data</p>
+        <p className="text-destructive-foreground mb-2">Error loading performance data</p>
         <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
       </div>
     );
@@ -106,7 +106,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
   return (
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
-        {/* Operational Performance Metrics - Blue Theme - Mobile optimized */}
+        {/* Operational Performance Metrics - mono-accent - Mobile optimized */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 ${accessControl.canAccessCustomerSatisfaction ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3 md:gap-6`}>
           <Tooltip>
             <TooltipTrigger asChild>

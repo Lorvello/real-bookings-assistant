@@ -58,7 +58,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-red-400 mb-2">Error loading business intelligence data</p>
+        <p className="text-destructive-foreground mb-2">Error loading business intelligence data</p>
         <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
       </div>
     );
@@ -84,7 +84,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
   return (
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
-        {/* Financial & Business Metrics - Orange Theme - Mobile optimized */}
+        {/* Financial & Business Metrics - mono-accent - Mobile optimized */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -108,12 +108,12 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   }}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -139,12 +139,12 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   delay={0.2}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -170,12 +170,12 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   delay={0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -201,12 +201,12 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                   delay={0.4}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-orange-400/70 hover:text-orange-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-orange-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
