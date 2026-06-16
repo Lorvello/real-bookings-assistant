@@ -1162,7 +1162,7 @@ export function PaymentSettingsTab() {
                       {/* Installments - Toggleable with Configure option */}
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <div className={cn("w-2 h-2 rounded-full", installmentSettings?.enabled ? "bg-blue-500" : "bg-muted-foreground/40")} />
+                          <div className={cn("w-2 h-2 rounded-full", installmentSettings?.enabled ? "bg-primary" : "bg-muted-foreground/40")} />
                           <div>
                             <span className="text-foreground font-medium">Pay in Installments</span>
                             <p className="text-sm text-muted-foreground">Split into multiple payments</p>

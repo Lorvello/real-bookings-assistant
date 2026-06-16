@@ -49,7 +49,7 @@ export const StripeDashboardModal: React.FC<StripeDashboardModalProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-blue-600" />
+            <Shield className="h-5 w-5 text-accent-foreground" />
             Stripe Dashboard Access
           </DialogTitle>
           <DialogDescription>

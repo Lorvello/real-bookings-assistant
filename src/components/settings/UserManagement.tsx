@@ -232,7 +232,7 @@ export const UserManagement = ({
       case 'owner':
         return <Crown className="h-4 w-4 text-yellow-500" />;
       case 'editor':
-        return <User className="h-4 w-4 text-blue-500" />;
+        return <User className="h-4 w-4 text-accent-foreground" />;
       case 'viewer':
         return <Eye className="h-4 w-4 text-muted-foreground" />;
       default:
@@ -421,7 +421,7 @@ export const UserManagement = ({
                 {!accessControl.canAccessTeamMembers && (
                   <>
                     <Lock className="h-3 w-3" />
-                    <span className="text-xs bg-orange-500 text-foreground px-1 rounded ml-1">Pro</span>
+                    <span className="text-xs bg-gold/15 text-gold-foreground px-1 rounded ml-1">Pro</span>
                   </>
                 )}
               </TabsTrigger>
