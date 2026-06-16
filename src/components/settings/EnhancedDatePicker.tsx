@@ -81,8 +81,8 @@ export function EnhancedDatePicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal bg-gray-800 border-gray-700 text-white hover:bg-gray-700",
-            !value && "text-gray-400",
+            "w-full justify-start text-left font-normal bg-muted border-white/[0.08] text-foreground hover:bg-white/[0.06]",
+            !value && "text-subtle-foreground",
             className
           )}
           disabled={disabled}
@@ -91,17 +91,17 @@ export function EnhancedDatePicker({
           {value ? format(value, "PPP") : placeholder}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700" align="start">
-        <div className="flex items-center justify-between p-3 border-b border-gray-700">
+      <PopoverContent className="w-auto p-0 bg-popover border-white/[0.08]" align="start">
+        <div className="flex items-center justify-between p-3 border-b border-white/[0.08]">
           <div className="flex gap-2">
             <Select
               value={displayMonth.getMonth().toString()}
               onValueChange={handleMonthChange}
             >
-              <SelectTrigger className="w-32 bg-gray-900 border-gray-600 text-white">
+              <SelectTrigger className="w-32 bg-secondary border-white/[0.08] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
+              <SelectContent className="bg-popover border-white/[0.08]">
                 {monthOptions.map((month) => (
                   <SelectItem key={month.value} value={month.value}>
                     {month.label}
@@ -113,10 +113,10 @@ export function EnhancedDatePicker({
               value={displayMonth.getFullYear().toString()}
               onValueChange={handleYearChange}
             >
-              <SelectTrigger className="w-20 bg-gray-900 border-gray-600 text-white">
+              <SelectTrigger className="w-20 bg-secondary border-white/[0.08] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700 max-h-60">
+              <SelectContent className="bg-popover border-white/[0.08] max-h-60">
                 {yearOptions.map((year) => (
                   <SelectItem key={year.value} value={year.value}>
                     {year.label}
@@ -132,27 +132,27 @@ export function EnhancedDatePicker({
           onSelect={handleDateSelect}
           month={displayMonth}
           onMonthChange={setDisplayMonth}
-          className="pointer-events-auto bg-gray-800 border-0"
+          className="pointer-events-auto bg-transparent border-0"
           classNames={{
             months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
             month: "space-y-4",
             caption: "flex justify-center pt-1 relative items-center",
-            caption_label: "text-sm font-medium text-white",
+            caption_label: "text-sm font-medium text-foreground",
             nav: "space-x-1 flex items-center",
-            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-white",
+            nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-foreground",
             nav_button_previous: "absolute left-1",
             nav_button_next: "absolute right-1",
             table: "w-full border-collapse space-y-1",
             head_row: "flex",
-            head_cell: "text-gray-400 rounded-md w-9 font-normal text-[0.8rem]",
+            head_cell: "text-subtle-foreground rounded-md w-9 font-normal text-[0.8rem]",
             row: "flex w-full mt-2",
-            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-gray-700 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-            day: "h-9 w-9 p-0 font-normal text-white hover:bg-gray-700 rounded-md",
-            day_selected: "bg-green-600 text-green-50 hover:bg-green-600 hover:text-green-50 focus:bg-green-600 focus:text-green-50",
-            day_today: "bg-gray-700 text-gray-50",
-            day_outside: "text-gray-500 opacity-50",
-            day_disabled: "text-gray-500 opacity-50",
-            day_range_middle: "aria-selected:bg-gray-700 aria-selected:text-gray-50",
+            cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-primary/15 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+            day: "h-9 w-9 p-0 font-normal text-foreground hover:bg-white/[0.06] rounded-md transition-colors",
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            day_today: "bg-white/[0.06] text-foreground ring-1 ring-primary/40",
+            day_outside: "text-subtle-foreground opacity-50",
+            day_disabled: "text-subtle-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-primary/15 aria-selected:text-foreground",
             day_hidden: "invisible",
           }}
         />
