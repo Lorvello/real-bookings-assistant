@@ -125,12 +125,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   delay={0.1}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+              className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
               side="top"
               align="center"
               sideOffset={8}
@@ -156,12 +156,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   delay={0.2}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+              className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
               side="top"
               align="center"
               sideOffset={8}
@@ -189,12 +189,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                     delay={0.3}
                   />
                   <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                    <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                    <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                   </div>
                 </motion.div>
               </TooltipTrigger>
               <TooltipContent 
-                className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+                className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
                 side="top"
                 align="center"
                 sideOffset={8}
@@ -221,12 +221,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+              className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
               side="top"
               align="center"
               sideOffset={8}
@@ -255,12 +255,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   delay={0.5}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+              className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
               side="top"
               align="center"
               sideOffset={8}
@@ -286,12 +286,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   delay={0.6}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+              className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
               side="top"
               align="center"
               sideOffset={8}
@@ -317,12 +317,12 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   delay={0.7}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+              className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
               side="top"
               align="center"
               sideOffset={8}
@@ -338,7 +338,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
             <div className="p-4 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-muted/40 rounded-xl">
-                  <Activity className="h-6 w-6 text-blue-400" />
+                  <Activity className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -346,11 +346,11 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="cursor-help p-1 rounded-full bg-card/50">
-                          <Info className="h-3 w-3 text-blue-400/70 hover:text-blue-300 transition-colors" />
+                          <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent 
-                        className="max-w-sm bg-background/95 border border-blue-500/30 text-foreground z-50"
+                        className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
                         side="top"
                         align="center"
                         sideOffset={8}

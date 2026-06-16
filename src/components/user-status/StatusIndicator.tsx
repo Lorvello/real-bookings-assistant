@@ -37,7 +37,7 @@ const getTierColor = (tier?: string) => {
     case 'starter':
       return 'text-green-400';
     case 'professional':
-      return 'text-blue-400';
+      return 'text-accent-foreground';
     case 'enterprise':
       return 'text-yellow-400';
     default:
