@@ -81,12 +81,12 @@ export const OnboardingWizard = () => {
   return (
     <div className="space-y-6">
       <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] p-6 shadow-2xl shadow-black/30 backdrop-blur sm:p-8">
-        {/* soft brand glow */}
+        {/* soft brand glow — mono-accent: the primary emerald token, not a stray hue */}
         <div
           className="pointer-events-none absolute inset-x-0 -top-px h-40 opacity-60"
           style={{
             background:
-              'radial-gradient(50% 100% at 50% 0%, hsl(142 69% 45% / 0.12), transparent 70%)',
+              'radial-gradient(50% 100% at 50% 0%, hsl(var(--primary) / 0.14), transparent 70%)',
           }}
         />
 
@@ -112,7 +112,9 @@ export const OnboardingWizard = () => {
             </span>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-white">Complete your setup</h2>
+            <h2 className="text-xl font-semibold text-white">
+              Complete your <span className="font-serif italic font-normal">setup</span>
+            </h2>
             <p className="mt-0.5 text-sm text-white/50">
               {completedSteps === 0
                 ? `${totalSteps} quick steps to your first booking.`
@@ -123,8 +125,8 @@ export const OnboardingWizard = () => {
           </div>
         </div>
 
-        {/* Steps */}
-        <div className="relative mt-6 space-y-2.5">
+        {/* Steps — eased staggered entrance (reduced-motion safe via the .stagger-fade rule) */}
+        <div className="relative mt-6 space-y-2.5 stagger-fade">
           {allSteps.map((step) => {
             const StepIcon = getStepIcon(step);
             const isCompleted = step.completed;
