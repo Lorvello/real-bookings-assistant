@@ -113,7 +113,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'active': return 'bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent';
-      case 'pending': return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
+      case 'pending': return 'bg-gold/10 text-gold-foreground ring-1 ring-gold/20 border-transparent';
       case 'closed': return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
       default: return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
@@ -129,9 +129,9 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
   };
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-lg border border-border">
+    <div className="flex flex-col h-full surface-raised rounded-xl">
       {/* Header */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-white/[0.06]">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar className="h-12 w-12">
@@ -271,13 +271,22 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                 {messagesLoading ? (
                   <div className="space-y-3 p-2">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="h-12 bg-muted/50 rounded-lg animate-pulse" />
+                      <div
+                        key={i}
+                        className={cn(
+                          "shimmer h-12 rounded-2xl bg-white/[0.04]",
+                          i % 2 === 0 ? "ml-auto w-1/2" : "w-2/3"
+                        )}
+                      />
                     ))}
                   </div>
                 ) : !messages || messages.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No messages yet</p>
+                  <div className="flex flex-col items-center py-10 text-center">
+                    <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                      <MessageSquare className="h-5 w-5 text-accent-foreground" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">No messages yet</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">The conversation will appear here.</p>
                   </div>
                 ) : (
                   <div ref={contentRef} className="space-y-4 py-4">

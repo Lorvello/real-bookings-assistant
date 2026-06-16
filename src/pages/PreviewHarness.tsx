@@ -1,7 +1,9 @@
 import * as React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { BookingsList } from "@/components/bookings/BookingsList";
 import { ContactListSidebar } from "@/components/whatsapp/ContactListSidebar";
+import { ConversationDetailPanel } from "@/components/whatsapp/ConversationDetailPanel";
 
 /**
  * GOAL_PROMPT_high_end_fluid.md §3a — the dev-only VISUAL HARNESS.
@@ -123,6 +125,49 @@ function ConversationsHarness() {
   );
 }
 
+const mockDetailContact: any = {
+  contact_id: "c-1",
+  display_name: "Sanne de Vries",
+  first_name: "Sanne",
+  last_name: "de Vries",
+  phone_number: "+31 6 12345678",
+  conversation_status: "active",
+  conversation_created_at: "2026-05-02T09:00:00",
+  last_message_at: "2026-06-16T20:10:00",
+  all_bookings: [
+    {
+      booking_id: "b-1",
+      start_time: "2026-06-18T14:30:00",
+      service_name: "Knippen & kleur",
+      calendar_name: "Personal Calendar",
+      status: "confirmed",
+      business_name: "Studio Noord",
+    },
+  ],
+};
+
+const mockMessages = [
+  { id: "m1", content: "Hoi! Kan ik donderdag een afspraak maken voor knippen?", direction: "inbound", created_at: "2026-06-16T19:55:00", status: "delivered" },
+  { id: "m2", content: "Zeker! Donderdag 14:30 is vrij bij Lisa. Zal ik die voor je vastzetten?", direction: "outbound", created_at: "2026-06-16T19:56:00", status: "delivered" },
+  { id: "m3", content: "Ja graag, perfect.", direction: "inbound", created_at: "2026-06-16T19:58:00", status: "delivered" },
+  { id: "m4", content: "Top, genoteerd. Je krijgt een bevestiging via WhatsApp. Tot donderdag!", direction: "outbound", created_at: "2026-06-16T20:10:00", status: "delivered" },
+];
+
+function ConversationDetailHarness() {
+  const qc = useQueryClient();
+  // Seed the messages query so the real panel renders the thread without a backend.
+  const seeded = React.useRef(false);
+  if (!seeded.current) {
+    qc.setQueryData(["whatsapp-messages", "c-1"], mockMessages);
+    seeded.current = true;
+  }
+  return (
+    <div className="h-[460px]">
+      <ConversationDetailPanel contact={mockDetailContact} calendarId="mock-cal" />
+    </div>
+  );
+}
+
 function HarnessSection({
   title,
   sub,
@@ -181,6 +226,13 @@ export default function PreviewHarness() {
           sub="The real ContactListSidebar / ContactListItem: active, pending (gold), closed statuses; surface-raised panel."
         >
           <ConversationsHarness />
+        </HarnessSection>
+
+        <HarnessSection
+          title="Conversations — detail panel (message thread)"
+          sub="The real ConversationDetailPanel with a seeded thread: outbound (emerald) / inbound (muted) bubbles, contact + bookings cards."
+        >
+          <ConversationDetailHarness />
         </HarnessSection>
       </div>
     </div>
