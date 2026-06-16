@@ -205,11 +205,11 @@ export function WhatsAppAnalytics({ calendarId }: WhatsAppAnalyticsProps) {
               </div>
               <div className="text-sm text-accent-foreground">Totaal Booking Intents</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 tabular-nums">
+            <div className="text-center p-4 bg-success/10 rounded-lg">
+              <div className="text-2xl font-bold text-success-foreground tabular-nums">
                 {analytics?.completed_booking_intents || 0}
               </div>
-              <div className="text-sm text-green-600">Voltooid</div>
+              <div className="text-sm text-success-foreground">Voltooid</div>
             </div>
             <div className="text-center p-4 bg-gold/10 rounded-lg">
               <div className="text-2xl font-bold text-gold-foreground tabular-nums">

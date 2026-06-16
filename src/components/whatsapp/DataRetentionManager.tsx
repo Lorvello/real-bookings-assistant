@@ -81,7 +81,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                   Messages older than {retentionSettings?.message_retention_days || 90} days are automatically deleted
                 </p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
+              <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">Active</Badge>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-warning/10 rounded-lg">
@@ -92,7 +92,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                   Conversations are archived after {retentionSettings?.conversation_inactive_days || 30} days of inactivity
                 </p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
+              <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">Active</Badge>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg">
@@ -103,7 +103,7 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
                   Abandoned booking attempts are deleted after {retentionSettings?.booking_intent_abandoned_days || 7} days
                 </p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
+              <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">Active</Badge>
             </div>
           </div>
         </div>

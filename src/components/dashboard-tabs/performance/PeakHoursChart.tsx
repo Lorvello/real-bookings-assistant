@@ -19,7 +19,7 @@ interface PeakHoursChartProps {
 export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartProps) {
   if (isLoading) {
     return (
-      <div className="h-80 bg-muted/40 rounded-xl animate-pulse border border-white/[0.08]"></div>
+      <div className="h-80 surface-raised shimmer rounded-xl"></div>
     );
   }
 

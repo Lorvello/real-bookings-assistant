@@ -198,8 +198,8 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
             <Tooltip 
               content={<ChartTooltip />}
               cursor={{ 
-                fill: 'rgba(148, 163, 184, 0.08)',
-                stroke: 'rgba(148, 163, 184, 0.2)',
+                fill: 'hsl(var(--muted-foreground) / 0.08)',
+                stroke: 'hsl(var(--muted-foreground) / 0.2)',
                 strokeWidth: 1,
                 radius: 4
               }}
@@ -212,7 +212,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               radius={[6, 6, 0, 0]}
               name="Number of Bookings"
               strokeWidth={1}
-              stroke="rgba(34, 197, 134, 0.3)"
+              stroke="hsl(var(--primary) / 0.3)"
             />
             
             <Bar 
@@ -222,7 +222,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               radius={[6, 6, 0, 0]}
               name="Revenue (€)"
               strokeWidth={1}
-              stroke="rgba(240, 188, 61, 0.3)"
+              stroke="hsl(var(--gold) / 0.3)"
             />
           </BarChart>
         </ResponsiveContainer>

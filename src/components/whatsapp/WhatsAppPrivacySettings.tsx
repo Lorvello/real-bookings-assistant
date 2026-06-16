@@ -235,7 +235,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
             <h3 className="text-lg font-medium mb-4">Privacy Informatie</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-success-foreground mt-0.5" />
                 <div>
                   <p className="font-medium">Veilige Toegang</p>
                   <p className="text-sm text-subtle-foreground">Alleen u heeft toegang tot uw WhatsApp conversaties</p>
@@ -243,7 +243,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
               </div>
               
               <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-success-foreground mt-0.5" />
                 <div>
                   <p className="font-medium">Automatische Verwijdering</p>
                   <p className="text-sm text-subtle-foreground">Oude messages worden automatisch verwijderd volgens GDPR richtlijnen</p>
@@ -251,7 +251,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
               </div>
               
               <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-success-foreground mt-0.5" />
                 <div>
                   <p className="font-medium">Data Portabiliteit</p>
                   <p className="text-sm text-subtle-foreground">U kunt uw data op elk moment exporteren</p>

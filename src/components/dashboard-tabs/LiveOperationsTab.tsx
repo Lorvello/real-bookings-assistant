@@ -343,7 +343,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <Badge variant="outline" className={`${calendarStatus.borderColor} ${calendarStatus.textColor} ${calendarStatus.bgColor}`}>
                             {calendarStatus.status}
                           </Badge>
-                          <Info className={`h-3 w-3 ${calendarStatus.textColor}/70 hover:${calendarStatus.textColor} transition-colors`} />
+                          <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
@@ -382,9 +382,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                             {bookingsAssistantStatus.status}
                           </Badge>
                           {bookingsAssistantStatus.clickable ? (
-                            <Settings className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                            <Settings className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                           ) : (
-                            <Info className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                            <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                           )}
                         </div>
                       </div>
@@ -414,7 +414,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <Badge variant="outline" className={`${realtimeSyncStatus.borderColor} ${realtimeSyncStatus.textColor} ${realtimeSyncStatus.bgColor}`}>
                             {realtimeSyncStatus.status}
                           </Badge>
-                          <Info className={`h-3 w-3 ${realtimeSyncStatus.textColor}/70 hover:${realtimeSyncStatus.textColor} transition-colors`} />
+                          <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>

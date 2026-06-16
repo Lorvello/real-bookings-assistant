@@ -83,8 +83,8 @@ export function OrphanedConversationsManager() {
       <CardContent className="p-6">
         {!orphanedConversations || orphanedConversations.length === 0 ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-green-400" />
+            <div className="w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-accent-foreground" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">All conversations are linked</h3>
             <p className="text-muted-foreground">
