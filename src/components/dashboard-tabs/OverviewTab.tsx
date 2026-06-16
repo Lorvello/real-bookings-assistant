@@ -43,11 +43,16 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-          {[1, 2, 3].map((i) => (
-            // exact-shape skeleton: same surface, height & internal layout as the real
-            // KPI card (label top-left, icon chip top-right, big number, delta line) → no shift
-            <div key={i} className="surface-raised shimmer rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
+        {/* exact-shape skeleton mirrors the new layout: a wide hero band + a 2-card
+            supporting row → no layout shift when data lands */}
+        <div className="surface-raised shimmer rounded-xl md:rounded-2xl p-4 md:p-8">
+          <div className="h-3 w-28 rounded bg-white/[0.06]" />
+          <div className="mt-3 h-9 md:h-11 w-40 md:w-56 rounded bg-white/[0.07]" />
+          <div className="mt-3 h-3 w-44 rounded bg-white/[0.04]" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="surface-raised shimmer rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
               <div className="flex items-center justify-between mb-3 md:mb-4">
                 <div className="h-3 w-20 rounded bg-white/[0.06]" />
                 <div className="h-8 w-8 md:h-12 md:w-12 rounded-xl bg-white/[0.04]" />
@@ -92,49 +97,79 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           </Badge>
         </div>
       )}
-      {/* Top Row - 3 Cards - Mobile optimized with smaller heights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-        {/* Next Appointment Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative group"
-        >
-          <div className="relative glow-accent glow-accent-strong surface-raised rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
-            <div className="flex items-center justify-between mb-1 md:mb-4">
-              <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
-                Next Appointment
-              </h3>
-              <div className="w-4 h-4 md:w-12 md:h-12 bg-primary/10 ring-1 ring-primary/20 rounded-md md:rounded-xl flex items-center justify-center">
-                <Clock className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
-              </div>
-            </div>
-            
-            <div className="flex-1 flex flex-col justify-center">
+      {/* ── THE SIGNATURE ─────────────────────────────────────────────────
+          The glowing "today" hero (SPEC §0): a single dominant panel that is the
+          light source of the canvas. It answers "what's happening now" — the next
+          appointment — in dramatic scale, with a localized backlight leaking from
+          its lower edge (§2 backlight) so the panel reads as emitting the accent
+          light. The supporting KPIs sit smaller beneath it → clear big/small
+          hierarchy (one thing well). Reuses existing data; no new backend. */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative"
+      >
+        <div className="relative glow-accent-strong surface-raised overflow-hidden rounded-xl md:rounded-2xl p-4 md:p-8">
+          {/* backlight: panel emits light from its lower edge */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-12 left-1/4 right-1/4 h-28 z-0"
+            style={{ background: 'radial-gradient(60% 100% at 50% 100%, hsl(var(--primary) / 0.20), transparent 70%)' }}
+          />
+          <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="min-w-0">
+              <p className="text-eyebrow uppercase text-subtle-foreground flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-accent-foreground" /> Next appointment
+              </p>
               {nextAppointment ? (
                 <>
-                  <div className="text-base md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
+                  <div className="mt-2 md:mt-3 text-3xl md:text-display-hero font-semibold leading-none tabular-nums tracking-[-0.03em] text-foreground">
                     {nextAppointment.time_until}
                   </div>
-                  <div className="text-xs md:text-sm text-muted-foreground font-medium truncate hidden md:block">
-                    {nextAppointment.service_name} • {nextAppointment.customer_name}
-                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground truncate">
+                    {nextAppointment.service_name} <span className="text-subtle-foreground">·</span> {nextAppointment.customer_name}
+                  </p>
                 </>
               ) : (
                 <>
-                  <div className="text-base md:text-4xl font-semibold text-subtle-foreground leading-none tabular-nums tracking-[-0.03em] mb-0 md:mb-2">
-                    --:--
+                  <div className="mt-2 md:mt-3 font-serif italic text-2xl md:text-4xl text-foreground/90 leading-tight">
+                    All clear for now
                   </div>
-                  <div className="text-xs md:text-sm text-muted-foreground font-medium hidden md:block">
-                    Nothing scheduled today
-                  </div>
+                  <p className="mt-1.5 text-sm text-muted-foreground">
+                    Nothing scheduled today — enjoy the quiet.
+                  </p>
                 </>
               )}
             </div>
-          </div>
-        </motion.div>
 
+            {/* supporting inline stat: this week's momentum (reuses weeklyInsights) */}
+            {weeklyInsights ? (
+              <div className="flex shrink-0 items-center gap-4 rounded-lg bg-white/[0.03] px-4 py-3 ring-1 ring-white/[0.06]">
+                <div>
+                  <p className="text-eyebrow uppercase text-subtle-foreground">This week</p>
+                  <p className="mt-0.5 text-2xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">
+                    <CountUp value={weeklyInsights.current_week || 0} />
+                    <span className="ml-1 text-sm font-medium text-subtle-foreground">booked</span>
+                  </p>
+                </div>
+                {weeklyInsights.trend === 'up' ? (
+                  <span className="flex items-center gap-1 rounded-md bg-success/10 px-2 py-1 text-xs font-medium text-success-foreground">
+                    <TrendingUp className="h-3.5 w-3.5" /> {Math.abs(weeklyInsights.growth_percentage)}%
+                  </span>
+                ) : weeklyInsights.trend === 'down' ? (
+                  <span className="flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive-foreground">
+                    <TrendingDown className="h-3.5 w-3.5" /> {Math.abs(weeklyInsights.growth_percentage)}%
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Supporting KPI row — smaller than the hero (deliberate hierarchy) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
         {/* Popular Service Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
