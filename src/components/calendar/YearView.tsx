@@ -255,9 +255,9 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
           
           <div className="text-center p-2 sm:p-4 bg-muted/40 rounded-xl border border-white/[0.06]">
             <div className="flex items-center justify-center mb-1 sm:mb-2">
-              <CheckCircle className="h-3 w-3 sm:h-5 sm:w-5 text-emerald-400 mr-1 sm:mr-2" />
+              <CheckCircle className="h-3 w-3 sm:h-5 sm:w-5 text-success-foreground mr-1 sm:mr-2" />
             </div>
-            <div className="text-lg sm:text-3xl font-semibold text-emerald-400 mb-0.5 sm:mb-1 tabular-nums">
+            <div className="text-lg sm:text-3xl font-semibold text-success-foreground mb-0.5 sm:mb-1 tabular-nums">
               {bookings.filter(b => b.status === 'confirmed').length}
             </div>
             <div className="text-xs sm:text-sm text-muted-foreground font-medium">Confirmed</div>

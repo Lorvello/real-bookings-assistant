@@ -248,7 +248,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                           className={cn(
                             "rounded-full ring-1 border-transparent",
                             override.is_available
-                              ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+                              ? "bg-success/10 text-success-foreground ring-success/20"
                               : "bg-muted text-muted-foreground ring-white/[0.08]"
                           )}
                         >

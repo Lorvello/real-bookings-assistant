@@ -162,7 +162,7 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
               </>
             ) : hasUnsavedChanges ? (
               <>
-                <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                <div className="w-2 h-2 bg-warning rounded-full" />
                 <span>Unsaved changes</span>
               </>
             ) : (
@@ -175,7 +175,7 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
           
           {/* Error message */}
           {error && (
-            <div className="text-center text-sm text-red-500 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+            <div className="text-center text-sm text-destructive-foreground bg-destructive/10 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}

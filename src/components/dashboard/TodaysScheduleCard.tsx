@@ -21,7 +21,7 @@ export const TodaysScheduleCard = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Calendar className="h-5 w-5 text-green-600" />
+            <Calendar className="h-5 w-5 text-accent-foreground" />
             Vandaag's Planning
             <div className="ml-auto h-4 w-16 bg-muted rounded animate-pulse" />
           </CardTitle>
@@ -44,12 +44,12 @@ export const TodaysScheduleCard = () => {
     <Card className="cursor-pointer transition-shadow group" onClick={handleScheduleClick}>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
-          <Calendar className="h-5 w-5 text-green-600" />
+          <Calendar className="h-5 w-5 text-accent-foreground" />
           Vandaag's Planning
           <Badge variant="outline" className="ml-auto">
             {bookings.length} appointments
           </Badge>
-          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-green-600 group-hover:translate-x-1 transition-all duration-200" />
+          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground group-hover:translate-x-1 transition-all duration-200" />
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -58,14 +58,14 @@ export const TodaysScheduleCard = () => {
             <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
             <p className="text-lg font-medium mb-2">No appointments today</p>
             <p className="text-sm">Your schedule is clear for today</p>
-            <p className="text-xs text-green-600 mt-2">Click to view calendar</p>
+            <p className="text-xs text-accent-foreground mt-2">Click to view calendar</p>
           </div>
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
               <div key={booking.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-primary rounded-full" />
                   <div>
                     <p className="font-medium text-foreground">{booking.customer_name}</p>
                     <p className="text-sm text-muted-foreground">{booking.service_name}</p>
@@ -91,7 +91,7 @@ export const TodaysScheduleCard = () => {
               </div>
             ))}
             <div className="text-center pt-4 border-t border-muted">
-              <p className="text-xs text-green-600">Click to view full calendar</p>
+              <p className="text-xs text-accent-foreground">Click to view full calendar</p>
             </div>
           </div>
         )}
