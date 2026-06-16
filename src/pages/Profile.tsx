@@ -64,7 +64,7 @@ const Profile = () => {
               <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 Email
               </label>
-              <div className="w-full px-3 md:px-4 py-2 bg-background border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
+              <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
                 {user.email}
               </div>
             </div>
@@ -73,7 +73,7 @@ const Profile = () => {
               <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 User ID
               </label>
-              <div className="w-full px-3 md:px-4 py-2 bg-background border border-white/[0.08] rounded-lg text-foreground font-mono text-xs md:text-sm">
+              <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground font-mono text-xs md:text-sm">
                 {user.id}
               </div>
             </div>
@@ -82,7 +82,7 @@ const Profile = () => {
               <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 Account Created
               </label>
-              <div className="w-full px-3 md:px-4 py-2 bg-background border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
+              <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
                 {new Date(user.created_at).toLocaleDateString('nl-NL', {
                   year: 'numeric',
                   month: 'long',

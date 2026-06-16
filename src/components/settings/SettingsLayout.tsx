@@ -67,26 +67,26 @@ const SettingsTabs = () => {
   return (
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-3 md:space-y-6">
           <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-6 bg-muted/50 border-border min-w-max p-1 md:p-2 h-12 md:h-14">
-              <TabsTrigger value="users" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-muted px-2 md:px-4 py-1.5 md:py-3">
+            <TabsList className="grid w-full grid-cols-6 min-w-max gap-1 p-1 md:p-1.5 h-12 md:h-14 rounded-lg border-b-0 bg-white/[0.03] ring-1 ring-white/[0.06]">
+              <TabsTrigger value="users" className="flex items-center gap-1 md:gap-2 rounded-md border-b-0 px-2 md:px-4 py-1.5 md:py-3 transition-[background-color,color,box-shadow] duration-150 data-[state=active]:bg-primary/[0.12] data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_20px_-10px_hsl(var(--primary)/0.6)]">
                 <User className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Users</span>
               </TabsTrigger>
-              <TabsTrigger value="knowledge" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-muted px-2 md:px-4 py-1.5 md:py-3">
+              <TabsTrigger value="knowledge" className="flex items-center gap-1 md:gap-2 rounded-md border-b-0 px-2 md:px-4 py-1.5 md:py-3 transition-[background-color,color,box-shadow] duration-150 data-[state=active]:bg-primary/[0.12] data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_20px_-10px_hsl(var(--primary)/0.6)]">
                 <Brain className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">AI Knowledge</span>
               </TabsTrigger>
-              <TabsTrigger value="operations" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-muted px-2 md:px-4 py-1.5 md:py-3">
+              <TabsTrigger value="operations" className="flex items-center gap-1 md:gap-2 rounded-md border-b-0 px-2 md:px-4 py-1.5 md:py-3 transition-[background-color,color,box-shadow] duration-150 data-[state=active]:bg-primary/[0.12] data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_20px_-10px_hsl(var(--primary)/0.6)]">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Operations</span>
               </TabsTrigger>
-              <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-muted px-2 md:px-4 py-1.5 md:py-3">
+              <TabsTrigger value="services" className="flex items-center gap-1 md:gap-2 rounded-md border-b-0 px-2 md:px-4 py-1.5 md:py-3 transition-[background-color,color,box-shadow] duration-150 data-[state=active]:bg-primary/[0.12] data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_20px_-10px_hsl(var(--primary)/0.6)]">
                 <Wrench className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Services</span>
               </TabsTrigger>
               <TabsTrigger
                 value="payments" 
-                className={`relative flex items-center gap-1 md:gap-2 data-[state=active]:bg-muted px-2 md:px-4 py-1.5 md:py-3 ${
+                className={`relative flex items-center gap-1 md:gap-2 rounded-md border-b-0 px-2 md:px-4 py-1.5 md:py-3 transition-[background-color,color,box-shadow] duration-150 data-[state=active]:bg-primary/[0.12] data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_20px_-10px_hsl(var(--primary)/0.6)] ${
                   userStatus.isSetupIncomplete 
                     ? 'text-muted-foreground cursor-not-allowed' 
                     : ''
@@ -103,7 +103,7 @@ const SettingsTabs = () => {
               {/* (Removed the disabled "Tax — Soon" tab: a permanently greyed-out
                   Coming-Soon nav item undermines the premium feel. Re-add when the
                   Tax-compliance tab has real content.) */}
-              <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 data-[state=active]:bg-muted px-2 md:px-4 py-1.5 md:py-3">
+              <TabsTrigger value="billing" className="flex items-center gap-1 md:gap-2 rounded-md border-b-0 px-2 md:px-4 py-1.5 md:py-3 transition-[background-color,color,box-shadow] duration-150 data-[state=active]:bg-primary/[0.12] data-[state=active]:text-foreground data-[state=active]:shadow-[0_0_20px_-10px_hsl(var(--primary)/0.6)]">
                 <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
                 <span className="text-xs md:text-sm">Billing</span>
               </TabsTrigger>
