@@ -1,7 +1,7 @@
 
 import { format, isSameMonth, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
+import { Info, Plus } from 'lucide-react';
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 interface Booking {
@@ -102,9 +102,11 @@ export function CalendarDayCell({
       <div className="space-y-0.5">
         {/* Show appointments differently based on count */}
         {dayBookings.length === 0 && isCurrentMonth && (
-          <div className="text-center py-0.5 sm:py-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">No appointments</div>
-            <div className="w-2 sm:w-3 h-px bg-border mx-auto"></div>
+          <div className="flex justify-center py-0.5 sm:py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            {/* contextual "add" affordance surfaces on hover (MEGA_PLAN §2.A) */}
+            <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-primary/10 text-accent-foreground ring-1 ring-primary/20">
+              <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+            </span>
           </div>
         )}
         
