@@ -34,7 +34,7 @@ export function ContactListSidebar({
   });
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-lg border border-border">
+    <div className="flex flex-col h-full surface-raised rounded-xl">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
@@ -62,13 +62,18 @@ export function ContactListSidebar({
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-16 bg-muted/50 rounded-lg animate-pulse" />
+                <div key={i} className="shimmer h-16 rounded-lg bg-white/[0.04]" />
               ))}
             </div>
           ) : filteredContacts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Users className="h-10 w-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No contacts found</p>
+            <div className="flex flex-col items-center py-10 text-center">
+              <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                <Users className="h-5 w-5 text-accent-foreground" />
+              </div>
+              <p className="text-sm font-medium text-foreground">No contacts yet</p>
+              <p className="mt-0.5 text-xs text-muted-foreground max-w-[200px]">
+                Conversations appear here when a customer messages you on WhatsApp.
+              </p>
             </div>
           ) : (
             filteredContacts.map(contact => (

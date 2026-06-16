@@ -27,7 +27,7 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'active': return 'bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent';
-      case 'pending': return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
+      case 'pending': return 'bg-gold/10 text-gold-foreground ring-1 ring-gold/20 border-transparent';
       case 'closed': return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
       default: return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
@@ -44,11 +44,20 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Open conversation with ${displayName}`}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors border",
-        isSelected 
-          ? "bg-primary/10 border-primary/20" 
+        "flex items-center gap-3 p-3 rounded-lg cursor-pointer border outline-none transition-[transform,background-color,border-color] duration-150 active:scale-[0.99] motion-reduce:active:scale-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+        isSelected
+          ? "bg-primary/10 border-primary/20"
           : "bg-card border-border hover:bg-muted/50"
       )}
     >

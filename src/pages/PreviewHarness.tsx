@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { BookingsList } from "@/components/bookings/BookingsList";
+import { ContactListSidebar } from "@/components/whatsapp/ContactListSidebar";
 
 /**
  * GOAL_PROMPT_high_end_fluid.md §3a — the dev-only VISUAL HARNESS.
@@ -68,6 +69,60 @@ const mockBookings = [
   },
 ];
 
+const mockContacts: any[] = [
+  {
+    contact_id: "c-1",
+    display_name: "Sanne de Vries",
+    first_name: "Sanne",
+    last_name: "de Vries",
+    phone_number: "+31 6 12345678",
+    conversation_status: "active",
+    last_message_at: "2026-06-16T20:10:00",
+    all_bookings: [{ business_name: "Studio Noord" }],
+  },
+  {
+    contact_id: "c-2",
+    display_name: "Mark Jansen",
+    first_name: "Mark",
+    last_name: "Jansen",
+    phone_number: "+31 6 22223333",
+    conversation_status: "pending",
+    last_message_at: "2026-06-16T17:42:00",
+    all_bookings: [{ business_name: "Studio Noord" }],
+  },
+  {
+    contact_id: "c-3",
+    display_name: "Emma van der Berg",
+    first_name: "Emma",
+    last_name: "van der Berg",
+    phone_number: "+31 6 44445555",
+    conversation_status: "closed",
+    last_message_at: "2026-06-15T11:05:00",
+    all_bookings: [{ business_name: "Studio Noord" }],
+  },
+];
+
+function ConversationsHarness() {
+  const [selected, setSelected] = React.useState<string | null>("c-1");
+  return (
+    <div className="grid gap-6 md:grid-cols-3">
+      <div className="h-[360px]">
+        <ContactListSidebar
+          contacts={mockContacts}
+          selectedContactId={selected}
+          onSelectContact={(c) => setSelected(c.contact_id)}
+        />
+      </div>
+      <div className="h-[360px]">
+        <ContactListSidebar contacts={[]} selectedContactId={null} onSelectContact={() => {}} isLoading />
+      </div>
+      <div className="h-[360px]">
+        <ContactListSidebar contacts={[]} selectedContactId={null} onSelectContact={() => {}} />
+      </div>
+    </div>
+  );
+}
+
 function HarnessSection({
   title,
   sub,
@@ -119,6 +174,13 @@ export default function PreviewHarness() {
 
         <HarnessSection title="Bookings — empty" sub="No bookings, no filters.">
           <BookingsList bookings={[]} loading={false} hasFilters={false} onBookingClick={noop} />
+        </HarnessSection>
+
+        <HarnessSection
+          title="Conversations — contact list (populated / loading / empty)"
+          sub="The real ContactListSidebar / ContactListItem: active, pending (gold), closed statuses; surface-raised panel."
+        >
+          <ConversationsHarness />
         </HarnessSection>
       </div>
     </div>
