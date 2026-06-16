@@ -20,6 +20,16 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
+				serif: ['EB Garamond', 'Georgia', 'Times New Roman', 'serif'],
+			},
+			// DESIGN_SPEC §2 — the type scale as reusable tokens. Additive (nothing uses
+			// these yet, so zero regression); primitives + rebuilt screens consume them so
+			// sizes are never eyeballed. Inter is the workhorse; font-serif (EB Garamond)
+			// carries the editorial voice on labels/empty-states only.
+			fontSize: {
+				'eyebrow': ['11px', { lineHeight: '1.2', letterSpacing: '0.08em', fontWeight: '600' }],
+				'display': ['32px', { lineHeight: '1.1', letterSpacing: '-0.025em', fontWeight: '600' }],
+				'display-hero': ['44px', { lineHeight: '1.05', letterSpacing: '-0.03em', fontWeight: '600' }],
 			},
 			colors: {
 				'surface-1': 'hsl(var(--surface-1))',
@@ -52,6 +62,7 @@ export default {
 				},
 				success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
 				warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+				gold: { DEFAULT: 'hsl(var(--gold))', foreground: 'hsl(var(--gold-foreground))' },
 				destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
 				
 				// Additional design system colors

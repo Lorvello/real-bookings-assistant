@@ -43,7 +43,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
       </div>
 
       {/* All bookings */}
-      <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/30">
+      <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
         <h4 className="font-medium text-foreground mb-3 flex items-center gap-2 tabular-nums">
           <Calendar className="w-4 h-4 text-muted-foreground" />
           Bookings ({bookings.length})
@@ -93,7 +93,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
 
       {/* Conversation Timeline */}
       {contact.conversation_created_at && (
-        <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/30">
+        <div className="bg-gold/10 rounded-lg p-4 border border-gold/20">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
             <MessageCircle className="w-4 h-4 text-muted-foreground" />
             Conversation Status

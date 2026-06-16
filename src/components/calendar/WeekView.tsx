@@ -147,7 +147,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
         </TooltipTrigger>
         <TooltipContent 
           side="top" 
-          className="max-w-xs bg-popover border border-border shadow-md rounded-lg p-3"
+          className="max-w-xs glass rounded-lg p-3"
         >
           <div className="space-y-1.5">
             <div className="text-xs font-semibold text-foreground tabular-nums">

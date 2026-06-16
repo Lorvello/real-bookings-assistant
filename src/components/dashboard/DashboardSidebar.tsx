@@ -127,7 +127,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             Export Data
           </Button>
           <Button
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="w-full justify-start text-destructive-foreground hover:text-destructive-foreground hover:bg-destructive/10"
             variant="outline"
             onClick={onSignOut}
           >

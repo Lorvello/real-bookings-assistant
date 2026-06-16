@@ -23,7 +23,7 @@ export function BookingsFilters({
   setSortBy
 }: BookingsFiltersProps) {
   return (
-    <div className="bg-card border border-border rounded-lg p-6 mb-6">
+    <div className="surface-raised rounded-xl p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <div className="flex-1 relative">
@@ -32,7 +32,7 @@ export function BookingsFilters({
             placeholder="Search by customer name, email or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-input border-border text-foreground"
+            className="pl-10"
           />
         </div>
 
@@ -46,10 +46,10 @@ export function BookingsFilters({
 
         {/* Sort */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full md:w-48 bg-input border-border text-foreground">
+          <SelectTrigger className="w-full md:w-48">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-card border-border z-50">
+          <SelectContent className="glass z-50">
             <SelectItem value="newest">Latest First</SelectItem>
             <SelectItem value="oldest">Oldest First</SelectItem>
             <SelectItem value="alphabetical">Alphabetically A-Z</SelectItem>

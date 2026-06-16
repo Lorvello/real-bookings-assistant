@@ -46,7 +46,7 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
   const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
 
   return (
-    <Card className="border-border">
+    <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -58,9 +58,9 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
           <Button 
             onClick={handleNewCalendarClick}
             disabled={!canCreateCalendars}
-            className={canCreateCalendars 
-              ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
-              : "bg-muted text-muted-foreground cursor-not-allowed"
+            className={canCreateCalendars
+              ? ""
+              : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
             }
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -72,11 +72,11 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
         {calendars.length > 0 ? (
           <div className="space-y-4">
             {calendars.map((calendar) => (
-              <div key={calendar.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-border rounded-lg bg-background-secondary space-y-3 sm:space-y-0">
+              <div key={calendar.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-white/[0.06] rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors space-y-3 sm:space-y-0">
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-primary" />
+                    <div className="w-10 h-10 bg-primary/15 ring-1 ring-primary/20 rounded-md flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-accent-foreground" />
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -107,19 +107,18 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No calendars yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Create your first calendar to start accepting bookings
+          <div className="flex flex-col items-center text-center py-12">
+            <div className="glow-accent relative mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+              <Calendar className="h-6 w-6 text-accent-foreground" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-1">No calendars yet</h3>
+            <p className="text-sm text-muted-foreground mb-5 max-w-xs">
+              Create your first calendar to start accepting bookings.
             </p>
-            <Button 
+            <Button
               onClick={handleNewCalendarClick}
               disabled={!canCreateCalendars}
-              className={canCreateCalendars 
-                ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-              }
+              className={canCreateCalendars ? "" : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"}
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Calendar

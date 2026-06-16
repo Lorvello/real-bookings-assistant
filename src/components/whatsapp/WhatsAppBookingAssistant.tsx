@@ -200,7 +200,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   className="hover:bg-white/[0.06]"
                 >
                   {copied ? (
-                    <Check className="w-4 h-4 text-emerald-400" />
+                    <Check className="w-4 h-4 text-accent-foreground" />
                   ) : (
                     <Copy className="w-4 h-4 text-muted-foreground" />
                   )}

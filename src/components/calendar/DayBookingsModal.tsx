@@ -77,7 +77,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
-        return 'text-emerald-400';
+        return 'text-success-foreground';
       case 'pending':
         return 'text-amber-400';
       case 'cancelled':

@@ -14,7 +14,7 @@ export default function TestAIAgent() {
       <div className="space-y-3 md:space-y-6">
         <SimplePageHeader title="Test AI Agent" />
 
-        <div className="bg-card/95 backdrop-blur-sm border border-border/60 shadow-lg rounded-xl h-[600px] md:h-[700px]">
+        <div className="surface-raised rounded-xl h-[600px] md:h-[700px] overflow-hidden">
           <AIAgentTestChat />
         </div>
       </div>

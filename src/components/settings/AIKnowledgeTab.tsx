@@ -172,10 +172,10 @@ export const AIKnowledgeTab: React.FC = () => {
             const r = validate(e.target.value);
             setSocialErrors(prev => ({ ...prev, [field]: r.ok ? undefined : r.error }));
           }}
-          className={`w-full px-4 py-2 bg-background border rounded-lg text-foreground focus:ring-2 focus:border-transparent transition-colors ${err ? 'border-red-500 focus:ring-red-600' : 'border-border focus:ring-primary'}`}
+          className={`w-full px-4 py-2 bg-background border rounded-lg text-foreground focus:ring-2 focus:border-transparent transition-colors ${err ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-primary'}`}
           placeholder={placeholder}
         />
-        {err && <p className="mt-1 text-xs text-red-400">{err}</p>}
+        {err && <p className="mt-1 text-xs text-destructive-foreground">{err}</p>}
       </>
     );
   };
@@ -232,9 +232,9 @@ export const AIKnowledgeTab: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="mb-6 flex items-center gap-2 rounded-lg border border-green-500/40 bg-green-500/10 px-4 py-3">
-                <CheckCircle className="h-4 w-4 text-green-400 shrink-0" />
-                <p className="text-sm text-green-200">Required business info complete — the other fields below are optional.</p>
+              <div className="mb-6 flex items-center gap-2 rounded-lg border border-success/40 bg-success/10 px-4 py-3">
+                <CheckCircle className="h-4 w-4 text-success-foreground shrink-0" />
+                <p className="text-sm text-success-foreground">Required business info complete — the other fields below are optional.</p>
               </div>
             );
           })()}

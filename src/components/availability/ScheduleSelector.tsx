@@ -26,7 +26,7 @@ export function ScheduleSelector({
       <SelectTrigger className="w-48 bg-input border-border">
         <SelectValue placeholder="Selecteer schema" />
       </SelectTrigger>
-      <SelectContent className="bg-card border-border">
+      <SelectContent className="glass">
         {schedules.map((schedule) => (
           <SelectItem key={schedule.id} value={schedule.id}>
             <div className="flex items-center">

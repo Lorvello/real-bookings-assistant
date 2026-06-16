@@ -14,17 +14,19 @@ export function ServicesTab() {
   if (calendars.length === 0) {
     return (
       <>
-        <Card className="border-border">
+        <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <div className="flex flex-col items-center text-center">
+              <div className="glow-accent relative mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                <AlertCircle className="h-6 w-6 text-accent-foreground" />
+              </div>
               <h3 className="text-lg font-semibold text-foreground mb-2">No calendar found</h3>
                <p className="text-muted-foreground mb-6">
                  You don't have any calendars yet. Create a calendar first to manage services.
                </p>
               <Button 
                 onClick={() => setShowCreateDialog(true)}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                className=""
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Calendar
@@ -44,7 +46,7 @@ export function ServicesTab() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-border">
+      <Card>
         <CardHeader>
           <CardTitle className="text-foreground">Global Services Management</CardTitle>
           <p className="text-sm text-muted-foreground">

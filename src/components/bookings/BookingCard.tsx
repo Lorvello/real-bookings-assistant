@@ -16,7 +16,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
     // green is used, freed by the blue accent), pending = amber, cancelled/no-show =
     // neutral, completed = a subtle accent tint. A dot in the matching tone.
     const statusConfig: Record<string, { label: string; cls: string }> = {
-      confirmed: { label: 'Confirmed', cls: 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20' },
+      confirmed: { label: 'Confirmed', cls: 'bg-success/10 text-success-foreground ring-success/20' },
       pending: { label: 'Pending', cls: 'bg-amber-500/10 text-amber-400 ring-amber-500/20' },
       cancelled: { label: 'Cancelled', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' },
       completed: { label: 'Completed', cls: 'bg-primary/10 text-accent-foreground ring-primary/20' },
@@ -36,7 +36,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
   return (
     <Card 
       key={booking.id} 
-      className="bg-card border-white/[0.08] cursor-pointer hover:bg-white/[0.06] transition-colors"
+      className="surface-raised cursor-pointer"
       onClick={() => onBookingClick(booking)}
     >
       <CardHeader className="pb-3">

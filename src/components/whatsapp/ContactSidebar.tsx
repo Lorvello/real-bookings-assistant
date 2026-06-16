@@ -52,7 +52,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
+          <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
             Active
           </Badge>
         );
@@ -84,7 +84,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
           <User className="w-5 h-5 text-muted-foreground" />
           Contact Info
           {conversation.calendar_id && (
-            <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent ml-auto">
+            <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent ml-auto">
               <Link className="w-3 h-3 mr-1" />
               Linked
             </Badge>
@@ -94,7 +94,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
       <CardContent className="p-6 space-y-6">
         {/* Contact Avatar & Name */}
         <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-medium text-lg">
+          <div className="w-20 h-20 bg-gradient-to-br from-primary to-success rounded-full flex items-center justify-center mx-auto mb-4 text-primary-foreground font-medium text-lg">
             {getInitials(displayName)}
           </div>
           <h3 className="font-semibold text-xl text-foreground mb-2">{displayName}</h3>
@@ -130,8 +130,8 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
             
 
             {conversation.calendar_id && (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mt-3">
-                <div className="flex items-center gap-2 text-sm text-green-300">
+              <div className="bg-success/10 border border-success/30 rounded-lg p-3 mt-3">
+                <div className="flex items-center gap-2 text-sm text-success-foreground">
                   <Link className="w-4 h-4" />
                   <span className="font-medium">Automatically linked to calendar</span>
                 </div>
@@ -141,7 +141,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         </div>
 
         {/* Contact Details */}
-        <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/30">
+        <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
             <User className="w-4 h-4 text-muted-foreground" />
             Contact Details
@@ -174,7 +174,7 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
 
         {/* Contact History */}
         {contact?.contact_created_at && (
-          <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/30">
+          <div className="bg-gold/10 rounded-lg p-4 border border-gold/20">
             <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               Contact History
@@ -198,18 +198,18 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
         )}
 
         {/* Quick Actions */}
-        <div className="bg-emerald-500/10 rounded-lg p-4 border border-emerald-500/30">
+        <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
           <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-muted-foreground" />
             Quick Actions
           </h4>
           <div className="space-y-2 text-sm text-foreground">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
               <span>Create new appointment</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <div className="w-2 h-2 bg-primary rounded-full"></div>
               <span>Archive conversation</span>
             </div>
             <div className="flex items-center gap-2">

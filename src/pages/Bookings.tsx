@@ -80,7 +80,7 @@ const Bookings = () => {
             <SimplePageHeader title="Bookings" />
 
             {/* Create Calendar Section */}
-            <div className="bg-card border border-border shadow-sm rounded-lg p-8">
+            <div className="surface-raised rounded-2xl p-8">
               <div className="text-center space-y-6">
                 <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
                   <CalendarIcon className="w-8 h-8 text-muted-foreground" />

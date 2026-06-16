@@ -27,7 +27,7 @@ export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> =
 
   if (calendars.length === 0) {
     return (
-      <div className="bg-card/95 backdrop-blur-sm border border-border/60 rounded-lg p-8">
+      <div className="surface-raised rounded-lg p-8">
         <div className="text-center space-y-4">
           <h2 className="text-xl font-semibold text-foreground">No Calendars</h2>
           <p className="text-muted-foreground">Create a calendar to set up availability.</p>
@@ -51,7 +51,7 @@ export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> =
             <button
               key={summary.calendarId}
               onClick={() => selectCalendar(calendar)}
-              className="bg-card/95 backdrop-blur-sm border border-border/60 hover:border-primary/50 rounded-lg p-4 text-left transition-all group"
+              className="surface-raised hover:border-primary/50 rounded-lg p-4 text-left transition-all group"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">

@@ -30,7 +30,7 @@ const Profile = () => {
       <DashboardLayout>
         <div className="flex items-center justify-center h-full bg-background">
           <div className="text-center">
-            <div className="w-8 h-8 bg-cyan-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
             <div className="text-lg text-foreground">Loading Profile...</div>
           </div>
         </div>
@@ -46,8 +46,8 @@ const Profile = () => {
     <DashboardLayout>
       <div className="bg-background min-h-full p-3 md:p-8">
         <div className="mb-4 md:mb-8">
-          <div className="bg-card/90 border border-white/[0.08]/50 rounded-2xl shadow-lg p-3 md:p-6">
-            <h1 className="text-lg md:text-3xl font-bold text-foreground mb-1 md:mb-2">
+          <div className="surface-raised rounded-2xl p-3 md:p-6">
+            <h1 className="text-lg md:text-3xl font-semibold tracking-[-0.02em] text-foreground mb-1 md:mb-2">
               Profile
             </h1>
             <p className="text-muted-foreground text-xs md:text-base">
@@ -56,7 +56,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 md:p-6 border border-white/[0.08]">
+        <div className="surface-raised rounded-xl p-3 md:p-6">
           <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-6">Account Information</h2>
           
           <div className="space-y-3 md:space-y-4">
@@ -64,7 +64,7 @@ const Profile = () => {
               <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 Email
               </label>
-              <div className="w-full px-3 md:px-4 py-2 bg-background border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
+              <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
                 {user.email}
               </div>
             </div>
@@ -73,7 +73,7 @@ const Profile = () => {
               <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 User ID
               </label>
-              <div className="w-full px-3 md:px-4 py-2 bg-background border border-white/[0.08] rounded-lg text-foreground font-mono text-xs md:text-sm">
+              <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground font-mono text-xs md:text-sm">
                 {user.id}
               </div>
             </div>
@@ -82,7 +82,7 @@ const Profile = () => {
               <label className="block text-xs md:text-sm font-medium text-foreground mb-1 md:mb-2">
                 Account Created
               </label>
-              <div className="w-full px-3 md:px-4 py-2 bg-background border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
+              <div className="w-full px-3 md:px-4 py-2 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground text-sm md:text-base">
                 {new Date(user.created_at).toLocaleDateString('nl-NL', {
                   year: 'numeric',
                   month: 'long',
@@ -95,8 +95,8 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="bg-card rounded-xl p-3 md:p-6 border border-white/[0.08] mt-4 md:mt-6">
-          <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-2">Jouw QR-code</h2>
+        <div className="surface-raised rounded-xl p-3 md:p-6 mt-4 md:mt-6">
+          <h2 className="text-base md:text-xl font-semibold text-foreground mb-4 md:mb-2">Your QR code</h2>
           {profileLoading ? (
             <div className="h-40 bg-background/60 border border-white/[0.08] rounded-lg animate-pulse" />
           ) : (

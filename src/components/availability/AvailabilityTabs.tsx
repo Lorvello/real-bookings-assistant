@@ -15,7 +15,7 @@ export const AvailabilityTabs: React.FC<AvailabilityTabsProps> = ({
   return (
     <div className="p-4 pt-0">
       <Tabs value={activeTab} onValueChange={onTabChange}>
-        <TabsList className="grid w-full grid-cols-2 bg-card/80 backdrop-blur-sm border border-border/60 h-auto p-1.5 rounded-2xl">
+        <TabsList className="grid w-full grid-cols-2 surface-raised h-auto p-1.5 rounded-2xl">
           <TabsTrigger 
             value="schedule"
             className="flex items-center gap-2 py-3 text-muted-foreground data-[state=active]:text-primary-foreground data-[state=active]:bg-primary rounded-xl transition-all duration-200 font-medium"

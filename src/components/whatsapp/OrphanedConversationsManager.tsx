@@ -26,7 +26,7 @@ export function OrphanedConversationsManager() {
       <Card className="bg-card border-white/[0.08]">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-2 text-foreground">
-            <MessageCircle className="w-5 h-5 text-orange-400" />
+            <MessageCircle className="w-5 h-5 text-warning-foreground" />
             Orphaned Conversations
           </CardTitle>
         </CardHeader>
@@ -44,10 +44,10 @@ export function OrphanedConversationsManager() {
       <CardHeader className="border-b border-white/[0.08] bg-card">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-foreground">
-            <MessageCircle className="w-5 h-5 text-orange-400" />
+            <MessageCircle className="w-5 h-5 text-warning-foreground" />
             Orphaned Conversations
             {orphanedConversations && orphanedConversations.length > 0 && (
-              <Badge variant="secondary" className="bg-orange-500/20 text-orange-300 border-orange-500/30 tabular-nums">
+              <Badge variant="secondary" className="bg-warning/15 text-warning-foreground border-warning/30 tabular-nums">
                 {orphanedConversations.length}
               </Badge>
             )}
@@ -70,7 +70,7 @@ export function OrphanedConversationsManager() {
                 onClick={handleLinkExisting}
                 disabled={linkMutation.isPending}
                 size="sm"
-                className="bg-orange-600 hover:bg-orange-700 text-primary-foreground"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Link className={`w-4 h-4 mr-2 ${linkMutation.isPending ? 'animate-spin' : ''}`} />
                 Auto Link
@@ -83,8 +83,8 @@ export function OrphanedConversationsManager() {
       <CardContent className="p-6">
         {!orphanedConversations || orphanedConversations.length === 0 ? (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-green-400" />
+            <div className="w-16 h-16 bg-primary/15 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-accent-foreground" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">All conversations are linked</h3>
             <p className="text-muted-foreground">
@@ -93,12 +93,12 @@ export function OrphanedConversationsManager() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+            <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-orange-400 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-warning-foreground mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-orange-300 mb-1">Orphaned Conversations Found</h4>
-                  <p className="text-sm text-orange-200">
+                  <h4 className="font-medium text-warning-foreground mb-1">Orphaned Conversations Found</h4>
+                  <p className="text-sm text-warning-foreground">
                     These WhatsApp conversations have matching appointments but are not automatically linked. 
                     Click "Auto Link" to link them.
                   </p>
@@ -130,7 +130,7 @@ export function OrphanedConversationsManager() {
                       </div>
                     </div>
                     
-                    <Badge variant="outline" className="bg-orange-500/20 text-orange-300 border-orange-500/30">
+                    <Badge variant="outline" className="bg-warning/15 text-warning-foreground border-warning/30">
                       Ontkoppeld
                     </Badge>
                   </div>

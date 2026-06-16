@@ -24,12 +24,12 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]" />
+            <div key={i} className="h-44 surface-raised shimmer rounded-2xl border border-white/[0.08]" />
           ))}
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
-          <div className="h-96 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]"></div>
+          <div className="h-96 surface-raised shimmer rounded-2xl border border-white/[0.08]"></div>
+          <div className="h-96 surface-raised shimmer rounded-2xl border border-white/[0.08]"></div>
         </div>
       </div>
     );
@@ -38,7 +38,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-red-400 mb-2">Error loading future insights data</p>
+        <p className="text-destructive-foreground mb-2">Error loading future insights data</p>
         <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
       </div>
     );
@@ -47,7 +47,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
   return (
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
-        {/* Future Insights Metrics - Purple Theme - Mobile optimized */}
+        {/* Future Insights Metrics - mono-accent - Mobile optimized */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -66,12 +66,12 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   delay={0.1}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -97,12 +97,12 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   delay={0.2}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -128,12 +128,12 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                   delay={0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -149,16 +149,16 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative group">
-                <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+                <div className="relative surface-raised rounded-2xl">
                   <DemandForecastChart data={futureInsights?.demand_forecast} />
                 </div>
                 <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -171,16 +171,16 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="relative group">
-                <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+                <div className="relative surface-raised rounded-2xl">
                   <SeasonalPatternsChart data={futureInsights?.seasonal_patterns} />
                 </div>
                 <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
               sideOffset={8}
@@ -194,11 +194,11 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="relative group">
-              <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+              <div className="relative surface-raised rounded-2xl">
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-muted/40 rounded-xl">
-                      <Brain className="h-6 w-6 text-purple-400" />
+                      <Brain className="h-6 w-6 text-accent-foreground" />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground">AI-Powered Recommendations</h3>
                   </div>
@@ -213,12 +213,12 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                 </div>
               </div>
               <div className="absolute top-4 right-4 p-1 rounded-full bg-card/50">
-                <Info className="h-3 w-3 text-purple-400/70 hover:text-purple-300 transition-colors" />
+                <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
               </div>
             </div>
           </TooltipTrigger>
           <TooltipContent 
-            className="max-w-sm bg-background/95 border border-purple-500/30 text-foreground z-50"
+            className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
             side="top"
             align="center"
             sideOffset={8}

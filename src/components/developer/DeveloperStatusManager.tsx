@@ -288,10 +288,10 @@ export const DeveloperStatusManager = () => {
   const selectedStatusOption = getSelectedUserStatusOption();
 
   return (
-    <Card className="border-purple-200 bg-purple-50">
+    <Card className="border-white/[0.08] bg-card/30">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-purple-800">
-          <Settings className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-foreground">
+          <Settings className="h-5 w-5 text-accent-foreground" />
           Developer: Status Manager
         </CardTitle>
       </CardHeader>
@@ -299,16 +299,16 @@ export const DeveloperStatusManager = () => {
         {/* Current Status Display */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-purple-600" />
-            <span className="text-sm text-purple-700">Current Status:</span>
-            <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
+            <User className="h-4 w-4 text-accent-foreground" />
+            <span className="text-sm text-muted-foreground">Current Status:</span>
+            <Badge variant="outline" className="bg-primary/15 text-accent-foreground border-primary/25">
               {currentStatus ? currentStatus.label : 'Unknown'}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            <Crown className="h-4 w-4 text-purple-600" />
-            <span className="text-sm text-purple-700">Current Tier:</span>
-            <Badge variant={currentTier ? 'default' : 'secondary'} className="bg-purple-100 text-purple-800">
+            <Crown className="h-4 w-4 text-accent-foreground" />
+            <span className="text-sm text-muted-foreground">Current Tier:</span>
+            <Badge variant={currentTier ? 'default' : 'secondary'} className="bg-primary/15 text-accent-foreground">
               {currentTier ? currentTier.label : 'No Active Subscription'}
             </Badge>
           </div>
@@ -316,7 +316,7 @@ export const DeveloperStatusManager = () => {
 
         {/* User Status Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-purple-700">Select User Status:</label>
+          <label className="text-sm font-medium text-muted-foreground">Select User Status:</label>
           <Select value={selectedUserStatus} onValueChange={setSelectedUserStatus}>
             <SelectTrigger>
               <SelectValue placeholder="Choose user status to test" />
@@ -336,11 +336,11 @@ export const DeveloperStatusManager = () => {
 
         {/* Subscription Tier Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-purple-700">Subscription Tier:</label>
+          <label className="text-sm font-medium text-muted-foreground">Subscription Tier:</label>
           {selectedStatusOption?.tierRequired ? (
-            <div className="flex items-center gap-2 p-2 bg-purple-100 rounded border">
-              <AlertCircle className="h-4 w-4 text-purple-600" />
-              <span className="text-sm text-purple-700">
+            <div className="flex items-center gap-2 p-2 bg-muted rounded border">
+              <AlertCircle className="h-4 w-4 text-accent-foreground" />
+              <span className="text-sm text-muted-foreground">
                 Automatically set to <strong>{selectedStatusOption.tier}</strong> for this status
               </span>
             </div>
@@ -381,7 +381,7 @@ export const DeveloperStatusManager = () => {
         <Button
           onClick={handleApplyChanges}
           disabled={!selectedUserStatus || isLoading || isApplying}
-          className="w-full bg-purple-600 hover:bg-purple-700"
+          className="w-full"
         >
           {(isLoading || isApplying) ? (
             <RefreshCw className="h-4 w-4 animate-spin mr-2" />
@@ -391,7 +391,7 @@ export const DeveloperStatusManager = () => {
           {(isLoading || isApplying) ? 'Applying Changes...' : 'Apply Changes'}
         </Button>
 
-        <div className="text-xs text-purple-600 bg-purple-100 p-2 rounded">
+        <div className="text-xs text-accent-foreground bg-muted p-2 rounded">
           <strong>Developer Tool:</strong> Test different user statuses and subscription tiers. Some combinations automatically determine the tier.
         </div>
       </CardContent>

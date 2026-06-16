@@ -37,8 +37,8 @@ export const AiBotStatusCard: React.FC = () => {
 
   const statusIndicator = isActive ? (
     <div className="flex items-center gap-2">
-      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-      <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
+      <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+      <Badge className="bg-success/10 text-success-foreground border-transparent" variant="outline">
         Active
       </Badge>
     </div>
@@ -52,10 +52,10 @@ export const AiBotStatusCard: React.FC = () => {
   );
 
   return (
-    <Card className={`${isActive ? 'border-green-200 bg-green-50/50' : 'border-white/[0.08]'}`}>
+    <Card className={`${isActive ? 'border-primary/20 bg-primary/[0.04]' : 'border-white/[0.08]'}`}>
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
-          <Bot className={`h-5 w-5 ${isActive ? 'text-green-600' : 'text-muted-foreground'}`} />
+          <Bot className={`h-5 w-5 ${isActive ? 'text-accent-foreground' : 'text-muted-foreground'}`} />
           WhatsApp AI Bot
           {statusIndicator}
         </CardTitle>
@@ -67,24 +67,24 @@ export const AiBotStatusCard: React.FC = () => {
             <div className="text-sm text-muted-foreground">Availability</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600 mb-1">~2s</div>
+            <div className="text-2xl font-bold text-accent-foreground mb-1">~2s</div>
             <div className="text-sm text-muted-foreground">Response Time</div>
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center gap-3 text-sm">
-            <Zap className="h-4 w-4 text-yellow-500" />
+            <Zap className="h-4 w-4 text-gold-foreground" />
             <span className="text-muted-foreground">Auto-booking enabled</span>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <Activity className="h-4 w-4 text-blue-500" />
+            <Activity className="h-4 w-4 text-accent-foreground" />
             <span className="text-muted-foreground">Calendar sync active</span>
           </div>
           {botStatus?.last_bot_activity && (
             <div className="flex items-center gap-3 text-sm">
               <div className="h-4 w-4 flex items-center justify-center">
-                <div className="h-2 w-2 bg-blue-500 rounded-full" />
+                <div className="h-2 w-2 bg-primary rounded-full" />
               </div>
               <span className="text-muted-foreground">
                 Laatste activiteit: {formatDistanceToNow(new Date(botStatus.last_bot_activity), { 
@@ -103,7 +103,7 @@ export const AiBotStatusCard: React.FC = () => {
             variant={isActive ? "outline" : "default"}
             className={`w-full ${
               isActive 
-                ? "text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200" 
+                ? "text-warning-foreground hover:text-warning-foreground hover:bg-warning/10 border-warning/30" 
                 : "bg-primary hover:bg-primary/90 text-primary-foreground"
             }`}
           >

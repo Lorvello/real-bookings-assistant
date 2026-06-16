@@ -183,8 +183,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     if (availabilityState.setupState === 'needs_calendar') {
       return (
         <div className="max-w-2xl mx-auto">
-          <div className="bg-card border border-white/[0.08] rounded-2xl p-8 text-center space-y-6">
-            <div className="w-16 h-16 bg-primary/10 ring-1 ring-primary/20 rounded-2xl flex items-center justify-center mx-auto">
+          <div className="glow-accent surface-raised rounded-2xl p-8 text-center space-y-6">
+            <div className="w-16 h-16 bg-primary/10 ring-1 ring-primary/20 rounded-xl flex items-center justify-center mx-auto">
               <CalendarIcon className="h-8 w-8 text-accent-foreground" />
             </div>
 
@@ -198,7 +198,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
             <Button
               onClick={() => setIsCalendarDialogOpen(true)}
               size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8"
+              className=" font-medium px-8"
             >
               <Settings className="w-5 h-5 mr-2" />
               Create Calendar

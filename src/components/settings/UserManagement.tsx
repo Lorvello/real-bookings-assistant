@@ -230,9 +230,9 @@ export const UserManagement = ({
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'owner':
-        return <Crown className="h-4 w-4 text-yellow-500" />;
+        return <Crown className="h-4 w-4 text-gold-foreground" />;
       case 'editor':
-        return <User className="h-4 w-4 text-blue-500" />;
+        return <User className="h-4 w-4 text-accent-foreground" />;
       case 'viewer':
         return <Eye className="h-4 w-4 text-muted-foreground" />;
       default:
@@ -258,14 +258,14 @@ export const UserManagement = ({
       switch (user.status) {
         case 'pending':
           return (
-            <Badge variant="outline" className="text-yellow-400 border-yellow-600 bg-yellow-900/20">
+            <Badge variant="outline" className="text-warning-foreground border-warning/40 bg-warning/10">
               <Clock className="h-3 w-3 mr-1" />
               Invited
             </Badge>
           );
         case 'expired':
           return (
-            <Badge variant="outline" className="text-red-400 border-red-600 bg-red-900/20">
+            <Badge variant="outline" className="text-destructive-foreground border-destructive/40 bg-destructive/10">
               <X className="h-3 w-3 mr-1" />
               Expired
             </Badge>
@@ -282,7 +282,7 @@ export const UserManagement = ({
       }
     }
     return (
-      <Badge variant="outline" className="text-green-400 border-green-600 bg-green-900/20">
+      <Badge variant="outline" className="text-success-foreground border-success/40 bg-success/10">
         <Check className="h-3 w-3 mr-1" />
         Active
       </Badge>
@@ -421,7 +421,7 @@ export const UserManagement = ({
                 {!accessControl.canAccessTeamMembers && (
                   <>
                     <Lock className="h-3 w-3" />
-                    <span className="text-xs bg-orange-500 text-foreground px-1 rounded ml-1">Pro</span>
+                    <span className="text-xs bg-gold/15 text-gold-foreground px-1 rounded ml-1">Pro</span>
                   </>
                 )}
               </TabsTrigger>
@@ -545,7 +545,7 @@ export const UserManagement = ({
                         Add Team Member
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="bg-card border-border">
+                    <DialogContent>
                       <DialogHeader>
                         <DialogTitle className="text-foreground">Add New Team Member</DialogTitle>
                       </DialogHeader>
@@ -578,7 +578,7 @@ export const UserManagement = ({
                             <SelectTrigger className="bg-background border-border text-foreground">
                               <SelectValue placeholder="Select a calendar" />
                             </SelectTrigger>
-                            <SelectContent className="bg-card border-border">
+                            <SelectContent className="glass">
                               {calendars.map((cal) => (
                                 <SelectItem key={cal.id} value={cal.id}>{cal.name}</SelectItem>
                               ))}
@@ -591,7 +591,7 @@ export const UserManagement = ({
                             <SelectTrigger className="bg-background border-border text-foreground">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-card border-border">
+                            <SelectContent className="glass">
                               <SelectItem value="viewer">Viewer - Can only view bookings</SelectItem>
                               <SelectItem value="editor">Editor - Can manage bookings and settings</SelectItem>
                             </SelectContent>
@@ -657,7 +657,7 @@ export const UserManagement = ({
                             </TableCell>
                             <TableCell>
                               {user.role === 'owner' ? (
-                                <Badge variant="secondary" className="bg-yellow-900/30 text-yellow-400 border-yellow-700">
+                                <Badge variant="secondary" className="bg-warning/10 text-warning-foreground border-warning/30">
                                   All Calendars
                                 </Badge>
                               ) : (
@@ -668,7 +668,7 @@ export const UserManagement = ({
                             </TableCell>
                             <TableCell>
                               {user.role === 'owner' ? (
-                                <Badge variant="secondary" className="bg-blue-900/30 text-blue-400 border-blue-700">
+                                <Badge variant="secondary" className="bg-primary/10 text-accent-foreground border-primary/20">
                                   Owner
                                 </Badge>
                               ) : user.type === 'invitation' ? (
@@ -679,7 +679,7 @@ export const UserManagement = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleResendInvitation(user.id)}
-                                        className="h-8 px-2 border-blue-700 text-blue-400 hover:bg-blue-900/30"
+                                        className="h-8 px-2 border-primary/20 text-accent-foreground hover:bg-primary/10"
                                         title="Resend invitation"
                                       >
                                         <RotateCcw className="h-3 w-3" />
@@ -688,7 +688,7 @@ export const UserManagement = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleCancelInvitation(user.id)}
-                                        className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                                        className="h-8 px-2 border-destructive/40 text-destructive-foreground hover:bg-destructive/10"
                                         title="Cancel invitation"
                                       >
                                         <X className="h-3 w-3" />
@@ -700,7 +700,7 @@ export const UserManagement = ({
                                       variant="outline"
                                       size="sm"
                                       onClick={() => handleResendInvitation(user.id)}
-                                      className="h-8 px-2 border-blue-700 text-blue-400 hover:bg-blue-900/30"
+                                      className="h-8 px-2 border-primary/20 text-accent-foreground hover:bg-primary/10"
                                       title="Resend invitation"
                                     >
                                       <RotateCcw className="h-3 w-3 mr-1" />
@@ -717,7 +717,7 @@ export const UserManagement = ({
                                     <SelectTrigger className="h-8 w-24 bg-card border-border text-foreground">
                                       <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-card border-border">
+                                    <SelectContent className="glass">
                                       <SelectItem value="viewer">Viewer</SelectItem>
                                       <SelectItem value="editor">Editor</SelectItem>
                                     </SelectContent>
@@ -726,7 +726,7 @@ export const UserManagement = ({
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleRemoveUser(user.id)}
-                                    className="h-8 px-2 border-red-700 text-red-400 hover:bg-red-900/30"
+                                    className="h-8 px-2 border-destructive/40 text-destructive-foreground hover:bg-destructive/10"
                                     title="Remove user"
                                   >
                                     <Trash2 className="h-3 w-3" />

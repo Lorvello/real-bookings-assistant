@@ -41,9 +41,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       return { 
         status: 'Offline', 
         color: 'red', 
-        bgColor: 'bg-red-500/10', 
-        borderColor: 'border-red-500/30', 
-        textColor: 'text-red-400',
+        bgColor: 'bg-destructive/10', 
+        borderColor: 'border-destructive/30', 
+        textColor: 'text-destructive-foreground',
         detail: 'No calendars found'
       };
     }
@@ -52,9 +52,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       return { 
         status: 'Online', 
         color: 'green', 
-        bgColor: 'bg-green-500/10', 
-        borderColor: 'border-green-500/30', 
-        textColor: 'text-green-400',
+        bgColor: 'bg-success/10', 
+        borderColor: 'border-white/[0.12]', 
+        textColor: 'text-accent-foreground',
         detail: `${onlineCount} of ${totalCount} calendars online`
       };
     }
@@ -62,9 +62,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
     return { 
       status: 'Partial', 
       color: 'yellow', 
-      bgColor: 'bg-yellow-500/10', 
-      borderColor: 'border-yellow-500/30', 
-      textColor: 'text-yellow-400',
+      bgColor: 'bg-warning/10', 
+      borderColor: 'border-warning/30', 
+      textColor: 'text-warning-foreground',
       detail: `${onlineCount} of ${totalCount} calendars online`
     };
   };
@@ -75,9 +75,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       return { 
         status: 'Offline', 
         color: 'red', 
-        bgColor: 'bg-red-500/10', 
-        borderColor: 'border-red-500/30', 
-        textColor: 'text-red-400',
+        bgColor: 'bg-destructive/10', 
+        borderColor: 'border-destructive/30', 
+        textColor: 'text-destructive-foreground',
         reason: userStatus.isExpired ? 'Subscription expired' : 'No WhatsApp access',
         clickable: false
       };
@@ -88,9 +88,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       return { 
         status: 'Paused', 
         color: 'yellow', 
-        bgColor: 'bg-yellow-500/10', 
-        borderColor: 'border-yellow-500/30', 
-        textColor: 'text-yellow-400',
+        bgColor: 'bg-warning/10', 
+        borderColor: 'border-warning/30', 
+        textColor: 'text-warning-foreground',
         reason: 'Bot disabled in settings',
         clickable: true
       };
@@ -99,9 +99,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
     return { 
       status: 'Active', 
       color: 'green', 
-      bgColor: 'bg-green-500/10', 
-      borderColor: 'border-green-500/30', 
-      textColor: 'text-green-400',
+      bgColor: 'bg-success/10', 
+      borderColor: 'border-white/[0.12]', 
+      textColor: 'text-accent-foreground',
       reason: 'Bot is responding to messages globally',
       clickable: true
     };
@@ -114,9 +114,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       return { 
         status: 'Disconnected', 
         color: 'red', 
-        bgColor: 'bg-red-500/10', 
-        borderColor: 'border-red-500/30', 
-        textColor: 'text-red-400',
+        bgColor: 'bg-destructive/10', 
+        borderColor: 'border-destructive/30', 
+        textColor: 'text-destructive-foreground',
         reason: `${connectionCount} of ${totalCalendars} calendars connected`,
         detail: 'Real-time sync keeps your bookings updated instantly across all systems'
       };
@@ -124,9 +124,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
     return { 
       status: 'Live', 
       color: 'green', 
-      bgColor: 'bg-green-500/10', 
-      borderColor: 'border-green-500/30', 
-      textColor: 'text-green-400',
+      bgColor: 'bg-success/10', 
+      borderColor: 'border-white/[0.12]', 
+      textColor: 'text-accent-foreground',
       reason: `All ${totalCalendars} calendars connected`,
       detail: 'Real-time sync keeps your bookings updated instantly across all systems'
     };
@@ -149,7 +149,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-muted/40 rounded-2xl animate-pulse border border-white/[0.08]" />
+            <div key={i} className="h-44 surface-raised shimmer rounded-2xl border border-white/[0.08]" />
           ))}
         </div>
       </div>
@@ -163,8 +163,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-8 gap-2 sm:gap-4">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-4 h-4 bg-emerald-500 rounded-full animate-pulse"></div>
-              <div className="absolute inset-0 w-4 h-4 bg-green-400 rounded-full animate-ping opacity-75"></div>
+              <div className="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 w-4 h-4 bg-success rounded-full animate-ping opacity-75"></div>
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">Live Operations Center</h3>
@@ -182,7 +182,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           )}
         </div>
 
-        {/* Real-time Metrics Cards - Green Theme - Mobile optimized */}
+        {/* Real-time Metrics Cards - mono-accent - Mobile optimized */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -201,12 +201,12 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   delay={0.1}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-green-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
@@ -233,12 +233,12 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   delay={0.2}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-green-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
@@ -265,12 +265,12 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   delay={0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                 </div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-green-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
@@ -298,13 +298,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   delay={0.4}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                  <ArrowRight className="h-3 w-3 text-green-400/70 group-hover:text-green-300 transition-colors group-hover:translate-x-0.5 transform duration-200" />
+                  <ArrowRight className="h-3 w-3 text-accent-foreground/80 group-hover:text-accent-foreground transition-colors group-hover:translate-x-0.5 transform duration-200" />
                 </div>
-                <div className="absolute inset-0 rounded-2xl border border-green-500/20 group-hover:border-green-500/40 transition-colors"></div>
+                <div className="absolute inset-0 rounded-2xl border border-white/[0.08] group-hover:border-white/[0.14] transition-colors"></div>
               </motion.div>
             </TooltipTrigger>
             <TooltipContent 
-              className="max-w-sm bg-background/95 border border-green-500/30 text-foreground z-50"
+              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
@@ -319,11 +319,11 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-8">
           {/* Enhanced System Status */}
           <div className="relative group">
-            <div className="relative bg-card border border-white/[0.08] rounded-2xl">
+            <div className="relative surface-raised rounded-2xl">
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-muted/40 rounded-xl">
-                    <Activity className="h-5 w-5 text-green-400" />
+                    <Activity className="h-5 w-5 text-accent-foreground" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">Live System Status</h3>
                 </div>
@@ -334,8 +334,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                       <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] cursor-help relative">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 ${
-                            calendarStatus.color === 'green' ? 'bg-green-400' : 
-                            calendarStatus.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
+                            calendarStatus.color === 'green' ? 'bg-success' : 
+                            calendarStatus.color === 'yellow' ? 'bg-warning' : 'bg-destructive'
                           } rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''}`}></div>
                           <span className="text-sm font-medium text-foreground">Calendar Status</span>
                         </div>
@@ -343,7 +343,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <Badge variant="outline" className={`${calendarStatus.borderColor} ${calendarStatus.textColor} ${calendarStatus.bgColor}`}>
                             {calendarStatus.status}
                           </Badge>
-                          <Info className={`h-3 w-3 ${calendarStatus.textColor}/70 hover:${calendarStatus.textColor} transition-colors`} />
+                          <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
@@ -372,8 +372,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 ${
-                            bookingsAssistantStatus.color === 'green' ? 'bg-green-400' : 
-                            bookingsAssistantStatus.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
+                            bookingsAssistantStatus.color === 'green' ? 'bg-success' : 
+                            bookingsAssistantStatus.color === 'yellow' ? 'bg-warning' : 'bg-destructive'
                           } rounded-full ${bookingsAssistantStatus.color === 'green' ? 'animate-pulse' : ''}`}></div>
                           <span className="text-sm font-medium text-foreground">Bookings Assistant</span>
                         </div>
@@ -382,9 +382,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                             {bookingsAssistantStatus.status}
                           </Badge>
                           {bookingsAssistantStatus.clickable ? (
-                            <Settings className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                            <Settings className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                           ) : (
-                            <Info className={`h-3 w-3 ${bookingsAssistantStatus.textColor}/70 hover:${bookingsAssistantStatus.textColor} transition-colors`} />
+                            <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                           )}
                         </div>
                       </div>
@@ -414,7 +414,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           <Badge variant="outline" className={`${realtimeSyncStatus.borderColor} ${realtimeSyncStatus.textColor} ${realtimeSyncStatus.bgColor}`}>
                             {realtimeSyncStatus.status}
                           </Badge>
-                          <Info className={`h-3 w-3 ${realtimeSyncStatus.textColor}/70 hover:${realtimeSyncStatus.textColor} transition-colors`} />
+                          <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
@@ -436,23 +436,23 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           {/* Enhanced Today's Planning - Now Clickable */}
           <div className="relative group">
             <div
-              className="relative bg-card border border-white/[0.08] rounded-2xl cursor-pointer hover:border-white/[0.14] transition-colors"
+              className="relative surface-raised rounded-2xl cursor-pointer hover:border-white/[0.14] transition-colors"
               onClick={handleTodayScheduleClick}
             >
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-muted/40 rounded-xl">
-                    <Calendar className="h-5 w-5 text-green-400" />
+                    <Calendar className="h-5 w-5 text-accent-foreground" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">Today's Schedule</h3>
-                  <ArrowRight className="h-4 w-4 text-green-400/70 group-hover:text-green-300 group-hover:translate-x-1 transition-transform duration-150 ml-auto" />
+                  <ArrowRight className="h-4 w-4 text-accent-foreground/80 group-hover:text-accent-foreground group-hover:translate-x-1 transition-transform duration-150 ml-auto" />
                 </div>
                 
                 {liveOps?.next_appointment_time ? (
                   <div className="space-y-4">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="p-4 bg-green-500/10 border border-white/[0.08] rounded-xl cursor-pointer relative group-hover:border-white/[0.14] transition-colors">
+                        <div className="p-4 bg-success/10 border border-white/[0.08] rounded-xl cursor-pointer relative group-hover:border-white/[0.14] transition-colors">
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="font-semibold text-foreground mb-1">Next Appointment</p>
@@ -466,17 +466,17 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                             <div className="flex items-center gap-2">
                               <Badge 
                                 variant="secondary"
-                                className="bg-green-500/20 text-green-400 border-green-500/30"
+                                className="bg-success/15 text-accent-foreground border-white/[0.12]"
                               >
                                 {liveOps.next_appointment_formatted}
                               </Badge>
-                              <Info className="h-3 w-3 text-green-400/70 hover:text-green-300 transition-colors" />
+                              <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
                             </div>
                           </div>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent 
-                        className="max-w-sm bg-background/95 border border-green-500/30 text-foreground z-50"
+                        className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
                         side="top"
                         align="center"
                       >

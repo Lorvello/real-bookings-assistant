@@ -23,7 +23,7 @@ export function ServicePerformanceChart({ data, selectedTimeRange }: ServicePerf
 
   return (
     <div className="relative">
-      <div className="relative bg-card border border-white/[0.08] rounded-2xl overflow-visible">
+      <div className="relative surface-raised rounded-2xl overflow-visible">
         <ServicePerformanceHeader hasData={hasData} data={data} selectedTimeRange={selectedTimeRange} />
 
         <div className="p-8">

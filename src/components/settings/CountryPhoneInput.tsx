@@ -159,7 +159,7 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled }:
         />
       </div>
       <div className="flex-1 relative">
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-subtle-foreground text-sm pointer-events-none">
           {selectedCountryData?.callingCode}
         </div>
         <Input
@@ -167,7 +167,7 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled }:
           value={localNumber}
           onChange={handleNumberChange}
           placeholder="123456789"
-          className="pl-16 bg-gray-800 border-gray-700 text-white"
+          className="pl-16 bg-muted border-white/[0.08] text-foreground"
           disabled={disabled}
         />
       </div>

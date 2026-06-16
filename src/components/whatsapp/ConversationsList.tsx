@@ -56,7 +56,7 @@ export function ConversationsList({
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
+          <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
             Active
           </Badge>
         );
@@ -148,7 +148,7 @@ export function ConversationsList({
                 >
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-success rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm flex-shrink-0">
                       {getInitials(displayName)}
                     </div>
 

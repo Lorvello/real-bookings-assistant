@@ -35,13 +35,13 @@ const formatSubscriptionTier = (tier?: string) => {
 const getTierColor = (tier?: string) => {
   switch (tier) {
     case 'starter':
-      return 'text-green-400';
+      return 'text-success-foreground';
     case 'professional':
-      return 'text-blue-400';
+      return 'text-accent-foreground';
     case 'enterprise':
-      return 'text-yellow-400';
+      return 'text-warning-foreground';
     default:
-      return 'text-gray-400';
+      return 'text-subtle-foreground';
   }
 };
 
@@ -121,26 +121,26 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
   const getColorClass = () => {
     switch (statusColor) {
       case 'green':
-        return 'text-green-400';
+        return 'text-success-foreground';
       case 'yellow':
-        return 'text-yellow-400';
+        return 'text-warning-foreground';
       case 'red':
-        return 'text-red-400';
+        return 'text-destructive-foreground';
       default:
-        return 'text-gray-400';
+        return 'text-subtle-foreground';
     }
   };
 
   const getBgColor = () => {
     switch (statusColor) {
       case 'green':
-        return 'bg-green-900/20 border-green-700';
+        return 'bg-success/10 border-success/30';
       case 'yellow':
-        return 'bg-yellow-900/20 border-yellow-700';
+        return 'bg-warning/10 border-warning/30';
       case 'red':
-        return 'bg-red-900/20 border-red-700';
+        return 'bg-destructive/10 border-destructive/30';
       default:
-        return 'bg-gray-700/50 border-gray-600';
+        return 'bg-white/[0.05] border-white/[0.08]';
     }
   };
 
@@ -172,7 +172,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
           <div className="ml-3 min-w-0 flex-1">
             {userType === 'setup_incomplete' ? (
               <div className="space-y-2">
-                <p className="text-xs font-medium text-yellow-400">
+                <p className="text-xs font-medium text-warning-foreground">
                   {daysRemaining} Days Free Trial Remaining
                 </p>
                 {currentTier && tierDisplay && (
@@ -187,7 +187,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/dashboard')}
-                  className="w-full h-6 text-xs py-1 px-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10"
+                  className="w-full h-6 text-xs py-1 px-2 border-warning/40 text-warning-foreground hover:bg-warning/10"
                 >
                   Complete Setup
                 </Button>
@@ -208,12 +208,12 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
                 )}
                 {/* Show additional info based on user type */}
                 {userType === 'trial' && daysRemaining <= 3 && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-subtle-foreground mt-1">
                     Upgrade to keep access
                   </p>
                 )}
                 {userType === 'canceled_subscriber' && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-subtle-foreground mt-1">
                     Access will end soon
                   </p>
                 )}

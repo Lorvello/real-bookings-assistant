@@ -13,11 +13,11 @@ export function DashboardStatusIndicator() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Badge variant="outline" className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
               Dashboard Updates: Live
             </Badge>
             <Badge variant="outline" className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-gold rounded-full animate-pulse"></div>
               Booking Sync: Active
             </Badge>
           </div>

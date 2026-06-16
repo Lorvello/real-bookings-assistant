@@ -73,37 +73,37 @@ export function DataRetentionManager({ calendarId }: DataRetentionManagerProps) 
         <div>
           <h4 className="font-medium mb-3">Actieve Bewaarbeleid</h4>
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-              <Clock className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg">
+              <Clock className="h-4 w-4 text-accent-foreground" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Automatic Message Deletion</p>
                 <p className="text-xs text-subtle-foreground">
                   Messages older than {retentionSettings?.message_retention_days || 90} days are automatically deleted
                 </p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
+              <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">Active</Badge>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-              <Archive className="h-4 w-4 text-orange-600" />
+            <div className="flex items-center gap-3 p-3 bg-warning/10 rounded-lg">
+              <Archive className="h-4 w-4 text-warning-foreground" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Conversation Archiving</p>
                 <p className="text-xs text-subtle-foreground">
                   Conversations are archived after {retentionSettings?.conversation_inactive_days || 30} days of inactivity
                 </p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
+              <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">Active</Badge>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-              <Trash2 className="h-4 w-4 text-red-600" />
+            <div className="flex items-center gap-3 p-3 bg-destructive/10 rounded-lg">
+              <Trash2 className="h-4 w-4 text-destructive-foreground" />
               <div className="flex-1">
                 <p className="text-sm font-medium">Abandoned Booking Intents</p>
                 <p className="text-xs text-subtle-foreground">
                   Abandoned booking attempts are deleted after {retentionSettings?.booking_intent_abandoned_days || 7} days
                 </p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">Active</Badge>
+              <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">Active</Badge>
             </div>
           </div>
         </div>

@@ -100,7 +100,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
       {/* Add New Override Form */}
       {showAddForm && (
-        <div className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6">
+        <div className="surface-raised rounded-2xl p-6">
           <div className="space-y-6">
             <div className="flex items-center space-x-3 mb-4">
               <div className="p-2 bg-primary/20 rounded-2xl">
@@ -214,7 +214,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               <Button
                 onClick={addOverride}
                 disabled={!selectedDate}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl"
+                className=" rounded-2xl"
               >
                 Add Exception
               </Button>
@@ -225,13 +225,15 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
       {/* Existing Overrides */}
       {loading ? (
-        <div className="text-center py-4">
-          <div className="text-sm text-muted-foreground">Loading overrides...</div>
+        <div className="space-y-3">
+          {[0, 1].map((i) => (
+            <div key={i} className="surface-raised shimmer rounded-xl h-16" />
+          ))}
         </div>
       ) : overrides.length > 0 ? (
         <div className="space-y-4">
           {overrides.map((override) => (
-            <div key={override.id} className="bg-card/90 backdrop-blur-sm border border-border/60 rounded-3xl p-6">
+            <div key={override.id} className="surface-raised rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-3">
@@ -246,7 +248,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                           className={cn(
                             "rounded-full ring-1 border-transparent",
                             override.is_available
-                              ? "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20"
+                              ? "bg-success/10 text-success-foreground ring-success/20"
                               : "bg-muted text-muted-foreground ring-white/[0.08]"
                           )}
                         >
@@ -283,8 +285,11 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No schedule exceptions yet.</p>
+        <div className="flex flex-col items-center text-center py-8">
+          <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
+            <CalendarIcon className="h-5 w-5 text-accent-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">No schedule exceptions yet.</p>
         </div>
       )}
 
@@ -292,7 +297,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
       {!showAddForm && (
         <Button
           onClick={() => setShowAddForm(true)}
-          className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 border-2 border-dashed rounded-3xl h-14 font-medium"
+          className="w-full bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 border-2 border-dashed rounded-2xl h-14 font-medium"
           variant="outline"
         >
           <Plus className="h-5 w-5 mr-2" />

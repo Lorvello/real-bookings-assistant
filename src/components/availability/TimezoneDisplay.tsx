@@ -84,7 +84,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
   };
 
   return (
-    <Card className="bg-card/90 backdrop-blur-sm border border-border/60">
+    <Card className="surface-raised">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center space-x-2">

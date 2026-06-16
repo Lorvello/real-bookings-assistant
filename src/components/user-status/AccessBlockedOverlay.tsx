@@ -19,7 +19,7 @@ export function AccessBlockedOverlay({ userStatus, feature, description, onUpgra
     // One accent (blue) for the upgrade prompt; semantic amber/rose for the lapsed states.
     if (feature === 'Future Insights') return <Brain className="h-12 w-12 text-accent-foreground" />;
     if (userType === 'canceled_subscriber') return <RefreshCw className="h-12 w-12 text-amber-400" />;
-    return <Lock className="h-12 w-12 text-rose-400" />;
+    return <Lock className="h-12 w-12 text-destructive-foreground" />;
   };
 
   const getTitle = () => {

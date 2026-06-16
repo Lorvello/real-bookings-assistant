@@ -55,11 +55,11 @@ export function CalendarHeader({
   };
 
   return (
-    <div className="bg-card border-b border-border px-3 sm:px-4 py-3 rounded-t-lg">
+    <div className="bg-transparent border-b border-white/[0.06] px-3 sm:px-4 py-3 rounded-t-xl">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         {/* Left Section - Title & Navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center space-x-3 px-3 py-2 bg-muted/50 rounded-lg border border-border">
+          <div className="flex items-center space-x-3 px-3 py-2 bg-muted/50 rounded-lg border border-white/[0.06]">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             
             <div>
@@ -73,7 +73,7 @@ export function CalendarHeader({
           </div>
 
           {/* Navigation Controls */}
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border">
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-white/[0.06]">
             <Button
               variant="ghost"
               size="icon"
@@ -110,17 +110,17 @@ export function CalendarHeader({
           )}
 
           {/* View Switcher */}
-          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border order-1 sm:order-none">
+          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-white/[0.06] order-1 sm:order-none">
             {(['month', 'week', 'year'] as const).map((view) => (
               <Button
                 key={view}
                 variant={currentView === view ? "default" : "ghost"}
                 size="sm"
                 onClick={() => onViewChange(view)}
-                className={`px-3 py-1.5 h-8 rounded-md font-medium transition-colors text-sm ${
-                  currentView === view 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-muted'
+                className={`px-3 py-1.5 h-8 rounded-md font-medium text-sm ${
+                  currentView === view
+                    ? ''
+                    : 'hover:bg-white/[0.06]'
                 }`}
               >
                 {view === 'month' ? 'Month' : view === 'week' ? 'Week' : 'Year'}
@@ -134,9 +134,9 @@ export function CalendarHeader({
               onClick={handleNewBookingClick}
               disabled={loading || !canCreateAppointments}
               className={`h-9 px-4 rounded-lg font-medium text-sm ${
-                canCreateAppointments 
-                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground cursor-not-allowed'
+                canCreateAppointments
+                  ? ''
+                  : 'bg-muted text-muted-foreground cursor-not-allowed shadow-none'
               }`}
             >
               <Plus className="h-4 w-4 mr-2" />

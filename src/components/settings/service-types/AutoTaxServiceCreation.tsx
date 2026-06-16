@@ -113,15 +113,15 @@ export const AutoTaxServiceCreation: React.FC<AutoTaxServiceCreationProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex items-center gap-2">
-            <Globe className="h-4 w-4 text-blue-500" />
+            <Globe className="h-4 w-4 text-accent-foreground" />
             <span className="text-sm">Auto country detection</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success-foreground" />
             <span className="text-sm">Smart tax assignment</span>
           </div>
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-purple-500" />
+            <Zap className="h-4 w-4 text-accent-foreground" />
             <span className="text-sm">Instant Stripe setup</span>
           </div>
         </div>

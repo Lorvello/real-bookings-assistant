@@ -25,7 +25,7 @@ interface SettingsSectionProps {
  */
 export function SettingsSection({ title, description, tooltip, usedByAgent, className, children }: SettingsSectionProps) {
   return (
-    <Card className={`border-border ${className ?? ''}`}>
+    <Card className={className ?? ''}>
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
           <CardTitle className="text-xl font-semibold text-foreground">{title}</CardTitle>

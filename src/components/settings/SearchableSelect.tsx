@@ -63,8 +63,8 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "w-full justify-between bg-gray-800 border-gray-700 text-white hover:bg-gray-700",
-            !value && "text-gray-400",
+            "w-full justify-between bg-muted border-white/[0.08] text-foreground hover:bg-white/[0.06]",
+            !value && "text-subtle-foreground",
             className
           )}
           disabled={disabled}
@@ -73,19 +73,19 @@ export function SearchableSelect({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700" align="start">
-        <div className="flex items-center border-b border-gray-700 px-3">
-          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-gray-400" />
+      <PopoverContent className="w-full p-0 bg-popover border-white/[0.08]" align="start">
+        <div className="flex items-center border-b border-white/[0.08] px-3">
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-subtle-foreground" />
           <Input
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0"
+            className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0"
           />
         </div>
         <div className="max-h-60 overflow-auto">
           {filteredOptions.length === 0 ? (
-            <div className="py-6 text-center text-sm text-gray-400">
+            <div className="py-6 text-center text-sm text-subtle-foreground">
               No options found.
             </div>
           ) : (
@@ -93,8 +93,8 @@ export function SearchableSelect({
               <div
                 key={option.value}
                 className={cn(
-                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-gray-700 hover:text-white",
-                  value === option.value && "bg-gray-700 text-white"
+                  "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-white/[0.06] hover:text-foreground",
+                  value === option.value && "bg-primary/15 text-foreground"
                 )}
                 onClick={() => {
                   onValueChange(option.value);

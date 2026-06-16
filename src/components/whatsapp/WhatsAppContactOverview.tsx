@@ -51,8 +51,8 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
       <Card className="bg-card border-white/[0.08]">
         <CardHeader className="border-b border-white/[0.08] bg-card">
           <CardTitle className="flex items-center gap-3 text-lg">
-            <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-green-400" />
+            <div className="w-8 h-8 bg-primary/15 rounded-lg flex items-center justify-center">
+              <MessageCircle className="w-4 h-4 text-accent-foreground" />
             </div>
             <span className="text-foreground">WhatsApp Contact Overview</span>
           </CardTitle>
@@ -105,8 +105,8 @@ export function WhatsAppContactOverview({ calendarId }: WhatsAppContactOverviewP
       <CardHeader className="border-b border-white/[0.08] bg-card">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-lg">
-            <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-green-400" />
+            <div className="w-8 h-8 bg-primary/15 rounded-lg flex items-center justify-center">
+              <MessageCircle className="w-4 h-4 text-accent-foreground" />
             </div>
             <div>
               <div className="text-lg font-semibold text-foreground">WhatsApp Contacts</div>

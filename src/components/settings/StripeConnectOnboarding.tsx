@@ -117,7 +117,7 @@ export function StripeConnectOnboarding({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
-            <Shield className="h-5 w-5 text-green-600" />
+            <Shield className="h-5 w-5 text-success-foreground" />
             <span>Connect Stripe Account</span>
           </DialogTitle>
           <DialogDescription>
@@ -131,7 +131,7 @@ export function StripeConnectOnboarding({
               {/* Why we recommend this */}
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                  <Shield className="h-4 w-4 text-green-600" />
+                  <Shield className="h-4 w-4 text-success-foreground" />
                   <span>Why we recommend this</span>
                 </h4>
                 <TooltipProvider>
@@ -174,7 +174,7 @@ export function StripeConnectOnboarding({
                 <ul className="space-y-2">
                   {requirements.map((requirement, index) => (
                     <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
-                      <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <Check className="h-4 w-4 text-success-foreground mt-0.5 flex-shrink-0" />
                       <span>{requirement}</span>
                     </li>
                   ))}
@@ -188,7 +188,7 @@ export function StripeConnectOnboarding({
                 <Button 
                   onClick={handleStartOnboarding} 
                   disabled={onboarding}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {onboarding ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -220,7 +220,7 @@ export function StripeConnectOnboarding({
           {step === 'complete' && (
             <div className="text-center py-8">
               <div className="mb-4">
-                <CheckCircle className="h-8 w-8 text-green-600 mx-auto" />
+                <CheckCircle className="h-8 w-8 text-success-foreground mx-auto" />
               </div>
               <h3 className="font-medium mb-2">Setup Complete!</h3>
               <p className="text-sm text-muted-foreground mb-4">

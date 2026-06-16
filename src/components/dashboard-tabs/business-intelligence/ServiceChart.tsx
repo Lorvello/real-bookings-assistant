@@ -135,20 +135,20 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
           <BarChart data={dataWithPercentages} margin={{ top: 20, right: 40, left: 20, bottom: 80 }}>
             <defs>
               <linearGradient id="enhancedRevenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(16, 185, 129)" stopOpacity={0.9} />
-                <stop offset="50%" stopColor="rgb(16, 185, 129)" stopOpacity={0.7} />
-                <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity={0.3} />
+                <stop offset="0%" stopColor="hsl(var(--gold))" stopOpacity={0.9} />
+                <stop offset="50%" stopColor="hsl(var(--gold))" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="hsl(var(--gold))" stopOpacity={0.3} />
               </linearGradient>
               <linearGradient id="enhancedBookingGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity={0.9} />
-                <stop offset="50%" stopColor="rgb(59, 130, 246)" stopOpacity={0.7} />
-                <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity={0.3} />
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.9} />
+                <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity={0.7} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
               </linearGradient>
             </defs>
             
             <CartesianGrid 
               strokeDasharray="2 4" 
-              stroke="rgb(71, 85, 105)" 
+              stroke="hsl(0 0% 100% / 0.08)" 
               opacity={0.4}
               horizontal={true}
               vertical={false}
@@ -156,9 +156,9 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
             
             <XAxis 
               dataKey="service_name" 
-              tick={{ fill: 'rgb(203, 213, 225)', fontSize: 13, fontWeight: 500 }}
-              axisLine={{ stroke: 'rgb(100, 116, 139)', strokeWidth: 1 }}
-              tickLine={{ stroke: 'rgb(100, 116, 139)', strokeWidth: 1 }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 13, fontWeight: 500 }}
+              axisLine={{ stroke: 'hsl(0 0% 100% / 0.12)', strokeWidth: 1 }}
+              tickLine={{ stroke: 'hsl(0 0% 100% / 0.12)', strokeWidth: 1 }}
               angle={-35}
               textAnchor="end"
               height={90}
@@ -169,14 +169,14 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               yAxisId="bookings"
               orientation="left"
               domain={[0, bookingScaleMax]}
-              tick={{ fill: 'rgb(59, 130, 246)', fontSize: 12, fontWeight: 500 }}
-              axisLine={{ stroke: 'rgb(59, 130, 246)', strokeWidth: 2, opacity: 0.8 }}
-              tickLine={{ stroke: 'rgb(59, 130, 246)', strokeWidth: 1, opacity: 0.6 }}
+              tick={{ fill: 'hsl(var(--primary))', fontSize: 12, fontWeight: 500 }}
+              axisLine={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, opacity: 0.8 }}
+              tickLine={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, opacity: 0.6 }}
               label={{ 
                 value: 'Number of Bookings', 
                 angle: -90, 
                 position: 'insideLeft',
-                style: { textAnchor: 'middle', fill: 'rgb(59, 130, 246)', fontSize: 12, fontWeight: 600 }
+                style: { textAnchor: 'middle', fill: 'hsl(var(--primary))', fontSize: 12, fontWeight: 600 }
               }}
             />
             
@@ -184,22 +184,22 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               yAxisId="revenue"
               orientation="right"
               domain={[0, revenueScaleMax]}
-              tick={{ fill: 'rgb(16, 185, 129)', fontSize: 12, fontWeight: 500 }}
-              axisLine={{ stroke: 'rgb(16, 185, 129)', strokeWidth: 2, opacity: 0.8 }}
-              tickLine={{ stroke: 'rgb(16, 185, 129)', strokeWidth: 1, opacity: 0.6 }}
+              tick={{ fill: 'hsl(var(--gold))', fontSize: 12, fontWeight: 500 }}
+              axisLine={{ stroke: 'hsl(var(--gold))', strokeWidth: 2, opacity: 0.8 }}
+              tickLine={{ stroke: 'hsl(var(--gold))', strokeWidth: 1, opacity: 0.6 }}
               label={{ 
                 value: 'Revenue (€)', 
                 angle: 90, 
                 position: 'insideRight',
-                style: { textAnchor: 'middle', fill: 'rgb(16, 185, 129)', fontSize: 12, fontWeight: 600 }
+                style: { textAnchor: 'middle', fill: 'hsl(var(--gold))', fontSize: 12, fontWeight: 600 }
               }}
             />
             
             <Tooltip 
               content={<ChartTooltip />}
               cursor={{ 
-                fill: 'rgba(148, 163, 184, 0.08)',
-                stroke: 'rgba(148, 163, 184, 0.2)',
+                fill: 'hsl(var(--muted-foreground) / 0.08)',
+                stroke: 'hsl(var(--muted-foreground) / 0.2)',
                 strokeWidth: 1,
                 radius: 4
               }}
@@ -212,7 +212,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               radius={[6, 6, 0, 0]}
               name="Number of Bookings"
               strokeWidth={1}
-              stroke="rgba(59, 130, 246, 0.3)"
+              stroke="hsl(var(--primary) / 0.3)"
             />
             
             <Bar 
@@ -222,7 +222,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               radius={[6, 6, 0, 0]}
               name="Revenue (€)"
               strokeWidth={1}
-              stroke="rgba(16, 185, 129, 0.3)"
+              stroke="hsl(var(--gold) / 0.3)"
             />
           </BarChart>
         </ResponsiveContainer>

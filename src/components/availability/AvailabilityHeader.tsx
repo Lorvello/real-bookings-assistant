@@ -26,7 +26,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
   const { viewingAllCalendars } = useCalendarContext();
 
   return (
-    <div className="border-b border-border bg-card/90 backdrop-blur-sm">
+    <div className="border-b border-border bg-surface-1">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -58,7 +58,7 @@ export const AvailabilityHeader: React.FC<AvailabilityHeaderProps> = ({
             <Button 
               onClick={onSave}
               disabled={!hasUnsavedChanges || loading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl"
+              className=" rounded-2xl"
             >
               {loading ? 'Saving...' : 'Save'}
             </Button>

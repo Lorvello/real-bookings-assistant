@@ -12,8 +12,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // inset top-highlight = the "lit-from-above" milled edge; hover brightens.
-        default: "bg-primary text-primary-foreground shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.12)] hover:brightness-110",
+        // ELEVATION §2 — the accent GLOWS: directional gradient (lighter at top) +
+        // inner top-highlight + a soft outer accent glow that intensifies on hover.
+        default: "bg-gradient-to-b from-primary to-primary/90 text-primary-foreground shadow-[inset_0_1px_0_0_hsl(var(--highlight)/0.18),0_2px_10px_-2px_hsl(var(--primary)/0.45)] hover:brightness-110 hover:shadow-[inset_0_1px_0_0_hsl(var(--highlight)/0.22),0_4px_18px_-2px_hsl(var(--primary)/0.55)]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.10)] hover:brightness-110",
         outline:

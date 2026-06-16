@@ -50,7 +50,7 @@ export const WhatsAppNotAvailable: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-card border border-border rounded-xl p-6">
+      <div className="surface-raised rounded-xl p-6">
         <div className="flex items-center gap-4">
           <div className="relative">
             <MessageCircle className="h-8 w-8 text-muted-foreground" />

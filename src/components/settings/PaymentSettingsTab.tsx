@@ -635,10 +635,10 @@ export function PaymentSettingsTab() {
             </div>
             
             {settings?.secure_payments_enabled && !isStripeSetupComplete && (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg">
                 <div className="flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                  <p className="text-sm text-amber-800">
+                  <AlertCircle className="h-4 w-4 text-warning-foreground" />
+                  <p className="text-sm text-warning-foreground">
                     {hasStripeAccount ? "Complete your Stripe account setup to enable Pay & Book" : "Connect your Stripe account to enable Pay & Book"}
                   </p>
                 </div>
@@ -671,7 +671,7 @@ export function PaymentSettingsTab() {
             {/* Why we recommend this */}
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-green-600" />
+                <Shield className="h-4 w-4 text-success-foreground" />
                 <span>Why we recommend this</span>
               </h4>
               <p className="text-sm text-muted-foreground mb-3">
@@ -709,14 +709,14 @@ export function PaymentSettingsTab() {
             </div>
 
             <div className="text-center py-3 space-y-4">
-              <Button onClick={handleOpenStripeDashboard} disabled={stripeLoading} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-medium w-full max-w-xs">
+              <Button onClick={handleOpenStripeDashboard} disabled={stripeLoading} size="lg" className=" font-medium w-full max-w-xs">
                 {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Go To Dashboard
               </Button>
 
 
-              {stripeConfig.isTestMode && <p className="text-xs text-orange-600">
+              {stripeConfig.isTestMode && <p className="text-xs text-warning-foreground">
                   <TestTube className="h-3 w-3 inline mr-1" />
                   Test mode - No real money will be processed
                 </p>}
@@ -745,7 +745,7 @@ export function PaymentSettingsTab() {
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
                       Account ID: {stripeAccount.stripe_account_id}
-                      {stripeConfig.isTestMode && <Badge variant="secondary" className="ml-2 bg-orange-100 text-orange-800">
+                      {stripeConfig.isTestMode && <Badge variant="secondary" className="ml-2 bg-warning/10 text-warning-foreground">
                           <TestTube className="h-3 w-3 mr-1" />
                           TEST MODE
                         </Badge>}
@@ -756,11 +756,11 @@ export function PaymentSettingsTab() {
                   </div>
                   <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                     <span className="flex items-center space-x-1">
-                      {stripeAccount.charges_enabled ? <CheckCircle className="h-3 w-3 text-green-600" /> : <AlertCircle className="h-3 w-3 text-amber-600" />}
+                      {stripeAccount.charges_enabled ? <CheckCircle className="h-3 w-3 text-success-foreground" /> : <AlertCircle className="h-3 w-3 text-warning-foreground" />}
                       <span>Charges {stripeAccount.charges_enabled ? 'Enabled' : 'Disabled'}</span>
                     </span>
                     <span className="flex items-center space-x-1">
-                      {stripeAccount.payouts_enabled ? <CheckCircle className="h-3 w-3 text-green-600" /> : <AlertCircle className="h-3 w-3 text-amber-600" />}
+                      {stripeAccount.payouts_enabled ? <CheckCircle className="h-3 w-3 text-success-foreground" /> : <AlertCircle className="h-3 w-3 text-warning-foreground" />}
                       <span>Payouts {stripeAccount.payouts_enabled ? 'Enabled' : 'Disabled'}</span>
                     </span>
                   </div>
@@ -783,13 +783,13 @@ export function PaymentSettingsTab() {
 
               {!stripeAccount.onboarding_completed && <div className="bg-muted/50 p-3 rounded-lg">
                   <div className="flex items-start space-x-3">
-                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                    <AlertCircle className="h-4 w-4 text-warning-foreground mt-0.5" />
                     <div>
                       <p className="text-sm font-medium">Setup Incomplete</p>
                       <p className="text-xs text-muted-foreground mb-2">
                         Complete your account setup to start accepting payments
                       </p>
-                      <Button onClick={handleStartOnboarding} size="sm" disabled={stripeLoading} className="bg-green-600 hover:bg-green-700 text-white font-medium">
+                      <Button onClick={handleStartOnboarding} size="sm" disabled={stripeLoading} className=" font-medium">
                         {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         Complete Setup in Minutes
                       </Button>
@@ -812,7 +812,7 @@ export function PaymentSettingsTab() {
             {/* Why we recommend this */}
             <div className="bg-muted/50 p-4 rounded-lg">
               <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-green-600" />
+                <Shield className="h-4 w-4 text-success-foreground" />
                 <span>Why we recommend this</span>
               </h4>
               <p className="text-sm text-muted-foreground mb-3">
@@ -854,19 +854,19 @@ export function PaymentSettingsTab() {
               <h4 className="font-medium mb-3 text-foreground">What you'll need</h4>
               <ul className="space-y-2">
                 {['Business bank account details', 'Business registration or tax ID', 'Valid ID of representative (passport or ID card)', 'Date of birth and address of representative', 'Beneficial ownership details (if applicable)'].map((requirement, index) => <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <Check className="h-4 w-4 text-success-foreground mt-0.5 flex-shrink-0" />
                     <span>{requirement}</span>
                   </li>)}
               </ul>
             </div>
 
             <div className="text-center py-6">
-              <Button onClick={handleStartOnboarding} disabled={stripeLoading} size="lg" className="bg-green-600 hover:bg-green-700 text-white font-medium">
+              <Button onClick={handleStartOnboarding} disabled={stripeLoading} size="lg" className=" font-medium">
                 {stripeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <CreditCard className="h-4 w-4 mr-2" />
                 Start Stripe Setup
               </Button>
-              {stripeConfig.isTestMode && <p className="text-xs text-orange-600 mt-2">
+              {stripeConfig.isTestMode && <p className="text-xs text-warning-foreground mt-2">
                   <TestTube className="h-3 w-3 inline mr-1" />
                   Test mode - No real money will be processed
                 </p>}
@@ -1020,7 +1020,7 @@ export function PaymentSettingsTab() {
                       Selected payout option: {selectedPayoutOption === 'standard' ? 'Standard (3 business days)' : 'Instant (within minutes)'}
                     </span>
                   </div>
-                  <button onClick={() => handleSavePayoutOption(selectedPayoutOption)} disabled={!hasUnsavedPayoutChanges || savingMethods} aria-disabled={!hasUnsavedPayoutChanges || savingMethods} className={cn("px-4 py-2 text-sm font-medium rounded-md transition-colors", "bg-primary text-primary-foreground hover:bg-primary/90", (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary")} title={!hasUnsavedPayoutChanges ? "No changes to save" : undefined}>
+                  <button onClick={() => handleSavePayoutOption(selectedPayoutOption)} disabled={!hasUnsavedPayoutChanges || savingMethods} aria-disabled={!hasUnsavedPayoutChanges || savingMethods} className={cn("px-4 py-2 text-sm font-medium rounded-md transition-colors", "", (!hasUnsavedPayoutChanges || savingMethods) && "opacity-50 cursor-not-allowed hover:bg-primary")} title={!hasUnsavedPayoutChanges ? "No changes to save" : undefined}>
                     {savingMethods ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
@@ -1134,7 +1134,7 @@ export function PaymentSettingsTab() {
                       {/* Pay Now - Always enabled, not toggleable */}
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <div className="w-2 h-2 rounded-full bg-success" />
                           <div>
                             <span className="text-foreground font-medium">Pay Now</span>
                             <p className="text-sm text-muted-foreground">Pay online immediately</p>
@@ -1146,7 +1146,7 @@ export function PaymentSettingsTab() {
                       {/* Pay On-Site - Toggleable */}
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <div className={cn("w-2 h-2 rounded-full", isPayOnSiteEnabled ? "bg-amber-500" : "bg-muted-foreground/40")} />
+                          <div className={cn("w-2 h-2 rounded-full", isPayOnSiteEnabled ? "bg-warning/100" : "bg-muted-foreground/40")} />
                           <div>
                             <span className="text-foreground font-medium">Pay On-Site</span>
                             <p className="text-sm text-muted-foreground">Pay when service is provided</p>
@@ -1162,7 +1162,7 @@ export function PaymentSettingsTab() {
                       {/* Installments - Toggleable with Configure option */}
                       <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div className="flex items-center space-x-3">
-                          <div className={cn("w-2 h-2 rounded-full", installmentSettings?.enabled ? "bg-blue-500" : "bg-muted-foreground/40")} />
+                          <div className={cn("w-2 h-2 rounded-full", installmentSettings?.enabled ? "bg-primary" : "bg-muted-foreground/40")} />
                           <div>
                             <span className="text-foreground font-medium">Pay in Installments</span>
                             <p className="text-sm text-muted-foreground">Split into multiple payments</p>
@@ -1309,19 +1309,19 @@ export function PaymentSettingsTab() {
                     {/* Updated bullet points */}
                     <ul className="space-y-1.5 mb-3">
                       <li className="flex items-start space-x-2 text-xs">
-                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <Check className="h-3 w-3 text-success-foreground mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">Payments always start with the customer's currency.</span>
                       </li>
                       <li className="flex items-start space-x-2 text-xs">
-                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <Check className="h-3 w-3 text-success-foreground mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">If different from your account currency, Stripe applies a 2% conversion fee.</span>
                       </li>
                       <li className="flex items-start space-x-2 text-xs">
-                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <Check className="h-3 w-3 text-success-foreground mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">Payment method fee, Stripe fee, and platform fee are all deducted automatically before payout.</span>
                       </li>
                       <li className="flex items-start space-x-2 text-xs">
-                        <Check className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                        <Check className="h-3 w-3 text-success-foreground mt-0.5 flex-shrink-0" />
                         <span className="text-muted-foreground">Final payout = net balance transferred to your bank (Standard or Instant).</span>
                       </li>
                     </ul>
@@ -1679,31 +1679,31 @@ export function PaymentSettingsTab() {
             <div className="px-6 py-4 space-y-4">
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
                     Stripe applies an additional 2% fee if the payment currency differs from your account currency.
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
                     <strong>Example:</strong> A UK customer pays £100 in GBP → funds are converted to EUR with a 2% markup on the exchange rate.
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
                     This fee is charged on top of the normal payment processing fee.
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
                     Customers always see the charge in their own currency; the conversion happens on your side as the merchant.
                   </span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Check className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-foreground">
                     If the customer pays in the same currency as your account (e.g., EUR), this fee does not apply.
                   </span>

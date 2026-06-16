@@ -226,66 +226,77 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   };
 
   return (
+    // Visual contract matches the NavItem primitive (src/components/ui/nav-item.tsx) —
+    // DESIGN_SPEC §7.5: rest = tertiary text, hover = faint white wash + depth (never a
+    // toy scale-up), active = accent wash + soft glow + a left accent bar + lit text.
+    // Kept inline (not the primitive itself) so the access-control overlays (lock, alert
+    // badge) can layer over the icon; all behaviour is preserved verbatim.
     <nav className="flex-1 space-y-1 px-2 py-4">
         {navigationItems.map((item) => (
           <button
             key={item.name}
             onClick={() => handleItemClick(item)}
+            title={!isSidebarOpen ? item.name : undefined}
             className={`
-              group flex items-center rounded-lg transition-all duration-200 w-full text-left hover:scale-105
-              min-h-[44px] touch-manipulation mb-2
-              ${isSidebarOpen 
-                ? 'px-2 py-2 text-sm font-medium' 
+              group relative flex items-center w-full text-left rounded-md outline-none
+              transition-[background-color,color,box-shadow] duration-150 min-h-[44px] touch-manipulation mb-1
+              focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1
+              ${isSidebarOpen
+                ? 'gap-3 px-3 py-2 text-sm font-medium'
                 : 'w-12 h-12 justify-center p-0 mx-auto'
               }
-              ${item.isActive 
-                ? 'bg-green-600 text-white shadow-lg' 
+              ${item.isActive
+                ? 'bg-primary/[0.12] text-foreground shadow-[0_0_24px_-10px_hsl(var(--primary)/0.55)] hover:bg-primary/[0.14]'
                 : item.isRestricted
-                  ? 'text-gray-500 hover:bg-gray-700 hover:text-gray-400 cursor-not-allowed'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  ? 'text-subtle-foreground/70 hover:bg-white/[0.03] cursor-not-allowed'
+                  : 'text-subtle-foreground hover:bg-white/[0.05] hover:text-foreground'
               }
             `}
           >
+            {/* left accent bar on active (primitive parity) */}
+            {item.isActive && (
+              <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r bg-primary" />
+            )}
             <div className={`relative ${isSidebarOpen ? 'flex-shrink-0' : 'flex items-center justify-center'}`}>
               <item.icon
-                className={`${isSidebarOpen ? 'mr-3' : ''} h-5 w-5 transition-colors duration-200 ${
-                  item.isActive 
-                    ? 'text-white' 
-                    : item.isRestricted 
-                      ? 'text-gray-600' 
-                      : 'text-gray-400 group-hover:text-white'
+                className={`h-5 w-5 transition-colors duration-150 ${
+                  item.isActive
+                    ? 'text-accent-foreground'
+                    : item.isRestricted
+                      ? 'text-subtle-foreground/60'
+                      : 'text-current group-hover:text-foreground'
                 }`}
               />
               {item.isRestricted && (
-                <div className={`absolute ${isSidebarOpen ? '-top-1 -right-1' : '-top-1 -right-1'}`}>
-                  <Lock className="h-3 w-3 text-red-400" />
+                <div className="absolute -top-1 -right-1">
+                  <Lock className="h-3 w-3 text-destructive-foreground" />
                 </div>
               )}
-              {/* Availability alert badge with neon effect */}
+              {/* Availability alert badge — attention semantic = gold/warning token, neon pulse kept */}
               {item.href === '/availability' && hasAlerts && !item.isActive && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-yellow-400/40 animate-ping" />
-                      <span className="relative flex h-3.5 w-3.5 items-center justify-center rounded-full bg-yellow-500 animate-neon-pulse">
-                        <AlertCircle className="h-2.5 w-2.5 text-yellow-900" />
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-warning/40 animate-ping" />
+                      <span className="relative flex h-3.5 w-3.5 items-center justify-center rounded-full bg-warning animate-neon-pulse">
+                        <AlertCircle className="h-2.5 w-2.5 text-background" />
                       </span>
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-yellow-500 text-yellow-900 border-yellow-600">
+                  <TooltipContent side="right">
                     <p>{alertCount} calendar{alertCount > 1 ? 's' : ''} need{alertCount === 1 ? 's' : ''} availability setup</p>
                   </TooltipContent>
                 </Tooltip>
               )}
             </div>
             {isSidebarOpen && (
-              <span className="overflow-hidden">
+              <span className="truncate">
                 {item.name}
               </span>
             )}
             {isSidebarOpen && item.isRestricted && (
               <div className="ml-auto">
-                <Lock className="h-4 w-4 text-red-400" />
+                <Lock className="h-4 w-4 text-destructive-foreground" />
               </div>
             )}
           </button>

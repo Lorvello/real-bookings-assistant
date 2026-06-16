@@ -50,11 +50,11 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent';
+        return 'bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent';
       case 'pending':
         return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
       case 'cancelled':
-        return 'bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 border-transparent';
+        return 'bg-destructive/10 text-destructive-foreground ring-1 ring-destructive/20 border-transparent';
       case 'completed':
         return 'bg-primary/10 text-accent-foreground ring-1 ring-primary/20 border-transparent';
       case 'no-show':

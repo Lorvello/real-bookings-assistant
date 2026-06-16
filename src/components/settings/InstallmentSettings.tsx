@@ -273,7 +273,7 @@ export function InstallmentSettings({
                                   });
                                 }
                               }}
-                              className="rounded border-gray-300"
+                              className="rounded border-white/[0.15]"
                             />
                             <Label htmlFor={`service-${service.id}`} className="text-sm font-medium cursor-pointer">
                               {service.name}

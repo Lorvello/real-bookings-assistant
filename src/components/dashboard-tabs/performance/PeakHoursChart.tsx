@@ -19,7 +19,7 @@ interface PeakHoursChartProps {
 export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartProps) {
   if (isLoading) {
     return (
-      <div className="h-80 bg-muted/40 rounded-xl animate-pulse border border-white/[0.08]"></div>
+      <div className="h-80 surface-raised shimmer rounded-xl"></div>
     );
   }
 
@@ -52,12 +52,12 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
   
   // Simplified function to determine color based on activity (3 categories only)
   const getBarColor = (bookings: number) => {
-    if (bookings === 0) return 'rgb(100, 116, 139)'; // Gray for no bookings
+    if (bookings === 0) return 'hsl(var(--subtle-foreground) / 0.30)'; // Gray for no bookings
     
     const intensity = bookings / maxBookings;
-    if (intensity >= 0.7) return 'rgb(249, 115, 22)'; // Orange for busy
-    if (intensity >= 0.4) return 'rgb(234, 179, 8)'; // Yellow for moderate
-    return 'rgb(34, 197, 94)'; // Green for quiet
+    if (intensity >= 0.7) return 'hsl(var(--primary))'; // Orange for busy
+    if (intensity >= 0.4) return 'hsl(var(--primary) / 0.62)'; // Yellow for moderate
+    return 'hsl(var(--primary) / 0.34)'; // Green for quiet
   };
 
   // Custom tooltip component with simplified categories
@@ -73,13 +73,13 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
       else activityLevel = 'Quiet';
 
       return (
-        <div className="bg-popover border border-green-500/30 rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]">
+        <div className="bg-popover border border-white/[0.12] rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-green-400" />
+            <Clock className="h-4 w-4 text-accent-foreground" />
             <span className="text-foreground font-semibold">{label}</span>
           </div>
           <div className="flex items-center gap-2 mb-1">
-            <Users className="h-4 w-4 text-blue-400" />
+            <Users className="h-4 w-4 text-accent-foreground" />
             <span className="text-foreground">{bookings} appointments</span>
           </div>
           <div className="text-sm text-foreground mt-2 px-2 py-1 bg-card/50 rounded">
@@ -97,15 +97,15 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
         {/* Clean centered legend */}
         <div className="flex items-center justify-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <div className="w-3 h-3 rounded-full bg-[hsl(var(--primary)/0.34)]"></div>
             <span className="text-sm font-medium text-foreground">Quiet</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-[hsl(var(--primary)/0.62)]"></div>
             <span className="text-sm font-medium text-foreground">Moderate</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+            <div className="w-3 h-3 rounded-full bg-primary"></div>
             <span className="text-sm font-medium text-foreground">Busy</span>
           </div>
         </div>
@@ -114,21 +114,21 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={completeHourData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgb(55, 65, 81)" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 100% / 0.08)" opacity={0.3} />
               <XAxis 
                 dataKey="display_label" 
-                stroke="rgb(148, 163, 184)"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={11}
-                tick={{ fill: 'rgb(148, 163, 184)' }}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
                 angle={-45}
                 textAnchor="end"
                 height={60}
               />
               <YAxis 
-                stroke="rgb(148, 163, 184)" 
+                stroke="hsl(var(--muted-foreground))" 
                 fontSize={12}
-                tick={{ fill: 'rgb(148, 163, 184)' }}
-                label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'rgb(148, 163, 184)' } }}
+                tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>
@@ -150,9 +150,9 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
 
             return (
               <>
-                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4">
+                <div className="bg-gold/10 border border-gold/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-gold rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
                       Busiest time
                       <UITooltip>
@@ -176,9 +176,9 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                   <p className="text-sm text-foreground">{busiestHour.bookings} appointments</p>
                 </div>
 
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
                       Quiet times
                       <UITooltip>

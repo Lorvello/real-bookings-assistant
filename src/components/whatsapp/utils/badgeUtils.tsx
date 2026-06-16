@@ -12,7 +12,7 @@ export const getStatusBadge = (status?: string) => {
   switch (status) {
     case 'active':
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
+        <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
           Actief
         </Badge>
@@ -45,7 +45,7 @@ export const getBookingStatusBadge = (status?: string) => {
   switch (status) {
     case 'confirmed':
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
+        <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
           Bevestigd
         </Badge>
@@ -59,14 +59,14 @@ export const getBookingStatusBadge = (status?: string) => {
       );
     case 'cancelled':
       return (
-        <Badge className="bg-rose-500/10 text-rose-400 ring-1 ring-rose-500/20 border-transparent">
+        <Badge className="bg-destructive/10 text-destructive-foreground ring-1 ring-destructive/20 border-transparent">
           <AlertCircle className="w-3 h-3 mr-1" />
           Geannuleerd
         </Badge>
       );
     case 'completed':
       return (
-        <Badge className="bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20 border-transparent">
+        <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
           Voltooid
         </Badge>
