@@ -15,6 +15,14 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive/10 text-destructive-foreground",
         outline: "border-white/[0.12] text-foreground",
+        // DESIGN_SPEC §1 status family — differentiate by hue intensity + icon/label,
+        // never a competing cool color. confirmed=green, pending/attention=gold, error=red.
+        success:
+          "border-transparent bg-success/10 text-success-foreground",
+        warning:
+          "border-transparent bg-warning/10 text-warning-foreground",
+        gold:
+          "border-transparent bg-gold/10 text-gold-foreground",
       },
     },
     defaultVariants: {
