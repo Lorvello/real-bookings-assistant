@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -167,6 +167,15 @@ function PlaceholdersAndVanishInput({
   };
 
   const vanishAndSubmit = () => {
+    // Respect reduced-motion: skip the particle-dissolve effect, just clear the field.
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setValue("");
+      return;
+    }
+
     setAnimating(true);
     draw();
 
@@ -214,7 +223,7 @@ function PlaceholdersAndVanishInput({
         value={value}
         type="text"
         className={cn(
-          "w-full relative text-sm z-50 border-none text-white bg-transparent h-full rounded-2xl sm:rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-8 pr-16 sm:pr-20",
+          "w-full relative text-sm z-50 border-none text-foreground bg-transparent h-full rounded-2xl sm:rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-8 pr-16 sm:pr-20",
           animating && "text-transparent"
         )}
       />
@@ -222,9 +231,10 @@ function PlaceholdersAndVanishInput({
       <button
         disabled={!value}
         type="submit"
-        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full disabled:bg-gray-600 bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50"
+        aria-label="Send message"
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full disabled:bg-muted bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50"
       >
-        <Send className="text-white h-3 w-3 sm:h-4 sm:w-4" />
+        <Send aria-hidden="true" className="text-white h-3 w-3 sm:h-4 sm:w-4" />
       </button>
 
       <div className="absolute inset-0 flex items-center rounded-2xl sm:rounded-full pointer-events-none">
@@ -236,7 +246,7 @@ function PlaceholdersAndVanishInput({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -15, opacity: 0 }}
               transition={{ duration: 0.3, ease: "linear" }}
-              className="text-gray-400 text-xs sm:text-base font-normal pl-4 sm:pl-8 text-left w-[calc(100%-3rem)] sm:w-[calc(100%-5rem)] truncate"
+              className="text-muted-foreground text-xs sm:text-base font-normal pl-4 sm:pl-8 text-left w-[calc(100%-3rem)] sm:w-[calc(100%-5rem)] truncate"
             >
               {placeholders[currentPlaceholder]}
             </motion.p>
@@ -330,7 +340,8 @@ export default function AIAgentTestPage() {
   };
 
   return (
-    <div className="h-full bg-gradient-to-br from-[#111827] via-[#1F2937] to-[#111827] text-white flex flex-col">
+    <MotionConfig reducedMotion="user">
+    <div className="h-full bg-gradient-to-br from-background via-card to-background text-foreground flex flex-col">
       {/* Chat Interface */}
       <div className="flex-1 flex flex-col">
         <motion.div
@@ -345,21 +356,21 @@ export default function AIAgentTestPage() {
             <div className="bg-gradient-to-r from-background to-background-secondary px-2 sm:px-6 py-2 sm:py-4 border-b border-primary/20">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-primary rounded-full">
-                  <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  <Bot aria-hidden="true" className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white text-sm sm:text-base">AI Agent Demo</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 truncate">Online and ready to help</p>
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">AI Agent Demo</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Online and ready to help</p>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-whatsapp rounded-full animate-pulse"></div>
-                  <span className="text-xs text-gray-400">Live</span>
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-whatsapp rounded-full animate-pulse motion-reduce:animate-none"></div>
+                  <span className="text-xs text-muted-foreground">Live</span>
                 </div>
               </div>
             </div>
 
             {/* Messages - More compact on mobile */}
-            <div className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-2 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
+            <div role="log" aria-live="polite" aria-label="Conversation messages" className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-2 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -375,15 +386,15 @@ export default function AIAgentTestPage() {
                   >
                     {message.type === "bot" && (
                       <div className="p-1.5 sm:p-2 bg-primary rounded-full h-fit shrink-0">
-                        <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                        <Bot aria-hidden="true" className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       </div>
                     )}
                     <div
                       className={cn(
                         "max-w-[75%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl",
                         message.type === "user"
-                          ? "bg-primary text-white rounded-br-md"
-                          : "bg-background text-white border border-primary/20 rounded-bl-md"
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-card text-foreground border border-primary/20 rounded-bl-md"
                       )}
                     >
                       <p className="text-xs sm:text-sm leading-relaxed">{message.content}</p>
@@ -396,7 +407,7 @@ export default function AIAgentTestPage() {
                     </div>
                     {message.type === "user" && (
                       <div className="p-1.5 sm:p-2 bg-whatsapp rounded-full h-fit shrink-0">
-                        <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                        <User aria-hidden="true" className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       </div>
                     )}
                   </motion.div>
@@ -410,13 +421,13 @@ export default function AIAgentTestPage() {
                   className="flex gap-2 sm:gap-3 justify-start"
                 >
                   <div className="p-1.5 sm:p-2 bg-primary rounded-full h-fit shrink-0">
-                    <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                    <Bot aria-hidden="true" className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                   </div>
-                  <div className="bg-background border border-primary/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl rounded-bl-md">
+                  <div className="bg-card border border-primary/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl rounded-bl-md">
                     <div className="flex gap-1">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce"></div>
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce motion-reduce:animate-none"></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: "0.2s" }}></div>
                     </div>
                   </div>
                 </motion.div>
@@ -424,13 +435,13 @@ export default function AIAgentTestPage() {
             </div>
 
             {/* Input - More compact on mobile */}
-            <div className="p-2 sm:p-3 bg-gradient-to-r from-[#1F2937] to-[#111827] border-t border-[#10B981]/20">
+            <div className="p-2 sm:p-3 bg-gradient-to-r from-card to-background border-t border-primary/20">
               <PlaceholdersAndVanishInput
                 placeholders={placeholders}
                 onChange={handleInputChange}
                 onSubmit={handleSubmit}
               />
-              <p className="text-xs text-gray-400 mt-1 sm:mt-2 text-center">
+              <p className="text-xs text-muted-foreground mt-1 sm:mt-2 text-center">
                 Press Enter to send your message • Powered by AI
               </p>
             </div>
@@ -438,5 +449,6 @@ export default function AIAgentTestPage() {
         </motion.div>
       </div>
     </div>
+    </MotionConfig>
   );
 }

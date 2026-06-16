@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CountUp } from '@/components/ui/CountUp';
-import { motion } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import { SubscriptionOverview } from '@/components/ui/SubscriptionOverview';
 import { useMockDataControl } from '@/hooks/useMockDataControl';
 
@@ -83,6 +83,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="relative isolate space-y-1 md:space-y-8">
       {/* Ambient accent haze across the top of the dashboard — atmosphere (§2) */}
       <div
@@ -311,5 +312,6 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
         <SubscriptionOverview />
       </motion.div>
     </div>
+    </MotionConfig>
   );
 }
