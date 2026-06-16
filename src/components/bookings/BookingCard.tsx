@@ -44,8 +44,16 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
   return (
     <Card
       key={booking.id}
-      className="surface-raised cursor-pointer transition-transform duration-150 active:scale-[0.99]"
+      role="button"
+      tabIndex={0}
       onClick={() => onBookingClick(booking)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onBookingClick(booking);
+        }
+      }}
+      className="surface-raised cursor-pointer transition-transform duration-150 active:scale-[0.985] motion-reduce:active:scale-100 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">

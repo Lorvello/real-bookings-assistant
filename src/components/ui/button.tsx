@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 const buttonVariants = cva(
   // PLAYBOOK §4: press feedback (active:scale), a real full-opacity offset focus ring,
   // tight ease-out transition on transform/color/filter. Weight 500, not 600.
-  "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-[transform,background-color,box-shadow,filter,border-color] duration-150 active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-[transform,background-color,box-shadow,filter,border-color] duration-150 active:scale-[0.97] motion-reduce:active:scale-100 motion-reduce:transition-none outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -69,13 +69,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {/* Spinner overlays the centre; the label stays mounted but invisible so the
-            button keeps its exact width/height (MEGA_PLAN §3 — no layout shift). */}
+            button keeps its exact width/height (MEGA_PLAN §3 — no layout shift). The
+            label is hidden from AT while busy and a polite live region announces it. */}
         {loading && (
           <span className="absolute inset-0 inline-flex items-center justify-center">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            <span className="sr-only" aria-live="polite">Loading…</span>
           </span>
         )}
         <span
+          aria-hidden={loading || undefined}
           className={cn("inline-flex items-center justify-center", loading && "opacity-0")}
         >
           {children}

@@ -3,6 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { BookingCard } from './BookingCard';
 import { BookingsEmptyState } from './BookingsEmptyState';
 import { BookingsListSkeleton } from '@/components/loading/BookingsListSkeleton';
+import { SkeletonSwap } from '@/components/ui/SkeletonSwap';
 
 interface VirtualizedBookingsListProps {
   bookings: any[];
@@ -47,11 +48,7 @@ export function VirtualizedBookingsList({
     return bookings.map((_, index) => ({ index, start: 0, size: ITEM_HEIGHT }));
   }, [shouldVirtualize, virtualizer, bookings]);
 
-  if (loading) {
-    return <BookingsListSkeleton />;
-  }
-
-  if (bookings.length === 0) {
+  if (!loading && bookings.length === 0) {
     return (
       <div className="surface-raised rounded-2xl p-6">
         <BookingsEmptyState hasFilters={hasFilters} />
@@ -59,7 +56,9 @@ export function VirtualizedBookingsList({
     );
   }
 
+  // Cross-fade the skeleton into the list instead of a hard pop (MEGA_PLAN §3b).
   return (
+    <SkeletonSwap loading={loading} skeleton={<BookingsListSkeleton />}>
     <div className="surface-raised rounded-2xl p-6">
       {shouldVirtualize ? (
         <div
@@ -113,5 +112,6 @@ export function VirtualizedBookingsList({
         </div>
       )}
     </div>
+    </SkeletonSwap>
   );
 }

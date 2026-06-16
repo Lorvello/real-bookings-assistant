@@ -43,9 +43,20 @@ export const AnimateIn = React.forwardRef<HTMLDivElement, AnimateInProps>(
     const Comp = (as ?? "div") as React.ElementType;
     const innerRef = React.useRef<HTMLDivElement | null>(null);
     const [visible, setVisible] = React.useState(false);
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const [prefersReduced, setPrefersReduced] = React.useState(
+      () =>
+        typeof window !== "undefined" &&
+        !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+    );
+
+    // Re-subscribe so toggling the OS setting after mount is respected.
+    React.useEffect(() => {
+      if (typeof window === "undefined" || !window.matchMedia) return;
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const onChange = () => setPrefersReduced(mq.matches);
+      mq.addEventListener?.("change", onChange);
+      return () => mq.removeEventListener?.("change", onChange);
+    }, []);
 
     React.useEffect(() => {
       if (prefersReduced) {
