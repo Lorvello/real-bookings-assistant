@@ -100,6 +100,12 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
 
       const viewport = content.parentElement as HTMLElement | null;
       if (viewport && viewport.scrollHeight > viewport.clientHeight) {
+        // Respect reduced-motion: jump instead of the 800ms eased scroll.
+        const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) {
+          viewport.scrollTop = viewport.scrollHeight;
+          return;
+        }
         viewport.scrollTop = 0;
         requestAnimationFrame(() => {
           smoothScrollTo(viewport, viewport.scrollHeight, 800);
@@ -153,8 +159,8 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setBookingModalOpen(true)}>
-              <Calendar className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="gap-2" aria-label="Schedule appointment" onClick={() => setBookingModalOpen(true)}>
+              <Calendar aria-hidden="true" className="h-4 w-4" />
               <span className="hidden sm:inline">Schedule appointment</span>
             </Button>
             {!isClosed && (
@@ -162,10 +168,11 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                 variant="outline"
                 size="sm"
                 className="gap-2"
+                aria-label="Close conversation"
                 disabled={closeConversation.isPending}
                 onClick={handleCloseConversation}
               >
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
                 <span className="hidden sm:inline">{closeConversation.isPending ? 'Closing...' : 'Close'}</span>
               </Button>
             )}
@@ -183,12 +190,12 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
-                <Phone className="h-4 w-4 text-muted-foreground" />
+                <Phone aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                 <span className="text-foreground tabular-nums">{contact.phone_number}</span>
               </div>
               {contact.first_name && (
                 <div className="flex items-center gap-2 text-sm">
-                  <User className="h-4 w-4 text-muted-foreground" />
+                  <User aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                   <span className="text-foreground">
                     {[contact.first_name, contact.last_name].filter(Boolean).join(' ')}
                   </span>
@@ -196,13 +203,13 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
               )}
               {contact.all_bookings?.[0]?.business_name && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <Building2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                   <span className="text-foreground">{contact.all_bookings[0].business_name}</span>
                 </div>
               )}
               {contact.conversation_created_at && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Clock aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground tabular-nums">
                     Contact since {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: enUS })}
                   </span>
@@ -223,7 +230,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                 {contact.all_bookings.slice(0, 5).map((booking) => (
                   <div key={booking.booking_id} className="p-2 bg-muted/30 rounded border border-border">
                     <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Calendar aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                       <span className="text-foreground tabular-nums">
                         {format(new Date(booking.start_time), 'd MMMM yyyy HH:mm', { locale: enUS })}
                       </span>
@@ -256,7 +263,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
           <Card className="flex-1 flex flex-col min-h-0 max-h-[calc(100vh-300px)]">
             <CardHeader className="pb-3 shrink-0">
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
+                <MessageSquare aria-hidden="true" className="h-4 w-4 text-primary" />
                 <h3 className="font-medium text-sm text-foreground">Conversation</h3>
                 {messages && (
                   <span className="text-xs text-muted-foreground ml-auto tabular-nums">
@@ -283,13 +290,13 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                 ) : !messages || messages.length === 0 ? (
                   <div className="flex flex-col items-center py-10 text-center">
                     <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-                      <MessageSquare className="h-5 w-5 text-accent-foreground" />
+                      <MessageSquare aria-hidden="true" className="h-5 w-5 text-accent-foreground" />
                     </div>
                     <p className="text-sm font-medium text-foreground">No messages yet</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">The conversation will appear here.</p>
                   </div>
                 ) : (
-                  <div ref={contentRef} className="space-y-4 py-4">
+                  <div ref={contentRef} role="log" aria-live="polite" aria-label="Conversation messages" className="space-y-4 py-4">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
