@@ -318,52 +318,9 @@ serve(async (req) => {
         ipAddress
       );
 
-      // Voor messages, probeer direct te verwerken
-      if (webhookType === 'message') {
-        try {
-          const messages = payload.entry?.[0]?.changes?.[0]?.value?.messages;
-          const contacts = payload.entry?.[0]?.changes?.[0]?.value?.contacts;
-          
-          if (messages && messages.length > 0 && contacts && contacts.length > 0) {
-            const message = messages[0];
-            const contact = contacts[0];
-            
-            // Parse tracking code uit bericht (nieuwe format: "Code: XXX")
-            const messageText = message.text?.body || '';
-            const trackingMatch = messageText.match(/Code:\s*([A-F0-9]{8})/i);
-            const trackingCode = trackingMatch ? trackingMatch[1].toLowerCase() : null;
-            
-            if (!trackingCode) {
-              console.log('No tracking code found in message, skipping calendar lookup');
-            } else {
-              // Find calendar via tracking code (eerste 8 karakters van user_id)
-              const { data: calendarData } = await supabaseClient
-                .from('users')
-                .select('id, business_name, calendars!inner(id)')
-                .ilike('id', `${trackingCode}%`)
-                .limit(1)
-                .single();
-
-              const calendarId = calendarData?.calendars?.[0]?.id;
-              
-              if (calendarId && message.type === 'text') {
-                console.log(`Routing message to calendar ${calendarId} for tracking code ${trackingCode}`);
-                await supabaseClient.rpc('process_whatsapp_message', {
-                  p_phone_number: contact.wa_id,
-                  p_message_id: message.id,
-                  p_message_content: messageText,
-                  p_calendar_id: calendarId
-                });
-              } else {
-                console.log(`No calendar found for tracking code ${trackingCode}`);
-              }
-            }
-          }
-        } catch (processError) {
-          console.error('Error processing message:', processError);
-          // Continue - webhook is queued for retry
-        }
-      }
+      // (Legacy "direct verwerken"-blok verwijderd 2026-06-17: het persisteerde het
+      // bericht zonder de agent aan te roepen en gebruikte dezelfde kapotte uuid-ILIKE.
+      // De ACCESS-GATED AGENT INVOKE hieronder doet persisteren + agent in één, correct.)
 
       // ACCESS-GATED AGENT INVOKE (port off n8n, 2026-06-17). In plaats van het rauwe
       // payload naar n8n te forwarden, roepen we de Supabase `whatsapp-agent` edge
@@ -384,10 +341,13 @@ serve(async (req) => {
             let calendarId: string | null = null;
             const tm = messageText.match(/Code:\s*([A-F0-9]{8})/i);
             if (tm) {
-              const { data: u } = await supabaseClient
-                .from('users').select('id, calendars!inner(id)').ilike('id', `${tm[1].toLowerCase()}%`).limit(1).maybeSingle();
-              ownerId = u?.id ?? null;
-              calendarId = (u as any)?.calendars?.[0]?.id ?? null;
+              // RPC cast de uuid->text (users.id ILIKE faalt rauw: geen uuid ~~* text-operator).
+              const { data: rc, error: rcErr } = await supabaseClient
+                .rpc('resolve_owner_calendar_by_code', { p_code: tm[1].toLowerCase() });
+              if (rcErr) console.error('resolve_owner_calendar_by_code faalde:', rcErr);
+              const row = Array.isArray(rc) ? rc[0] : rc;
+              ownerId = (row as any)?.owner_id ?? null;
+              calendarId = (row as any)?.calendar_id ?? null;
             }
             if (!ownerId && contact.wa_id) {
               // returning customer (geen code): phone → contact → laatste conversatie → calendar → owner
