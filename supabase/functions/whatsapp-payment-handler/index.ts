@@ -38,17 +38,18 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { 
-      conversationId, 
-      serviceTypeId, 
-      paymentType = 'full', 
-      installmentPlan, 
+    const {
+      conversationId,
+      serviceTypeId,
+      paymentType = 'full',
+      installmentPlan,
       testMode = false,
       paymentMethod = 'ideal',
-      paymentTiming = 'pay_now'
+      paymentTiming = 'pay_now',
+      bookingId = null
     } = await req.json();
-    
-    logStep("Request parsed", { conversationId, serviceTypeId, paymentType, installmentPlan, testMode, paymentMethod, paymentTiming });
+
+    logStep("Request parsed", { conversationId, serviceTypeId, paymentType, installmentPlan, testMode, paymentMethod, paymentTiming, bookingId });
 
     // Get conversation and calendar details
     const { data: conversation, error: convError } = await supabaseClient
@@ -266,6 +267,10 @@ serve(async (req) => {
           platform_fee_percentage: settings.platform_fee_percentage.toString(),
           payout_option: settings.payout_option,
           test_mode: testMode.toString(),
+          // Pay-and-book (WhatsApp agent): carry the booking id so stripe-webhook's
+          // handleBookingPaymentSucceeded / handleCheckoutCompleted confirm exactly
+          // this booking on payment. Omitted for the legacy conversation-only flow.
+          ...(bookingId ? { booking_id: bookingId } : {}),
         },
       },
       metadata: {
@@ -273,6 +278,7 @@ serve(async (req) => {
         service_type_id: serviceTypeId,
         payment_type: paymentType,
         test_mode: testMode.toString(),
+        ...(bookingId ? { booking_id: bookingId } : {}),
       },
     });
 

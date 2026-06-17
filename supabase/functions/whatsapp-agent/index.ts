@@ -123,8 +123,8 @@ Deno.serve(async (req) => {
     }
 
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId });
-    const result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.4 });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId });
+    const result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
     const reply = result.text || "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
     // --- Reply + persist outbound ---
