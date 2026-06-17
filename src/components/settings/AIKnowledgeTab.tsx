@@ -242,8 +242,25 @@ export const AIKnowledgeTab: React.FC = () => {
   return (
     <TooltipProvider delayDuration={100}>
       <div className="space-y-8 pb-24">
-        {/* Business Information with Address */}
-        <SettingsSection title="Business Information" tooltip="The AI agent can use this information in its messages" usedByAgent>
+        {/* Plain-language explainer so the owner understands what the agent does
+            with this page (no system-prompt / no doctrine exposed). */}
+        <div className="rounded-lg border border-primary/20 bg-primary/[0.06] px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 text-primary shrink-0" />
+            <p className="text-sm font-medium text-foreground">How your assistant uses this page</p>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Everything you fill in here is what your WhatsApp assistant can tell customers, in your name. It shares your contact details, address, website and opening hours on request, and answers questions from your knowledge base. Leave a field blank and the agent simply won't claim to know it.
+          </p>
+        </div>
+
+        {/* Identity + Contact + Address */}
+        <SettingsSection
+          title="Business Information"
+          description="Your assistant uses these to introduce itself and to answer 'where are you', 'how do I reach you' and 'when are you open'. Blank fields are never mentioned."
+          tooltip="Shared with customers by your WhatsApp assistant"
+          usedByAgent
+        >
 
           {/* Make the setup requirement unmistakable: only name + type are needed to
               finish onboarding; everything else here is optional. */}
@@ -400,8 +417,11 @@ export const AIKnowledgeTab: React.FC = () => {
 
             {/* Address Section within Business Information */}
             <div className="pt-6 border-t border-border">
-              <div className="flex items-center gap-2 mb-4">
+              <div className="mb-4">
                 <h3 className="text-lg font-medium text-foreground">Address Details <span className="text-sm font-normal text-muted-foreground">(optional)</span></h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The assistant shares your address when a customer asks where you are. Leave it blank and the agent won't give out a location.
+                </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -465,14 +485,31 @@ export const AIKnowledgeTab: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Opening hours — read-only here on purpose. They come from your
+                Availability schedule (single source), and the assistant shares
+                them when a customer asks "when are you open?". */}
+            <div className="pt-6 border-t border-border">
+              <div className="mb-2">
+                <h3 className="text-lg font-medium text-foreground">Opening Hours</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The assistant tells customers when you're open. These come from your Availability schedule, set them there and they stay in sync everywhere.
+                </p>
+              </div>
+            </div>
           </div>
         </SettingsSection>
 
-        {/* Links — reduced to Website only. The 5 social platforms (Instagram,
-            Facebook, LinkedIn, TikTok, YouTube, X) were orphan fields the agent
-            never read; they are removed from the surface. Website stays as a
-            single, subtle field and is wired into the agent in Part 2. */}
-        <SettingsSection title={<>Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>}>
+        {/* Website — reduced from the old 7-field social stack to Website only
+            (the 5 social platforms were orphan fields the agent never read).
+            Website is now wired into the agent (get_business_data), so the
+            "Used by your AI agent" badge here is honest. */}
+        <SettingsSection
+          title={<>Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>}
+          description="The assistant shares your website when a customer asks for it."
+          tooltip="Shared with customers by your WhatsApp assistant"
+          usedByAgent
+        >
           <div className="max-w-md">
             <label className="block text-sm font-medium text-foreground mb-2">
               Website

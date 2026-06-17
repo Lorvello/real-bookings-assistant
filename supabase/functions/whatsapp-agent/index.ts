@@ -52,6 +52,15 @@ Deno.serve(async (req) => {
       .eq("user_id", businessUserId)
       .maybeSingle();
 
+    // Resolve a "other" business type to the owner's free text so the prompt never
+    // frames the assistant as "(een other)".
+    let businessType = (biz as { business_type?: string } | null)?.business_type ?? null;
+    if (businessType === "other") {
+      const { data: bu } = await supabase
+        .from("users").select("business_type_other").eq("id", businessUserId).maybeSingle();
+      businessType = ((bu as { business_type_other?: string } | null)?.business_type_other || "").trim() || null;
+    }
+
     const { data: svcRows } = await supabase
       .from("service_types")
       .select("id, name, duration, price")
@@ -117,7 +126,7 @@ Deno.serve(async (req) => {
     const now = new Date();
     const system = buildSystemPrompt({
       businessName,
-      businessType: (biz as { business_type?: string } | null)?.business_type ?? null,
+      businessType,
       currentTimeNL: nlTime(now),
       todayISO: now.toISOString().slice(0, 10),
       customerFirstName: knownName && knownName !== "Privé" ? knownName : null,

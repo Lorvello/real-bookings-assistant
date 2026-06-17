@@ -55,6 +55,53 @@ async function resolveTarget(
   return { ambiguous: list };
 }
 
+// --- get_business_data formatting helpers -------------------------------------
+
+const DUTCH_DAY_ORDER = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
+
+// "09:00:00" -> "09:00"
+function hhmm(t: unknown): string {
+  return typeof t === "string" ? t.slice(0, 5) : "";
+}
+
+// Turn the business_overview_v2.calendars[].opening_hours dict into readable text the
+// agent can quote, e.g. "Maandag: 09:00-17:00, Dinsdag: 09:00-17:00, Zondag: gesloten".
+// Uses the first (default) calendar. Returns null when no schedule is set.
+function formatOpeningHours(calendars: unknown): string | null {
+  if (!Array.isArray(calendars) || calendars.length === 0) return null;
+  const oh = (calendars[0] as { opening_hours?: Record<string, { start_time?: string; end_time?: string; is_available?: boolean }> })?.opening_hours;
+  if (!oh || typeof oh !== "object") return null;
+  const parts: string[] = [];
+  for (const day of DUTCH_DAY_ORDER) {
+    const d = oh[day];
+    if (!d) continue;
+    if (d.is_available === false) parts.push(`${day}: gesloten`);
+    else if (d.start_time && d.end_time) parts.push(`${day}: ${hhmm(d.start_time)}-${hhmm(d.end_time)}`);
+  }
+  return parts.length ? parts.join(", ") : null;
+}
+
+// Compose one human address line from the parts. Drops the country when it is the
+// default (Nederland). Returns null when nothing usable is set.
+function formatAddress(d: {
+  business_street?: string | null; business_number?: string | null;
+  business_postal?: string | null; business_city?: string | null; business_country?: string | null;
+}): string | null {
+  const line1 = [d.business_street, d.business_number].map((s) => (s || "").trim()).filter(Boolean).join(" ");
+  const line2 = [d.business_postal, d.business_city].map((s) => (s || "").trim()).filter(Boolean).join(" ");
+  const country = (d.business_country || "").trim();
+  const segs = [line1, line2, country && country !== "Nederland" ? country : ""].filter(Boolean);
+  return segs.length ? segs.join(", ") : null;
+}
+
+// Only share a website that actually looks like one (legacy rows can hold junk like
+// " v v"). Returns null otherwise so the agent never quotes garbage.
+function cleanWebsite(raw: unknown): string | null {
+  const v = (typeof raw === "string" ? raw : "").trim();
+  if (!v || /\s/.test(v) || !v.includes(".")) return null;
+  return v;
+}
+
 export function createTools(
   supabase: SupabaseClient,
   ctx: ToolContext,
@@ -63,7 +110,7 @@ export function createTools(
     {
       name: "get_business_data",
       description:
-        "Bedrijfsinfo en beleid: annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact. Gebruik bij vragen over het bedrijf.",
+        "Bedrijfsinfo en beleid: adres/locatie, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact (e-mail/telefoon). Gebruik bij vragen over het bedrijf, waar ze zitten, wanneer ze open zijn, of hoe je ze bereikt.",
       parameters: { type: "object", properties: {} },
     },
     {
@@ -152,11 +199,45 @@ export function createTools(
         const { data } = await supabase
           .from("business_overview_v2")
           .select(
-            "business_name, business_type, business_description, cancellation_policy, payment_info, parking_info, public_transport_info, accessibility_info, preparation_info, other_info, business_email, business_phone",
+            "business_name, business_type, business_description, cancellation_policy, payment_info, parking_info, public_transport_info, accessibility_info, preparation_info, other_info, business_email, business_phone, business_street, business_number, business_postal, business_city, business_country, website, calendars",
           )
           .eq("user_id", ctx.businessUserId)
           .maybeSingle();
-        return data ?? { error: "geen bedrijfsdata" };
+        if (!data) return { error: "geen bedrijfsdata" };
+
+        // Resolve a "other" business type to the free text the owner typed, so the
+        // agent never says the literal "other".
+        let businessType: string | null = (data.business_type as string | null) ?? null;
+        if (businessType === "other") {
+          const { data: u } = await supabase
+            .from("users").select("business_type_other").eq("id", ctx.businessUserId).maybeSingle();
+          businessType = ((u?.business_type_other as string | null) || "").trim() || null;
+        }
+
+        // Return only fields the agent should share, with address/website/hours
+        // formatted as ready-to-quote text. Omit empty/null so the model doesn't
+        // claim to know something that isn't set.
+        const out: Record<string, unknown> = {
+          business_name: data.business_name,
+          business_type: businessType,
+          business_description: data.business_description,
+          address: formatAddress(data),
+          website: cleanWebsite(data.website),
+          opening_hours: formatOpeningHours(data.calendars),
+          business_email: data.business_email,
+          business_phone: data.business_phone,
+          cancellation_policy: data.cancellation_policy,
+          payment_info: data.payment_info,
+          preparation_info: data.preparation_info,
+          parking_info: data.parking_info,
+          public_transport_info: data.public_transport_info,
+          accessibility_info: data.accessibility_info,
+          other_info: data.other_info,
+        };
+        for (const k of Object.keys(out)) {
+          if (out[k] === null || out[k] === undefined || out[k] === "") delete out[k];
+        }
+        return out;
       }
 
       case "get_available_slots": {
