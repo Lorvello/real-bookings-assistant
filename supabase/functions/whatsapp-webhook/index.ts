@@ -363,14 +363,12 @@ serve(async (req) => {
         }
       }
 
-      // OPTIE B (LR-R52): access-gated forward naar de n8n-agent.
-      // INERT tot N8N_WHATSAPP_FORWARD_URL is gezet → verandert niets aan de huidige
-      // situatie tot het Rinkel-nummer live is en de env-var bewust wordt gezet.
-      // Flow: resolve de business-eigenaar → check WhatsApp-toegang (lapsed/gratis →
-      // NIET forwarden = agent draait niet, sluit access-gating-gat task_f2e05c8b) →
-      // forward het RAUWE payload + Meta-signature naar de n8n WhatsApp Trigger.
-      const N8N_FORWARD_URL = Deno.env.get('N8N_WHATSAPP_FORWARD_URL');
-      if (webhookType === 'message' && N8N_FORWARD_URL) {
+      // ACCESS-GATED AGENT INVOKE (port off n8n, 2026-06-17). In plaats van het rauwe
+      // payload naar n8n te forwarden, roepen we de Supabase `whatsapp-agent` edge
+      // function aan (de native AI-agent). Flow: resolve de business-eigenaar → check
+      // WhatsApp-toegang (lapsed/gratis → niet aanroepen) → check bot-toggle → persisteer
+      // de inbound + invoke de agent. Behoudt de access-gating (sluit task_f2e05c8b).
+      if (webhookType === 'message') {
         try {
           const messages = payload.entry?.[0]?.changes?.[0]?.value?.messages;
           const contacts = payload.entry?.[0]?.changes?.[0]?.value?.contacts;
@@ -432,15 +430,26 @@ serve(async (req) => {
               }
             }
 
-            // 3. Forward het rauwe payload + Meta-signature naar n8n (agent vuurt).
-            if (entitled && botActive) {
-              const sigHeader = req.headers.get('x-hub-signature-256') || req.headers.get('x-hub-signature') || '';
-              const fwd = await fetch(N8N_FORWARD_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-hub-signature-256': sigHeader },
-                body: rawBody,
+            // 3. Persisteer de inbound (contact/conversatie/bericht) + roep de agent aan.
+            if (entitled && botActive && calendarId) {
+              // process_whatsapp_message upsert't contact + conversatie en slaat het
+              // inbound bericht op, zodat de agent de history kan laden. service-role.
+              await supabaseClient.rpc('process_whatsapp_message', {
+                p_phone_number: contact.wa_id,
+                p_message_id: message.id,
+                p_message_content: messageText,
+                p_calendar_id: calendarId,
               });
-              console.log(`Forwarded naar n8n-agent (HTTP ${fwd.status}) voor eigenaar ${ownerId}`);
+              const { error: agentErr } = await supabaseClient.functions.invoke('whatsapp-agent', {
+                body: {
+                  phone: contact.wa_id,
+                  calendar_id: calendarId,
+                  message: messageText,
+                  contact_name: contact?.profile?.name,
+                },
+              });
+              if (agentErr) console.error('whatsapp-agent invoke faalde:', agentErr);
+              else console.log(`whatsapp-agent aangeroepen voor eigenaar ${ownerId}, calendar ${calendarId}`);
             }
           }
         } catch (fwdError) {
