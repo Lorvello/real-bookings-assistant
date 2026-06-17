@@ -283,6 +283,18 @@ serve(async (req) => {
       userUpdate.grace_period_end = null;
     }
     const updateResult = await supabaseClient.from("users").update(userUpdate).eq('id', user.id);
+
+    // If missed_payment was detected here BEFORE the invoice.payment_failed webhook
+    // set the grace window, grace_period_end would be null -> the frontend folds a
+    // null grace into "expired" and access drops to 0 days instead of 7. Open the
+    // 7-day window, but ONLY when it's currently null (.is null filter), so repeated
+    // checks and the webhook can never reset/extend it.
+    if (subscriptionStatus === 'missed_payment') {
+      await supabaseClient.from("users")
+        .update({ grace_period_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() })
+        .eq('id', user.id)
+        .is('grace_period_end', null);
+    }
     
     logStep("Database update result", { 
       error: updateResult.error, 
