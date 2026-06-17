@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
 import { createHmac } from "node:crypto"
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 
@@ -11,7 +11,9 @@ const corsHeaders = {
 // Security configuration
 const RATE_LIMIT_WINDOW = 60; // seconds
 const MAX_REQUESTS_PER_WINDOW = 100;
-const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN') || 'your_verify_token';
+// Fail-secure: no insecure default. If WHATSAPP_VERIFY_TOKEN is unset, GET
+// verification can never succeed (the guard below requires VERIFY_TOKEN to be set).
+const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN');
 const APP_SECRET = Deno.env.get('WHATSAPP_APP_SECRET');
 
 // Critical security check on initialization
@@ -173,7 +175,7 @@ serve(async (req) => {
       const token = url.searchParams.get('hub.verify_token');
       const challenge = url.searchParams.get('hub.challenge');
       
-      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      if (mode === 'subscribe' && VERIFY_TOKEN && token === VERIFY_TOKEN) {
         console.log('Webhook verified successfully');
         await logSecurityEvent(
           supabaseClient,
@@ -298,7 +300,7 @@ serve(async (req) => {
           supabaseClient,
           'queue_insert_failed',
           'high',
-          { error: error.message, webhook_type: webhookType },
+          { error: (error as Error)?.message, webhook_type: webhookType },
           ipAddress
         );
         return new Response(JSON.stringify({ error: 'Failed to queue webhook' }), {
@@ -472,7 +474,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in WhatsApp webhook:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error)?.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

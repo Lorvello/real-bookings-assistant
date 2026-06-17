@@ -334,7 +334,7 @@ function App() {
                       } />
                     ))}
                     <Route path="/admin/security" element={
-                      <ProtectedRoute>
+                      <ProtectedRoute requireDeveloper>
                         <RouteErrorBoundary routeName="Security Audit">
                           <Suspense fallback={<FullPageLoadingSkeleton />}>
                             <SecurityAudit />

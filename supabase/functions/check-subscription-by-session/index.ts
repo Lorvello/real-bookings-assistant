@@ -26,6 +26,28 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // SECURITY: authenticate the caller. This endpoint used to mint a login session
+    // from only a session_id (account takeover for anyone who knew a paid session id).
+    // Now the caller must be authenticated AND be the session's own user (checked
+    // against client_reference_id below); no session is minted.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { data: authData, error: authErr } = await supabaseClient.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+    if (authErr || !authData.user) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const authedUserId = authData.user.id;
+
     const { session_id } = await req.json().catch(() => ({}));
     if (!session_id) {
       return new Response(
@@ -64,6 +86,14 @@ serve(async (req) => {
 
     const userId = checkoutSession.client_reference_id;
     if (!userId) throw new Error("No user ID found in session");
+
+    // The authenticated caller must be the user this checkout belongs to.
+    if (authedUserId !== userId) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Forbidden: session does not belong to caller" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const customerId = checkoutSession.customer as string;
     logStep("Payment verified", { userId, customerId });
@@ -170,42 +200,8 @@ serve(async (req) => {
       ignoreDuplicates: false 
     });
 
-    // Generate a new auth session for the user
-    let authSession = null;
-    try {
-      logStep("Generating new auth session for user", { userId });
-      
-      // Get user data to create session
-      const { data: userData } = await supabaseClient.from("users").select("email").eq('id', userId).single();
-      
-      if (userData?.email) {
-        // Create a new auth session using the service role
-        const { data: sessionData, error: sessionError } = await supabaseClient.auth.admin.generateLink({
-          type: 'magiclink',
-          email: userData.email
-        });
-        
-        if (!sessionError && sessionData?.properties?.action_link) {
-          // Extract the access_token and refresh_token from the magic link
-          const url = new URL(sessionData.properties.action_link);
-          const accessToken = url.searchParams.get('access_token');
-          const refreshToken = url.searchParams.get('refresh_token');
-          
-          if (accessToken && refreshToken) {
-            authSession = {
-              access_token: accessToken,
-              refresh_token: refreshToken,
-              expires_in: 3600,
-              token_type: 'bearer'
-            };
-            logStep("Auth session generated successfully");
-          }
-        }
-      }
-    } catch (authError) {
-      logStep("Warning: Could not generate auth session", { error: authError });
-      // Continue without auth session - fallback will handle this
-    }
+    // (Removed) auth-session minting. The caller is already authenticated above, so
+    // no magic-link session is created here — that was the account-takeover vector.
 
     return new Response(JSON.stringify({
       success: true,
@@ -213,7 +209,6 @@ serve(async (req) => {
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
       payment_status: hasActiveSub ? 'paid' : 'unpaid',
-      auth_session: authSession
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
