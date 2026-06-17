@@ -396,22 +396,38 @@ serve(async (req) => {
             if (entitled && botActive && calendarId) {
               // process_whatsapp_message upsert't contact + conversatie en slaat het
               // inbound bericht op, zodat de agent de history kan laden. service-role.
-              await supabaseClient.rpc('process_whatsapp_message', {
+              // De RPC-fout NIET stil negeren: een mislukte persist betekent geen history.
+              const { data: pwmData, error: pwmErr } = await supabaseClient.rpc('process_whatsapp_message', {
                 p_phone_number: contact.wa_id,
                 p_message_id: message.id,
                 p_message_content: messageText,
                 p_calendar_id: calendarId,
               });
-              const { error: agentErr } = await supabaseClient.functions.invoke('whatsapp-agent', {
-                body: {
-                  phone: contact.wa_id,
-                  calendar_id: calendarId,
-                  message: messageText,
-                  contact_name: contact?.profile?.name,
-                },
-              });
-              if (agentErr) console.error('whatsapp-agent invoke faalde:', agentErr);
-              else console.log(`whatsapp-agent aangeroepen voor eigenaar ${ownerId}, calendar ${calendarId}`);
+              if (pwmErr) console.error('process_whatsapp_message faalde:', pwmErr);
+              else if ((pwmData as { success?: boolean } | null)?.success === false)
+                console.error('process_whatsapp_message gaf success=false:', pwmData);
+
+              // De agent via een directe fetch aanroepen (NIET functions.invoke: dat
+              // voerde de agent-function in praktijk niet uit vanuit deze edge function).
+              const agentUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-agent`;
+              const srk = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+              try {
+                const ares = await fetch(agentUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${srk}`, 'apikey': srk },
+                  body: JSON.stringify({
+                    phone: contact.wa_id,
+                    calendar_id: calendarId,
+                    message: messageText,
+                    contact_name: contact?.profile?.name,
+                  }),
+                });
+                const abody = await ares.text();
+                if (!ares.ok) console.error(`whatsapp-agent faalde [${ares.status}]: ${abody.slice(0, 300)}`);
+                else console.log(`whatsapp-agent OK (eigenaar ${ownerId}, calendar ${calendarId}): ${abody.slice(0, 200)}`);
+              } catch (agentErr) {
+                console.error('whatsapp-agent fetch error:', agentErr);
+              }
             }
           }
         } catch (fwdError) {
