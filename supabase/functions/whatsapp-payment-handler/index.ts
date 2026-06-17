@@ -63,6 +63,20 @@ serve(async (req) => {
     }
     logStep("Conversation found", { calendarId: conversation.calendar_id });
 
+    // Defense-in-depth: if a bookingId is supplied (pay-and-book), it MUST belong to
+    // this conversation's calendar. Prevents a confused-deputy where a mismatched id
+    // would later be confirmed-as-paid by the stripe-webhook for the wrong calendar.
+    if (bookingId) {
+      const { data: bk } = await supabaseClient
+        .from('bookings')
+        .select('calendar_id')
+        .eq('id', bookingId)
+        .maybeSingle();
+      if (!bk || bk.calendar_id !== conversation.calendar_id) {
+        throw new Error('bookingId does not belong to this conversation');
+      }
+    }
+
     // Get payment settings for this calendar
     const { data: paymentSettings, error: settingsError } = await supabaseClient
       .from("payment_settings")

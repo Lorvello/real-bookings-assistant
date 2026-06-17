@@ -14,6 +14,47 @@ export interface ToolContext {
   conversationId: string | null; // whatsapp_conversations.id (needed for pay-and-book links)
 }
 
+interface UpcomingBooking {
+  id: string;
+  status: string;
+  start_time: string;
+  service_type_id: string;
+  service_types?: { name?: string } | null;
+}
+
+// Find WHICH of the caller's own upcoming active bookings to act on. Always scoped
+// by phone + calendar (tenant + customer isolation). With more than one upcoming
+// booking we refuse to guess and ask the model to disambiguate (the caller can then
+// re-call with match_start_time = the exact start_time from the returned list).
+async function resolveTarget(
+  supabase: SupabaseClient,
+  ctx: ToolContext,
+  matchStart?: string,
+): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean }> {
+  const { data } = await supabase
+    .from("bookings")
+    .select("id, status, start_time, service_type_id, service_types(name)")
+    .eq("customer_phone", ctx.phone)
+    .eq("calendar_id", ctx.calendarId)
+    .in("status", ["confirmed", "pending"])
+    .gt("start_time", new Date().toISOString())
+    .order("start_time", { ascending: true })
+    .limit(5);
+  const list = ((data as UpcomingBooking[]) ?? []);
+  if (list.length === 0) return { none: true };
+  if (matchStart) {
+    const day = matchStart.slice(0, 10);
+    const exact = list.filter((b) => b.start_time === matchStart);
+    const byDay = list.filter((b) => b.start_time.slice(0, 10) === day);
+    const hits = exact.length ? exact : byDay;
+    if (hits.length === 1) return { booking: hits[0] };
+    if (hits.length > 1) return { ambiguous: hits };
+    // no match on the hint -> fall through
+  }
+  if (list.length === 1) return { booking: list[0] };
+  return { ambiguous: list };
+}
+
 export function createTools(
   supabase: SupabaseClient,
   ctx: ToolContext,
@@ -69,9 +110,18 @@ export function createTools(
     {
       name: "cancel_appointment",
       description:
-        "Annuleert de eerstvolgende aankomende afspraak van DEZE klant (op telefoonnummer). " +
-        "Roep aan als de klant duidelijk wil annuleren. Bevestig daarna kort wat geannuleerd is.",
-      parameters: { type: "object", properties: {} },
+        "Annuleert de aankomende afspraak van DEZE klant (op telefoonnummer). " +
+        "Roep aan als de klant duidelijk wil annuleren. Bij meerdere afspraken geeft de tool 'meerdere_afspraken' " +
+        "terug met de lijst — vraag dan welke en roep opnieuw aan met match_start_time. Bevestig daarna kort wat geannuleerd is.",
+      parameters: {
+        type: "object",
+        properties: {
+          match_start_time: {
+            type: "string",
+            description: "Alleen bij meerdere afspraken: de exacte start_time van de gekozen afspraak (uit de eerder teruggegeven lijst).",
+          },
+        },
+      },
     },
     {
       name: "reschedule_appointment",
@@ -86,6 +136,10 @@ export function createTools(
           start_time: { type: "string", description: "Nieuwe starttijd, ISO 8601 met tijdzone." },
           end_time: { type: "string", description: "Nieuwe eindtijd = start_time + dezelfde dienstduur als de bestaande afspraak." },
           service_type_id: { type: "string", description: "Alleen meegeven als de klant óók van dienst wisselt (zeldzaam)." },
+          match_start_time: {
+            type: "string",
+            description: "Alleen bij meerdere afspraken: de exacte start_time van de te verzetten afspraak (uit de eerder teruggegeven lijst).",
+          },
         },
         required: ["start_time", "end_time"],
       },
@@ -172,7 +226,15 @@ export function createTools(
           end_time: end,
           status: paymentRequired ? "pending" : "confirmed",
         };
-        if (paymentRequired) insertRow.payment_status = "pending";
+        if (paymentRequired) {
+          // Mirror the web create-booking flow: a pending pay-and-book reservation
+          // must carry payment_required + payment_timing so cancel_overdue_unpaid_bookings()
+          // (which filters payment_required = true) reclaims the slot if the customer
+          // never pays. Without this the pending row would hold the slot forever.
+          insertRow.payment_status = "pending";
+          insertRow.payment_required = true;
+          insertRow.payment_timing = "pay_now";
+        }
 
         const { data: booking, error: insErr } = await supabase
           .from("bookings")
@@ -234,51 +296,44 @@ export function createTools(
       }
 
       case "cancel_appointment": {
-        // The customer's own next upcoming active booking (server-side lookup;
-        // the model never supplies an id).
-        const { data: b } = await supabase
-          .from("bookings")
-          .select("id, start_time, service_types(name)")
-          .eq("customer_phone", ctx.phone)
-          .eq("calendar_id", ctx.calendarId)
-          .in("status", ["confirmed", "pending"])
-          .gt("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        if (!b) {
+        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined);
+        if (target.none) {
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te annuleren." };
         }
-        const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", (b as { id: string }).id);
+        if (target.ambiguous) {
+          return {
+            error: "meerdere_afspraken",
+            message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant bedoelt.",
+            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, start_time: b.start_time })),
+          };
+        }
+        const b = target.booking!;
+        const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
         if (error) return { error: error.message };
-        return {
-          ok: true,
-          cancelled: {
-            service: (b as { service_types?: { name?: string } }).service_types?.name ?? null,
-            start_time: (b as { start_time: string }).start_time,
-          },
-        };
+        return { ok: true, cancelled: { service: b.service_types?.name ?? null, start_time: b.start_time } };
       }
 
       case "reschedule_appointment": {
         const newStart = String(args.start_time);
         const newEnd = String(args.end_time);
-        const { data: b } = await supabase
-          .from("bookings")
-          .select("id, service_type_id, start_time")
-          .eq("customer_phone", ctx.phone)
-          .eq("calendar_id", ctx.calendarId)
-          .in("status", ["confirmed", "pending"])
-          .gt("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        if (!b) {
+        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined);
+        if (target.none) {
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
         }
-        const serviceId = args.service_type_id
-          ? String(args.service_type_id)
-          : (b as { service_type_id: string }).service_type_id;
+        if (target.ambiguous) {
+          return {
+            error: "meerdere_afspraken",
+            message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant wil verzetten.",
+            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, start_time: b.start_time })),
+          };
+        }
+        const b = target.booking!;
+        const serviceId = args.service_type_id ? String(args.service_type_id) : b.service_type_id;
+
+        // Free the booking from availability/overlap first so its OWN current slot
+        // is not counted as a conflict when validating the new time (otherwise a
+        // small shift like +15 min always reads as unavailable). Restore on failure.
+        await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
 
         const { data: valid, error: valErr } = await supabase.rpc("validate_booking_security", {
           p_calendar_id: ctx.calendarId,
@@ -287,19 +342,23 @@ export function createTools(
           p_end_time: newEnd,
           p_customer_email: null,
         });
-        if (valErr) return { error: valErr.message };
-        if (valid !== true) return { error: "niet_beschikbaar", message: "Dat nieuwe tijdstip is niet beschikbaar." };
+        if (valErr || valid !== true) {
+          await supabase.from("bookings").update({ status: b.status }).eq("id", b.id); // restore
+          if (valErr) return { error: valErr.message };
+          return { error: "niet_beschikbaar", message: "Dat nieuwe tijdstip is niet beschikbaar." };
+        }
 
-        const upd: Record<string, unknown> = { start_time: newStart, end_time: newEnd };
+        const upd: Record<string, unknown> = { start_time: newStart, end_time: newEnd, status: b.status };
         if (args.service_type_id) upd.service_type_id = serviceId;
-        const { error: updErr } = await supabase.from("bookings").update(upd).eq("id", (b as { id: string }).id);
+        const { error: updErr } = await supabase.from("bookings").update(upd).eq("id", b.id);
         if (updErr) {
+          await supabase.from("bookings").update({ status: b.status }).eq("id", b.id); // restore old time + status
           if (updErr.code === "23P01" || /no_overlap|exclusion/i.test(updErr.message || "")) {
             return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
           }
           return { error: updErr.message };
         }
-        return { ok: true, rescheduled: { from: (b as { start_time: string }).start_time, to: newStart } };
+        return { ok: true, rescheduled: { from: b.start_time, to: newStart } };
       }
 
       default:
