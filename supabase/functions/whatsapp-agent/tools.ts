@@ -102,6 +102,37 @@ function cleanWebsite(raw: unknown): string | null {
   return v;
 }
 
+interface CalendarPolicy {
+  allowCancellations: boolean;
+  cancellationDeadlineHours: number | null;
+  maxBookingsPerDay: number | null;
+}
+
+// The Operations settings the agent must honour. Read once per booking/cancel/
+// reschedule. Defaults are permissive when no settings row exists.
+async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): Promise<CalendarPolicy> {
+  const { data } = await supabase
+    .from("calendar_settings")
+    .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day")
+    .eq("calendar_id", calendarId)
+    .maybeSingle();
+  const row = data as {
+    allow_cancellations?: boolean | null;
+    cancellation_deadline_hours?: number | null;
+    max_bookings_per_day?: number | null;
+  } | null;
+  return {
+    allowCancellations: row?.allow_cancellations ?? true,
+    cancellationDeadlineHours: row?.cancellation_deadline_hours ?? null,
+    maxBookingsPerDay: row?.max_bookings_per_day ?? null,
+  };
+}
+
+// Hours from now until a booking starts (negative once it has started).
+function hoursUntil(startTime: string): number {
+  return (new Date(startTime).getTime() - Date.now()) / 3_600_000;
+}
+
 export function createTools(
   supabase: SupabaseClient,
   ctx: ToolContext,
@@ -268,6 +299,25 @@ export function createTools(
         const end = String(args.end_time);
         const serviceId = String(args.service_type_id);
 
+        // Enforce the "Max bookings per day" Operations setting (previously saved but
+        // never enforced). Count this calendar's confirmed+pending bookings on the
+        // requested day; refuse when the cap is reached.
+        const bookPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        if (bookPolicy.maxBookingsPerDay != null) {
+          const day = start.slice(0, 10);
+          const nextDay = new Date(new Date(`${day}T00:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10);
+          const { count } = await supabase
+            .from("bookings")
+            .select("id", { count: "exact", head: true })
+            .eq("calendar_id", ctx.calendarId)
+            .in("status", ["confirmed", "pending"])
+            .gte("start_time", `${day}T00:00:00Z`)
+            .lt("start_time", `${nextDay}T00:00:00Z`);
+          if ((count ?? 0) >= bookPolicy.maxBookingsPerDay) {
+            return { error: "dag_vol", message: "Die dag zit vol. Stel de klant een andere dag voor." };
+          }
+        }
+
         // Does this calendar require up-front payment? (secure payments on AND
         // payment required for booking). Decided server-side, never by the LLM.
         const { data: ps } = await supabase
@@ -389,6 +439,23 @@ export function createTools(
           };
         }
         const b = target.booking!;
+
+        // Honour the "Allow cancellations" + "Cancellation deadline" Operations
+        // settings (previously saved but never enforced).
+        const cancelPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        if (!cancelPolicy.allowCancellations) {
+          return {
+            error: "annuleren_niet_toegestaan",
+            message: "Annuleren kan bij dit bedrijf niet via de assistent. Verwijs naar het annuleringsbeleid of vraag de klant contact op te nemen met het bedrijf.",
+          };
+        }
+        if (cancelPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < cancelPolicy.cancellationDeadlineHours) {
+          return {
+            error: "te_laat_annuleren",
+            message: `Annuleren kan tot ${cancelPolicy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.`,
+          };
+        }
+
         const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
         if (error) return { error: error.message };
         return { ok: true, cancelled: { service: b.service_types?.name ?? null, start_time: b.start_time } };
@@ -410,6 +477,16 @@ export function createTools(
         }
         const b = target.booking!;
         const serviceId = args.service_type_id ? String(args.service_type_id) : b.service_type_id;
+
+        // Honour the "Cancellation deadline" Operations setting for reschedules too
+        // (a reschedule frees the original slot, so the same lead-time rule applies).
+        const reschedPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        if (reschedPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < reschedPolicy.cancellationDeadlineHours) {
+          return {
+            error: "te_laat_verzetten",
+            message: `Verzetten kan tot ${reschedPolicy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk.`,
+          };
+        }
 
         // Free the booking from availability/overlap first so its OWN current slot
         // is not counted as a conflict when validating the new time (otherwise a

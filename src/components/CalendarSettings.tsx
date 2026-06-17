@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CalendarPolicySettings } from './calendar-settings/CalendarPolicySettings';
-import { CalendarRequiredFields } from './calendar-settings/CalendarRequiredFields';
 import { GlobalSettings } from './calendar-settings/GlobalSettings';
 import { Separator } from '@/components/ui/separator';
 interface CalendarSettingsProps {
@@ -102,10 +101,5 @@ export function CalendarSettings({
           </div>
         </CardContent>
       </Card>
-
-      <Separator />
-
-      {/* Required Information */}
-      
     </div>;
 }

@@ -546,7 +546,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Final reminder close to the appointment. Automatic WhatsApp reminders reduce no-shows significantly.</p>
+                      <p>Final reminder close to the appointment. Automatic email reminders reduce no-shows significantly.</p>
                     </TooltipContent>
                   </Tooltip>
                 </div>
