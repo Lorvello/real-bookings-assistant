@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
+import { WhatsAppWelcomeMessage } from '@/components/whatsapp/WhatsAppWelcomeMessage';
 import { supabase } from '@/integrations/supabase/client';
 import QRCodeSVG from 'react-qr-code';
 import { Download, Copy, Check } from 'lucide-react';
@@ -259,6 +260,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           </CardContent>
         </Card>
       </div>
+
+      {/* Customizable first-reply greeting */}
+      <WhatsAppWelcomeMessage userId={userId} />
     </div>
   );
 }
