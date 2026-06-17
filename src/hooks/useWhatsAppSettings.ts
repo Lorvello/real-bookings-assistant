@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-const PLATFORM_WHATSAPP_NUMBER = '+31852502132';
+// Live WABA number (matches the WHATSAPP_NUMBER edge secret + phone id 1204872446033001).
+// The old +31852502132 was a stale number not wired to the webhook.
+const PLATFORM_WHATSAPP_NUMBER = '+31851155243';
 
 export function useWhatsAppSettings(userId: string) {
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -47,7 +49,10 @@ export function useWhatsAppSettings(userId: string) {
             .single();
 
           const businessName = userData?.business_name || 'Ons bedrijf';
-          const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
+          // The tracking code MUST be in the message: whatsapp-webhook routes a new
+          // customer to this calendar by matching `Code: XXXXXXXX`. Without it the
+          // agent can't tell which business the message is for.
+          const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)\n\nCode: ${trackingCode}`;
           setWhatsappLink(`https://wa.me/${formatted}?text=${encodeURIComponent(prefilledMessage)}`);
 
           // One-time auto refresh of stored PNG so it matches the new message

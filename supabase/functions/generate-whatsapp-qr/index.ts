@@ -25,6 +25,11 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
+    // Tracking code = first 8 chars of the owner's user id. whatsapp-webhook routes
+    // an inbound message to this calendar by matching `Code: XXXXXXXX`, so it MUST be
+    // in the prefilled message or a new customer can't be routed to any calendar.
+    const trackingCode = user.id.substring(0, 8).toUpperCase();
+
     // Parse optional refresh flag from request body
     let refresh = false;
     try {
@@ -64,7 +69,7 @@ serve(async (req) => {
           .single();
 
         const businessName = userData?.business_name || 'Ons bedrijf';
-        const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
+        const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)\n\nCode: ${trackingCode}`;
         const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
         console.log(`QR code already exists for user ${user.id}, returning existing URL`);
@@ -96,7 +101,7 @@ serve(async (req) => {
       .single();
 
     const businessName = userData?.business_name || 'Ons bedrijf';
-    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)`;
+    const prefilledMessage = `👋 Hallo ${businessName}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)\n\nCode: ${trackingCode}`;
     const whatsappLink = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(prefilledMessage)}`;
 
     // Fetch QR code PNG from QRServer.com
@@ -188,7 +193,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-whatsapp-qr:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error)?.message }),
       { 
         status: 400, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
