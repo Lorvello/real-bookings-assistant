@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-// Live WABA number (matches the WHATSAPP_NUMBER edge secret + phone id 1204872446033001).
-// The old +31852502132 was a stale number not wired to the webhook.
-const PLATFORM_WHATSAPP_NUMBER = '+31851155243';
+import { PLATFORM_WHATSAPP_NUMBER } from '@/constants/platform';
 
 export function useWhatsAppSettings(userId: string) {
   const [qrUrl, setQrUrl] = useState<string | null>(null);

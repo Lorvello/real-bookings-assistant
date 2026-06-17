@@ -4,9 +4,10 @@ import { Info, AlertCircle, CheckCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { businessTypes } from '@/constants/settingsOptions';
+import { PLATFORM_WHATSAPP_DISPLAY, PLATFORM_WHATSAPP_LABEL } from '@/constants/platform';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
-import { validateWebsite, validateSocial, SOCIAL_PLATFORMS } from '@/utils/socialValidation';
+import { validateWebsite } from '@/utils/socialValidation';
 import { SettingsSection } from './SettingsSection';
 
 export const AIKnowledgeTab: React.FC = () => {
@@ -67,24 +68,21 @@ export const AIKnowledgeTab: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // The website/social fields this tab owns, each with its validator.
+  // The website/link fields this tab owns, each with its validator. Reduced to
+  // Website only (the 5 social platforms were orphan fields, now removed).
   const SOCIAL_FIELDS: Array<{
     key: 'website' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'youtube' | 'x';
     validate: (v: string) => { ok: boolean; normalized: string; error?: string };
   }> = [
     { key: 'website', validate: (v) => validateWebsite(v) },
-    { key: 'instagram', validate: (v) => validateSocial(SOCIAL_PLATFORMS.instagram, v) },
-    { key: 'facebook', validate: (v) => validateSocial(SOCIAL_PLATFORMS.facebook, v) },
-    { key: 'linkedin', validate: (v) => validateSocial(SOCIAL_PLATFORMS.linkedin, v) },
-    { key: 'tiktok', validate: (v) => validateSocial(SOCIAL_PLATFORMS.tiktok, v) },
-    { key: 'youtube', validate: (v) => validateSocial(SOCIAL_PLATFORMS.youtube, v) },
-    { key: 'x', validate: (v) => validateSocial(SOCIAL_PLATFORMS.x, v) },
   ];
 
   // The business fields this tab owns (everything it can edit on this page).
+  // business_whatsapp is intentionally absent: it is now a read-only platform
+  // display, not an editable/saved field.
   const BUSINESS_FIELDS = [
     'business_name', 'business_type', 'business_type_other',
-    'business_phone', 'business_email', 'business_whatsapp',
+    'business_phone', 'business_email',
     'business_street', 'business_number', 'business_postal', 'business_city', 'business_country',
     'business_description',
     'cancellation_policy', 'payment_info', 'preparation_info',
@@ -380,16 +378,22 @@ export const AIKnowledgeTab: React.FC = () => {
                     '+31 6 12345678'
                   )}
                 </div>
-                <div>
+                {/* WhatsApp Bookingsassistant — the ONE platform number every customer
+                    messages. Read-only on purpose: it is not the owner's data, it is
+                    the shared platform line (single-sourced in constants/platform.ts).
+                    The old editable business_whatsapp field was an orphan the agent
+                    never read; it is no longer sent in the save payload. */}
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Business WhatsApp
+                    {PLATFORM_WHATSAPP_LABEL}
                   </label>
-                  {renderInputField(
-                    'business_whatsapp',
-                    localBusinessData.business_whatsapp,
-                    (value) => updateBusinessField('business_whatsapp', value),
-                    '+31 6 12345678'
-                  )}
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-2">
+                    <span className="font-medium text-foreground">{PLATFORM_WHATSAPP_DISPLAY}</span>
+                    <span className="text-xs text-muted-foreground">Platform number</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    This is the WhatsApp number your customers message. Share it, or show the QR code on the WhatsApp Bookingsassistant page.
+                  </p>
                 </div>
               </div>
             </div>
@@ -398,7 +402,6 @@ export const AIKnowledgeTab: React.FC = () => {
             <div className="pt-6 border-t border-border">
               <div className="flex items-center gap-2 mb-4">
                 <h3 className="text-lg font-medium text-foreground">Address Details <span className="text-sm font-normal text-muted-foreground">(optional)</span></h3>
-                <span className="text-xs text-muted-foreground">optional</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -465,93 +468,21 @@ export const AIKnowledgeTab: React.FC = () => {
           </div>
         </SettingsSection>
 
-        {/* Social Media */}
-        <SettingsSection title={<>Social Media &amp; Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>} tooltip="The AI agent can use this information in its messages" usedByAgent>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Website
-              </label>
-              {renderValidatedField(
-                'website',
-                localProfileData.website,
-                'www.example.com',
-                (v) => validateWebsite(v)
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Instagram
-              </label>
-              {renderValidatedField(
-                'instagram',
-                localProfileData.instagram,
-                '@yourhandle',
-                (v) => validateSocial(SOCIAL_PLATFORMS.instagram, v)
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Facebook
-              </label>
-              {renderValidatedField(
-                'facebook',
-                localProfileData.facebook,
-                'facebook.com/yourpage',
-                (v) => validateSocial(SOCIAL_PLATFORMS.facebook, v)
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                LinkedIn
-              </label>
-              {renderValidatedField(
-                'linkedin',
-                localProfileData.linkedin,
-                'linkedin.com/company/yourco',
-                (v) => validateSocial(SOCIAL_PLATFORMS.linkedin, v)
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                TikTok
-              </label>
-              {renderValidatedField(
-                'tiktok',
-                localProfileData.tiktok,
-                '@yourhandle',
-                (v) => validateSocial(SOCIAL_PLATFORMS.tiktok, v)
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                YouTube
-              </label>
-              {renderValidatedField(
-                'youtube',
-                localProfileData.youtube,
-                'youtube.com/@yourchannel',
-                (v) => validateSocial(SOCIAL_PLATFORMS.youtube, v)
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                X (Twitter)
-              </label>
-              {renderValidatedField(
-                'x',
-                localProfileData.x,
-                '@yourhandle',
-                (v) => validateSocial(SOCIAL_PLATFORMS.x, v)
-              )}
-            </div>
+        {/* Links — reduced to Website only. The 5 social platforms (Instagram,
+            Facebook, LinkedIn, TikTok, YouTube, X) were orphan fields the agent
+            never read; they are removed from the surface. Website stays as a
+            single, subtle field and is wired into the agent in Part 2. */}
+        <SettingsSection title={<>Website <span className="text-sm font-normal text-muted-foreground">(optional)</span></>}>
+          <div className="max-w-md">
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Website
+            </label>
+            {renderValidatedField(
+              'website',
+              localProfileData.website,
+              'www.example.com',
+              (v) => validateWebsite(v)
+            )}
           </div>
         </SettingsSection>
 

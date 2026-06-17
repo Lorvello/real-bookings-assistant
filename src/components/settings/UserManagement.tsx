@@ -17,13 +17,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import PhoneInput from 'react-phone-number-input';
 import { parsePhoneNumber, isValidPhoneNumber } from 'react-phone-number-input';
 import './phone-input.css';
 import { CountryPhoneInput } from './CountryPhoneInput';
-import { EnhancedDatePicker } from './EnhancedDatePicker';
 import { businessTypes } from '@/constants/settingsOptions';
 import ReactSelect from 'react-select';
 import { SetPasswordSection } from './SetPasswordSection';
@@ -83,9 +81,9 @@ export const UserManagement = ({
     if (!isProfileInitialized) return false;
     if (!localProfileData || !baseProfile) return false;
     
-    // email is read-only; language/timezone controls were removed -> none of those
-    // change via the UI, so only compare the fields the user can actually edit.
-    const fieldsToCompare = ['full_name', 'phone', 'date_of_birth'];
+    // email is read-only; language/timezone/date_of_birth controls were removed ->
+    // none of those change via the UI, so only compare the editable fields.
+    const fieldsToCompare = ['full_name', 'phone'];
     return fieldsToCompare.some(field => {
       const localVal = localProfileData[field] || '';
       const baseVal = baseProfile[field] || '';
@@ -107,7 +105,7 @@ export const UserManagement = ({
 
   // The profile fields this tab owns. PARTIAL save: only these are written, so the
   // Profile tab can never clobber the AI-Knowledge tab's business/social fields.
-  const PROFILE_FIELDS = ['full_name', 'phone', 'date_of_birth'];
+  const PROFILE_FIELDS = ['full_name', 'phone'];
 
   // Save all profile changes
   const saveAllChanges = async () => {
@@ -485,22 +483,12 @@ export const UserManagement = ({
                       />
                     </div>
 
-                    {/* Date of Birth with Year Selector */}
-                    <div>
-                      <Label className="block text-sm font-medium text-foreground mb-2">Date of Birth</Label>
-                      <EnhancedDatePicker
-                        value={localProfileData.date_of_birth ? new Date(localProfileData.date_of_birth) : undefined}
-                        onChange={(date) => {
-                          // Pass '' when cleared so the user can actually remove a DOB
-                          // (the save layer coalesces '' -> null). The old `if (date)`
-                          // guard silently swallowed clears, making DOB un-removable.
-                          updateLocalProfile('date_of_birth', date ? format(date, 'yyyy-MM-dd') : '');
-                        }}
-                        placeholder="Select your date of birth"
-                      />
-                    </div>
+                    {/* NOTE: Date of Birth was removed. It had no consumer anywhere
+                        (no agent / Stripe / booking / analytics read it) and is
+                        personal data we should not collect (GDPR data-minimization).
+                        It is also no longer written in the save payload.
 
-                    {/* NOTE: the Language and Timezone selects were removed here.
+                        The Language and Timezone selects were removed earlier.
                         Neither had a consumer: users.language is read nowhere, and the
                         WhatsApp agent reads calendars.timezone (per-calendar), never
                         users.timezone. They presented as working controls but changed
