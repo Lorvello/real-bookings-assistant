@@ -6,5 +6,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with:
+          node-version: 20
       - run: npm ci
-      - run: npm run test
+      # Type-check gate: Vite builds WITHOUT type-checking, so type errors used to
+      # ship green. tsc --noEmit fails the pipeline on any type error.
+      - run: npm run type-check
+      # Build gate: catch bundler/import breakage before deploy.
+      - run: npm run build

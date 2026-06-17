@@ -97,8 +97,10 @@ const handler = async (req: Request): Promise<Response> => {
     const calendarName = calendarData.name;
     const invitationToken = invitationResult.token;
     
-    // Create invitation acceptance URL
-    const inviteUrl = `${Deno.env.get('SUPABASE_URL')?.replace('/rest/v1', '')}/team-invite?token=${invitationToken}`;
+    // Create invitation acceptance URL. Use the app domain (APP_URL), not the
+    // Supabase API host — the old derivation pointed invitees at the Supabase URL.
+    const appUrl = Deno.env.get('APP_URL') || 'https://bookingsassistant.com';
+    const inviteUrl = `${appUrl}/team-invite?token=${invitationToken}`;
 
     // Send invitation email. Use the verified production domain (consistent with
     // send-password-reset / send-enterprise-contact). The Resend sandbox sender
