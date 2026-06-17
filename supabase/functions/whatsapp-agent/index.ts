@@ -7,7 +7,7 @@
 // Body: { phone, calendar_id, message, contact_name? }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { buildSystemPrompt, type ServiceInfo } from "./prompt.ts";
+import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools } from "./tools.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
@@ -59,6 +59,14 @@ Deno.serve(async (req) => {
     const services: ServiceInfo[] = ((svcRows as Array<{ id: string; name: string; duration: number; price: number | null }>) ?? [])
       .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price }));
 
+    // Per-calendar custom welcome greeting (NULL → default template in prompt.ts).
+    const { data: cs } = await supabase
+      .from("calendar_settings")
+      .select("whatsapp_welcome_message")
+      .eq("calendar_id", calendar_id)
+      .maybeSingle();
+    const rawWelcome = (cs as { whatsapp_welcome_message?: string | null } | null)?.whatsapp_welcome_message ?? null;
+
     const { data: contact } = await supabase
       .from("whatsapp_contacts")
       .select("id, first_name")
@@ -98,9 +106,17 @@ Deno.serve(async (req) => {
     const lastService = (lastB as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
 
     const knownName = (contact as { first_name?: string } | null)?.first_name ?? contact_name ?? null;
+    const businessName = (biz as { business_name?: string } | null)?.business_name ?? "ons bedrijf";
+
+    // First contact = the agent has not yet replied in this conversation. The greeting
+    // fires once, on the customer's opening message (incl. the prefilled "Code: …" save-message).
+    const isFirstContact = !history.some((m) => m.direction === "outbound");
+    const welcomeMessage = (rawWelcome && rawWelcome.trim() ? rawWelcome : DEFAULT_WHATSAPP_WELCOME)
+      .replace(/\{bedrijf\}/g, businessName);
+
     const now = new Date();
     const system = buildSystemPrompt({
-      businessName: (biz as { business_name?: string } | null)?.business_name ?? "ons bedrijf",
+      businessName,
       businessType: (biz as { business_type?: string } | null)?.business_type ?? null,
       currentTimeNL: nlTime(now),
       todayISO: now.toISOString().slice(0, 10),
@@ -108,6 +124,8 @@ Deno.serve(async (req) => {
       nameRefused: knownName === "Privé",
       lastService,
       services,
+      welcomeMessage,
+      isFirstContact,
     });
 
     // Build conversation turns. History already ends with the current inbound message

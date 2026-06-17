@@ -5,6 +5,13 @@
 // behavioural rules below are mined from those chains; the data (services,
 // opening hours, slots) is fetched at runtime via tools, never invented.
 
+// Default WhatsApp greeting when a calendar has no custom whatsapp_welcome_message.
+// {bedrijf} is replaced with the business name by the caller (index.ts) before this
+// reaches the prompt. KEEP IN SYNC with the website default in
+// src/components/whatsapp/WhatsAppWelcomeMessage.tsx (defaultWelcome()).
+export const DEFAULT_WHATSAPP_WELCOME =
+  "Hoi! 👋 Welkom bij {bedrijf}. Ik ben je boekingsassistent: je kunt hier direct een afspraak maken, verzetten of annuleren. Waarmee kan ik je helpen?";
+
 export interface ServiceInfo {
   id: string;
   name: string;
@@ -21,6 +28,8 @@ export interface PromptContext {
   nameRefused?: boolean; // customer declined to share a name
   lastService?: string | null; // returning customer's previous service
   services?: ServiceInfo[]; // the calendar's bookable services (with UUIDs)
+  welcomeMessage?: string | null; // first-contact greeting, {bedrijf} already resolved
+  isFirstContact?: boolean; // true when the agent has not yet replied in this conversation
 }
 
 export function buildSystemPrompt(ctx: PromptContext): string {
@@ -46,7 +55,17 @@ Je bevestigt NOOIT iets dat je niet via een tool hebt gedaan:
 - Mist er info (dienst, tijd of naam)? Vraag kort wat ontbreekt en bevestig nog niets.
 - Kondig NOOIT een actie aan ("ik ga even checken", "even geduld", "ik verzet je afspraak") om daarna te stoppen. Als je een actie aankondigt, roep je in DEZELFDE beurt de bijbehorende tool aan. Geen "even geduld"-berichten zonder tool-call.
 </critical>
-
+${
+    ctx.isFirstContact && ctx.welcomeMessage
+      ? `
+<welcome>
+Dit is het ALLEREERSTE bericht van deze klant in dit gesprek. Begin je antwoord met exact deze begroeting, woord voor woord (niets weglaten, niets toevoegen, geen andere begroeting ervoor):
+"${ctx.welcomeMessage}"
+Stelt de klant in datzelfde eerste bericht al een concrete vraag of boekingsverzoek? Ga dan na de begroeting in HETZELFDE bericht meteen door met helpen (roep zo nodig direct de juiste tool aan). Stelt de klant nog niets concreets (bijv. alleen "hoi" of het opslaan-/code-bericht)? Dan is de begroeting je hele antwoord.
+</welcome>
+`
+      : ""
+  }
 <language>
 Antwoord in de taal van het laatste bericht van de klant (standaard Nederlands, informeel "je"; ondersteun ook Engels en Portugees). Spiegel de toon: casual als de klant casual is, formeel als de klant formeel is.
 </language>
