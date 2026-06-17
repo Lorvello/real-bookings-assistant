@@ -1,6 +1,8 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { calculateApplicationFee } from '../_shared/feeCalculator.ts';
+import { validateStripeMode, getStripeSecretKey } from '../_shared/stripeValidation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -69,13 +71,14 @@ serve(async (req) => {
       test_mode = false,
     }: InstallmentPaymentRequest = await req.json();
 
-    // Pick the Stripe key for the requested mode (mirrors create-booking-payment).
-    // NEVER live money in our own testing — callers pass test_mode for sandbox.
-    const stripeKey = test_mode
-      ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
-      : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
+    // SECURITY: pin the Stripe mode to the server's STRIPE_MODE — never trust the
+    // client's test_mode (mirrors create-booking-payment). Defaulted to LIVE before,
+    // which meant our own test flows could touch real money. The client param is
+    // ignored; the server is the single source of truth.
+    const serverIsTest = validateStripeMode().mode === 'test';
+    const stripeKey = getStripeSecretKey(serverIsTest ? 'test' : 'live');
     if (!stripeKey) {
-      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+      throw new Error(`Stripe ${serverIsTest ? 'test' : 'live'} secret key not configured`);
     }
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
@@ -145,13 +148,22 @@ serve(async (req) => {
       .from('business_stripe_accounts')
       .select('stripe_account_id')
       .eq('calendar_id', conversation.calendar_id)
-      .eq('environment', test_mode ? 'test' : 'live')
+      .eq('environment', serverIsTest ? 'test' : 'live')
       .eq('account_status', 'active')
       .single();
 
     if (!stripeAccount) {
       throw new Error('Stripe account not configured');
     }
+
+    // Platform fee config for this calendar (defaults mirror create-booking-payment).
+    const { data: paymentSettings } = await supabaseClient
+      .from('payment_settings')
+      .select('platform_fee_percentage, payout_option')
+      .eq('calendar_id', conversation.calendar_id)
+      .maybeSingle();
+    const platformFeePercentage = paymentSettings?.platform_fee_percentage ?? 1.9;
+    const payoutOption = (paymentSettings?.payout_option as 'standard' | 'instant') ?? 'standard';
 
     const servicePrice = serviceType.price || 0;
     const servicePriceCents = Math.round(servicePrice * 100);
@@ -224,6 +236,16 @@ serve(async (req) => {
       throw new Error('No immediate payment required');
     }
 
+    // Platform application fee on the first installment (was 0 — the platform earned
+    // nothing on every installment booking). application_fee_amount on a direct charge
+    // routes the fee to the platform account; same calculator as the web/WhatsApp flows.
+    const feeCalculation = calculateApplicationFee({
+      amountCents: firstPayment.amount_cents,
+      paymentMethod: 'card',
+      payoutOption,
+      platformFeePercentage: platformFeePercentage / 100,
+    });
+
     // Create Stripe checkout session for first payment
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card', 'ideal'],
@@ -239,6 +261,9 @@ serve(async (req) => {
         quantity: 1,
       }],
       mode: 'payment',
+      payment_intent_data: {
+        application_fee_amount: feeCalculation.applicationFeeCents,
+      },
       success_url: `${req.headers.get('origin')}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/booking-cancelled`,
       customer_email: customerData.email,
@@ -248,6 +273,8 @@ serve(async (req) => {
         payment_type: 'installment',
         installment_number: '1',
         total_installments: installments.length.toString(),
+        platform_fee_percentage: platformFeePercentage.toString(),
+        application_fee_cents: feeCalculation.applicationFeeCents.toString(),
       }
     }, {
       stripeAccount: stripeAccount.stripe_account_id
@@ -348,9 +375,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error creating installment payment:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       success: false,
-      error: error.message 
+      error: (error as Error)?.message
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,

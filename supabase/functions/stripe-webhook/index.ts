@@ -50,15 +50,15 @@ serve(async (req) => {
           } catch (liveErr) {
             console.error("❌ Webhook signature verification failed (both modes)", liveErr);
             await logSecurityEvent(supabase, "stripe_verification_failed", null, {
-              error: liveErr.message,
-              test_error: err.message
+              error: (liveErr as Error)?.message,
+              test_error: (err as Error)?.message
             });
-            return new Response(`Webhook Error: ${liveErr.message}`, { status: 400 });
+            return new Response(`Webhook Error: ${(liveErr as Error)?.message}`, { status: 400 });
           }
         } else {
           console.error("❌ Webhook signature verification failed", err);
-          await logSecurityEvent(supabase, "stripe_verification_failed", null, { error: err.message });
-          return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+          await logSecurityEvent(supabase, "stripe_verification_failed", null, { error: (err as Error)?.message });
+          return new Response(`Webhook Error: ${(err as Error)?.message}`, { status: 400 });
         }
       }
     } else if (webhookSecretLive) {
@@ -69,8 +69,8 @@ serve(async (req) => {
         console.log("✅ Webhook verified (LIVE mode)");
       } catch (err) {
         console.error("❌ Webhook signature verification failed", err);
-        await logSecurityEvent(supabase, "stripe_verification_failed", null, { error: err.message });
-        return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+        await logSecurityEvent(supabase, "stripe_verification_failed", null, { error: (err as Error)?.message });
+        return new Response(`Webhook Error: ${(err as Error)?.message}`, { status: 400 });
       }
     } else {
       console.error("❌ No webhook secrets configured");
@@ -79,7 +79,30 @@ serve(async (req) => {
 
     console.log(`📨 Processing webhook: ${event.type}`, { mode: isTestMode ? 'test' : 'live' });
 
-    // Process event based on type
+    // Idempotency: claim this event.id (see processed_stripe_events migration). A
+    // duplicate delivery of the same id hits the PK conflict and is skipped, so a
+    // Stripe retry can't double-process (re-open grace, flap tier, re-confirm).
+    let claimedEventId: string | null = null;
+    const { error: claimErr } = await supabase
+      .from('processed_stripe_events')
+      .insert({ event_id: event.id, event_type: event.type });
+    if (claimErr) {
+      if (claimErr.code === '23505') {
+        console.log(`↩️ Duplicate webhook event ${event.id} (${event.type}); already processed, skipping.`);
+        return new Response(JSON.stringify({ received: true, duplicate: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      // A non-conflict error must not drop a real event — log and continue.
+      console.error("processed_stripe_events claim error (continuing):", claimErr);
+    } else {
+      claimedEventId = event.id;
+    }
+
+    // Process event based on type. Wrapped so a processing failure releases the
+    // idempotency claim above and lets Stripe's retry re-process the event.
+    try {
     switch (event.type) {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(supabase, event.data.object as Stripe.Subscription, isTestMode);
@@ -118,6 +141,13 @@ serve(async (req) => {
       default:
         console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
+    } catch (procErr) {
+      // Release the claim so Stripe's retry can re-process this event.
+      if (claimedEventId) {
+        await supabase.from('processed_stripe_events').delete().eq('event_id', claimedEventId);
+      }
+      throw procErr;
+    }
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -125,7 +155,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("❌ Webhook processing error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error)?.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

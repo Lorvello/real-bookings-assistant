@@ -286,7 +286,12 @@ serve(async (req) => {
       logStep("Using manual tax calculation based on service configuration");
     }
 
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentData);
+    // Idempotency key: a double-click (two requests for the same booking + amount)
+    // returns the SAME PaymentIntent instead of minting a duplicate. A genuine
+    // amount change yields a new key -> new PI.
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentData, {
+      idempotencyKey: `booking-pi-${booking.id}-${amount}`,
+    });
     logStep("PaymentIntent created", { 
       paymentIntentId: paymentIntent.id, 
       amount: paymentIntent.amount,
@@ -338,9 +343,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    logStep("ERROR", { message: error.message });
+    logStep("ERROR", { message: (error as Error)?.message });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error)?.message }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
