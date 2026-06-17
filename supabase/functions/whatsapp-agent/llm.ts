@@ -1,38 +1,11 @@
-// Gemini Flash-Lite tool-calling adapter + agent loop.
-// Mathews staande afspraak: V1 draait op Gemini Flash-Lite (snel + goedkoop).
-// Provider-agnostisch genoeg om later naar Claude/OpenAI te switchen: alleen
-// dit bestand kent het Gemini-wireformat.
-//
-// Geverifieerd 2026-06-17 tegen de live API: request {system_instruction, contents,
-// tools:[{functionDeclarations}], generationConfig}; response part = {functionCall:{name,args}}
-// of {text}; functionResponse teruggestuurd als content role 'user' met part
-// {functionResponse:{name,response}}.
+// Tool-calling agent loop with a provider switch.
+//   LLM_PROVIDER=openai  -> OpenAI Chat Completions (default model gpt-5-nano: fast + cheap)
+//   LLM_PROVIDER=gemini  -> Gemini Flash-Lite (original; kept for easy revert)
+// Default is gemini unless LLM_PROVIDER is set. Only this file knows the wire formats.
 
-const MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
-const endpoint = (m: string) =>
+const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
+const geminiEndpoint = (m: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
-
-// POST to Gemini with retry on transient 503 (high demand) / 429 (rate). Other
-// statuses fail fast. Returns parsed JSON.
-async function postGemini(model: string, key: string, body: unknown): Promise<any> {
-  const url = `${endpoint(model)}?key=${key}`;
-  let lastErr = "";
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (resp.ok) return await resp.json();
-    lastErr = `Gemini ${resp.status}: ${(await resp.text()).slice(0, 200)}`;
-    if (resp.status === 503 || resp.status === 429) {
-      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
-      continue;
-    }
-    throw new Error(lastErr);
-  }
-  throw new Error(lastErr || "Gemini failed after retries");
-}
 
 export interface ToolDecl {
   name: string;
@@ -56,18 +29,128 @@ export interface AgentResult {
   toolCalls: { name: string; args: Record<string, unknown>; result: unknown }[];
 }
 
-/**
- * Run a tool-calling loop until the model returns a text answer (no more tool
- * calls) or maxSteps is hit. Returns the final assistant text + a trace.
- */
-export async function runAgent(opts: {
+export interface RunOpts {
   system: string;
   contents: Content[];
   tools: ToolDecl[];
   execute: ToolExecutor;
   maxSteps?: number;
   temperature?: number;
-}): Promise<AgentResult> {
+}
+
+// Provider dispatch.
+export async function runAgent(opts: RunOpts): Promise<AgentResult> {
+  const provider = (Deno.env.get("LLM_PROVIDER") || "gemini").toLowerCase();
+  if (provider === "openai") return runAgentOpenAI(opts);
+  return runAgentGemini(opts);
+}
+
+// ---------------------------------------------------------------------------
+// OpenAI (Chat Completions, tool-calling). Default gpt-5-nano.
+// GPT-5 reasoning models: no custom temperature (only default), use
+// max_completion_tokens, reasoning_effort=minimal for speed/cost.
+// ---------------------------------------------------------------------------
+async function postOpenAI(key: string, body: unknown): Promise<any> {
+  let lastErr = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify(body),
+    });
+    if (resp.ok) return await resp.json();
+    lastErr = `OpenAI ${resp.status}: ${(await resp.text()).slice(0, 300)}`;
+    if (resp.status === 429 || resp.status >= 500) {
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      continue;
+    }
+    throw new Error(lastErr);
+  }
+  throw new Error(lastErr || "OpenAI failed after retries");
+}
+
+async function runAgentOpenAI(opts: RunOpts): Promise<AgentResult> {
+  const key = Deno.env.get("OPENAI_API_KEY");
+  if (!key) throw new Error("OPENAI_API_KEY ontbreekt");
+  const model = Deno.env.get("OPENAI_MODEL") || "gpt-5-nano";
+  const maxSteps = opts.maxSteps ?? 6;
+  const toolCalls: AgentResult["toolCalls"] = [];
+
+  // System + text history (history from the caller is text-only; tool turns are added below).
+  const messages: Array<Record<string, unknown>> = [{ role: "system", content: opts.system }];
+  for (const c of opts.contents) {
+    const text = (c.parts.find((p) => "text" in p) as { text: string } | undefined)?.text ?? "";
+    if (!text) continue;
+    messages.push({ role: c.role === "model" ? "assistant" : "user", content: text });
+  }
+
+  const tools = opts.tools.length
+    ? opts.tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } }))
+    : undefined;
+
+  for (let step = 0; step < maxSteps; step++) {
+    const body: Record<string, unknown> = { model, messages, max_completion_tokens: 2000, reasoning_effort: "minimal" };
+    if (tools) {
+      body.tools = tools;
+      body.tool_choice = "auto";
+    }
+
+    const data = await postOpenAI(key, body);
+    const msg = data?.choices?.[0]?.message;
+    if (!msg) return { text: "", steps: step + 1, toolCalls };
+
+    const tcs: Array<{ id: string; function: { name: string; arguments: string } }> = msg.tool_calls ?? [];
+    if (tcs.length === 0) {
+      return { text: String(msg.content ?? "").trim(), steps: step + 1, toolCalls };
+    }
+
+    // Record the assistant's tool-call turn, then execute + feed results back.
+    messages.push({ role: "assistant", content: msg.content ?? null, tool_calls: tcs });
+    for (const tc of tcs) {
+      let args: Record<string, unknown> = {};
+      try {
+        args = JSON.parse(tc.function?.arguments || "{}");
+      } catch {
+        args = {};
+      }
+      let result: unknown;
+      try {
+        result = await opts.execute(tc.function.name, args);
+      } catch (e) {
+        result = { error: String((e as Error)?.message || e) };
+      }
+      toolCalls.push({ name: tc.function.name, args, result });
+      messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result) });
+    }
+  }
+
+  return { text: "", steps: maxSteps, toolCalls };
+}
+
+// ---------------------------------------------------------------------------
+// Gemini Flash-Lite (original). functionResponse wrapped as {result:...} (verified).
+// ---------------------------------------------------------------------------
+async function postGemini(model: string, key: string, body: unknown): Promise<any> {
+  const url = `${geminiEndpoint(model)}?key=${key}`;
+  let lastErr = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (resp.ok) return await resp.json();
+    lastErr = `Gemini ${resp.status}: ${(await resp.text()).slice(0, 200)}`;
+    if (resp.status === 503 || resp.status === 429) {
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      continue;
+    }
+    throw new Error(lastErr);
+  }
+  throw new Error(lastErr || "Gemini failed after retries");
+}
+
+async function runAgentGemini(opts: RunOpts): Promise<AgentResult> {
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) throw new Error("GEMINI_API_KEY ontbreekt");
 
@@ -79,15 +162,14 @@ export async function runAgent(opts: {
     const body: Record<string, unknown> = {
       system_instruction: { parts: [{ text: opts.system }] },
       contents,
-      generationConfig: { temperature: opts.temperature ?? 0.4, maxOutputTokens: 800 },
+      generationConfig: { temperature: opts.temperature ?? 0.2, maxOutputTokens: 800 },
     };
     if (opts.tools.length) body.tools = [{ functionDeclarations: opts.tools }];
 
-    const data = await postGemini(MODEL, key, body);
+    const data = await postGemini(GEMINI_MODEL, key, body);
     const parts: Part[] = data?.candidates?.[0]?.content?.parts ?? [];
     const calls = parts
-      .filter((p): p is { functionCall: { name: string; args: Record<string, unknown> } } =>
-        "functionCall" in p)
+      .filter((p): p is { functionCall: { name: string; args: Record<string, unknown> } } => "functionCall" in p)
       .map((p) => p.functionCall);
 
     if (calls.length === 0) {
@@ -99,7 +181,6 @@ export async function runAgent(opts: {
       return { text, steps: step + 1, toolCalls };
     }
 
-    // Record the model's tool-call turn, then execute and feed results back.
     contents.push({ role: "model", parts: calls.map((c) => ({ functionCall: c })) });
     const responseParts: Part[] = [];
     for (const c of calls) {
@@ -110,13 +191,10 @@ export async function runAgent(opts: {
         result = { error: String((e as Error)?.message || e) };
       }
       toolCalls.push({ name: c.name, args: c.args || {}, result });
-      // Flash-Lite returns empty text unless the tool result is wrapped under
-      // `result` (verified 2026-06-17). Always wrap.
       responseParts.push({ functionResponse: { name: c.name, response: { result } } });
     }
     contents.push({ role: "user", parts: responseParts });
   }
 
-  // Safety stop: too many tool iterations. Caller decides fallback copy.
   return { text: "", steps: maxSteps, toolCalls };
 }
