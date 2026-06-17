@@ -13,7 +13,7 @@ export const AIKnowledgeTab: React.FC = () => {
   const {
     profileData,
     businessData,
-    handleBatchUpdate,
+    saveFields,
     refetch
   } = useSettingsContext();
   
@@ -67,69 +67,98 @@ export const AIKnowledgeTab: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  // Validate + canonicalize the website/social fields. Rejects random text and
-  // normalizes valid input (e.g. "@handle" -> https://instagram.com/handle).
-  const validateAndNormalizeProfile = () => {
-    const w = validateWebsite(localProfileData?.website);
-    const ig = validateSocial(SOCIAL_PLATFORMS.instagram, localProfileData?.instagram);
-    const fb = validateSocial(SOCIAL_PLATFORMS.facebook, localProfileData?.facebook);
-    const li = validateSocial(SOCIAL_PLATFORMS.linkedin, localProfileData?.linkedin);
-    const tt = validateSocial(SOCIAL_PLATFORMS.tiktok, localProfileData?.tiktok);
-    const yt = validateSocial(SOCIAL_PLATFORMS.youtube, localProfileData?.youtube);
-    const x = validateSocial(SOCIAL_PLATFORMS.x, localProfileData?.x);
-    const errors = {
-      website: w.ok ? undefined : w.error,
-      instagram: ig.ok ? undefined : ig.error,
-      facebook: fb.ok ? undefined : fb.error,
-      linkedin: li.ok ? undefined : li.error,
-      tiktok: tt.ok ? undefined : tt.error,
-      youtube: yt.ok ? undefined : yt.error,
-      x: x.ok ? undefined : x.error,
-    };
-    const valid = w.ok && ig.ok && fb.ok && li.ok && tt.ok && yt.ok && x.ok;
-    const normalized = valid
-      ? {
-          ...localProfileData,
-          website: w.normalized, instagram: ig.normalized, facebook: fb.normalized,
-          linkedin: li.normalized, tiktok: tt.normalized, youtube: yt.normalized, x: x.normalized,
-        }
-      : localProfileData;
-    return { valid, errors, normalized };
-  };
+  // The website/social fields this tab owns, each with its validator.
+  const SOCIAL_FIELDS: Array<{
+    key: 'website' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'youtube' | 'x';
+    validate: (v: string) => { ok: boolean; normalized: string; error?: string };
+  }> = [
+    { key: 'website', validate: (v) => validateWebsite(v) },
+    { key: 'instagram', validate: (v) => validateSocial(SOCIAL_PLATFORMS.instagram, v) },
+    { key: 'facebook', validate: (v) => validateSocial(SOCIAL_PLATFORMS.facebook, v) },
+    { key: 'linkedin', validate: (v) => validateSocial(SOCIAL_PLATFORMS.linkedin, v) },
+    { key: 'tiktok', validate: (v) => validateSocial(SOCIAL_PLATFORMS.tiktok, v) },
+    { key: 'youtube', validate: (v) => validateSocial(SOCIAL_PLATFORMS.youtube, v) },
+    { key: 'x', validate: (v) => validateSocial(SOCIAL_PLATFORMS.x, v) },
+  ];
 
-  // Save all changes
+  // The business fields this tab owns (everything it can edit on this page).
+  const BUSINESS_FIELDS = [
+    'business_name', 'business_type', 'business_type_other',
+    'business_phone', 'business_email', 'business_whatsapp',
+    'business_street', 'business_number', 'business_postal', 'business_city', 'business_country',
+    'business_description',
+    'cancellation_policy', 'payment_info', 'preparation_info',
+    'parking_info', 'public_transport_info', 'accessibility_info', 'other_info',
+  ];
+
+  // Save all changes — PARTIAL save. Only the fields THIS tab changed are written, so
+  // a save here can never clobber the Profile tab's fields. A single invalid link no
+  // longer blocks the whole page: the bad field is flagged inline and skipped; every
+  // other changed field still saves.
   const saveAllChanges = async () => {
-    // Block saving invalid links; show inline errors.
-    const { valid, errors, normalized } = validateAndNormalizeProfile();
-    if (!valid) {
-      setSocialErrors(errors);
-      toast({
-        title: "Check your links",
-        description: "Some website or social fields aren't valid. Fix the highlighted fields.",
-        variant: "destructive",
-      });
+    const changes: Record<string, any> = {};
+
+    // 1) Changed business fields (diff local vs server snapshot).
+    for (const k of BUSINESS_FIELDS) {
+      const localVal = (localBusinessData as any)?.[k] ?? '';
+      const serverVal = (businessData as any)?.[k] ?? '';
+      if (localVal !== serverVal) changes[k] = localVal;
+    }
+
+    // 2) Website/socials: validate per field. Valid + changed -> include (canonicalized).
+    //    Invalid -> flag inline, skip (don't block the rest). Track for the toast.
+    const nextErrors: typeof socialErrors = {};
+    const normalizedUpdates: Record<string, string> = {};
+    let skippedInvalid = 0;
+    for (const { key, validate } of SOCIAL_FIELDS) {
+      const raw = (localProfileData as any)?.[key] ?? '';
+      const r = validate(raw);
+      if (!r.ok) {
+        nextErrors[key] = r.error;
+        skippedInvalid++;
+        continue;
+      }
+      normalizedUpdates[key] = r.normalized;
+      const serverVal = (profileData as any)?.[key] ?? '';
+      if (r.normalized !== serverVal) changes[key] = r.normalized;
+    }
+    setSocialErrors(nextErrors);
+
+    // Reflect canonicalized values for the valid fields in the UI immediately.
+    if (Object.keys(normalizedUpdates).length > 0) {
+      setLocalProfileData((prev: any) => ({ ...prev, ...normalizedUpdates }));
+    }
+
+    if (Object.keys(changes).length === 0) {
+      if (skippedInvalid > 0) {
+        toast({
+          title: 'Check your links',
+          description: 'Fix the highlighted website or social fields, then save.',
+          variant: 'destructive',
+        });
+      }
       return;
     }
-    setSocialErrors({});
-    setLocalProfileData(normalized); // reflect canonicalized values in the UI
+
     setIsSaving(true);
-
     try {
-      const success = await handleBatchUpdate(normalized, localBusinessData);
-
+      const success = await saveFields(changes);
       if (success) {
         await refetch();
         toast({
-          title: "Changes Saved",
-          description: "All your settings have been saved successfully.",
+          title: skippedInvalid > 0 ? 'Saved (some links skipped)' : 'Changes saved',
+          description: skippedInvalid > 0
+            ? 'Your changes were saved. The highlighted link fields were not, fix and save them again.'
+            : 'All your settings have been saved successfully.',
+          variant: skippedInvalid > 0 ? 'default' : undefined,
         });
       }
     } catch (error) {
       console.error('Failed to save changes:', error);
       toast({
-        title: "Error",
-        description: "Failed to save changes. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to save changes. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSaving(false);

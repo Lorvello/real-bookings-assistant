@@ -6,8 +6,11 @@ interface SettingsContextType {
   setProfileData: (data: any) => void;
   businessData: any;
   setBusinessData: (data: any) => void;
-  loading: boolean;
-  handleBatchUpdate: (profileChanges: any, businessChanges: any) => Promise<boolean>;
+  loading: boolean;        // a save is in progress
+  isLoading: boolean;      // the initial fetch is in progress
+  loadError: string | null;
+  saveError: string | null;
+  saveFields: (changes: Record<string, any>) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 

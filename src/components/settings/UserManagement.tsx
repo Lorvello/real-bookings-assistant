@@ -46,7 +46,7 @@ export const UserManagement = ({
   const { calendars } = useCalendarContext();
   const { members, loading, inviteMember, removeMember, updateMemberRole, refetch } = useCalendarMembers();
   const { invitations, loading: invitationsLoading, cancelInvitation, resendInvitation, refetch: refetchInvitations } = useTeamInvitations();
-  const { profileData, businessData, handleBatchUpdate, refetch: refetchSettings } = useSettingsContext();
+  const { profileData, saveFields, refetch: refetchSettings } = useSettingsContext();
   const { toast } = useToast();
   const { accessControl, requireAccess } = useAccessControl();
   
@@ -69,8 +69,6 @@ export const UserManagement = ({
 
   // Use external data if provided, otherwise use context data
   const baseProfile = externalProfileData || profileData;
-  const currentBusinessData = externalBusinessData || businessData;
-  const isUsingExternalData = !!externalBusinessData;
 
   // Sync local state when REAL server data is loaded (has id)
   useEffect(() => {
@@ -107,13 +105,26 @@ export const UserManagement = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasUnsavedChanges]);
 
+  // The profile fields this tab owns. PARTIAL save: only these are written, so the
+  // Profile tab can never clobber the AI-Knowledge tab's business/social fields.
+  const PROFILE_FIELDS = ['full_name', 'phone', 'date_of_birth'];
+
   // Save all profile changes
   const saveAllChanges = async () => {
     if (!localProfileData) return;
-    
+
+    const changes: Record<string, any> = {};
+    for (const k of PROFILE_FIELDS) {
+      const localVal = localProfileData[k] ?? '';
+      const serverVal = (baseProfile as any)?.[k] ?? '';
+      if (localVal !== serverVal) changes[k] = localVal;
+    }
+
+    if (Object.keys(changes).length === 0) return;
+
     setIsSaving(true);
     try {
-      const success = await handleBatchUpdate(localProfileData, currentBusinessData);
+      const success = await saveFields(changes);
       if (success) {
         await refetchSettings();
         toast({

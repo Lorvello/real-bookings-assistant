@@ -1,7 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+
+// The single set of columns the Settings surface (Profile + AI Knowledge tabs) is
+// allowed to write to public.users. saveFields() filters every payload through this
+// so a tab can only ever update its own real columns — never id/email/subscription_*
+// or anything else. This is the allowlist that makes a partial, per-tab save safe.
+const SAVEABLE_COLUMNS = new Set<string>([
+  // Profile (Users tab)
+  'full_name', 'phone', 'date_of_birth',
+  // Website + socials (AI Knowledge tab)
+  'website', 'facebook', 'instagram', 'linkedin', 'tiktok', 'youtube', 'x',
+  // Business / AI Knowledge
+  'business_name', 'business_type', 'business_type_other',
+  'business_phone', 'business_email', 'business_whatsapp',
+  'business_street', 'business_number', 'business_postal', 'business_city', 'business_country',
+  'business_description',
+  'parking_info', 'public_transport_info', 'accessibility_info', 'other_info',
+  'cancellation_policy', 'payment_info', 'preparation_info',
+  'show_opening_hours', 'opening_hours_note', 'team_size',
+]);
 
 export const useSettingsData = () => {
   const { user } = useAuth();
@@ -56,16 +75,15 @@ export const useSettingsData = () => {
     team_size: '1'
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);   // save in progress
+  const [isLoading, setIsLoading] = useState(true); // initial fetch in progress
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserData();
-    }
-  }, [user]);
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!user) return;
+    setIsLoading(true);
+    setLoadError(null);
 
     try {
       const { data, error } = await supabase
@@ -75,7 +93,11 @@ export const useSettingsData = () => {
         .single();
 
       if (error) {
+        // Surface the load failure instead of swallowing it. A silent console.error
+        // here used to leave the whole Settings surface stuck on its skeleton with
+        // no error and no Save bar (the #1 "nothing happens" report).
         console.error('Error fetching user data:', error);
+        setLoadError(error.message || 'Could not load your settings.');
         return;
       }
 
@@ -130,84 +152,67 @@ export const useSettingsData = () => {
           team_size: data.team_size || '1'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching user data:', error);
+      setLoadError(error?.message || 'Could not load your settings.');
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [user]);
 
-  // Batch update - combines profile and business updates in one call, no individual toasts
-  const handleBatchUpdate = async (profileChanges: any, businessChanges: any) => {
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user, fetchUserData]);
+
+  // Partial save: writes ONLY the columns a tab actually changed. Each Settings tab
+  // computes its own dirty fields and calls this with just those, so a save from the
+  // Profile tab can never clobber the AI-Knowledge tab's fields (and vice versa) the
+  // way the old whole-row handleBatchUpdate did. Returns true on success.
+  const saveFields = async (changes: Record<string, any>): Promise<boolean> => {
     if (!user) return false;
-    
+
+    // Keep only allowlisted columns; coalesce empty strings to null (nullable text),
+    // leave booleans / non-empty values untouched.
+    const payload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(changes || {})) {
+      if (!SAVEABLE_COLUMNS.has(key)) continue;
+      payload[key] = typeof value === 'string' && value.trim() === '' ? null : value;
+    }
+
+    // Nothing meaningful to write (all changes were non-saveable / empty diffs).
+    if (Object.keys(payload).length === 0) return true;
+
+    payload.updated_at = new Date().toISOString();
     setLoading(true);
+    setSaveError(null);
 
     try {
       const { error } = await supabase
         .from('users')
-        .update({
-          // Profile fields. This is the LIVE save path (AIKnowledgeTab + UserManagement
-          // call handleBatchUpdate). email is intentionally NOT written: it's the login
-          // email (auth.users.email), the UI field is read-only, and writing only
-          // public.users.email would let it diverge. gender, language, timezone,
-          // avatar_url and the personal address_* fields have no edit-UI or consumer and
-          // were being blindly re-written with hardcoded defaults on every save (which
-          // could clobber real data) -> dropped. handleBatchUpdate is now the single
-          // save path (the old per-section handleUpdateProfile/Business were dead).
-          full_name: profileChanges.full_name,
-          phone: profileChanges.phone,
-          date_of_birth: profileChanges.date_of_birth || null,
-          website: profileChanges.website || null,
-          facebook: profileChanges.facebook || null,
-          instagram: profileChanges.instagram || null,
-          linkedin: profileChanges.linkedin || null,
-          tiktok: profileChanges.tiktok || null,
-          youtube: profileChanges.youtube || null,
-          x: profileChanges.x || null,
-          // Business fields
-          business_name: businessChanges.business_name || null,
-          business_type: businessChanges.business_type || null,
-          business_type_other: businessChanges.business_type_other || null,
-          business_phone: businessChanges.business_phone || null,
-          business_email: businessChanges.business_email || null,
-          business_whatsapp: businessChanges.business_whatsapp || null,
-          business_street: businessChanges.business_street || null,
-          business_number: businessChanges.business_number || null,
-          business_postal: businessChanges.business_postal || null,
-          business_city: businessChanges.business_city || null,
-          business_country: businessChanges.business_country,
-          business_description: businessChanges.business_description || null,
-          parking_info: businessChanges.parking_info || null,
-          public_transport_info: businessChanges.public_transport_info || null,
-          accessibility_info: businessChanges.accessibility_info || null,
-          other_info: businessChanges.other_info || null,
-          cancellation_policy: businessChanges.cancellation_policy || null,
-          payment_info: businessChanges.payment_info || null,
-          preparation_info: businessChanges.preparation_info || null,
-          show_opening_hours: businessChanges.show_opening_hours,
-          opening_hours_note: businessChanges.opening_hours_note || null,
-          team_size: businessChanges.team_size,
-          updated_at: new Date().toISOString()
-        })
+        .update(payload)
         .eq('id', user.id);
 
       if (error) {
-        console.error('Error in batch update:', error);
+        console.error('Error saving settings:', error);
+        setSaveError(error.message || 'Could not save your changes.');
         toast({
-          title: "Error",
-          description: "An error occurred while saving your changes.",
-          variant: "destructive",
+          title: 'Could not save',
+          description: error.message || 'An error occurred while saving your changes.',
+          variant: 'destructive',
         });
         return false;
       }
 
       return true;
-
-    } catch (error) {
-      console.error('Error in batch update:', error);
+    } catch (error: any) {
+      console.error('Error saving settings:', error);
+      setSaveError(error?.message || 'An unexpected error occurred.');
       toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
+        title: 'Could not save',
+        description: error?.message || 'An unexpected error occurred.',
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -221,7 +226,10 @@ export const useSettingsData = () => {
     businessData,
     setBusinessData,
     loading,
-    handleBatchUpdate,
+    isLoading,
+    loadError,
+    saveError,
+    saveFields,
     refetch: fetchUserData
   };
 };

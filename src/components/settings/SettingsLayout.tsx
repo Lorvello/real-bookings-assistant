@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Calendar, CreditCard, Brain, Wrench, Shield, Lock, Calculator, MessageSquare } from 'lucide-react';
+import { User, Calendar, CreditCard, Brain, Wrench, Shield, Lock, Calculator, MessageSquare, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ProfileTab } from './ProfileTab';
 import { AIKnowledgeTab } from './AIKnowledgeTab';
 import { CalendarTab } from './CalendarTab';
@@ -28,7 +29,7 @@ const SettingsTabs = () => {
   const { checkAccess } = useAccessControl();
   const { toast } = useToast();
   const { selectedCalendar } = useCalendarContext();
-  const { profileData } = useSettingsContext();
+  const { profileData, loadError, isLoading, refetch } = useSettingsContext();
 
   // Handle tab from URL parameters
   useEffect(() => {
@@ -57,6 +58,23 @@ const SettingsTabs = () => {
     // Clear the URL parameter after navigating
     setSearchParams({});
   };
+
+  // Load failure: never strand the user on an endless skeleton with no Save bar (the
+  // old silent-fetch-error path). Show a clear error + retry instead.
+  if (loadError && !profileData?.id) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-destructive/40 bg-destructive/10 px-6 py-16 text-center">
+        <AlertCircle className="h-8 w-8 text-destructive-foreground" />
+        <div>
+          <p className="text-base font-medium text-foreground">We couldn't load your settings</p>
+          <p className="mt-1 text-sm text-muted-foreground">{loadError}</p>
+        </div>
+        <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
+          {isLoading ? 'Retrying…' : 'Try again'}
+        </Button>
+      </div>
+    );
+  }
 
   // Cold-load: until the real profile data has arrived (it has an id once fetched),
   // show a skeleton instead of a flash of empty inputs.
