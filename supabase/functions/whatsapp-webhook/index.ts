@@ -295,28 +295,14 @@ serve(async (req) => {
         webhookType = 'contact_update';
       }
 
-      // Voeg webhook toe aan queue voor verwerking
-      const { error } = await supabaseClient
-        .from('whatsapp_webhook_queue')
-        .insert([{
-          webhook_type: webhookType,
-          payload: payload
-        }]);
-
-      if (error) {
-        console.error('Error adding webhook to queue:', error);
-        await logSecurityEvent(
-          supabaseClient,
-          'queue_insert_failed',
-          'high',
-          { error: (error as Error)?.message, webhook_type: webhookType },
-          ipAddress
-        );
-        return new Response(JSON.stringify({ error: 'Failed to queue webhook' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+      // (F4, 2026-06-18) De whatsapp_webhook_queue-insert is hier VERWIJDERD. Die queue
+      // was vestigiaal: het echte verwerken gebeurt INLINE in het ACCESS-GATED AGENT
+      // INVOKE-blok hieronder (port off n8n, 2026-06-17). Niets consumeerde de queue —
+      // de enige "processor" (RPC process_whatsapp_webhook_queue) is een no-op stub die
+      // alleen processed=true zet. De insert groeide dus oneindig (220 ongelezen rijen)
+      // EN het faal-pad gaf 500 terug, waardoor een dode audit-write de live agent kon
+      // blokkeren. Tabel + dev WhatsAppWebhookManager + dode useWhatsAppRealtimeUpdates =
+      // los op te ruimen in de BLOK D dev-internals-pass (E-onafhankelijk, queue blijft leeg).
 
       // Log successful webhook processing
       await logSecurityEvent(
