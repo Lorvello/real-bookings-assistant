@@ -30,6 +30,8 @@ interface SearchableSelectProps {
   searchPlaceholder?: string;
   className?: string;
   disabled?: boolean;
+  /** Accessible name for the trigger when there is no visible <label> tied to it. */
+  ariaLabel?: string;
 }
 
 export function SearchableSelect({
@@ -39,7 +41,8 @@ export function SearchableSelect({
   placeholder = "Select option...",
   searchPlaceholder = "Search...",
   className,
-  disabled
+  disabled,
+  ariaLabel
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,6 +64,7 @@ export function SearchableSelect({
         <Button
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel}
           aria-expanded={open}
           className={cn(
             "w-full justify-between bg-muted border-white/[0.08] text-foreground hover:bg-white/[0.06]",

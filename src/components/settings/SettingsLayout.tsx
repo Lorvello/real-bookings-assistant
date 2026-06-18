@@ -162,8 +162,10 @@ export const SettingsTabs = () => {
           </div>
         </aside>
 
-        {/* RIGHT COLUMN — capped reading width for calm, scannable forms */}
-        <div className="min-w-0 flex-1 md:max-w-3xl">
+        {/* RIGHT COLUMN — capped reading width for calm, scannable forms.
+            pb clears the floating SettingsSaveBar (fixed bottom-0) so the last
+            section's content is never covered when there are unsaved changes. */}
+        <div className="min-w-0 flex-1 pb-24 md:max-w-3xl">
           <TabsContent value="users" className="mt-0 focus-visible:outline-none">
             <ProfileTab />
           </TabsContent>

@@ -90,9 +90,11 @@ interface CountryPhoneInputProps {
   onChange: (value: string) => void;
   className?: string;
   disabled?: boolean;
+  /** id for the number <input> so an outer <label htmlFor> can target it (a11y). */
+  inputId?: string;
 }
 
-export function CountryPhoneInput({ value = '', onChange, className, disabled }: CountryPhoneInputProps) {
+export function CountryPhoneInput({ value = '', onChange, className, disabled, inputId }: CountryPhoneInputProps) {
   // Local state for immediate UI updates
   const [localSelectedCountry, setLocalSelectedCountry] = useState<string>('NL');
   const [localNumber, setLocalNumber] = useState<string>('');
@@ -156,6 +158,7 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled }:
           placeholder="Select country"
           searchPlaceholder="Search countries..."
           disabled={disabled}
+          ariaLabel="Country calling code"
         />
       </div>
       <div className="flex-1 relative">
@@ -163,6 +166,8 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled }:
           {selectedCountryData?.callingCode}
         </div>
         <Input
+          id={inputId}
+          aria-label="Phone number"
           type="tel"
           value={localNumber}
           onChange={handleNumberChange}
