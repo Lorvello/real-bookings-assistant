@@ -64,6 +64,23 @@ function hhmm(t: unknown): string {
   return typeof t === "string" ? t.slice(0, 5) : "";
 }
 
+// --- NL time formatting for tool RESULTS ---------------------------------------
+// DB times are stored in UTC. The model must never have to convert a UTC instant
+// itself (it echoed raw UTC on cancel = "12:00" instead of "14:00" NL). These
+// helpers render an instant in Europe/Amsterdam so every confirmation the agent
+// reads back is already correct local time, DST-safe.
+const NL_TZ = "Europe/Amsterdam";
+// e.g. "2026-06-23T12:00:00+00:00" -> "14:00"
+function nlTimeOnly(iso: string): string {
+  return new Date(iso).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: NL_TZ });
+}
+// e.g. "2026-06-23T12:00:00+00:00" -> "dinsdag 23 juni 14:00"
+function nlWhen(iso: string): string {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: NL_TZ });
+  return `${date} ${nlTimeOnly(iso)}`;
+}
+
 // Turn the business_overview_v2.calendars[].opening_hours dict into readable text the
 // agent can quote, e.g. "Maandag: 09:00-17:00, Dinsdag: 09:00-17:00, Zondag: gesloten".
 // Uses the first (default) calendar. Returns null when no schedule is set.
@@ -147,7 +164,9 @@ export function createTools(
     {
       name: "get_available_slots",
       description:
-        "Geeft ECHTE vrije tijdslots voor een dienst op een datum. Roep aan vóór je een tijd voorstelt of boekt. Verzin nooit zelf tijden.",
+        "Geeft ECHTE vrije tijdslots voor een dienst op een datum. Roep aan vóór je een tijd voorstelt of boekt. Verzin nooit zelf tijden. " +
+        "Elk slot = { tijd: de kloktijd die je AAN DE KLANT toont (bv '14:00'), start: de exacte ISO-tijd die je ONGEWIJZIGD doorgeeft als book_appointment.start_time }. " +
+        "Reken zelf NOOIT tijden om; toon `tijd`, boek met `start`.",
       parameters: {
         type: "object",
         properties: {
@@ -178,8 +197,8 @@ export function createTools(
         type: "object",
         properties: {
           service_type_id: { type: "string" },
-          start_time: { type: "string", description: "ISO 8601 met tijdzone, bv 2026-06-20T14:00:00+02:00" },
-          end_time: { type: "string", description: "ISO 8601 = start_time + dienstduur" },
+          start_time: { type: "string", description: "De exacte `start`-waarde (ISO 8601) van het door de klant gekozen slot uit get_available_slots — ongewijzigd doorgeven." },
+          end_time: { type: "string", description: "ISO 8601 = start_time + de dienstduur (zelfde tijdzone-offset als start_time)." },
           customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
         },
         required: ["service_type_id", "start_time", "end_time", "customer_name"],
@@ -281,7 +300,14 @@ export function createTools(
         const slots = ((data as Array<{ slot_start: string; is_available: boolean }>) ?? [])
           .filter((s) => s.is_available)
           .map((s) => s.slot_start);
-        return { date: args.date, available_slots: slots.slice(0, 12), count: slots.length };
+        // Each slot carries `tijd` (NL clock time to SHOW the customer) and `start`
+        // (the exact ISO instant to pass back as book_appointment.start_time). The
+        // model presents `tijd` and books `start`, so it never converts UTC itself.
+        return {
+          date: args.date,
+          available_slots: slots.slice(0, 12).map((s) => ({ tijd: nlTimeOnly(s), start: s })),
+          count: slots.length,
+        };
       }
 
       case "update_lead": {
@@ -380,7 +406,7 @@ export function createTools(
         }
 
         if (!paymentRequired) {
-          return { ok: true, booking_id: booking.id, start_time: booking.start_time };
+          return { ok: true, booking_id: booking.id, start_time: booking.start_time, when: nlWhen(booking.start_time) };
         }
 
         // Pay-and-book: mint a hosted Stripe payment link tied to THIS booking via
@@ -421,6 +447,7 @@ export function createTools(
           ok: true,
           booking_id: booking.id,
           start_time: booking.start_time,
+          when: nlWhen(booking.start_time),
           payment_required: true,
           payment_url: payUrl,
         };
@@ -435,7 +462,7 @@ export function createTools(
           return {
             error: "meerdere_afspraken",
             message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant bedoelt.",
-            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, start_time: b.start_time })),
+            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
           };
         }
         const b = target.booking!;
@@ -458,7 +485,7 @@ export function createTools(
 
         const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
         if (error) return { error: error.message };
-        return { ok: true, cancelled: { service: b.service_types?.name ?? null, start_time: b.start_time } };
+        return { ok: true, cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time } };
       }
 
       case "reschedule_appointment": {
@@ -472,7 +499,7 @@ export function createTools(
           return {
             error: "meerdere_afspraken",
             message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant wil verzetten.",
-            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, start_time: b.start_time })),
+            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
           };
         }
         const b = target.booking!;
@@ -516,7 +543,7 @@ export function createTools(
           }
           return { error: updErr.message };
         }
-        return { ok: true, rescheduled: { from: b.start_time, to: newStart } };
+        return { ok: true, rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart } };
       }
 
       default:
