@@ -45,13 +45,13 @@ const WhyUs = () => {
 
   const proofPoints = [
     {
-      number: "10,000+",
-      label: "Businesses Choose Us",
+      number: "24/7",
+      label: "Always taking bookings",
       icon: Users
     },
     {
-      number: "2M+",
-      label: "Successful Bookings",
+      number: "0",
+      label: "Apps to install",
       icon: Calendar
     },
     {
@@ -60,8 +60,8 @@ const WhyUs = () => {
       icon: TrendingUp
     },
     {
-      number: "80%",
-      label: "Fewer No-Shows",
+      number: "Auto",
+      label: "Reminders that cut no-shows",
       icon: Shield
     }
   ];
@@ -288,20 +288,20 @@ const WhyUs = () => {
   // Detailed explanations for card backs
   const cardBackContent = [
     {
-      title: "10,000+ Businesses",
-      content: "From small local practices to enterprise chains, our platform serves a diverse range of businesses across healthcare, beauty, professional services, and more. Each business has seen measurable improvements in booking efficiency and customer satisfaction."
+      title: "Always taking bookings",
+      content: "Your assistant answers on WhatsApp around the clock, so customers can book, reschedule or cancel at any hour, even when you are closed. Every request is captured instead of lost to a missed call or a full voicemail."
     },
     {
-      title: "2M+ Successful Bookings",
-      content: "Every booking processed through our system represents a successful customer interaction. Our AI handles complex scheduling scenarios, multiple service types, and customer preferences while maintaining a 99.2% success rate for completed bookings."
+      title: "No app to install",
+      content: "Customers book in the WhatsApp they already use every day, so there is nothing to download and no account to create. That lower threshold means more requests actually turn into booked appointments."
     },
     {
       title: "30sec Average Response",
       content: "While traditional booking methods take minutes or hours, our AI responds instantly to customer inquiries. This includes understanding context, checking availability, and confirming appointments - all in under 30 seconds on average."
     },
     {
-      title: "80% Fewer No-Shows",
-      content: "Through intelligent reminder systems, easy rescheduling, and personalized communication via WhatsApp, we've dramatically reduced no-show rates compared to traditional email-based systems. Customers actually receive and read our reminders."
+      title: "Reminders that cut no-shows",
+      content: "Automatic WhatsApp reminders and one-tap rescheduling make it easy for customers to keep or move an appointment instead of just not turning up. Because people actually read WhatsApp, the reminders land where email often doesn't."
     }
   ];
 
@@ -368,7 +368,7 @@ const WhyUs = () => {
               Why{' '}
             </span>
             <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
-              10,000+ Businesses
+              Appointment Businesses
             </span>
             <div className="md:hidden h-0"></div>
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
@@ -514,7 +514,7 @@ const WhyUs = () => {
              <div className="hidden md:block text-center mb-16 space-y-3">
                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                 <span>Based on data from 10,000+ businesses worldwide</span>
+                 <span>WhatsApp adoption and appointment-industry research</span>
                </div>
                <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
                  <button 
@@ -577,7 +577,7 @@ const WhyUs = () => {
                 <div className="md:hidden text-center mb-1 -mt-2">
                   <div className="flex items-center justify-center gap-1 text-[8px] text-slate-400 font-medium mb-1.5">
                     <span className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></span>
-                    <span>Based on data from 10,000+ businesses</span>
+                    <span>WhatsApp adoption and industry research</span>
                   </div>
                   
                   <div className="flex items-center justify-center gap-2 text-[7px] text-slate-500">
