@@ -2,6 +2,15 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
 import { createHmac } from "node:crypto"
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
+import { sendWhatsAppText } from '../_shared/whatsappSend.ts';
+
+// Normalise a phone to wa_id form (country code, digits only). Dutch 06… → 316…; strips +.
+function normalizePhone(raw: string): string {
+  let d = (raw || '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('0')) d = '31' + d.slice(1);
+  return d;
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -364,6 +373,22 @@ serve(async (req) => {
                 calendarId = (conv as any)?.calendar_id ?? null;
               }
             }
+            // Owner self-test (D-5): the business owner texting in from their OWN
+            // registered number (no code, no prior conversation). Route to their own
+            // default calendar so they experience the agent exactly as a customer would.
+            if (!ownerId && contact.wa_id) {
+              const norm = normalizePhone(contact.wa_id);
+              const { data: ownerByTest } = await supabaseClient
+                .from('users').select('id').eq('owner_test_phone', norm).maybeSingle();
+              if (ownerByTest?.id) {
+                ownerId = ownerByTest.id;
+                const { data: oc } = await supabaseClient
+                  .from('calendars').select('id').eq('user_id', ownerId)
+                  .order('is_default', { ascending: false }).limit(1).maybeSingle();
+                calendarId = (oc as any)?.id ?? null;
+                console.log(`Owner self-test herkend (eigenaar ${ownerId}, calendar ${calendarId}) via owner_test_phone.`);
+              }
+            }
 
             // 2. Access-gating: alleen forwarden als de eigenaar WhatsApp-toegang heeft.
             let entitled = false;
@@ -376,6 +401,24 @@ serve(async (req) => {
               }
             } else {
               console.log('Kon business-eigenaar niet resolven → niet forwarden (veilig).');
+              // Code-less stranger fallback (D-2): a sender we cannot tie to any
+              // business (no tracking code, no prior conversation). Nudge them to
+              // scan the QR / send their code instead of silently dropping.
+              // Guarded behind WHATSAPP_CODELESS_FALLBACK so the outward send stays
+              // OFF until Mathew verifies it once with a real WhatsApp number (a blind
+              // unverifiable outward send is not shipped live). Flip the secret to
+              // 'on' to enable. The detection + logging ship now regardless.
+              await logSecurityEvent(supabaseClient, 'whatsapp_codeless_inbound', 'info', { from: contact.wa_id }, ipAddress);
+              if (Deno.env.get('WHATSAPP_CODELESS_FALLBACK') === 'on' && contact.wa_id) {
+                try {
+                  await sendWhatsAppText(
+                    contact.wa_id,
+                    'Hoi! Om te kunnen helpen met boeken heb ik je code nodig. Scan de QR-code van het bedrijf of stuur het opslaan-bericht met je code om te beginnen. 🙂',
+                  );
+                } catch (fbErr) {
+                  console.error('codeless fallback send error:', fbErr);
+                }
+              }
             }
 
             // 2b. Bot-toggle: een business die z'n WhatsApp-bot UIT zet mag niet
