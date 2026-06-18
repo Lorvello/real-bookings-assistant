@@ -525,6 +525,49 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_reminders_sent: {
+        Row: {
+          booking_id: string
+          id: string
+          reminder_number: number
+          sent_at: string
+        }
+        Insert: {
+          booking_id: string
+          id?: string
+          reminder_number: number
+          sent_at?: string
+        }
+        Update: {
+          booking_id?: string
+          id?: string
+          reminder_number?: number
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_reminders_sent_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reminders_sent_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reminders_sent_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           assigned_team_member_id: string | null
@@ -790,7 +833,11 @@ export type Database = {
       }
       business_overview: {
         Row: {
+          accessibility_info: string | null
+          allow_cancellations: boolean | null
           allow_waitlist: boolean | null
+          allowed_payment_timing: Json | null
+          auto_cancel_unpaid_bookings: boolean | null
           available_slots: Json | null
           booking_window_days: number | null
           buffer_time: number | null
@@ -811,8 +858,11 @@ export type Database = {
           calendar_id: string
           calendar_name: string | null
           calendar_slug: string | null
+          cancellation_deadline_hours: number | null
+          cancellation_policy: string | null
           confirmation_required: boolean | null
           created_at: string | null
+          enabled_payment_methods: Json | null
           facebook: string | null
           instagram: string | null
           last_updated: string | null
@@ -820,8 +870,19 @@ export type Database = {
           max_bookings_per_day: number | null
           minimum_notice_hours: number | null
           opening_hours: Json | null
+          other_info: string | null
+          parking_info: string | null
+          payment_deadline_hours: number | null
+          payment_info: string | null
+          payment_optional: boolean | null
+          payment_required_for_booking: boolean | null
+          preparation_info: string | null
+          public_transport_info: string | null
+          refund_policy_text: string | null
+          secure_payments_enabled: boolean | null
           services: Json | null
           slot_duration: number | null
+          tiktok: string | null
           timezone: string | null
           total_bookings: number | null
           total_revenue: number | null
@@ -829,9 +890,15 @@ export type Database = {
           user_id: string
           website: string | null
           whatsapp_bot_active: boolean | null
+          x: string | null
+          youtube: string | null
         }
         Insert: {
+          accessibility_info?: string | null
+          allow_cancellations?: boolean | null
           allow_waitlist?: boolean | null
+          allowed_payment_timing?: Json | null
+          auto_cancel_unpaid_bookings?: boolean | null
           available_slots?: Json | null
           booking_window_days?: number | null
           buffer_time?: number | null
@@ -852,8 +919,11 @@ export type Database = {
           calendar_id: string
           calendar_name?: string | null
           calendar_slug?: string | null
+          cancellation_deadline_hours?: number | null
+          cancellation_policy?: string | null
           confirmation_required?: boolean | null
           created_at?: string | null
+          enabled_payment_methods?: Json | null
           facebook?: string | null
           instagram?: string | null
           last_updated?: string | null
@@ -861,8 +931,19 @@ export type Database = {
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
           opening_hours?: Json | null
+          other_info?: string | null
+          parking_info?: string | null
+          payment_deadline_hours?: number | null
+          payment_info?: string | null
+          payment_optional?: boolean | null
+          payment_required_for_booking?: boolean | null
+          preparation_info?: string | null
+          public_transport_info?: string | null
+          refund_policy_text?: string | null
+          secure_payments_enabled?: boolean | null
           services?: Json | null
           slot_duration?: number | null
+          tiktok?: string | null
           timezone?: string | null
           total_bookings?: number | null
           total_revenue?: number | null
@@ -870,9 +951,15 @@ export type Database = {
           user_id: string
           website?: string | null
           whatsapp_bot_active?: boolean | null
+          x?: string | null
+          youtube?: string | null
         }
         Update: {
+          accessibility_info?: string | null
+          allow_cancellations?: boolean | null
           allow_waitlist?: boolean | null
+          allowed_payment_timing?: Json | null
+          auto_cancel_unpaid_bookings?: boolean | null
           available_slots?: Json | null
           booking_window_days?: number | null
           buffer_time?: number | null
@@ -893,8 +980,11 @@ export type Database = {
           calendar_id?: string
           calendar_name?: string | null
           calendar_slug?: string | null
+          cancellation_deadline_hours?: number | null
+          cancellation_policy?: string | null
           confirmation_required?: boolean | null
           created_at?: string | null
+          enabled_payment_methods?: Json | null
           facebook?: string | null
           instagram?: string | null
           last_updated?: string | null
@@ -902,8 +992,19 @@ export type Database = {
           max_bookings_per_day?: number | null
           minimum_notice_hours?: number | null
           opening_hours?: Json | null
+          other_info?: string | null
+          parking_info?: string | null
+          payment_deadline_hours?: number | null
+          payment_info?: string | null
+          payment_optional?: boolean | null
+          payment_required_for_booking?: boolean | null
+          preparation_info?: string | null
+          public_transport_info?: string | null
+          refund_policy_text?: string | null
+          secure_payments_enabled?: boolean | null
           services?: Json | null
           slot_duration?: number | null
+          tiktok?: string | null
           timezone?: string | null
           total_bookings?: number | null
           total_revenue?: number | null
@@ -911,6 +1012,8 @@ export type Database = {
           user_id?: string
           website?: string | null
           whatsapp_bot_active?: boolean | null
+          x?: string | null
+          youtube?: string | null
         }
         Relationships: [
           {
@@ -952,6 +1055,7 @@ export type Database = {
       }
       business_overview_v2: {
         Row: {
+          accessibility_info: string | null
           business_city: string | null
           business_country: string | null
           business_description: string | null
@@ -964,18 +1068,28 @@ export type Database = {
           business_type: string | null
           business_whatsapp: string | null
           calendars: Json | null
+          cancellation_policy: string | null
           created_at: string | null
           facebook: string | null
           instagram: string | null
           last_updated: string | null
           linkedin: string | null
+          other_info: string | null
+          parking_info: string | null
+          payment_info: string | null
+          preparation_info: string | null
+          public_transport_info: string | null
+          tiktok: string | null
           total_bookings: number | null
           total_calendars: number | null
           total_revenue: number | null
           user_id: string
           website: string | null
+          x: string | null
+          youtube: string | null
         }
         Insert: {
+          accessibility_info?: string | null
           business_city?: string | null
           business_country?: string | null
           business_description?: string | null
@@ -988,18 +1102,28 @@ export type Database = {
           business_type?: string | null
           business_whatsapp?: string | null
           calendars?: Json | null
+          cancellation_policy?: string | null
           created_at?: string | null
           facebook?: string | null
           instagram?: string | null
           last_updated?: string | null
           linkedin?: string | null
+          other_info?: string | null
+          parking_info?: string | null
+          payment_info?: string | null
+          preparation_info?: string | null
+          public_transport_info?: string | null
+          tiktok?: string | null
           total_bookings?: number | null
           total_calendars?: number | null
           total_revenue?: number | null
           user_id: string
           website?: string | null
+          x?: string | null
+          youtube?: string | null
         }
         Update: {
+          accessibility_info?: string | null
           business_city?: string | null
           business_country?: string | null
           business_description?: string | null
@@ -1012,16 +1136,25 @@ export type Database = {
           business_type?: string | null
           business_whatsapp?: string | null
           calendars?: Json | null
+          cancellation_policy?: string | null
           created_at?: string | null
           facebook?: string | null
           instagram?: string | null
           last_updated?: string | null
           linkedin?: string | null
+          other_info?: string | null
+          parking_info?: string | null
+          payment_info?: string | null
+          preparation_info?: string | null
+          public_transport_info?: string | null
+          tiktok?: string | null
           total_bookings?: number | null
           total_calendars?: number | null
           total_revenue?: number | null
           user_id?: string
           website?: string | null
+          x?: string | null
+          youtube?: string | null
         }
         Relationships: [
           {
@@ -1366,6 +1499,7 @@ export type Database = {
           whatsapp_phone_number: string | null
           whatsapp_qr_generated_at: string | null
           whatsapp_qr_url: string | null
+          whatsapp_welcome_message: string | null
         }
         Insert: {
           allow_cancellations?: boolean | null
@@ -1390,6 +1524,7 @@ export type Database = {
           whatsapp_phone_number?: string | null
           whatsapp_qr_generated_at?: string | null
           whatsapp_qr_url?: string | null
+          whatsapp_welcome_message?: string | null
         }
         Update: {
           allow_cancellations?: boolean | null
@@ -1414,6 +1549,7 @@ export type Database = {
           whatsapp_phone_number?: string | null
           whatsapp_qr_generated_at?: string | null
           whatsapp_qr_url?: string | null
+          whatsapp_welcome_message?: string | null
         }
         Relationships: [
           {
@@ -2104,6 +2240,24 @@ export type Database = {
           },
         ]
       }
+      processed_stripe_events: {
+        Row: {
+          event_id: string
+          event_type: string | null
+          processed_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type?: string | null
+          processed_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string | null
+          processed_at?: string
+        }
+        Relationships: []
+      }
       public_api_rate_limits: {
         Row: {
           blocked_until: string | null
@@ -2662,6 +2816,7 @@ export type Database = {
           email: string
           id: string
           stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           subscribed: boolean
           subscription_end: string | null
           subscription_tier: string | null
@@ -2673,6 +2828,7 @@ export type Database = {
           email: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
@@ -2684,6 +2840,7 @@ export type Database = {
           email?: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
@@ -3245,6 +3402,7 @@ export type Database = {
           business_type: string | null
           business_type_other: string | null
           business_whatsapp: string | null
+          cancellation_policy: string | null
           created_at: string | null
           date_of_birth: string | null
           default_installment_plan: Json | null
@@ -3262,10 +3420,13 @@ export type Database = {
           linkedin: string | null
           opening_hours_note: string | null
           other_info: string | null
+          owner_test_phone: string | null
           parking_info: string | null
           password_added: boolean | null
+          payment_info: string | null
           payment_status: string | null
           phone: string | null
+          preparation_info: string | null
           public_transport_info: string | null
           qr_code_data: string | null
           show_opening_hours: boolean | null
@@ -3287,6 +3448,8 @@ export type Database = {
           whatsapp_phone_number: string | null
           whatsapp_qr_generated_at: string | null
           whatsapp_qr_url: string | null
+          x: string | null
+          youtube: string | null
         }
         Insert: {
           accessibility_info?: string | null
@@ -3310,6 +3473,7 @@ export type Database = {
           business_type?: string | null
           business_type_other?: string | null
           business_whatsapp?: string | null
+          cancellation_policy?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           default_installment_plan?: Json | null
@@ -3327,10 +3491,13 @@ export type Database = {
           linkedin?: string | null
           opening_hours_note?: string | null
           other_info?: string | null
+          owner_test_phone?: string | null
           parking_info?: string | null
           password_added?: boolean | null
+          payment_info?: string | null
           payment_status?: string | null
           phone?: string | null
+          preparation_info?: string | null
           public_transport_info?: string | null
           qr_code_data?: string | null
           show_opening_hours?: boolean | null
@@ -3352,6 +3519,8 @@ export type Database = {
           whatsapp_phone_number?: string | null
           whatsapp_qr_generated_at?: string | null
           whatsapp_qr_url?: string | null
+          x?: string | null
+          youtube?: string | null
         }
         Update: {
           accessibility_info?: string | null
@@ -3375,6 +3544,7 @@ export type Database = {
           business_type?: string | null
           business_type_other?: string | null
           business_whatsapp?: string | null
+          cancellation_policy?: string | null
           created_at?: string | null
           date_of_birth?: string | null
           default_installment_plan?: Json | null
@@ -3392,10 +3562,13 @@ export type Database = {
           linkedin?: string | null
           opening_hours_note?: string | null
           other_info?: string | null
+          owner_test_phone?: string | null
           parking_info?: string | null
           password_added?: boolean | null
+          payment_info?: string | null
           payment_status?: string | null
           phone?: string | null
+          preparation_info?: string | null
           public_transport_info?: string | null
           qr_code_data?: string | null
           show_opening_hours?: boolean | null
@@ -3417,6 +3590,8 @@ export type Database = {
           whatsapp_phone_number?: string | null
           whatsapp_qr_generated_at?: string | null
           whatsapp_qr_url?: string | null
+          x?: string | null
+          youtube?: string | null
         }
         Relationships: [
           {
@@ -3975,8 +4150,8 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "whatsapp_contact_overview"
-            referencedColumns: ["contact_id"]
+            referencedRelation: "whatsapp_contacts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -5163,10 +5338,19 @@ export type Database = {
             Returns: Json
           }
       archive_old_security_events: { Args: never; Returns: number }
+      caller_owns_calendar: {
+        Args: { p_calendar_id: string }
+        Returns: boolean
+      }
       cancel_booking_by_token: {
         Args: { p_reason?: string; p_token: string }
         Returns: Json
       }
+      cancel_booking_for_agent: {
+        Args: { p_booking_id: string; p_phone: string; p_reason?: string }
+        Returns: Json
+      }
+      cancel_overdue_unpaid_bookings: { Args: never; Returns: number }
       check_auth_rate_limit: {
         Args: { p_email: string; p_ip?: unknown }
         Returns: Json
@@ -5179,26 +5363,16 @@ export type Database = {
         }
         Returns: boolean
       }
-      check_booking_conflicts:
-        | {
-            Args: {
-              p_calendar_id: string
-              p_end_time: string
-              p_exclude_booking_id?: string
-              p_start_time: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              p_allow_double_bookings?: boolean
-              p_calendar_id: string
-              p_end_time: string
-              p_exclude_booking_id?: string
-              p_start_time: string
-            }
-            Returns: boolean
-          }
+      check_booking_conflicts: {
+        Args: {
+          p_allow_double_bookings?: boolean
+          p_calendar_id: string
+          p_end_time: string
+          p_exclude_booking_id?: string
+          p_start_time: string
+        }
+        Returns: boolean
+      }
       check_booking_rate_limit: {
         Args: { p_calendar_id: string; p_ip_address: unknown }
         Returns: Json
@@ -5276,16 +5450,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
-      export_whatsapp_data:
-        | { Args: { p_calendar_id: string }; Returns: Json }
-        | {
-            Args: {
-              p_calendar_id: string
-              p_end_date?: string
-              p_start_date?: string
-            }
-            Returns: Json
-          }
+      export_whatsapp_data: { Args: { p_calendar_id: string }; Returns: Json }
       find_orphaned_whatsapp_conversations: {
         Args: never
         Returns: {
@@ -5430,6 +5595,18 @@ export type Database = {
         Returns: Json
       }
       get_day_name_dutch: { Args: { p_day_of_week: number }; Returns: string }
+      get_due_booking_reminders: {
+        Args: never
+        Returns: {
+          booking_id: string
+          business_name: string
+          calendar_id: string
+          customer_email: string
+          customer_name: string
+          reminder_number: number
+          start_time: string
+        }[]
+      }
       get_formatted_business_hours: {
         Args: { p_calendar_id: string }
         Returns: string
@@ -5569,6 +5746,13 @@ export type Database = {
             }
             Returns: Json
           }
+      resolve_owner_calendar_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          calendar_id: string
+          owner_id: string
+        }[]
+      }
       resolve_recurring_availability: {
         Args: {
           p_calendar_id: string

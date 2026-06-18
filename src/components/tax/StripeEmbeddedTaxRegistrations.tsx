@@ -64,8 +64,10 @@ export const StripeEmbeddedTaxRegistrations: React.FC<StripeEmbeddedTaxRegistrat
 
         console.log('[TAX-REGISTRATIONS] Creating embedded component with session:', sessionData.session_id);
 
-        // Create embedded tax registrations component
-        const component = stripe.connectEmbeddedComponents.create({
+        // Create embedded tax registrations component.
+        // connectEmbeddedComponents is provided by the Stripe Connect.js script
+        // (window.Stripe global), not by the @stripe/stripe-js Stripe type, so cast.
+        const component = (stripe as any).connectEmbeddedComponents.create({
           clientSecret: sessionData.client_secret,
           fetchClientSecret: async () => {
             console.log('[TAX-REGISTRATIONS] Refreshing client secret...');

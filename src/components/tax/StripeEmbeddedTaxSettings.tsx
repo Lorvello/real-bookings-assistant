@@ -50,8 +50,10 @@ export const StripeEmbeddedTaxSettings: React.FC<StripeEmbeddedTaxSettingsProps>
 
         console.log('[TAX-SETTINGS] Creating embedded component with session:', sessionData.session_id);
 
-        // Create embedded tax settings component
-        const component = stripe.connectEmbeddedComponents.create({
+        // Create embedded tax settings component.
+        // connectEmbeddedComponents is provided by the Stripe Connect.js script
+        // (window.Stripe global), not by the @stripe/stripe-js Stripe type, so cast.
+        const component = (stripe as any).connectEmbeddedComponents.create({
           clientSecret: sessionData.client_secret,
           fetchClientSecret: async () => {
             console.log('[TAX-SETTINGS] Refreshing client secret...');

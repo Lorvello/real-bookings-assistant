@@ -23,14 +23,13 @@ export function useWhatsAppConversationsList(
         .from('whatsapp_conversations')
         .select(`
           *,
-          whatsapp_contact_overview!whatsapp_conversations_contact_id_fkey (
-            contact_id,
+          whatsapp_contact_overview:whatsapp_contacts!whatsapp_conversations_contact_id_fkey (
+            contact_id:id,
             phone_number,
             display_name,
             first_name,
             last_name,
-            last_message_at,
-            contact_created_at
+            contact_created_at:created_at
           )
         `)
         .eq('calendar_id', calendarId);

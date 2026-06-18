@@ -186,11 +186,11 @@ export function ContactSidebar({ conversationId }: ContactSidebarProps) {
               </span>
             </div>
 
-            {contact.last_message_at && (
+            {conversation.last_message_at && (
               <div className="flex items-center gap-2 text-sm mt-2">
                 <Clock className="w-4 h-4 text-muted-foreground" />
                 <span className="text-foreground tabular-nums">
-                  Last message: {format(new Date(contact.last_message_at), 'dd MMM yyyy HH:mm', { locale: nl })}
+                  Last message: {format(new Date(conversation.last_message_at), 'dd MMM yyyy HH:mm', { locale: nl })}
                 </span>
               </div>
             )}
