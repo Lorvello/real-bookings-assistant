@@ -1,8 +1,9 @@
 
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { X, Clock, User, Phone, Mail, Calendar, MapPin, FileText } from 'lucide-react';
+import { Clock, User, Phone, Mail, Calendar, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { resolveBookingColor } from './utils/bookingColor';
 
 interface Booking {
   id: string;
@@ -52,7 +53,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
       case 'confirmed':
         return 'bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent';
       case 'pending':
-        return 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent';
+        return 'bg-warning/10 text-warning-foreground ring-1 ring-warning/20 border-transparent';
       case 'cancelled':
         return 'bg-destructive/10 text-destructive-foreground ring-1 ring-destructive/20 border-transparent';
       case 'completed':
@@ -83,14 +84,12 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl sm:max-w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-base sm:text-xl font-semibold flex items-center gap-2 sm:gap-3">
             <div
               className="w-3 h-3 sm:w-4 sm:h-4 rounded-full"
-              style={{
-                backgroundColor: booking.service_types?.color || '#10B981'
-              }}
+              style={{ backgroundColor: resolveBookingColor(booking.service_types?.color) }}
             />
             Appointment Details
           </DialogTitle>

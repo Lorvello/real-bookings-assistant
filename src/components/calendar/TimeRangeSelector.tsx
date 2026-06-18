@@ -33,14 +33,14 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
   };
 
   return (
-    <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1 border border-border/60">
-      <div className="flex items-center gap-1.5 px-2">
-        <Clock className="h-3 w-3 text-muted-foreground" />
-        <span className="text-xs font-medium text-muted-foreground">Show times:</span>
+    <div className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-muted/40 p-1">
+      <div className="flex items-center gap-1.5 pl-2 pr-1">
+        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="hidden text-xs font-medium text-muted-foreground sm:inline">Show times:</span>
       </div>
-      
+
       <Select value={startTime} onValueChange={handleStartTimeChange}>
-        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs tabular-nums">
+        <SelectTrigger aria-label="Start of visible time range" className="h-7 w-[4.75rem] border-0 bg-background/50 px-2 text-xs tabular-nums hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -55,7 +55,7 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
       <span className="text-xs text-muted-foreground">to</span>
 
       <Select value={endTime} onValueChange={handleEndTimeChange}>
-        <SelectTrigger className="w-16 h-6 border-0 bg-background/50 hover:bg-background/80 focus:ring-1 focus:ring-primary/50 text-xs tabular-nums">
+        <SelectTrigger aria-label="End of visible time range" className="h-7 w-[4.75rem] border-0 bg-background/50 px-2 text-xs tabular-nums hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

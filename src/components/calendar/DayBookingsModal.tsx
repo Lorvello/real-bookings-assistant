@@ -2,7 +2,8 @@
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Clock, User, Phone, Mail, X, ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { bookingDotStyle } from './utils/bookingColor';
 
 
 interface Booking {
@@ -46,6 +47,8 @@ interface DayBookingsModalProps {
 export function DayBookingsModal({ open, onClose, date, bookings, position, viewingAllCalendars = false }: DayBookingsModalProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<Element | null>(null);
 
   // Auto-show detail view for single bookings
   useEffect(() => {
@@ -58,7 +61,32 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
     }
   }, [bookings]);
 
+  // a11y: non-modal popover — close on Escape, move focus into the popup on
+  // open, restore focus to the triggering cell on close.
+  useEffect(() => {
+    if (!open) return;
+    openerRef.current = document.activeElement;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    popupRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      (openerRef.current as HTMLElement | null)?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!date || !open) return null;
+
+  // Clamp the anchor inside the viewport and flip above/below so the popup
+  // never clips off-screen (the old absolute + raw rect.top placement broke on
+  // mobile and near the viewport edges).
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  const anchorX = position?.x ?? vw / 2;
+  const anchorY = position?.y ?? 200;
+  const clampedX = Math.min(Math.max(anchorX, 110), vw - 110);
+  const placeBelow = anchorY < 260;
 
   const sortedBookings = [...bookings].sort(
     (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
@@ -79,7 +107,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
       case 'confirmed':
         return 'text-success-foreground';
       case 'pending':
-        return 'text-amber-400';
+        return 'text-warning-foreground';
       case 'cancelled':
         return 'text-muted-foreground';
       default:
@@ -101,14 +129,19 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
   };
 
   const modalContent = (
-    <div 
+    <div
+      ref={popupRef}
       data-popup="true"
-      className="absolute z-[9999] bg-background/95 border border-white/[0.08] rounded-lg backdrop-blur-sm shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] min-w-[180px] max-w-[200px] sm:min-w-[280px] sm:max-w-[320px] pointer-events-auto"
+      role="dialog"
+      aria-label={`Appointments on ${format(date, 'EEEE d MMMM', { locale: enUS })}`}
+      tabIndex={-1}
+      className="glass fixed z-[9999] min-w-[180px] max-w-[200px] rounded-lg shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] outline-none pointer-events-auto sm:min-w-[280px] sm:max-w-[320px]"
       style={{
-        left: `${position?.x || 0}px`,
-        top: `${position?.y || 0}px`,
-        transform: 'translateX(-50%) translateY(-100%)',
+        left: `${clampedX}px`,
+        top: `${anchorY}px`,
+        transform: placeBelow ? 'translateX(-50%) translateY(12px)' : 'translateX(-50%) translateY(calc(-100% - 8px))',
       }}
+      onClick={(e) => e.stopPropagation()}
     >
       {!showDetail ? (
         <>
@@ -120,9 +153,10 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               </h3>
               <button
                 onClick={onClose}
+                aria-label="Close"
                 className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
               >
-                <X className="w-3 h-3 text-muted-foreground" />
+                <X aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
               </button>
             </div>
           </div>
@@ -144,9 +178,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                     <div className="flex items-start gap-1.5 sm:gap-2">
                       <div
                         className="w-2 h-2 rounded-full flex-shrink-0 mt-1"
-                        style={{
-                          backgroundColor: booking.service_types?.color || '#10B981'
-                        }}
+                        style={bookingDotStyle(booking.service_types?.color)}
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-[10px] sm:text-xs font-medium text-foreground truncate">
@@ -193,9 +225,10 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={handleBackToList}
+                    aria-label="Back to list"
                     className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
                   >
-                    <ArrowLeft className="w-3 h-3 text-muted-foreground" />
+                    <ArrowLeft aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                   </button>
                   <h3 className="text-xs sm:text-sm font-semibold text-foreground">
                     Booking Details
@@ -203,9 +236,10 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                 </div>
                 <button
                   onClick={onClose}
+                  aria-label="Close"
                   className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
                 >
-                  <X className="w-3 h-3 text-muted-foreground" />
+                  <X aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
             </div>
@@ -217,9 +251,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <div
                     className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
-                    style={{
-                      backgroundColor: selectedBooking.service_types?.color || '#10B981'
-                    }}
+                    style={bookingDotStyle(selectedBooking.service_types?.color)}
                   />
                   <div>
                     <h4 className="text-xs sm:text-sm font-medium text-foreground">
@@ -343,5 +375,11 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
     </div>
   );
 
-  return modalContent;
+  return (
+    <>
+      {/* Dismiss backdrop — outside-click / tap closes the popup */}
+      <div className="fixed inset-0 z-[9998]" onClick={onClose} aria-hidden="true" />
+      {modalContent}
+    </>
+  );
 }

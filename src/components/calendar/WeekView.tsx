@@ -4,6 +4,7 @@ import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday }
 import { BookingDetailModal } from './BookingDetailModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import { bookingChipStyle, resolveBookingColor } from './utils/bookingColor';
 
 interface Booking {
   id: string;
@@ -46,10 +47,10 @@ const generateTimeSlots = (startTime: string, endTime: string, intervalMinutes: 
   const slots = [];
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
-  
+
   const startTotalMinutes = startHour * 60 + startMinute;
   const endTotalMinutes = endHour * 60 + endMinute;
-  
+
   for (let totalMinutes = startTotalMinutes; totalMinutes <= endTotalMinutes; totalMinutes += intervalMinutes) {
     const hour = Math.floor(totalMinutes / 60);
     const minute = totalMinutes % 60;
@@ -65,7 +66,7 @@ const getWeekDays = (currentDate: Date) => {
   return eachDayOfInterval({ start: weekStart, end: weekEnd });
 };
 
-// Fixed function to get bookings that START in a specific time slot
+// Get bookings that START in a specific time slot (avoids duplicates across slots)
 const getBookingsStartingInTimeSlot = (bookings: Booking[], day: Date, timeSlot: string) => {
   const [hours, minutes] = timeSlot.split(':').map(Number);
   const slotStart = new Date(day);
@@ -74,97 +75,99 @@ const getBookingsStartingInTimeSlot = (bookings: Booking[], day: Date, timeSlot:
 
   return bookings.filter(booking => {
     const bookingStart = new Date(booking.start_time);
-    
     return (
       isSameDay(bookingStart, day) &&
-      bookingStart >= slotStart && 
+      bookingStart >= slotStart &&
       bookingStart < slotEnd
     );
   });
 };
 
-// Fixed positioning calculation
+// Pixel positioning relative to the base 30-min slot
 const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
   const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
-  
-  // Calculate top offset from the base time slot
+
   const [baseHours, baseMinutes] = baseTimeSlot.split(':').map(Number);
   const baseSlotMinutes = baseHours * 60 + baseMinutes;
-  
-  const bookingHours = startTime.getHours();
-  const bookingMinutes = startTime.getMinutes();
-  const bookingTotalMinutes = bookingHours * 60 + bookingMinutes;
-  
+
+  const bookingTotalMinutes = startTime.getHours() * 60 + startTime.getMinutes();
   const offsetMinutes = bookingTotalMinutes - baseSlotMinutes;
-  const baseOffset = window.innerWidth < 640 ? 24 : 40;
-  const topOffset = Math.max(0, (offsetMinutes / 30) * baseOffset); // 30 min = 40px on desktop, 24px on mobile
-  
-  // Calculate height based on duration - 30 minutes = 40px height on desktop, 24px on mobile
-  const baseHeight = window.innerWidth < 640 ? 24 : 40;
-  const minHeight = window.innerWidth < 640 ? 24 : 44;
-  const height = Math.max(minHeight, (duration / 30) * baseHeight);
-  
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const baseUnit = isMobile ? 28 : 40; // height of one 30-min slot
+  const minHeight = isMobile ? 28 : 44;
+
+  const topOffset = Math.max(0, (offsetMinutes / 30) * baseUnit);
+  const height = Math.max(minHeight, (duration / 30) * baseUnit);
+
   return { topOffset, height };
 };
 
-// Booking Block Component - more compact
+// Booking block — contrast-safe accent chip
 function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking; timeSlot: string; onBookingClick: (booking: Booking) => void }) {
   const { topOffset, height } = calculateBookingPosition(booking, timeSlot);
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
+  const accent = resolveBookingColor(booking.service_types?.color);
 
   return (
     <TooltipProvider>
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <div
-            className="absolute inset-x-0 mx-0.5 sm:mx-1 p-1 sm:p-2 rounded-lg cursor-pointer transition-[filter] duration-150 z-10 group hover:brightness-110 border border-white/[0.08] relative overflow-hidden"
+            role="button"
+            tabIndex={0}
+            aria-label={`${booking.customer_name}, ${booking.service_types?.name || 'Appointment'}, ${format(startTime, 'HH:mm')} to ${format(endTime, 'HH:mm')}`}
+            className="group absolute inset-x-0 z-10 mx-0.5 cursor-pointer overflow-hidden rounded-md border-l-2 p-1 outline-none transition-colors duration-150 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:mx-1 sm:p-2"
             style={{
-              backgroundColor: booking.service_types?.color || '#3B82F6',
+              ...bookingChipStyle(booking.service_types?.color),
               height: `${height}px`,
               top: `${topOffset}px`,
-              boxShadow: `0 2px 10px ${booking.service_types?.color || '#3B82F6'}40`
+              boxShadow: `0 1px 6px color-mix(in srgb, ${accent} 35%, transparent)`,
             }}
             onClick={() => onBookingClick(booking)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onBookingClick(booking);
+              }
+            }}
           >
             {/* Info icon in top-right corner */}
-            <div className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1">
-              <Info className="w-2 h-2 sm:w-3 sm:h-3 text-subtle-foreground" />
+            <div className="absolute right-0.5 top-0.5 sm:right-1 sm:top-1">
+              <Info aria-hidden="true" className="h-2 w-2 text-subtle-foreground sm:h-3 sm:w-3" />
             </div>
 
-            <div className="text-foreground overflow-hidden">
-              <div className="font-semibold text-[9px] sm:text-xs truncate mb-0.5 sm:mb-1">{booking.customer_name}</div>
-              <div className="text-foreground/90 text-[8px] sm:text-xs font-medium truncate mb-0.5 sm:mb-1">
+            <div className="overflow-hidden text-foreground">
+              <div className="mb-0.5 truncate text-[9px] font-semibold sm:mb-1 sm:text-xs">{booking.customer_name}</div>
+              <div className="mb-0.5 truncate text-[8px] font-medium text-muted-foreground sm:mb-1 sm:text-xs">
                 {booking.service_types?.name || 'Appointment'}
               </div>
-              <div className="text-foreground/80 text-[8px] sm:text-xs truncate tabular-nums">
+              <div className="truncate text-[8px] tabular-nums text-muted-foreground sm:text-xs">
                 {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}
               </div>
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent 
-          side="top" 
-          className="max-w-xs glass rounded-lg p-3"
-        >
+        <TooltipContent side="top" className="max-w-xs glass rounded-lg p-3">
           <div className="space-y-1.5">
-            <div className="text-xs font-semibold text-foreground tabular-nums">
+            <div className="text-xs font-semibold tabular-nums text-foreground">
               {format(new Date(booking.start_time), 'HH:mm')} - {booking.customer_name}
             </div>
             <div className="space-y-0.5 text-[10px]">
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Calendar:</span>
-                <span className="text-foreground font-medium">{booking.calendar?.name || 'Unknown'}</span>
+                <span className="font-medium text-foreground">{booking.calendar?.name || 'Unknown'}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Person:</span>
-                <span className="text-foreground font-medium">{booking.calendar?.users?.full_name || 'Unknown'}</span>
+                <span className="font-medium text-foreground">{booking.calendar?.users?.full_name || 'Unknown'}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Service:</span>
-                <span className="text-foreground font-medium">{booking.service_types?.name || booking.service_name || 'Appointment'}</span>
+                <span className="font-medium text-foreground">{booking.service_types?.name || booking.service_name || 'Appointment'}</span>
               </div>
             </div>
           </div>
@@ -177,10 +180,9 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
 export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars = false }: WeekViewProps) {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
-  
+
   const weekDays = getWeekDays(currentDate);
-  
-  // Use custom time range or default to business hours
+
   const startTime = timeRange?.startTime || '08:00';
   const endTime = timeRange?.endTime || '18:00';
   const timeSlots = generateTimeSlots(startTime, endTime, 30);
@@ -197,77 +199,69 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
 
   return (
     <div className="h-full overflow-auto bg-background">
-      {/* Fixed header with days - more compact */}
-      <div className="sticky top-0 z-20 bg-card border-b-2 border-border">
-        <div className="grid grid-cols-8">
-          <div className="w-8 sm:w-16 p-1 sm:p-2 border-r border-border">
-            <div className="text-[10px] sm:text-xs font-semibold text-muted-foreground">Time</div>
+      {/* min-width forces horizontal scroll on phones so columns stay readable;
+          natural width on sm+ (the week fits the card). */}
+      <div className="min-w-[680px] sm:min-w-0">
+        {/* Sticky day header */}
+        <div className="sticky top-0 z-20 border-b border-white/[0.06] bg-card/95 backdrop-blur-sm">
+          <div className="grid grid-cols-8">
+            <div className="sticky left-0 z-30 w-14 border-r border-white/[0.06] bg-card/95 p-2 sm:w-16">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-subtle-foreground sm:text-xs">Time</div>
+            </div>
+            {weekDays.map((day, idx) => (
+              <div
+                key={day.toISOString()}
+                className={`px-0.5 py-2 text-center transition-colors duration-150 sm:px-1 ${
+                  idx < weekDays.length - 1 ? 'border-r border-white/[0.06]' : ''
+                } ${isToday(day) ? 'bg-primary/10' : ''}`}
+              >
+                <div className="text-[9px] font-medium text-muted-foreground sm:text-xs">{format(day, 'EEE')}</div>
+                <div className={`mt-0.5 text-sm font-semibold tabular-nums sm:text-lg ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
+                  {format(day, 'd')}
+                </div>
+                <div className="text-[9px] text-muted-foreground sm:text-xs">{format(day, 'MMM')}</div>
+              </div>
+            ))}
           </div>
-          {weekDays.map((day, idx) => (
-            <div key={day.toISOString()} className={`text-center py-1 sm:py-2 px-0.5 sm:px-1 transition-colors duration-150 ${
-              idx < weekDays.length - 1 ? 'border-r border-border' : ''
-            } ${
-              isToday(day) 
-                ? 'bg-primary/15' 
-                : ''
-            }`}>
-              <div className="text-[9px] sm:text-xs text-muted-foreground font-medium">
-                {format(day, 'EEE')}
+        </div>
+
+        {/* Scrollable time grid */}
+        <div className="relative">
+          {timeSlots.map((timeSlot, index) => (
+            <div
+              key={timeSlot}
+              className={`grid grid-cols-8 border-b border-white/[0.05] ${index % 2 === 0 ? 'bg-white/[0.015]' : ''}`}
+            >
+              {/* Time label — sticky left gutter */}
+              <div className="sticky left-0 z-10 w-14 border-r border-white/[0.06] bg-card px-1 py-1 text-right text-[9px] font-medium tabular-nums text-muted-foreground sm:w-16 sm:px-2 sm:py-2 sm:text-xs">
+                {timeSlot}
               </div>
-              <div className={`text-sm sm:text-lg font-semibold mt-0.5 tabular-nums ${
-                isToday(day) ? 'text-primary' : 'text-foreground'
-              }`}>
-                {format(day, 'd')}
-              </div>
-              <div className="text-[9px] sm:text-xs text-muted-foreground">
-                {format(day, 'MMM')}
-              </div>
+
+              {/* Day columns */}
+              {weekDays.map((day, idx) => {
+                const dayBookings = getBookingsStartingInTimeSlot(bookings, day, timeSlot);
+
+                return (
+                  <div
+                    key={`${day.toISOString()}-${timeSlot}`}
+                    className={`relative min-h-[28px] transition-colors sm:min-h-[40px] ${
+                      idx < weekDays.length - 1 ? 'border-r border-white/[0.05]' : ''
+                    } ${isToday(day) ? 'bg-primary/[0.06] hover:bg-primary/10' : 'hover:bg-white/[0.03]'}`}
+                  >
+                    {dayBookings.map((booking) => (
+                      <BookingBlock
+                        key={booking.id}
+                        booking={booking}
+                        timeSlot={timeSlot}
+                        onBookingClick={handleBookingClick}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Scrollable time grid - more compact */}
-      <div className="relative">
-        {/* Time slots */}
-        {timeSlots.map((timeSlot, index) => (
-          <div key={timeSlot} className={`grid grid-cols-8 border-b border-border ${
-            index % 2 === 0 ? 'bg-muted/20' : 'bg-card'
-          }`}>
-            {/* Time label */}
-            <div className="w-8 sm:w-16 py-1 sm:py-2 px-1 sm:px-2 text-[9px] sm:text-xs font-medium text-muted-foreground text-right border-r border-border bg-card tabular-nums">
-              {timeSlot}
-            </div>
-            
-            {/* Day columns */}
-            {weekDays.map((day, idx) => {
-              // Only get bookings that START in this time slot to avoid duplicates
-              const dayBookings = getBookingsStartingInTimeSlot(bookings, day, timeSlot);
-              
-              return (
-                <div
-                  key={`${day.toISOString()}-${timeSlot}`}
-                  className={`relative transition-colors min-h-[24px] sm:min-h-[40px] ${
-                    idx < weekDays.length - 1 ? 'border-r border-border' : ''
-                  } ${
-                    isToday(day) 
-                      ? 'bg-primary/10 hover:bg-primary/15' 
-                      : 'hover:bg-accent/40'
-                  }`}
-                >
-                  {dayBookings.map((booking) => (
-                    <BookingBlock
-                      key={booking.id}
-                      booking={booking}
-                      timeSlot={timeSlot}
-                      onBookingClick={handleBookingClick}
-                    />
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        ))}
       </div>
 
       <BookingDetailModal

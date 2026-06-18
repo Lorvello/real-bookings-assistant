@@ -3,6 +3,7 @@ import { format, isSameMonth, isSameDay } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { bookingChipStyle } from '../utils/bookingColor';
 
 interface Booking {
   id: string;
@@ -130,27 +131,25 @@ export function CalendarDayCell({
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
                 <div
-                  className="group/booking p-0.5 sm:p-1 rounded-lg cursor-pointer hover:brightness-110 transition-[filter] duration-150 motion-reduce:transition-none relative"
-                  style={{
-                    backgroundColor: dayBookings[0].service_types?.color || 'hsl(var(--primary))'
-                  }}
+                  className="group/booking relative cursor-pointer rounded-lg border-l-2 p-0.5 pl-1 transition-colors duration-150 hover:brightness-110 motion-reduce:transition-none sm:p-1 sm:pl-1.5"
+                  style={bookingChipStyle(dayBookings[0].service_types?.color)}
                   onClick={(e) => handleSingleBookingClick(dayBookings[0], e)}
                 >
 
                   {/* Info icon in top-right corner */}
-                  <div className="absolute top-0 sm:top-0.5 right-0 sm:right-0.5">
-                    <Info aria-hidden="true" className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 text-subtle-foreground" />
+                  <div className="absolute top-0 right-0 sm:top-0.5 sm:right-0.5">
+                    <Info aria-hidden="true" className="h-1.5 w-1.5 text-subtle-foreground sm:h-2.5 sm:w-2.5" />
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="text-foreground text-[9px] sm:text-xs font-semibold tabular-nums">
+                    <div className="text-[9px] font-semibold tabular-nums text-foreground sm:text-xs">
                       {format(new Date(dayBookings[0].start_time), 'HH:mm')}
                     </div>
                   </div>
-                  <div className="text-foreground/95 text-[9px] sm:text-xs font-medium truncate mt-0.5">
+                  <div className="mt-0.5 truncate text-[9px] font-medium text-foreground sm:text-xs">
                     {dayBookings[0].customer_name}
                   </div>
-                  <div className="text-foreground/80 text-[8px] sm:text-xs truncate">
+                  <div className="truncate text-[8px] text-muted-foreground sm:text-xs">
                     {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}
                   </div>
                 </div>
@@ -194,7 +193,7 @@ export function CalendarDayCell({
             <div className="text-accent-foreground font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
               {dayBookings.length} appointments
             </div>
-            <div className="text-[8px] sm:text-xs text-accent-foreground/70">
+            <div className="text-[8px] sm:text-xs text-accent-foreground">
               Click for details
             </div>
           </div>

@@ -125,8 +125,8 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
         <div className="space-y-1">
           {/* Week day headers */}
           <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
-            {weekDays.map(day => (
-              <div key={day} className="text-[9px] sm:text-xs text-muted-foreground text-center font-medium p-0.5 sm:p-1">
+            {weekDays.map((day, i) => (
+              <div key={`${day}-${i}`} className="text-[9px] sm:text-xs text-muted-foreground text-center font-medium p-0.5 sm:p-1">
                 {day}
               </div>
             ))}
@@ -153,16 +153,25 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                     <Tooltip delayDuration={0}>
                       <TooltipTrigger asChild>
                         <div
-                          className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-lg transition-colors duration-150 relative tabular-nums ${
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`1 appointment on ${format(day, 'd MMMM')}`}
+                          className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-lg outline-none transition-colors duration-150 relative tabular-nums focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                             isCurrentMonth
                               ? 'bg-primary text-primary-foreground font-semibold cursor-pointer'
                               : 'text-muted-foreground/50'
                           }`}
                           onClick={handleDayClickEvent}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleDayClick(day, dayBookings);
+                            }
+                          }}
                         >
                           {/* Info icon */}
                           <div className="absolute top-0 sm:top-0.5 right-0 sm:right-0.5">
-                            <Info className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-subtle-foreground" />
+                            <Info aria-hidden="true" className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-subtle-foreground" />
                           </div>
                           {format(day, 'd')}
                         </div>
@@ -199,7 +208,19 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-lg transition-colors duration-150 tabular-nums ${
+                    {...(hasBookings
+                      ? {
+                          role: 'button',
+                          tabIndex: 0,
+                          onKeyDown: (e: React.KeyboardEvent) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              handleDayClick(day, dayBookings);
+                            }
+                          },
+                        }
+                      : {})}
+                    className={`text-[9px] sm:text-xs text-center p-0.5 sm:p-1.5 rounded-lg outline-none transition-colors duration-150 tabular-nums focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
                       isCurrentMonth
                         ? hasBookings
                           ? 'bg-primary text-primary-foreground font-semibold cursor-pointer'
@@ -208,7 +229,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
                             : 'text-foreground hover:bg-accent/50'
                         : 'text-muted-foreground/50'
                     }`}
-                    title={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''}` : ''}
+                    aria-label={hasBookings ? `${dayBookings.length} appointment${dayBookings.length > 1 ? 's' : ''} on ${format(day, 'd MMMM')}` : undefined}
                     onClick={handleDayClickEvent}
                   >
                     {format(day, 'd')}

@@ -87,6 +87,8 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
     });
   };
 
+  const goToToday = () => setCurrentDate(new Date());
+
   const handleBookingCreated = () => {
     refetch();
     setIsNewBookingModalOpen(false);
@@ -122,6 +124,7 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
         currentDate={currentDate}
         onViewChange={handleViewChange}
         onNavigate={navigateDate}
+        onToday={goToToday}
         onNewBooking={handleNewBooking}
         loading={loading}
         timeRange={timeRange}

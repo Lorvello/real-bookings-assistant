@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TimeRangeSelector } from './TimeRangeSelector';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -14,26 +14,33 @@ interface CalendarHeaderProps {
   currentDate: Date;
   onViewChange: (view: CalendarView) => void;
   onNavigate: (direction: 'prev' | 'next') => void;
+  onToday: () => void;
   onNewBooking: () => void;
   loading?: boolean;
   timeRange?: { startTime: string; endTime: string };
   onTimeRangeChange?: (startTime: string, endTime: string) => void;
 }
 
+const VIEW_LABELS: Record<CalendarView, string> = {
+  month: 'Month',
+  week: 'Week',
+  year: 'Year',
+};
+
 export function CalendarHeader({
   currentView,
   currentDate,
   onViewChange,
   onNavigate,
+  onToday,
   onNewBooking,
   loading = false,
   timeRange,
-  onTimeRangeChange
+  onTimeRangeChange,
 }: CalendarHeaderProps) {
-  const { checkAccess, userStatus } = useAccessControl();
+  const { userStatus } = useAccessControl();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  
-  const canCreateBookings = checkAccess('canCreateBookings');
+
   const canCreateAppointments = userStatus.userType !== 'expired_trial' && userStatus.userType !== 'canceled_and_inactive';
 
   const handleNewBookingClick = () => {
@@ -43,10 +50,11 @@ export function CalendarHeader({
       setShowUpgradeModal(true);
     }
   };
+
   const formatTitle = () => {
     switch (currentView) {
       case 'week':
-        return format(currentDate, "'Week of' MMMM d, yyyy");
+        return format(currentDate, "'Week of' MMM d, yyyy");
       case 'year':
         return format(currentDate, 'yyyy');
       default:
@@ -55,108 +63,108 @@ export function CalendarHeader({
   };
 
   return (
-    <div className="bg-transparent border-b border-white/[0.06] px-3 sm:px-4 py-3 rounded-t-xl">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-        {/* Left Section - Title & Navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center space-x-3 px-3 py-2 bg-muted/50 rounded-lg border border-white/[0.06]">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            
-            <div>
-              <h1 className="text-lg font-semibold text-foreground tabular-nums">
-                {formatTitle()}
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Manage your appointments and availability
-              </p>
-            </div>
-          </div>
+    <div className="relative border-b border-white/[0.06] px-3 py-3 sm:px-4 rounded-t-xl">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* Left — period label + date navigation */}
+        <div className="flex items-center justify-between gap-2 sm:justify-start sm:gap-4">
+          <h2 className="text-base font-semibold tracking-[-0.01em] text-foreground tabular-nums sm:text-lg">
+            {formatTitle()}
+          </h2>
 
-          {/* Navigation Controls */}
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-white/[0.06]">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('prev')}
-              className="h-8 w-8 rounded-md hover:bg-muted transition-colors"
+              className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
               disabled={loading}
+              aria-label="Previous period"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onToday}
+              className="h-8 px-3 font-medium"
+              disabled={loading}
+            >
+              Today
+            </Button>
+
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('next')}
-              className="h-8 w-8 rounded-md hover:bg-muted transition-colors"
+              className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
               disabled={loading}
+              aria-label="Next period"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Right Section - View Controls & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          {/* Time Range Selector - Only show for week view */}
+        {/* Right — view controls + actions */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          {/* Time range — week view only */}
           {currentView === 'week' && timeRange && onTimeRangeChange && (
-            <div className="order-2 sm:order-none">
-              <TimeRangeSelector
-                startTime={timeRange.startTime}
-                endTime={timeRange.endTime}
-                onTimeRangeChange={onTimeRangeChange}
-              />
-            </div>
+            <TimeRangeSelector
+              startTime={timeRange.startTime}
+              endTime={timeRange.endTime}
+              onTimeRangeChange={onTimeRangeChange}
+            />
           )}
 
-          {/* View Switcher */}
-          <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-white/[0.06] order-1 sm:order-none">
-            {(['month', 'week', 'year'] as const).map((view) => (
-              <Button
-                key={view}
-                variant={currentView === view ? "default" : "ghost"}
-                size="sm"
-                onClick={() => onViewChange(view)}
-                className={`px-3 py-1.5 h-8 rounded-md font-medium text-sm ${
-                  currentView === view
-                    ? ''
-                    : 'hover:bg-white/[0.06]'
-                }`}
-              >
-                {view === 'month' ? 'Month' : view === 'week' ? 'Week' : 'Year'}
-              </Button>
-            ))}
-          </div>
+          <div className="flex items-center gap-2">
+            {/* Segmented view switcher — fills width on mobile */}
+            <div
+              role="tablist"
+              aria-label="Calendar view"
+              className="flex flex-1 items-center gap-1 rounded-lg border border-white/[0.06] bg-muted/40 p-1 sm:flex-initial"
+            >
+              {(['month', 'week', 'year'] as const).map((view) => (
+                <Button
+                  key={view}
+                  role="tab"
+                  aria-selected={currentView === view}
+                  variant={currentView === view ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => onViewChange(view)}
+                  className={`h-8 flex-1 rounded-md px-3 text-sm font-medium sm:flex-initial ${
+                    currentView === view ? '' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06]'
+                  }`}
+                >
+                  {VIEW_LABELS[view]}
+                </Button>
+              ))}
+            </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center order-3">
+            {/* New appointment */}
             <Button
               onClick={handleNewBookingClick}
               disabled={loading || !canCreateAppointments}
-              className={`h-9 px-4 rounded-lg font-medium text-sm ${
-                canCreateAppointments
-                  ? ''
-                  : 'bg-muted text-muted-foreground cursor-not-allowed shadow-none'
+              className={`h-9 shrink-0 rounded-lg px-4 text-sm font-medium ${
+                canCreateAppointments ? '' : 'cursor-not-allowed bg-muted text-muted-foreground shadow-none'
               }`}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">New Appointment</span>
-              <span className="sm:hidden">New</span>
+              <span className="sr-only sm:hidden">New appointment</span>
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading hairline */}
       {loading && (
-        <div className="absolute inset-0 bg-card/80 rounded-t-lg flex items-center justify-center">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-primary rounded-full animate-spin" />
-          </div>
-        </div>
+        <div
+          className="absolute inset-x-0 bottom-0 h-px animate-pulse bg-gradient-to-r from-transparent via-primary/70 to-transparent motion-reduce:animate-none"
+          aria-hidden="true"
+        />
       )}
 
-      {/* Upgrade Modal */}
       <AppointmentUpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}

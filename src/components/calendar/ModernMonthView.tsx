@@ -54,7 +54,6 @@ export function ModernMonthView({ bookings, currentDate, viewingAllCalendars = f
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
   const getBookingsForDay = (day: Date) => {
     return bookings.filter(booking => 
@@ -108,8 +107,8 @@ export function ModernMonthView({ bookings, currentDate, viewingAllCalendars = f
 
   return (
     <div className="h-full flex flex-col">
-      {/* Enhanced Week Headers */}
-      <CalendarWeekHeader weekDays={weekDays} />
+      {/* Weekday header — flush, grid-aligned */}
+      <CalendarWeekHeader />
 
       {/* Optimized Calendar Grid with subtle gradient background */}
       <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
