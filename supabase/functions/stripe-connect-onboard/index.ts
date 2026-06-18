@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,9 +26,11 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Parse request
-    const body = await req.json();
-    const testMode = body.test_mode || false;
+    // Stripe mode is the SERVER's source of truth (STRIPE_MODE), never the client
+    // body: `body.test_mode || false` previously defaulted to LIVE whenever the flag
+    // was absent, which could create a real live Connect account out of band.
+    // validateStripeMode() defaults to test when STRIPE_MODE is unset.
+    const testMode = validateStripeMode().mode === 'test';
     const environment = testMode ? 'test' : 'live';
     logStep("Request parsed", { testMode, environment });
 
@@ -50,6 +53,10 @@ serve(async (req) => {
       `)
       .eq('id', user.id)
       .single();
+
+    if (userDataError || !userData) {
+      throw new Error('Could not load business data for onboarding');
+    }
 
     logStep("User data for prefilling", userData ? 'Data found' : null);
     
@@ -134,8 +141,9 @@ serve(async (req) => {
         await stripe.accounts.retrieve(stripeAccountId);
         logStep("Account accessible");
       } catch (accessError) {
-        if (accessError.statusCode === 403 || accessError.statusCode === 404) {
-          logStep("Account not accessible, creating new one", { error: accessError.message });
+        const accErr = accessError as { statusCode?: number; message?: string };
+        if (accErr.statusCode === 403 || accErr.statusCode === 404) {
+          logStep("Account not accessible, creating new one", { error: accErr.message });
           // Account exists in DB but not accessible via this platform - create new one
           stripeAccountId = await createNewStripeAccount(stripe, user, prefillData);
           
@@ -226,9 +234,10 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    logStep("ERROR", { message: error.message });
+    const message = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,

@@ -138,6 +138,14 @@ serve(async (req) => {
         await handleBookingPaymentSucceeded(supabase, event.data.object as Stripe.PaymentIntent);
         break;
 
+      // Connect: a merchant's account capabilities changed (finished onboarding,
+      // charges/payouts enabled, etc.). Sync business_stripe_accounts so Pay & Book
+      // un-disables automatically, without the merchant revisiting the settings page.
+      // This is the single biggest Connect reliability gap (previously unhandled).
+      case 'account.updated':
+        await handleAccountUpdated(supabase, event.data.object as Stripe.Account);
+        break;
+
       default:
         console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
@@ -653,4 +661,39 @@ async function logSecurityEvent(
   if (error) {
     console.error("❌ Error logging security event:", error);
   }
+}
+
+// Connect: a merchant's account capabilities changed. Mirror them into
+// business_stripe_accounts (matched by stripe_account_id) so Pay & Book un-disables
+// automatically once Stripe enables charges, instead of waiting for the merchant to
+// revisit the settings page and trigger a manual refresh poll.
+async function handleAccountUpdated(supabase: any, account: Stripe.Account) {
+  const chargesEnabled = account.charges_enabled === true;
+  const payoutsEnabled = account.payouts_enabled === true;
+  const detailsSubmitted = account.details_submitted === true;
+  const accountStatus = chargesEnabled ? 'active' : (detailsSubmitted ? 'pending' : 'incomplete');
+
+  const { data, error } = await supabase
+    .from('business_stripe_accounts')
+    .update({
+      charges_enabled: chargesEnabled,
+      payouts_enabled: payoutsEnabled,
+      details_submitted: detailsSubmitted,
+      onboarding_completed: detailsSubmitted,
+      account_status: accountStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('stripe_account_id', account.id)
+    .select('id');
+
+  if (error) {
+    console.error(`❌ account.updated sync failed for ${account.id}:`, error);
+    return;
+  }
+  if (!data || data.length === 0) {
+    // An account we don't track yet (or never inserted) — not an error.
+    console.log(`ℹ️ account.updated for untracked account ${account.id}`);
+    return;
+  }
+  console.log(`✅ account.updated synced ${account.id}: charges=${chargesEnabled} payouts=${payoutsEnabled} details=${detailsSubmitted}`);
 }
