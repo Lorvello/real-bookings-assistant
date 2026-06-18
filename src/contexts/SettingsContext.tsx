@@ -16,6 +16,11 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
+// Raw context exported so the no-auth visual harness can mount the real Settings
+// components with mock data (no live Supabase / RLS), per the launch-ready-loop §7.
+export { SettingsContext };
+export type { SettingsContextType };
+
 interface SettingsProviderProps {
   children: ReactNode;
 }

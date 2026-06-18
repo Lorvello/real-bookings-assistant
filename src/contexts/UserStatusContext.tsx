@@ -843,3 +843,6 @@ export const useUserStatus = () => {
   }
   return context;
 };
+
+// Raw context exported for the no-auth visual harness (launch-ready-loop §7).
+export { UserStatusContext };
