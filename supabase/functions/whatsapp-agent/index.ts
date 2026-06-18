@@ -84,15 +84,17 @@ Deno.serve(async (req) => {
     const contactId = (contact as { id?: string } | null)?.id ?? null;
 
     let conversationId: string | null = null;
+    let convContext: Record<string, unknown> = {};
     let history: Array<{ direction: string; content: string | null }> = [];
     if (contactId) {
       const { data: conv } = await supabase
         .from("whatsapp_conversations")
-        .select("id")
+        .select("id, context")
         .eq("calendar_id", calendar_id)
         .eq("contact_id", contactId)
         .maybeSingle();
       conversationId = (conv as { id?: string } | null)?.id ?? null;
+      convContext = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
       if (conversationId) {
         const { data: msgs } = await supabase
           .from("whatsapp_messages")
@@ -117,9 +119,14 @@ Deno.serve(async (req) => {
     const knownName = (contact as { first_name?: string } | null)?.first_name ?? contact_name ?? null;
     const businessName = (biz as { business_name?: string } | null)?.business_name ?? "ons bedrijf";
 
-    // First contact = the agent has not yet replied in this conversation. The greeting
-    // fires once, on the customer's opening message (incl. the prefilled "Code: …" save-message).
-    const isFirstContact = !history.some((m) => m.direction === "outbound");
+    // First contact = the greeting has not yet fired in this conversation. We persist a
+    // durable `greeting_sent` flag in the conversation context (set after the first reply)
+    // so detection does NOT depend on the outbound message being persisted+loaded into the
+    // 12-message history window. This makes the welcome fire exactly ONCE even under a
+    // two-rapid-messages race or a transient history-load miss. The history check is kept
+    // as a backward-compatible fallback for conversations that greeted before the flag existed.
+    const greetingAlreadySent = convContext.greeting_sent === true;
+    const isFirstContact = !greetingAlreadySent && !history.some((m) => m.direction === "outbound");
     const welcomeMessage = (rawWelcome && rawWelcome.trim() ? rawWelcome : DEFAULT_WHATSAPP_WELCOME)
       .replace(/\{bedrijf\}/g, businessName);
 
@@ -165,6 +172,14 @@ Deno.serve(async (req) => {
         content: reply,
         status: send.ok ? "sent" : "failed",
       });
+      // Durably mark that the welcome has fired so it never repeats on later turns,
+      // independent of message-history loading. Merge into context (don't clobber).
+      if (isFirstContact && !greetingAlreadySent) {
+        await supabase
+          .from("whatsapp_conversations")
+          .update({ context: { ...convContext, greeting_sent: true } })
+          .eq("id", conversationId);
+      }
     }
 
     return new Response(
