@@ -178,12 +178,15 @@ export function createTools(
     },
     {
       name: "update_lead",
-      description: 'Sla de naam van de klant op. Bij weigering: first_name = "Privé".',
+      description:
+        'Sla de naam van de klant op. Geef name_refused: true ALLEEN mee als de klant expliciet weigert een naam te geven (dan first_name "Privé"). ' +
+        "Roep dit pas aan als de klant zelf een naam geeft of weigert — verzin geen naam.",
       parameters: {
         type: "object",
         properties: {
           first_name: { type: "string" },
           last_name: { type: "string" },
+          name_refused: { type: "boolean", description: 'true alleen als de klant expliciet GEEN naam wil geven.' },
         },
         required: ["first_name"],
       },
@@ -191,7 +194,8 @@ export function createTools(
     {
       name: "book_appointment",
       description:
-        'Maakt de ECHTE boeking. Roep pas aan als dienst, een beschikbare tijd én een naam (of "Privé") bekend zijn. ' +
+        'Maakt de ECHTE boeking. Roep pas aan als dienst, een beschikbare tijd én een ECHTE naam bekend zijn. ' +
+        'Zonder naam weigert deze tool de boeking — tenzij de klant de naam expliciet weigerde (update_lead met name_refused: true, dan customer_name "Privé"). ' +
         "Als dit bedrijf vooruitbetaling vereist, geeft deze tool een betaallink terug (payment_url) en blijft de afspraak gereserveerd tot de klant betaalt — stuur die link en zeg dat de plek gereserveerd is tot betaling.",
       parameters: {
         type: "object",
@@ -317,13 +321,48 @@ export function createTools(
           .from("whatsapp_contacts")
           .update(update)
           .eq("phone_number", ctx.phone);
-        return error ? { error: error.message } : { ok: true };
+        if (error) return { error: error.message };
+        // Durably record an EXPLICIT name refusal so book_appointment can tell a genuine
+        // "Privé" (customer declined) apart from a premature/placeholder name. Without this
+        // flag the model could book a nameless "Privé" appointment before ever asking.
+        if (args.name_refused === true && ctx.conversationId) {
+          const { data: conv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          const context = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+          await supabase
+            .from("whatsapp_conversations")
+            .update({ context: { ...context, name_refused: true } })
+            .eq("id", ctx.conversationId);
+        }
+        return { ok: true };
       }
 
       case "book_appointment": {
         const start = String(args.start_time);
         const end = String(args.end_time);
         const serviceId = String(args.service_type_id);
+
+        // NAME GATE: never create a nameless booking. The model must collect a real name
+        // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
+        // recorded in the conversation context). A bare "Privé"/empty without a recorded
+        // refusal means the model jumped to booking before asking — refuse and make it ask.
+        // This is a server-side guard because the LLM (temp 0.2) otherwise satisfies the
+        // required customer_name param with a premature placeholder.
+        const rawName = String(args.customer_name ?? "").trim();
+        const nameMissing = rawName === "" || rawName.toLowerCase() === "privé" || rawName.toLowerCase() === "prive";
+        let refused = false;
+        if (nameMissing && ctx.conversationId) {
+          const { data: conv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          refused = ((conv as { context?: Record<string, unknown> } | null)?.context)?.name_refused === true;
+        }
+        if (nameMissing && !refused) {
+          return {
+            error: "naam_ontbreekt",
+            message: "Boek niet zonder naam: vraag eerst kort de naam van de klant en boek pas daarna.",
+          };
+        }
+        const customerName = nameMissing ? "Privé" : rawName;
 
         // Enforce the "Max bookings per day" Operations setting (previously saved but
         // never enforced). Count this calendar's confirmed+pending bookings on the
@@ -377,7 +416,7 @@ export function createTools(
         const insertRow: Record<string, unknown> = {
           calendar_id: ctx.calendarId,
           service_type_id: serviceId,
-          customer_name: String(args.customer_name),
+          customer_name: customerName,
           customer_phone: ctx.phone,
           start_time: start,
           end_time: end,
