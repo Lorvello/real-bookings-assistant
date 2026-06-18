@@ -30,6 +30,41 @@ export interface PromptContext {
   services?: ServiceInfo[]; // the calendar's bookable services (with UUIDs)
   welcomeMessage?: string | null; // first-contact greeting, {bedrijf} already resolved
   isFirstContact?: boolean; // true when the agent has not yet replied in this conversation
+  businessData?: Record<string, unknown> | null; // ALL set business info (fetchBusinessData), injected every turn
+}
+
+// Render the injected business data as readable Dutch lines so the agent ALWAYS has the
+// truth in context (it otherwise sometimes answers info questions without calling
+// get_business_data and then guesses). business_name/type live in <role>, so skip them.
+const BD_LABELS: Record<string, string> = {
+  business_description: "omschrijving",
+  address: "adres",
+  opening_hours: "openingstijden",
+  cancellation_policy: "annuleringsbeleid",
+  payment_info: "betaalinfo",
+  parking_info: "parkeren",
+  public_transport_info: "openbaar vervoer",
+  accessibility_info: "toegankelijkheid",
+  preparation_info: "voorbereiding",
+  other_info: "overig",
+  business_email: "e-mail",
+  business_phone: "telefoon",
+  business_whatsapp: "WhatsApp-nummer",
+  website: "website",
+};
+function renderBusinessData(bd?: Record<string, unknown> | null): string | null {
+  if (!bd) return null;
+  const lines: string[] = [];
+  for (const [key, label] of Object.entries(BD_LABELS)) {
+    const v = bd[key];
+    if (typeof v === "string" && v.trim()) lines.push(`- ${label}: ${v.trim()}`);
+  }
+  const socials = bd.socials as Record<string, string> | undefined;
+  if (socials && typeof socials === "object") {
+    const parts = Object.entries(socials).map(([k, v]) => `${k}: ${v}`);
+    if (parts.length) lines.push(`- socials: ${parts.join(", ")}`);
+  }
+  return lines.length ? lines.join("\n") : null;
 }
 
 export function buildSystemPrompt(ctx: PromptContext): string {
@@ -41,6 +76,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
   const returning = ctx.lastService
     ? `Dit is een terugkerende klant; vorige dienst: "${ctx.lastService}". Verifieer of ze weer hetzelfde willen voordat je boekt.`
     : `Geen eerdere boeking bekend voor deze klant.`;
+  const bdBlock = renderBusinessData(ctx.businessData);
 
   return `<role>
 Je bent de vriendelijke, efficiënte WhatsApp-boekingsassistent van ${ctx.businessName}${ctx.businessType ? ` (een ${ctx.businessType})` : ""}.
@@ -86,6 +122,16 @@ Kies ALTIJD een service_type_id uit deze lijst; verzin nooit een id. end_time = 
 `
       : ""
   }
+${
+    bdBlock
+      ? `
+<business_data>
+Dit is ALLE bedrijfsinfo die ${ctx.businessName} heeft ingesteld. Gebruik UITSLUITEND deze gegevens als bron voor vragen over het bedrijf, beleid, locatie, contact of socials. Citeer waarden exact. Staat een gevraagd onderwerp hier NIET? Dan weet je het niet: verzin niets en verwijs naar rechtstreeks contact.
+${bdBlock}
+</business_data>
+`
+      : ""
+  }
 <tools>
 Je hebt tools. Gebruik ZE in plaats van iets te verzinnen:
 - get_business_data: diensten, openingstijden, prijzen, bedrijfsinfo/beleid. Roep aan zodra je over beschikbaarheid, diensten, prijzen of beleid praat.
@@ -97,7 +143,7 @@ Je hebt tools. Gebruik ZE in plaats van iets te verzinnen:
 </tools>
 
 <business_info_honesty>
-get_business_data geeft ALLEEN de velden terug die het bedrijf echt heeft ingevuld; ontbrekende velden zijn weggelaten. Bevat het resultaat een gevraagd onderwerp NIET (parkeren, OV, toegankelijkheid, voorbereiding, beleid, e-mail, telefoon, etc.)? Dan WEET je het niet. Verzin dan NOOIT een antwoord (geen "ja, er is parkeren in de straat", geen verzonnen mailadres). Zeg eerlijk dat je dat niet zeker weet en verwijs de klant naar rechtstreeks contact met het bedrijf. Alleen wat in get_business_data staat mag je als feit stellen.
+De ingestelde bedrijfsinfo staat in <business_data> hierboven (ook op te vragen via get_business_data). Dat is de ENIGE bron. Bevat het een gevraagd onderwerp NIET (parkeren, OV, toegankelijkheid, voorbereiding, beleid, e-mail, telefoon, WhatsApp, socials, etc.)? Dan WEET je het niet. Verzin dan NOOIT een antwoord en gok niet (geen verzonnen handle, mailadres of nummer); zeg eerlijk dat je het niet zeker weet en verwijs naar rechtstreeks contact. Citeer waarden EXACT zoals ze in <business_data> staan; maak van een Instagram-URL geen verzonnen @handle. Haal telefoon en WhatsApp niet door elkaar: ontbreekt het telefoonnummer maar is er een WhatsApp-nummer, zeg dan dat het telefoonnummer niet bekend is en bied het WhatsApp-nummer als alternatief.
 </business_info_honesty>
 
 <name_policy>

@@ -119,6 +119,20 @@ function cleanWebsite(raw: unknown): string | null {
   return v;
 }
 
+// A social handle/URL never contains spaces; drop junk (empty / whitespace-only /
+// internal spaces like the legacy " v v") so the agent never quotes garbage.
+function cleanSocial(raw: unknown): string | null {
+  const v = (typeof raw === "string" ? raw : "").trim();
+  if (!v || /\s/.test(v)) return null;
+  return v;
+}
+
+// Trim and drop empty; keep internal spaces (phone numbers like "+31 6 1234 5678").
+function nonEmpty(raw: unknown): string | null {
+  const v = (typeof raw === "string" ? raw : "").trim();
+  return v ? v : null;
+}
+
 interface CalendarPolicy {
   allowCancellations: boolean;
   cancellationDeadlineHours: number | null;
@@ -150,6 +164,67 @@ function hoursUntil(startTime: string): number {
   return (new Date(startTime).getTime() - Date.now()) / 3_600_000;
 }
 
+// Fetch + format ALL business info the agent may share, nulls stripped. Shared by the
+// get_business_data tool AND index.ts, which injects the result into the system prompt
+// EVERY turn — so the agent always has the truth in context and can't skip the tool and
+// then guess (observed: false "no info" on set fields + a hallucinated Instagram handle
+// when it answered without calling the tool). Returns null when no business row exists.
+export async function fetchBusinessData(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Record<string, unknown> | null> {
+  const { data } = await supabase
+    .from("business_overview_v2")
+    .select(
+      "business_name, business_type, business_description, cancellation_policy, payment_info, parking_info, public_transport_info, accessibility_info, preparation_info, other_info, business_email, business_phone, business_whatsapp, business_street, business_number, business_postal, business_city, business_country, website, instagram, facebook, linkedin, tiktok, youtube, x, calendars",
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!data) return null;
+
+  // Resolve a "other" business type to the free text the owner typed.
+  let businessType: string | null = (data.business_type as string | null) ?? null;
+  if (businessType === "other") {
+    const { data: u } = await supabase
+      .from("users").select("business_type_other").eq("id", userId).maybeSingle();
+    businessType = ((u?.business_type_other as string | null) || "").trim() || null;
+  }
+
+  const out: Record<string, unknown> = {
+    business_name: data.business_name,
+    business_type: businessType,
+    business_description: data.business_description,
+    address: formatAddress(data),
+    website: cleanWebsite(data.website),
+    opening_hours: formatOpeningHours(data.calendars),
+    business_email: data.business_email,
+    business_phone: data.business_phone,
+    business_whatsapp: nonEmpty(data.business_whatsapp),
+    socials: (() => {
+      const s: Record<string, string> = {};
+      for (const [k, v] of [
+        ["instagram", data.instagram], ["facebook", data.facebook], ["linkedin", data.linkedin],
+        ["tiktok", data.tiktok], ["youtube", data.youtube], ["x", data.x],
+      ] as const) {
+        const c = cleanSocial(v);
+        if (c) s[k] = c;
+      }
+      return Object.keys(s).length ? s : null;
+    })(),
+    cancellation_policy: data.cancellation_policy,
+    payment_info: data.payment_info,
+    preparation_info: data.preparation_info,
+    parking_info: data.parking_info,
+    public_transport_info: data.public_transport_info,
+    accessibility_info: data.accessibility_info,
+    other_info: data.other_info,
+  };
+  for (const k of Object.keys(out)) {
+    if (out[k] === null || out[k] === undefined || out[k] === "") delete out[k];
+  }
+  return out;
+}
+
 export function createTools(
   supabase: SupabaseClient,
   ctx: ToolContext,
@@ -158,7 +233,7 @@ export function createTools(
     {
       name: "get_business_data",
       description:
-        "Bedrijfsinfo en beleid: adres/locatie, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact (e-mail/telefoon). Gebruik bij vragen over het bedrijf, waar ze zitten, wanneer ze open zijn, of hoe je ze bereikt.",
+        "Bedrijfsinfo en beleid: adres/locatie, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact (e-mail/telefoon/WhatsApp-nummer) en socials (Instagram/Facebook/LinkedIn/TikTok/YouTube/X). Gebruik bij vragen over het bedrijf, waar ze zitten, wanneer ze open zijn, hoe je ze bereikt, of waar ze online te vinden zijn.",
       parameters: { type: "object", properties: {} },
     },
     {
@@ -250,48 +325,8 @@ export function createTools(
   const execute: ToolExecutor = async (name, args) => {
     switch (name) {
       case "get_business_data": {
-        const { data } = await supabase
-          .from("business_overview_v2")
-          .select(
-            "business_name, business_type, business_description, cancellation_policy, payment_info, parking_info, public_transport_info, accessibility_info, preparation_info, other_info, business_email, business_phone, business_street, business_number, business_postal, business_city, business_country, website, calendars",
-          )
-          .eq("user_id", ctx.businessUserId)
-          .maybeSingle();
-        if (!data) return { error: "geen bedrijfsdata" };
-
-        // Resolve a "other" business type to the free text the owner typed, so the
-        // agent never says the literal "other".
-        let businessType: string | null = (data.business_type as string | null) ?? null;
-        if (businessType === "other") {
-          const { data: u } = await supabase
-            .from("users").select("business_type_other").eq("id", ctx.businessUserId).maybeSingle();
-          businessType = ((u?.business_type_other as string | null) || "").trim() || null;
-        }
-
-        // Return only fields the agent should share, with address/website/hours
-        // formatted as ready-to-quote text. Omit empty/null so the model doesn't
-        // claim to know something that isn't set.
-        const out: Record<string, unknown> = {
-          business_name: data.business_name,
-          business_type: businessType,
-          business_description: data.business_description,
-          address: formatAddress(data),
-          website: cleanWebsite(data.website),
-          opening_hours: formatOpeningHours(data.calendars),
-          business_email: data.business_email,
-          business_phone: data.business_phone,
-          cancellation_policy: data.cancellation_policy,
-          payment_info: data.payment_info,
-          preparation_info: data.preparation_info,
-          parking_info: data.parking_info,
-          public_transport_info: data.public_transport_info,
-          accessibility_info: data.accessibility_info,
-          other_info: data.other_info,
-        };
-        for (const k of Object.keys(out)) {
-          if (out[k] === null || out[k] === undefined || out[k] === "") delete out[k];
-        }
-        return out;
+        const out = await fetchBusinessData(supabase, ctx.businessUserId);
+        return out ?? { error: "geen bedrijfsdata" };
       }
 
       case "get_available_slots": {

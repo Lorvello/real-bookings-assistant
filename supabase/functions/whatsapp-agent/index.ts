@@ -8,7 +8,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools } from "./tools.ts";
+import { createTools, fetchBusinessData } from "./tools.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 
@@ -46,20 +46,12 @@ Deno.serve(async (req) => {
     const { data: cal } = await supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle();
     const businessUserId = (cal as { user_id?: string } | null)?.user_id ?? "";
 
-    const { data: biz } = await supabase
-      .from("business_overview_v2")
-      .select("business_name, business_type")
-      .eq("user_id", businessUserId)
-      .maybeSingle();
-
-    // Resolve a "other" business type to the owner's free text so the prompt never
-    // frames the assistant as "(een other)".
-    let businessType = (biz as { business_type?: string } | null)?.business_type ?? null;
-    if (businessType === "other") {
-      const { data: bu } = await supabase
-        .from("users").select("business_type_other").eq("id", businessUserId).maybeSingle();
-      businessType = ((bu as { business_type_other?: string } | null)?.business_type_other || "").trim() || null;
-    }
+    // Fetch ALL set business info once and inject it into the system prompt every turn
+    // (see prompt.ts <business_data>), so the agent always has the truth in context and
+    // never answers an info question without it (which caused false "no info" + a
+    // hallucinated handle). fetchBusinessData also resolves a "other" business type.
+    const businessData = await fetchBusinessData(supabase, businessUserId);
+    const businessType = (businessData?.business_type as string | null) ?? null;
 
     const { data: svcRows } = await supabase
       .from("service_types")
@@ -117,7 +109,7 @@ Deno.serve(async (req) => {
     const lastService = (lastB as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
 
     const knownName = (contact as { first_name?: string } | null)?.first_name ?? contact_name ?? null;
-    const businessName = (biz as { business_name?: string } | null)?.business_name ?? "ons bedrijf";
+    const businessName = (businessData?.business_name as string | null) ?? "ons bedrijf";
 
     // First contact = the greeting has not yet fired in this conversation. We persist a
     // durable `greeting_sent` flag in the conversation context (set after the first reply)
@@ -142,6 +134,7 @@ Deno.serve(async (req) => {
       services,
       welcomeMessage,
       isFirstContact,
+      businessData,
     });
 
     // Build conversation turns. History already ends with the current inbound message
