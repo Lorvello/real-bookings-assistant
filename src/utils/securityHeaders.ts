@@ -6,9 +6,9 @@ export const SecurityHeaders = {
   CSP: {
     'default-src': "'self'",
     'script-src': "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.voiceflow.com",
-    'style-src': "'self' 'unsafe-inline' https://fonts.googleapis.com",
+    'style-src': "'self' 'unsafe-inline'",
     'img-src': "'self' data: https: blob:",
-    'font-src': "'self' https://fonts.gstatic.com",
+    'font-src': "'self'",
     'connect-src': "'self' https://*.supabase.co wss://*.supabase.co",
     'frame-src': "'none'",
     'object-src': "'none'",

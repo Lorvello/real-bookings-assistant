@@ -1,4 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Self-hosted fonts (PLAYBOOK §3a) — kills the render-blocking Google CDN AND restores the
+   cv11/ss01 stylistic sets that index.css requests below: the CDN's Inter strips those features,
+   so they silently never rendered. Inter Variable ships every weight (incl. the 298× font-bold
+   and 59× font-light usages) in one file; EB Garamond carries the editorial italic voice.
+   Unused unicode-range subsets are not downloaded thanks to @font-face unicode-range. */
+@import '@fontsource-variable/inter';
+@import '@fontsource/eb-garamond/latin-400.css';
+@import '@fontsource/eb-garamond/latin-500.css';
+@import '@fontsource/eb-garamond/latin-400-italic.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -19,8 +27,8 @@
     --muted: 224 16% 12%;
     --foreground: 210 20% 96%;         /* #EEF0F3 primary text */
     --muted-foreground: 215 14% 65%;   /* #A2A9B4 secondary */
-    --subtle-foreground: 216 9% 50%;   /* #767C87 tertiary */
-    --primary: 150 66% 40%;            /* #22AB72 refined brand emerald (was blue #0070F3) */
+    --subtle-foreground: 216 10% 56%;  /* #848D9A tertiary — ≈5.3:1 on the card (was 216 9% 50% ~4.4:1) */
+    --primary: 150 66% 30%;            /* #1A7F4D brand emerald, deepened for white-text AA ≈5:1 (was 40% #22AB72 ~2.9:1; orig blue #0070F3) */
     --primary-foreground: 0 0% 100%;
     --accent: 150 58% 47%;             /* lighter emerald, used at /0.12 as selected wash */
     --accent-foreground: 150 64% 64%;  /* #5FD8A2 mint — accent text + links */
@@ -31,7 +39,7 @@
     --border: 220 9% 18%;
     --input: 220 9% 20%;
     --destructive: 0 84% 60%;          --destructive-foreground: 0 90% 71%;
-    --success: 142 71% 45%;            --success-foreground: 142 70% 62%;
+    --success: 150 65% 45%;            --success-foreground: 150 65% 62%; /* pulled to the brand emerald hue 150 (was 142) — brighter L than --primary = the positive-state tier */
     --warning: 38 95% 54%;             --warning-foreground: 38 95% 66%;
     --radius: 0.75rem;
     --chart-1: 150 66% 45%;
@@ -41,7 +49,7 @@
     --chart-5: 0 84% 60%;
     --sidebar-background: 224 20% 7%;
     --sidebar-foreground: 215 14% 65%;
-    --sidebar-primary: 150 66% 40%;
+    --sidebar-primary: 150 66% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 16% 12%;
     --sidebar-accent-foreground: 210 20% 96%;
@@ -69,10 +77,10 @@
     /* 3-tier off-white text ramp (all >= 4.5:1, never pure white) */
     --foreground: 210 20% 96%;         /* #EEF0F3 primary (AAA) */
     --muted-foreground: 215 14% 65%;   /* #A2A9B4 secondary (7.5:1) */
-    --subtle-foreground: 216 9% 50%;   /* #767C87 tertiary / placeholders (4.6:1) */
+    --subtle-foreground: 216 10% 56%;  /* #848D9A tertiary / placeholders — ≈5.3:1 on the card (was 9% 50% ~4.4:1) */
 
     /* brand emerald accent + warm-gold secondary; success/confirmed shares the green family */
-    --primary: 150 66% 40%;            /* #22AB72 refined brand emerald (was blue #0070F3) */
+    --primary: 150 66% 30%;            /* #1A7F4D brand emerald, deepened for white-text AA ≈5:1 (was 40% #22AB72 ~2.9:1; orig blue #0070F3) */
     --primary-foreground: 0 0% 100%;
     --accent: 150 58% 47%;             /* used at /0.12 as the selected wash */
     --accent-foreground: 150 64% 64%;  /* #5FD8A2 accent text + links */
@@ -87,7 +95,7 @@
 
     /* semantics */
     --destructive: 0 84% 60%;          --destructive-foreground: 0 90% 71%;
-    --success: 142 71% 45%;            --success-foreground: 142 70% 62%;
+    --success: 150 65% 45%;            --success-foreground: 150 65% 62%; /* pulled to the brand emerald hue 150 (was 142) — brighter L than --primary = the positive-state tier */
     --warning: 38 95% 54%;             --warning-foreground: 38 95% 66%;
 
     --radius: 0.75rem;                 /* 12px cards; buttons/inputs derive 8px */
@@ -99,7 +107,7 @@
     --chart-5: 0 84% 60%;
     --sidebar-background: 224 20% 7%;
     --sidebar-foreground: 215 14% 65%;
-    --sidebar-primary: 150 66% 40%;
+    --sidebar-primary: 150 66% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 224 16% 12%;
     --sidebar-accent-foreground: 210 20% 96%;

@@ -19,7 +19,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Inter', 'system-ui', 'sans-serif'],
+				sans: ['Inter Variable', 'Inter', 'system-ui', 'sans-serif'],
 				serif: ['EB Garamond', 'Georgia', 'Times New Roman', 'serif'],
 			},
 			// DESIGN_SPEC §2 — the type scale as reusable tokens. Additive (nothing uses
