@@ -230,16 +230,25 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
       {/* BOTTOM SECTION - Full Width */}
       <div className="grid md:grid-cols-2 gap-6 mt-6">
         
-        {/* How It Works */}
+        {/* How It Works — now explains the recognition + the first-message rule so
+            the owner understands why the first reply is a greeting, and how to test
+            the assistant as a customer would. */}
         <Card className="bg-card rounded-lg border border-white/[0.08]">
           <CardContent className="p-6">
             <h3 className="text-base text-foreground font-medium mb-4">How It Works</h3>
 
             <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p>1. Customer scans QR code with their phone</p>
-              <p>2. WhatsApp opens with a pre-filled message</p>
-              <p>3. Customer sends the message to save the chat</p>
-              <p>4. AI assistant responds and helps them book</p>
+              <p>1. A customer scans your QR code (or taps your link).</p>
+              <p>2. WhatsApp opens with a pre-filled message that quietly carries your business code, so we know the chat belongs to you.</p>
+              <p>3. They send it once to save the chat. The assistant replies with a short welcome.</p>
+              <p>4. From then on, the assistant answers their questions and books, reschedules or cancels for them.</p>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-primary/20 bg-primary/[0.06] px-4 py-3">
+              <p className="text-sm font-medium text-foreground">Want to test it yourself?</p>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                Scan your own QR and send the pre-filled message. The first reply is always the welcome. Then send your real question (for example "kan ik morgen om 14:00?") and the assistant will help you, exactly like a customer. Tip: you can also put your question straight after the saved message, the assistant greets and helps in one go.
+              </p>
             </div>
           </CardContent>
         </Card>
