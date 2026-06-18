@@ -2,6 +2,9 @@
 //   LLM_PROVIDER=openai  -> OpenAI Chat Completions (default model gpt-5-nano: fast + cheap)
 //   LLM_PROVIDER=gemini  -> Gemini Flash-Lite (original; kept for easy revert)
 // Default is gemini unless LLM_PROVIDER is set. Only this file knows the wire formats.
+// LIVE (Supabase secrets, verified 2026-06-18): LLM_PROVIDER=openai, OPENAI_MODEL=gpt-5-mini
+// -> production runs gpt-5-mini, proven across the launch-ready loop. The gemini/gpt-5-nano
+// defaults above are the safe-revert path (flip LLM_PROVIDER=gemini), NOT what runs live.
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
