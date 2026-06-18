@@ -1,61 +1,55 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarSettings } from '@/components/CalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock, Settings } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { useCalendarSettings } from '@/hooks/useCalendarSettings';
-import { CalendarSelectionCard } from './CalendarSelectionCard';
+import { CalendarClock, CalendarDays, MessageSquare, SlidersHorizontal } from 'lucide-react';
+import { CalendarSwitcher } from '@/components/CalendarSwitcher';
 import { GlobalSettings } from '@/components/calendar-settings/GlobalSettings';
 import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
+import { SettingsSection } from './SettingsSection';
 
 export function CalendarTab() {
   const navigate = useNavigate();
   const { selectedCalendar, calendars } = useCalendarContext();
-  const { saving } = useCalendarSettings(selectedCalendar?.id);
 
-  // Always show Global Settings regardless of calendar selection
-  const renderGlobalSettings = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground">Global Settings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <GlobalSettings />
-      </CardContent>
-    </Card>
+  // The master on/off for the assistant — always shown, top of the page.
+  const assistant = (
+    <SettingsSection
+      icon={MessageSquare}
+      title="WhatsApp assistant"
+      description="Turn the automated booking assistant on or off across every calendar."
+      usedByAgent
+    >
+      <GlobalSettings />
+    </SettingsSection>
   );
 
-  // Surface availability (the #1 operational setting) from the Operations tab. The
-  // full editor lives on /availability; opening_hours genuinely reaches the WhatsApp
-  // agent, so it directly shapes the slots customers are offered.
-  const renderAvailabilityCard = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <Clock className="h-5 w-5 text-muted-foreground" />
-          Availability &amp; Opening Hours
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <p className="text-sm text-muted-foreground">
-          Set your weekly opening hours and date-specific overrides. The WhatsApp agent uses this to offer customers only the slots you're actually open.
-        </p>
-        <Button onClick={() => navigate('/availability')} className="shrink-0">
-          Manage availability
+  // Availability is the #1 operational input; the full editor lives on /availability.
+  const availability = (
+    <SettingsSection
+      icon={CalendarClock}
+      title="Availability & opening hours"
+      description="Set your weekly opening hours and date-specific overrides. The assistant only offers customers the slots you're actually open."
+      usedByAgent
+      action={
+        <Button variant="outline" onClick={() => navigate('/availability')} className="shrink-0">
+          Manage
         </Button>
-      </CardContent>
-    </Card>
+      }
+    >
+      <p className="text-sm leading-6 text-muted-foreground">
+        Closed days and holidays are respected automatically — customers are never offered a time
+        you're not available.
+      </p>
+    </SettingsSection>
   );
 
   if (calendars.length === 0) {
     return (
       <div className="space-y-6">
-        {renderGlobalSettings()}
-        <Separator />
+        {assistant}
+        {availability}
         <CalendarRequiredEmptyState
           title="No calendar found"
           description="You don't have any calendars yet. Create one to start managing your operations settings."
@@ -64,43 +58,31 @@ export function CalendarTab() {
     );
   }
 
-  if (!selectedCalendar) {
-    return (
-      <div className="space-y-6">
-        {renderGlobalSettings()}
-        <Separator />
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="glow-accent relative mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-            <Settings className="h-6 w-6 text-accent-foreground" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Select a Calendar</h3>
-          <p className="text-muted-foreground">
-            Choose a calendar to manage its operations settings.
-          </p>
-        </div>
-        <CalendarSelectionCard hideAllCalendarsOption={true} />
-        {renderAvailabilityCard()}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {renderGlobalSettings()}
-      <Separator />
-      <CalendarSelectionCard hideAllCalendarsOption={true} />
-      
-      {/* Auto-save indicator */}
-      {saving && (
-        <div className="glow-accent flex items-center justify-center glass rounded-2xl p-3">
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-            <p className="text-accent-foreground text-sm font-medium">Saving…</p>
-          </div>
-        </div>
+      {assistant}
+
+      <SettingsSection
+        icon={CalendarDays}
+        title="Calendar"
+        description="Choose which calendar these availability and booking policies apply to."
+      >
+        <CalendarSwitcher hideAllCalendarsOption={true} />
+      </SettingsSection>
+
+      {availability}
+
+      {selectedCalendar ? (
+        <CalendarSettings calendarId={selectedCalendar.id} showGlobalSettings={false} />
+      ) : (
+        <SettingsSection
+          icon={SlidersHorizontal}
+          title="Booking policies"
+          description="Select a calendar above to manage its booking policies."
+        >
+          <p className="text-sm text-muted-foreground">No calendar selected yet.</p>
+        </SettingsSection>
       )}
-      
-      <CalendarSettings calendarId={selectedCalendar.id} showGlobalSettings={false} />
     </div>
   );
 }

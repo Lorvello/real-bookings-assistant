@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info } from 'lucide-react';
 import { useGlobalBotStatus } from '@/hooks/useGlobalBotStatus';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { WhatsAppUpgradeModal } from './WhatsAppUpgradeModal';
@@ -14,6 +11,7 @@ export function GlobalSettings() {
 
   const hasWhatsAppAccess = accessControl.canAccessWhatsApp;
   const isRestrictedUser = userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
+  const isActive = hasWhatsAppAccess ? (botStatus?.whatsapp_bot_active ?? false) : false;
 
   const handleWhatsAppBotToggle = (checked: boolean) => {
     if (!hasWhatsAppAccess && isRestrictedUser) {
@@ -24,42 +22,31 @@ export function GlobalSettings() {
   };
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <div className="space-y-6">
-        {/* WhatsApp Bot Setting - Global */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Label className="text-foreground font-medium">WhatsApp Bot Active</Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button type="button" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors">
-                    <Info className="h-4 w-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>When enabled, the AI assistant responds to WhatsApp messages globally across all calendars. When disabled, the bot will not reply to customer messages.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Enable automated WhatsApp booking assistant (applies to all calendars)
-            </p>
-          </div>
-          <Switch
-            checked={hasWhatsAppAccess ? (botStatus?.whatsapp_bot_active ?? false) : false}
-            onCheckedChange={handleWhatsAppBotToggle}
-            disabled={isLoading || isToggling || !hasWhatsAppAccess}
-            className={!hasWhatsAppAccess ? "opacity-50" : ""}
-          />
+    <>
+      {/* One calm toggle row instead of a label + info-tooltip: premium products
+          explain inline rather than hide the explanation behind an icon. */}
+      <div className="flex items-start justify-between gap-5">
+        <div className="min-w-0 space-y-1">
+          <p className="text-[13px] font-medium leading-[18px] text-foreground">WhatsApp bot active</p>
+          <p className="text-xs leading-5 text-muted-foreground">
+            When on, the assistant replies to WhatsApp messages and books appointments for customers
+            automatically. When off, it stays silent and no one receives a reply.
+          </p>
         </div>
-        
-        <WhatsAppUpgradeModal
-          isOpen={showUpgradeModal}
-          onClose={() => setShowUpgradeModal(false)}
-          userType={userStatus.userType}
+        <Switch
+          checked={isActive}
+          onCheckedChange={handleWhatsAppBotToggle}
+          disabled={isLoading || isToggling || !hasWhatsAppAccess}
+          aria-label="WhatsApp bot active"
+          className={!hasWhatsAppAccess ? 'opacity-50' : ''}
         />
       </div>
-    </TooltipProvider>
+
+      <WhatsAppUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        userType={userStatus.userType}
+      />
+    </>
   );
 }
