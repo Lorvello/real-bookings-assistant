@@ -45,7 +45,7 @@ export function SettingsSection({
   return (
     <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="gap-1 border-b border-white/[0.05] bg-white/[0.012] p-5 md:p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
           <div className="flex min-w-0 items-start gap-3">
             {Icon && (
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/[0.10] text-accent-foreground">

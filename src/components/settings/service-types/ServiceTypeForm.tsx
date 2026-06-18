@@ -1,13 +1,10 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ServiceType } from '@/types/calendar';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { SettingsField } from '@/components/settings/SettingsField';
+import { ColorPicker } from './ColorPicker';
 import { TeamMemberSelector } from '@/components/service-types/TeamMemberSelector';
 import { ServiceCalendarSelector } from './ServiceCalendarSelector';
 import { Calendar as CalendarType } from '@/types/database';
@@ -45,30 +42,13 @@ interface ServiceTypeFormProps {
   onCalendarCreated?: (calendar: CalendarType) => void;
 }
 
-const colorOptions = [
-  '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-  '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6B7280'
-];
-
-const TAX_CODE_OPTIONS = [
-  { value: 'txcd_99999999', label: 'Professional Services' },
-  { value: 'txcd_10401000', label: 'Digital Services' },
-  { value: 'txcd_10000000', label: 'General Services' },
-  { value: 'txcd_10103000', label: 'Software Services' },
-  { value: 'txcd_10502001', label: 'Consulting Services' },
-  { value: 'txcd_20030000', label: 'Educational Services' }
-];
-
-export function ServiceTypeForm({ 
-  formData, 
-  setFormData, 
-  onSave, 
-  onCancel, 
-  saving, 
+export function ServiceTypeForm({
+  formData,
+  setFormData,
+  onSave,
+  onCancel,
+  saving,
   isEditing,
-  taxConfigured = false,
-  userTaxBehavior,
-  onRefreshTaxStatus,
   calendarId,
   selectedTeamMembers = [],
   onTeamMembersChange,
@@ -77,151 +57,119 @@ export function ServiceTypeForm({
   onCalendarSelect,
   onCalendarCreated
 }: ServiceTypeFormProps) {
-  const navigate = useNavigate();
-  const [showTaxBehaviorWarning, setShowTaxBehaviorWarning] = useState(false);
-  const [previousTaxBehavior] = useState(formData.tax_behavior);
   // Surface WHY Save is disabled instead of a silently-greyed button.
   const [nameTouched, setNameTouched] = useState(false);
 
-  // Validation function
+  // Validation: name required; if tax is on, tax_code + behavior are required.
   const isValidForm = () => {
     if (!formData.name.trim()) return false;
-    
-    // If tax is enabled, require tax_code and tax_behavior
-    if (formData.tax_enabled) {
-      if (!formData.tax_code || !formData.tax_behavior) {
-        return false;
-      }
-    }
-    
+    if (formData.tax_enabled && (!formData.tax_code || !formData.tax_behavior)) return false;
     return true;
   };
 
-  // Handle tax behavior change with warning
-  const handleTaxBehaviorChange = (newBehavior: 'inclusive' | 'exclusive') => {
-    if (isEditing && previousTaxBehavior === 'inclusive' && newBehavior === 'exclusive') {
-      setShowTaxBehaviorWarning(true);
-    }
-    setFormData(prev => ({ ...prev, tax_behavior: newBehavior }));
-  };
+  const nameInvalid = nameTouched && !formData.name.trim();
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Service Name *
-          </label>
-          <input
-            type="text"
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <SettingsField
+          label="Service name"
+          htmlFor="svc-name"
+          required
+          error={nameInvalid ? 'Service name is required.' : null}
+        >
+          <Input
+            id="svc-name"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             onBlur={() => setNameTouched(true)}
-            className={`w-full p-3 border rounded-md bg-background text-foreground focus:ring-2 focus:border-transparent ${
-              nameTouched && !formData.name.trim()
-                ? 'border-destructive focus:ring-destructive'
-                : 'border-border focus:ring-primary'
-            }`}
             placeholder="e.g. Haircut"
+            aria-invalid={nameInvalid}
+            className={nameInvalid ? 'border-destructive/70 focus-visible:border-destructive/70 focus-visible:ring-destructive/25' : undefined}
           />
-          {nameTouched && !formData.name.trim() && (
-            <p className="mt-1 text-xs text-destructive-foreground">Service name is required.</p>
-          )}
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Duration (minutes) *
-          </label>
-          <input
+        </SettingsField>
+
+        <SettingsField label="Duration" htmlFor="svc-duration" description="In minutes." required>
+          <Input
+            id="svc-duration"
             type="number"
+            min={1}
             value={formData.duration}
-            onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
-            min="1"
+            onChange={(e) => setFormData((prev) => ({ ...prev, duration: e.target.value }))}
             placeholder="30"
           />
-        </div>
+        </SettingsField>
 
-        {/* Prep/cleanup buffers — get_available_slots blocks these minutes around the
-            appointment in its conflict check. Previously not editable -> stuck at 0. */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              Prep time (minutes)
-            </label>
-            <input
+        <SettingsField label="Price" htmlFor="svc-price" description="Leave at 0 for a free service.">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
+            <Input
+              id="svc-price"
               type="number"
-              value={formData.preparation_time}
-              onChange={(e) => setFormData(prev => ({ ...prev, preparation_time: e.target.value }))}
-              className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
-              min="0"
-              placeholder="0"
+              min={0}
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
+              placeholder="0.00"
+              className="pl-7"
             />
-            <p className="mt-1 text-xs text-muted-foreground">Reserved before the appointment.</p>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              Cleanup time (minutes)
-            </label>
-            <input
-              type="number"
-              value={formData.cleanup_time}
-              onChange={(e) => setFormData(prev => ({ ...prev, cleanup_time: e.target.value }))}
-              className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
-              min="0"
-              placeholder="0"
-            />
-            <p className="mt-1 text-xs text-muted-foreground">Reserved after the appointment.</p>
-          </div>
-        </div>
+        </SettingsField>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Price (€)
-          </label>
-          <input
-            type="number"
-            value={formData.price}
-            onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
+        <SettingsField label="Color" description="Shown on the calendar and booking views.">
+          <ColorPicker
+            value={formData.color}
+            onChange={(color) => setFormData((prev) => ({ ...prev, color }))}
+            ariaLabel="Service color"
           />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Color
-          </label>
-          <div className="flex flex-wrap gap-2 mt-1">
-            {colorOptions.map((color) => (
-              <button
-                key={color}
-                onClick={() => setFormData(prev => ({ ...prev, color }))}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  formData.color === color ? 'border-foreground scale-110' : 'border-border'
-                }`}
-                style={{ backgroundColor: color }}
-                type="button"
-              />
-            ))}
-          </div>
-        </div>
-        
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Description
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            className="w-full p-3 border border-border rounded-md bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-transparent"
-            rows={3}
-            placeholder="Optional description of the service"
-          />
-        </div>
+        </SettingsField>
       </div>
+
+      {/* Prep/cleanup buffers — get_available_slots blocks these minutes around the
+          appointment in its conflict check. */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <SettingsField
+          label="Prep time"
+          htmlFor="svc-prep"
+          description="Reserved before the appointment (minutes)."
+          optional
+        >
+          <Input
+            id="svc-prep"
+            type="number"
+            min={0}
+            value={formData.preparation_time}
+            onChange={(e) => setFormData((prev) => ({ ...prev, preparation_time: e.target.value }))}
+            placeholder="0"
+          />
+        </SettingsField>
+
+        <SettingsField
+          label="Cleanup time"
+          htmlFor="svc-cleanup"
+          description="Reserved after the appointment (minutes)."
+          optional
+        >
+          <Input
+            id="svc-cleanup"
+            type="number"
+            min={0}
+            value={formData.cleanup_time}
+            onChange={(e) => setFormData((prev) => ({ ...prev, cleanup_time: e.target.value }))}
+            placeholder="0"
+          />
+        </SettingsField>
+      </div>
+
+      <SettingsField label="Description" htmlFor="svc-description" optional>
+        <Textarea
+          id="svc-description"
+          value={formData.description}
+          onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+          rows={3}
+          placeholder="Optional description of the service"
+        />
+      </SettingsField>
 
       {/* Calendar Selection Section */}
       {calendars && calendars.length > 0 && onCalendarSelect && onCalendarCreated && (
@@ -236,12 +184,11 @@ export function ServiceTypeForm({
 
       {/* (Removed the disabled "Tax Configuration — Coming Soon" placeholder: a
           hard-disabled Lock + dead Switch that can never be turned on (the create
-          path hardcodes tax_enabled:false). Same dead Coming-Soon pattern the owner
-          has been deleting elsewhere (cf. R108). Re-add when tax config is real.) */}
+          path hardcodes tax_enabled:false). Re-add when tax config is real.) */}
 
       {/* Team Member Assignment Section */}
       {calendarId && onTeamMembersChange && (
-        <div className="space-y-4">
+        <div className="border-t border-white/[0.06] pt-6">
           <TeamMemberSelector
             calendarId={calendarId}
             selectedMemberIds={selectedTeamMembers}
@@ -250,13 +197,13 @@ export function ServiceTypeForm({
           />
         </div>
       )}
-      
-      <div className="flex justify-end space-x-3">
+
+      <div className="flex justify-end gap-3 border-t border-white/[0.06] pt-5">
         <Button variant="outline" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
         <Button onClick={onSave} disabled={saving || !isValidForm()}>
-          {saving ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+          {saving ? 'Saving…' : isEditing ? 'Update' : 'Create'}
         </Button>
       </div>
     </div>

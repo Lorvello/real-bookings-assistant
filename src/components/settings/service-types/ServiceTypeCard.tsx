@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Euro, Edit2, Trash2 } from 'lucide-react';
+import { Clock, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ServiceType } from '@/types/calendar';
@@ -28,75 +28,71 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
   };
 
   return (
-    <Card className="group hover:border-primary/50 transition-colors">
-      <CardContent className="p-4">
-        {/* Service Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="space-y-2 flex-1">
-            <div className="flex items-center space-x-3">
-              <div 
-                className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: service.color }}
-              />
-              <h3 className="text-foreground font-medium truncate">{service.name}</h3>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <StripeStatusBadge
-                price={service.price}
-                stripeTestPriceId={(service as any).stripe_test_price_id}
-                stripeLivePriceId={(service as any).stripe_live_price_id}
-              />
-              <TaxBadge
-                taxEnabled={service.tax_enabled || false}
-                taxBehavior={service.tax_behavior}
-                taxCode={service.tax_code}
-              />
-            </div>
-          </div>
-          <div className="flex items-center space-x-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-            <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(service)}>
+    <Card className="group relative flex h-full flex-col border-white/[0.06] transition-colors hover:border-white/15 hover:bg-white/[0.015]">
+      <CardContent className="flex flex-1 flex-col p-4">
+        {/* Header: color + name. Row actions float top-right so they never reserve
+            layout width (which would truncate short names prematurely). */}
+        <div className="mb-3 flex min-w-0 items-center gap-2.5 pr-2">
+          <span
+            className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/10"
+            style={{ backgroundColor: service.color }}
+            aria-hidden="true"
+          />
+          <h3 className="truncate font-medium text-foreground">{service.name}</h3>
+        </div>
+        <div className="absolute right-3 top-3 flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              onClick={() => onEdit(service)}
+              aria-label={`Edit ${service.name}`}
+            >
               <Edit2 className="h-4 w-4" />
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive-foreground"
               onClick={() => onDelete(service.id)}
+              aria-label={`Delete ${service.name}`}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
-          </div>
         </div>
-      
-      {/* Service Description */}
-      {service.description && (
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-          {service.description}
-        </p>
-      )}
 
-      {/* Service Details */}
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center text-muted-foreground">
-            <Clock className="h-4 w-4 mr-1" />
-            <span>Duration:</span>
-          </div>
-          <span className="text-foreground font-medium">
+        {/* Description */}
+        {service.description && (
+          <p className="mb-3 line-clamp-2 text-sm leading-5 text-muted-foreground">
+            {service.description}
+          </p>
+        )}
+
+        {/* Meta: duration · price, pushed to the bottom for an even grid */}
+        <div className="mt-auto flex items-center gap-2 pt-1 text-sm">
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
             {formatDuration(service.duration)}
           </span>
+          <span className="text-subtle-foreground">·</span>
+          <span className="font-medium text-foreground">{formatPrice(service.price)}</span>
         </div>
-        
-        <div className="flex justify-between items-center">
-          <div className="flex items-center text-muted-foreground">
-            <Euro className="h-4 w-4 mr-1" />
-            <span>Price:</span>
+
+        {/* Status badges (Stripe shows only for paid services, Tax only when enabled) */}
+        {(!!service.price || service.tax_enabled) ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <StripeStatusBadge
+              price={service.price}
+              stripeTestPriceId={(service as any).stripe_test_price_id}
+              stripeLivePriceId={(service as any).stripe_live_price_id}
+            />
+            <TaxBadge
+              taxEnabled={service.tax_enabled || false}
+              taxBehavior={service.tax_behavior}
+              taxCode={service.tax_code}
+            />
           </div>
-          <span className="text-foreground font-medium">
-            {formatPrice(service.price)}
-          </span>
-        </div>
-        </div>
+        ) : null}
       </CardContent>
     </Card>
   );

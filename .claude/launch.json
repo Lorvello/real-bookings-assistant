@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 8080
+    },
+    {
+      "name": "ba-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "8095"],
+      "port": 8095
     }
   ]
 }

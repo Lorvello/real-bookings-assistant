@@ -1,9 +1,6 @@
 
 import React, { useState } from 'react';
 import { Calendar, Plus, Check } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarType } from '@/types/database';
 import { InlineCalendarCreation } from './InlineCalendarCreation';
@@ -41,67 +38,72 @@ export function ServiceCalendarSelector({
   }
 
   return (
-    <div className="space-y-4 border-t border-border pt-6">
-      <div className="flex items-center gap-2">
-        <Calendar className="w-5 h-5 text-muted-foreground" />
-        <h3 className="text-lg font-medium text-foreground">Which calendar to use</h3>
+    <div className="space-y-3 border-t border-white/[0.06] pt-6">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 text-[13px] font-medium leading-[18px] text-foreground">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          Which calendar to use
+        </div>
+        <p className="text-xs leading-5 text-muted-foreground">
+          Add this service to an existing calendar, or create a new one.
+        </p>
       </div>
-      
-      <p className="text-sm text-muted-foreground">
-        Select a calendar to add this service to, or create a new one.
-      </p>
 
-      <div className="grid gap-2">
-        {calendars.map((calendar) => (
-          <Card
-            key={calendar.id}
-            onClick={() => !disabled && onCalendarSelect(calendar.id)}
-            className={cn(
-              "p-3 cursor-pointer transition-all border",
-              selectedCalendarId === calendar.id
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-muted/50",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full border border-border"
-                  style={{ backgroundColor: calendar.color || '#6B7280' }}
-                />
-                <div>
-                  <p className="font-medium text-foreground">{calendar.name}</p>
-                  {calendar.description && (
-                    <p className="text-xs text-muted-foreground">{calendar.description}</p>
-                  )}
-                </div>
-              </div>
-              {selectedCalendarId === calendar.id && (
-                <Check className="w-4 h-4 text-primary" />
+      <div className="grid gap-2" role="radiogroup" aria-label="Calendar for this service">
+        {calendars.map((calendar) => {
+          const selected = selectedCalendarId === calendar.id;
+          return (
+            <button
+              key={calendar.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              disabled={disabled}
+              onClick={() => !disabled && onCalendarSelect(calendar.id)}
+              className={cn(
+                'flex items-center justify-between rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                selected
+                  ? 'border-primary/40 bg-primary/[0.08]'
+                  : 'border-white/[0.08] bg-muted/40 hover:border-white/15 hover:bg-muted/70',
+                disabled && 'cursor-not-allowed opacity-50'
               )}
-            </div>
-          </Card>
-        ))}
+            >
+              <span className="flex min-w-0 items-center gap-3">
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/10"
+                  style={{ backgroundColor: calendar.color || '#6B7280' }}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-foreground">{calendar.name}</span>
+                  {calendar.description && (
+                    <span className="block truncate text-xs text-muted-foreground">{calendar.description}</span>
+                  )}
+                </span>
+              </span>
+              {selected && <Check className="h-4 w-4 shrink-0 text-accent-foreground" />}
+            </button>
+          );
+        })}
 
         {/* Create New Calendar Option */}
-        <Card
+        <button
+          type="button"
+          disabled={disabled}
           onClick={() => !disabled && setShowCreateForm(true)}
           className={cn(
-            "p-3 cursor-pointer transition-all border border-dashed border-border hover:border-primary/50 hover:bg-muted/50",
-            disabled && "opacity-50 cursor-not-allowed"
+            'flex items-center gap-3 rounded-lg border border-dashed border-white/[0.12] p-3 text-left transition-colors hover:border-white/25 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            disabled && 'cursor-not-allowed opacity-50'
           )}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-              <Plus className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">Create new calendar</p>
-              <p className="text-xs text-muted-foreground">Set up a new calendar with availability</p>
-            </div>
-          </div>
-        </Card>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+            <Plus className="h-4 w-4 text-muted-foreground" />
+          </span>
+          <span>
+            <span className="block font-medium text-foreground">Create new calendar</span>
+            <span className="block text-xs text-muted-foreground">Set up a new calendar with availability</span>
+          </span>
+        </button>
       </div>
     </div>
   );

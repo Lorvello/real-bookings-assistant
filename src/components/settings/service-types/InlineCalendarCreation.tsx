@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Card } from '@/components/ui/card';
+import { SettingsField } from '@/components/settings/SettingsField';
+import { ColorPicker, SERVICE_COLORS } from './ColorPicker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,14 +53,12 @@ const DEFAULT_AVAILABILITY: WeekAvailability = {
   7: { enabled: false, startTime: '10:00', endTime: '16:00' }
 };
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-
 export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCalendarCreationProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [calendarName, setCalendarName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+  const [selectedColor, setSelectedColor] = useState(SERVICE_COLORS[0]);
   const [availability, setAvailability] = useState<WeekAvailability>(DEFAULT_AVAILABILITY);
 
   const updateDayAvailability = (day: number, updates: Partial<DayAvailability>) => {
@@ -167,23 +165,23 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
   };
 
   return (
-    <div className="space-y-4 border-t border-border pt-6">
+    <div className="space-y-4 border-t border-white/[0.06] pt-6">
       <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onCancel}
-          className="p-1 h-8 w-8"
+          className="h-8 w-8 p-1"
+          aria-label="Back to calendar selection"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h3 className="text-lg font-medium text-foreground">Create new calendar</h3>
+        <h3 className="text-base font-semibold text-foreground">Create new calendar</h3>
       </div>
 
-      <Card className="p-4 space-y-4">
+      <div className="space-y-5 rounded-lg border border-white/[0.08] bg-muted/30 p-4 md:p-5">
         {/* Calendar Name */}
-        <div className="space-y-2">
-          <Label htmlFor="calendar-name">Calendar name *</Label>
+        <SettingsField label="Calendar name" htmlFor="calendar-name" required>
           <Input
             id="calendar-name"
             value={calendarName}
@@ -191,96 +189,91 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
             placeholder="e.g. My Salon"
             disabled={saving}
           />
-        </div>
+        </SettingsField>
 
         {/* Color Selection */}
-        <div className="space-y-2">
-          <Label>Color</Label>
-          <div className="flex gap-2">
-            {COLORS.map((color) => (
-              <button
-                key={color}
-                onClick={() => setSelectedColor(color)}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  selectedColor === color ? 'border-foreground scale-110' : 'border-border'
-                }`}
-                style={{ backgroundColor: color }}
-                type="button"
-                disabled={saving}
-              />
-            ))}
-          </div>
-        </div>
+        <SettingsField label="Color">
+          <ColorPicker
+            value={selectedColor}
+            onChange={setSelectedColor}
+            disabled={saving}
+            ariaLabel="Calendar color"
+          />
+        </SettingsField>
 
         {/* Availability Times */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-            <Label>Availability hours</Label>
+          <div className="flex items-center gap-2 text-[13px] font-medium leading-[18px] text-foreground">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            Availability hours
           </div>
-          
-          <div className="space-y-2">
-            {DAYS.map((day) => (
-              <div key={day.key} className="flex items-center gap-3 py-2">
-                <Switch
-                  checked={availability[day.key].enabled}
-                  onCheckedChange={(checked) => updateDayAvailability(day.key, { enabled: checked })}
-                  disabled={saving}
-                />
-                <span className={`w-24 text-sm ${availability[day.key].enabled ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {day.label}
-                </span>
-                
-                {availability[day.key].enabled ? (
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={availability[day.key].startTime}
-                      onValueChange={(value) => updateDayAvailability(day.key, { startTime: value })}
-                      disabled={saving}
-                    >
-                      <SelectTrigger className="w-24 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_OPTIONS.map((time) => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <span className="text-muted-foreground">–</span>
-                    <Select
-                      value={availability[day.key].endTime}
-                      onValueChange={(value) => updateDayAvailability(day.key, { endTime: value })}
-                      disabled={saving}
-                    >
-                      <SelectTrigger className="w-24 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_OPTIONS.map((time) => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <span className="text-sm text-muted-foreground">Closed</span>
-                )}
-              </div>
-            ))}
+
+          <div className="divide-y divide-white/[0.05] rounded-lg border border-white/[0.06]">
+            {DAYS.map((day) => {
+              const enabled = availability[day.key].enabled;
+              return (
+                <div key={day.key} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
+                  <Switch
+                    checked={enabled}
+                    onCheckedChange={(checked) => updateDayAvailability(day.key, { enabled: checked })}
+                    disabled={saving}
+                    aria-label={`${day.label} open`}
+                  />
+                  <span className={`w-24 text-sm ${enabled ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {day.label}
+                  </span>
+
+                  {enabled ? (
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={availability[day.key].startTime}
+                        onValueChange={(value) => updateDayAvailability(day.key, { startTime: value })}
+                        disabled={saving}
+                      >
+                        <SelectTrigger className="h-8 w-24 border-white/[0.08] bg-muted" aria-label={`${day.label} opening time`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIME_OPTIONS.map((time) => (
+                            <SelectItem key={time} value={time}>{time}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-muted-foreground">–</span>
+                      <Select
+                        value={availability[day.key].endTime}
+                        onValueChange={(value) => updateDayAvailability(day.key, { endTime: value })}
+                        disabled={saving}
+                      >
+                        <SelectTrigger className="h-8 w-24 border-white/[0.08] bg-muted" aria-label={`${day.label} closing time`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIME_OPTIONS.map((time) => (
+                            <SelectItem key={time} value={time}>{time}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Closed</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-end gap-2 pt-1">
           <Button variant="outline" onClick={onCancel} disabled={saving}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving || !calendarName.trim()}>
-            {saving ? 'Creating...' : 'Save Calendar'}
+            {saving ? 'Creating…' : 'Save calendar'}
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus } from 'lucide-react';
+import { Plus, Tag } from 'lucide-react';
+import { SettingsSection } from '@/components/settings/SettingsSection';
 import { ServiceTypeForm } from './ServiceTypeForm';
 import { ServiceTypeCard } from './ServiceTypeCard';
 import { ServiceTypesEmptyState } from './ServiceTypesEmptyState';
@@ -244,40 +244,56 @@ export function ServiceTypesManager() {
     return <ServiceTypesLoadingState />;
   }
   return <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Service Types</CardTitle>
-              <CardDescription>
-                Manage the services you offer and assign team members
-              </CardDescription>
-              {!hasCompleteTaxConfig}
-            </div>
+      <SettingsSection
+        icon={Tag}
+        title="Services"
+        description="The services customers can book — duration, price and who performs them."
+        usedByAgent
+        action={
+          serviceTypes.length > 0 ? (
             <Button onClick={handleCreate}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Service
+              <Plus className="mr-2 h-4 w-4" />
+              Add service
             </Button>
+          ) : undefined
+        }
+        flush={serviceTypes.length === 0}
+      >
+        {serviceTypes.length === 0 ? (
+          <ServiceTypesEmptyState onAddService={handleCreate} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {serviceTypes.map(service => (
+              <ServiceTypeCard
+                key={service.id}
+                service={service}
+                onEdit={() => handleEdit(service)}
+                onDelete={() => handleDelete(service)}
+              />
+            ))}
           </div>
-        </CardHeader>
-
-        <CardContent>
-          {serviceTypes.length === 0 ? <ServiceTypesEmptyState onAddService={handleCreate} /> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {serviceTypes.map(service => <ServiceTypeCard key={service.id} service={service} onEdit={() => handleEdit(service)} onDelete={() => handleDelete(service)} />)}
-            </div>}
-        </CardContent>
-      </Card>
+        )}
+      </SettingsSection>
 
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editingService ? 'Edit Service Type' : 'Create Service Type'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingService ? 'Update service details and team member assignments' : 'Create a new service type and assign team members'}
-            </DialogDescription>
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/20 bg-primary/[0.10] text-accent-foreground">
+                <Tag className="h-[18px] w-[18px]" />
+              </span>
+              <div className="space-y-1">
+                <DialogTitle className="text-xl font-semibold tracking-[-0.015em]">
+                  {editingService ? 'Edit service' : 'Add a service'}
+                </DialogTitle>
+                <DialogDescription>
+                  {editingService
+                    ? 'Update the details, price and who can perform this service.'
+                    : 'Set the details, price and who can perform this service.'}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           
           <ServiceTypeForm formData={formData} setFormData={setFormData} onSave={handleSave} onCancel={handleClose} saving={saving} isEditing={!!editingService} taxConfigured={hasCompleteTaxConfig} calendarId={targetCalendarId || selectedCalendar?.id} selectedTeamMembers={selectedTeamMembers} onTeamMembersChange={setSelectedTeamMembers} calendars={calendars} selectedCalendarId={targetCalendarId} onCalendarSelect={setTargetCalendarId} onCalendarCreated={handleCalendarCreated} />
@@ -288,9 +304,9 @@ export function ServiceTypesManager() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Service Type?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this service?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingService?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deletingService?.name}"? This can't be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

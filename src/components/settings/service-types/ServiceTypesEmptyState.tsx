@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ServiceTypesEmptyStateProps {
@@ -9,20 +9,17 @@ interface ServiceTypesEmptyStateProps {
 
 export function ServiceTypesEmptyState({ onAddService }: ServiceTypesEmptyStateProps) {
   return (
-    <div className="text-center py-12">
-      <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4">
-        <Plus className="h-8 w-8 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/[0.10] text-accent-foreground">
+        <Tag className="h-6 w-6" />
       </div>
-      <h3 className="text-lg font-medium text-foreground mb-2">No services found</h3>
-      <p className="text-muted-foreground mb-4">
-        Add your first service to start receiving bookings
+      <h3 className="mb-1.5 text-base font-semibold text-foreground">No services yet</h3>
+      <p className="mb-6 max-w-sm text-sm leading-6 text-muted-foreground">
+        Add your first service so customers have something to book over WhatsApp.
       </p>
-      <Button 
-        onClick={onAddService}
-        className="bg-accent hover:bg-accent/90 text-accent-foreground"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        Add First Service
+      <Button onClick={onAddService}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add your first service
       </Button>
     </div>
   );

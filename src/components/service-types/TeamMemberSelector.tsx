@@ -24,8 +24,8 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   if (loading) {
     return (
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Team Member Assignment</Label>
-        <p className="text-sm text-muted-foreground">Loading team members...</p>
+        <span className="text-[13px] font-medium leading-[18px] text-foreground">Team members</span>
+        <p className="text-xs leading-5 text-muted-foreground">Loading team members…</p>
       </div>
     );
   }
@@ -33,12 +33,12 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   if (members.length === 0) {
     return (
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Team Member Assignment</Label>
-        <div className="rounded-lg border border-dashed p-4 text-center">
-          <Users className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">No team members yet</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Invite team members in Settings to assign them to services
+        <span className="text-[13px] font-medium leading-[18px] text-foreground">Team members</span>
+        <div className="rounded-lg border border-dashed border-white/[0.12] bg-muted/30 p-4 text-center">
+          <Users className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+          <p className="text-sm text-foreground">No team members yet</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Invite team members in Settings to assign them to services.
           </p>
         </div>
       </div>
@@ -66,38 +66,39 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <Label className="text-sm font-medium">Team Member Assignment (Optional)</Label>
-          <p className="text-xs text-muted-foreground mt-1">
-            Select which team members can perform this service
-          </p>
-          <p className="text-xs text-muted-foreground/70 mt-1 italic">
-            Leave empty to make this service available to all team members. This feature is only relevant for Professional or Enterprise plans.
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <span className="text-[13px] font-medium leading-[18px] text-foreground">
+            Team members{' '}
+            <span className="text-xs font-normal text-subtle-foreground">Optional</span>
+          </span>
+          <p className="text-xs leading-5 text-muted-foreground">
+            Select which team members can perform this service. Leave empty to make it available to
+            everyone. Only relevant on Professional or Enterprise plans.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 items-center gap-2 pt-0.5">
           <button
             type="button"
             onClick={handleSelectAll}
             disabled={disabled || allSelected}
-            className="text-xs text-primary hover:underline disabled:opacity-50"
+            className="rounded text-xs text-accent-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
           >
-            Select All
+            Select all
           </button>
-          <span className="text-xs text-muted-foreground">|</span>
+          <span className="text-xs text-subtle-foreground">|</span>
           <button
             type="button"
             onClick={handleDeselectAll}
             disabled={disabled || selectedMemberIds.length === 0}
-            className="text-xs text-primary hover:underline disabled:opacity-50"
+            className="rounded text-xs text-accent-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
           >
-            Deselect All
+            Deselect all
           </button>
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-4 space-y-3">
+      <div className="space-y-1 rounded-lg border border-white/[0.08] bg-muted/30 p-2">
         {members.map((member) => {
           const isSelected = selectedMemberIds.includes(member.user_id);
           const isViewer = member.role === 'viewer';
@@ -110,7 +111,7 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
           return (
             <div
               key={member.id}
-              className="flex items-center space-x-3 p-2 rounded-md hover:bg-accent/50 transition-colors"
+              className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/70"
             >
               <Checkbox
                 id={`member-${member.id}`}
