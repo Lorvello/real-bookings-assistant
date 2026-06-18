@@ -279,6 +279,7 @@ export function createTools(
           start_time: { type: "string", description: "De exacte `start`-waarde (ISO 8601) van het door de klant gekozen slot uit get_available_slots — ongewijzigd doorgeven." },
           end_time: { type: "string", description: "ISO 8601 = start_time + de dienstduur (zelfde tijdzone-offset als start_time)." },
           customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
+          confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
         },
         required: ["service_type_id", "start_time", "end_time", "customer_name"],
       },
@@ -398,6 +399,33 @@ export function createTools(
           };
         }
         const customerName = nameMissing ? "Privé" : rawName;
+
+        // DUPLICATE GUARD: prevent an accidental DOUBLE booking. Observed: for "kan het
+        // een uur later?" the model calls book_appointment (a 2nd booking) instead of
+        // reschedule_appointment, leaving the original AND a new row. If this customer
+        // already has an upcoming active booking on this calendar, refuse and route to
+        // reschedule — unless they EXPLICITLY want a second one (confirm_second_booking).
+        if (args.confirm_second_booking !== true) {
+          const { data: existing } = await supabase
+            .from("bookings")
+            .select("start_time")
+            .eq("customer_phone", ctx.phone)
+            .eq("calendar_id", ctx.calendarId)
+            .in("status", ["confirmed", "pending"])
+            .gt("start_time", new Date().toISOString())
+            .order("start_time", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          if (existing) {
+            return {
+              error: "bestaande_afspraak",
+              message:
+                `De klant heeft al een aankomende afspraak op ${nlWhen((existing as { start_time: string }).start_time)}. ` +
+                "Wil de klant een ANDER tijdstip? Gebruik reschedule_appointment (NIET book_appointment — dat maakt een tweede afspraak). " +
+                "Alleen als de klant ECHT een losse, extra afspraak ernaast wil: roep book_appointment opnieuw aan met confirm_second_booking=true.",
+            };
+          }
+        }
 
         // Enforce the "Max bookings per day" Operations setting (previously saved but
         // never enforced). Count this calendar's confirmed+pending bookings on the
