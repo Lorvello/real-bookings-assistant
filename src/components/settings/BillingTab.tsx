@@ -1,42 +1,53 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  CreditCard, 
-  Calendar, 
-  Crown, 
-  Check, 
-  Download, 
-  Settings, 
-  Zap,
-  Shield,
-  Users,
-  BarChart3,
-  Palette,
-  HeadphonesIcon,
-  CalendarClock,
-  CheckCircle,
-  AlertCircle,
-} from 'lucide-react';
+import { format } from 'date-fns';
 import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 import { useBillingData } from '@/hooks/useBillingData';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { UsageSummary } from '@/components/ui/UsageSummary';
-import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStripeConfig, isTestMode, getPriceId } from '@/utils/stripeConfig';
+import { CurrentPlanSection, type BillingTimeline } from '@/components/settings/billing/CurrentPlanSection';
+import { BillingHistorySection, type BillingInvoice } from '@/components/settings/billing/BillingHistorySection';
+import { AvailablePlansSection, type PlanTile } from '@/components/settings/billing/AvailablePlansSection';
 
+// Feature lists kept in sync with the public homepage pricing.
+const PLAN_FEATURES: Record<string, string[]> = {
+  starter: [
+    'Unlimited WhatsApp contact management',
+    'Dual-calendar orchestration system',
+    'Individual user access management',
+    'AI-powered intelligent reminder sequences',
+    'Essential dashboard overview & live operations monitoring',
+    'Global multi-language localization',
+    'Streamlined payment processing & collection',
+  ],
+  professional: [
+    'All Starter premium features included',
+    'Automated tax compliance & administration (Coming Soon)',
+    'Flexible installment payment options',
+    'Unlimited calendar orchestration platform',
+    'Advanced team collaboration suite (2-10 users)',
+    'Multi-location business coordination',
+    'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights',
+    'Dedicated priority customer success',
+  ],
+  enterprise: [
+    'Complete professional suite included',
+    'Unlimited enterprise user access management',
+    'Dedicated WhatsApp Business API with custom branding',
+    'Intelligent voice call routing & distribution',
+    'Omnichannel social media DM orchestration',
+    'Advanced reputation management & review analytics',
+    'Enterprise SLA with dedicated success management',
+    'White-glove onboarding & strategic integration consulting',
+  ],
+};
 
 export const BillingTab: React.FC = () => {
-  const { userStatus, accessControl } = useUserStatus();
+  const { userStatus } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
   const { billingData, isLoading: billingLoading, refetch } = useBillingData();
   const { profileData } = useSettingsContext();
@@ -45,33 +56,27 @@ export const BillingTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
-  
+
+  const hasNoSubscription =
+    userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
 
   const handleManageSubscription = async () => {
     setLoading(true);
     try {
-      // Get current Stripe mode from utils
       const { mode } = getStripeConfig();
-      
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: { mode },
       });
-      
       if (error) throw error;
-      
       if (data?.url) {
         window.open(data.url, '_blank');
-        
-        // Auto-refresh billing data after returning from portal
         const checkForUpdates = () => {
           document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
-              setTimeout(() => {
-                refetch();
-              }, 2000);
+              setTimeout(() => refetch(), 2000);
               document.removeEventListener('visibilitychange', checkForUpdates);
             }
           });
@@ -80,12 +85,10 @@ export const BillingTab: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error opening billing portal:', error);
-      
-      // Show specific message if portal is not configured
-      const errorMessage = error?.message?.includes('portal') || error?.message?.includes('Portal') 
-        ? 'Subscription management is currently being set up. Please contact support for assistance.'
-        : 'Failed to open billing portal. Please try again.';
-        
+      const errorMessage =
+        error?.message?.includes('portal') || error?.message?.includes('Portal')
+          ? 'Subscription management is currently being set up. Please contact support for assistance.'
+          : 'Failed to open billing portal. Please try again.';
       toast({
         title: 'Notice',
         description: errorMessage,
@@ -96,49 +99,32 @@ export const BillingTab: React.FC = () => {
     }
   };
 
-  const handleViewAllHistory = () => {
-    setShowAllHistory(!showAllHistory);
-  };
-
-  const handleContactSales = () => {
-    setShowEnterpriseForm(true);
-  };
-
   const handleUpgrade = async (tierName: string) => {
     if (!tiers) return;
-    
-    const selectedTier = tiers.find(tier => tier.tier_name === tierName);
+    const selectedTier = tiers.find((tier) => tier.tier_name === tierName);
     if (!selectedTier) {
-      toast({
-        title: 'Error',
-        description: 'Selected plan not found. Please try again.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Selected plan not found. Please try again.', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
     try {
       const testMode = isTestMode();
       const priceId = getPriceId(selectedTier, billingCycle === 'yearly', testMode);
-      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
-        body: { 
+        body: {
           priceId,
           tier_name: selectedTier.tier_name,
           price: billingCycle === 'yearly' ? selectedTier.price_yearly : selectedTier.price_monthly,
           is_annual: billingCycle === 'yearly',
           success_url: window.location.origin + '/success',
           cancel_url: window.location.origin + '/settings?tab=billing&canceled=true',
-          mode: testMode ? 'test' : 'live'
-        }
+          mode: testMode ? 'test' : 'live',
+        },
       });
-      
       if (error) throw error;
-      
       if (data?.url) {
         window.open(data.url, '_blank');
       } else {
@@ -146,124 +132,78 @@ export const BillingTab: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to start checkout. Please try again.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: 'Failed to start checkout. Please try again.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-
-  const getStatusBadge = () => {
-    switch (userStatus.userType) {
-      case 'subscriber':
-        return <Badge className="bg-success/10 text-success-foreground border-success/20">Active</Badge>;
-      case 'canceled_subscriber':
-        return <Badge className="bg-warning/10 text-warning-foreground border-warning/20">Canceled</Badge>;
-      case 'canceled_and_inactive':
-        return <Badge className="bg-muted text-muted-foreground border-border">Canceled</Badge>;
-      case 'expired_trial':
-        return <Badge className="bg-destructive/10 text-destructive-foreground border-destructive/20">Expired</Badge>;
-      case 'missed_payment':
-        return <Badge className="bg-destructive/10 text-destructive-foreground border-destructive/20">Payment failed</Badge>;
-      // Active trial (incl. brand-new accounts still finishing setup) carry no
-      // badge — the "Free during trial period" line communicates the state.
-      case 'trial':
-      case 'setup_incomplete':
-        return null;
-      // Never surface an alarming "Unknown" badge (e.g. while status is still
-      // loading) — show nothing rather than a scary label.
-      default:
-        return null;
-    }
-  };
-
+  // ---- Current plan derivation -------------------------------------------------
   const getCurrentPlan = () => {
     if (!tiers || !profileData) return null;
-    
-    // For users with no active subscription, return null
-    if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
-      return null;
-    }
-    
-    // Get user's actual subscription tier from their profile data
+    if (hasNoSubscription) return null;
     const userTier = profileData.subscription_tier;
-    
-    // If no tier specified, default to starter for active users
-    if (!userTier) {
-      return tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
-    }
-    
-    // Find the matching tier from the database
-    const matchingTier = tiers.find(tier => tier.tier_name === userTier);
-    
-    // Return the exact tier from database or fallback
-    return matchingTier || tiers.find(tier => tier.tier_name === 'starter') || tiers[0];
+    if (!userTier) return tiers.find((t) => t.tier_name === 'starter') || tiers[0];
+    return tiers.find((t) => t.tier_name === userTier) || tiers.find((t) => t.tier_name === 'starter') || tiers[0];
   };
+  const currentPlan = getCurrentPlan();
 
   const getCurrentPrice = () => {
-    if (!currentPlan) return { amount: 0, currency: '€', period: '/month', displayText: 'Free' };
-    
-    // Use actual billing cycle from billingData, not the toggle state
+    if (!currentPlan) return { amount: 0, displayText: 'Free' };
     const actualBillingCycle = billingData?.billing_cycle || 'monthly';
     const price = actualBillingCycle === 'yearly' ? currentPlan.price_yearly : currentPlan.price_monthly;
-    
-    if (!price || price === 0) {
-      return { amount: 0, currency: '€', period: '/month', displayText: 'Free' };
-    }
-    
-    // Always show monthly equivalent for consistent display
+    if (!price || price === 0) return { amount: 0, displayText: 'Free' };
     const monthlyPrice = actualBillingCycle === 'yearly' ? price / 12 : price;
-    return { 
-      amount: Math.round(monthlyPrice), 
-      currency: '€', 
-      period: '/month', 
-      displayText: `€${Math.round(monthlyPrice)}/month` 
-    };
+    return { amount: Math.round(monthlyPrice), displayText: `€${Math.round(monthlyPrice)}/month` };
   };
+  const currentPrice = getCurrentPrice();
 
   const getBillingStatus = () => {
-    if (userStatus.userType === 'trial' && userStatus.daysRemaining > 0) {
-      return 'Free during trial period';
-    }
+    if (userStatus.userType === 'trial' && userStatus.daysRemaining > 0) return 'Free during trial period';
     if (userStatus.userType === 'canceled_subscriber') {
-      return `Canceled - access until ${userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date'}`;
+      return `Canceled — access until ${
+        userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date'
+      }`;
     }
     return billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly';
   };
 
-  // Helper function to get real billing timeline data
-  const getBillingTimelineData = () => {
-    const isNoSubscription = userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
-    
-    // Early return for users without subscription or billing data is loading
-    if (isNoSubscription || !billingData) {
+  const priceText: React.ReactNode =
+    currentPrice.amount === 0 ? (
+      currentPrice.displayText
+    ) : (
+      <>
+        €{currentPrice.amount}
+        <span className="text-sm font-normal text-muted-foreground">/month</span>
+      </>
+    );
+
+  const getTimeline = (): BillingTimeline => {
+    if (hasNoSubscription || !billingData) {
       return {
-        nextBilling: "No active subscription",
-        lastPayment: "No billing history", 
-        billingCycle: "No subscription",
-        paymentStatus: "Inactive"
+        nextBilling: 'No active subscription',
+        lastPayment: 'No billing history',
+        billingCycle: 'No subscription',
+        paymentStatus: 'Inactive',
       };
     }
-
-    // Handle billing data that may be incomplete
-    const nextBilling = billingData.next_billing_date 
-      ? format(new Date(billingData.next_billing_date), "MMM d, yyyy")
-      : (billingData.subscribed ? "Next billing date unavailable" : "No active subscription");
-
-    const lastPayment = billingData.last_payment_date && billingData.last_payment_amount
-      ? `${format(new Date(billingData.last_payment_date), "MMM d, yyyy")} - €${(billingData.last_payment_amount / 100).toFixed(2)}`
-      : (billingData.subscribed ? "No payment history" : "No billing history");
-
-    const billingCycle = billingData.billing_cycle 
+    const nextBilling = billingData.next_billing_date
+      ? format(new Date(billingData.next_billing_date), 'MMM d, yyyy')
+      : billingData.subscribed
+        ? 'Next billing date unavailable'
+        : 'No active subscription';
+    const lastPayment =
+      billingData.last_payment_date && billingData.last_payment_amount
+        ? `${format(new Date(billingData.last_payment_date), 'MMM d, yyyy')} — €${(billingData.last_payment_amount / 100).toFixed(2)}`
+        : billingData.subscribed
+          ? 'No payment history'
+          : 'No billing history';
+    const cycle = billingData.billing_cycle
       ? billingData.billing_cycle.charAt(0).toUpperCase() + billingData.billing_cycle.slice(1) + 'ly'
-      : (billingData.subscribed ? "Cycle unavailable" : "No subscription");
-
-    // More robust payment status mapping
-    const getPaymentStatus = () => {
+      : billingData.subscribed
+        ? 'Cycle unavailable'
+        : 'No subscription';
+    const paymentStatus = (() => {
       if (!billingData.subscribed) return 'Inactive';
       if (billingData.payment_status === 'paid') return 'Active';
       if (billingData.payment_status === 'unpaid') return 'Payment Failed';
@@ -271,468 +211,148 @@ export const BillingTab: React.FC = () => {
       if (billingData.payment_status === 'requires_payment_method') return 'Payment Method Required';
       if (billingData.payment_status === 'canceled') return 'Canceled';
       return billingData.payment_status || 'Status Unknown';
-    };
-
+    })();
     return {
       nextBilling,
+      accessUntil: userStatus.userType === 'canceled_subscriber',
       lastPayment,
-      billingCycle,
-      paymentStatus: getPaymentStatus()
+      billingCycle: cycle,
+      paymentStatus,
     };
   };
 
-  const currentPlan = getCurrentPlan();
+  // ---- Billing history derivation ---------------------------------------------
+  const invoices: BillingInvoice[] = Array.isArray(billingData?.billing_history)
+    ? billingData!.billing_history
+        .filter((inv: any) => inv && inv.id)
+        .map((inv: any) => ({
+          id: inv.id,
+          date: inv.date ? format(new Date(inv.date), 'MMM d, yyyy') : 'Date unavailable',
+          amount:
+            inv.amount && typeof inv.amount === 'number'
+              ? `${inv.currency || '€'}${(inv.amount / 100).toFixed(2)}`
+              : 'Amount unavailable',
+          description: inv.description || 'No description',
+          status: inv.status,
+          statusLabel:
+            inv.status === 'paid'
+              ? 'Paid'
+              : inv.status === 'open'
+                ? 'Pending'
+                : inv.status === 'draft'
+                  ? 'Draft'
+                  : inv.status || 'Unknown',
+          invoiceUrl: inv.invoice_url,
+        }))
+    : [];
+
+  const historyEmptyMessage = (() => {
+    if (hasNoSubscription) return 'No billing history found for your account.';
+    if (userStatus.userType === 'trial' || userStatus.userType === 'setup_incomplete')
+      return 'Your billing history will appear here after your first payment.';
+    if (billingData && !billingData.subscribed) return "You don't have an active subscription yet.";
+    return 'No billing records found. This may be due to a recent subscription or pending payment processing.';
+  })();
+
+  const onViewPlans = () =>
+    document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' });
+
+  // ---- Available plans derivation ---------------------------------------------
+  const plans: PlanTile[] = (tiers || [])
+    .filter((tier) => tier.tier_name !== 'free' && tier.price_monthly > 0)
+    .map((tier) => {
+      const isEnterprise = tier.tier_name === 'enterprise';
+      let displayPrice: string;
+      let billingText = '/month';
+      let savingsText: string | undefined;
+
+      if (isEnterprise) {
+        displayPrice = 'Starting at €300';
+        savingsText = 'Custom pricing for large organizations';
+      } else if (billingCycle === 'monthly') {
+        displayPrice = `€${tier.price_monthly}`;
+        savingsText = tier.description;
+      } else if (tier.tier_name === 'starter') {
+        displayPrice = '€24';
+        savingsText = 'Billed annually (€288/year)';
+      } else if (tier.tier_name === 'professional') {
+        displayPrice = '€48';
+        savingsText = 'Billed annually (€576/year)';
+      } else {
+        displayPrice = `€${Math.round(tier.price_yearly / 12)}`;
+        savingsText = `Billed annually (€${tier.price_yearly}/year)`;
+      }
+
+      return {
+        id: tier.id,
+        tierName: tier.tier_name,
+        displayName: tier.display_name,
+        displayPrice,
+        billingText,
+        savingsText,
+        features: PLAN_FEATURES[tier.tier_name] ?? PLAN_FEATURES.starter,
+        isCurrent: tier.tier_name === currentPlan?.tier_name,
+        isEnterprise,
+        highlightPrice: billingCycle === 'yearly' && !isEnterprise,
+      };
+    });
 
   if (tiersLoading) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary/30 border-t-primary"></div>
-        </div>
+      <div className="flex items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Billing & Subscription</h1>
-          <p className="text-muted-foreground mt-1">Manage your subscription and billing preferences</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {getStatusBadge()}
-        </div>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+        <CurrentPlanSection
+          userType={userStatus.userType}
+          hasNoSubscription={hasNoSubscription}
+          planName={currentPlan?.display_name || currentPlan?.tier_name || 'Free'}
+          planDescription={currentPlan?.description}
+          priceText={priceText}
+          priceSubline={currentPlan && currentPrice.amount > 0 ? getBillingStatus() : undefined}
+          trialNote={
+            userStatus.userType === 'trial' && userStatus.daysRemaining > 0
+              ? `${userStatus.daysRemaining} days remaining in trial`
+              : undefined
+          }
+          timeline={getTimeline()}
+          onManage={handleManageSubscription}
+          manageDisabled={loading || !userStatus.isSubscriber}
+          loading={loading}
+        />
+        <UsageSummary />
       </div>
 
-      {/* Current Plan & Subscription Usage - Combined Top Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Current Plan */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <Crown className="w-5 h-5 text-gold-foreground" />
-                Current Plan
-              </CardTitle>
-              <Button 
-                onClick={handleManageSubscription}
-                disabled={loading || !userStatus.isSubscriber}
-                variant="outline"
-                size="sm"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                {loading ? 'Loading...' : 'Manage Subscription'}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col gap-4">
-              <div>
-                {(userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') ? (
-                  <>
-                    <h3 className="text-xl font-semibold text-foreground">
-                      No Active Subscription
-                    </h3>
-                    <p className="text-muted-foreground">Start your subscription to access all features</p>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-xl font-semibold text-foreground capitalize">
-                      {currentPlan?.display_name || currentPlan?.tier_name || 'Free'} Plan
-                    </h3>
-                    <p className="text-muted-foreground">{currentPlan?.description}</p>
-                    {userStatus.userType === 'trial' && userStatus.daysRemaining > 0 && (
-                      <p className="text-warning-foreground text-sm mt-1">
-                        {userStatus.daysRemaining} days remaining in trial
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="text-right">
-                {(userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') ? (
-                  <div className="text-2xl font-bold text-muted-foreground">
-                    No Plan
-                  </div>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold text-foreground">
-                      {getCurrentPrice().amount === 0 ? (
-                        getCurrentPrice().displayText
-                      ) : (
-                        <>
-                          {getCurrentPrice().currency}{getCurrentPrice().amount}
-                          <span className="text-sm text-muted-foreground font-normal">{getCurrentPrice().period}</span>
-                        </>
-                      )}
-                    </div>
-                    {currentPlan && getCurrentPrice().amount > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {getBillingStatus()}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Billing Timeline - Only show for users with subscriptions */}
-            {(userStatus.userType !== 'expired_trial' && userStatus.userType !== 'canceled_and_inactive') && (
-              <>
-                <Separator className="bg-border" />
-                <div>
-                  <h4 className="text-foreground font-medium mb-4 flex items-center gap-2">
-                    <CalendarClock className="w-4 h-4" />
-                    Billing Timeline
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-sm">
-                          {userStatus.userType === 'canceled_subscriber' ? 'Access Until' : 'Next Billing'}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-accent-foreground" />
-                          <span className="text-foreground text-sm font-medium">
-                            {getBillingTimelineData().nextBilling}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-sm">Last Payment</span>
-                        <span className="text-foreground text-sm">
-                          {getBillingTimelineData().lastPayment}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-sm">Billing Cycle</span>
-                        <span className="text-foreground text-sm">
-                          {getBillingTimelineData().billingCycle}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-sm">Payment Status</span>
-                        <div className="flex items-center gap-1">
-                          {getBillingTimelineData().paymentStatus === 'Active' ? (
-                            <CheckCircle className="w-3 h-3 text-success-foreground" />
-                          ) : getBillingTimelineData().paymentStatus === 'Failed' ? (
-                            <AlertCircle className="w-3 h-3 text-destructive-foreground" />
-                          ) : (
-                            <AlertCircle className="w-3 h-3 text-muted-foreground" />
-                          )}
-                          <span className={`text-sm ${
-                            getBillingTimelineData().paymentStatus === 'Active' ? 'text-success-foreground' :
-                            getBillingTimelineData().paymentStatus === 'Failed' ? 'text-destructive-foreground' :
-                            'text-muted-foreground'
-                          }`}>
-                            {getBillingTimelineData().paymentStatus}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-          </CardContent>
-        </Card>
-
-        {/* Subscription Usage */}
-        <UsageSummary className="" />
-      </div>
-
-      {/* Billing History - Middle Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-foreground flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
-              Billing History
-            </CardTitle>
-            {billingData?.billing_history && billingData.billing_history.length > 3 && (
-              <Button 
-                onClick={handleViewAllHistory}
-                disabled={loading}
-                variant="outline"
-                size="sm"
-              >
-                {showAllHistory ? 'Show Less' : 'View All History'}
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {billingLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary/30 border-t-primary"></div>
-              <p className="text-muted-foreground text-sm mt-2">Loading billing history...</p>
-            </div>
-          ) : (billingData?.billing_history && Array.isArray(billingData.billing_history) && billingData.billing_history.length > 0) ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-muted-foreground">Date</TableHead>
-                    <TableHead className="text-muted-foreground">Amount</TableHead>
-                    <TableHead className="text-muted-foreground">Description</TableHead>
-                    <TableHead className="text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-muted-foreground text-right">Invoice</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {billingData.billing_history
-                    .filter(invoice => invoice && invoice.id) // Filter out invalid entries
-                    .slice(0, showAllHistory ? undefined : 3) // Show only 3 items unless viewing all
-                    .map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="text-foreground">
-                        {invoice.date ? format(new Date(invoice.date), "MMM d, yyyy") : "Date unavailable"}
-                      </TableCell>
-                      <TableCell className="text-foreground">
-                        {invoice.amount && typeof invoice.amount === 'number' 
-                          ? `${invoice.currency || '€'}${(invoice.amount / 100).toFixed(2)}`
-                          : "Amount unavailable"
-                        }
-                      </TableCell>
-                      <TableCell className="text-foreground">
-                        {invoice.description || "No description"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={
-                          invoice.status === 'paid' 
-                            ? "bg-success/10 text-success-foreground border-success/20"
-                            : invoice.status === 'open' || invoice.status === 'draft'
-                            ? "bg-warning/10 text-warning-foreground border-warning/20"
-                            : "bg-destructive/10 text-destructive-foreground border-destructive/20"
-                        }>
-                          {invoice.status === 'paid' ? 'Paid' : 
-                           invoice.status === 'open' ? 'Pending' :
-                           invoice.status === 'draft' ? 'Draft' : 
-                           invoice.status || 'Unknown'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {invoice.invoice_url ? (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => window.open(invoice.invoice_url!, '_blank')}
-                            title="Download invoice PDF"
-                          >
-                            <Download className="w-3 h-3" />
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">Not available</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-foreground font-medium mb-2">No Billing History</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                {(() => {
-                  if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
-                    return "No billing history found for your account.";
-                  }
-                  if (userStatus.userType === 'trial' || userStatus.userType === 'setup_incomplete') {
-                    return "Your billing history will appear here after your first payment.";
-                  }
-                  if (billingData && !billingData.subscribed) {
-                    return "You don't have an active subscription yet.";
-                  }
-                  return "No billing records found. This may be due to a recent subscription or pending payment processing.";
-                })()}
-              </p>
-              {(userStatus.userType === 'trial' || userStatus.userType === 'expired_trial' || userStatus.userType === 'setup_incomplete') && (
-                <Button 
-                  onClick={() => document.getElementById('available-plans')?.scrollIntoView({ behavior: 'smooth' })}
-                  variant="outline"
-                >
-                  View Available Plans
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Available Plans - Bottom Section */}
-      <Card id="available-plans">
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle className="text-foreground">Available Plans</CardTitle>
-              <p className="text-muted-foreground">Choose the plan that best fits your needs</p>
-            </div>
-            {/* Billing Cycle Toggle */}
-            <div className="flex items-center gap-4">
-              <span className={`text-sm ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Monthly
-              </span>
-              <Switch 
-                checked={billingCycle === 'yearly'}
-                onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
-              />
-              <span className={`text-sm ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Yearly
-              </span>
-              {billingCycle === 'yearly' && (
-                <Badge className="bg-success/10 text-success-foreground border-success/20">
-                  Save 20%
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tiers?.filter(tier => tier.tier_name !== 'free' && tier.price_monthly > 0).map((tier) => {
-              const isCurrentPlan = tier.tier_name === currentPlan?.tier_name;
-              const isEnterprise = tier.tier_name === 'enterprise';
-              
-              // Use correct pricing from database
-              let displayPrice, billingText, savingsText;
-              
-              if (isEnterprise) {
-                // Enterprise always shows "Starting at €299" regardless of billing cycle
-                displayPrice = 'Starting at €300';
-                billingText = '/month';
-                savingsText = 'Custom pricing for large organizations';
-              } else {
-                // Non-enterprise tiers with clean rounded yearly pricing
-                const monthlyPrice = tier.price_monthly;
-                
-                if (billingCycle === 'monthly') {
-                  displayPrice = `€${monthlyPrice}`;
-                  billingText = '/month';
-                  savingsText = tier.description;
-                } else {
-                  // Show rounded monthly equivalent for yearly billing
-                  if (tier.tier_name === 'starter') {
-                    displayPrice = '€24';
-                    savingsText = 'Billed annually (€288/year)';
-                  } else if (tier.tier_name === 'professional') {
-                    displayPrice = '€48';
-                    savingsText = 'Billed annually (€576/year)';
-                  } else {
-                    // Fallback for any other tiers
-                    const yearlyMonthlyRate = tier.price_yearly / 12;
-                    displayPrice = `€${Math.round(yearlyMonthlyRate)}`;
-                    savingsText = `Billed annually (€${tier.price_yearly}/year)`;
-                  }
-                  billingText = '/month';
-                }
-              }
-              
-              return (
-                <div 
-                  key={tier.id} 
-                  className={`surface-raised rounded-lg p-6 relative ${
-                    isCurrentPlan
-                      ? 'glow-accent ring-1 ring-primary/30'
-                      : ''
-                  }`}
-                >
-                  {isCurrentPlan && (
-                    <Badge className="absolute -top-3 left-6 bg-primary text-primary-foreground">
-                      Current Plan
-                    </Badge>
-                  )}
-                  
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-foreground capitalize mb-2">
-                      {tier.display_name}
-                    </h3>
-                     <div className={`text-3xl font-bold ${billingCycle === 'yearly' && !isEnterprise ? 'text-success-foreground' : 'text-foreground'}`}>
-                       {displayPrice}
-                       <span className="text-sm text-muted-foreground font-normal">
-                         {billingText}
-                       </span>
-                     </div>
-                    <p className="text-muted-foreground text-sm mt-2">
-                      {savingsText}
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    {/* Updated features to match homepage exactly */}
-                    {(tier.tier_name === 'starter' ? [
-                       "Unlimited WhatsApp contact management",
-                       "Dual-calendar orchestration system", 
-                       "Individual user access management",
-                       "AI-powered intelligent reminder sequences",
-                      "Essential dashboard overview & live operations monitoring",
-                      "Global multi-language localization",
-                      "Streamlined payment processing & collection"
-                    ] : tier.tier_name === 'professional' ? [
-                       "All Starter premium features included",
-                       "Automated tax compliance & administration (Coming Soon)",
-                       "Flexible installment payment options",
-                       "Unlimited calendar orchestration platform",
-                       "Advanced team collaboration suite (2-10 users)",
-                       "Multi-location business coordination", 
-                       "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-                       "Dedicated priority customer success"
-                    ] : [
-                      "Complete professional suite included",
-                      
-                      "Unlimited enterprise user access management",
-                      "Dedicated WhatsApp Business API with custom branding",
-                      "Intelligent voice call routing & distribution",
-                      "Omnichannel social media DM orchestration",
-                      "Advanced reputation management & review analytics",
-                      "Enterprise SLA with dedicated success management",
-                      "White-glove onboarding & strategic integration consulting"
-                    ]).map((feature, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-success-foreground flex-shrink-0" />
-                        <span className="text-foreground text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {isEnterprise ? (
-                    <Button 
-                      className="w-full"
-                      variant="outline"
-                      onClick={handleContactSales}
-                      disabled={loading}
-                    >
-                      Contact Sales
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full"
-                      variant={isCurrentPlan ? "outline" : "default"}
-                      disabled={isCurrentPlan || loading}
-                      onClick={() => handleUpgrade(tier.tier_name)}
-                    >
-                      {loading ? 'Loading...' : isCurrentPlan ? 'Current Plan' : `Switch to ${tier.display_name}`}
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Enterprise Contact Form Modal */}
-      <EnterpriseContactForm 
-        open={showEnterpriseForm}
-        onOpenChange={setShowEnterpriseForm}
+      <BillingHistorySection
+        invoices={invoices}
+        loading={billingLoading}
+        showAll={showAllHistory}
+        hasMore={invoices.length > 3}
+        onToggleShowAll={() => setShowAllHistory((v) => !v)}
+        emptyMessage={historyEmptyMessage}
+        showPlansCta={
+          userStatus.userType === 'trial' ||
+          userStatus.userType === 'expired_trial' ||
+          userStatus.userType === 'setup_incomplete'
+        }
+        onViewPlans={onViewPlans}
       />
 
+      <AvailablePlansSection
+        plans={plans}
+        billingCycle={billingCycle}
+        onCycleChange={setBillingCycle}
+        onUpgrade={handleUpgrade}
+        onContactSales={() => setShowEnterpriseForm(true)}
+        loading={loading}
+      />
+
+      <EnterpriseContactForm open={showEnterpriseForm} onOpenChange={setShowEnterpriseForm} />
     </div>
   );
 };
