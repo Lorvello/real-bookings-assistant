@@ -200,7 +200,27 @@ Deno.serve(async (req) => {
 
     // --- Run the agent ---
     const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId });
-    const result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
+    let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
+
+    // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
+    // ("ik check even / momentje / one moment / ich prüfe …") and ends the turn WITHOUT
+    // calling a tool, which stalls the conversation. If this turn made no tool call, reads
+    // like such a filler, and asks nothing, nudge the model once to actually perform it.
+    const ANNOUNCE_RE = /\b(check(ing)?|checken|moment(je|o|ito)?|even geduld|regel het|ga (ik )?(even )?(kijken|checken|na)|kijk even|let me (check|see)|one moment|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde)|un instant|un momento)\b/i;
+    const looksLikeStall = result.toolCalls.length === 0 &&
+      !!result.text && ANNOUNCE_RE.test(result.text) && !result.text.includes("?");
+    if (looksLikeStall) {
+      const nudged: Content[] = [
+        ...contents,
+        { role: "model", parts: [{ text: result.text }] },
+        { role: "user", parts: [{ text: "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht." }] },
+      ];
+      const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
+      if (retry.text && (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))) {
+        result = retry;
+      }
+    }
+
     const reply = result.text || "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
     // --- Reply + persist outbound ---
