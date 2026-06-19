@@ -11,10 +11,34 @@ import {
   RefreshCw,
   RotateCcw,
   TestTube,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SettingsSection } from '../SettingsSection';
 import type { BusinessStripeAccount } from '@/types/payments';
+
+// The raw Stripe account id (acct_…) is a developer/support detail, not something a
+// salon owner needs front-and-centre — tuck it behind a collapsed "Technical details"
+// disclosure (D4: hide dev-internals). Keeps it reachable for support without clutter.
+function AccountTechnicalDetails({ accountId, isTestMode }: { accountId: string; isTestMode: boolean }) {
+  return (
+    <details className="group mt-4">
+      <summary className="inline-flex cursor-pointer select-none list-none items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-muted-foreground [&::-webkit-details-marker]:hidden">
+        <ChevronRight aria-hidden="true" className="h-3 w-3 transition-transform group-open:rotate-90 motion-reduce:transition-none" />
+        Technical details
+      </summary>
+      <p className="mt-2 pl-4 text-xs text-subtle-foreground">
+        Account <span className="font-mono break-all">{accountId}</span>
+        {isTestMode && (
+          <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/[0.10] px-1.5 py-0.5 text-warning-foreground">
+            <TestTube className="h-3 w-3" />
+            Test mode
+          </span>
+        )}
+      </p>
+    </details>
+  );
+}
 
 export type StripeAccountState = 'loading' | 'complete' | 'incomplete' | 'none';
 type ResearchTopic = 'no-shows' | 'cashflow' | 'compliance' | 'professionalism';
@@ -137,15 +161,7 @@ export function StripeAccountSection({
             </div>
           </div>
           {account.stripe_account_id && (
-            <p className="mt-4 text-xs text-subtle-foreground">
-              Account <span className="font-mono">{account.stripe_account_id}</span>{' '}
-              {isTestMode && (
-                <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/[0.10] px-1.5 py-0.5 text-warning-foreground">
-                  <TestTube className="h-3 w-3" />
-                  Test mode
-                </span>
-              )}
-            </p>
+            <AccountTechnicalDetails accountId={account.stripe_account_id} isTestMode={isTestMode} />
           )}
         </div>
 
@@ -205,15 +221,7 @@ export function StripeAccountSection({
             </div>
           </div>
           {account.stripe_account_id && (
-            <p className="mt-4 text-xs text-subtle-foreground">
-              Account <span className="font-mono">{account.stripe_account_id}</span>{' '}
-              {isTestMode && (
-                <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/[0.10] px-1.5 py-0.5 text-warning-foreground">
-                  <TestTube className="h-3 w-3" />
-                  Test mode
-                </span>
-              )}
-            </p>
+            <AccountTechnicalDetails accountId={account.stripe_account_id} isTestMode={isTestMode} />
           )}
         </div>
 
