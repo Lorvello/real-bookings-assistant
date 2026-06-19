@@ -43,7 +43,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   const endDropdownId = `${dayKey}-${block.id}-end`;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Start time */}
       <CompactTimePicker
         value={block.startTime}
@@ -66,7 +66,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
       />
       
       {/* Action buttons */}
-      <div className="flex items-center gap-1 ml-2">
+      <div className="flex items-center gap-1 ml-1 sm:ml-2">
         {/* Add button - only on last block */}
         {isLastBlock && (
           <Button

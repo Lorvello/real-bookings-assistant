@@ -51,7 +51,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
   onCloseDropdown,
 }) => {
   return (
-    <div className="flex items-start gap-4 py-4">
+    <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 py-4">
       {/* Toggle + Day name - fixed width */}
       <div className="flex items-center gap-3 min-w-[140px]">
         <Switch

@@ -60,8 +60,8 @@ export const BusinessSearchPage: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-3xl font-bold">Search Businesses</h1>
           <p className="text-muted-foreground">
@@ -90,7 +90,7 @@ export const BusinessSearchPage: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
             <div className="flex-1">
               <Input
                 placeholder="Search by business name..."
@@ -150,7 +150,7 @@ export const BusinessSearchPage: React.FC = () => {
 
       {/* Results */}
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-semibold">
             Results ({data.length} business{data.length !== 1 ? 'es' : ''})
           </h2>

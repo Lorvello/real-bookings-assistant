@@ -142,7 +142,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     return (
       <div className="max-w-[1400px] mx-auto">
         <Card className="bg-card rounded-xl">
-          <CardContent className="p-12">
+          <CardContent className="p-6 sm:p-12">
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-sm text-muted-foreground">Loading...</div>
             </div>
@@ -159,9 +159,9 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         
         {/* LEFT: QR Code Hero */}
         <Card className="relative overflow-hidden bg-card rounded-2xl border border-white/[0.08]">
-          <CardContent className="relative p-12 flex flex-col items-center space-y-6">
+          <CardContent className="relative p-6 sm:p-12 flex flex-col items-center space-y-6">
             {/* QR Code Display - 400x400 */}
-            <div className="bg-white p-8 rounded-xl">
+            <div className="bg-white p-4 sm:p-8 rounded-xl">
               {qrUrl && !imgBroken ? (
                 <img
                   src={`${qrUrl}?v=${cacheBust}`}

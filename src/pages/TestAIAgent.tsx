@@ -10,7 +10,7 @@ export default function TestAIAgent() {
   const { userStatus } = useUserStatus();
 
   const pageContent = (
-    <div className="bg-background min-h-full p-2 md:p-8">
+    <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
       <div className="space-y-3 md:space-y-6">
         <SimplePageHeader title="Test AI Agent" />
 

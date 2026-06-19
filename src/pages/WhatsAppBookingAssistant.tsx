@@ -37,10 +37,10 @@ export default function WhatsAppBookingAssistantPage() {
   }, []);
   if (!user) {
     return <DashboardLayout>
-      <div className="bg-background min-h-full p-1 md:p-8">
+      <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <p className="text-muted-foreground">Niet ingelogd</p>
+            <p className="text-muted-foreground">Not logged in</p>
           </div>
         </div>
       </div>
@@ -50,14 +50,14 @@ export default function WhatsAppBookingAssistantPage() {
   // Show inline upgrade page for expired trial or inactive users
   if (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive') {
     return <DashboardLayout>
-      <div className="bg-background min-h-full p-1 md:p-8">
+      <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
         <WhatsAppNotAvailable />
       </div>
       </DashboardLayout>;
   }
   return <DashboardLayout>
-    <div className="bg-background min-h-full p-1 md:p-8">
-      <div className="space-y-1 md:space-y-6">
+    <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
+      <div className="space-y-3 md:space-y-6">
         <div className="space-y-2">
           <SimplePageHeader title="WhatsApp Booking Assistant" />
         </div>
