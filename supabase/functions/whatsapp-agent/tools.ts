@@ -352,6 +352,15 @@ export function createTools(
       parameters: { type: "object", properties: {} },
     },
     {
+      name: "get_my_appointments",
+      description:
+        "ALLEEN-LEZEN: leest de aankomende afspraken van DEZE klant terug (dienst + tijd + status). " +
+        "Gebruik dit als de klant vraagt wat hij/zij geboekt heeft, welke afspraken er staan, of wanneer de afspraak is " +
+        "('wat heb ik geboekt', 'welke afspraken heb ik', 'wanneer is mijn afspraak', 'staat mijn afspraak nog'). " +
+        "Het annuleert of wijzigt NIETS. Gebruik NOOIT cancel_appointment of reschedule_appointment om alleen op te zoeken.",
+      parameters: { type: "object", properties: {} },
+    },
+    {
       name: "get_available_slots",
       description:
         "Geeft ECHTE vrije tijdslots voor een dienst op een datum. Roep aan vóór je een tijd voorstelt of boekt. Verzin nooit zelf tijden. " +
@@ -454,6 +463,25 @@ export function createTools(
       case "get_business_data": {
         const out = await fetchBusinessData(supabase, ctx.businessUserId);
         return out ?? { error: "geen bedrijfsdata" };
+      }
+
+      case "get_my_appointments": {
+        // Read-only lookup of THIS customer's upcoming bookings. NO side effects (unlike using
+        // cancel/reschedule as a lookup, which sets a pending_cancel marker — a mis-commit landmine).
+        const { data } = await supabase
+          .from("bookings")
+          .select("start_time, status, service_types(name)")
+          .eq("customer_phone", ctx.phone)
+          .eq("calendar_id", ctx.calendarId)
+          .in("status", ["confirmed", "pending"])
+          .gt("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true })
+          .limit(5);
+        const list = ((data as Array<{ start_time: string; status: string; service_types?: { name?: string } | null }>) ?? []);
+        if (list.length === 0) return { appointments: [], message: "Deze klant heeft geen aankomende afspraken." };
+        return {
+          appointments: list.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), status: b.status })),
+        };
       }
 
       case "get_available_slots": {
