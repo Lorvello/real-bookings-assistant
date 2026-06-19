@@ -132,10 +132,14 @@ export const CompactTimePicker: React.FC<CompactTimePickerProps> = ({
         className="w-20 h-9 text-center text-sm font-medium bg-muted/50 border-border/50 hover:border-border focus:border-primary rounded-lg cursor-pointer tabular-nums"
       />
       
-      {/* Dropdown with time options */}
+      {/* Dropdown with time options. The input accepts ANY HH:MM (any minute) by typing — the list
+          is just quick suggestions, so we say so (the 30-min/15-min steps were never a real limit). */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 z-50 glass rounded-lg overflow-hidden">
-          <ScrollArea className="h-48 w-24">
+        <div className="absolute top-full left-0 mt-1 z-50 glass rounded-lg overflow-hidden w-32">
+          <p className="px-3 py-1.5 text-[11px] leading-tight text-muted-foreground border-b border-border/40">
+            Or type any time
+          </p>
+          <ScrollArea className="h-44 w-full">
             <div className="p-1">
               {TIME_OPTIONS.map((time) => (
                 <button
