@@ -12,6 +12,9 @@ import { DateRange, getPresetRange } from '@/utils/dateRangePresets';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { CalendarSwitcherSection } from '@/components/dashboard/CalendarSwitcherSection';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
+import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
+import { Button } from '@/components/ui/button';
+import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -59,6 +62,10 @@ const Dashboard = () => {
   // Track active tab to show date filter conditionally
   const [activeTab, setActiveTab] = React.useState('overview');
 
+  // Create-calendar dialog for the no-calendar empty state (a new owner must be able
+  // to create one straight from the dashboard, not hit a dead-end).
+  const [createCalendarOpen, setCreateCalendarOpen] = React.useState(false);
+
   // Show date filter only for business intelligence and performance efficiency tabs
   const showDateFilter = activeTab === 'business-intelligence' || activeTab === 'performance-efficiency';
 
@@ -92,13 +99,27 @@ const Dashboard = () => {
     return (
       <DashboardLayout>
         <div className="bg-background min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="text-lg text-foreground">No calendar found</div>
-              <p className="text-muted-foreground mt-2">Create your first calendar to get started</p>
+          <SimplePageHeader title="Dashboard" />
+          <div className="mt-4 surface-raised rounded-xl p-8">
+            <div className="text-center space-y-6">
+              <div className="glow-accent relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                <CalendarIcon aria-hidden="true" className="h-6 w-6 text-accent-foreground" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold text-foreground">Create your first calendar</h2>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  You need a calendar before your dashboard can show bookings and insights. Create one to get started.
+                </p>
+              </div>
+              <Button onClick={() => setCreateCalendarOpen(true)} size="lg" className="gap-2">
+                <Plus aria-hidden="true" className="h-4 w-4" />
+                Create calendar
+              </Button>
             </div>
           </div>
         </div>
+
+        <CreateCalendarDialog open={createCalendarOpen} onOpenChange={setCreateCalendarOpen} />
       </DashboardLayout>
     );
   }

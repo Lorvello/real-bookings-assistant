@@ -80,7 +80,7 @@ export const OnboardingWizard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] p-6 shadow-2xl shadow-black/30 backdrop-blur sm:p-8">
+      <div className="relative overflow-hidden surface-raised rounded-xl p-6 sm:p-8">
         {/* soft brand glow — mono-accent: the primary emerald token, not a stray hue */}
         <div
           className="pointer-events-none absolute inset-x-0 -top-px h-40 opacity-60"
@@ -107,13 +107,13 @@ export const OnboardingWizard = () => {
                 className="stroke-primary transition-all duration-500 motion-reduce:transition-none"
               />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-white">
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-foreground">
               {completedSteps}/{totalSteps}
             </span>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-white">Complete your setup</h2>
-            <p className="mt-0.5 text-sm text-white/50">
+            <h2 className="text-xl font-semibold text-foreground">Complete your setup</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
               {completedSteps === 0
                 ? `${totalSteps} quick steps to your first booking.`
                 : `${totalSteps - completedSteps} step${
@@ -135,12 +135,12 @@ export const OnboardingWizard = () => {
                 className={`flex items-center gap-4 rounded-xl border p-4 transition-colors motion-reduce:transition-none ${
                   isCompleted
                     ? 'border-primary/20 bg-primary/[0.06]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-primary/30 hover:bg-primary/[0.04]'
+                    : 'border-white/[0.06] bg-white/[0.02] hover:border-primary/30 hover:bg-primary/[0.04]'
                 }`}
               >
                 <div
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                    isCompleted ? 'bg-primary/15 text-primary' : 'bg-white/5 text-white/60'
+                    isCompleted ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {isCompleted ? <CheckCircle className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
@@ -148,7 +148,7 @@ export const OnboardingWizard = () => {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <h4 className={`font-medium ${isCompleted ? 'text-primary' : 'text-white'}`}>
+                    <h4 className={`font-medium ${isCompleted ? 'text-primary' : 'text-foreground'}`}>
                       {step.name}
                     </h4>
                     {isCompleted && (
@@ -157,7 +157,7 @@ export const OnboardingWizard = () => {
                       </span>
                     )}
                   </div>
-                  <p className={`mt-0.5 text-sm ${isCompleted ? 'text-primary/60' : 'text-white/45'}`}>
+                  <p className={`mt-0.5 text-sm ${isCompleted ? 'text-primary/60' : 'text-muted-foreground'}`}>
                     {step.description}
                   </p>
                 </div>
