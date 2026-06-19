@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
@@ -292,7 +293,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 <MetricCard
                   title="Next"
                   value={liveOps?.next_appointment_formatted || "None"}
-                  subtitle={liveOps?.next_appointment_formatted ? "until next appointment" : "scheduled today"}
+                  subtitle={liveOps?.next_appointment_time ? format(new Date(liveOps.next_appointment_time), 'EEE d MMM · HH:mm') : "none scheduled"}
                   icon={Clock}
                   variant="green"
                   delay={0.4}
@@ -457,10 +458,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                             <div>
                               <p className="font-semibold text-foreground mb-1">Next Appointment</p>
                               <p className="text-sm text-foreground font-mono">
-                                {new Date(liveOps.next_appointment_time).toLocaleTimeString('en-US', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
+                                {format(new Date(liveOps.next_appointment_time), 'EEE d MMM, HH:mm')}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockDataControl } from '@/hooks/useMockDataControl';
 import { getMockLiveOperationsData } from '../useMockDataGenerator';
+import { formatTimeUntil } from '@/lib/timeUntil';
 
 interface LiveOperationsData {
   today_bookings: number;
@@ -77,23 +78,10 @@ export function useOptimizedLiveOperations(calendarIds?: string[]) {
         .filter(booking => new Date(booking.start_time) > now)
         .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
 
-      let nextAppointmentFormatted = null;
-      if (nextAppointment) {
-        const nextTime = new Date(nextAppointment.start_time);
-        const timeDiff = nextTime.getTime() - now.getTime();
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        
-        if (timeDiff <= 0) {
-          nextAppointmentFormatted = "Starting now";
-        } else if (hours > 0) {
-          nextAppointmentFormatted = `${hours}h ${minutes}m`;
-        } else if (minutes > 0) {
-          nextAppointmentFormatted = `${minutes}m`;
-        } else {
-          nextAppointmentFormatted = "< 1m";
-        }
-      }
+      // Human relative with day rollover (no raw "132h" — same fix as the Overview hero).
+      const nextAppointmentFormatted = nextAppointment
+        ? formatTimeUntil(nextAppointment.start_time, now)
+        : null;
       
       // Count ALL active conversations - this is what "active conversations" means
       const activeConversationsToday = conversationsData?.length || 0;

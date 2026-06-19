@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { format } from 'date-fns';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useNextAppointment } from '@/hooks/dashboard/useNextAppointment';
 import { usePopularService } from '@/hooks/dashboard/usePopularService';
@@ -128,7 +129,12 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                   <div className="mt-2 md:mt-3 text-3xl md:text-display-hero font-semibold leading-none tabular-nums tracking-[-0.03em] text-foreground">
                     {nextAppointment.time_until}
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground truncate">
+                  {nextAppointment.start_time && (
+                    <p className="mt-2 text-sm font-medium text-foreground/90 tabular-nums">
+                      {format(new Date(nextAppointment.start_time), 'EEE d MMM · HH:mm')}
+                    </p>
+                  )}
+                  <p className="mt-1 text-sm text-muted-foreground truncate">
                     {nextAppointment.service_name} <span className="text-subtle-foreground">·</span> {nextAppointment.customer_name}
                   </p>
                 </>

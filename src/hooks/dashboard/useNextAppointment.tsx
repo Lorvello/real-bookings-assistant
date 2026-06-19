@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockDataControl } from '@/hooks/useMockDataControl';
+import { formatTimeUntil } from '@/lib/timeUntil';
 
 export function useNextAppointment(calendarIds: string[]) {
   const { useMockData } = useMockDataControl();
@@ -19,7 +20,7 @@ export function useNextAppointment(calendarIds: string[]) {
           customer_name: 'Emma van der Berg',
           service_name: 'Knippen & Stylen',
           start_time: nextTime.toISOString(),
-          time_until: '2h 30m',
+          time_until: formatTimeUntil(nextTime.toISOString()),
           is_sample: true
         };
       }
@@ -48,28 +49,12 @@ export function useNextAppointment(calendarIds: string[]) {
 
       if (!nextAppointment) return null;
 
-      // Calculate time until appointment
-      const appointmentTime = new Date(nextAppointment.start_time);
-      const timeDiff = appointmentTime.getTime() - now.getTime();
-      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-      
-      let timeUntil = '';
-      if (timeDiff <= 0) {
-        timeUntil = "In progress";
-      } else if (hours > 0) {
-        timeUntil = `${hours}h ${minutes}m`;
-      } else if (minutes > 0) {
-        timeUntil = `${minutes}m`;
-      } else {
-        timeUntil = "< 1m";
-      }
-
+      // Human "in Xd Yh / in Xh Ym" with day rollover (no raw "132h" — the live bug).
       return {
         customer_name: nextAppointment.customer_name,
         service_name: nextAppointment.service_name || nextAppointment.service_types?.name,
         start_time: nextAppointment.start_time,
-        time_until: timeUntil
+        time_until: formatTimeUntil(nextAppointment.start_time, now)
       };
     },
     enabled: !!calendarIds && calendarIds.length > 0,
