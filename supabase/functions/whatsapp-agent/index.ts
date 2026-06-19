@@ -373,9 +373,17 @@ Deno.serve(async (req) => {
         ctxUpdate.detected_language = detectedThisMsg;
       }
       if (Object.keys(ctxUpdate).length > 0) {
+        // CRITICAL: merge onto a FRESH read, not the turn-START convContext. The tools wrote
+        // to context DURING this turn (pending_booking / pending_cancel / booking_name); using
+        // the stale snapshot here clobbered those — e.g. a first-contact booking preview's
+        // pending_booking was wiped by this greeting_sent write, so the next "ja" re-previewed
+        // instead of committing. Re-read so this only ADDS greeting_sent/detected_language.
+        const { data: freshConv } = await supabase
+          .from("whatsapp_conversations").select("context").eq("id", conversationId).maybeSingle();
+        const latestCtx = ((freshConv as { context?: Record<string, unknown> } | null)?.context) ?? convContext;
         await supabase
           .from("whatsapp_conversations")
-          .update({ context: { ...convContext, ...ctxUpdate } })
+          .update({ context: { ...latestCtx, ...ctxUpdate } })
           .eq("id", conversationId);
       }
     }
