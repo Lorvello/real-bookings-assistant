@@ -560,6 +560,13 @@ export function createTools(
           }
           start = r.start; end = r.end;
         }
+        // Safety: end_time is no longer a required param (date+time computes it). If the model used
+        // the legacy start_time path and gave a valid ISO start but NO end, derive end from the
+        // service duration so we never insert a booking with an empty end_time.
+        if (!committing && start && /^\d{4}-\d{2}-\d{2}T/.test(start) && !end && serviceId) {
+          const dur = await serviceDuration(supabase, serviceId);
+          end = new Date(new Date(start).getTime() + dur * 60000).toISOString();
+        }
 
         // NAME GATE: never create a nameless booking. The model must collect a real name
         // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
@@ -884,6 +891,13 @@ export function createTools(
             };
           }
           newStart = r.start; newEnd = r.end;
+        }
+        // Safety (legacy start_time path): derive end from the service duration if a valid ISO start
+        // was given without an end, so a reschedule is never refused for a missing end the model
+        // simply didn't pass (end_time is no longer required).
+        if (newStart && /^\d{4}-\d{2}-\d{2}T/.test(newStart) && !newEnd) {
+          const dur = await serviceDuration(supabase, serviceId);
+          newEnd = new Date(new Date(newStart).getTime() + dur * 60000).toISOString();
         }
         if (!newStart || !newEnd) {
           return { error: "ontbrekende_tijd", message: "Geef de nieuwe dag en tijd om naar te verzetten." };
