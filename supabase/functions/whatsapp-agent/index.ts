@@ -236,9 +236,25 @@ Deno.serve(async (req) => {
     const cancelIntent = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i.test(msgLower);
     const cancelPreviewMissed = cancelIntent && !calledCancel && !pendingFresh && !NEGATE_RE.test(msgLower);
 
-    if (looksLikeStall || cancelPreviewMissed) {
+    // Confirm-then-stall: the customer gives a bare affirmation ("ja", "ja graag") to an
+    // action the model proposed (typically a reschedule it offered to do), but the model
+    // asks ANOTHER question / only re-checks availability instead of calling the MUTATING
+    // tool -> the action never executes and the customer must repeat themselves. Nudge once
+    // to perform it. Note: calling get_available_slots (a READ) does NOT count as doing the
+    // action, so this fires even when calledAction is true. All mutating tools are
+    // server-guarded (book refuses a double, reschedule re-validates, cancel previews), so a
+    // stray nudge can never produce a wrong outcome.
+    const MUTATION_TOOLS = new Set(["book_appointment", "cancel_appointment", "reschedule_appointment"]);
+    const calledMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name));
+    const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
+    const confirmStall = !calledMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
+      !!result.text && result.text.includes("?");
+
+    if (looksLikeStall || cancelPreviewMissed || confirmStall) {
       const nudgeText = cancelPreviewMissed
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
+        : confirmStall
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment voor een ander tijdstip, anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
         : "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht.";
       const nudged: Content[] = [
         ...contents,
@@ -246,7 +262,14 @@ Deno.serve(async (req) => {
         { role: "user", parts: [{ text: nudgeText }] },
       ];
       const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
-      if (retry.text && (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))) {
+      // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
+      // the original); for the other cases, adopt on any tool call or a non-filler reply.
+      const accept = !!retry.text && (
+        confirmStall
+          ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name))
+          : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
+      );
+      if (accept) {
         result = retry;
       }
     }
