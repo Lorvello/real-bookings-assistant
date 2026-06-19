@@ -50,7 +50,7 @@ export function VirtualizedBookingsList({
 
   if (!loading && bookings.length === 0) {
     return (
-      <div className="surface-raised rounded-2xl p-6">
+      <div className="surface-raised rounded-xl p-6">
         <BookingsEmptyState hasFilters={hasFilters} />
       </div>
     );

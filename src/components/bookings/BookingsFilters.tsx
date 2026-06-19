@@ -23,12 +23,13 @@ export function BookingsFilters({
   setSortBy
 }: BookingsFiltersProps) {
   return (
-    <div className="surface-raised rounded-xl p-6 mb-6">
+    <div className="surface-raised rounded-xl p-4 sm:p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-4">
         {/* Search */}
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search aria-hidden="true" className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
+            aria-label="Search bookings"
             placeholder="Search by customer name, email or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -46,7 +47,7 @@ export function BookingsFilters({
 
         {/* Sort */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full md:w-48">
+          <SelectTrigger aria-label="Sort bookings" className="w-full md:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="glass z-50">

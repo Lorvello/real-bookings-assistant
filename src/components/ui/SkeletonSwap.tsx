@@ -47,6 +47,7 @@ export function SkeletonSwap({
         aria-hidden={!showSkeleton}
         style={{
           gridArea: "1 / 1",
+          minWidth: 0,
           opacity: showSkeleton ? 1 : 0,
           transition,
           pointerEvents: showSkeleton ? "auto" : "none",
@@ -58,6 +59,7 @@ export function SkeletonSwap({
       <div
         style={{
           gridArea: "1 / 1",
+          minWidth: 0,
           opacity: showSkeleton ? 0 : 1,
           transition,
           pointerEvents: showSkeleton ? "none" : "auto",

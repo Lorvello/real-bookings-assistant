@@ -25,9 +25,11 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
     // neutral, completed = a subtle accent tint. A dot in the matching tone.
     const statusConfig: Record<string, { label: string; cls: string }> = {
       confirmed: { label: 'Confirmed', cls: 'bg-success/10 text-success-foreground ring-success/20' },
-      pending: { label: 'Pending', cls: 'bg-gold/10 text-gold-foreground ring-gold/20' },
+      pending: { label: 'Pending', cls: 'bg-warning/10 text-warning-foreground ring-warning/20' },
       cancelled: { label: 'Cancelled', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' },
-      completed: { label: 'Completed', cls: 'bg-primary/10 text-accent-foreground ring-primary/20' },
+      // completed = a settled/past state → calm muted (the vivid green is reserved for
+      // upcoming "Confirmed" so a glance separates live bookings from done ones).
+      completed: { label: 'Completed', cls: 'bg-muted text-subtle-foreground ring-white/[0.08]' },
       'no-show': { label: 'No Show', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' }
     };
 
@@ -56,20 +58,20 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
       className="surface-raised cursor-pointer transition-transform duration-150 active:scale-[0.985] motion-reduce:active:scale-100 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-subtle-foreground" />
-            <div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <Calendar aria-hidden="true" className="w-5 h-5 text-subtle-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0">
               <CardTitle className="text-foreground text-lg">
                 {format(new Date(booking.start_time), 'EEEE d MMMM yyyy', { locale: enUS })}
               </CardTitle>
-              <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1 tabular-nums">
-                <Clock className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1 tabular-nums whitespace-nowrap">
+                <Clock aria-hidden="true" className="w-4 h-4 shrink-0" />
                 {format(new Date(booking.start_time), 'HH:mm')} - {format(new Date(booking.end_time), 'HH:mm')}
               </div>
             </div>
           </div>
-          {getStatusBadge(booking.status)}
+          <span className="shrink-0">{getStatusBadge(booking.status)}</span>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -85,14 +87,14 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
               </span>
               <span className="font-medium">{booking.customer_name}</span>
             </div>
-            <div className="flex items-center gap-2 text-foreground text-sm">
-              <Mail className="w-4 h-4 text-muted-foreground" />
-              <span>{booking.customer_email}</span>
+            <div className="flex items-center gap-2 text-foreground text-sm min-w-0">
+              <Mail aria-hidden="true" className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="truncate">{booking.customer_email}</span>
             </div>
             {booking.customer_phone && (
-              <div className="flex items-center gap-2 text-foreground text-sm">
-                <Phone className="w-4 h-4 text-muted-foreground" />
-                <span>{booking.customer_phone}</span>
+              <div className="flex items-center gap-2 text-foreground text-sm min-w-0">
+                <Phone aria-hidden="true" className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="truncate tabular-nums">{booking.customer_phone}</span>
               </div>
             )}
           </div>
@@ -107,7 +109,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
             )}
             {booking.notes && (
               <div className="flex items-start gap-2 text-sm">
-                <FileText className="w-4 h-4 text-muted-foreground mt-0.5" />
+                <FileText aria-hidden="true" className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
                   <span className="text-muted-foreground">Notes: </span>
                   <span className="text-foreground">{booking.notes}</span>
