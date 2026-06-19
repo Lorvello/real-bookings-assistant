@@ -301,8 +301,9 @@ serve(async (req) => {
       // de enige "processor" (RPC process_whatsapp_webhook_queue) is een no-op stub die
       // alleen processed=true zet. De insert groeide dus oneindig (220 ongelezen rijen)
       // EN het faal-pad gaf 500 terug, waardoor een dode audit-write de live agent kon
-      // blokkeren. Tabel + dev WhatsAppWebhookManager + dode useWhatsAppRealtimeUpdates =
-      // los op te ruimen in de BLOK D dev-internals-pass (E-onafhankelijk, queue blijft leeg).
+      // blokkeren. (R31, 2026-06-19) De whatsapp_webhook_queue-tabel + de processor-RPC
+      // process_whatsapp_webhook_queue + de trigger + de dev WhatsAppWebhookManager/-hooks
+      // zijn nu volledig GEDROPT/verwijderd (migratie 20260619120000). Niets verwijst er nog naar.
 
       // Log successful webhook processing
       await logSecurityEvent(
