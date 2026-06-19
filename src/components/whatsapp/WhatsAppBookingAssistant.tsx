@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 import { WhatsAppWelcomeMessage } from '@/components/whatsapp/WhatsAppWelcomeMessage';
 import { supabase } from '@/integrations/supabase/client';
 import QRCodeSVG from 'react-qr-code';
-import { Download, Copy, Check, RotateCcw } from 'lucide-react';
-
-// Normalise a phone to wa_id form (country code, digits only). Dutch 06… → 316…; strips +.
-// Mirrors the same helper in whatsapp-webhook + reset-test-conversation so the stored
-// value always matches the wa_id WhatsApp delivers.
-function normalizeTestPhone(raw: string): string {
-  let d = (raw || '').replace(/\D/g, '');
-  if (d.startsWith('00')) d = d.slice(2);
-  if (d.startsWith('0')) d = '31' + d.slice(1);
-  return d;
-}
+import { Download, Copy, Check } from 'lucide-react';
 
 interface WhatsAppBookingAssistantProps {
   userId: string;
@@ -29,10 +18,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
   const [imgBroken, setImgBroken] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [cacheBust, setCacheBust] = useState(0);
-  const [testPhone, setTestPhone] = useState('');
-  const [savedTestPhone, setSavedTestPhone] = useState('');
-  const [savingPhone, setSavingPhone] = useState(false);
-  const [resetting, setResetting] = useState(false);
 
   const {
     platformNumber,
@@ -49,47 +34,17 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     const loadBusinessData = async () => {
       const { data } = await supabase
         .from('users')
-        .select('business_name, owner_test_phone')
+        .select('business_name')
         .eq('id', userId)
         .single();
 
       // Natural generic greeting until the business name is set, instead of the
       // awkward "Hello Our business!".
       setBusinessName(data?.business_name || 'there');
-      setTestPhone(data?.owner_test_phone || '');
-      setSavedTestPhone(data?.owner_test_phone || '');
     };
 
     loadBusinessData();
   }, [userId]);
-
-  const handleSaveTestPhone = async () => {
-    const normalized = normalizeTestPhone(testPhone);
-    setSavingPhone(true);
-    const { error } = await supabase
-      .from('users')
-      .update({ owner_test_phone: normalized || null })
-      .eq('id', userId);
-    setSavingPhone(false);
-    if (error) {
-      toast.error('Save failed');
-      return;
-    }
-    setTestPhone(normalized);
-    setSavedTestPhone(normalized);
-    toast.success(normalized ? 'Test number saved' : 'Test number cleared');
-  };
-
-  const handleResetTestConversation = async () => {
-    setResetting(true);
-    const { data, error } = await supabase.functions.invoke('reset-test-conversation', { body: {} });
-    setResetting(false);
-    if (error || !data?.success) {
-      toast.error(data?.message || 'Reset failed. Did you save your test number?');
-      return;
-    }
-    toast.success(data.cleared > 0 ? 'Test conversation cleared. Your next message starts fresh.' : 'No test conversation found to clear.');
-  };
 
   // Force refresh QR image when a new URL is set to bypass browser cache
   useEffect(() => {
@@ -314,47 +269,6 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           </CardContent>
         </Card>
       </div>
-
-      {/* Test it yourself — owner self-test number + reset */}
-      <Card className="bg-card rounded-lg border border-white/[0.08] mt-6">
-        <CardContent className="p-6">
-          <h3 className="text-base text-foreground font-medium mb-1">Test it yourself</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            Save your own WhatsApp number here. Then you can message your assistant from your phone, without a code, and it answers you exactly like a customer. Use Reset to start a fresh conversation (the first reply is the welcome again).
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
-            <div className="flex-1">
-              <label htmlFor="owner-test-phone" className="text-sm text-muted-foreground">Your WhatsApp number</label>
-              <Input
-                id="owner-test-phone"
-                type="tel"
-                inputMode="tel"
-                placeholder="+31 6 12345678"
-                value={testPhone}
-                onChange={(e) => setTestPhone(e.target.value)}
-                className="mt-1.5 bg-background border-white/[0.08]"
-              />
-            </div>
-            <Button
-              onClick={handleSaveTestPhone}
-              disabled={savingPhone || normalizeTestPhone(testPhone) === savedTestPhone}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {savingPhone ? 'Saving…' : 'Save number'}
-            </Button>
-            <Button
-              onClick={handleResetTestConversation}
-              disabled={resetting || !savedTestPhone}
-              variant="outline"
-              className="border-white/[0.08] text-foreground hover:bg-white/[0.06]"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              {resetting ? 'Resetting…' : 'Reset test chat'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Customizable first-reply greeting */}
       <WhatsAppWelcomeMessage userId={userId} />

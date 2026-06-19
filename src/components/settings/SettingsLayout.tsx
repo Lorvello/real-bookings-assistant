@@ -162,10 +162,12 @@ export const SettingsTabs = () => {
           </div>
         </aside>
 
-        {/* RIGHT COLUMN — capped reading width for calm, scannable forms.
+        {/* RIGHT COLUMN — fills the available width (consistent with the full-width
+            Availability/Calendar/Dashboard pages), capped only on very wide screens so
+            single-column form fields never stretch to an unreadable length.
             pb clears the floating SettingsSaveBar (fixed bottom-0) so the last
             section's content is never covered when there are unsaved changes. */}
-        <div className="min-w-0 flex-1 pb-24 md:max-w-3xl">
+        <div className="min-w-0 flex-1 pb-24 md:max-w-4xl xl:max-w-5xl">
           <TabsContent value="users" className="mt-0 focus-visible:outline-none">
             <ProfileTab />
           </TabsContent>
@@ -198,8 +200,8 @@ export const SettingsLayout = () => {
           element here would render with LIGHT values on the dark shell. Scoping
           `dark` here (not globally) keeps all token elements dark with zero effect
           on any page outside Settings. */}
-      <div className="dark min-h-screen bg-background p-3 md:p-8">
-        <div className="mx-auto max-w-6xl">
+      <div className="dark min-h-full bg-background p-3 sm:p-4 md:p-8">
+        <div className="w-full">
           <SimplePageHeader title="Settings" />
           <div className="mt-6 md:mt-8">
             <SettingsTabs />
