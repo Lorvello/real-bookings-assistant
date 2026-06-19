@@ -621,7 +621,12 @@ export function createTools(
         // reschedule_appointment, leaving the original AND a new row. If this customer
         // already has an upcoming active booking on this calendar, refuse and route to
         // reschedule — unless they EXPLICITLY want a second one (confirm_second_booking).
-        if (args.confirm_second_booking !== true) {
+        // SKIP on commit: a pending_booking only exists because the PREVIEW already passed this guard
+        // (no existing booking, or confirm_second_booking was set then). Re-running it on the commit
+        // turn blocked genuine second bookings forever, because gpt-4.1-mini rarely re-sets the flag on
+        // the "ja" turn (adversarial finding: infinite preview loop). The overlap constraint +
+        // validate_booking_security still catch any real slot conflict on insert.
+        if (!committing && args.confirm_second_booking !== true) {
           const { data: existing } = await supabase
             .from("bookings")
             .select("start_time")

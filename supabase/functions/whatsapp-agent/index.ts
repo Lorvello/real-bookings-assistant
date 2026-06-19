@@ -261,7 +261,12 @@ Deno.serve(async (req) => {
     const msgLower = String(message).toLowerCase();
     const AFFIRM_RE = /\b(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord)\b/i;
     const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
-    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower);
+    // A hypothetical / policy QUESTION that merely contains a cancel word ("krijg ik geld terug als ik
+    // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
+    // cancellation — it's an info question, answered from <business_data>. Without this, asking about the
+    // refund policy armed a cancel and the next "ja" destroyed the booking (adversarial finding).
+    const cancelPolicyQuestion = /\b(beleid|policy|terugbetaling|terug ?betaald|geld terug|refund|kosten|hoeveel|als ik|wat als|stel dat|wat gebeurt|hoe zit het|wanneer kan ik)\b/i.test(msgLower);
+    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
@@ -300,7 +305,7 @@ Deno.serve(async (req) => {
     // the marker MUST exist: force the preview tool. Skipped on a decline (NEGATE_RE)
     // and on the confirmation turn (pendingFresh) so it never double-fires.
     const calledCancel = result.toolCalls.some((t) => t.name === "cancel_appointment");
-    const cancelIntent = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i.test(msgLower);
+    const cancelIntent = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i.test(msgLower) && !cancelPolicyQuestion;
     const cancelPreviewMissed = cancelIntent && !calledCancel && !pendingFresh && !NEGATE_RE.test(msgLower);
 
     // Confirm-then-stall: the customer gives a bare affirmation ("ja", "ja graag") to an
