@@ -47,24 +47,35 @@ const TeamInvite = () => {
 
   const fetchInvitationData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('team_invitations')
-        .select(`
-          *,
-          calendars!inner(name, user_id),
-          users!team_invitations_invited_by_fkey(business_name, full_name)
-        `)
-        .eq('token', token)
-        .eq('status', 'pending')
-        .gt('expires_at', new Date().toISOString())
-        .single();
+      // Read via a SECURITY DEFINER RPC keyed on the token. The invitee is ANONYMOUS (no account
+      // yet), so a direct table query is blocked by RLS ("view invitations sent to your email"
+      // needs auth.email()), which made every valid invite show "Invalid invitation". The token is
+      // the unguessable capability, so the RPC safely returns the one matching pending invite.
+      // Cast: this RPC was just added (migration R39) and isn't in the generated Supabase types yet.
+      // Regenerate src/integrations/supabase/types.ts to drop the `as any`.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase.rpc as any)('get_team_invitation_by_token', { p_token: token });
 
-      if (error || !data) {
-        setError('Invitation not found or expired');
+      const result = data as { success?: boolean; error?: string; invitation?: Record<string, unknown> } | null;
+      if (error || !result || result.success !== true || !result.invitation) {
+        setError(result?.error || 'Invitation not found or expired');
         return;
       }
 
-      setInvitation(data as unknown as InvitationData);
+      const inv = result.invitation as {
+        id: string; email: string; full_name: string; role: string; status: string;
+        expires_at: string; calendar_name: string; business_name: string;
+      };
+      setInvitation({
+        id: inv.id,
+        email: inv.email,
+        full_name: inv.full_name,
+        role: inv.role,
+        status: inv.status,
+        expires_at: inv.expires_at,
+        calendars: { name: inv.calendar_name, user_id: '' },
+        users: { business_name: inv.business_name, full_name: inv.business_name },
+      });
     } catch (err) {
       console.error('Error fetching invitation:', err);
       setError('Something went wrong while loading the invitation');
@@ -97,7 +108,7 @@ const TeamInvite = () => {
 
       // Redirect to login page with success message
       setTimeout(() => {
-        navigate('/auth?message=invitation-accepted&email=' + encodeURIComponent(invitation?.email || ''));
+        navigate('/login?message=invitation-accepted&email=' + encodeURIComponent(invitation?.email || ''));
       }, 2000);
 
     } catch (err: any) {
@@ -138,7 +149,7 @@ const TeamInvite = () => {
           </CardHeader>
           <CardContent>
             <Button 
-              onClick={() => navigate('/auth')} 
+              onClick={() => navigate('/login')} 
               variant="outline" 
               className="w-full"
             >
@@ -247,7 +258,7 @@ const TeamInvite = () => {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => navigate('/auth')}
+              onClick={() => navigate('/login')}
               className="flex-1 sm:flex-initial"
             >
               Later
