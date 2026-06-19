@@ -89,27 +89,30 @@ const TeamInvite = () => {
 
     setAccepting(true);
     try {
-      const { data, error } = await supabase.rpc('accept_team_invitation', {
-        p_token: token
+      // Accept via the edge fn: it creates the member's auth account (a member has none yet, and
+      // public.users.id must reference auth.users) then links them to the calendar. A direct DB RPC
+      // could not create the user (FK violation), which is why accepting used to fail.
+      const { data, error } = await supabase.functions.invoke('accept-team-invitation', {
+        body: { token },
       });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      if (!data || typeof data !== 'object' || !(data as any).success) {
-        throw new Error((data as any)?.error || 'Failed to accept invitation');
+      if (!data || (data as { success?: boolean }).success !== true) {
+        throw new Error((data as { error?: string })?.error || 'Failed to accept invitation');
       }
 
       toast({
         title: "Invitation accepted! 🎉",
-        description: "You now have access to the team. You'll be redirected to the login screen.",
+        description: "Check your email for a link to set your password, then log in.",
       });
 
-      // Redirect to login page with success message
+      // Redirect to the login page with a success message.
       setTimeout(() => {
         navigate('/login?message=invitation-accepted&email=' + encodeURIComponent(invitation?.email || ''));
-      }, 2000);
+      }, 2500);
 
     } catch (err: any) {
       console.error('Error accepting invitation:', err);
