@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     // Phase 1 — everything that needs only (calendar_id, phone):
     const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
-      supabase.from("service_types").select("id, name, duration, price").eq("calendar_id", calendar_id),
+      supabase.from("service_types").select("id, name, duration, price, description").eq("calendar_id", calendar_id),
       supabase.from("calendar_settings").select("whatsapp_welcome_message").eq("calendar_id", calendar_id).maybeSingle(),
       // NOTE: whatsapp_contacts is GLOBALLY UNIQUE by phone_number (no calendar_id column),
       // so first_name here is cross-tenant — the per-(calendar_id, phone) name scoping that
@@ -137,8 +137,8 @@ Deno.serve(async (req) => {
     const cal = calRes.data;
     const businessUserId = (cal as { user_id?: string } | null)?.user_id ?? "";
 
-    const services: ServiceInfo[] = ((svcRes.data as Array<{ id: string; name: string; duration: number; price: number | null }>) ?? [])
-      .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price }));
+    const services: ServiceInfo[] = ((svcRes.data as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null }>) ?? [])
+      .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description }));
 
     // Per-calendar custom welcome greeting (NULL → default template in prompt.ts).
     const rawWelcome = (csRes.data as { whatsapp_welcome_message?: string | null } | null)?.whatsapp_welcome_message ?? null;

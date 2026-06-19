@@ -17,6 +17,7 @@ export interface ServiceInfo {
   name: string;
   durationMin: number;
   price?: number | null;
+  description?: string | null; // what the service includes — so the agent can explain/differentiate
 }
 
 export interface PromptContext {
@@ -153,7 +154,7 @@ ${
     ctx.services && ctx.services.length
       ? `
 <services>
-${ctx.services.map((s) => `- ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})`).join("\n")}
+${ctx.services.map((s) => `- ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n")}
 </services>
 ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].name}). Vraag dus NOOIT "welke dienst wil je?" en som geen keuze op; ga er stilzwijgend van uit dat het om deze dienst gaat en vraag alleen naar datum/tijd (en de naam). Noem de dienst hooguit terloops in je bevestiging.\n` : ""}Vragen over welke diensten er zijn, hun prijs of duur beantwoord je DIRECT uit deze lijst, zonder een tool aan te roepen. Kies ALTIJD een service_type_id uit deze lijst; verzin nooit een id. end_time = start_time + de dienstduur.
 `

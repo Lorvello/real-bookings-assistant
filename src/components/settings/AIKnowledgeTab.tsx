@@ -425,10 +425,10 @@ export const AIKnowledgeTab: React.FC = () => {
               optional: true,
               placeholder: 'e.g. Wheelchair accessible, elevator available, no thresholds…',
             })}
-            {businessField('other_info', 'Other information', {
+            {businessField('other_info', 'FAQ & anything else', {
               textarea: true,
               optional: true,
-              placeholder: 'Anything else that may be useful for customers…',
+              placeholder: 'Common questions + answers, or anything else the assistant should know. e.g. "Do you sell gift vouchers? Yes, just ask in the salon." "Can I bring my child? Of course."',
             })}
           </div>
         </SettingsSection>
