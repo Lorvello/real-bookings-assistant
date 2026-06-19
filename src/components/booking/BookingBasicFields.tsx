@@ -116,13 +116,13 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="title"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Titel *</FormLabel>
+            <FormLabel>Title *</FormLabel>
             <FormControl>
-              <Input 
-                {...field} 
+              <Input
+                {...field}
                 onChange={(e) => handleTitleChange(e.target.value, field.onChange)}
                 onBlur={field.onBlur}
-                placeholder="Bijvoorbeeld: Kapperbeurt voor Jan"
+                placeholder="For example: Haircut for John"
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -131,7 +131,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              Een duidelijke titel helpt bij het organiseren van afspraken
+              A clear title helps you keep your appointments organized
             </FormDescription>
             {!fieldState.error && titleValidation !== 'idle' && (
               <ValidationFeedback status={titleValidation} />
@@ -147,13 +147,13 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="customerName"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Naam klant *</FormLabel>
+            <FormLabel>Customer name *</FormLabel>
             <FormControl>
-              <Input 
-                {...field} 
+              <Input
+                {...field}
                 onChange={(e) => handleNameChange(e.target.value, field.onChange)}
                 onBlur={field.onBlur}
-                placeholder="Bijvoorbeeld: Jan Jansen"
+                placeholder="For example: John Smith"
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -162,7 +162,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              Voor wie is deze afspraak?
+              Who is this appointment for?
             </FormDescription>
             {!fieldState.error && nameValidation !== 'idle' && (
               <ValidationFeedback status={nameValidation} />
@@ -187,7 +187,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
                   field.onBlur();
                   handleEmailBlur(e.target.value);
                 }}
-                placeholder="naam@voorbeeld.nl"
+                placeholder="name@example.com"
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -196,7 +196,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              Voor bevestiging en herinneringen (optioneel)
+              For confirmation and reminders (optional)
             </FormDescription>
             {!fieldState.error && emailValidation !== 'idle' && (
               <ValidationFeedback status={emailValidation} />
@@ -212,7 +212,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="customerPhone"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Telefoonnummer</FormLabel>
+            <FormLabel>Phone number</FormLabel>
             <FormControl>
               <Input 
                 {...field} 
@@ -228,7 +228,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              Voor WhatsApp notificaties (optioneel)
+              For WhatsApp notifications (optional)
             </FormDescription>
             {!fieldState.error && phoneValidation !== 'idle' && (
               <ValidationFeedback status={phoneValidation} />
@@ -272,12 +272,12 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="location"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Locatie (optioneel)</FormLabel>
+            <FormLabel>Location (optional)</FormLabel>
             <FormControl>
-              <Input 
-                {...field} 
+              <Input
+                {...field}
                 onChange={(e) => handleLocationChange(e.target.value, field.onChange)}
-                placeholder="Bijvoorbeeld: Hoofdstraat 123, Amsterdam"
+                placeholder="For example: 123 Main Street, Amsterdam"
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -300,7 +300,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Beschrijving</FormLabel>
+            <FormLabel>Description</FormLabel>
             <FormControl>
               <Textarea 
                 value={field.value || ''}
@@ -309,13 +309,13 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
                   const sanitized = e.target.value.replace(/[<>]/g, '');
                   field.onChange(sanitized);
                 }}
-                placeholder="Extra informatie over de afspraak"
+                placeholder="Extra information about the appointment"
                 className="bg-background"
                 rows={3}
               />
             </FormControl>
             <FormDescription>
-              Optionele details over de afspraak (max 2000 tekens)
+              Optional details about the appointment (max 2000 characters)
             </FormDescription>
             <FormMessage />
           </FormItem>

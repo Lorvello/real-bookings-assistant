@@ -72,12 +72,12 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
       .eq('id', userId);
     setSavingPhone(false);
     if (error) {
-      toast.error('Opslaan mislukt');
+      toast.error('Save failed');
       return;
     }
     setTestPhone(normalized);
     setSavedTestPhone(normalized);
-    toast.success(normalized ? 'Testnummer opgeslagen' : 'Testnummer gewist');
+    toast.success(normalized ? 'Test number saved' : 'Test number cleared');
   };
 
   const handleResetTestConversation = async () => {
@@ -85,10 +85,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     const { data, error } = await supabase.functions.invoke('reset-test-conversation', { body: {} });
     setResetting(false);
     if (error || !data?.success) {
-      toast.error(data?.message || 'Resetten mislukt. Heb je je testnummer opgeslagen?');
+      toast.error(data?.message || 'Reset failed. Did you save your test number?');
       return;
     }
-    toast.success(data.cleared > 0 ? 'Testgesprek gewist. Je volgende bericht start vers.' : 'Geen testgesprek gevonden om te wissen.');
+    toast.success(data.cleared > 0 ? 'Test conversation cleared. Your next message starts fresh.' : 'No test conversation found to clear.');
   };
 
   // Force refresh QR image when a new URL is set to bypass browser cache
@@ -292,7 +292,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             <div className="mt-4 rounded-lg border border-primary/20 bg-primary/[0.06] px-4 py-3">
               <p className="text-sm font-medium text-foreground">Want to test it yourself?</p>
               <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                Scan your own QR and send the pre-filled message. The first reply is always the welcome. Then send your real question (for example "kan ik morgen om 14:00?") and the assistant will help you, exactly like a customer. Tip: you can also put your question straight after the saved message, the assistant greets and helps in one go.
+                Scan your own QR and send the pre-filled message. The first reply is always the welcome. Then send your real question (for example "can I book tomorrow at 2pm?") and the assistant will help you, exactly like a customer. Tip: you can also put your question straight after the saved message, the assistant greets and helps in one go.
               </p>
             </div>
           </CardContent>

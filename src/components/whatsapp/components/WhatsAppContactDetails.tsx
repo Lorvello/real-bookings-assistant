@@ -24,16 +24,16 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
       <div className="bg-muted/30 rounded-lg p-4 border border-white/[0.08]">
         <h4 className="font-medium text-foreground mb-3 flex items-center gap-2">
           <User className="w-4 h-4 text-muted-foreground" />
-          Contact Informatie
+          Contact information
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div>
-            <span className="text-muted-foreground block mb-1">Telefoon:</span>
+            <span className="text-muted-foreground block mb-1">Phone:</span>
             <div className="font-medium text-foreground font-mono tabular-nums">{contact.phone_number}</div>
           </div>
           {contact.contact_created_at && (
             <div>
-              <span className="text-muted-foreground block mb-1">Aangemaakt:</span>
+              <span className="text-muted-foreground block mb-1">Created:</span>
               <div className="font-medium text-foreground tabular-nums">
                 {format(new Date(contact.contact_created_at), 'd MMM yyyy', { locale: nl })}
               </div>
@@ -74,12 +74,12 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
                   )}
                   {booking.calendar_name && (
                     <div className="text-foreground">
-                      <span className="text-muted-foreground">Kalender:</span> {booking.calendar_name}
+                      <span className="text-muted-foreground">Calendar:</span> {booking.calendar_name}
                     </div>
                   )}
                   {booking.business_name && (
                     <div className="text-foreground">
-                      <span className="text-muted-foreground">Bedrijf:</span> {booking.business_name}
+                      <span className="text-muted-foreground">Business:</span> {booking.business_name}
                     </div>
                   )}
                 </div>
@@ -87,7 +87,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
             ))}
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">Geen boekingen gevonden</p>
+          <p className="text-muted-foreground text-sm">No bookings found</p>
         )}
       </div>
 
@@ -102,7 +102,7 @@ export function WhatsAppContactDetails({ contact }: WhatsAppContactDetailsProps)
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               <span className="text-foreground tabular-nums">
-                Gestart: {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: nl })}
+                Started: {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: nl })}
               </span>
             </div>
             {contact.conversation_status && getStatusBadge(contact.conversation_status)}

@@ -61,7 +61,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
         }
       } catch (err) {
         console.error('Error loading welcome message:', err);
-        toast.error('Kon het welkomstbericht niet laden');
+        toast.error('Could not load the welcome message');
       } finally {
         setLoading(false);
       }
@@ -71,7 +71,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
 
   const handleSave = async () => {
     if (!calendarId) {
-      toast.error('Geen agenda gevonden om op te slaan');
+      toast.error('No calendar found to save to');
       return;
     }
     setSaving(true);
@@ -83,10 +83,10 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
         .from('calendar_settings')
         .upsert({ calendar_id: calendarId, whatsapp_welcome_message: value }, { onConflict: 'calendar_id' });
       if (error) throw error;
-      toast.success('Welkomstbericht opgeslagen');
+      toast.success('Welcome message saved');
     } catch (err) {
       console.error('Error saving welcome message:', err);
-      toast.error('Opslaan mislukt');
+      toast.error('Save failed');
     } finally {
       setSaving(false);
     }
@@ -98,15 +98,15 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
     <Card className="bg-card rounded-lg border border-white/[0.08] mt-6">
       <CardContent className="p-6 space-y-4">
         <div>
-          <h3 className="text-base text-foreground font-medium">Welkomstbericht</h3>
+          <h3 className="text-base text-foreground font-medium">Welcome message</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Het eerste bericht dat de assistent stuurt wanneer een klant de chat opent. Laat leeg voor het standaardbericht.
+            The first message the assistant sends when a customer opens the chat. Leave empty to use the default message.
           </p>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="welcome-message" className="text-sm text-muted-foreground">
-            Jouw begroeting
+            Your greeting
           </Label>
           <Textarea
             id="welcome-message"
@@ -119,7 +119,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
             className="bg-background border-white/[0.08] text-foreground resize-none"
           />
           <p className="text-xs text-muted-foreground">
-            Tip: gebruik <code className="px-1 rounded bg-white/[0.06]">{'{bedrijf}'}</code> om je bedrijfsnaam automatisch in te vullen.
+            Tip: use <code className="px-1 rounded bg-white/[0.06]">{'{bedrijf}'}</code> to fill in your business name automatically.
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
             disabled={loading || saving || !calendarId}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            {saving ? 'Opslaan...' : 'Opslaan'}
+            {saving ? 'Saving...' : 'Save'}
           </Button>
           <Button
             onClick={handleReset}
@@ -137,7 +137,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
             variant="ghost"
             className="text-muted-foreground hover:text-foreground hover:bg-white/[0.06]"
           >
-            Herstel standaard
+            Reset to default
           </Button>
         </div>
       </CardContent>

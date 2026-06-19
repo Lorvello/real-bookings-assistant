@@ -44,8 +44,8 @@ export function BookingDateTimeFields({
     // Validate future date
     if (isBefore(date, startOfDay(new Date()))) {
       toast({
-        title: "Ongeldige datum",
-        description: "Je kunt geen afspraak maken in het verleden.",
+        title: "Invalid date",
+        description: "You can't book an appointment in the past.",
         variant: "destructive"
       });
       secureLogger.security('Past date booking attempt', { 
@@ -59,8 +59,8 @@ export function BookingDateTimeFields({
     const oneYearFromNow = addYears(new Date(), 1);
     if (isAfter(date, oneYearFromNow)) {
       toast({
-        title: "Datum te ver in de toekomst",
-        description: "Boekingen kunnen maximaal 1 jaar vooruit.",
+        title: "Date too far in the future",
+        description: "Bookings can be made up to 1 year ahead.",
         variant: "destructive"
       });
       secureLogger.security('Far future date booking attempt', { 

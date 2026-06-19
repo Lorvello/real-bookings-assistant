@@ -12,11 +12,11 @@ interface BookingReminderFieldsProps {
 }
 
 const reminderOptions = [
-  { value: '15', label: '15 minuten' },
-  { value: '30', label: '30 minuten' },
-  { value: '60', label: '1 uur' },
-  { value: '120', label: '2 uur' },
-  { value: '1440', label: '1 dag' },
+  { value: '15', label: '15 minutes' },
+  { value: '30', label: '30 minutes' },
+  { value: '60', label: '1 hour' },
+  { value: '120', label: '2 hours' },
+  { value: '1440', label: '1 day' },
 ];
 
 export function BookingReminderFields({ form, hasReminder }: BookingReminderFieldsProps) {
@@ -30,7 +30,7 @@ export function BookingReminderFields({ form, hasReminder }: BookingReminderFiel
             <FormControl>
               <Checkbox checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
-            <FormLabel className="text-sm font-normal">Herinnering instellen</FormLabel>
+            <FormLabel className="text-sm font-normal">Set a reminder</FormLabel>
           </FormItem>
         )}
       />
@@ -41,11 +41,11 @@ export function BookingReminderFields({ form, hasReminder }: BookingReminderFiel
           name="reminderTiming"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Herinnering timing</FormLabel>
+              <FormLabel>Reminder timing</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Selecteer timing" />
+                    <SelectValue placeholder="Select timing" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
