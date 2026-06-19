@@ -85,7 +85,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
         {/* Financial & Business Metrics - mono-accent - Mobile optimized */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
@@ -119,37 +119,6 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
               sideOffset={8}
             >
               <p className="text-sm">Total money earned from all completed appointments {periodText}. This includes all services and represents your gross business income through the booking system.</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="relative"
-              >
-                <MetricCard
-                  title="Period Growth"
-                  value={`${businessIntel?.monthly_growth >= 0 ? '+' : ''}${businessIntel?.monthly_growth?.toFixed(1) || '0.0'}%`}
-                  subtitle={getMetricSubtitle('growth')}
-                  icon={TrendingUp}
-                  variant="orange"
-                  delay={0.2}
-                />
-                <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50 backdrop-blur-sm">
-                  <Info className="h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors" />
-                </div>
-              </motion.div>
-            </TooltipTrigger>
-            <TooltipContent 
-              className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
-              side="top"
-              align="center"
-              sideOffset={8}
-            >
-              <p className="text-sm">Revenue growth percentage compared to the previous period {periodText}. Positive values indicate business expansion and improved financial performance.</p>
             </TooltipContent>
           </Tooltip>
 

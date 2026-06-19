@@ -293,7 +293,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 <MetricCard
                   title="Next"
                   value={liveOps?.next_appointment_formatted || "None"}
-                  subtitle={liveOps?.next_appointment_time ? format(new Date(liveOps.next_appointment_time), 'EEE d MMM · HH:mm') : "none scheduled"}
+                  subtitle={liveOps?.next_appointment_time ? format(new Date(liveOps.next_appointment_time), 'HH:mm') + ' today' : "nothing more today"}
                   icon={Clock}
                   variant="green"
                   delay={0.4}

@@ -9,20 +9,12 @@ export const useMockDataControl = () => {
   
   const shouldUseMockData = () => {
     const { allowMockData } = getEnvironmentConfig(user?.email);
-    
-    // Mock data conditions:
-    // 1. Developer in development environment
-    // 2. User with setup_incomplete status (trial users need some sample data)
-    if (allowMockData) {
-      return true;
-    }
-    
-    // For setup_incomplete users, show mock data to help them understand the platform
-    if (userStatus.isSetupIncomplete) {
-      return true;
-    }
-    
-    return false;
+
+    // Mock/sample data is for LOCAL DEVELOPMENT only. We do NOT show fabricated numbers in
+    // production — previously a setup-incomplete account saw fake revenue/customers that looked
+    // real (and were unlabeled on 4 of 5 tabs, W3.2 audit #1). A setup-incomplete account now sees
+    // honest empty/zero states; real numbers appear once a calendar + bookings exist.
+    return allowMockData;
   };
 
   return {
