@@ -115,8 +115,7 @@ export function openingHoursByDay(calendars: unknown): Record<string, DayHours> 
 // the model can't mis-summarise a 5-day list (observed: it rendered Mon-Fri as "Maandag,
 // Vrijdag", silently dropping the middle days). E.g. "Maandag t/m vrijdag 09:00-17:00,
 // zaterdag en zondag gesloten". Returns null when no schedule is set.
-function formatOpeningHours(calendars: unknown): string | null {
-  const byDay = openingHoursByDay(calendars);
+function formatOpeningHoursFromByDay(byDay: Record<string, DayHours> | null): string | null {
   if (!byDay) return null;
   const keyOf = (d: DayHours) => (d.open ? `${d.start}-${d.end}` : "gesloten");
   const segs: string[] = [];
@@ -133,6 +132,96 @@ function formatOpeningHours(calendars: unknown): string | null {
     i = j + 1;
   }
   return segs.length ? segs.join(", ") : null;
+}
+function formatOpeningHours(calendars: unknown): string | null {
+  return formatOpeningHoursFromByDay(openingHoursByDay(calendars));
+}
+
+// Bookable weekly hours for a SPECIFIC calendar, derived from the REAL availability schedule
+// (availability_schedules + availability_rules) — the SAME source get_available_slots uses. This
+// is the booking TRUTH, so the agent's spoken opening hours + the concrete-date <kalender> match
+// exactly what it can actually book. We deliberately do NOT use business_overview_v2.calendars[0]
+// .opening_hours: that JSON is a separate, often-stale field AND is calendars[0], not necessarily
+// THIS calendar (a business with >1 calendar would otherwise speak the wrong one's hours). Observed
+// live: the agent said "Maandag gesloten" from that stale JSON, then booked Monday via the real
+// schedule. day_of_week: 1=Monday .. 7=Sunday (ISO); a day absent or is_available:false = closed.
+const DOW_TO_DUTCH: Record<number, string> = {
+  1: "Maandag", 2: "Dinsdag", 3: "Woensdag", 4: "Donderdag", 5: "Vrijdag", 6: "Zaterdag", 7: "Zondag",
+};
+export async function getCalendarWeeklyHours(
+  supabase: SupabaseClient,
+  calendarId: string,
+): Promise<{ byDay: Record<string, DayHours>; text: string | null } | null> {
+  // The default schedule (fallback: earliest-created) for this calendar.
+  const { data: scheds } = await supabase
+    .from("availability_schedules")
+    .select("id, is_default, created_at")
+    .eq("calendar_id", calendarId)
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true })
+    .limit(1);
+  const schedule = (scheds as Array<{ id: string }> | null)?.[0];
+  if (!schedule) return null;
+  const { data: rules } = await supabase
+    .from("availability_rules")
+    .select("day_of_week, start_time, end_time, is_available")
+    .eq("schedule_id", schedule.id);
+  const ruleList =
+    (rules as Array<{ day_of_week: number; start_time: string; end_time: string; is_available: boolean }> | null) ?? [];
+  // A day can carry multiple windows; for the spoken summary take the earliest start + latest end
+  // of its available windows. Absent / is_available:false day = closed.
+  const byNum: Record<number, { start: string; end: string }> = {};
+  for (const r of ruleList) {
+    if (r.is_available === false || !r.start_time || !r.end_time) continue;
+    const s = hhmm(r.start_time), e = hhmm(r.end_time);
+    const cur = byNum[r.day_of_week];
+    if (!cur) byNum[r.day_of_week] = { start: s, end: e };
+    else { if (s < cur.start) cur.start = s; if (e > cur.end) cur.end = e; }
+  }
+  const byDay: Record<string, DayHours> = {};
+  for (let d = 1; d <= 7; d++) {
+    const nm = DOW_TO_DUTCH[d];
+    byDay[nm] = byNum[d] ? { open: true, start: byNum[d].start, end: byNum[d].end } : { open: false };
+  }
+  return { byDay, text: formatOpeningHoursFromByDay(byDay) };
+}
+
+// Service duration (minutes) for end-time computation; default 30 when unknown.
+async function serviceDuration(supabase: SupabaseClient, serviceId: string): Promise<number> {
+  const { data } = await supabase.from("service_types").select("duration").eq("id", serviceId).maybeSingle();
+  const d = (data as { duration?: number } | null)?.duration;
+  return typeof d === "number" && d > 0 ? d : 30;
+}
+
+// Resolve a customer-named clock time (date=YYYY-MM-DD, time=HH:MM in Amsterdam local) to the EXACT
+// slot ISO instant SERVER-SIDE, so book/reschedule can act on a named time in ONE tool call — no
+// separate get_available_slots LLM round-trip, which is the dominant per-turn latency cost (~3s).
+// Reuses the very RPC the slots tool uses, so a booked time is always a real grid slot, DST-safe.
+// Returns the free times when the requested one isn't available, so the model offers an alternative
+// in the SAME turn (a round-trip happens only when the time is genuinely taken, which is correct).
+async function resolveSlotForTime(
+  supabase: SupabaseClient,
+  calendarId: string,
+  serviceId: string,
+  date: string,
+  time: string,
+  durationMin: number,
+): Promise<{ start: string; end: string } | { unavailable: true; available: string[] } | { error: string }> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "bad_date" };
+  const m = String(time).trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return { error: "bad_time" };
+  const want = `${m[1].padStart(2, "0")}:${m[2]}`;
+  const { data, error } = await supabase.rpc("get_available_slots", {
+    p_calendar_id: calendarId, p_service_type_id: serviceId, p_date: date,
+  });
+  if (error) return { error: error.message };
+  const free = ((data as Array<{ slot_start: string; is_available: boolean }>) ?? []).filter((s) => s.is_available);
+  const match = free.find((s) => nlTimeOnly(s.slot_start).slice(0, 5) === want);
+  if (match) {
+    const end = new Date(new Date(match.slot_start).getTime() + durationMin * 60000).toISOString();
+    return { start: match.slot_start, end };
+  }
+  return { unavailable: true, available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)) };
 }
 
 // Compose one human address line from the parts. Drops the country when it is the
@@ -296,21 +385,23 @@ export function createTools(
       name: "book_appointment",
       description:
         "Boekt een NIEUWE afspraak in TWEE stappen (net als annuleren, zodat de klant eerst kan bevestigen). " +
-        "STAP 1 (preview): roep aan met dienst + de exacte 'start' uit get_available_slots in DEZE beurt + naam (standaard de bekende WhatsApp-naam). De tool boekt dan NIETS en geeft 'needs_confirmation' terug met dienst, tijd en naam; vat die kort samen en vraag of het klopt. " +
-        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan, dan boekt de tool echt (met de exacte tijd die in stap 1 is opgeslagen). " +
+        "STAP 1 (preview): heeft de klant een concrete dag + tijd genoemd? Roep dan METEEN aan met service_type_id + date (YYYY-MM-DD uit de <kalender>) + time (HH:MM) + naam — je hoeft get_available_slots NIET apart aan te roepen, de tool zoekt zelf het exacte vrije slot voor die tijd. De tool boekt dan NIETS en geeft 'needs_confirmation' terug met dienst, tijd en naam; vat die kort samen en vraag of het klopt. Is die tijd niet vrij, dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor. " +
+        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan (alleen confirmed:true volstaat, de tool gebruikt de in stap 1 opgeslagen tijd). " +
         'Zonder naam weigert de tool de boeking, tenzij de klant expliciet weigerde (update_lead met name_refused: true, dan customer_name "Privé"). ' +
         "Vereist dit bedrijf vooruitbetaling, dan geeft stap 2 een betaallink (payment_url) terug; stuur die en zeg dat de plek gereserveerd is tot betaling.",
       parameters: {
         type: "object",
         properties: {
           service_type_id: { type: "string" },
-          start_time: { type: "string", description: "De exacte 'start'-waarde (ISO 8601) van het gekozen slot uit get_available_slots in DEZE beurt, ongewijzigd gekopieerd. Reconstrueer deze NOOIT zelf uit de kloktijd (dat gaf een verkeerd uur door de tijdzone). Weet je de exacte 'start' niet meer? Roep eerst get_available_slots opnieuw aan voor die datum en kopieer de 'start' van het slot met de juiste 'tijd'." },
-          end_time: { type: "string", description: "ISO 8601 = start_time + de dienstduur (zelfde tijdzone-offset als start_time)." },
+          date: { type: "string", description: "Datum YYYY-MM-DD (uit de <kalender>). Geef date + time door als de klant een concrete tijd noemde; de tool zoekt zelf het exacte slot (sneller, geen aparte get_available_slots nodig)." },
+          time: { type: "string", description: "Kloktijd HH:MM (Amsterdamse tijd) die de klant koos, bv '14:00'. Samen met date de voorkeursmanier om te boeken." },
+          start_time: { type: "string", description: "ALTERNATIEF voor date+time: de exacte 'start'-waarde (ISO 8601) van een slot uit get_available_slots, ongewijzigd gekopieerd. Gebruik date+time als je die hebt; val alleen op start_time terug als je al een ISO-slot uit get_available_slots koos. Reconstrueer een ISO-tijd NOOIT zelf." },
+          end_time: { type: "string", description: "Alleen nodig bij start_time: ISO 8601 = start_time + de dienstduur. Bij date+time berekent de tool de eindtijd zelf." },
           customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
           confirmed: { type: "boolean", description: "Laat WEG of false bij de eerste (preview) aanroep. Zet op true bij de tweede aanroep, NADAT de klant de samenvatting bevestigde, om echt te boeken." },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
         },
-        required: ["service_type_id", "start_time", "end_time", "customer_name"],
+        required: ["service_type_id", "customer_name"],
       },
     },
     {
@@ -336,22 +427,24 @@ export function createTools(
     {
       name: "reschedule_appointment",
       description:
-        "Verzet de eerstvolgende aankomende afspraak van DEZE klant naar een nieuwe tijd. " +
-        "De DIENST blijft hetzelfde — vraag die NIET opnieuw. Geef alleen de nieuwe start- en eindtijd. " +
-        "De tool controleert zelf of die tijd vrij is en geeft 'niet_beschikbaar' terug als dat niet zo is; " +
-        "gebruik dan get_available_slots om een ander tijdstip voor te stellen.",
+        "Verzet de eerstvolgende aankomende afspraak van DEZE klant naar een nieuwe tijd, in ÉÉN stap. " +
+        "De DIENST blijft hetzelfde — vraag die NIET opnieuw. De nieuwe tijd die de klant noemt IS de bevestiging: " +
+        "roep METEEN aan met date (YYYY-MM-DD uit de <kalender>) + time (HH:MM); de tool zoekt zelf het exacte slot, " +
+        "checkt of het vrij is en verzet direct. Vraag NIET 'klopt dat?' en kondig niets aan. Is die tijd niet vrij, " +
+        "dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor (geen aparte get_available_slots nodig).",
       parameters: {
         type: "object",
         properties: {
-          start_time: { type: "string", description: "Nieuwe starttijd, ISO 8601 met tijdzone." },
-          end_time: { type: "string", description: "Nieuwe eindtijd = start_time + dezelfde dienstduur als de bestaande afspraak." },
+          date: { type: "string", description: "Nieuwe datum YYYY-MM-DD (uit de <kalender>). Voorkeursmanier samen met time." },
+          time: { type: "string", description: "Nieuwe kloktijd HH:MM (Amsterdamse tijd), bv '14:00'." },
+          start_time: { type: "string", description: "ALTERNATIEF voor date+time: nieuwe starttijd als exacte ISO 8601 uit get_available_slots. Gebruik bij voorkeur date+time." },
+          end_time: { type: "string", description: "Alleen bij start_time: nieuwe eindtijd = start_time + dezelfde dienstduur. Bij date+time rekent de tool dit zelf." },
           service_type_id: { type: "string", description: "Alleen meegeven als de klant óók van dienst wisselt (zeldzaam)." },
           match_start_time: {
             type: "string",
             description: "Alleen bij meerdere afspraken: de exacte start_time van de te verzetten afspraak (uit de eerder teruggegeven lijst).",
           },
         },
-        required: ["start_time", "end_time"],
       },
     },
   ];
@@ -441,9 +534,32 @@ export function createTools(
         // commit we use the STORED proposal, never the model's (possibly mis-reconstructed) args.
         const committing = (args.confirmed === true || ctx.confirmBook === true) && !!pendingBook?.start_time;
 
-        const start = String((committing ? pendingBook!.start_time : args.start_time) ?? "");
-        const end = String((committing ? pendingBook!.end_time : args.end_time) ?? "");
         const serviceId = String((committing ? pendingBook!.service_type_id : args.service_type_id) ?? "");
+        let start = String((committing ? pendingBook!.start_time : args.start_time) ?? "");
+        let end = String((committing ? pendingBook!.end_time : args.end_time) ?? "");
+
+        // FAST PATH (preview only): the customer named a concrete date+time, so resolve the EXACT
+        // slot SERVER-SIDE rather than forcing a separate get_available_slots LLM round-trip (the
+        // dominant per-turn latency cost ~3s). On commit we always use the stored pending_booking,
+        // so this runs only for a fresh preview. If the named time isn't free, return the free times
+        // so the model proposes an alternative in the SAME turn.
+        if (!committing && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
+          const dur = await serviceDuration(supabase, serviceId);
+          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur);
+          if ("error" in r) {
+            return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag de klant kort de gewenste dag en tijd." };
+          }
+          if ("unavailable" in r) {
+            return {
+              error: "niet_beschikbaar",
+              available_slots: r.available,
+              message: r.available.length
+                ? `Die tijd is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`
+                : "Die dag heeft geen vrije tijden. Stel vriendelijk een andere dag voor.",
+            };
+          }
+          start = r.start; end = r.end;
+        }
 
         // NAME GATE: never create a nameless booking. The model must collect a real name
         // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
@@ -733,8 +849,6 @@ export function createTools(
       }
 
       case "reschedule_appointment": {
-        const newStart = String(args.start_time);
-        const newEnd = String(args.end_time);
         const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined);
         if (target.none) {
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
@@ -748,6 +862,32 @@ export function createTools(
         }
         const b = target.booking!;
         const serviceId = args.service_type_id ? String(args.service_type_id) : b.service_type_id;
+
+        // Resolve the new time. FAST PATH: the customer named a date+time, so resolve the EXACT slot
+        // server-side (no separate get_available_slots LLM round-trip). Else fall back to an ISO
+        // start_time. If the named time isn't free, return the free times so the model offers one now.
+        let newStart = String(args.start_time ?? "");
+        let newEnd = String(args.end_time ?? "");
+        if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
+          const dur = await serviceDuration(supabase, serviceId);
+          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur);
+          if ("error" in r) {
+            return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag kort de gewenste dag en tijd." };
+          }
+          if ("unavailable" in r) {
+            return {
+              error: "niet_beschikbaar",
+              available_slots: r.available,
+              message: r.available.length
+                ? `Dat nieuwe tijdstip is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`
+                : "Die dag heeft geen vrije tijden. Stel vriendelijk een andere dag voor.",
+            };
+          }
+          newStart = r.start; newEnd = r.end;
+        }
+        if (!newStart || !newEnd) {
+          return { error: "ontbrekende_tijd", message: "Geef de nieuwe dag en tijd om naar te verzetten." };
+        }
 
         // Honour the "Cancellation deadline" Operations setting for reschedules too
         // (a reschedule frees the original slot, so the same lead-time rule applies).

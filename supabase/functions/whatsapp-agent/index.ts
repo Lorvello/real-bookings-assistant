@@ -8,7 +8,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools, fetchBusinessData } from "./tools.ts";
+import { createTools, fetchBusinessData, getCalendarWeeklyHours } from "./tools.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply } from "../_shared/sanitizeReply.ts";
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
     // They are now batched into 3 dependency phases so independent reads run in parallel.
     // Phase 1 — everything that needs only (calendar_id, phone):
-    const [calRes, svcRes, csRes, contactRes, lastBRes] = await Promise.all([
+    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
       supabase.from("service_types").select("id, name, duration, price").eq("calendar_id", calendar_id),
       supabase.from("calendar_settings").select("whatsapp_welcome_message").eq("calendar_id", calendar_id).maybeSingle(),
@@ -124,6 +124,11 @@ Deno.serve(async (req) => {
       supabase.from("bookings").select("start_time, service_types(name)")
         .eq("customer_phone", phone).eq("calendar_id", calendar_id)
         .order("start_time", { ascending: false }).limit(1).maybeSingle(),
+      // Bookable weekly hours for THIS calendar (availability_rules) — the SAME source slots use.
+      // Drives both the spoken opening hours AND the concrete-date calendar, so the agent never
+      // says a day is open/closed differently from what it can actually book. In parallel, no
+      // added latency. Independent of (user_id, contact_id) so it belongs in this phase.
+      getCalendarWeeklyHours(supabase, calendar_id),
     ]);
 
     const cal = calRes.data;
@@ -205,10 +210,16 @@ Deno.serve(async (req) => {
       (typeof convContext.detected_language === "string" ? convContext.detected_language : null);
 
     const now = new Date();
-    const calendarHint = buildCalendarHint(
-      now,
-      (businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null,
-    );
+    // Single source of truth for opening hours = the BOOKABLE schedule of THIS calendar
+    // (availability_rules, via getCalendarWeeklyHours). Override the spoken hours that
+    // fetchBusinessData derived from the separate, often-stale business_overview.calendars[0]
+    // JSON, and build the concrete-date <kalender> from the same source — so "what the agent
+    // says is open" always equals "what it can actually book". Fall back to the old struct only
+    // if this calendar has no availability schedule at all.
+    if (weeklyHours?.text && businessData) businessData.opening_hours = weeklyHours.text;
+    const openingStruct = weeklyHours?.byDay ??
+      ((businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null);
+    const calendarHint = buildCalendarHint(now, openingStruct);
     const system = buildSystemPrompt({
       businessName,
       businessType,
@@ -316,14 +327,28 @@ Deno.serve(async (req) => {
     // proposal already exists / a booking was already committed this turn.
     const calledBook = result.toolCalls.some((t) => t.name === "book_appointment");
     const bookPreviewLang = /\b(ik (zet|boek|plan|reserveer)\b|zal ik .{0,25}(boeken|inplannen|reserveren)|ik (boek|plan|reserveer) (je|het|'t|een|de))/i;
-    const reschedLang = /\b(verzet|verschuif|schuif|verplaats|reschedule)\b/i;
+    // Prefix match (no trailing \b) so conjugations match too: "verzet", "verzetten", "verzette",
+    // "verschuiven", "verplaatsen". A trailing \b made it miss "verzetten" (the form the model uses).
+    const reschedLang = /\b(verzet|verschuif|verplaats|schuif|reschedule|opschuif|verschoven|reschedul)/i;
     const bookPreviewMissed = !calledMutationTool && !calledBook && !!result.text &&
       bookPreviewLang.test(result.text) && !reschedLang.test(result.text) &&
       !pendingBookFresh && !cancelIntent && !confirmCancel;
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed) {
-      const nudgeText = bookPreviewMissed
-        ? "[systeem] Je beschreef een boeking maar riep book_appointment niet aan, dus er is nog NIETS gereserveerd. Roep NU book_appointment aan (stap 1 / preview) met de dienst, de exacte 'start' uit get_available_slots en de naam, zodat de afspraak echt wordt voorbereid. Beschrijf een boeking nooit zonder de tool aan te roepen."
+    // Reschedule-announce-by-talking: the model says it will move the appointment to a CONCRETE new
+    // time but doesn't call reschedule_appointment (it treats the move as needing a separate "oké?"
+    // confirm). Goal: a clear new time IS the confirmation → ONE mutating call. So when the model's
+    // text announces a reschedule to a concrete time/date yet no mutation ran, nudge it to actually
+    // perform it. Gated on a concrete time/date in the text so a legit "naar wanneer?" never fires.
+    const concreteWhenInText = /(\b\d{1,2}[:.]\d{2}\b|\bom \d{1,2}\b|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|morgen|overmorgen|monday|tuesday|wednesday|thursday|friday|saturday|sunday|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)/i;
+    const reschedStall = !calledMutationTool && !!result.text &&
+      reschedLang.test(result.text) && concreteWhenInText.test(result.text) &&
+      !cancelIntent && !confirmCancel && !confirmStall && !bookPreviewMissed;
+
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall) {
+      const nudgeText = reschedStall
+        ? "[systeem] Je beschreef een verzetting naar een concrete tijd maar riep reschedule_appointment niet aan, dus er is NIETS verzet. Roep NU reschedule_appointment aan met date (YYYY-MM-DD) + time (HH:MM) van die nieuwe tijd. De genoemde tijd is de bevestiging: vraag niet om 'oké?' of 'klopt dat?', verzet meteen en antwoord met het resultaat ('Gedaan, je staat nu op ...')."
+        : bookPreviewMissed
+        ? "[systeem] Je beschreef een boeking maar riep book_appointment niet aan, dus er is nog NIETS gereserveerd. Roep NU book_appointment aan (stap 1 / preview) met de dienst, date (YYYY-MM-DD) + time (HH:MM) en de naam, zodat de afspraak echt wordt voorbereid. Beschrijf een boeking nooit zonder de tool aan te roepen."
         : cancelPreviewMissed
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
         : confirmStall
@@ -338,7 +363,7 @@ Deno.serve(async (req) => {
       // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
       const accept = !!retry.text && (
-        confirmStall
+        (confirmStall || reschedStall)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       );

@@ -2,9 +2,15 @@
 //   LLM_PROVIDER=openai  -> OpenAI Chat Completions (default model gpt-5-nano: fast + cheap)
 //   LLM_PROVIDER=gemini  -> Gemini Flash-Lite (original; kept for easy revert)
 // Default is gemini unless LLM_PROVIDER is set. Only this file knows the wire formats.
-// LIVE (Supabase secrets, verified 2026-06-18): LLM_PROVIDER=openai, OPENAI_MODEL=gpt-5-mini
-// -> production runs gpt-5-mini, proven across the launch-ready loop. The gemini/gpt-5-nano
-// defaults above are the safe-revert path (flip LLM_PROVIDER=gemini), NOT what runs live.
+// LIVE (Supabase secrets, verified 2026-06-19): LLM_PROVIDER=openai, OPENAI_MODEL=gpt-4.1-mini
+// -> production runs gpt-4.1-mini. The System-Overhaul W1 latency measurement showed gpt-4.1-mini
+// is both FASTER (p50 ~4s vs gpt-5-mini's ~6-8s on 2-tool turns; no >10s) AND more tool-compliant
+// (it calls book/reschedule DIRECTLY on the first pass — gpt-5-mini stalled with an "ik check even"
+// announce and needed a server nudge), while preserving every hard gate (two-phase book/cancel,
+// name gate, double-book guard, closed-day refusal, NL/EN/DE language fidelity) — verified E2E on
+// the §6 testpad with DB checks. gpt-4.1-mini is a NON-reasoning model: the isReasoning branch
+// below sends temperature (not reasoning_effort) for it. Safe-revert: OPENAI_MODEL=gpt-5-mini, or
+// LLM_PROVIDER=gemini. The gemini/gpt-5-nano defaults above are the revert path, NOT what runs live.
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
