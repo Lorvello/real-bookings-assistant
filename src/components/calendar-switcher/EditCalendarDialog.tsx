@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Settings, Users, Trash2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
@@ -56,6 +57,11 @@ export function EditCalendarDialog({
   });
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
+  // The service types linked to THIS calendar, with names. useServiceTypes(undefined, true) only
+  // returns the ACTIVE calendars' services, so when editing a non-active calendar its linked services
+  // were missing from the options and SimpleMultiSelect fell back to showing the raw UUID. We merge
+  // these in so every selected service type always resolves to its name.
+  const [linkedServiceTypeOptions, setLinkedServiceTypeOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showServiceTypeDialog, setShowServiceTypeDialog] = useState(false);
@@ -70,13 +76,21 @@ export function EditCalendarDialog({
           color: calendar.color || '#3B82F6',
         });
         
-        // Load currently linked service types
+        // Load currently linked service types (+ their names, so the multiselect never shows a UUID).
         try {
           const linkedServiceTypes = await fetchCalendarServiceTypes(calendar.id);
           setSelectedServiceTypes(linkedServiceTypes);
+          if (linkedServiceTypes.length) {
+            const { data: stRows } = await supabase
+              .from('service_types').select('id, name').in('id', linkedServiceTypes);
+            setLinkedServiceTypeOptions(((stRows as { id: string; name: string }[]) ?? []).map(s => ({ value: s.id, label: s.name })));
+          } else {
+            setLinkedServiceTypeOptions([]);
+          }
         } catch (error) {
           console.error('Error loading calendar service types:', error);
           setSelectedServiceTypes([]);
+          setLinkedServiceTypeOptions([]);
         }
         
         // Load currently linked team members (calendar_member IDs)
@@ -184,14 +198,18 @@ export function EditCalendarDialog({
 
   const getServiceTypeName = (serviceTypeId: string) => {
     const serviceType = serviceTypes.find(st => st.id === serviceTypeId);
-    return serviceType?.name || serviceTypeId;
+    if (serviceType) return serviceType.name;
+    const linked = linkedServiceTypeOptions.find(o => o.value === serviceTypeId);
+    return linked?.label || serviceTypeId;
   };
 
   const getServiceTypeOptions = () => {
-    return serviceTypes.map(serviceType => ({
-      value: serviceType.id,
-      label: serviceType.name,
-    }));
+    // All addable services (active calendars) + this calendar's currently-linked ones (dedup by id),
+    // so every selected service type resolves to its name instead of a raw UUID.
+    const map = new Map<string, { value: string; label: string }>();
+    serviceTypes.forEach(st => map.set(st.id, { value: st.id, label: st.name }));
+    linkedServiceTypeOptions.forEach(opt => { if (!map.has(opt.value)) map.set(opt.value, opt); });
+    return Array.from(map.values());
   };
 
   const getTeamMemberOptions = () => {
@@ -228,12 +246,12 @@ export function EditCalendarDialog({
             <Label htmlFor="calendar-name">Calendar name *</Label>
             <Input
               id="calendar-name"
-              placeholder="mathew Calendar"
+              placeholder="e.g. Main Calendar"
               value={editCalendar.name}
               onChange={(e) => setEditCalendar(prev => ({ ...prev, name: e.target.value }))}
             />
             <p className="text-sm text-muted-foreground mt-1">
-              E.g: mathew Calendar, "John Smith", "Treatment Room 2"
+              A clear name for this calendar, such as a person, location, or room.
             </p>
           </div>
 

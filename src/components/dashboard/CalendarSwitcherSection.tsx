@@ -79,6 +79,9 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
           
           <DropdownMenuContent className="w-64 bg-card border-border z-50" align="end">
             <DropdownMenuLabel className="text-foreground">Select Calendar</DropdownMenuLabel>
+            <p className="px-2 pb-1.5 text-xs leading-snug text-muted-foreground">
+              Switching changes the bookings, availability and stats shown across the whole dashboard.
+            </p>
             <DropdownMenuSeparator />
             
             {/* All calendars option */}
@@ -103,14 +106,16 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
             
             <DropdownMenuSeparator />
             
-            {calendars.map((calendar) => (
+            {calendars.map((calendar) => {
+              const isActive = !viewingAllCalendars && selectedCalendar?.id === calendar.id;
+              return (
               <DropdownMenuItem
                 key={calendar.id}
                 onClick={() => selectCalendar(calendar)}
-                className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
+                className={`flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group ${isActive ? 'bg-primary/[0.06] ring-1 ring-inset ring-primary/20' : ''}`}
               >
-                <div 
-                  className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0 border border-border"
                   style={{ backgroundColor: calendar.color || '#6B7280' }}
                 />
                 <div className="flex-1 min-w-0">
@@ -119,6 +124,9 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                     {calendar.is_default && (
                       <Badge variant="outline" className="text-xs border-border">Default</Badge>
                     )}
+                    {isActive && (
+                      <Badge className="text-xs bg-primary/15 text-primary border-transparent">Active</Badge>
+                    )}
                   </div>
                   {calendar.description && (
                     <p className="text-xs text-muted-foreground truncate">
@@ -126,21 +134,19 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                     </p>
                   )}
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => handleEditCalendar(calendar, e)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  {!viewingAllCalendars && selectedCalendar?.id === calendar.id && (
-                    <div className="w-2 h-2 bg-primary rounded-full" />
-                  )}
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => handleEditCalendar(calendar, e)}
+                  aria-label={`Edit ${calendar.name}`}
+                  title="Edit calendar"
+                  className="shrink-0 p-1 h-7 w-7 text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground transition"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                </Button>
               </DropdownMenuItem>
-            ))}
+              );
+            })}
             
             <DropdownMenuSeparator />
             
