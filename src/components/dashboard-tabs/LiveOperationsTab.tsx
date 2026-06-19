@@ -226,9 +226,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="WhatsApp Active"
+                  title="Active Conversations"
                   value={String(liveOps?.active_conversations_today || 0)}
-                  subtitle="conversations today"
+                  subtitle="open WhatsApp chats"
                   icon={MessageCircle}
                   variant="green"
                   delay={0.2}
@@ -244,7 +244,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
               align="center"
             >
               <p className="text-sm">
-                Number of active WhatsApp conversations that occurred today. This includes both new inquiries and ongoing customer communications.
+                Number of WhatsApp conversations currently marked active (open), across new inquiries and ongoing customer chats.
               </p>
             </TooltipContent>
           </Tooltip>

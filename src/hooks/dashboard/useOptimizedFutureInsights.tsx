@@ -11,6 +11,7 @@ interface FutureInsightsData {
     trend_direction: string;
   }>;
   customer_growth_rate: number;
+  customer_growth_is_new?: boolean; // true = no prior-month baseline (show "New", not a fake %)
   capacity_utilization: number;
   seasonal_patterns: Array<{
     month_name: string;
@@ -131,9 +132,13 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         else previousCustomers.add(c.phone_number);
       });
       
-      const customerGrowthRate = previousCustomers.size > 0 
+      // No prior-month baseline: do NOT fabricate "+100%" (every first month would show it).
+      // Flag as new so the UI shows "New" instead of an invented growth rate.
+      const hasCustomerBaseline = previousCustomers.size > 0;
+      const customerGrowthRate = hasCustomerBaseline
         ? ((currentCustomers.size - previousCustomers.size) / previousCustomers.size) * 100
-        : currentCustomers.size > 0 ? 100 : 0;
+        : 0;
+      const customerGrowthIsNew = !hasCustomerBaseline && currentCustomers.size > 0;
 
       // Calculate capacity utilization across ALL selected calendars
       let capacityUtilization = 0;
@@ -223,6 +228,7 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
       return {
         demand_forecast: weeklyTrends,
         customer_growth_rate: customerGrowthRate,
+        customer_growth_is_new: customerGrowthIsNew,
         capacity_utilization: Math.min(100, Math.max(0, capacityUtilization)),
         seasonal_patterns: seasonalPatterns,
         last_updated: new Date().toISOString()

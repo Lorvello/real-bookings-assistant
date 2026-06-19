@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { TrendingUp, Calendar, Target, Brain, Info } from 'lucide-react';
+import { TrendingUp, Calendar, Target, Lightbulb, Info } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { DemandForecastChart } from './future-insights/DemandForecastChart';
 import { SeasonalPatternsChart } from './future-insights/SeasonalPatternsChart';
@@ -59,8 +59,8 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               >
                 <MetricCard
                   title="Customer Growth"
-                  value={`${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
-                  subtitle="month over month"
+                  value={futureInsights?.customer_growth_is_new ? 'New' : `${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
+                  subtitle={futureInsights?.customer_growth_is_new ? 'first month, no baseline yet' : 'month over month'}
                   icon={TrendingUp}
                   variant="purple"
                   delay={0.1}
@@ -120,9 +120,9 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="Demand Forecast"
+                  title="Upcoming Bookings"
                   value={`${futureInsights?.demand_forecast?.[0]?.bookings ?? 0}`}
-                  subtitle="bookings projected next week"
+                  subtitle="booked for next week"
                   icon={Calendar}
                   variant="purple"
                   delay={0.3}
@@ -163,7 +163,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Weekly booking demand prediction based on historical patterns and current trends</p>
+              <p className="text-sm">Bookings already on your calendar for the next 4 weeks, so you can plan capacity ahead.</p>
             </TooltipContent>
           </Tooltip>
 
@@ -198,9 +198,9 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                 <div className="p-8">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="p-2 bg-muted/40 rounded-xl">
-                      <Brain className="h-6 w-6 text-accent-foreground" />
+                      <Lightbulb className="h-6 w-6 text-accent-foreground" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">AI-Powered Recommendations</h3>
+                    <h3 className="text-xl font-semibold text-foreground">Smart Tips</h3>
                   </div>
                   
                   <IntelligentRecommendations 

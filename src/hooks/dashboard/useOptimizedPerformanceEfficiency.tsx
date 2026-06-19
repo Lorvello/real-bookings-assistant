@@ -68,38 +68,37 @@ export function useOptimizedPerformanceEfficiency(
       const noShowBookings = allBookings.filter(b => b.status === 'no-show');
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 
-      // Calculate customer metrics - FIXED: Proper aggregation across all calendars
-      const currentPeriodEmails = new Set(
-        allBookings
-          .map(b => b.customer_email)
-          .filter(email => email && email.trim() !== '')
+      // Customer identity = email if present, else phone. WhatsApp bookings carry NO email, so an
+      // email-only count showed 0 customers despite real bookings (live bug). Aggregate across calendars.
+      const customerId = (b: { customer_email?: string | null; customer_phone?: string | null }): string | null => {
+        const email = (b.customer_email || '').trim();
+        if (email) return `e:${email.toLowerCase()}`;
+        const phone = (b.customer_phone || '').trim();
+        return phone ? `p:${phone}` : null;
+      };
+
+      const currentPeriodCustomers = new Set(
+        allBookings.map(customerId).filter((id): id is string => !!id)
       );
-      
-      // Calculate returning customers (customers who also had bookings before current period across any of the selected calendars)
+
+      // Returning = customers who also had bookings before this period (across the selected calendars).
       const { data: historicalBookings } = await supabase
         .from('bookings')
-        .select('customer_email')
+        .select('customer_email, customer_phone')
         .in('calendar_id', calendarIds)
         .neq('status', 'cancelled')
         .lt('start_time', startDate.toISOString());
 
-      const historicalEmails = new Set(
-        (historicalBookings || [])
-          .map(b => b.customer_email)
-          .filter(email => email && email.trim() !== '')
+      const historicalCustomers = new Set(
+        (historicalBookings || []).map(customerId).filter((id): id is string => !!id)
       );
-      
-      // FIXED: Correct customer logic for aggregated data
-      // - unique_customers: New customers in current period (not in historical data)
-      // - returning_customers: Customers in current period who also exist in historical data
-      // - total_customers: All unique customers in current period (unique + returning)
-      const currentPeriodEmailsArray = Array.from(currentPeriodEmails);
-      const returningCustomersInPeriod = currentPeriodEmailsArray.filter(email => historicalEmails.has(email));
-      const newCustomersInPeriod = currentPeriodEmailsArray.filter(email => !historicalEmails.has(email));
-      
-      const returningCustomers = returningCustomersInPeriod.length;
-      const uniqueCustomers = newCustomersInPeriod.length;
-      const totalCustomers = currentPeriodEmails.size; // Total unique customers in period
+
+      // unique_customers = NEW customers this period (not seen before); returning = also seen
+      // historically; total = all distinct customers this period.
+      const currentArray = Array.from(currentPeriodCustomers);
+      const returningCustomers = currentArray.filter(id => historicalCustomers.has(id)).length;
+      const uniqueCustomers = currentArray.filter(id => !historicalCustomers.has(id)).length;
+      const totalCustomers = currentPeriodCustomers.size;
 
       // Calculate peak hours for confirmed bookings only - aggregate across all calendars
       const hourCounts = new Map();

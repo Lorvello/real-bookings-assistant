@@ -239,11 +239,19 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
               {weeklyInsights ? (
                 <>
                   <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
-                    {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
-                    <CountUp value={Math.abs(weeklyInsights.growth_percentage)} />%
+                    {weeklyInsights.is_new ? (
+                      'New'
+                    ) : (
+                      <>
+                        {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
+                        <CountUp value={Math.abs(weeklyInsights.growth_percentage)} />%
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 text-xs md:text-sm font-medium truncate">
-                    {weeklyInsights.trend === 'up' ? (
+                    {weeklyInsights.is_new ? (
+                      <span className="text-muted-foreground">No prior week to compare yet</span>
+                    ) : weeklyInsights.trend === 'up' ? (
                       <span className="flex items-center gap-1 text-success-foreground">
                         <TrendingUp className="h-3 w-3 md:h-4 md:w-4" /> Rising
                       </span>
@@ -254,7 +262,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                     ) : (
                       <span className="text-muted-foreground">Stable</span>
                     )}
-                    <span className="text-subtle-foreground hidden md:inline">vs last week</span>
+                    {!weeklyInsights.is_new && <span className="text-subtle-foreground hidden md:inline">vs last week</span>}
                   </div>
                   {/* micro-chart: last vs this week — baseline gridline, labeled values,
                       hover shows exact count, bars draw up on view (§5/§9) */}

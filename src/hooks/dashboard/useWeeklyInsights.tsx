@@ -18,6 +18,7 @@ export function useWeeklyInsights(calendarIds: string[]) {
           previous_week: 22,
           growth_percentage: 27.3,
           trend: 'up' as const,
+          is_new: false,
           is_sample: true
         };
       }
@@ -66,20 +67,24 @@ export function useWeeklyInsights(calendarIds: string[]) {
 
       let growthPercentage = 0;
       let trend: 'up' | 'down' | 'stable' = 'stable';
+      let isNew = false;
 
       if (previousWeekCount > 0) {
         growthPercentage = ((currentWeekCount - previousWeekCount) / previousWeekCount) * 100;
         trend = growthPercentage > 0 ? 'up' : growthPercentage < 0 ? 'down' : 'stable';
       } else if (currentWeekCount > 0) {
-        growthPercentage = 100;
-        trend = 'up';
+        // No prior-week baseline: do NOT fabricate "+100% Rising" (every first week would show it).
+        // Flag it as new so the UI can show "New" instead of an invented percentage.
+        isNew = true;
+        trend = 'stable';
       }
 
       return {
         current_week: currentWeekCount,
         previous_week: previousWeekCount,
         growth_percentage: Math.round(growthPercentage * 10) / 10,
-        trend
+        trend,
+        is_new: isNew
       };
     },
     enabled: !!calendarIds && calendarIds.length > 0,

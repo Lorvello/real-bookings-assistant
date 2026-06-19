@@ -213,9 +213,9 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Booking Completion"
+                  title="Confirmed Share"
                   value={`${performance?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
-                  subtitle={getMetricSubtitle('success rate')}
+                  subtitle={getMetricSubtitle('of all bookings')}
                   icon={CheckCircle}
                   variant="blue"
                   delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
@@ -231,7 +231,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Percentage of booking inquiries that successfully resulted in confirmed appointments {periodText}. Measures conversion efficiency.</p>
+              <p className="text-sm">Share of all bookings {periodText} that are confirmed (versus cancelled or no-show).</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -247,7 +247,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Unique Customers"
+                  title="New Customers"
                   value={String(performance?.unique_customers || 0)}
                   subtitle={getMetricSubtitle('customers')}
                   icon={Users}

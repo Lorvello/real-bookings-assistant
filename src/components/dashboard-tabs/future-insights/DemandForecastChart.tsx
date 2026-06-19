@@ -13,15 +13,15 @@ export function DemandForecastChart({ data }: DemandForecastChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="p-8 text-center">
-        <h3 className="text-lg font-semibold text-foreground mb-2">Demand Forecast</h3>
-        <p className="text-muted-foreground">No forecast data available</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Upcoming Bookings</h3>
+        <p className="text-muted-foreground">No upcoming bookings yet</p>
       </div>
     );
   }
 
   return (
     <div className="p-8">
-      <h3 className="text-lg font-semibold text-foreground mb-6">Demand Forecast</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-6">Upcoming Bookings</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgb(51, 65, 85)" />
