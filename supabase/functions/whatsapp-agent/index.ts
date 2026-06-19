@@ -225,11 +225,25 @@ Deno.serve(async (req) => {
     const calledAction = result.toolCalls.some((t) => ACTION_TOOLS.has(t.name));
     const looksLikeStall = !calledAction &&
       !!result.text && ANNOUNCE_RE.test(result.text) && !result.text.includes("?");
-    if (looksLikeStall) {
+
+    // Cancel-preview-by-talking: the customer asked to cancel but the model produced
+    // the confirm question in prose WITHOUT calling cancel_appointment, so no
+    // pending_cancel marker was set -> the customer's next "yes" re-previews instead
+    // of committing (they must confirm twice). Two-phase cancel is server-driven, so
+    // the marker MUST exist: force the preview tool. Skipped on a decline (NEGATE_RE)
+    // and on the confirmation turn (pendingFresh) so it never double-fires.
+    const calledCancel = result.toolCalls.some((t) => t.name === "cancel_appointment");
+    const cancelIntent = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i.test(msgLower);
+    const cancelPreviewMissed = cancelIntent && !calledCancel && !pendingFresh && !NEGATE_RE.test(msgLower);
+
+    if (looksLikeStall || cancelPreviewMissed) {
+      const nudgeText = cancelPreviewMissed
+        ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
+        : "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht.";
       const nudged: Content[] = [
         ...contents,
         { role: "model", parts: [{ text: result.text }] },
-        { role: "user", parts: [{ text: "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht." }] },
+        { role: "user", parts: [{ text: nudgeText }] },
       ];
       const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
       if (retry.text && (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))) {
