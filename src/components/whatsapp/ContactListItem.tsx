@@ -81,8 +81,10 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
         </div>
 
         <div className="flex items-center justify-between mt-1">
+          {/* Secondary line = the customer's phone (NOT the business name — that's obviously us
+              and only confused; W2). Hidden when the name already IS the phone, to avoid a duplicate. */}
           <span className="text-xs text-muted-foreground truncate">
-            {contact.all_bookings?.[0]?.business_name || contact.phone_number}
+            {displayName !== contact.phone_number ? contact.phone_number : ''}
           </span>
           {contact.last_message_at && (
             <span className="text-xs text-muted-foreground shrink-0">

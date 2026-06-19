@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   Phone,
   User,
-  Building2,
   Clock,
   MessageSquare
 } from 'lucide-react';
@@ -202,12 +201,8 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                   </span>
                 </div>
               )}
-              {contact.all_bookings?.[0]?.business_name && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Building2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{contact.all_bookings[0].business_name}</span>
-                </div>
-              )}
+              {/* Business name intentionally NOT shown on the customer's contact card — it is
+                  obviously the owner's own business and only added confusion (W2). */}
               {contact.conversation_created_at && (
                 <div className="flex items-center gap-2 text-sm">
                   <Clock aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
