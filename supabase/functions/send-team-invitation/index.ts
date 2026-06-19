@@ -121,10 +121,10 @@ const handler = async (req: Request): Promise<Response> => {
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
             .container { max-width: 600px; margin: 0 auto; background-color: white; }
-            .header { background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; padding: 40px 30px; text-align: center; }
+            .header { background: linear-gradient(135deg, #1A7F4D, #135C38); color: white; padding: 40px 30px; text-align: center; }
             .content { padding: 40px 30px; }
-            .button { display: inline-block; background: #3B82F6; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
-            .button:hover { background: #1E40AF; }
+            .button { display: inline-block; background: #1A7F4D; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+            .button:hover { background: #135C38; }
             .role-badge { display: inline-block; background: #F3F4F6; color: #374151; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 500; }
             .footer { background: #F8FAFC; padding: 30px; text-align: center; color: #6B7280; font-size: 14px; }
             .expire-notice { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 16px; margin: 20px 0; color: #92400E; }
@@ -156,7 +156,7 @@ const handler = async (req: Request): Promise<Response> => {
 
               <p style="margin-top: 30px; color: #6B7280; font-size: 14px;">
                 If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="${inviteUrl}" style="color: #3B82F6; word-break: break-all;">${inviteUrl}</a>
+                <a href="${inviteUrl}" style="color: #1A7F4D; word-break: break-all;">${inviteUrl}</a>
               </p>
 
               <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">

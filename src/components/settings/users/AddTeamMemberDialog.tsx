@@ -86,13 +86,14 @@ export function AddTeamMemberDialog({
 
         <div className="space-y-5 pt-1">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <SettingsField label="Full name" htmlFor="invite-name" optional>
+            <SettingsField label="Full name" htmlFor="invite-name">
               <Input
                 id="invite-name"
                 value={name}
                 onChange={(e) => onNameChange(e.target.value)}
                 placeholder="Jane Doe"
                 autoComplete="off"
+                required
               />
             </SettingsField>
 
@@ -151,7 +152,7 @@ export function AddTeamMemberDialog({
             <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
-            <Button onClick={onSubmit} loading={submitting}>
+            <Button onClick={onSubmit} loading={submitting} disabled={submitting || !name.trim() || !email.trim()}>
               Send invite
             </Button>
           </div>

@@ -109,9 +109,9 @@ serve(async (req) => {
                 <h2 style="color:#111827">You're in! 🎉</h2>
                 <p>Hi ${inv.full_name || email.split("@")[0]}, your team access is set up. Choose a password to log in:</p>
                 <p style="text-align:center;margin:28px 0">
-                  <a href="${actionLink}" style="display:inline-block;background:#E87B2A;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600">Set my password</a>
+                  <a href="${actionLink}" style="display:inline-block;background:#1A7F4D;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600">Set my password</a>
                 </p>
-                <p style="color:#6B7280;font-size:13px">If the button doesn't work, copy this link into your browser:<br><a href="${actionLink}" style="color:#E87B2A;word-break:break-all">${actionLink}</a></p>
+                <p style="color:#6B7280;font-size:13px">If the button doesn't work, copy this link into your browser:<br><a href="${actionLink}" style="color:#1A7F4D;word-break:break-all">${actionLink}</a></p>
               </div>`,
           });
         }
