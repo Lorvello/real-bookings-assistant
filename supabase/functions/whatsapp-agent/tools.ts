@@ -12,6 +12,10 @@ export interface ToolContext {
   phone: string; // customer's wa_id
   businessUserId: string; // owner user_id (for business_overview_v2 KB)
   conversationId: string | null; // whatsapp_conversations.id (needed for pay-and-book links)
+  // Server-detected: the customer's CURRENT message affirms a pending cancel preview from a
+  // previous turn. Drives the cancel COMMIT deterministically instead of trusting the small
+  // model to set confirmed:true (which it does not do reliably). Set in index.ts each turn.
+  confirmCancel?: boolean;
 }
 
 interface UpcomingBooking {
@@ -287,12 +291,16 @@ export function createTools(
     {
       name: "cancel_appointment",
       description:
-        "Annuleert de aankomende afspraak van DEZE klant (op telefoonnummer). " +
-        "Roep aan als de klant duidelijk wil annuleren. Bij meerdere afspraken geeft de tool 'meerdere_afspraken' " +
-        "terug met de lijst — vraag dan welke en roep opnieuw aan met match_start_time. Bevestig daarna kort wat geannuleerd is.",
+        "Annuleert de aankomende afspraak van DEZE klant in TWEE stappen (annuleren is destructief → altijd één bevestiging). " +
+        "Stap 1: roep aan ZONDER confirmed → de tool annuleert NIETS en geeft 'needs_confirmation' + de afspraak (dienst + when) terug; lees die terug, vraag of je echt mag annuleren, en bied aan om in plaats daarvan te verzetten. " +
+        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true → dan annuleert de tool. Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug; vraag welke en geef match_start_time mee.",
       parameters: {
         type: "object",
         properties: {
+          confirmed: {
+            type: "boolean",
+            description: "Alleen op true zetten NADAT de klant expliciet bevestigde dat de afspraak geannuleerd mag worden. Zonder confirmed:true annuleert de tool niets (alleen preview).",
+          },
           match_start_time: {
             type: "string",
             description: "Alleen bij meerdere afspraken: de exacte start_time van de gekozen afspraak (uit de eerder teruggegeven lijst).",
@@ -556,6 +564,52 @@ export function createTools(
       }
 
       case "cancel_appointment": {
+        // Two-phase confirm (council A8 verdict): cancelling is destructive, so the tool NEVER
+        // mutates without an explicit confirmation. Determinism lives here, not in the prompt:
+        // a temp-0.2 model cannot be the transaction boundary (cf. the name-gate + announce net).
+        const confirmed = args.confirmed === true;
+        let cancelCtx: Record<string, unknown> = {};
+        if (ctx.conversationId) {
+          const { data: conv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          cancelCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+        }
+        const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string } | undefined;
+        const clearPending = async () => {
+          if (!ctx.conversationId) return;
+          const { pending_cancel: _drop, ...rest } = cancelCtx;
+          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+        };
+
+        // COMMIT phase: only when a preview was taken in a PREVIOUS turn AND the customer confirmed.
+        // Confirmation is detected server-side (ctx.confirmCancel) OR via the model's confirmed flag.
+        // We re-resolve the previewed appointment fresh so a since-changed/cancelled booking is caught
+        // (the Contrarian's race window: re-validate at execution, not at confirmation).
+        if ((confirmed || ctx.confirmCancel === true) && pending?.start_time) {
+          const target = await resolveTarget(supabase, ctx, pending.start_time);
+          if (target.none || target.ambiguous) {
+            await clearPending();
+            return { error: "geen_boeking", message: "Die afspraak kan ik niet meer vinden om te annuleren (mogelijk al weg). Vraag de klant of er nog iets is." };
+          }
+          const b = target.booking!;
+          const policy = await getCalendarPolicy(supabase, ctx.calendarId);
+          if (!policy.allowCancellations) {
+            await clearPending();
+            return { error: "annuleren_niet_toegestaan", message: "Annuleren kan bij dit bedrijf niet via de assistent. Verwijs naar het annuleringsbeleid." };
+          }
+          if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
+            await clearPending();
+            return { error: "te_laat_annuleren", message: `Annuleren kan tot ${policy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.` };
+          }
+          const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
+          if (error) return { error: error.message };
+          await clearPending();
+          return { ok: true, cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time } };
+        }
+
+        // PREVIEW phase (default; also where a stray confirmed:true WITHOUT a preview lands, so an
+        // accidental immediate cancel is impossible). Resolve + policy-check, record the pending
+        // marker, return the appointment to read back. NOTHING is cancelled here.
         const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined);
         if (target.none) {
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te annuleren." };
@@ -569,8 +623,8 @@ export function createTools(
         }
         const b = target.booking!;
 
-        // Honour the "Allow cancellations" + "Cancellation deadline" Operations
-        // settings (previously saved but never enforced).
+        // Honour the "Allow cancellations" + "Cancellation deadline" Operations settings before
+        // offering to cancel (so we never ask to confirm something that can't be cancelled).
         const cancelPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
         if (!cancelPolicy.allowCancellations) {
           return {
@@ -585,9 +639,17 @@ export function createTools(
           };
         }
 
-        const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
-        if (error) return { error: error.message };
-        return { ok: true, cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time } };
+        if (ctx.conversationId) {
+          await supabase
+            .from("whatsapp_conversations")
+            .update({ context: { ...cancelCtx, pending_cancel: { booking_id: b.id, start_time: b.start_time, at: Date.now() } } })
+            .eq("id", ctx.conversationId);
+        }
+        return {
+          needs_confirmation: true,
+          appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time },
+          message: "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true.",
+        };
       }
 
       case "reschedule_appointment": {

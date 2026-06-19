@@ -198,16 +198,32 @@ Deno.serve(async (req) => {
       contents.push({ role: "user", parts: [{ text: String(message) }] });
     }
 
+    // Cancel confirmation, detected server-side (the small model won't reliably set
+    // confirmed:true on the "yes" turn). If a cancel preview from a PREVIOUS turn is still
+    // pending+fresh AND this message clearly affirms (and doesn't decline/reschedule), drive
+    // the commit deterministically via ctx.confirmCancel. Fail-safe: a non-affirmative reply
+    // never commits, and the 15-min freshness bounds any stray-"ja" mis-fire.
+    const pc = convContext.pending_cancel as { at?: number } | undefined;
+    const pendingFresh = !!pc && (typeof pc.at !== "number" || (Date.now() - pc.at) < 15 * 60 * 1000);
+    const msgLower = String(message).toLowerCase();
+    const AFFIRM_RE = /\b(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord)\b/i;
+    const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
+    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower);
+
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId, confirmCancel });
     let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
     // ("ik check even / momentje / one moment / ich prüfe …") and ends the turn WITHOUT
     // calling a tool, which stalls the conversation. If this turn made no tool call, reads
     // like such a filler, and asks nothing, nudge the model once to actually perform it.
-    const ANNOUNCE_RE = /\b(check(ing)?|checken|moment(je|o|ito)?|even geduld|regel het|ga (ik )?(even )?(kijken|checken|na)|kijk even|let me (check|see)|one moment|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde)|un instant|un momento)\b/i;
-    const looksLikeStall = result.toolCalls.length === 0 &&
+    const ANNOUNCE_RE = /\b(check(ing)?|checken|zoek(en)?|moment(je|o|ito)?|even geduld|regel het|ga (ik )?(even )?(kijken|checken|zoeken|na)|kijk even|let me (check|see|find)|one moment|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde|cherche)|un instant|un momento)\b/i;
+    // "action" tools = the ones that should follow an action-announcement. Calling only
+    // update_lead (saving a name) and THEN announcing "ik zoek even" is still a stall.
+    const ACTION_TOOLS = new Set(["get_available_slots", "book_appointment", "cancel_appointment", "reschedule_appointment"]);
+    const calledAction = result.toolCalls.some((t) => ACTION_TOOLS.has(t.name));
+    const looksLikeStall = !calledAction &&
       !!result.text && ANNOUNCE_RE.test(result.text) && !result.text.includes("?");
     if (looksLikeStall) {
       const nudged: Content[] = [
