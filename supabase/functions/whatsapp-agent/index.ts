@@ -25,6 +25,47 @@ function nlTime(d: Date): string {
   return `${time} ${day} ${month} ${d.getFullYear()}`;
 }
 
+// Lightweight customer-language detection for a DETERMINISTIC language directive.
+// gpt-5-mini reliably WRITES in a NAMED language but won't reliably DECIDE on its own to
+// translate the Dutch greeting to e.g. German/French on the first turn (it does so for
+// English but not consistently for others). So we detect the language server-side from the
+// inbound message (high-signal stopwords + diacritics) and pass the name into the prompt.
+// Returns a Dutch language name ("het Engels", …) for a CONFIDENT non-Dutch detection, else
+// null (Dutch or unsure → no override; the <language>/<taal_check> rules handle those).
+const LANG_WORDS: Record<string, string[]> = {
+  en: ["the","you","i","to","a","for","would","like","can","could","please","want","book","appointment","hello","hi","hey","thanks","thank","my","name","is","at","on","afternoon","morning","evening","next","monday","tuesday","wednesday","thursday","friday","tomorrow","today","and","do","have","need","an","reschedule","cancel","change","move"],
+  de: ["ich","möchte","gerne","einen","eine","am","um","bitte","termin","buchen","guten","tag","hallo","danke","mein","name","ist","nächsten","montag","dienstag","uhr","würde","hätte","für","und","der","die","das","nachmittag","morgen","heute","verschieben","absagen","können","kann","einen","gern"],
+  fr: ["bonjour","je","voudrais","réserver","un","une","rendez","vous","lundi","mardi","après","midi","plaît","merci","mon","nom","est","pour","le","la","prochain","demain","aujourd","annuler","déplacer","heure","matin","soir","salut","aimerais"],
+  es: ["hola","quiero","reservar","una","cita","lunes","martes","por","favor","gracias","mi","nombre","es","para","el","la","próximo","tarde","mañana","hoy","cancelar","cambiar","quisiera","necesito","puedo","buenas"],
+  pt: ["olá","quero","reservar","um","agendamento","agendar","segunda","por","favor","obrigado","obrigada","meu","nome","para","próxima","tarde","amanhã","hoje","cancelar","remarcar","gostaria","queria","marcar","bom","dia"],
+  it: ["ciao","buongiorno","vorrei","prenotare","un","appuntamento","lunedì","martedì","per","favore","grazie","mio","nome","prossimo","pomeriggio","domani","oggi","annullare","spostare","posso","ora","salve"],
+  nl: ["ik","wil","wilt","graag","een","afspraak","maken","hoi","hallo","hey","bedankt","dank","mijn","naam","is","om","op","volgende","maandag","dinsdag","middag","ochtend","kan","kun","je","voor","en","morgen","vandaag","verzetten","annuleren","alsjeblieft","alstublieft"],
+};
+const LANG_NL_NAME: Record<string, string> = { en: "het Engels", de: "het Duits", fr: "het Frans", es: "het Spaans", pt: "het Portugees", it: "het Italiaans" };
+function detectCustomerLanguage(msg: string): string | null {
+  const text = (msg || "").toLowerCase();
+  const tokens = new Set(text.replace(/[^\p{L}]+/gu, " ").trim().split(/\s+/).filter(Boolean));
+  if (tokens.size === 0) return null;
+  const scores: Record<string, number> = {};
+  for (const [lang, words] of Object.entries(LANG_WORDS)) {
+    let s = 0;
+    for (const w of words) if (tokens.has(w)) s++;
+    scores[lang] = s;
+  }
+  if (/[ß]/.test(text)) scores.de += 2;
+  if (/[äöü]/.test(text)) scores.de += 1;
+  if (/[ñ¿¡]/.test(text)) scores.es += 2;
+  if (/[ãõ]/.test(text)) scores.pt += 2;
+  if (/[çàèêœ]/.test(text)) scores.fr += 1;
+  let best = "nl", bestScore = scores.nl ?? 0;
+  for (const lang of Object.keys(LANG_WORDS)) {
+    if ((scores[lang] ?? 0) > bestScore) { best = lang; bestScore = scores[lang]; }
+  }
+  // Confident NON-Dutch only: need >=2 signal words and a strict margin over Dutch.
+  if (best === "nl" || bestScore < 2 || (scores.nl ?? 0) >= bestScore) return null;
+  return LANG_NL_NAME[best] ?? null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -122,6 +163,13 @@ Deno.serve(async (req) => {
     const welcomeMessage = (rawWelcome && rawWelcome.trim() ? rawWelcome : DEFAULT_WHATSAPP_WELCOME)
       .replace(/\{bedrijf\}/g, businessName);
 
+    // Detect the customer's language from THIS message; fall back to the language detected
+    // earlier in this conversation (so a short later message like "ok"/"ja" keeps the thread's
+    // language). null = Dutch or unsure → no override (the prompt's own language rules apply).
+    const detectedThisMsg = detectCustomerLanguage(String(message));
+    const customerLanguage = detectedThisMsg ??
+      (typeof convContext.detected_language === "string" ? convContext.detected_language : null);
+
     const now = new Date();
     const system = buildSystemPrompt({
       businessName,
@@ -135,6 +183,7 @@ Deno.serve(async (req) => {
       welcomeMessage,
       isFirstContact,
       businessData,
+      customerLanguage,
     });
 
     // Build conversation turns. History already ends with the current inbound message
@@ -166,11 +215,17 @@ Deno.serve(async (req) => {
         status: send.ok ? "sent" : "failed",
       });
       // Durably mark that the welcome has fired so it never repeats on later turns,
-      // independent of message-history loading. Merge into context (don't clobber).
-      if (isFirstContact && !greetingAlreadySent) {
+      // independent of message-history loading. Also persist the detected language so a
+      // later short message inherits the thread's language. Merge into context (don't clobber).
+      const ctxUpdate: Record<string, unknown> = {};
+      if (isFirstContact && !greetingAlreadySent) ctxUpdate.greeting_sent = true;
+      if (detectedThisMsg && detectedThisMsg !== convContext.detected_language) {
+        ctxUpdate.detected_language = detectedThisMsg;
+      }
+      if (Object.keys(ctxUpdate).length > 0) {
         await supabase
           .from("whatsapp_conversations")
-          .update({ context: { ...convContext, greeting_sent: true } })
+          .update({ context: { ...convContext, ...ctxUpdate } })
           .eq("id", conversationId);
       }
     }
