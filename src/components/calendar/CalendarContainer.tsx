@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { addMonths, subMonths, addWeeks, subWeeks, addYears, subYears } from 'date-fns';
 import { CalendarHeader } from './CalendarHeader';
@@ -44,6 +44,16 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
   });
   
   const { bookings, loading, error, refetch } = useMultipleCalendarBookings(calendarIds);
+
+  // The calendar grid shows only ACTIVE bookings. A cancelled/no-show row stays in the DB
+  // but its slot is genuinely free (the bookings_no_overlap constraint, availability, and
+  // dashboard metrics all exclude it), so painting it as an occupied block — or counting it
+  // in the day badge — would mislead the owner, especially after the WhatsApp agent cancels
+  // a booking. Filter at the source so every grid surface (week/month/year + day count) agrees.
+  const activeBookings = useMemo(
+    () => bookings.filter((b) => b.status !== 'cancelled' && b.status !== 'no-show'),
+    [bookings],
+  );
 
   // Enable real-time updates voor alle kalenders - nu als één hook call
   useRealtimeBookings(calendarIds);
@@ -135,7 +145,7 @@ export function CalendarContainer({ calendarIds, viewingAllCalendars = false }: 
         <div className="relative z-10 h-full min-h-0">
           <CalendarContent
             currentView={currentView}
-            bookings={bookings}
+            bookings={activeBookings}
             currentDate={currentDate}
             loading={loading}
             error={error}

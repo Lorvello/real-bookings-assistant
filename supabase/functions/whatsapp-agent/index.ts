@@ -245,16 +245,20 @@ Deno.serve(async (req) => {
     // server-guarded (book refuses a double, reschedule re-validates, cancel previews), so a
     // stray nudge can never produce a wrong outcome.
     const MUTATION_TOOLS = new Set(["book_appointment", "cancel_appointment", "reschedule_appointment"]);
-    const calledMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name));
+    // A mutation only "counts" if it SUCCEEDED. The model sometimes calls book_appointment on
+    // a reschedule-confirm turn; the duplicate guard refuses it (no double-book) but the
+    // reschedule never happens — so an ERRORED mutation must NOT suppress the nudge.
+    const isErr = (r: unknown) => !!r && typeof r === "object" && "error" in (r as Record<string, unknown>);
+    const succeededMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
     const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
-    const confirmStall = !calledMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
+    const confirmStall = !succeededMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
 
     if (looksLikeStall || cancelPreviewMissed || confirmStall) {
       const nudgeText = cancelPreviewMissed
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
         : confirmStall
-        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment voor een ander tijdstip, anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde — herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
         : "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht.";
       const nudged: Content[] = [
         ...contents,
@@ -266,7 +270,7 @@ Deno.serve(async (req) => {
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
       const accept = !!retry.text && (
         confirmStall
-          ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name))
+          ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       );
       if (accept) {
