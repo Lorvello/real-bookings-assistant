@@ -695,6 +695,7 @@ export function createTools(
         const rres = rr as { ok?: boolean; error?: string } | null;
         if (!rres?.ok) {
           if (rres?.error === "slot_taken") return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
+          if (rres?.error === "in_verleden") return { error: "in_verleden", message: "Je kunt een afspraak niet naar het verleden verzetten." };
           if (rres?.error === "niet_beschikbaar") return { error: "niet_beschikbaar", message: "Dat nieuwe tijdstip is niet beschikbaar." };
           if (rres?.error === "geen_boeking") return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
           return { error: rres?.error || "verzetten_mislukt", message: "Het verzetten lukte niet. Probeer een ander tijdstip." };
