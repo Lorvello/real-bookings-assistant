@@ -17,6 +17,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Run heavy work (persist + the multi-second agent run) AFTER the 200 to Meta. Meta
+// re-delivers a webhook until it gets a timely 200; awaiting the full agent before
+// replying invited retries (= duplicate answers). waitUntil keeps the worker alive
+// for the background promise. Falls back to fire-and-forget if the runtime lacks it.
+function runInBackground(p: Promise<unknown>): void {
+  const er = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  if (er?.waitUntil) er.waitUntil(p.catch((e) => console.error('bg task error:', e)));
+  else p.catch((e) => console.error('bg task error:', e));
+}
+
 // Security configuration
 const RATE_LIMIT_WINDOW = 60; // seconds
 const MAX_REQUESTS_PER_WINDOW = 100;
@@ -324,6 +334,9 @@ serve(async (req) => {
       // WhatsApp-toegang (lapsed/gratis → niet aanroepen) → check bot-toggle → persisteer
       // de inbound + invoke de agent. Behoudt de access-gating (sluit task_f2e05c8b).
       if (webhookType === 'message') {
+        // Deferred so Meta gets its 200 immediately (no retry-doubles); the agent runs
+        // in the background via waitUntil. Persist + agent are all inside this promise.
+        runInBackground((async () => {
         try {
           const messages = payload.entry?.[0]?.changes?.[0]?.value?.messages;
           const contacts = payload.entry?.[0]?.changes?.[0]?.value?.contacts;
@@ -472,9 +485,10 @@ serve(async (req) => {
             }
           }
         } catch (fwdError) {
-          console.error('Error bij forward naar n8n:', fwdError);
-          // Niet fatal — bericht staat al in de queue.
+          console.error('Error bij verwerken WhatsApp-bericht:', fwdError);
+          // Niet fatal — de 200 is al terug naar Meta; dit draait op de achtergrond.
         }
+        })());
       }
 
       return new Response(JSON.stringify({ success: true }), {

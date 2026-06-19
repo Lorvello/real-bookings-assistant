@@ -91,8 +91,15 @@ async function runAgentOpenAI(opts: RunOpts): Promise<AgentResult> {
     ? opts.tools.map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } }))
     : undefined;
 
+  // GPT-5 / o-series are reasoning models (reasoning_effort, no custom temperature).
+  // gpt-4.1* / gpt-4o* are NOT — they reject reasoning_effort and DO take temperature.
+  // Detect from the model id so OPENAI_MODEL can be flipped to a faster non-reasoning
+  // model for the latency test without a 400.
+  const isReasoning = /^(gpt-5|o\d)/i.test(model);
   for (let step = 0; step < maxSteps; step++) {
-    const body: Record<string, unknown> = { model, messages, max_completion_tokens: 2000, reasoning_effort: "minimal" };
+    const body: Record<string, unknown> = { model, messages, max_completion_tokens: 2000 };
+    if (isReasoning) body.reasoning_effort = "minimal";
+    else body.temperature = opts.temperature ?? 0.2;
     if (tools) {
       body.tools = tools;
       body.tool_choice = "auto";

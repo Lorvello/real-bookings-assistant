@@ -11,6 +11,7 @@ import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from ".
 import { createTools, fetchBusinessData } from "./tools.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
+import { sanitizeReply } from "../_shared/sanitizeReply.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +24,31 @@ function nlTime(d: Date): string {
   const day = d.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz });
   const month = d.toLocaleDateString("nl-NL", { month: "long", timeZone: tz });
   return `${time} ${day} ${month} ${d.getFullYear()}`;
+}
+
+// Deterministic concrete-date calendar for the next 14 days, built server-side from the
+// business's opening hours. The model reads the date + open/closed off this table instead
+// of computing a relative date ("aanstaande zondag") or deciding "is that day open?" itself
+// (both failed live: it asked "welke zondag bedoel je?" and offered a closed Sunday). This
+// removes the date reasoning from the model entirely.
+function buildCalendarHint(now: Date, byDay: Record<string, { open: boolean; start?: string; end?: string }> | null): string | null {
+  if (!byDay) return null;
+  const tz = "Europe/Amsterdam";
+  const todayStr = now.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD in Amsterdam
+  const [y, m, d] = todayStr.split("-").map(Number);
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const lines: string[] = [];
+  for (let i = 0; i < 14; i++) {
+    const dt = new Date(Date.UTC(y, m - 1, d + i, 11, 0, 0)); // 11:00 UTC = mid-day Amsterdam (date-safe across DST)
+    const dutchDay = cap(dt.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz }));
+    const label = dt.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: tz });
+    const iso = dt.toLocaleDateString("en-CA", { timeZone: tz });
+    const st = byDay[dutchDay];
+    const status = st?.open ? `open ${st.start}-${st.end}` : "GESLOTEN";
+    const mark = i === 0 ? " (vandaag)" : i === 1 ? " (morgen)" : "";
+    lines.push(`- ${label} [${iso}]: ${status}${mark}`);
+  }
+  return lines.join("\n");
 }
 
 // Lightweight customer-language detection for a DETERMINISTIC language directive.
@@ -84,72 +110,80 @@ Deno.serve(async (req) => {
     );
 
     // --- Load context (own loader; get_conversation_context RPC is buggy) ---
-    const { data: cal } = await supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle();
+    // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
+    // They are now batched into 3 dependency phases so independent reads run in parallel.
+    // Phase 1 — everything that needs only (calendar_id, phone):
+    const [calRes, svcRes, csRes, contactRes, lastBRes] = await Promise.all([
+      supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
+      supabase.from("service_types").select("id, name, duration, price").eq("calendar_id", calendar_id),
+      supabase.from("calendar_settings").select("whatsapp_welcome_message").eq("calendar_id", calendar_id).maybeSingle(),
+      // NOTE: whatsapp_contacts is GLOBALLY UNIQUE by phone_number (no calendar_id column),
+      // so first_name here is cross-tenant — the per-(calendar_id, phone) name scoping that
+      // kills the R3 bleed is handled separately via conversation context (see knownName below).
+      supabase.from("whatsapp_contacts").select("id, first_name").eq("phone_number", phone).maybeSingle(),
+      supabase.from("bookings").select("start_time, service_types(name)")
+        .eq("customer_phone", phone).eq("calendar_id", calendar_id)
+        .order("start_time", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+
+    const cal = calRes.data;
     const businessUserId = (cal as { user_id?: string } | null)?.user_id ?? "";
 
-    // Fetch ALL set business info once and inject it into the system prompt every turn
-    // (see prompt.ts <business_data>), so the agent always has the truth in context and
-    // never answers an info question without it (which caused false "no info" + a
-    // hallucinated handle). fetchBusinessData also resolves a "other" business type.
-    const businessData = await fetchBusinessData(supabase, businessUserId);
-    const businessType = (businessData?.business_type as string | null) ?? null;
-
-    const { data: svcRows } = await supabase
-      .from("service_types")
-      .select("id, name, duration, price")
-      .eq("calendar_id", calendar_id);
-    const services: ServiceInfo[] = ((svcRows as Array<{ id: string; name: string; duration: number; price: number | null }>) ?? [])
+    const services: ServiceInfo[] = ((svcRes.data as Array<{ id: string; name: string; duration: number; price: number | null }>) ?? [])
       .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price }));
 
     // Per-calendar custom welcome greeting (NULL → default template in prompt.ts).
-    const { data: cs } = await supabase
-      .from("calendar_settings")
-      .select("whatsapp_welcome_message")
-      .eq("calendar_id", calendar_id)
-      .maybeSingle();
-    const rawWelcome = (cs as { whatsapp_welcome_message?: string | null } | null)?.whatsapp_welcome_message ?? null;
+    const rawWelcome = (csRes.data as { whatsapp_welcome_message?: string | null } | null)?.whatsapp_welcome_message ?? null;
 
-    const { data: contact } = await supabase
-      .from("whatsapp_contacts")
-      .select("id, first_name")
-      .eq("phone_number", phone)
-      .maybeSingle();
+    const contact = contactRes.data;
     const contactId = (contact as { id?: string } | null)?.id ?? null;
 
-    let conversationId: string | null = null;
-    let convContext: Record<string, unknown> = {};
+    // Returning customer's last service (for "same as last time?" verification),
+    // scoped to THIS calendar (a customer's history at another business is irrelevant here).
+    const lastService = (lastBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
+
+    // Phase 2 — reads that depend on phase 1 (business data needs user_id; conversation
+    // needs contact_id). Independent of each other → run in parallel.
+    const [businessData, conv] = await Promise.all([
+      // Fetch ALL set business info once and inject it into the system prompt every turn
+      // (see prompt.ts <business_data>), so the agent always has the truth in context and
+      // never answers an info question without it (which caused false "no info" + a
+      // hallucinated handle). fetchBusinessData also resolves a "other" business type.
+      fetchBusinessData(supabase, businessUserId),
+      contactId
+        ? supabase.from("whatsapp_conversations").select("id, context")
+            .eq("calendar_id", calendar_id).eq("contact_id", contactId).maybeSingle()
+            .then((r) => r.data as { id?: string; context?: Record<string, unknown> } | null)
+        : Promise.resolve(null),
+    ]);
+    const businessType = (businessData?.business_type as string | null) ?? null;
+
+    const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
+    const convContext: Record<string, unknown> = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+
+    // Phase 3 — message history (needs conversation_id).
     let history: Array<{ direction: string; content: string | null }> = [];
-    if (contactId) {
-      const { data: conv } = await supabase
-        .from("whatsapp_conversations")
-        .select("id, context")
-        .eq("calendar_id", calendar_id)
-        .eq("contact_id", contactId)
-        .maybeSingle();
-      conversationId = (conv as { id?: string } | null)?.id ?? null;
-      convContext = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
-      if (conversationId) {
-        const { data: msgs } = await supabase
-          .from("whatsapp_messages")
-          .select("direction, content, created_at")
-          .eq("conversation_id", conversationId)
-          .order("created_at", { ascending: false })
-          .limit(12);
-        history = ((msgs as Array<{ direction: string; content: string | null; created_at: string }>) ?? []).reverse();
-      }
+    if (conversationId) {
+      const { data: msgs } = await supabase
+        .from("whatsapp_messages")
+        .select("direction, content, created_at")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      history = ((msgs as Array<{ direction: string; content: string | null; created_at: string }>) ?? []).reverse();
     }
 
-    // Returning customer's last service (for "same as last time?" verification)
-    const { data: lastB } = await supabase
-      .from("bookings")
-      .select("start_time, service_types(name)")
-      .eq("customer_phone", phone)
-      .order("start_time", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const lastService = (lastB as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
-
-    const knownName = (contact as { first_name?: string } | null)?.first_name ?? contact_name ?? null;
+    // Booking name, scoped per (calendar_id, phone) to KILL the R3 cross-tenant name bleed:
+    // the source of truth is THIS conversation's context (booking_name / name_refused),
+    // never the globally-unique whatsapp_contacts row (which any business can overwrite).
+    // Default for a fresh conversation = the WhatsApp profile display name (contact_name,
+    // a customer-level value, so safe), which the agent confirms at booking instead of
+    // pestering for a name mid-flow.
+    const scopedName = typeof convContext.booking_name === "string" && convContext.booking_name.trim()
+      ? convContext.booking_name.trim() : null;
+    const scopedRefused = convContext.name_refused === true;
+    const waName = contact_name && contact_name !== "Privé" ? String(contact_name).trim() : null;
+    const knownName = scopedRefused ? "Privé" : (scopedName ?? waName ?? null);
     const businessName = (businessData?.business_name as string | null) ?? "ons bedrijf";
 
     // First contact = the greeting has not yet fired in this conversation. We persist a
@@ -171,6 +205,10 @@ Deno.serve(async (req) => {
       (typeof convContext.detected_language === "string" ? convContext.detected_language : null);
 
     const now = new Date();
+    const calendarHint = buildCalendarHint(
+      now,
+      (businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null,
+    );
     const system = buildSystemPrompt({
       businessName,
       businessType,
@@ -184,6 +222,7 @@ Deno.serve(async (req) => {
       isFirstContact,
       businessData,
       customerLanguage,
+      calendarHint,
     });
 
     // Build conversation turns. History already ends with the current inbound message
@@ -210,20 +249,34 @@ Deno.serve(async (req) => {
     const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower);
 
+    // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
+    // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
+    // proposal, NO insert), so an accidental immediate booking is impossible and the customer
+    // can correct the name/time first. When a fresh proposal exists AND the customer affirms
+    // (and isn't cancelling), drive the COMMIT deterministically via ctx.confirmBook — the
+    // commit uses the SERVER-STORED exact start_time, which also kills the model's
+    // time-reconstruction bug (it once booked 12:00 for a confirmed 10:00).
+    const pbk = convContext.pending_booking as { at?: number } | undefined;
+    const pendingBookFresh = !!pbk && (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
+    const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(msgLower);
+    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel;
+
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId, confirmCancel });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId, confirmCancel, confirmBook });
     let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
     // ("ik check even / momentje / one moment / ich prüfe …") and ends the turn WITHOUT
     // calling a tool, which stalls the conversation. If this turn made no tool call, reads
     // like such a filler, and asks nothing, nudge the model once to actually perform it.
-    const ANNOUNCE_RE = /\b(check(ing)?|checken|zoek(en)?|moment(je|o|ito)?|even geduld|regel het|ga (ik )?(even )?(kijken|checken|zoeken|na)|kijk even|let me (check|see|find)|one moment|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde|cherche)|un instant|un momento)\b/i;
-    // "action" tools = the ones that should follow an action-announcement. Calling only
-    // update_lead (saving a name) and THEN announcing "ik zoek even" is still a stall.
-    const ACTION_TOOLS = new Set(["get_available_slots", "book_appointment", "cancel_appointment", "reschedule_appointment"]);
-    const calledAction = result.toolCalls.some((t) => ACTION_TOOLS.has(t.name));
-    const looksLikeStall = !calledAction &&
+    const ANNOUNCE_RE = /\b(check(ing)?|checken|zoek(en)?|moment(je|o|ito)?|even geduld|regel (het|even|dat|meteen)|ga (ik )?(even )?(kijken|checken|zoeken|na)|kijk even|ik (kijk|check|controleer|haal|roep|regel)\b|even (kijken|checken|ophalen|oproepen|opvragen)|geef me (even|één|een|\d)|seconde|(tijden|beschikbaarheid)[\w\s]{0,15}(op|na)|let me (check|see|find)|one (moment|second)|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde|cherche)|un instant|un momento)\b/i;
+    // A stall = the model ANNOUNCED a filler but didn't actually ACT. "Acting" = calling a
+    // MUTATION/preview tool (book/cancel/reschedule). Calling only a READ (get_available_slots
+    // / get_business_data) and then saying "ik regel even / geef me een seconde" WITHOUT
+    // proceeding to the preview IS a stall (it offset the whole booking flow live).
+    const calledMutationTool = result.toolCalls.some((t) =>
+      t.name === "book_appointment" || t.name === "cancel_appointment" || t.name === "reschedule_appointment");
+    const looksLikeStall = !calledMutationTool &&
       !!result.text && ANNOUNCE_RE.test(result.text) && !result.text.includes("?");
 
     // Cancel-preview-by-talking: the customer asked to cancel but the model produced
@@ -247,15 +300,31 @@ Deno.serve(async (req) => {
     const MUTATION_TOOLS = new Set(["book_appointment", "cancel_appointment", "reschedule_appointment"]);
     // A mutation only "counts" if it SUCCEEDED. The model sometimes calls book_appointment on
     // a reschedule-confirm turn; the duplicate guard refuses it (no double-book) but the
-    // reschedule never happens — so an ERRORED mutation must NOT suppress the nudge.
-    const isErr = (r: unknown) => !!r && typeof r === "object" && "error" in (r as Record<string, unknown>);
+    // reschedule never happens — so an ERRORED mutation must NOT suppress the nudge. A PREVIEW
+    // (needs_confirmation: book/cancel awaiting confirm) is likewise NOT a completed mutation.
+    const isErr = (r: unknown) => !!r && typeof r === "object" &&
+      ("error" in (r as Record<string, unknown>) || "needs_confirmation" in (r as Record<string, unknown>));
     const succeededMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
     const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
     const confirmStall = !succeededMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall) {
-      const nudgeText = cancelPreviewMissed
+    // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
+    // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
+    // no pending_booking proposal exists and the customer's next "ja" has nothing to commit.
+    // Force the preview tool. Scoped so it never fires on a reschedule, a cancel, or when a
+    // proposal already exists / a booking was already committed this turn.
+    const calledBook = result.toolCalls.some((t) => t.name === "book_appointment");
+    const bookPreviewLang = /\b(ik (zet|boek|plan|reserveer)\b|zal ik .{0,25}(boeken|inplannen|reserveren)|ik (boek|plan|reserveer) (je|het|'t|een|de))/i;
+    const reschedLang = /\b(verzet|verschuif|schuif|verplaats|reschedule)\b/i;
+    const bookPreviewMissed = !calledMutationTool && !calledBook && !!result.text &&
+      bookPreviewLang.test(result.text) && !reschedLang.test(result.text) &&
+      !pendingBookFresh && !cancelIntent && !confirmCancel;
+
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed) {
+      const nudgeText = bookPreviewMissed
+        ? "[systeem] Je beschreef een boeking maar riep book_appointment niet aan, dus er is nog NIETS gereserveerd. Roep NU book_appointment aan (stap 1 / preview) met de dienst, de exacte 'start' uit get_available_slots en de naam, zodat de afspraak echt wordt voorbereid. Beschrijf een boeking nooit zonder de tool aan te roepen."
+        : cancelPreviewMissed
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
         : confirmStall
         ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde — herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
@@ -278,7 +347,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    const reply = result.text || "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
+    // Deterministic outbound hygiene: strip em-dashes etc. (the "written by AI" tell) so it
+    // never depends on the model obeying the prompt rule. Applied once → used for BOTH the
+    // WhatsApp send and the persisted transcript so they always match.
+    const reply = sanitizeReply(result.text || "") ||
+      "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
     // --- Reply + persist outbound ---
     const send = await sendWhatsAppText(phone, reply);

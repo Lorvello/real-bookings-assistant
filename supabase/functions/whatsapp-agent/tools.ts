@@ -16,6 +16,10 @@ export interface ToolContext {
   // previous turn. Drives the cancel COMMIT deterministically instead of trusting the small
   // model to set confirmed:true (which it does not do reliably). Set in index.ts each turn.
   confirmCancel?: boolean;
+  // Same idea for a NEW booking: the customer affirms a pending booking proposal from a
+  // previous turn. Drives the book COMMIT deterministically (and from the SERVER-stored exact
+  // start_time, so the model's time-reconstruction can't book the wrong hour).
+  confirmBook?: boolean;
 }
 
 interface UpcomingBooking {
@@ -85,21 +89,50 @@ function nlWhen(iso: string): string {
   return `${date} ${nlTimeOnly(iso)}`;
 }
 
-// Turn the business_overview_v2.calendars[].opening_hours dict into readable text the
-// agent can quote, e.g. "Maandag: 09:00-17:00, Dinsdag: 09:00-17:00, Zondag: gesloten".
-// Uses the first (default) calendar. Returns null when no schedule is set.
-function formatOpeningHours(calendars: unknown): string | null {
+export interface DayHours { open: boolean; start?: string; end?: string; }
+
+// Structured opening hours for ALL 7 days (a day absent from the dict OR is_available:false
+// counts as CLOSED). The first (default) calendar. Returns null when no schedule is set.
+// index.ts uses this to build a deterministic concrete-date calendar so the model never has
+// to compute "is Sunday open?" or resolve a relative date itself.
+export function openingHoursByDay(calendars: unknown): Record<string, DayHours> | null {
   if (!Array.isArray(calendars) || calendars.length === 0) return null;
   const oh = (calendars[0] as { opening_hours?: Record<string, { start_time?: string; end_time?: string; is_available?: boolean }> })?.opening_hours;
   if (!oh || typeof oh !== "object") return null;
-  const parts: string[] = [];
+  const out: Record<string, DayHours> = {};
   for (const day of DUTCH_DAY_ORDER) {
     const d = oh[day];
-    if (!d) continue;
-    if (d.is_available === false) parts.push(`${day}: gesloten`);
-    else if (d.start_time && d.end_time) parts.push(`${day}: ${hhmm(d.start_time)}-${hhmm(d.end_time)}`);
+    if (d && d.is_available !== false && d.start_time && d.end_time) {
+      out[day] = { open: true, start: hhmm(d.start_time), end: hhmm(d.end_time) };
+    } else {
+      out[day] = { open: false };
+    }
   }
-  return parts.length ? parts.join(", ") : null;
+  return out;
+}
+
+// Readable opening-hours text, with consecutive same-status days COLLAPSED into ranges so
+// the model can't mis-summarise a 5-day list (observed: it rendered Mon-Fri as "Maandag,
+// Vrijdag", silently dropping the middle days). E.g. "Maandag t/m vrijdag 09:00-17:00,
+// zaterdag en zondag gesloten". Returns null when no schedule is set.
+function formatOpeningHours(calendars: unknown): string | null {
+  const byDay = openingHoursByDay(calendars);
+  if (!byDay) return null;
+  const keyOf = (d: DayHours) => (d.open ? `${d.start}-${d.end}` : "gesloten");
+  const segs: string[] = [];
+  let i = 0;
+  while (i < DUTCH_DAY_ORDER.length) {
+    const start = DUTCH_DAY_ORDER[i];
+    const key = keyOf(byDay[start]);
+    let j = i;
+    while (j + 1 < DUTCH_DAY_ORDER.length && keyOf(byDay[DUTCH_DAY_ORDER[j + 1]]) === key) j++;
+    const label = i === j
+      ? start
+      : (j === i + 1 ? `${start} en ${DUTCH_DAY_ORDER[j]}` : `${start} t/m ${DUTCH_DAY_ORDER[j]}`);
+    segs.push(byDay[start].open ? `${label} ${key}` : `${label} gesloten`);
+    i = j + 1;
+  }
+  return segs.length ? segs.join(", ") : null;
 }
 
 // Compose one human address line from the parts. Drops the country when it is the
@@ -120,14 +153,6 @@ function formatAddress(d: {
 function cleanWebsite(raw: unknown): string | null {
   const v = (typeof raw === "string" ? raw : "").trim();
   if (!v || /\s/.test(v) || !v.includes(".")) return null;
-  return v;
-}
-
-// A social handle/URL never contains spaces; drop junk (empty / whitespace-only /
-// internal spaces like the legacy " v v") so the agent never quotes garbage.
-function cleanSocial(raw: unknown): string | null {
-  const v = (typeof raw === "string" ? raw : "").trim();
-  if (!v || /\s/.test(v)) return null;
   return v;
 }
 
@@ -177,10 +202,15 @@ export async function fetchBusinessData(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<Record<string, unknown> | null> {
+  // Only the fields the CURRENT settings UI actually supports (AIKnowledgeTab): the 5
+  // social platforms (instagram/facebook/linkedin/tiktok/youtube/x) were removed as orphan
+  // fields, so we no longer project them — otherwise the agent quotes stale values the
+  // owner can no longer see or edit (observed live: a removed Instagram/Facebook link).
+  // Website stays (still an editable link field).
   const { data } = await supabase
     .from("business_overview_v2")
     .select(
-      "business_name, business_type, business_description, cancellation_policy, payment_info, parking_info, public_transport_info, accessibility_info, preparation_info, other_info, business_email, business_phone, business_whatsapp, business_street, business_number, business_postal, business_city, business_country, website, instagram, facebook, linkedin, tiktok, youtube, x, calendars",
+      "business_name, business_type, business_description, cancellation_policy, payment_info, parking_info, public_transport_info, accessibility_info, preparation_info, other_info, business_email, business_phone, business_whatsapp, business_street, business_number, business_postal, business_city, business_country, website, calendars",
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -201,20 +231,12 @@ export async function fetchBusinessData(
     address: formatAddress(data),
     website: cleanWebsite(data.website),
     opening_hours: formatOpeningHours(data.calendars),
+    // Structured per-day hours for index.ts's concrete-date calendar (not rendered into the
+    // prompt text by renderBusinessData — it only renders string fields).
+    opening_hours_struct: openingHoursByDay(data.calendars),
     business_email: data.business_email,
     business_phone: data.business_phone,
     business_whatsapp: nonEmpty(data.business_whatsapp),
-    socials: (() => {
-      const s: Record<string, string> = {};
-      for (const [k, v] of [
-        ["instagram", data.instagram], ["facebook", data.facebook], ["linkedin", data.linkedin],
-        ["tiktok", data.tiktok], ["youtube", data.youtube], ["x", data.x],
-      ] as const) {
-        const c = cleanSocial(v);
-        if (c) s[k] = c;
-      }
-      return Object.keys(s).length ? s : null;
-    })(),
     cancellation_policy: data.cancellation_policy,
     payment_info: data.payment_info,
     preparation_info: data.preparation_info,
@@ -237,7 +259,7 @@ export function createTools(
     {
       name: "get_business_data",
       description:
-        "Bedrijfsinfo en beleid: adres/locatie, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact (e-mail/telefoon/WhatsApp-nummer) en socials (Instagram/Facebook/LinkedIn/TikTok/YouTube/X). Gebruik bij vragen over het bedrijf, waar ze zitten, wanneer ze open zijn, hoe je ze bereikt, of waar ze online te vinden zijn.",
+        "Bedrijfsinfo en beleid: adres/locatie, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding en contact (e-mail/telefoon/WhatsApp-nummer). Gebruik bij vragen over het bedrijf, waar ze zitten, wanneer ze open zijn, of hoe je ze bereikt.",
       parameters: { type: "object", properties: {} },
     },
     {
@@ -273,16 +295,19 @@ export function createTools(
     {
       name: "book_appointment",
       description:
-        'Maakt de ECHTE boeking. Roep pas aan als dienst, een beschikbare tijd én een ECHTE naam bekend zijn. ' +
-        'Zonder naam weigert deze tool de boeking — tenzij de klant de naam expliciet weigerde (update_lead met name_refused: true, dan customer_name "Privé"). ' +
-        "Als dit bedrijf vooruitbetaling vereist, geeft deze tool een betaallink terug (payment_url) en blijft de afspraak gereserveerd tot de klant betaalt — stuur die link en zeg dat de plek gereserveerd is tot betaling.",
+        "Boekt een NIEUWE afspraak in TWEE stappen (net als annuleren, zodat de klant eerst kan bevestigen). " +
+        "STAP 1 (preview): roep aan met dienst + de exacte 'start' uit get_available_slots in DEZE beurt + naam (standaard de bekende WhatsApp-naam). De tool boekt dan NIETS en geeft 'needs_confirmation' terug met dienst, tijd en naam; vat die kort samen en vraag of het klopt. " +
+        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan, dan boekt de tool echt (met de exacte tijd die in stap 1 is opgeslagen). " +
+        'Zonder naam weigert de tool de boeking, tenzij de klant expliciet weigerde (update_lead met name_refused: true, dan customer_name "Privé"). ' +
+        "Vereist dit bedrijf vooruitbetaling, dan geeft stap 2 een betaallink (payment_url) terug; stuur die en zeg dat de plek gereserveerd is tot betaling.",
       parameters: {
         type: "object",
         properties: {
           service_type_id: { type: "string" },
-          start_time: { type: "string", description: "De exacte `start`-waarde (ISO 8601) van het door de klant gekozen slot uit get_available_slots — ongewijzigd doorgeven." },
+          start_time: { type: "string", description: "De exacte 'start'-waarde (ISO 8601) van het gekozen slot uit get_available_slots in DEZE beurt, ongewijzigd gekopieerd. Reconstrueer deze NOOIT zelf uit de kloktijd (dat gaf een verkeerd uur door de tijdzone). Weet je de exacte 'start' niet meer? Roep eerst get_available_slots opnieuw aan voor die datum en kopieer de 'start' van het slot met de juiste 'tijd'." },
           end_time: { type: "string", description: "ISO 8601 = start_time + de dienstduur (zelfde tijdzone-offset als start_time)." },
           customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
+          confirmed: { type: "boolean", description: "Laat WEG of false bij de eerste (preview) aanroep. Zet op true bij de tweede aanroep, NADAT de klant de samenvatting bevestigde, om echt te boeken." },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
         },
         required: ["service_type_id", "start_time", "end_time", "customer_name"],
@@ -359,32 +384,66 @@ export function createTools(
       }
 
       case "update_lead": {
-        const update: Record<string, unknown> = { first_name: String(args.first_name) };
+        const first = String(args.first_name ?? "").trim();
+        const refused = args.name_refused === true;
+        // Keep the global contacts row updated for the dashboard contacts list (display only).
+        const update: Record<string, unknown> = { first_name: first || "Privé" };
         if (args.last_name) update.last_name = String(args.last_name);
         const { error } = await supabase
           .from("whatsapp_contacts")
           .update(update)
           .eq("phone_number", ctx.phone);
         if (error) return { error: error.message };
-        // Durably record an EXPLICIT name refusal so book_appointment can tell a genuine
-        // "Privé" (customer declined) apart from a premature/placeholder name. Without this
-        // flag the model could book a nameless "Privé" appointment before ever asking.
-        if (args.name_refused === true && ctx.conversationId) {
+        // Tenant-scoped source of truth for the booking name: the conversation context (per
+        // calendar_id + contact), NOT the globally-unique contact row. This is what the agent
+        // reads as knownName next turn, so a name given at THIS business never bleeds to
+        // another (R3). The name_refused flag also lets book_appointment tell a genuine
+        // declined "Privé" apart from a premature placeholder.
+        if (ctx.conversationId) {
           const { data: conv } = await supabase
             .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
           const context = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
-          await supabase
-            .from("whatsapp_conversations")
-            .update({ context: { ...context, name_refused: true } })
-            .eq("id", ctx.conversationId);
+          const next: Record<string, unknown> = { ...context };
+          if (refused) {
+            next.name_refused = true;
+            delete next.booking_name;
+          } else if (first) {
+            next.booking_name = first;
+            next.name_refused = false;
+          }
+          await supabase.from("whatsapp_conversations").update({ context: next }).eq("id", ctx.conversationId);
         }
         return { ok: true };
       }
 
       case "book_appointment": {
-        const start = String(args.start_time);
-        const end = String(args.end_time);
-        const serviceId = String(args.service_type_id);
+        // Server-driven TWO-PHASE booking (mirrors cancel_appointment): the first call only
+        // PREVIEWS (stores a pending_booking proposal, NO insert), the customer confirms, then
+        // the COMMIT inserts using the SERVER-STORED exact values. This makes an accidental
+        // immediate booking impossible, lets the customer correct the name/time, and removes
+        // the model's time-reconstruction from the insert (it once booked 12:00 for a
+        // confirmed 10:00 — the stored start_time is now authoritative).
+        let bookCtx: Record<string, unknown> = {};
+        if (ctx.conversationId) {
+          const { data: conv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+        }
+        const pendingBook = bookCtx.pending_booking as
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string } | undefined;
+        const clearPendingBook = async () => {
+          if (!ctx.conversationId) return;
+          const { pending_booking: _drop, ...rest } = bookCtx;
+          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+        };
+        // COMMIT only when a proposal was previewed in a previous turn AND the customer
+        // confirmed (server-detected ctx.confirmBook, or the model's confirmed flag). On
+        // commit we use the STORED proposal, never the model's (possibly mis-reconstructed) args.
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !!pendingBook?.start_time;
+
+        const start = String((committing ? pendingBook!.start_time : args.start_time) ?? "");
+        const end = String((committing ? pendingBook!.end_time : args.end_time) ?? "");
+        const serviceId = String((committing ? pendingBook!.service_type_id : args.service_type_id) ?? "");
 
         // NAME GATE: never create a nameless booking. The model must collect a real name
         // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
@@ -392,21 +451,19 @@ export function createTools(
         // refusal means the model jumped to booking before asking — refuse and make it ask.
         // This is a server-side guard because the LLM (temp 0.2) otherwise satisfies the
         // required customer_name param with a premature placeholder.
-        const rawName = String(args.customer_name ?? "").trim();
+        const rawName = String((committing ? pendingBook!.customer_name : args.customer_name) ?? "").trim();
         const nameMissing = rawName === "" || rawName.toLowerCase() === "privé" || rawName.toLowerCase() === "prive";
-        let refused = false;
-        if (nameMissing && ctx.conversationId) {
-          const { data: conv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          refused = ((conv as { context?: Record<string, unknown> } | null)?.context)?.name_refused === true;
-        }
+        const refused = nameMissing && bookCtx.name_refused === true;
         if (nameMissing && !refused) {
           return {
             error: "naam_ontbreekt",
-            message: "Boek niet zonder naam: vraag eerst kort de naam van de klant en boek pas daarna.",
+            message: "Boek niet zonder naam: gebruik de bekende WhatsApp-naam of vraag eerst kort de naam, en boek pas daarna.",
           };
         }
         const customerName = nameMissing ? "Privé" : rawName;
+        if (!start || !serviceId) {
+          return { error: "ontbrekende_gegevens", message: "Dienst en starttijd zijn nodig om te boeken." };
+        }
 
         // DUPLICATE GUARD: prevent an accidental DOUBLE booking. Observed: for "kan het
         // een uur later?" the model calls book_appointment (a 2nd booking) instead of
@@ -481,6 +538,27 @@ export function createTools(
         if (valErr) return { error: valErr.message };
         if (valid !== true) return { error: "niet_beschikbaar", message: "Dat tijdstip is niet beschikbaar." };
 
+        // PREVIEW phase: every guard passed, but DON'T insert yet. Store the proposal and ask
+        // the customer to confirm; the next affirm turn commits THIS exact proposal.
+        if (!committing) {
+          const { data: stRow } = await supabase
+            .from("service_types").select("name").eq("id", serviceId).maybeSingle();
+          const svcName = (stRow as { name?: string } | null)?.name ?? null;
+          if (ctx.conversationId) {
+            await supabase.from("whatsapp_conversations").update({
+              context: {
+                ...bookCtx,
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, at: Date.now() },
+              },
+            }).eq("id", ctx.conversationId);
+          }
+          return {
+            needs_confirmation: true,
+            proposal: { service: svcName, when: nlWhen(start), customer_name: customerName === "Privé" ? null : customerName },
+            message: "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
+          };
+        }
+
         // Pay-and-book reserves the slot as pending until payment; a normal booking
         // is confirmed immediately. A pending booking still occupies the slot
         // (availability + bookings_no_overlap count status IN confirmed,pending).
@@ -516,6 +594,7 @@ export function createTools(
         }
 
         if (!paymentRequired) {
+          await clearPendingBook();
           return { ok: true, booking_id: booking.id, start_time: booking.start_time, when: nlWhen(booking.start_time) };
         }
 
@@ -553,6 +632,7 @@ export function createTools(
             message: "Het lukte niet een betaallink te maken. Probeer het later opnieuw of neem contact op.",
           };
         }
+        await clearPendingBook();
         return {
           ok: true,
           booking_id: booking.id,
