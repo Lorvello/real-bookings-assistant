@@ -40,10 +40,21 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       
       {/* Usage indicator for contacts */}
       {canAddMore && maxContacts !== null && (
-        <div className="mb-4 p-3 bg-muted/50 rounded-lg shrink-0">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MessageCircle className="h-4 w-4" />
-            <span>WhatsApp contacts: {currentCount}/{maxContacts}</span>
+        <div className="mb-4 shrink-0 rounded-xl border border-white/[0.06] bg-card/40 px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MessageCircle aria-hidden="true" className="h-4 w-4 text-primary" />
+              <span>WhatsApp contacts</span>
+            </div>
+            <span className="text-sm font-medium text-foreground tabular-nums">
+              {currentCount}<span className="text-muted-foreground">/{maxContacts}</span>
+            </span>
+          </div>
+          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/[0.06]">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-500"
+              style={{ width: `${Math.min(100, maxContacts ? (currentCount / maxContacts) * 100 : 0)}%` }}
+            />
           </div>
         </div>
       )}

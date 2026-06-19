@@ -10,6 +10,7 @@ import { useWhatsAppMessages } from '@/hooks/useWhatsAppMessages';
 import { useCloseConversation } from '@/hooks/useWhatsAppConversations';
 import { NewBookingModal } from '@/components/NewBookingModal';
 import { useToast } from '@/hooks/use-toast';
+import { getBookingStatusBadge } from './utils/badgeUtils';
 
 import {
   Calendar,
@@ -119,7 +120,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'active': return 'bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent';
-      case 'pending': return 'bg-gold/10 text-gold-foreground ring-1 ring-gold/20 border-transparent';
+      case 'pending': return 'bg-warning/10 text-warning-foreground ring-1 ring-warning/20 border-transparent';
       case 'closed': return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
       default: return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
@@ -238,12 +239,10 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                     {booking.service_name && (
                       <p className="text-sm text-muted-foreground mt-1">{booking.service_name}</p>
                     )}
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-muted-foreground">{booking.calendar_name}</span>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <span className="text-xs text-muted-foreground truncate">{booking.calendar_name}</span>
                       {booking.status && (
-                        <Badge variant="outline" className="text-xs">
-                          {booking.status}
-                        </Badge>
+                        <span className="shrink-0">{getBookingStatusBadge(booking.status)}</span>
                       )}
                     </div>
                   </div>

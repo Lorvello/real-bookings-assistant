@@ -9,10 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { MessageSquare, Clock, User as UserIcon, CalendarIcon, TrendingUp, AlertCircle } from 'lucide-react';
+import { MessageSquare, Clock, User as UserIcon, CalendarIcon, TrendingUp, AlertCircle, Plus } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { ConversationCalendarProvider, useConversationCalendar } from '@/contexts/ConversationCalendarContext';
 import { useWhatsAppConversationMetrics } from '@/hooks/useWhatsAppConversationMetrics';
 import { useWhatsAppConversationsList } from '@/hooks/useWhatsAppConversationsList';
@@ -30,6 +31,7 @@ const ConversationsContent = () => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'closed' | 'archived'>('all');
+  const [createCalendarOpen, setCreateCalendarOpen] = useState(false);
 
   // Redirect if not authenticated
   React.useEffect(() => {
@@ -121,17 +123,29 @@ const ConversationsContent = () => {
               <Card>
                 <CardHeader className="text-center py-12">
                   <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
-                    <AlertCircle className="h-6 w-6 text-accent-foreground" />
+                    <CalendarIcon className="h-6 w-6 text-accent-foreground" />
                   </div>
-                  <CardTitle className="text-foreground">No calendars found</CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    You haven't created any calendars yet.
+                  <CardTitle className="text-foreground">Create your first calendar</CardTitle>
+                  <CardDescription className="text-muted-foreground mx-auto max-w-sm">
+                    WhatsApp conversations are tied to a calendar. Create one to start receiving and managing bookings here.
                   </CardDescription>
+                  <div className="mt-6">
+                    <Button className="gap-2" onClick={() => setCreateCalendarOpen(true)}>
+                      <Plus aria-hidden="true" className="h-4 w-4" />
+                      Create calendar
+                    </Button>
+                  </div>
                 </CardHeader>
               </Card>
             )}
           </div>
         </div>
+
+        <CreateCalendarDialog
+          open={createCalendarOpen}
+          onOpenChange={setCreateCalendarOpen}
+          trigger="button"
+        />
       </DashboardLayout>
     );
   }

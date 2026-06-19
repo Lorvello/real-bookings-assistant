@@ -41,11 +41,13 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
           {selectedContact ? (
             <ConversationDetailPanel key={selectedContact.contact_id} contact={selectedContact} calendarId={calendarId} />
           ) : (
-            <div className="h-full bg-card rounded-lg border border-border flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-30" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Select a contact</h3>
-                <p className="text-sm">Click a contact on the left to view the conversation</p>
+            <div className="h-full surface-raised rounded-xl flex items-center justify-center">
+              <div className="text-center px-6">
+                <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+                  <MessageSquare aria-hidden="true" className="h-6 w-6 text-accent-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-1">Select a contact</h3>
+                <p className="text-sm text-muted-foreground">Choose a contact on the left to view the conversation.</p>
               </div>
             </div>
           )}

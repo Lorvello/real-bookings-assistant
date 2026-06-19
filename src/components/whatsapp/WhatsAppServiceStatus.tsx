@@ -20,8 +20,8 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
       <Card className="border-border/50 bg-muted/20 mb-6">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-destructive/10 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-destructive" />
+            <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+              <AlertCircle aria-hidden="true" className="h-5 w-5 text-destructive" />
             </div>
             <div className="flex-1">
               <CardTitle className="text-foreground text-lg">

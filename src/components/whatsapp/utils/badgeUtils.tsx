@@ -14,21 +14,21 @@ export const getStatusBadge = (status?: string) => {
       return (
         <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
-          Actief
+          Active
         </Badge>
       );
     case 'closed':
       return (
         <Badge variant="secondary" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
           <Archive className="w-3 h-3 mr-1" />
-          Gesloten
+          Closed
         </Badge>
       );
     case 'archived':
       return (
         <Badge variant="outline" className="bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent">
           <Archive className="w-3 h-3 mr-1" />
-          Gearchiveerd
+          Archived
         </Badge>
       );
     default:
@@ -47,28 +47,28 @@ export const getBookingStatusBadge = (status?: string) => {
       return (
         <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
-          Bevestigd
+          Confirmed
         </Badge>
       );
     case 'pending':
       return (
-        <Badge className="bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20 border-transparent">
+        <Badge className="bg-warning/10 text-warning-foreground ring-1 ring-warning/20 border-transparent">
           <Clock className="w-3 h-3 mr-1" />
-          In afwachting
+          Pending
         </Badge>
       );
     case 'cancelled':
       return (
         <Badge className="bg-destructive/10 text-destructive-foreground ring-1 ring-destructive/20 border-transparent">
           <AlertCircle className="w-3 h-3 mr-1" />
-          Geannuleerd
+          Cancelled
         </Badge>
       );
     case 'completed':
       return (
         <Badge className="bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent">
           <CheckCircle className="w-3 h-3 mr-1" />
-          Voltooid
+          Completed
         </Badge>
       );
     default:

@@ -27,7 +27,7 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
       case 'active': return 'bg-success/10 text-success-foreground ring-1 ring-success/20 border-transparent';
-      case 'pending': return 'bg-gold/10 text-gold-foreground ring-1 ring-gold/20 border-transparent';
+      case 'pending': return 'bg-warning/10 text-warning-foreground ring-1 ring-warning/20 border-transparent';
       case 'closed': return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
       default: return 'bg-muted text-muted-foreground ring-1 ring-white/[0.08] border-transparent';
     }
