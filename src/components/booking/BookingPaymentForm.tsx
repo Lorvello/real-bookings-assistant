@@ -38,7 +38,7 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
           },
         });
         if (invErr || !data?.success || !data.client_secret) {
-          throw new Error(data?.error || 'Kon de betaling niet starten.');
+          throw new Error(data?.error || 'Could not start the payment.');
         }
 
         // 2. Load Stripe with the publishable key matching the server's mode.
@@ -66,7 +66,7 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
         if (!cancelled) setStatus('ready');
       } catch (e: any) {
         if (!cancelled) {
-          setError(e.message || 'Kon de betaling niet starten. Probeer het opnieuw.');
+          setError(e.message || 'Could not start the payment. Please try again.');
           setStatus('error');
         }
       }
@@ -90,14 +90,14 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
     });
 
     if (payErr) {
-      setError(payErr.message || 'Betaling mislukt. Controleer je kaartgegevens.');
+      setError(payErr.message || 'Payment failed. Please check your card details.');
       setStatus('error');
       return;
     }
     if (paymentIntent?.status === 'succeeded') {
       onPaid();
     } else {
-      setError('Betaling niet voltooid. Probeer het opnieuw.');
+      setError('Payment not completed. Please try again.');
       setStatus('error');
     }
   };
@@ -106,18 +106,18 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
     <div className="mt-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
       <div className="flex flex-col items-center px-8 pt-10 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/30">
-          <Lock className="h-8 w-8 text-primary" />
+          <Lock aria-hidden="true" className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">Betaal om te bevestigen</h1>
+        <h1 className="mt-5 text-2xl font-semibold">Pay to confirm</h1>
         <p className="mt-1.5 text-sm text-white/50">
-          {serviceName ? `Rond de betaling voor ${serviceName} af om je afspraak te bevestigen.` : 'Rond de betaling af om je afspraak te bevestigen.'}
+          {serviceName ? `Complete the payment for ${serviceName} to confirm your appointment.` : 'Complete the payment to confirm your appointment.'}
         </p>
       </div>
 
       <div className="px-8 py-6">
         {status === 'init' && (
           <div className="flex items-center justify-center py-6 text-white/50">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 aria-label="Loading" className="h-5 w-5 animate-spin" />
           </div>
         )}
 
@@ -125,9 +125,9 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
         <div className={status === 'init' ? 'hidden' : ''}>
           <div
             ref={cardRef}
-            className="rounded-md border border-white/15 bg-white/[0.04] px-3 py-3"
+            className="rounded-xl border border-white/15 bg-white/[0.04] px-3 py-3"
           />
-          {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
+          {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
           <Button
             onClick={pay}
             disabled={status === 'paying' || status === 'init'}
@@ -135,13 +135,13 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
             size="lg"
           >
             {status === 'paying' ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Bezig…</>
+              <><Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" /> Paying…</>
             ) : (
-              'Nu betalen'
+              'Pay now'
             )}
           </Button>
           <p className="mt-3 text-center text-xs text-white/40">
-            Beveiligd door Stripe. Je kaartgegevens komen nooit op onze servers.
+            Secured by Stripe. Your card details never touch our servers.
           </p>
         </div>
       </div>

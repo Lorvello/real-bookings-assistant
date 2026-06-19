@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvailableSlots } from '@/hooks/useAvailableSlots';
 import { usePublicBookingCreation } from '@/hooks/usePublicBookingCreation';
@@ -32,7 +32,7 @@ interface Slot {
 }
 
 const priceLabel = (p: number | null) =>
-  p == null ? null : p === 0 ? 'Gratis' : `€${Number(p).toFixed(2)}`;
+  p == null ? null : p === 0 ? 'Free' : `€${Number(p).toFixed(2)}`;
 
 /**
  * Public, no-login booking page for end customers. Reached at /book/:slug.
@@ -155,7 +155,7 @@ export default function PublicBooking() {
         className="pointer-events-none absolute inset-x-0 top-0 h-[420px] opacity-70"
         style={{
           background:
-            'radial-gradient(60% 80% at 50% 0%, hsl(142 69% 45% / 0.18), transparent 70%)',
+            'radial-gradient(60% 80% at 50% 0%, hsl(150 69% 45% / 0.18), transparent 70%)',
         }}
       />
       <div className="relative mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-start px-4 py-10 sm:py-16">
@@ -168,7 +168,7 @@ export default function PublicBooking() {
     return (
       <Shell>
         <div className="flex flex-1 items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-white/50" />
+          <Loader2 aria-label="Loading" className="h-6 w-6 animate-spin text-white/50" />
         </div>
       </Shell>
     );
@@ -179,11 +179,11 @@ export default function PublicBooking() {
       <Shell>
         <div className="mt-16 w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center backdrop-blur">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-white/40">
-            <CalendarDays className="h-6 w-6" />
+            <CalendarDays aria-hidden="true" className="h-6 w-6" />
           </div>
-          <h1 className="text-lg font-semibold">Niet gevonden</h1>
+          <h1 className="text-lg font-semibold">Not found</h1>
           <p className="mt-2 text-sm text-white/50">
-            Deze boekingspagina bestaat niet of is niet meer actief.
+            This booking page doesn't exist or is no longer active.
           </p>
         </div>
       </Shell>
@@ -211,26 +211,26 @@ export default function PublicBooking() {
         <div className="mt-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
           <div className="flex flex-col items-center px-8 pt-10 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/30">
-              <CheckCircle2 className="h-9 w-9 text-primary" />
+              <CheckCircle2 aria-hidden="true" className="h-9 w-9 text-primary" />
             </div>
-            <h1 className="mt-5 text-2xl font-semibold">Afspraak bevestigd</h1>
+            <h1 className="mt-5 text-2xl font-semibold">Booking confirmed</h1>
             <p className="mt-1.5 text-sm text-white/50">
-              Bedankt {customer.name.split(' ')[0]}, we hebben je aanvraag ontvangen.
+              Thanks {customer.name.split(' ')[0]}, we've received your request.
             </p>
           </div>
           <div className="mt-6 space-y-3 border-t border-white/10 px-8 py-6 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-white/45">Dienst</span>
+              <span className="text-white/45">Service</span>
               <span className="font-medium">{service?.name}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white/45">Datum</span>
+              <span className="text-white/45">Date</span>
               <span className="font-medium">
-                {slot && format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: nl })}
+                {slot && format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: enUS })}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white/45">Tijd</span>
+              <span className="text-white/45">Time</span>
               <span className="font-medium">
                 {slot && format(new Date(slot.slot_start), 'HH:mm')}
                 {slot && ` – ${format(new Date(slot.slot_end), 'HH:mm')}`}
@@ -238,7 +238,7 @@ export default function PublicBooking() {
             </div>
           </div>
           <p className="border-t border-white/10 px-8 py-4 text-center text-xs text-white/40">
-            Je ontvangt een bevestiging per e-mail.
+            You'll receive a confirmation by email.
           </p>
         </div>
       </Shell>
@@ -255,7 +255,7 @@ export default function PublicBooking() {
         <h1 className="mt-4 font-garamond text-3xl font-medium tracking-tight sm:text-4xl">
           {calendar.name}
         </h1>
-        <p className="mt-1 text-sm text-white/45">Maak online een afspraak</p>
+        <p className="mt-1 text-sm text-white/45">Book an appointment online</p>
       </header>
 
       <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
@@ -263,10 +263,10 @@ export default function PublicBooking() {
         {!service && (
           <div className="p-6 sm:p-8">
             <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">
-              Kies een dienst
+              Choose a service
             </h2>
             {services.length === 0 ? (
-              <p className="text-sm text-white/50">Geen diensten beschikbaar.</p>
+              <p className="text-sm text-white/50">No services available.</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {services.map((s) => (
@@ -279,7 +279,7 @@ export default function PublicBooking() {
                     <span className="mt-2 flex items-center gap-3 text-sm text-white/50">
                       {s.duration != null && (
                         <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" /> {s.duration} min
+                          <Clock aria-hidden="true" className="h-3.5 w-3.5" /> {s.duration} min
                         </span>
                       )}
                       {priceLabel(s.price) && (
@@ -316,7 +316,7 @@ export default function PublicBooking() {
                 }}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs text-white/60 transition hover:border-white/25 hover:text-white"
               >
-                <PencilLine className="h-3.5 w-3.5" /> Wijzig
+                <PencilLine aria-hidden="true" className="h-3.5 w-3.5" /> Change
               </button>
             </div>
 
@@ -324,7 +324,7 @@ export default function PublicBooking() {
               {/* Date */}
               <div>
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/40">
-                  Kies een datum
+                  Choose a date
                 </h2>
                 <Calendar
                   mode="single"
@@ -339,18 +339,18 @@ export default function PublicBooking() {
               <div className="md:border-l md:border-white/10 md:pl-6">
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/40">
                   {date
-                    ? format(date, 'EEEE d MMMM', { locale: nl })
-                    : 'Kies een tijd'}
+                    ? format(date, 'EEEE d MMMM', { locale: enUS })
+                    : 'Choose a time'}
                 </h2>
                 {!date ? (
-                  <p className="text-sm text-white/40">Selecteer eerst een datum.</p>
+                  <p className="text-sm text-white/40">Select a date first.</p>
                 ) : loadingSlots ? (
                   <div className="flex items-center gap-2 text-sm text-white/50">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Beschikbaarheid laden…
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> Loading availability…
                   </div>
                 ) : slots.length === 0 ? (
                   <p className="text-sm text-white/40">
-                    Geen vrije tijden op deze dag. Kies een andere datum.
+                    No open times on this day. Try another date.
                   </p>
                 ) : (
                   <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
@@ -379,15 +379,15 @@ export default function PublicBooking() {
             {slot && (
               <div className="border-t border-white/10 p-6 sm:p-8">
                 <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">
-                  Je gegevens
+                  Your details
                 </h2>
 
                 {/* Recap */}
                 <div className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-primary/20 bg-primary/[0.06] px-4 py-3 text-sm">
-                  <CalendarDays className="h-4 w-4 text-primary" />
+                  <CalendarDays aria-hidden="true" className="h-4 w-4 text-primary" />
                   <span className="font-medium">{service.name}</span>
                   <span className="text-white/40">·</span>
-                  <span>{format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: nl })}</span>
+                  <span>{format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: enUS })}</span>
                   <span className="text-white/40">·</span>
                   <span>
                     {format(new Date(slot.slot_start), 'HH:mm')}–
@@ -398,7 +398,7 @@ export default function PublicBooking() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="name" className="text-white/70">
-                      Naam *
+                      Name *
                     </Label>
                     <Input
                       id="name"
@@ -409,22 +409,24 @@ export default function PublicBooking() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="email" className="text-white/70">
-                      E-mail *
+                      Email *
                     </Label>
                     <Input
                       id="email"
                       type="email"
                       value={customer.email}
                       onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+                      aria-invalid={!!customer.email.trim() && !emailValid}
+                      aria-describedby={customer.email.trim() && !emailValid ? 'email-error' : undefined}
                       className={`bg-white/[0.03] ${customer.email.trim() && !emailValid ? 'border-red-500/70' : 'border-white/10'}`}
                     />
                     {customer.email.trim() && !emailValid && (
-                      <p className="text-xs text-red-400">Voer een geldig e-mailadres in (bijv. naam@voorbeeld.nl).</p>
+                      <p id="email-error" className="text-xs text-red-400">Please enter a valid email address (e.g. name@example.com).</p>
                     )}
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="phone" className="text-white/70">
-                      Telefoon <span className="text-white/30">(optioneel)</span>
+                      Phone <span className="text-white/30">(optional)</span>
                     </Label>
                     <Input
                       id="phone"
@@ -442,10 +444,10 @@ export default function PublicBooking() {
                 >
                   {booking ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Bezig…
+                      <Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" /> Booking…
                     </>
                   ) : (
-                    'Afspraak bevestigen'
+                    'Confirm booking'
                   )}
                 </Button>
               </div>
@@ -464,12 +466,12 @@ export default function PublicBooking() {
           }}
           className="mt-6 inline-flex items-center gap-1.5 text-sm text-white/40 transition hover:text-white/70"
         >
-          <ArrowLeft className="h-4 w-4" /> Andere dienst kiezen
+          <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Choose another service
         </button>
       )}
 
       <p className="mt-8 text-center text-xs text-white/25">
-        Mogelijk gemaakt door Bookings Assistant
+        Powered by Bookings Assistant
       </p>
     </Shell>
   );
