@@ -437,26 +437,37 @@ serve(async (req) => {
               else if ((pwmData as { success?: boolean } | null)?.success === false)
                 console.error('process_whatsapp_message gaf success=false:', pwmData);
 
-              // De agent via een directe fetch aanroepen (NIET functions.invoke: dat
-              // voerde de agent-function in praktijk niet uit vanuit deze edge function).
-              const agentUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-agent`;
-              const srk = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-              try {
-                const ares = await fetch(agentUrl, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${srk}`, 'apikey': srk },
-                  body: JSON.stringify({
-                    phone: contact.wa_id,
-                    calendar_id: calendarId,
-                    message: messageText,
-                    contact_name: contact?.profile?.name,
-                  }),
-                });
-                const abody = await ares.text();
-                if (!ares.ok) console.error(`whatsapp-agent faalde [${ares.status}]: ${abody.slice(0, 300)}`);
-                else console.log(`whatsapp-agent OK (eigenaar ${ownerId}, calendar ${calendarId}): ${abody.slice(0, 200)}`);
-              } catch (agentErr) {
-                console.error('whatsapp-agent fetch error:', agentErr);
+              // Idempotentie tegen Meta-retries: Meta her-levert een webhook zolang het
+              // geen tijdige 200 krijgt, en deze handler AWAIT de volledige agent-run
+              // (LLM + tools, meerdere seconden) vóór de 200. Bij een her-levering van
+              // hetzelfde message.id meldt process_whatsapp_message duplicate=true
+              // (ON CONFLICT DO NOTHING op de UNIQUE message_id) → sla de agent over,
+              // anders krijgt de klant een tweede antwoord op één bericht.
+              const isDuplicate = (pwmData as { duplicate?: boolean } | null)?.duplicate === true;
+              if (isDuplicate) {
+                console.log(`process_whatsapp_message: duplicaat message ${message.id} — agent overgeslagen (Meta-retry)`);
+              } else {
+                // De agent via een directe fetch aanroepen (NIET functions.invoke: dat
+                // voerde de agent-function in praktijk niet uit vanuit deze edge function).
+                const agentUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-agent`;
+                const srk = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+                try {
+                  const ares = await fetch(agentUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${srk}`, 'apikey': srk },
+                    body: JSON.stringify({
+                      phone: contact.wa_id,
+                      calendar_id: calendarId,
+                      message: messageText,
+                      contact_name: contact?.profile?.name,
+                    }),
+                  });
+                  const abody = await ares.text();
+                  if (!ares.ok) console.error(`whatsapp-agent faalde [${ares.status}]: ${abody.slice(0, 300)}`);
+                  else console.log(`whatsapp-agent OK (eigenaar ${ownerId}, calendar ${calendarId}): ${abody.slice(0, 200)}`);
+                } catch (agentErr) {
+                  console.error('whatsapp-agent fetch error:', agentErr);
+                }
               }
             }
           }

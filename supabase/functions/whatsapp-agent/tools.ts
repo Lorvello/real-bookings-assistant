@@ -679,33 +679,25 @@ export function createTools(
           };
         }
 
-        // Free the booking from availability/overlap first so its OWN current slot
-        // is not counted as a conflict when validating the new time (otherwise a
-        // small shift like +15 min always reads as unavailable). Restore on failure.
-        await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
-
-        const { data: valid, error: valErr } = await supabase.rpc("validate_booking_security", {
-          p_calendar_id: ctx.calendarId,
-          p_service_type_id: serviceId,
-          p_start_time: newStart,
-          p_end_time: newEnd,
-          p_customer_email: null,
+        // Atomic reschedule (free-slot -> validate -> move) in ONE transaction via
+        // reschedule_booking_atomic. Previously these were 3 separate edge-fn calls
+        // with restore-on-failure only in the JS error branches: a crash/timeout
+        // between freeing the slot and moving it left the booking cancelled with no
+        // replacement and no trace. The RPC rolls back EVERYTHING on any failure, so
+        // the booking always keeps its original time + status if it cannot move.
+        const { data: rr, error: rrErr } = await supabase.rpc("reschedule_booking_atomic", {
+          p_booking_id: b.id,
+          p_new_start: newStart,
+          p_new_end: newEnd,
+          p_service_type_id: args.service_type_id ? serviceId : null,
         });
-        if (valErr || valid !== true) {
-          await supabase.from("bookings").update({ status: b.status }).eq("id", b.id); // restore
-          if (valErr) return { error: valErr.message };
-          return { error: "niet_beschikbaar", message: "Dat nieuwe tijdstip is niet beschikbaar." };
-        }
-
-        const upd: Record<string, unknown> = { start_time: newStart, end_time: newEnd, status: b.status };
-        if (args.service_type_id) upd.service_type_id = serviceId;
-        const { error: updErr } = await supabase.from("bookings").update(upd).eq("id", b.id);
-        if (updErr) {
-          await supabase.from("bookings").update({ status: b.status }).eq("id", b.id); // restore old time + status
-          if (updErr.code === "23P01" || /no_overlap|exclusion/i.test(updErr.message || "")) {
-            return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
-          }
-          return { error: updErr.message };
+        if (rrErr) return { error: rrErr.message };
+        const rres = rr as { ok?: boolean; error?: string } | null;
+        if (!rres?.ok) {
+          if (rres?.error === "slot_taken") return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
+          if (rres?.error === "niet_beschikbaar") return { error: "niet_beschikbaar", message: "Dat nieuwe tijdstip is niet beschikbaar." };
+          if (rres?.error === "geen_boeking") return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
+          return { error: rres?.error || "verzetten_mislukt", message: "Het verzetten lukte niet. Probeer een ander tijdstip." };
         }
         return { ok: true, rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart } };
       }
