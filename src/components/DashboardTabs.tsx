@@ -6,7 +6,7 @@ import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTa
 import { PerformanceEfficiencyTab } from './dashboard-tabs/PerformanceEfficiencyTab';
 import { LiveOperationsTab } from './dashboard-tabs/LiveOperationsTab';
 import { FutureInsightsTab } from './dashboard-tabs/FutureInsightsTab';
-import { AccessBlockedOverlay } from './user-status/AccessBlockedOverlay';
+import { LockedTabPanel } from './dashboard-tabs/LockedTabPanel';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 import { DateRange } from '@/utils/dateRangePresets';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -60,7 +60,15 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
     <div className="space-y-6">
       {/* Dashboard Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <div className="overflow-x-auto">
+        {/* Horizontal tab scroll on mobile: a right-edge fade hints there are more
+            tabs (the Pro tabs) past the viewport — fixes the iOS "Pro tabs
+            undiscovered" wart (EINDRAPPORT C7). Hidden on md+ where all tabs fit. */}
+        <div className="relative">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-background to-transparent md:hidden"
+          />
+          <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <TabsList className="flex h-auto w-max min-w-full justify-start gap-1 rounded-none border-b border-white/[0.06] bg-transparent p-0 md:w-full">
             <TabsTrigger
               value="overview"
@@ -113,6 +121,7 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               {!hasFutureInsightsAccess && <span className={proBadgeClass}>Pro</span>}
             </TabsTrigger>
           </TabsList>
+          </div>
         </div>
 
         {/* Tab Content */}
@@ -130,13 +139,11 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
                 dateRange={dateRange}
               />
             ) : (
-              <AccessBlockedOverlay
-                userStatus={{ 
-                  userType: 'trial',
-                  statusMessage: 'Business Intelligence is only available for Professional and Enterprise subscriptions'
-                } as any}
+              <LockedTabPanel
                 feature="Business Intelligence"
-                description="Get access to advanced business metrics, revenue analytics and service performance to grow your business."
+                description="Advanced business metrics, revenue analytics and service performance to grow your business."
+                bullets={['Revenue & service analytics', 'Top-performing services', 'Growth trends over time']}
+                icon={TrendingUp}
                 onUpgrade={handleUpgrade}
               />
             )}
@@ -151,13 +158,11 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
                 dateRange={dateRange}
               />
             ) : (
-              <AccessBlockedOverlay
-                userStatus={{ 
-                  userType: 'trial',
-                  statusMessage: 'Performance & Efficiency is only available for Professional and Enterprise subscriptions'
-                } as any}
+              <LockedTabPanel
                 feature="Performance & Efficiency"
-                description="Get access to performance metrics, no-show rates, customer satisfaction scores and efficiency analytics."
+                description="Performance metrics, no-show rates, customer satisfaction and efficiency analytics."
+                bullets={['No-show & efficiency rates', 'Peak-hour analysis', 'Customer satisfaction scores']}
+                icon={Activity}
                 onUpgrade={handleUpgrade}
               />
             )}
@@ -175,13 +180,11 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
             {hasFutureInsightsAccess ? (
               <FutureInsightsTab calendarIds={calendarIds} />
             ) : (
-              <AccessBlockedOverlay
-                userStatus={{ 
-                  userType: 'trial',
-                  statusMessage: 'Future Insights is only available for Professional and Enterprise subscriptions'
-                } as any}
+              <LockedTabPanel
                 feature="Future Insights"
-                description="Get access to advanced predictions, seasonal patterns and AI recommendations to grow your business."
+                description="Advanced predictions, seasonal patterns and AI recommendations to grow your business."
+                bullets={['Demand forecasting', 'Seasonal booking patterns', 'AI growth recommendations']}
+                icon={Brain}
                 onUpgrade={handleUpgrade}
               />
             )}

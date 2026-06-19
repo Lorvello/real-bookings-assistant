@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarSettingsDialog } from '@/components/calendar-settings/CalendarSettingsDialog';
 import { CalendarUpgradeModal } from '@/components/calendar-switcher/CalendarUpgradeModal';
@@ -46,29 +45,27 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
   const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-foreground">Your Calendars</CardTitle>
-            <CardDescription>
-              Manage your booking calendars and settings
-            </CardDescription>
-          </div>
-          <Button 
-            onClick={handleNewCalendarClick}
-            disabled={!canCreateCalendars}
-            className={canCreateCalendars
-              ? ""
-              : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
-            }
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Calendar
-          </Button>
+    <div className="surface-raised rounded-xl md:rounded-2xl">
+      <div className="flex flex-col gap-3 p-5 md:p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-base font-semibold tracking-[-0.01em] text-foreground">Your calendars</h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Manage your booking calendars and settings.
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>
+        <Button
+          onClick={handleNewCalendarClick}
+          disabled={!canCreateCalendars}
+          className={canCreateCalendars
+            ? "shrink-0"
+            : "shrink-0 bg-muted text-muted-foreground cursor-not-allowed shadow-none"
+          }
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          New Calendar
+        </Button>
+      </div>
+      <div className="px-5 pb-5 md:px-6 md:pb-6">
         {calendars.length > 0 ? (
           <div className="space-y-4">
             {calendars.map((calendar) => (
@@ -125,8 +122,8 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
             </Button>
           </div>
         )}
-      </CardContent>
-      
+      </div>
+
       {/* Calendar Settings Dialog */}
       {selectedCalendarId && (
         <CalendarSettingsDialog
@@ -149,6 +146,6 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
         open={upgradeModalOpen}
         onOpenChange={setUpgradeModalOpen}
       />
-    </Card>
+    </div>
   );
 }

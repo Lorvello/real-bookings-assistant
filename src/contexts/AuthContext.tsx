@@ -337,3 +337,6 @@ export const useAuth = (): AuthContextValue => {
   }
   return ctx;
 };
+
+// Raw context exported for the no-auth visual harness (launch-ready-loop §7).
+export { AuthContext };

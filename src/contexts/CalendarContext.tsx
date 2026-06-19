@@ -181,3 +181,6 @@ export function useCalendarContext() {
   }
   return context;
 }
+
+// Raw context exported for the no-auth visual harness (launch-ready-loop §7).
+export { CalendarContext };

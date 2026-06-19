@@ -138,7 +138,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                     All clear for now
                   </div>
                   <p className="mt-1.5 text-sm text-muted-foreground">
-                    Nothing scheduled today — enjoy the quiet.
+                    Nothing scheduled today. Enjoy the quiet.
                   </p>
                 </>
               )}
@@ -200,11 +200,11 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-subtle-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
-                    --%
+                  <div className="text-base md:text-lg font-medium leading-snug text-foreground/80 mb-0.5 md:mb-1.5">
+                    No bookings yet
                   </div>
-                  <div className="text-xs md:text-sm text-muted-foreground font-medium">
-                    No services booked yet
+                  <div className="text-xs md:text-sm text-muted-foreground">
+                    Your most-booked service will appear here.
                   </div>
                 </>
               )}
@@ -281,11 +281,11 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 </>
               ) : (
                 <>
-                  <div className="text-lg md:text-4xl font-semibold text-subtle-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
-                    --.--%
+                  <div className="text-base md:text-lg font-medium leading-snug text-foreground/80 mb-0.5 md:mb-1.5">
+                    Tracking starts soon
                   </div>
-                  <div className="text-xs md:text-sm text-muted-foreground font-medium">
-                    Not enough data yet
+                  <div className="text-xs md:text-sm text-muted-foreground">
+                    Week-over-week trends after your first bookings.
                   </div>
                 </>
               )}
