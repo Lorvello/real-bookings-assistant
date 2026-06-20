@@ -331,6 +331,14 @@ Deno.serve(async (req) => {
     const confirmStall = !succeededMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
 
+    // Cancel-commit-missed: the customer AFFIRMED a pending cancel (server-detected confirmCancel)
+    // but no successful cancel ran this turn — the model narrated "geannuleerd" WITHOUT calling the
+    // tool, falsely telling the customer the slot is freed while the booking stays live (round-6
+    // BLOCKER, intermittent in the multi-booking path). Force the cancel via a nudge. The two-phase
+    // commit re-resolves the SERVER-stored pending_cancel, so a nudge can only ever cancel the
+    // correct booking, never the wrong one.
+    const cancelCommitMissed = confirmCancel && !succeededMutation;
+
     // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
     // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
     // no pending_booking proposal exists and the customer's next "ja" has nothing to commit.
@@ -355,8 +363,10 @@ Deno.serve(async (req) => {
       reschedLang.test(result.text) && concreteWhenInText.test(result.text) &&
       !cancelIntent && !confirmCancel && !confirmStall && !bookPreviewMissed;
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall) {
-      const nudgeText = reschedStall
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed) {
+      const nudgeText = cancelCommitMissed
+        ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true om 'm echt te annuleren, en antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
+        : reschedStall
         ? "[systeem] Je beschreef een verzetting naar een concrete tijd maar riep reschedule_appointment niet aan, dus er is NIETS verzet. Roep NU reschedule_appointment aan met date (YYYY-MM-DD) + time (HH:MM) van die nieuwe tijd. De genoemde tijd is de bevestiging: vraag niet om 'oké?' of 'klopt dat?', verzet meteen en antwoord met het resultaat ('Gedaan, je staat nu op ...')."
         : bookPreviewMissed
         ? "[systeem] Je beschreef een boeking maar riep book_appointment niet aan, dus er is nog NIETS gereserveerd. Roep NU book_appointment aan (stap 1 / preview) met de dienst, date (YYYY-MM-DD) + time (HH:MM) en de naam, zodat de afspraak echt wordt voorbereid. Beschrijf een boeking nooit zonder de tool aan te roepen."
@@ -374,7 +384,7 @@ Deno.serve(async (req) => {
       // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
       const accept = !!retry.text && (
-        (confirmStall || reschedStall)
+        (confirmStall || reschedStall || cancelCommitMissed)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       );
