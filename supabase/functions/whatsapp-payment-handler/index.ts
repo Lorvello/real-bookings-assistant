@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 import { calculateApplicationFee } from '../_shared/feeCalculator.ts'
+import { validateStripeMode } from '../_shared/stripeValidation.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,11 +44,14 @@ serve(async (req) => {
       serviceTypeId,
       paymentType = 'full',
       installmentPlan,
-      testMode = false,
       paymentMethod = 'ideal',
       paymentTiming = 'pay_now',
       bookingId = null
     } = await req.json();
+
+    // SECURITY: pin the Stripe mode to the server's STRIPE_MODE — never trust a body flag
+    // (mirrors create-booking-payment). A caller can't force live keys/charges.
+    const testMode = validateStripeMode().mode === 'test';
 
     logStep("Request parsed", { conversationId, serviceTypeId, paymentType, installmentPlan, testMode, paymentMethod, paymentTiming, bookingId });
 
