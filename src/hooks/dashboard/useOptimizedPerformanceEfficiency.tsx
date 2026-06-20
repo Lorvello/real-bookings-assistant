@@ -64,7 +64,10 @@ export function useOptimizedPerformanceEfficiency(
       }
 
       const allBookings = bookingsData || [];
-      const confirmedBookings = allBookings.filter(b => b.status === 'confirmed');
+      // Count completed alongside confirmed: a finished appointment is still a successful
+      // booking, so excluding it understated the rate the more diligently an owner marks
+      // appointments 'completed' (and skewed peak-hours away from past, completed slots).
+      const confirmedBookings = allBookings.filter(b => b.status === 'confirmed' || b.status === 'completed');
       const noShowBookings = allBookings.filter(b => b.status === 'no-show');
       const cancelledBookings = allBookings.filter(b => b.status === 'cancelled');
 

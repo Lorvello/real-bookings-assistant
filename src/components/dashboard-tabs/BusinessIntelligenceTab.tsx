@@ -118,7 +118,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Total money earned from all completed appointments {periodText}. This includes all services and represents your gross business income through the booking system.</p>
+              <p className="text-sm">Total booked revenue across all appointments {periodText}, including upcoming and confirmed bookings (not only completed ones). This includes all services and represents your gross business income through the booking system.</p>
             </TooltipContent>
           </Tooltip>
 

@@ -109,6 +109,12 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         if (updatedCalendar) {
           console.log('🔄 CalendarContext: Updating selectedCalendar with fresh data:', updatedCalendar);
           setSelectedCalendar(updatedCalendar);
+        } else {
+          // The selected calendar no longer exists (e.g. just deleted) — fall back to the
+          // default (or first) so the dashboard never stays scoped to a deleted calendar.
+          const fallback = result.find(cal => cal.is_default) || result[0];
+          setSelectedCalendar(fallback);
+          try { localStorage.setItem('selectedCalendarId', fallback.id); } catch (_) { /* ignore */ }
         }
       }
       

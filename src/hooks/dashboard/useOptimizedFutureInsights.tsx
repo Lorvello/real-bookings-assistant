@@ -71,11 +71,15 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
       // 60-day trend window — otherwise 10 of 12 months are always 0 (a window
       // artifact, not real data). Separate query so the trend/forecast calcs above
       // keep their 60-day window.
+      // Window to the last 12 WHOLE months (first of the month, 11 months back). A rolling
+      // 365-day window straddles the current month at BOTH ends, so getMonth() bucketing
+      // double-counts the current month's bar. Month-aligned bounds give 12 distinct months.
+      const seasonalStart = new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1);
       const { data: seasonalBookings } = await supabase
         .from('bookings')
         .select('start_time')
         .in('calendar_id', calendarIds)
-        .gte('start_time', new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()) // 12 months
+        .gte('start_time', seasonalStart.toISOString()) // last 12 whole months
         .neq('status', 'cancelled');
 
       // Calculate customer growth rate including WhatsApp contacts
