@@ -281,7 +281,7 @@ Deno.serve(async (req) => {
     const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel;
 
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId, confirmCancel, confirmBook });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
     let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler

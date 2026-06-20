@@ -20,6 +20,10 @@ export interface ToolContext {
   // previous turn. Drives the book COMMIT deterministically (and from the SERVER-stored exact
   // start_time, so the model's time-reconstruction can't book the wrong hour).
   confirmBook?: boolean;
+  // The customer's raw current message. Used as a SERVER-SIDE disambiguation fallback when the
+  // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
+  // we extract the clock time the customer named and resolve which booking they meant.
+  userMessage?: string;
 }
 
 interface UpcomingBooking {
@@ -32,12 +36,14 @@ interface UpcomingBooking {
 
 // Find WHICH of the caller's own upcoming active bookings to act on. Always scoped
 // by phone + calendar (tenant + customer isolation). With more than one upcoming
-// booking we refuse to guess and ask the model to disambiguate (the caller can then
-// re-call with match_start_time = the exact start_time from the returned list).
+// booking we refuse to guess and ask the model to disambiguate — the caller re-calls
+// with match_time = the local clock time the customer named (the reliable hint; the
+// model fills "14:00" naturally) and/or match_start_time = the exact start_time.
 async function resolveTarget(
   supabase: SupabaseClient,
   ctx: ToolContext,
   matchStart?: string,
+  matchTime?: string,
 ): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean }> {
   const { data } = await supabase
     .from("bookings")
@@ -50,14 +56,39 @@ async function resolveTarget(
     .limit(5);
   const list = ((data as UpcomingBooking[]) ?? []);
   if (list.length === 0) return { none: true };
-  if (matchStart) {
-    const day = matchStart.slice(0, 10);
-    const exact = list.filter((b) => b.start_time === matchStart);
-    const byDay = list.filter((b) => b.start_time.slice(0, 10) === day);
-    const hits = exact.length ? exact : byDay;
+  // Normalise a customer-named clock time ("14:00", "14.00", "2 uur") to HH:MM.
+  const wantTime = (() => {
+    const m = String(matchTime ?? "").trim().match(/^(\d{1,2})[:.](\d{2})/);
+    return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
+  })();
+  if (matchStart || wantTime) {
+    let hits: UpcomingBooking[] = [];
+    if (matchStart) {
+      // Match by INSTANT, not string: the model echoes the start_time from the returned
+      // list but reformats it ("+00:00"->"Z", drops seconds), so a byte-equal compare
+      // failed and the by-day fallback returned BOTH same-day bookings as ambiguous —
+      // forever (a customer with two same-day bookings could never cancel/reschedule).
+      const wantMs = new Date(matchStart).getTime();
+      if (!Number.isNaN(wantMs)) {
+        hits = list.filter((b) => new Date(b.start_time).getTime() === wantMs);
+        if (hits.length === 0) {
+          const wantLocal = nlTimeOnly(matchStart).slice(0, 5);
+          hits = list.filter((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantLocal);
+        }
+      }
+    }
+    // The reliable hint: the local clock time the customer named ("die van 14:00").
+    if (hits.length === 0 && wantTime) {
+      hits = list.filter((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantTime);
+    }
+    // Narrow to the named day if matchStart carried one (and the time matched >1 day).
+    if (hits.length > 1 && matchStart && /^\d{4}-\d{2}-\d{2}/.test(matchStart)) {
+      const byDay = hits.filter((b) => b.start_time.slice(0, 10) === matchStart.slice(0, 10));
+      if (byDay.length >= 1) hits = byDay;
+    }
     if (hits.length === 1) return { booking: hits[0] };
     if (hits.length > 1) return { ambiguous: hits };
-    // no match on the hint -> fall through
+    // no match on the hint -> fall through to the generic single/ambiguous handling
   }
   if (list.length === 1) return { booking: list[0] };
   return { ambiguous: list };
@@ -97,6 +128,21 @@ function todayNL(): string {
 // ("we're closed that day"); guard it with an honest, specific message instead.
 function isPastDateNL(date: unknown): boolean {
   return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && date < todayNL();
+}
+// Extract clock times ("14:00", "14.30", "14u30", "2 uur") from a message, normalised to
+// HH:MM. Server-side disambiguation fallback: the small model often fails to pass match_time,
+// so we read the time the customer named directly to resolve WHICH booking they meant.
+function extractClockTimes(msg: unknown): string[] {
+  const s = typeof msg === "string" ? msg : "";
+  const out: string[] = [];
+  const re = /(\d{1,2})[:.u](\d{2})|(\d{1,2})\s*uur/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(s)) !== null) {
+    const h = Number(m[1] ?? m[3]);
+    const mm = m[2] ?? "00";
+    if (h >= 0 && h <= 23) out.push(`${String(h).padStart(2, "0")}:${mm}`);
+  }
+  return out;
 }
 
 export interface DayHours { open: boolean; start?: string; end?: string; }
@@ -428,7 +474,7 @@ export function createTools(
       description:
         "Annuleert de aankomende afspraak van DEZE klant in TWEE stappen (annuleren is destructief → altijd één bevestiging). " +
         "Stap 1: roep aan ZONDER confirmed → de tool annuleert NIETS en geeft 'needs_confirmation' + de afspraak (dienst + when) terug; lees die terug, vraag of je echt mag annuleren, en bied aan om in plaats daarvan te verzetten. " +
-        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true → dan annuleert de tool. Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug; vraag welke en geef match_start_time mee.",
+        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true → dan annuleert de tool. Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden; vraag welke en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00').",
       parameters: {
         type: "object",
         properties: {
@@ -436,9 +482,13 @@ export function createTools(
             type: "boolean",
             description: "Alleen op true zetten NADAT de klant expliciet bevestigde dat de afspraak geannuleerd mag worden. Zonder confirmed:true annuleert de tool niets (alleen preview).",
           },
+          match_time: {
+            type: "string",
+            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM, Amsterdamse tijd) van de afspraak die de klant kiest, bv '14:00'. DIT is de betrouwbare manier om te kiezen — geef gewoon de tijd door die de klant noemt.",
+          },
           match_start_time: {
             type: "string",
-            description: "Alleen bij meerdere afspraken: de exacte start_time van de gekozen afspraak (uit de eerder teruggegeven lijst).",
+            description: "Optioneel alternatief voor match_time: de exacte start_time van de gekozen afspraak uit de eerder teruggegeven lijst (ongewijzigd gekopieerd).",
           },
         },
       },
@@ -450,7 +500,8 @@ export function createTools(
         "De DIENST blijft hetzelfde — vraag die NIET opnieuw. De nieuwe tijd die de klant noemt IS de bevestiging: " +
         "roep METEEN aan met date (YYYY-MM-DD uit de <kalender>) + time (HH:MM); de tool zoekt zelf het exacte slot, " +
         "checkt of het vrij is en verzet direct. Vraag NIET 'klopt dat?' en kondig niets aan. Is die tijd niet vrij, " +
-        "dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor (geen aparte get_available_slots nodig).",
+        "dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor (geen aparte get_available_slots nodig). " +
+        "Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' met de tijden terug; geef bij de volgende aanroep match_time = de kloktijd van de BESTAANDE afspraak die verzet moet worden mee (bv '14:00'), naast date+time van de nieuwe tijd.",
       parameters: {
         type: "object",
         properties: {
@@ -459,9 +510,13 @@ export function createTools(
           start_time: { type: "string", description: "ALTERNATIEF voor date+time: nieuwe starttijd als exacte ISO 8601 uit get_available_slots. Gebruik bij voorkeur date+time." },
           end_time: { type: "string", description: "Alleen bij start_time: nieuwe eindtijd = start_time + dezelfde dienstduur. Bij date+time rekent de tool dit zelf." },
           service_type_id: { type: "string", description: "Alleen meegeven als de klant óók van dienst wisselt (zeldzaam)." },
+          match_time: {
+            type: "string",
+            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM) van de BESTAANDE afspraak die de klant wil verzetten, bv '14:00'. DIT is de betrouwbare manier om te kiezen welke afspraak — geef de tijd door die de klant noemt. Niet te verwarren met 'time' (de NIEUWE tijd).",
+          },
           match_start_time: {
             type: "string",
-            description: "Alleen bij meerdere afspraken: de exacte start_time van de te verzetten afspraak (uit de eerder teruggegeven lijst).",
+            description: "Optioneel alternatief voor match_time: de exacte start_time van de te verzetten afspraak uit de eerder teruggegeven lijst.",
           },
         },
       },
@@ -901,7 +956,13 @@ export function createTools(
         // PREVIEW phase (default; also where a stray confirmed:true WITHOUT a preview lands, so an
         // accidental immediate cancel is impossible). Resolve + policy-check, record the pending
         // marker, return the appointment to read back. NOTHING is cancelled here.
-        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined);
+        // Server-side disambiguation fallback: if the model passed no hint but the customer
+        // named a clock time ("annuleer die van 14:00"), use it so a multi-booking cancel
+        // resolves instead of looping on "welke?".
+        const cancelMatchTime = args.match_time
+          ? String(args.match_time)
+          : (!args.match_start_time ? extractClockTimes(ctx.userMessage)[0] : undefined);
+        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, cancelMatchTime);
         if (target.none) {
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te annuleren." };
         }
@@ -944,7 +1005,20 @@ export function createTools(
       }
 
       case "reschedule_appointment": {
-        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined);
+        // Server-side disambiguation fallback: when the model passes no hint, infer WHICH
+        // booking from the customer's message. The message may name TWO times ("verzet die
+        // van 14:00 naar 15:00"); the NEW time is args.time, so the OTHER named time is the
+        // existing booking to move. Resolves a multi-booking reschedule without looping.
+        const newTimeNorm = (() => {
+          const m = String(args.time ?? "").trim().match(/^(\d{1,2})[:.](\d{2})/);
+          return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
+        })();
+        const reschedMatchTime = args.match_time
+          ? String(args.match_time)
+          : (!args.match_start_time
+            ? extractClockTimes(ctx.userMessage).find((t) => t !== newTimeNorm)
+            : undefined);
+        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, reschedMatchTime);
         if (target.none) {
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
         }
