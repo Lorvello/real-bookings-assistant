@@ -1,10 +1,11 @@
-import React from 'react';
-import { Check, Loader2, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Loader2, SlidersHorizontal } from 'lucide-react';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { CalendarPolicySettings } from './calendar-settings/CalendarPolicySettings';
 import { GlobalSettings } from './calendar-settings/GlobalSettings';
 import { SettingsSection } from './settings/SettingsSection';
+import { SettingsSaveBar } from './settings/SettingsSaveBar';
 
 interface CalendarSettingsProps {
   calendarId: string;
@@ -12,8 +13,20 @@ interface CalendarSettingsProps {
 }
 
 export function CalendarSettings({ calendarId, showGlobalSettings = true }: CalendarSettingsProps) {
-  const { settings, loading, saving, updatePendingSettings } = useCalendarSettings(calendarId);
+  const { settings, loading, saving, hasPendingChanges, updatePendingSettings, saveAllChanges, discardChanges } = useCalendarSettings(calendarId);
   const { selectedCalendar } = useCalendarContext();
+  const [justSaved, setJustSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
+
+  const handleSave = async () => {
+    const ok = await saveAllChanges();
+    if (ok) {
+      setJustSaved(true);
+      clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setJustSaved(false), 2000);
+    }
+  };
 
   if (loading) {
     return (
@@ -57,23 +70,18 @@ export function CalendarSettings({ calendarId, showGlobalSettings = true }: Cale
         usedByAgent
       >
         <CalendarPolicySettings settings={settings} onUpdate={updatePendingSettings} />
-
-        {/* Auto-save: changes persist a second after you stop editing, so there's no
-            manual Save button to forget. A calm status line confirms it. */}
-        <div className="mt-7 flex items-center justify-end gap-2 border-t border-white/[0.05] pt-5 text-xs text-muted-foreground">
-          {saving ? (
-            <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-accent-foreground" />
-              <span className="text-muted-foreground">Saving…</span>
-            </>
-          ) : (
-            <>
-              <Check className="h-3.5 w-3.5 text-success-foreground" />
-              <span>All changes save automatically</span>
-            </>
-          )}
-        </div>
       </SettingsSection>
+
+      {/* Explicit Save — consistent with UserManagement/AIKnowledgeTab. The floating pill
+          appears only when there's a real unsaved diff (hasPendingChanges) and morphs to
+          "Saved" after a successful save. */}
+      <SettingsSaveBar
+        dirty={hasPendingChanges}
+        saving={saving}
+        justSaved={justSaved}
+        onSave={handleSave}
+        onDiscard={discardChanges}
+      />
     </div>
   );
 }

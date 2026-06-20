@@ -43,6 +43,8 @@ export const useCalendarSettings = (calendarId?: string) => {
     }
   };
 
+  const discardChanges = () => setPendingChanges({});
+
   return {
     settings,
     loading,
@@ -51,6 +53,7 @@ export const useCalendarSettings = (calendarId?: string) => {
     updatePendingSettings,
     updateCalendarName,
     saveAllChanges,
+    discardChanges,
     refetch: fetchSettings
   };
 };

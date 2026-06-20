@@ -1,18 +1,15 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CalendarSettings } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchCalendarSettings, createDefaultCalendarSettings, updateCalendarSettings } from './calendarSettingsUtils';
-import { useToast } from '@/hooks/use-toast';
+import { fetchCalendarSettings, createDefaultCalendarSettings } from './calendarSettingsUtils';
 
 export const useCalendarSettingsState = (calendarId?: string) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [settings, setSettings] = useState<CalendarSettings | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Partial<CalendarSettings>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
   const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
@@ -54,64 +51,12 @@ export const useCalendarSettingsState = (calendarId?: string) => {
     }
   };
 
-  // Auto-save function with debounce
-  const autoSave = useCallback(async (changes: Partial<CalendarSettings>) => {
-    if (!calendarId || !changes || Object.keys(changes).length === 0) return;
-
-    setSaving(true);
-    try {
-      const success = await updateCalendarSettings(calendarId, changes);
-      
-      if (success) {
-        // Clear pending changes after successful save
-        setPendingChanges({});
-        // Update the current settings with the saved changes
-        setSettings(prev => prev ? { ...prev, ...changes } : null);
-      } else {
-        toast({
-          title: "Error",
-          description: "Cannot save calendar settings",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Auto-save error:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while saving",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  }, [calendarId, toast]);
-
+  // Buffer-only: edits accumulate in pendingChanges and are NOT persisted until the user
+  // explicitly clicks Save (the SettingsSaveBar in CalendarSettings calls saveAllChanges).
+  // This makes Operations consistent with UserManagement/AIKnowledgeTab (B3); the old 1s
+  // debounced auto-save was the only settings surface that saved silently per-field.
   const updatePendingSettings = useCallback((updates: Partial<CalendarSettings>) => {
-    console.log('Updating pending settings:', updates);
-    setPendingChanges(prev => {
-      const newChanges = { ...prev, ...updates };
-      
-      // Clear existing timeout
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-      
-      // Set new timeout for auto-save
-      autoSaveTimeoutRef.current = setTimeout(() => {
-        autoSave(newChanges);
-      }, 1000); // 1 second debounce
-      
-      return newChanges;
-    });
-  }, [autoSave]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
+    setPendingChanges(prev => ({ ...prev, ...updates }));
   }, []);
 
   const getCurrentSettings = () => {
