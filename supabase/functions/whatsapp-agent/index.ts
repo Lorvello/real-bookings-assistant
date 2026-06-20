@@ -98,6 +98,11 @@ function detectCustomerLanguage(msg: string): string | null {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Hoisted so the catch can send the customer a graceful fallback instead of leaving them
+  // hanging: the inbound message is already recorded + the webhook already 200'd Meta, so a
+  // thrown agent run would otherwise silently drop the message (Meta won't retry).
+  let phoneForFallback: string | null = null;
+
   try {
     const { phone, calendar_id, message, contact_name } = await req.json();
     if (!phone || !calendar_id || !message) {
@@ -106,6 +111,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    phoneForFallback = phone;
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -446,6 +452,16 @@ Deno.serve(async (req) => {
     );
   } catch (e) {
     console.error("whatsapp-agent error:", e);
+    // Best-effort fallback so a thrown run never leaves the customer in silence (the inbound
+    // is already recorded + Meta already 200'd, so it won't be retried). Never throws.
+    if (phoneForFallback) {
+      try {
+        await sendWhatsAppText(
+          phoneForFallback,
+          "Sorry, er ging even iets mis aan onze kant. Stuur je bericht zo nog een keer, dan help ik je verder.",
+        );
+      } catch (_) { /* swallow: the 500 below is the real signal */ }
+    }
     return new Response(JSON.stringify({ error: String((e as Error)?.message || e) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
