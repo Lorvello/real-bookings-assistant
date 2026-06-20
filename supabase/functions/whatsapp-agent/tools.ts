@@ -61,34 +61,35 @@ async function resolveTarget(
     const m = String(matchTime ?? "").trim().match(/^(\d{1,2})[:.](\d{2})/);
     return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
   })();
-  if (matchStart || wantTime) {
-    let hits: UpcomingBooking[] = [];
-    if (matchStart) {
-      // Match by INSTANT, not string: the model echoes the start_time from the returned
-      // list but reformats it ("+00:00"->"Z", drops seconds), so a byte-equal compare
-      // failed and the by-day fallback returned BOTH same-day bookings as ambiguous —
-      // forever (a customer with two same-day bookings could never cancel/reschedule).
-      const wantMs = new Date(matchStart).getTime();
-      if (!Number.isNaN(wantMs)) {
-        hits = list.filter((b) => new Date(b.start_time).getTime() === wantMs);
-        if (hits.length === 0) {
-          const wantLocal = nlTimeOnly(matchStart).slice(0, 5);
-          hits = list.filter((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantLocal);
-        }
-      }
-    }
-    // The reliable hint: the local clock time the customer named ("die van 14:00").
-    if (hits.length === 0 && wantTime) {
-      hits = list.filter((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantTime);
-    }
-    // Narrow to the named day if matchStart carried one (and the time matched >1 day).
-    if (hits.length > 1 && matchStart && /^\d{4}-\d{2}-\d{2}/.test(matchStart)) {
-      const byDay = hits.filter((b) => b.start_time.slice(0, 10) === matchStart.slice(0, 10));
-      if (byDay.length >= 1) hits = byDay;
+  // Named calendar dates ("donderdag 25 juni") as MM-DD, plus the date in matchStart if any.
+  // This is what disambiguates bookings that share a clock time but fall on DIFFERENT days.
+  const wantDates = new Set(extractMonthDayNL(ctx.userMessage));
+  if (matchStart && /^\d{4}-\d{2}-\d{2}/.test(matchStart)) wantDates.add(matchStart.slice(5, 10));
+  const wantMs = matchStart ? new Date(matchStart).getTime() : Number.NaN;
+  const hadHint = !Number.isNaN(wantMs) || !!wantTime || wantDates.size > 0;
+  if (hadHint) {
+    // Successively narrow by each available hint, strongest first; never let a hint EMPTY the
+    // set (a wrong/partial hint just doesn't narrow). Intersecting date AND time uniquely
+    // resolves same-day-different-time AND same-time-different-day multi-booking cases.
+    let hits = list;
+    const apply = (pred: (b: UpcomingBooking) => boolean) => {
+      const f = hits.filter(pred);
+      if (f.length >= 1) hits = f;
+    };
+    // 1. exact instant (the model echoed the list's start_time; epoch-compare tolerates reformatting)
+    if (!Number.isNaN(wantMs)) apply((b) => new Date(b.start_time).getTime() === wantMs);
+    // 2. named day(s)
+    if (hits.length > 1 && wantDates.size > 0) apply((b) => wantDates.has(localMMDD(b.start_time)));
+    // 3. named clock time
+    if (hits.length > 1 && wantTime) apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantTime);
+    // 4. fallback: the local clock time of matchStart (model may pass the displayed local time)
+    if (hits.length > 1 && !Number.isNaN(wantMs)) {
+      const wl = nlTimeOnly(matchStart!).slice(0, 5);
+      apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wl);
     }
     if (hits.length === 1) return { booking: hits[0] };
     if (hits.length > 1) return { ambiguous: hits };
-    // no match on the hint -> fall through to the generic single/ambiguous handling
+    // no hint matched anything -> fall through to the generic single/ambiguous handling
   }
   if (list.length === 1) return { booking: list[0] };
   return { ambiguous: list };
@@ -143,6 +144,36 @@ function extractClockTimes(msg: unknown): string[] {
     if (h >= 0 && h <= 23) out.push(`${String(h).padStart(2, "0")}:${mm}`);
   }
   return out;
+}
+// A booking's local month-day in Amsterdam as "MM-DD" (for disambiguating bookings that
+// share a clock time but fall on different days).
+function localMMDD(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: NL_TZ }).slice(5);
+}
+const NL_MONTHS: Record<string, number> = {
+  januari: 1, februari: 2, maart: 3, april: 4, mei: 5, juni: 6, juli: 7, augustus: 8,
+  september: 9, oktober: 10, november: 11, december: 12,
+  jan: 1, feb: 2, mrt: 3, apr: 4, jun: 6, jul: 7, aug: 8, sep: 9, okt: 10, nov: 11, dec: 12,
+  january: 1, february: 2, march: 3, may: 5, june: 6, july: 7, august: 8, october: 10,
+};
+// Extract calendar dates a customer named ("25 juni", "juni 25", "25/6", "25-06") as "MM-DD".
+// Used to disambiguate WHICH booking when the model can't (esp. same-clock-time, different days).
+function extractMonthDayNL(msg: unknown): string[] {
+  const s = (typeof msg === "string" ? msg : "").toLowerCase();
+  const out = new Set<string>();
+  const push = (day: number, mon: number) => {
+    if (mon >= 1 && mon <= 12 && day >= 1 && day <= 31) {
+      out.add(`${String(mon).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    }
+  };
+  let m: RegExpExecArray | null;
+  const reNumMonth = /\b(\d{1,2})\s+([a-z]+)/g;
+  while ((m = reNumMonth.exec(s)) !== null) { if (NL_MONTHS[m[2]]) push(Number(m[1]), NL_MONTHS[m[2]]); }
+  const reMonthNum = /\b([a-z]+)\s+(\d{1,2})\b/g;
+  while ((m = reMonthNum.exec(s)) !== null) { if (NL_MONTHS[m[1]]) push(Number(m[2]), NL_MONTHS[m[1]]); }
+  const reNumeric = /\b(\d{1,2})[\/\-](\d{1,2})\b/g; // NL day/month order
+  while ((m = reNumeric.exec(s)) !== null) { push(Number(m[1]), Number(m[2])); }
+  return [...out];
 }
 
 export interface DayHours { open: boolean; start?: string; end?: string; }
