@@ -125,7 +125,14 @@ Deno.serve(async (req) => {
     const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
       supabase.from("service_types").select("id, name, duration, price, description").eq("calendar_id", calendar_id),
-      supabase.from("calendar_settings").select("whatsapp_welcome_message").eq("calendar_id", calendar_id).maybeSingle(),
+      // whatsapp_welcome_message = the custom greeting; allow_cancellations +
+      // cancellation_deadline_hours are the SAME structured policy the agent ENFORCES
+      // (getCalendarPolicy in tools.ts), pulled here so we can also inject a human-readable
+      // version into <business_data> below — so the agent can ANSWER "wat is jullie
+      // annuleringsbeleid?" instead of only enforcing it silently.
+      supabase.from("calendar_settings")
+        .select("whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours")
+        .eq("calendar_id", calendar_id).maybeSingle(),
       // NOTE: whatsapp_contacts is GLOBALLY UNIQUE by phone_number (no calendar_id column),
       // so first_name here is cross-tenant — the per-(calendar_id, phone) name scoping that
       // kills the R3 bleed is handled separately via conversation context (see knownName below).
@@ -226,6 +233,32 @@ Deno.serve(async (req) => {
     // says is open" always equals "what it can actually book". Fall back to the old struct only
     // if this calendar has no availability schedule at all.
     if (weeklyHours?.text && businessData) businessData.opening_hours = weeklyHours.text;
+
+    // Cancellation/reschedule policy ANSWER inject. The agent already ENFORCES the deadline
+    // (getCalendarPolicy in tools.ts gates BOTH cancel and reschedule on
+    // cancellation_deadline_hours), but it could not EXPLAIN it: the free-text <business_data>
+    // field `cancellation_policy` is NULL for most tenants (incl. Lorvello), so a customer
+    // asking "wat is jullie annuleringsbeleid?" got an honest but unhelpful "dat weet ik niet".
+    // Derive a human sentence from the SAME structured settings and inject it — ONLY when no
+    // manual free-text policy is set (a hand-written policy always wins). Mirrors
+    // getCalendarPolicy's null-defaults exactly (allowCancellations ?? true, deadline ?? null).
+    const cs = csRes.data as { allow_cancellations?: boolean | null; cancellation_deadline_hours?: number | string | null } | null;
+    if (businessData) {
+      const manual = businessData.cancellation_policy;
+      const hasManual = typeof manual === "string" && manual.trim();
+      if (!hasManual) {
+        const allowCancel = cs?.allow_cancellations ?? true;
+        // PostgREST returns numeric as a string ("24.00"); Number() → 24 so the sentence
+        // reads "24 uur", not "24.00 uur".
+        const rawDeadline = cs?.cancellation_deadline_hours;
+        const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
+        businessData.cancellation_policy = !allowCancel
+          ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
+          : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
+          ? `Je kunt je afspraak tot ${deadlineH} uur van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.`
+          : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.`;
+      }
+    }
     const openingStruct = weeklyHours?.byDay ??
       ((businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null);
     const calendarHint = buildCalendarHint(now, openingStruct);

@@ -354,13 +354,18 @@ async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): 
     .maybeSingle();
   const row = data as {
     allow_cancellations?: boolean | null;
-    cancellation_deadline_hours?: number | null;
-    max_bookings_per_day?: number | null;
+    cancellation_deadline_hours?: number | string | null;
+    max_bookings_per_day?: number | string | null;
   } | null;
+  // PostgREST returns numeric columns as strings ("24.00"); coerce so the deadline reads
+  // "24 uur" (not "24.00 uur") in enforcement messages AND so the < comparisons are real
+  // numeric comparisons rather than relying on JS string→number coercion.
+  const num = (v: number | string | null | undefined): number | null =>
+    v == null ? null : Number.isFinite(Number(v)) ? Number(v) : null;
   return {
     allowCancellations: row?.allow_cancellations ?? true,
-    cancellationDeadlineHours: row?.cancellation_deadline_hours ?? null,
-    maxBookingsPerDay: row?.max_bookings_per_day ?? null,
+    cancellationDeadlineHours: num(row?.cancellation_deadline_hours),
+    maxBookingsPerDay: num(row?.max_bookings_per_day),
   };
 }
 
