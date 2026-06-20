@@ -87,6 +87,12 @@ serve(async (req) => {
     });
     const link = linkRes as { success?: boolean; error?: string; error_code?: string } | null;
     if (linkErr || !link || link.success !== true) {
+      // Roll back the just-created auth user so a failed link (limit reached / null owner)
+      // doesn't leave a provisioned-but-unlinked orphan account. Best-effort: never mask
+      // the original error. (An existing user is left untouched.)
+      if (isNewUser && userId) {
+        try { await admin.auth.admin.deleteUser(userId); } catch (_) { /* best-effort */ }
+      }
       return json({ success: false, error: link?.error || linkErr?.message || "Failed to accept invitation", error_code: link?.error_code ?? null }, 400);
     }
 
