@@ -12,9 +12,13 @@ export const useBusinessOverviewFetch = () => {
     setLoading(true);
 
     try {
-      // Query from new v2 table with one row per business
-      let query = supabase
-        .from('business_overview_v2')
+      // Public directory reads the SAFE view (public_business_directory), NOT the base table:
+      // the base business_overview_v2 is no longer anon-readable (it exposed total_revenue/bookings +
+      // contact PII cross-tenant via the anon key, R44). The view returns only public columns + a
+      // sanitized calendars array (services/hours/slugs, no revenue/bookings). The view isn't in the
+      // generated Supabase types yet, so the builder is typed `any` until types are regenerated.
+      let query: any = supabase
+        .from('public_business_directory' as any)
         .select('*');
 
       // Apply filters
