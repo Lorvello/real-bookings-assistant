@@ -872,7 +872,14 @@ export function createTools(
             await clearPending();
             return { error: "te_laat_annuleren", message: `Annuleren kan tot ${policy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.` };
           }
-          const { error } = await supabase.from("bookings").update({ status: "cancelled" }).eq("id", b.id);
+          // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
+          // reporting isn't blank — the policy was already enforced just above.
+          const { error } = await supabase.from("bookings").update({
+            status: "cancelled",
+            cancelled_at: new Date().toISOString(),
+            cancellation_reason: "Geannuleerd via WhatsApp",
+            updated_at: new Date().toISOString(),
+          }).eq("id", b.id);
           if (error) return { error: error.message };
           await clearPending();
           return { ok: true, cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time } };
