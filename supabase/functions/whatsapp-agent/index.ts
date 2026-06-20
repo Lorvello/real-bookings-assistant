@@ -259,7 +259,10 @@ Deno.serve(async (req) => {
     const pc = convContext.pending_cancel as { at?: number } | undefined;
     const pendingFresh = !!pc && (typeof pc.at !== "number" || (Date.now() - pc.at) < 15 * 60 * 1000);
     const msgLower = String(message).toLowerCase();
-    const AFFIRM_RE = /\b(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord)\b/i;
+    // Affirmation across the agent's languages (NL/EN/DE/FR/ES/PT/IT). Only consulted when a
+    // proposal is already pending (confirmCancel/confirmBook), so a short "oui"/"sí"/"sim" in
+    // that context is a confirmation, not ambiguous. (FR "oui" was missing → French confirms stalled.)
+    const AFFIRM_RE = /\b(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait|genau|gerne|bitte)\b/i;
     const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     // A hypothetical / policy QUESTION that merely contains a cancel word ("krijg ik geld terug als ik
     // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
@@ -324,7 +327,7 @@ Deno.serve(async (req) => {
     const isErr = (r: unknown) => !!r && typeof r === "object" &&
       ("error" in (r as Record<string, unknown>) || "needs_confirmation" in (r as Record<string, unknown>));
     const succeededMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
-    const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
+    const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
     const confirmStall = !succeededMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
 

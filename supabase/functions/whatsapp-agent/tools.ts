@@ -523,6 +523,13 @@ export function createTools(
     },
   ];
 
+  // Turn-local: how many book_appointment PREVIEWS happened this turn. The two-phase
+  // flow stores a SINGLE pending_booking, so a compound request ("book Monday 15:30 AND
+  // Tuesday 09:30") previewed twice would keep only the last and then commit one while
+  // the model's prose claims both — agent/DB divergence. We refuse a 2nd preview in the
+  // same turn and tell the model to handle one booking at a time.
+  let bookPreviewsThisTurn = 0;
+
   const execute: ToolExecutor = async (name, args) => {
     switch (name) {
       case "get_business_data": {
@@ -800,6 +807,16 @@ export function createTools(
         // PREVIEW phase: every guard passed, but DON'T insert yet. Store the proposal and ask
         // the customer to confirm; the next affirm turn commits THIS exact proposal.
         if (!committing) {
+          // Compound-request guard: only ONE pending_booking can be held at a time, so a
+          // second preview in the same turn would silently drop the first while the model
+          // claims both are booked. Refuse it and make the model book sequentially.
+          if (bookPreviewsThisTurn >= 1) {
+            return {
+              error: "een_per_keer",
+              message: "Ik kan maar één afspraak tegelijk inplannen. Bevestig eerst DEZE afspraak met de klant; daarna plan je de volgende. Zeg NIET dat een tweede afspraak al geboekt is voordat die echt bevestigd en geboekt is.",
+            };
+          }
+          bookPreviewsThisTurn += 1;
           const { data: stRow } = await supabase
             .from("service_types").select("name").eq("id", serviceId).maybeSingle();
           const svcName = (stRow as { name?: string } | null)?.name ?? null;
