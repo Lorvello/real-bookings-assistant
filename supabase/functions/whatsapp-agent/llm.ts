@@ -11,6 +11,18 @@
 // the §6 testpad with DB checks. gpt-4.1-mini is a NON-reasoning model: the isReasoning branch
 // below sends temperature (not reasoning_effort) for it. Safe-revert: OPENAI_MODEL=gpt-5-mini, or
 // LLM_PROVIDER=gemini. The gemini/gpt-5-nano defaults above are the revert path, NOT what runs live.
+//
+// B1 GEMINI EVAL (2026-06-21, Phase-2): evaluated the NEWEST Gemini Flash (gemini-3.5-flash, which
+// exists + supports function-calling) on the §6 testpad. DECISION: KEPT gpt-4.1-mini. gemini-3.5-flash
+// FAILED two hard gates: (1) ~2x SLOWER — warm info turn ~5.9s, book-intent ~9.3s vs gpt-4.1-mini ~3.5s;
+// (2) it is a THINKING model that requires a `thought_signature` echoed back inside each functionCall
+// part on multi-turn tool conversations ("Gemini 400: Function call is missing a thought_signature").
+// runAgentGemini below does NOT round-trip thought_signature, so tool-result turns 400 → empty reply
+// (the booking sometimes commits but no confirmation is sent). To ever switch to a Gemini 3.x model,
+// runAgentGemini must capture each functionCall's thoughtSignature and replay it in the model turn.
+// Even fixed, the latency gate fails. NOTE: GEMINI_MODEL secret is now set to gemini-3.5-flash (harmless
+// while LLM_PROVIDER=openai), so a naive flip to gemini would hit the broken 3.x path — implement
+// thought_signature first.
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
