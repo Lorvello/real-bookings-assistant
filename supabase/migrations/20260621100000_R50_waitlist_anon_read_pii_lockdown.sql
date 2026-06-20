@@ -1,0 +1,22 @@
+-- R50 — close the waitlist anon-read PII leak (same class as R44 business_overview).
+--
+-- The `waitlist` table had a SELECT policy "Public can read waitlist for active
+-- calendars" granted to the `public` role whose USING clause only checked that the
+-- calendar is ACTIVE — not that the caller owns it. With RLS that means the anon
+-- (publishable) key could read EVERY tenant's waitlist rows, including
+-- customer_name + customer_email (PII), cross-tenant. Verified live: the anon key
+-- returned a seeded customer's name + email before this migration, [] after.
+--
+-- No legitimate consumer needs anon SELECT on this table:
+--   * the public booking page JOINS the waitlist via the SECURITY DEFINER RPC
+--     add_to_waitlist (usePublicWaitlist), never a direct table read;
+--   * the only direct .from('waitlist').select() lives in src/hooks/useWaitlist.tsx,
+--     which has ZERO importers (dead code);
+--   * the owner dashboard reads via the auth.uid()-scoped policy
+--     "Users can view their calendar waitlist entries" (kept);
+--   * the agent / edge functions use service_role (bypasses RLS).
+--
+-- So we simply drop the over-broad public-read policy. Owner read + public join are
+-- both unaffected (both verified live after the drop).
+
+DROP POLICY IF EXISTS "Public can read waitlist for active calendars" ON public.waitlist;
