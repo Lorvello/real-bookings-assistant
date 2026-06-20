@@ -88,6 +88,16 @@ function nlWhen(iso: string): string {
   const date = d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: NL_TZ });
   return `${date} ${nlTimeOnly(iso)}`;
 }
+// "YYYY-MM-DD" for today in Amsterdam — for past-date guards (en-CA renders ISO order).
+function todayNL(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: NL_TZ });
+}
+// A customer-named calendar date that is already in the past. get_available_slots
+// returns no slots for a past day, and the model then invents a wrong reason
+// ("we're closed that day"); guard it with an honest, specific message instead.
+function isPastDateNL(date: unknown): boolean {
+  return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && date < todayNL();
+}
 
 export interface DayHours { open: boolean; start?: string; end?: string; }
 
@@ -571,6 +581,9 @@ export function createTools(
         // dominant per-turn latency cost ~3s). On commit we always use the stored pending_booking,
         // so this runs only for a fresh preview. If the named time isn't free, return the free times
         // so the model proposes an alternative in the SAME turn.
+        if (!committing && isPastDateNL(args.date)) {
+          return { error: "datum_verleden", message: "Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
+        }
         if (!committing && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
           const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur);
@@ -950,6 +963,9 @@ export function createTools(
         // start_time. If the named time isn't free, return the free times so the model offers one now.
         let newStart = String(args.start_time ?? "");
         let newEnd = String(args.end_time ?? "");
+        if (isPastDateNL(args.date)) {
+          return { error: "datum_verleden", message: "Die nieuwe datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
+        }
         if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
           const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur);
