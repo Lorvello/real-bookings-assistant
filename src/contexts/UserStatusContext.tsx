@@ -137,6 +137,32 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     fetchUserStatus();
   }, [profile?.id]);
 
+  // Effective subscription tier — SOURCE-OF-TRUTH RECONCILIATION.
+  // get_user_status_type() decides "paid_subscriber" from the `subscribers` table,
+  // but the tier used for feature-gating below reads `users.subscription_tier`. The
+  // real Stripe path (check-subscription) keeps both in sync, but if they ever drift
+  // (e.g. a subscribers row without the users mirror), a CONFIRMED paying customer
+  // would fall through to the locked default and be told "Upgrade to Pro". So we read
+  // the tier straight from `subscribers` (self-readable via the select_own_subscription
+  // RLS policy) and use it as the authoritative fallback. Only grants a tier when
+  // subscribed=true, so it can never over-grant a non-paying user.
+  const [subscriberTier, setSubscriberTier] = useState<string | null>(null);
+  useEffect(() => {
+    if (!profile?.id) { setSubscriberTier(null); return; }
+    let cancelled = false;
+    supabase
+      .from('subscribers')
+      .select('subscription_tier, subscribed')
+      .eq('user_id', profile.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) {
+          setSubscriberTier(data?.subscribed ? (data.subscription_tier ?? null) : null);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [profile?.id]);
+
   // Invalidate cache and update status without page reload
   const invalidateCache = async (newStatus?: string) => {
     if (!profile?.id) return;
@@ -439,7 +465,9 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
   // Compute access control - optimized for performance
   const accessControl: AccessControl = React.useMemo(() => {
     const { userType, hasFullAccess } = userStatus;
-    const tier = profile?.subscription_tier;
+    // Prefer the explicit users.subscription_tier; fall back to the subscribers-table
+    // tier so a confirmed paid subscriber is never locked out by a null mirror.
+    const tier = profile?.subscription_tier ?? subscriberTier;
 
     // ADMIN BYPASS: Admins get FULL unlimited access
     if (userStatusType === 'admin') {
@@ -475,7 +503,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     // period (with a prominent "update payment" banner) and only lose it when the
     // grace window expires (then userType=missed_payment with hasFullAccess=false
     // falls through to the restricted block below).
-    if ((userType === 'subscriber' || (userType === 'missed_payment' && hasFullAccess)) && profile?.subscription_tier) {
+    if ((userType === 'subscriber' || (userType === 'missed_payment' && hasFullAccess)) && tier) {
       const tierLimits = getSubscriptionTierLimits(tier);
       
       const baseAccess = {
@@ -563,7 +591,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     }
 
     // For canceled subscribers who still have active subscription, provide full access based on tier
-    if (userType === 'canceled_subscriber' && profile?.subscription_tier) {
+    if (userType === 'canceled_subscriber' && tier) {
       const tierLimits = getSubscriptionTierLimits(tier);
       
       const baseAccess = {
@@ -822,7 +850,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       maxTeamMembers: hasFullAccess ? (starterTierLimits?.max_team_members || 1) : 0,
       maxWhatsAppContacts: hasFullAccess ? null : 0
     };
-  }, [userStatus, profile?.subscription_tier, tiers]);
+  }, [userStatus, profile?.subscription_tier, subscriberTier, tiers]);
 
   return (
     <UserStatusContext.Provider value={{
