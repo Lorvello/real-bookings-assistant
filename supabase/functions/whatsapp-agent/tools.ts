@@ -578,6 +578,41 @@ export function createTools(
             return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag de klant kort de gewenste dag en tijd." };
           }
           if ("unavailable" in r) {
+            // IDEMPOTENCY: a book_appointment re-fire AFTER a successful commit lands on
+            // the slot now occupied by the customer's OWN just-made booking → never tell
+            // them "niet vrij". If this customer already holds an active booking at the
+            // requested local time on this calendar that day, acknowledge it as already
+            // booked. (Bookable hours are 09–17 local = 07–16 UTC, so the booking's UTC
+            // day equals its local day — a UTC day-window matches correctly.)
+            const wantM = String(args.time).trim().match(/^(\d{1,2}):(\d{2})/);
+            if (wantM) {
+              const want = `${wantM[1].padStart(2, "0")}:${wantM[2]}`;
+              const dayStart = `${args.date}T00:00:00Z`;
+              const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
+              const { data: ownSameDay } = await supabase
+                .from("bookings")
+                .select("id, start_time")
+                .eq("customer_phone", ctx.phone)
+                .eq("calendar_id", ctx.calendarId)
+                .in("status", ["confirmed", "pending"])
+                .gte("start_time", dayStart)
+                .lt("start_time", dayEnd);
+              const mine = (ownSameDay ?? []).find(
+                (b) => nlTimeOnly((b as { start_time: string }).start_time).slice(0, 5) === want,
+              );
+              if (mine) {
+                await clearPendingBook();
+                const m = mine as { id: string; start_time: string };
+                return {
+                  ok: true,
+                  already_booked: true,
+                  booking_id: m.id,
+                  start_time: m.start_time,
+                  when: nlWhen(m.start_time),
+                  message: "Deze afspraak staat al geboekt — bevestig dat kort en bied verder hulp aan.",
+                };
+              }
+            }
             return {
               error: "niet_beschikbaar",
               available_slots: r.available,
