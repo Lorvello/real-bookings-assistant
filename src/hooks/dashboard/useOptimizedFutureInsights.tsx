@@ -99,17 +99,39 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
         .gte('start_time', startOfPreviousMonth.toISOString())
         .lt('start_time', startOfCurrentMonth.toISOString());
 
-      // Get WhatsApp contacts for current and previous month  
-      const { data: currentMonthContacts } = await supabase
-        .from('whatsapp_contacts')
-        .select('phone_number, linked_customer_email')
-        .gte('created_at', startOfCurrentMonth.toISOString());
+      // Get WhatsApp contacts for current and previous month — TENANT-SCOPED.
+      // Previously these filtered by created_at ONLY, with no owner/calendar scope, so
+      // the customer-growth metric mixed in OTHER businesses' contacts. (RLS already
+      // limits the in-app result to this owner, but a metric must be scoped explicitly
+      // for a correct count and not lean on RLS for its arithmetic.) Scope to the
+      // contacts reachable from the selected calendars, mirroring how bookings are
+      // scoped by calendar_id above.
+      const { data: ownerConvos } = await supabase
+        .from('whatsapp_conversations')
+        .select('contact_id')
+        .in('calendar_id', calendarIds);
+      const ownerContactIds = Array.from(
+        new Set((ownerConvos || []).map(c => c.contact_id).filter(Boolean))
+      );
 
-      const { data: previousMonthContacts } = await supabase
-        .from('whatsapp_contacts')
-        .select('phone_number, linked_customer_email')
-        .gte('created_at', startOfPreviousMonth.toISOString())
-        .lt('created_at', startOfCurrentMonth.toISOString());
+      let currentMonthContacts: any[] = [];
+      let previousMonthContacts: any[] = [];
+      if (ownerContactIds.length > 0) {
+        const { data: cmc } = await supabase
+          .from('whatsapp_contacts')
+          .select('phone_number, linked_customer_email')
+          .in('id', ownerContactIds)
+          .gte('created_at', startOfCurrentMonth.toISOString());
+        currentMonthContacts = cmc || [];
+
+        const { data: pmc } = await supabase
+          .from('whatsapp_contacts')
+          .select('phone_number, linked_customer_email')
+          .in('id', ownerContactIds)
+          .gte('created_at', startOfPreviousMonth.toISOString())
+          .lt('created_at', startOfCurrentMonth.toISOString());
+        previousMonthContacts = pmc || [];
+      }
 
       // Count unique customers (email priority, then phone)
       const currentCustomers = new Set();
@@ -190,19 +212,27 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
       const weeklyTrends = [];
       const bookingsByWeek = new Map();
       
+      // FORWARD-looking "upcoming bookings": bucket the next 4 weeks (week index 0 =
+      // the next 7 days). The old code offset every booking by +8 and then read weeks
+      // 1..4, which plotted bookings from 4–7 weeks in the PAST and silently dropped
+      // genuinely upcoming ones (a booking now → index 8, excluded from the 1..4 read;
+      // +1 week → 9, dropped entirely). Now index by whole weeks AHEAD of now and keep
+      // only the next four (0..3), surfaced as week_number 1..4.
+      const nowMs = new Date().getTime();
+      const weekMs = 7 * 24 * 60 * 60 * 1000;
       historicalBookings?.forEach(booking => {
-        const weekNumber = Math.floor((new Date(booking.start_time).getTime() - new Date().getTime()) / (7 * 24 * 60 * 60 * 1000)) + 8;
-        if (weekNumber >= 0 && weekNumber <= 8) {
-          bookingsByWeek.set(weekNumber, (bookingsByWeek.get(weekNumber) || 0) + 1);
+        const weeksAhead = Math.floor((new Date(booking.start_time).getTime() - nowMs) / weekMs);
+        if (weeksAhead >= 0 && weeksAhead < 4) {
+          bookingsByWeek.set(weeksAhead, (bookingsByWeek.get(weeksAhead) || 0) + 1);
         }
       });
 
-      for (let week = 1; week <= 4; week++) {
+      for (let week = 0; week < 4; week++) {
         const bookings = bookingsByWeek.get(week) || 0;
-        const prevWeekBookings = bookingsByWeek.get(week - 1) || 0;
+        const prevWeekBookings = week > 0 ? (bookingsByWeek.get(week - 1) || 0) : 0;
         weeklyTrends.push({
-          week_number: week,
-          bookings: bookings, // echte boekingen per week (geen verzonnen ruis/ophoging)
+          week_number: week + 1,
+          bookings, // real upcoming bookings that week (no synthetic noise/inflation)
           trend_direction: bookings > prevWeekBookings ? 'up' : bookings < prevWeekBookings ? 'down' : 'stable'
         });
       }
