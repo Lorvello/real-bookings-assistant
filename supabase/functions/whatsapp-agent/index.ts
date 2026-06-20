@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
       // version into <business_data> below — so the agent can ANSWER "wat is jullie
       // annuleringsbeleid?" instead of only enforcing it silently.
       supabase.from("calendar_settings")
-        .select("whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours")
+        .select("whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours, booking_window_days")
         .eq("calendar_id", calendar_id).maybeSingle(),
       // NOTE: whatsapp_contacts is GLOBALLY UNIQUE by phone_number (no calendar_id column),
       // so first_name here is cross-tenant — the per-(calendar_id, phone) name scoping that
@@ -242,7 +242,11 @@ Deno.serve(async (req) => {
     // Derive a human sentence from the SAME structured settings and inject it — ONLY when no
     // manual free-text policy is set (a hand-written policy always wins). Mirrors
     // getCalendarPolicy's null-defaults exactly (allowCancellations ?? true, deadline ?? null).
-    const cs = csRes.data as { allow_cancellations?: boolean | null; cancellation_deadline_hours?: number | string | null } | null;
+    const cs = csRes.data as {
+      allow_cancellations?: boolean | null;
+      cancellation_deadline_hours?: number | string | null;
+      booking_window_days?: number | string | null;
+    } | null;
     if (businessData) {
       const manual = businessData.cancellation_policy;
       const hasManual = typeof manual === "string" && manual.trim();
@@ -262,6 +266,23 @@ Deno.serve(async (req) => {
     const openingStruct = weeklyHours?.byDay ??
       ((businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null);
     const calendarHint = buildCalendarHint(now, openingStruct);
+
+    // Booking horizon for the prompt: how far ahead this calendar accepts bookings
+    // (booking_window_days). Without this the model called a far-future date "al voorbij"
+    // (wrong + confusing); now it knows the horizon and refuses correctly with "zo ver
+    // vooruit kan ik nog niet". Backs the server-side guard in tools.ts (isBeyondWindowNL).
+    const rawWin = cs?.booking_window_days;
+    const winNum = rawWin == null ? NaN : Number(rawWin);
+    const bookingWindowDays = Number.isFinite(winNum) && winNum > 0 ? winNum : null;
+    let bookingHorizonISO: string | null = null;
+    let bookingHorizonNL: string | null = null;
+    if (bookingWindowDays != null) {
+      const hz = new Date(now.getTime() + bookingWindowDays * 86400000);
+      bookingHorizonISO = hz.toISOString().slice(0, 10);
+      bookingHorizonNL = hz.toLocaleDateString("nl-NL", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam",
+      });
+    }
     const system = buildSystemPrompt({
       businessName,
       businessType,
@@ -276,6 +297,9 @@ Deno.serve(async (req) => {
       businessData,
       customerLanguage,
       calendarHint,
+      bookingWindowDays,
+      bookingHorizonISO,
+      bookingHorizonNL,
     });
 
     // Build conversation turns. History already ends with the current inbound message

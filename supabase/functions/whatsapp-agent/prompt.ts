@@ -34,6 +34,9 @@ export interface PromptContext {
   businessData?: Record<string, unknown> | null; // ALL set business info (fetchBusinessData), injected every turn
   customerLanguage?: string | null; // server-detected non-Dutch language (Dutch name, e.g. "het Engels"); null = Dutch/unsure
   calendarHint?: string | null; // server-built concrete-date calendar (next 14 days, open/closed) for relative-date resolution
+  bookingWindowDays?: number | null; // how far ahead this calendar accepts bookings (booking_window_days); null = no horizon
+  bookingHorizonISO?: string | null; // last bookable date (YYYY-MM-DD) = today + bookingWindowDays
+  bookingHorizonNL?: string | null; // same date, human Dutch ("vrijdag 21 augustus 2026")
 }
 
 // Render the injected business data as readable Dutch lines so the agent ALWAYS has the
@@ -145,7 +148,8 @@ ${ctx.calendarHint}
 - Zet ELKE relatieve datum om via deze lijst: "vandaag", "morgen", "overmorgen", "aanstaande/komende/deze [weekdag]" = de EERSTVOLGENDE rij met die weekdag hieronder, "volgende week [weekdag]" = die weekdag in de eerstvolgende hele week. Geef get_available_slots en book_appointment ALTIJD de ISO-datum [YYYY-MM-DD] uit deze lijst door.
 - Een genoemde weekdag of relatieve datum is NOOIT dubbelzinnig: pak gewoon de eerstvolgende passende rij. Vraag dus NOOIT "welke [weekdag]/datum bedoel je?" en bied NOOIT twee dagen als keuze aan; ga direct door (naar de boek-preview, die toont de datum zodat de klant kan corrigeren).
 - Vraagt de klant een dag die hier GESLOTEN is? Weiger die meteen en duidelijk ("we zijn die dag gesloten; onze openingstijden zijn ...") en bied een open dag aan. Vraag dan NOOIT "welke [weekdag] bedoel je?" of "welke datum?" — de datum staat hier al. Stel NOOIT een tijd voor op een GESLOTEN dag en boek er nooit op.
-- Noemt de klant een datum die VÓÓR vandaag (${ctx.todayISO}) ligt — dus al geweest? Zeg dan eerlijk en kort dat die datum al voorbij is en vraag om een datum in de toekomst. Zeg NOOIT dat je "die dag gesloten" bent (dat klopt niet en is verwarrend) en reken er nooit openingstijden bij. Boek of verzet nooit naar het verleden.
+- Noemt de klant een datum die VÓÓR vandaag (${ctx.todayISO}) ligt — dus al geweest? Zeg dan eerlijk en kort dat die datum al voorbij is en vraag om een datum in de toekomst. Zeg NOOIT dat je "die dag gesloten" bent (dat klopt niet en is verwarrend) en reken er nooit openingstijden bij. Boek of verzet nooit naar het verleden.${ctx.bookingHorizonISO ? `
+- Je kunt maximaal ${ctx.bookingWindowDays} dagen vooruit boeken, dus tot en met ${ctx.bookingHorizonNL} (ISO ${ctx.bookingHorizonISO}). Noemt de klant een datum NÁ ${ctx.bookingHorizonISO}, dus te ver in de toekomst? Zeg dan vriendelijk dat je zó ver vooruit nog niet kunt boeken en tot wanneer wél (bijvoorbeeld: "zo ver vooruit kan ik nog niet, je kunt tot en met ${ctx.bookingHorizonNL} een afspraak maken"). Zeg NOOIT dat zo'n datum "al voorbij" of "gesloten" is, en reken er nooit openingstijden bij. Boek of verzet nooit voorbij ${ctx.bookingHorizonISO}.` : ""}
 - Een duidelijke relatieve datum ("morgen", "aanstaande dinsdag", "volgende week maandag") is NIET dubbelzinnig: resolve 'm STIL via deze lijst en ga meteen door. Vraag dan NOOIT "bedoel je [datum], klopt dat?" als aparte stap; de boek-preview (stap 1) toont de datum al, dus daar kan de klant corrigeren. Alleen bij een écht dubbelzinnige verwijzing vraag je het kort na.
 </kalender>
 `

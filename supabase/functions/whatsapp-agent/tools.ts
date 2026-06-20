@@ -130,6 +130,19 @@ function todayNL(): string {
 function isPastDateNL(date: unknown): boolean {
   return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && date < todayNL();
 }
+// A customer-named date BEYOND how far ahead this calendar accepts bookings
+// (booking_window_days). availability_rules are weekly-recurring and unbounded, so without
+// this a far-future date can resolve to a real slot and book past the window; the model also
+// tended to call such a date "al voorbij" (wrong + confusing). Honest, specific refusal instead.
+// windowDays <= 0 / null = no horizon configured → never refuse. ISO date strings compare
+// lexicographically, so a plain string > is a correct date comparison.
+function isBeyondWindowNL(date: unknown, windowDays: number | null): boolean {
+  if (windowDays == null || !Number.isFinite(windowDays) || windowDays <= 0) return false;
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const horizonISO = new Date(new Date(todayNL() + "T00:00:00Z").getTime() + windowDays * 86400000)
+    .toISOString().slice(0, 10);
+  return date > horizonISO;
+}
 // Extract clock times ("14:00", "14.30", "14u30", "2 uur") from a message, normalised to
 // HH:MM. Server-side disambiguation fallback: the small model often fails to pass match_time,
 // so we read the time the customer named directly to resolve WHICH booking they meant.
@@ -342,6 +355,7 @@ interface CalendarPolicy {
   allowCancellations: boolean;
   cancellationDeadlineHours: number | null;
   maxBookingsPerDay: number | null;
+  bookingWindowDays: number | null;
 }
 
 // The Operations settings the agent must honour. Read once per booking/cancel/
@@ -349,13 +363,14 @@ interface CalendarPolicy {
 async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): Promise<CalendarPolicy> {
   const { data } = await supabase
     .from("calendar_settings")
-    .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day")
+    .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days")
     .eq("calendar_id", calendarId)
     .maybeSingle();
   const row = data as {
     allow_cancellations?: boolean | null;
     cancellation_deadline_hours?: number | string | null;
     max_bookings_per_day?: number | string | null;
+    booking_window_days?: number | string | null;
   } | null;
   // PostgREST returns numeric columns as strings ("24.00"); coerce so the deadline reads
   // "24 uur" (not "24.00 uur") in enforcement messages AND so the < comparisons are real
@@ -366,6 +381,7 @@ async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): 
     allowCancellations: row?.allow_cancellations ?? true,
     cancellationDeadlineHours: num(row?.cancellation_deadline_hours),
     maxBookingsPerDay: num(row?.max_bookings_per_day),
+    bookingWindowDays: num(row?.booking_window_days),
   };
 }
 
@@ -679,8 +695,15 @@ export function createTools(
         // dominant per-turn latency cost ~3s). On commit we always use the stored pending_booking,
         // so this runs only for a fresh preview. If the named time isn't free, return the free times
         // so the model proposes an alternative in the SAME turn.
+        // Date guards run BEFORE any slot resolution (cheap, and they short-circuit the wrong
+        // model answers). bookPolicy is fetched ONCE here and reused for the max/day cap below
+        // (no extra round-trip — it was already fetched unconditionally further down).
+        const bookPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
         if (!committing && isPastDateNL(args.date)) {
           return { error: "datum_verleden", message: "Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
+        }
+        if (!committing && isBeyondWindowNL(args.date, bookPolicy.bookingWindowDays)) {
+          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet boeken — je kunt tot ${bookPolicy.bookingWindowDays} dagen vooruit een afspraak maken. Vraag de klant vriendelijk een eerdere datum.` };
         }
         if (!committing && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
@@ -796,8 +819,7 @@ export function createTools(
 
         // Enforce the "Max bookings per day" Operations setting (previously saved but
         // never enforced). Count this calendar's confirmed+pending bookings on the
-        // requested day; refuse when the cap is reached.
-        const bookPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        // requested day; refuse when the cap is reached. bookPolicy was fetched once above.
         if (bookPolicy.maxBookingsPerDay != null) {
           const day = start.slice(0, 10);
           const nextDay = new Date(new Date(`${day}T00:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10);
@@ -1090,8 +1112,14 @@ export function createTools(
         // start_time. If the named time isn't free, return the free times so the model offers one now.
         let newStart = String(args.start_time ?? "");
         let newEnd = String(args.end_time ?? "");
+        // Policy fetched ONCE here (reused for the cancel-deadline check below) so the date
+        // guards short-circuit before any slot resolution.
+        const reschedPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
         if (isPastDateNL(args.date)) {
           return { error: "datum_verleden", message: "Die nieuwe datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
+        }
+        if (isBeyondWindowNL(args.date, reschedPolicy.bookingWindowDays)) {
+          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet verzetten — je kunt tot ${reschedPolicy.bookingWindowDays} dagen vooruit een afspraak zetten. Vraag de klant vriendelijk een eerdere datum.` };
         }
         if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
@@ -1123,7 +1151,7 @@ export function createTools(
 
         // Honour the "Cancellation deadline" Operations setting for reschedules too
         // (a reschedule frees the original slot, so the same lead-time rule applies).
-        const reschedPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        // reschedPolicy was fetched once above.
         if (reschedPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < reschedPolicy.cancellationDeadlineHours) {
           return {
             error: "te_laat_verzetten",
