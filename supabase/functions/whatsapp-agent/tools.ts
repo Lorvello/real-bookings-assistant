@@ -306,7 +306,13 @@ async function resolveSlotForTime(
   date: string,
   time: string,
   durationMin: number,
-): Promise<{ start: string; end: string } | { unavailable: true; available: string[] } | { error: string }> {
+  noticeHours?: number | null,
+): Promise<
+  { start: string; end: string }
+  | { unavailable: true; available: string[] }
+  | { tooSoon: true; available: string[]; earliestNL: string | null }
+  | { error: string }
+> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: "bad_date" };
   const m = String(time).trim().match(/^(\d{1,2}):(\d{2})/);
   if (!m) return { error: "bad_time" };
@@ -315,11 +321,25 @@ async function resolveSlotForTime(
     p_calendar_id: calendarId, p_service_type_id: serviceId, p_date: date,
   });
   if (error) return { error: error.message };
-  const free = ((data as Array<{ slot_start: string; is_available: boolean }>) ?? []).filter((s) => s.is_available);
+  const rows = (data as Array<{ slot_start: string; is_available: boolean }>) ?? [];
+  const free = rows.filter((s) => s.is_available);
   const match = free.find((s) => nlTimeOnly(s.slot_start).slice(0, 5) === want);
   if (match) {
     const end = new Date(new Date(match.slot_start).getTime() + durationMin * 60000).toISOString();
     return { start: match.slot_start, end };
+  }
+  // Distinguish "too soon" (within minimum_notice_hours) from "taken": the requested time
+  // exists in the schedule but the RPC marked it unavailable AND its real start is before
+  // now + notice. Using the RPC's slot_start timestamp keeps this DST-correct (no local math).
+  // Lets the caller explain "we need X hours notice" instead of a generic "not available".
+  if (noticeHours != null && Number.isFinite(noticeHours) && noticeHours > 0) {
+    const reqRow = rows.find((s) => nlTimeOnly(s.slot_start).slice(0, 5) === want);
+    const cutoff = Date.now() + noticeHours * 3_600_000;
+    if (reqRow && !reqRow.is_available && new Date(reqRow.slot_start).getTime() < cutoff) {
+      const earliest = free.find((s) => new Date(s.slot_start).getTime() >= cutoff) ?? null;
+      const earliestNL = earliest ? nlWhen(earliest.slot_start) : null;
+      return { tooSoon: true, available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)), earliestNL };
+    }
   }
   return { unavailable: true, available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)) };
 }
@@ -356,6 +376,21 @@ interface CalendarPolicy {
   cancellationDeadlineHours: number | null;
   maxBookingsPerDay: number | null;
   bookingWindowDays: number | null;
+  minimumNoticeHours: number | null; // NULL→24 to mirror get_available_slots' COALESCE(...,24)
+}
+
+// Human Dutch duration for a deadline/notice expressed in hours. Sub-hour values read as
+// minutes ("30 minuten") instead of a literal "0.5 uur"; whole hours stay "24 uur"; a
+// fractional hour keeps a Dutch decimal comma ("1,5 uur"). Used in the policy ANSWER inject
+// (index.ts) AND the cancel/reschedule enforcement messages below.
+export function formatHoursNL(hours: number): string {
+  if (!Number.isFinite(hours) || hours <= 0) return "0 uur";
+  if (hours < 1) {
+    const mins = Math.round(hours * 60);
+    return `${mins} ${mins === 1 ? "minuut" : "minuten"}`;
+  }
+  if (Number.isInteger(hours)) return `${hours} uur`;
+  return `${String(hours).replace(".", ",")} uur`;
 }
 
 // The Operations settings the agent must honour. Read once per booking/cancel/
@@ -363,7 +398,7 @@ interface CalendarPolicy {
 async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): Promise<CalendarPolicy> {
   const { data } = await supabase
     .from("calendar_settings")
-    .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days")
+    .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days, minimum_notice_hours")
     .eq("calendar_id", calendarId)
     .maybeSingle();
   const row = data as {
@@ -371,6 +406,7 @@ async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): 
     cancellation_deadline_hours?: number | string | null;
     max_bookings_per_day?: number | string | null;
     booking_window_days?: number | string | null;
+    minimum_notice_hours?: number | string | null;
   } | null;
   // PostgREST returns numeric columns as strings ("24.00"); coerce so the deadline reads
   // "24 uur" (not "24.00 uur") in enforcement messages AND so the < comparisons are real
@@ -382,6 +418,8 @@ async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): 
     cancellationDeadlineHours: num(row?.cancellation_deadline_hours),
     maxBookingsPerDay: num(row?.max_bookings_per_day),
     bookingWindowDays: num(row?.booking_window_days),
+    // NULL → 24 so the agent's "te vroeg" explanation matches what the slot RPC enforces.
+    minimumNoticeHours: num(row?.minimum_notice_hours) ?? 24,
   };
 }
 
@@ -707,9 +745,23 @@ export function createTools(
         }
         if (!committing && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur);
+          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur, bookPolicy.minimumNoticeHours);
           if ("error" in r) {
             return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag de klant kort de gewenste dag en tijd." };
+          }
+          if ("tooSoon" in r) {
+            // The named time is within the minimum-notice window → explain WHY (not a generic
+            // "niet beschikbaar") and point to the first moment that does work.
+            const notice = formatHoursNL(bookPolicy.minimumNoticeHours!);
+            return {
+              error: "te_vroeg",
+              message:
+                `Die tijd is te kort dag: een afspraak kan pas vanaf ${notice} van tevoren worden gemaakt. ` +
+                (r.earliestNL ? `Het eerste moment dat kan is ${r.earliestNL}. ` : "") +
+                "Leg dit kort en vriendelijk uit aan de klant" +
+                (r.available.length ? ` en bied een van deze vrije tijden aan: ${r.available.join(", ")}.` : " en vraag om een latere dag/tijd."),
+              available_slots: r.available,
+            };
           }
           if ("unavailable" in r) {
             // IDEMPOTENCY: a book_appointment re-fire AFTER a successful commit lands on
@@ -828,6 +880,9 @@ export function createTools(
             .select("id", { count: "exact", head: true })
             .eq("calendar_id", ctx.calendarId)
             .in("status", ["confirmed", "pending"])
+            // Match get_available_slots' day-count: exclude soft-deleted rows so the slot
+            // RPC (which offers) and this guard (which refuses) agree on whether a day is full.
+            .or("is_deleted.is.null,is_deleted.eq.false")
             .gte("start_time", `${day}T00:00:00Z`)
             .lt("start_time", `${nextDay}T00:00:00Z`);
           if ((count ?? 0) >= bookPolicy.maxBookingsPerDay) {
@@ -1013,7 +1068,7 @@ export function createTools(
           }
           if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
             await clearPending();
-            return { error: "te_laat_annuleren", message: `Annuleren kan tot ${policy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.` };
+            return { error: "te_laat_annuleren", message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.` };
           }
           // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
           // reporting isn't blank — the policy was already enforced just above.
@@ -1062,7 +1117,7 @@ export function createTools(
         if (cancelPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < cancelPolicy.cancellationDeadlineHours) {
           return {
             error: "te_laat_annuleren",
-            message: `Annuleren kan tot ${cancelPolicy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.`,
+            message: `Annuleren kan tot ${formatHoursNL(cancelPolicy.cancellationDeadlineHours)} van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.`,
           };
         }
 
@@ -1123,9 +1178,20 @@ export function createTools(
         }
         if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur);
+          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur, reschedPolicy.minimumNoticeHours);
           if ("error" in r) {
             return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag kort de gewenste dag en tijd." };
+          }
+          if ("tooSoon" in r) {
+            const notice = formatHoursNL(reschedPolicy.minimumNoticeHours!);
+            return {
+              error: "te_vroeg",
+              available_slots: r.available,
+              message:
+                `Dat nieuwe tijdstip is te kort dag: verzetten kan alleen naar een moment vanaf ${notice} van tevoren. ` +
+                (r.earliestNL ? `Het eerste moment dat kan is ${r.earliestNL}. ` : "") +
+                (r.available.length ? `Bied een van deze vrije tijden aan: ${r.available.join(", ")}.` : "Vraag vriendelijk om een latere dag/tijd."),
+            };
           }
           if ("unavailable" in r) {
             return {

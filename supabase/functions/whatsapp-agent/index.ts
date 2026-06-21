@@ -8,7 +8,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools, fetchBusinessData, getCalendarWeeklyHours } from "./tools.ts";
+import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours } from "./tools.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply } from "../_shared/sanitizeReply.ts";
@@ -124,14 +124,18 @@ Deno.serve(async (req) => {
     // Phase 1 — everything that needs only (calendar_id, phone):
     const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
-      supabase.from("service_types").select("id, name, duration, price, description").eq("calendar_id", calendar_id),
+      // Only ACTIVE, non-deleted services — otherwise a service the owner removed/deactivated
+      // in the dashboard stays in <services> and the agent keeps offering + booking it via
+      // WhatsApp (deletion sets is_active=false + is_deleted=true; deactivation sets is_active=false).
+      supabase.from("service_types").select("id, name, duration, price, description")
+        .eq("calendar_id", calendar_id).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false"),
       // whatsapp_welcome_message = the custom greeting; allow_cancellations +
       // cancellation_deadline_hours are the SAME structured policy the agent ENFORCES
       // (getCalendarPolicy in tools.ts), pulled here so we can also inject a human-readable
       // version into <business_data> below — so the agent can ANSWER "wat is jullie
       // annuleringsbeleid?" instead of only enforcing it silently.
       supabase.from("calendar_settings")
-        .select("whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours, booking_window_days")
+        .select("whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours, booking_window_days, minimum_notice_hours")
         .eq("calendar_id", calendar_id).maybeSingle(),
       // NOTE: whatsapp_contacts is GLOBALLY UNIQUE by phone_number (no calendar_id column),
       // so first_name here is cross-tenant — the per-(calendar_id, phone) name scoping that
@@ -246,6 +250,7 @@ Deno.serve(async (req) => {
       allow_cancellations?: boolean | null;
       cancellation_deadline_hours?: number | string | null;
       booking_window_days?: number | string | null;
+      minimum_notice_hours?: number | string | null;
     } | null;
     if (businessData) {
       const manual = businessData.cancellation_policy;
@@ -259,7 +264,7 @@ Deno.serve(async (req) => {
         businessData.cancellation_policy = !allowCancel
           ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
           : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
-          ? `Je kunt je afspraak tot ${deadlineH} uur van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.`
+          ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.`
           : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.`;
       }
     }
@@ -283,6 +288,25 @@ Deno.serve(async (req) => {
         weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam",
       });
     }
+    // Minimum advance notice (minimum_notice_hours). get_available_slots ENFORCES it
+    // (slots inside now+notice come back is_available=false, so resolveSlotForTime refuses a
+    // too-soon time), but the agent could neither warn nor EXPLAIN it: the <kalender> shows
+    // today as "open" and a refused near-term time read as a plain "niet beschikbaar". Inject
+    // the notice + the earliest bookable moment so the agent stops promising too-soon slots and
+    // can say "we hebben minimaal X uur van tevoren nodig". Default NULL→24 to mirror the RPC's
+    // COALESCE(...,24) — NOT the dashboard's misleading display default of 1 — so what the agent
+    // says always matches what the slot RPC actually enforces.
+    const rawNotice = cs?.minimum_notice_hours;
+    const noticeNum = rawNotice == null ? 24 : Number(rawNotice);
+    const minimumNoticeHours = Number.isFinite(noticeNum) && noticeNum > 0 ? noticeNum : null;
+    let earliestBookingNL: string | null = null;
+    if (minimumNoticeHours != null) {
+      const earliest = new Date(now.getTime() + minimumNoticeHours * 3_600_000);
+      earliestBookingNL = earliest.toLocaleString("nl-NL", {
+        weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+        timeZone: "Europe/Amsterdam",
+      });
+    }
     const system = buildSystemPrompt({
       businessName,
       businessType,
@@ -300,6 +324,8 @@ Deno.serve(async (req) => {
       bookingWindowDays,
       bookingHorizonISO,
       bookingHorizonNL,
+      minimumNoticeHours,
+      earliestBookingNL,
     });
 
     // Build conversation turns. History already ends with the current inbound message
