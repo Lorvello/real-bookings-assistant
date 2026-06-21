@@ -8,7 +8,7 @@ import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimized
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 
 interface IntelligentRecommendationsProps {
-  calendarId: string;
+  calendarIds: string[];
   customerGrowthRate?: number;
   capacityUtilization?: number;
   demandForecast?: Array<{
@@ -23,7 +23,7 @@ interface IntelligentRecommendationsProps {
 }
 
 export function IntelligentRecommendations({
-  calendarId,
+  calendarIds,
   customerGrowthRate,
   capacityUtilization,
   demandForecast,
@@ -35,13 +35,13 @@ export function IntelligentRecommendations({
   const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
   
   const { data: businessIntel } = useOptimizedBusinessIntelligence(
-    [calendarId], 
+    calendarIds, 
     thirtyDaysAgo, 
     currentDate
   );
   
   const { data: performance } = useOptimizedPerformanceEfficiency(
-    [calendarId],
+    calendarIds,
     thirtyDaysAgo,
     currentDate
   );

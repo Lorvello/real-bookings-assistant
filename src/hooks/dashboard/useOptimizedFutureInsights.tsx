@@ -260,7 +260,9 @@ export function useOptimizedFutureInsights(calendarIds?: string[]) {
       }
 
       return {
-        demand_forecast: weeklyTrends,
+        // No upcoming bookings at all → return [] so DemandForecastChart shows its
+        // "No upcoming bookings yet" empty-state instead of a flat zero-line forecast.
+        demand_forecast: bookingsByWeek.size === 0 ? [] : weeklyTrends,
         customer_growth_rate: customerGrowthRate,
         customer_growth_is_new: customerGrowthIsNew,
         capacity_utilization: Math.min(100, Math.max(0, capacityUtilization)),

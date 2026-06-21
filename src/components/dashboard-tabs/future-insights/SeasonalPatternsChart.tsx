@@ -23,27 +23,27 @@ export function SeasonalPatternsChart({ data }: SeasonalPatternsChartProps) {
       <h3 className="text-lg font-semibold text-foreground mb-6">Seasonal Patterns</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgb(51, 65, 85)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis 
             dataKey="month_name" 
-            stroke="rgb(100, 116, 139)"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={12}
             angle={-45}
             textAnchor="end"
             height={80}
           />
-          <YAxis stroke="rgb(100, 116, 139)" fontSize={12} />
+          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: 'rgb(30, 41, 59)', 
-              border: '1px solid rgb(51, 65, 85)',
+              backgroundColor: 'hsl(var(--popover))',
+              border: '1px solid hsl(var(--border))',
               borderRadius: '8px',
-              color: 'rgb(241, 245, 249)'
+              color: 'hsl(var(--popover-foreground))'
             }}
           />
           <Bar 
             dataKey="avg_bookings" 
-            fill="rgb(168, 85, 247)"
+            fill="hsl(var(--primary))"
             radius={[4, 4, 0, 0]}
           />
         </BarChart>

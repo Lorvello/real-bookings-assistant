@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockDataControl } from '@/hooks/useMockDataControl';
+import { COUNTED_BOOKING_STATUSES } from '@/lib/bookingStatus';
 
 export function usePopularService(calendarIds: string[]) {
   const { useMockData } = useMockDataControl();
@@ -32,7 +33,7 @@ export function usePopularService(calendarIds: string[]) {
           service_types!inner(name)
         `)
         .in('calendar_id', calendarIds)
-        .eq('status', 'confirmed')
+        .in('status', [...COUNTED_BOOKING_STATUSES])
         .gte('start_time', thirtyDaysAgo.toISOString());
 
       if (error) {

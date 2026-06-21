@@ -22,7 +22,7 @@ interface LiveOperationsTabProps {
 
 export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
   const navigate = useNavigate();
-  const { data: liveOps, isLoading } = useOptimizedLiveOperations(calendarIds);
+  const { data: liveOps, isLoading, isError } = useOptimizedLiveOperations(calendarIds);
   const { userStatus, accessControl } = useUserStatus();
   const { calendars } = useCalendars();
   const { data: globalBotStatus } = useGlobalBotStatus();
@@ -157,6 +157,20 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="space-y-8">
+        <div className="surface-raised rounded-2xl border border-white/[0.08] p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-2xl flex items-center justify-center border border-destructive/20">
+            <Activity className="h-8 w-8 text-destructive-foreground" />
+          </div>
+          <p className="text-foreground font-medium mb-1">Live data unavailable</p>
+          <p className="text-sm text-muted-foreground">We couldn't load live operations right now. It refreshes automatically.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
@@ -169,7 +183,7 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground">Live Operations Center</h3>
-              <p className="text-sm text-muted-foreground">Real-time data - updates automatically every 2 minutes</p>
+              <p className="text-sm text-muted-foreground">Real-time data - updates automatically every minute</p>
             </div>
           </div>
           

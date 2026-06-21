@@ -24,28 +24,28 @@ export function DemandForecastChart({ data }: DemandForecastChartProps) {
       <h3 className="text-lg font-semibold text-foreground mb-6">Upcoming Bookings</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgb(51, 65, 85)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis 
             dataKey="week_number" 
-            stroke="rgb(100, 116, 139)"
+            stroke="hsl(var(--muted-foreground))"
             fontSize={12}
             tickFormatter={(value) => `Week ${value}`}
           />
-          <YAxis stroke="rgb(100, 116, 139)" fontSize={12} />
+          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: 'rgb(30, 41, 59)', 
-              border: '1px solid rgb(51, 65, 85)',
+              backgroundColor: 'hsl(var(--popover))',
+              border: '1px solid hsl(var(--border))',
               borderRadius: '8px',
-              color: 'rgb(241, 245, 249)'
+              color: 'hsl(var(--popover-foreground))'
             }}
           />
           <Line 
             type="monotone" 
             dataKey="bookings" 
-            stroke="rgb(168, 85, 247)" 
+            stroke="hsl(var(--primary))" 
             strokeWidth={2}
-            dot={{ fill: 'rgb(168, 85, 247)', strokeWidth: 2 }}
+            dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>

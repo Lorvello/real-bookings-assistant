@@ -37,14 +37,25 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
 export function PerformanceEfficiencyTab({ calendarIds, dateRange }: PerformanceEfficiencyTabProps) {
   const { accessControl } = useAccessControl();
 
-  // Add safety check for dateRange
+  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
+    calendarIds,
+    dateRange?.startDate,
+    dateRange?.endDate
+  );
+
+  // Subscribe to real-time updates for the primary calendar (first in array)
+  const primaryCalendarId = calendarIds[0];
+  useRealtimeSubscription(primaryCalendarId);
+
+  // Safety guard AFTER all hooks (Rules of Hooks): render the skeleton until a valid
+  // dateRange is seeded. The hook returns null for an undefined range, so no query fires.
   if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
     return (
       <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className="h-44 surface-raised shimmer rounded-2xl border border-white/[0.08]"
             />
           ))}
@@ -53,16 +64,6 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
       </div>
     );
   }
-
-  const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
-    calendarIds,
-    dateRange.startDate,
-    dateRange.endDate
-  );
-  
-  // Subscribe to real-time updates for the primary calendar (first in array)
-  const primaryCalendarId = calendarIds[0];
-  useRealtimeSubscription(primaryCalendarId);
 
   const isLoading = performanceLoading;
   const error = performanceError;
@@ -265,7 +266,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Number of individual customers who made at least one appointment {periodText}. Tracks customer acquisition and business reach.</p>
+              <p className="text-sm">Number of new customers who made their first booking {periodText}. Tracks customer acquisition and business reach.</p>
             </TooltipContent>
           </Tooltip>
 

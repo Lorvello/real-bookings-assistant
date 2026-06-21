@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMockDataControl } from '@/hooks/useMockDataControl';
+import { COUNTED_BOOKING_STATUSES } from '@/lib/bookingStatus';
 
 export function useWeeklyInsights(calendarIds: string[]) {
   const { useMockData } = useMockDataControl();
@@ -44,7 +45,7 @@ export function useWeeklyInsights(calendarIds: string[]) {
         .from('bookings')
         .select('id')
         .in('calendar_id', calendarIds)
-        .neq('status', 'cancelled')
+        .in('status', [...COUNTED_BOOKING_STATUSES])
         .gte('start_time', currentWeekStart.toISOString())
         .lt('start_time', currentWeekEnd.toISOString());
 
@@ -53,7 +54,7 @@ export function useWeeklyInsights(calendarIds: string[]) {
         .from('bookings')
         .select('id')
         .in('calendar_id', calendarIds)
-        .neq('status', 'cancelled')
+        .in('status', [...COUNTED_BOOKING_STATUSES])
         .gte('start_time', previousWeekStart.toISOString())
         .lt('start_time', previousWeekEnd.toISOString());
 

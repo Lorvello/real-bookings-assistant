@@ -203,8 +203,8 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                     <h3 className="text-xl font-semibold text-foreground">Smart Tips</h3>
                   </div>
                   
-                  <IntelligentRecommendations 
-                    calendarId={calendarId}
+                  <IntelligentRecommendations
+                    calendarIds={calendarIds}
                     customerGrowthRate={futureInsights?.customer_growth_rate}
                     capacityUtilization={futureInsights?.capacity_utilization}
                     demandForecast={futureInsights?.demand_forecast}

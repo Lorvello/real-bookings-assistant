@@ -36,20 +36,21 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
 };
 
 export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessIntelligenceTabProps) {
-  // Add safety check for dateRange
-  if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
-    return <BusinessIntelligenceLoading />;
-  }
-
   const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(
-    calendarIds, 
-    dateRange.startDate, 
-    dateRange.endDate
+    calendarIds,
+    dateRange?.startDate,
+    dateRange?.endDate
   );
-  
+
   // Subscribe to real-time updates for the primary calendar (first in array)
   const primaryCalendarId = calendarIds[0];
   useRealtimeSubscription(primaryCalendarId);
+
+  // Safety guard AFTER all hooks (Rules of Hooks): render the skeleton until a valid
+  // dateRange is seeded. The hook returns null for an undefined range, so no query fires.
+  if (!dateRange || !dateRange.startDate || !dateRange.endDate) {
+    return <BusinessIntelligenceLoading />;
+  }
 
   if (isLoading) {
     return <BusinessIntelligenceLoading />;
