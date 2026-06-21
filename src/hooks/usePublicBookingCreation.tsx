@@ -103,9 +103,11 @@ export const usePublicBookingCreation = () => {
         calendarSlug: bookingData.calendarSlug
       });
 
-      // Get the calendar ID based on the slug
-      const { data: calendar, error: calendarError } = await supabase
-        .from('calendars')
+      // Get the calendar ID based on the slug, via the owner-privileged public_calendars
+      // view (R53; anon SELECT on the base calendars table is revoked). Cast to any because
+      // the view isn't in the generated Supabase types.
+      const { data: calendar, error: calendarError } = await (supabase as any)
+        .from('public_calendars')
         .select('id')
         .eq('slug', bookingData.calendarSlug)
         .eq('is_active', true)

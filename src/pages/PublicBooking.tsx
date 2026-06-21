@@ -64,8 +64,11 @@ export default function PublicBooking() {
     let cancelled = false;
     (async () => {
       setLoadingCal(true);
-      const { data: cal } = await supabase
-        .from('calendars')
+      // Public read via the owner-privileged public_calendars view (R53): exposes only
+      // id,name,slug,is_active, never the tenant's user_id (anon SELECT on the base table is
+      // revoked). Cast to any because the view isn't in the generated Supabase types.
+      const { data: cal } = await (supabase as any)
+        .from('public_calendars')
         .select('id, name, slug')
         .eq('slug', slug)
         .eq('is_active', true)
@@ -77,8 +80,8 @@ export default function PublicBooking() {
         return;
       }
       setCalendar(cal as CalendarInfo);
-      const { data: svc } = await supabase
-        .from('service_types')
+      const { data: svc } = await (supabase as any)
+        .from('public_service_types')
         .select('id, name, duration, price')
         .eq('calendar_id', cal.id)
         .eq('is_active', true)
