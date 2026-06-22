@@ -12,17 +12,19 @@
 // below sends temperature (not reasoning_effort) for it. Safe-revert: OPENAI_MODEL=gpt-5-mini, or
 // LLM_PROVIDER=gemini. The gemini/gpt-5-nano defaults above are the revert path, NOT what runs live.
 //
-// B1 GEMINI EVAL (2026-06-21, Phase-2): evaluated the NEWEST Gemini Flash (gemini-3.5-flash, which
-// exists + supports function-calling) on the §6 testpad. DECISION: KEPT gpt-4.1-mini. gemini-3.5-flash
-// FAILED two hard gates: (1) ~2x SLOWER — warm info turn ~5.9s, book-intent ~9.3s vs gpt-4.1-mini ~3.5s;
-// (2) it is a THINKING model that requires a `thought_signature` echoed back inside each functionCall
-// part on multi-turn tool conversations ("Gemini 400: Function call is missing a thought_signature").
-// runAgentGemini below does NOT round-trip thought_signature, so tool-result turns 400 → empty reply
-// (the booking sometimes commits but no confirmation is sent). To ever switch to a Gemini 3.x model,
-// runAgentGemini must capture each functionCall's thoughtSignature and replay it in the model turn.
-// Even fixed, the latency gate fails. NOTE: GEMINI_MODEL secret is now set to gemini-3.5-flash (harmless
-// while LLM_PROVIDER=openai), so a naive flip to gemini would hit the broken 3.x path — implement
-// thought_signature first.
+// B1 GEMINI EVAL (2026-06-21, Phase-2) + A1 RE-EVAL (2026-06-23): Mathew directed a proper migration
+// to gemini-3.5-flash (latency p50 <3s warm). The 3.x function-calling format is now FULLY IMPLEMENTED
+// in runAgentGemini below: each functionCall part carries an `id` + a sibling `thoughtSignature`; the
+// model turn echoes BOTH back exactly, and every functionResponse carries the matching `id`+`name`
+// (verified via a direct generateContent probe — the 2-turn round-trip 200s and replies correctly).
+// thinkingLevel is pinned to "minimal" for 3.x (env GEMINI_THINKING_LEVEL) because the default "medium"
+// is slow. ADOPTION-GATE VERDICT (empirical, 2026-06-23): gemini-3.5-flash STILL FAILS the <3s gate by
+// ~15x — direct-API warm p50 ~24s for a single tool-call turn (range 17.5-29s), ~45s for a 2-call book
+// turn, with frequent 503 "high demand". Even at thinkingLevel:minimal it spends ~80 thought tokens and
+// is far over budget. So LLM_PROVIDER stays "openai" (gpt-4.1-mini) live. This 3.x path is now CORRECT
+// and dormant — a flip to gemini will work functionally (no more 400s) the moment Google's latency
+// improves; re-run the §6 testpad before adopting. GEMINI_MODEL secret = gemini-3.5-flash (harmless
+// while provider=openai; the code below handles it correctly now).
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
@@ -37,8 +39,12 @@ export type ToolExecutor = (name: string, args: Record<string, unknown>) => Prom
 
 type Part =
   | { text: string }
-  | { functionCall: { name: string; args: Record<string, unknown> } }
-  | { functionResponse: { name: string; response: Record<string, unknown> } };
+  // Gemini 3.x: a functionCall part carries an `id` and a SIBLING `thoughtSignature` that
+  // MUST be echoed back unchanged in the next model turn (else "400: missing thought_signature").
+  | { functionCall: { name: string; args: Record<string, unknown>; id?: string }; thoughtSignature?: string }
+  // Gemini 3.x: the functionResponse MUST repeat the matching functionCall `id` + exact `name`.
+  | { functionResponse: { name: string; id?: string; response: Record<string, unknown> } };
+type FunctionCallPart = Extract<Part, { functionCall: unknown }>;
 export interface Content {
   role: "user" | "model";
   parts: Part[];
@@ -181,26 +187,43 @@ async function postGemini(model: string, key: string, body: unknown): Promise<an
 async function runAgentGemini(opts: RunOpts): Promise<AgentResult> {
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) throw new Error("GEMINI_API_KEY ontbreekt");
+  const model = GEMINI_MODEL;
+  // Gemini 3.x are THINKING models: default thinking is slow + they require the functionCall
+  // `thoughtSignature` to be echoed back. Detect 3.x to (a) send thinkingLevel and (b) round-trip
+  // the signature. 2.x models (flash-lite) carry neither id nor thoughtSignature, so the same code
+  // path is a no-op for them: the verbatim part-echo carries nothing extra and the `if (c.id)`
+  // guard below never fires.
+  const is3x = /gemini-3/.test(model);
+  const thinkingLevel = Deno.env.get("GEMINI_THINKING_LEVEL") || "minimal";
 
   const contents: Content[] = [...opts.contents];
   const toolCalls: AgentResult["toolCalls"] = [];
   const maxSteps = opts.maxSteps ?? 6;
 
   for (let step = 0; step < maxSteps; step++) {
+    const generationConfig: Record<string, unknown> = {
+      temperature: opts.temperature ?? 0.2,
+      maxOutputTokens: 800,
+    };
+    // Pin the lowest thinking for latency on 3.x (default "medium" is far too slow for a chat
+    // agent). 2.x models reject/ignore thinkingLevel, so only send it for 3.x.
+    if (is3x) generationConfig.thinkingConfig = { thinkingLevel };
+
     const body: Record<string, unknown> = {
       system_instruction: { parts: [{ text: opts.system }] },
       contents,
-      generationConfig: { temperature: opts.temperature ?? 0.2, maxOutputTokens: 800 },
+      generationConfig,
     };
     if (opts.tools.length) body.tools = [{ functionDeclarations: opts.tools }];
 
-    const data = await postGemini(GEMINI_MODEL, key, body);
+    const data = await postGemini(model, key, body);
     const parts: Part[] = data?.candidates?.[0]?.content?.parts ?? [];
-    const calls = parts
-      .filter((p): p is { functionCall: { name: string; args: Record<string, unknown> } } => "functionCall" in p)
-      .map((p) => p.functionCall);
+    // Keep the FULL functionCall parts (with id + sibling thoughtSignature), not just the inner
+    // functionCall — the model turn must replay them verbatim or 3.x returns
+    // "400: Function call is missing a thought_signature".
+    const callParts = parts.filter((p): p is FunctionCallPart => "functionCall" in p);
 
-    if (calls.length === 0) {
+    if (callParts.length === 0) {
       const text = parts
         .filter((p): p is { text: string } => "text" in p)
         .map((p) => p.text)
@@ -209,9 +232,11 @@ async function runAgentGemini(opts: RunOpts): Promise<AgentResult> {
       return { text, steps: step + 1, toolCalls };
     }
 
-    contents.push({ role: "model", parts: calls.map((c) => ({ functionCall: c })) });
+    // Echo the model's tool-call turn VERBATIM (preserves each part's id + thoughtSignature).
+    contents.push({ role: "model", parts: callParts });
     const responseParts: Part[] = [];
-    for (const c of calls) {
+    for (const p of callParts) {
+      const c = p.functionCall;
       let result: unknown;
       try {
         result = await opts.execute(c.name, c.args || {});
@@ -219,7 +244,13 @@ async function runAgentGemini(opts: RunOpts): Promise<AgentResult> {
         result = { error: String((e as Error)?.message || e) };
       }
       toolCalls.push({ name: c.name, args: c.args || {}, result });
-      responseParts.push({ functionResponse: { name: c.name, response: { result } } });
+      // 3.x: the functionResponse must repeat the matching call `id` + exact `name`.
+      const fr: { name: string; id?: string; response: Record<string, unknown> } = {
+        name: c.name,
+        response: { result },
+      };
+      if (c.id) fr.id = c.id;
+      responseParts.push({ functionResponse: fr });
     }
     contents.push({ role: "user", parts: responseParts });
   }
