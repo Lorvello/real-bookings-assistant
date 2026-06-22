@@ -202,10 +202,10 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               id="minimum_notice_hours"
               type="text"
               inputMode="numeric"
-              value={settings.minimum_notice_hours?.toString() ?? '1'}
+              value={settings.minimum_notice_hours?.toString() ?? '24'}
               onChange={(e) => {
                 const value = e.target.value.replace(/^0+(?=\d)/, '').replace(/[^0-9]/g, '');
-                const numValue = value === '' ? 1 : Math.min(parseInt(value), 168);
+                const numValue = value === '' ? 24 : Math.min(parseInt(value), 168);
                 onUpdate({ minimum_notice_hours: numValue });
               }}
               onFocus={(e) => e.target.select()}
