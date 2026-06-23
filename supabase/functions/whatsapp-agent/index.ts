@@ -300,16 +300,22 @@ Deno.serve(async (req) => {
     // (single-calendar path stays byte-identical: zero extra queries, no block). One query
     // for the whole set; service UUIDs differ per calendar so the agent picks the right one.
     let calendarsForPrompt: Array<{ index: number; name: string; services: ServiceInfo[] }> | null = null;
+    // ITEM2: serviceId -> calendarId for the whole allowlist, so the tools route a booking to the
+    // right staff/location calendar from the chosen service alone (no "which agenda?" turn). Built
+    // from the SAME per-calendar service query, zero extra round-trip; only in multi-calendar mode.
+    let serviceCalendarMap: Record<string, string> | undefined;
     if (isMultiCalendar) {
       const ids = calendars.map((c) => c.id);
       const { data: setSvc } = await supabase
         .from("service_types").select("id, name, duration, price, description, calendar_id")
         .in("calendar_id", ids).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false");
       const byCal = new Map<string, ServiceInfo[]>();
+      serviceCalendarMap = {};
       for (const s of ((setSvc as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; calendar_id: string }>) ?? [])) {
         const arr = byCal.get(s.calendar_id) ?? [];
         arr.push({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description });
         byCal.set(s.calendar_id, arr);
+        serviceCalendarMap[s.id] = s.calendar_id;
       }
       // A4: per-calendar opening hours. Hours differ per staff/location, so each <kalenders>
       // entry carries its OWN bookable weekly hours (same availability_rules source as
@@ -519,7 +525,7 @@ Deno.serve(async (req) => {
     const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel;
 
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below). Only

@@ -160,7 +160,7 @@ ${ctx.calendarHint}
 - Een duidelijke relatieve datum ("morgen", "aanstaande dinsdag", "volgende week maandag") is NIET dubbelzinnig: resolve 'm STIL via deze lijst en ga meteen door. Vraag dan NOOIT "bedoel je [datum], klopt dat?" als aparte stap; de boek-preview (stap 1) toont de datum al, dus daar kan de klant corrigeren. Alleen bij een écht dubbelzinnige verwijzing vraag je het kort na.${
         ctx.calendars && ctx.calendars.length > 1
           ? `
-- LET OP (meerdere agenda's): de open/gesloten-dagen in deze tabel gelden voor maar ÉÉN agenda, niet voor alle. Andere agenda's hebben ANDERE openingstijden (zie <kalenders>). Gebruik deze tabel dus enkel om een relatieve datum naar de juiste ISO-datum om te zetten, NIET om te bepalen of "het bedrijf" of een specifieke agenda op een dag open is, en geef 'm NOOIT door als "onze openingstijden".`
+- LET OP (meerdere medewerkers/locaties): de open/gesloten-dagen in deze tabel gelden voor maar ÉÉN persoon/locatie, niet voor alle. De anderen hebben ANDERE openingstijden (zie <kalenders>). Gebruik deze tabel dus enkel om een relatieve datum naar de juiste ISO-datum om te zetten, NIET om te bepalen of "het bedrijf" of een specifieke persoon/locatie op een dag open is, en geef 'm NOOIT door als "onze openingstijden".`
           : ""
       }
 </kalender>
@@ -168,7 +168,12 @@ ${ctx.calendarHint}
       : ""
   }
 ${
-    ctx.services && ctx.services.length
+    // Single-calendar: the entry calendar's services ARE the whole bookable list. In
+    // MULTI-calendar mode this block is SUPPRESSED: services differ per person/location and
+    // live in <kalenders> below (the single source). Showing the entry calendar's services here
+    // too made the model default to one of them and ignore the customer's actual service (e.g. it
+    // booked "Standaard Afspraak" for a "knipbeurt" request that only Luciano offers). ITEM2.
+    ctx.services && ctx.services.length && !(ctx.calendars && ctx.calendars.length > 1)
       ? `
 <services>
 ${ctx.services.map((s) => `- ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n")}
@@ -180,16 +185,19 @@ ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].nam
     ctx.calendars && ctx.calendars.length > 1
       ? `
 <kalenders>
-Dit bedrijf heeft MEERDERE agenda's (bijv. per medewerker of locatie). Kies samen met de klant de JUISTE agenda voordat je beschikbaarheid checkt of boekt. Elke agenda heeft een eigen nummer (calendar_index), eigen openingstijden en eigen diensten met eigen id's.
-${ctx.calendars.map((c) => `Agenda ${c.index}: ${c.name}${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
+Dit bedrijf werkt met MEERDERE boekbare medewerkers of locaties. Behandel elk als een PERSOON of PLEK waar de klant terecht kan, NOOIT als een "agenda" of een technisch systeem. Elk heeft eigen openingstijden en eigen diensten met eigen id's. Het nummer hieronder (calendar_index) is alleen voor jezelf; noem het NOOIT tegen de klant en lees de namen nooit op als een technische keuzelijst.
+${ctx.calendars.map((c) => `Optie ${c.index} (${c.name})${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
 </kalenders>
-Regels voor meerdere agenda's:
-- Vraag of bevestig kort WELKE agenda (medewerker/locatie) de klant wil, voordat je get_available_slots of book_appointment aanroept. Noem de namen, niet de nummers, tegen de klant.
-- Geef bij get_available_slots EN book_appointment ALTIJD calendar_index mee (het nummer van de gekozen agenda hierboven). Kies de service_type_id UIT die agenda's eigen dienstenlijst, nooit een id van een andere agenda.
-- OPENINGSTIJDEN VERSCHILLEN per agenda. Beantwoord een vraag over openingstijden met de openingstijden van de JUISTE agenda hierboven, niet met die uit de <kalender> (die geldt voor maar één agenda). Noemde de klant een specifieke agenda (medewerker/locatie)? Geef díe agenda's openingstijden. Noemde de klant GEEN agenda (bv. "wat zijn jullie openingstijden?")? Geef dan ALTIJD de openingstijden PER agenda (elke agenda met zijn naam en uren), of vraag welke agenda ze bedoelen. Geef NOOIT alleen de uren van de standaard-agenda als "onze openingstijden" alsof die voor het hele bedrijf gelden, want de andere agenda's wijken af.
-- Citeer de "Openingstijden:"-regel van een agenda LETTERLIJK zoals hierboven (bijv. "Maandag t/m vrijdag 09:00-17:00, zaterdag en zondag gesloten"). Vat de dagen NOOIT zelf samen en laat NOOIT een dag weg: schrijf nooit "Maandag, Vrijdag" als er "Maandag t/m vrijdag" staat. Neem de reeks exact over.
-- De concrete dag-tabel in <kalender> (open/gesloten) geldt voor de STANDAARD-agenda. Voor een ANDERE agenda bepaal je open/gesloten uit díe agenda's openingstijden hierboven, en is get_available_slots altijd doorslaggevend voor of een dag/tijd echt vrij is (0 tijden terug = die dag dicht voor die agenda → bied een andere dag of agenda aan). Gebruik de <kalender> alleen om een relatieve datum naar de juiste ISO-datum om te zetten (een datum is hetzelfde voor elke agenda).
-- Weet je nog niet welke agenda? Vraag het eerst; boek nooit zomaar in de eerste. Heeft de klant maar bij één agenda iets staan (verzetten/annuleren), dan vindt het systeem die afspraak zelf terug; je hoeft dan geen agenda te kiezen.
+Regels voor meerdere medewerkers/locaties:
+- DIT is je volledige dienstenlijst (per persoon/locatie). Vragen over welke diensten er zijn, hun prijs of duur beantwoord je DIRECT uit deze lijsten, zonder een tool aan te roepen. Kies ALTIJD een service_type_id uit deze lijsten; verzin nooit een dienst of id. Matcht de klant een dienst op naam (bv. "knipbeurt")? Pak de dienst die daar qua naam bij past, ook als die maar bij één persoon/locatie staat; pak NOOIT zomaar een andere, generieke dienst.
+- ROUTEER OP DIENST, niet op "agenda". De klant boekt bij een PERSOON of voor een BEHOEFTE, niet "in een agenda". Stel dus GEEN losse "welke agenda wil je?"-vraag en lees de interne namen nooit op als keuzelijst. Pak gewoon de service_type_id uit de lijst van de juiste persoon/locatie hierboven; het systeem leidt daar automatisch de juiste kalender uit af.
+- Wordt de gevraagde dienst maar door ÉÉN persoon/locatie aangeboden? Dan is de keuze al duidelijk: pak die service_type_id en ga door, vraag niets extra. Noemde de klant een persoon of plek ("bij Luciano", "in de vestiging centrum")? Pak de service_type_id van díe persoon/locatie.
+- Alleen als dezelfde dienst door MEERDERE personen/locaties wordt aangeboden ÉN de klant geen voorkeur gaf, vraag dan kort en menselijk "bij wie wil je de afspraak?" (presenteer de namen natuurlijk, als personen of plekken, vertaald naar de taal van de klant), of bied "geen voorkeur" aan en pak dan de eerste die de dienst aanbiedt. Verzin nooit een naam die hierboven niet staat.
+- Geef bij get_available_slots en book_appointment de service_type_id van de gekozen persoon/locatie mee; kies nooit een id van een andere persoon/locatie. calendar_index meesturen mag als extra bevestiging, maar de service bepaalt de kalender al, dus zonder kan ook.
+- OPENINGSTIJDEN VERSCHILLEN per persoon/locatie. Beantwoord een vraag over openingstijden met de uren van de JUISTE persoon/locatie hierboven, niet met die uit de <kalender> (die geldt voor maar één van hen). Noemde de klant een specifieke persoon/plek? Geef díe uren. Noemde de klant niemand (bv. "wat zijn jullie openingstijden?")? Geef dan ALTIJD de openingstijden PER persoon/locatie (elk met zijn naam en uren), of vraag bij wie ze terecht willen. Geef NOOIT alleen de uren van de eerste als "onze openingstijden" alsof die voor het hele bedrijf gelden, want de andere wijken af.
+- Citeer de "Openingstijden:"-regel LETTERLIJK zoals hierboven (bijv. "Maandag t/m vrijdag 09:00-17:00, zaterdag en zondag gesloten"). Vat de dagen NOOIT zelf samen en laat NOOIT een dag weg: schrijf nooit "Maandag, Vrijdag" als er "Maandag t/m vrijdag" staat. Neem de reeks exact over.
+- De concrete dag-tabel in <kalender> (open/gesloten) geldt voor maar ÉÉN persoon/locatie. Voor een ANDERE bepaal je open/gesloten uit díe persoon/locatie's openingstijden hierboven, en is get_available_slots altijd doorslaggevend voor of een dag/tijd echt vrij is (0 tijden terug = die dag dicht voor die persoon/locatie, bied dan een andere dag of een andere persoon/locatie aan). Gebruik de <kalender> alleen om een relatieve datum naar de juiste ISO-datum om te zetten (een datum is hetzelfde voor iedereen).
+- Voor annuleren of verzetten hoef je GEEN persoon/locatie te kiezen: het systeem vindt de eigen afspraak van de klant zelf terug, waar die ook staat.
 `
       : ""
   }

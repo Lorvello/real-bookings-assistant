@@ -14,6 +14,12 @@ export interface ToolContext {
   // availability, cancel and reschedule target is resolved from THIS list, so the model can never
   // reach a calendar outside the owner's own set (no cross-leak). Single-calendar = [entry calendar].
   calendars: Array<{ id: string; name: string }>;
+  // A2/ITEM2: serviceId to calendarId for the whole owner allowlist (multi-calendar only;
+  // undefined single-calendar). A service_type_id is globally unique and lives in exactly ONE
+  // calendar, so the service the model picks ALREADY determines the calendar. We route by it
+  // server-side instead of forcing a separate "which agenda?" turn that leaked raw internal
+  // calendar names. Every id here comes from ctx.calendars' own services, so no cross-owner leak.
+  serviceCalendarMap?: Record<string, string>;
   phone: string; // customer's wa_id
   businessUserId: string; // owner user_id (for business_overview_v2 KB)
   conversationId: string | null; // whatsapp_conversations.id (needed for pay-and-book links)
@@ -49,12 +55,25 @@ interface UpcomingBooking {
 function resolveBookingCalendar(
   ctx: ToolContext,
   rawIndex: unknown,
+  serviceId?: unknown,
 ): { id: string } | { needAsk: true; options: string[] } {
   if (ctx.calendars.length <= 1) return { id: ctx.calendarId };
+  // ITEM2 primary route: a service_type_id is globally unique and belongs to exactly one
+  // calendar, so the service the customer chose already pins the staff/location calendar. The
+  // model no longer has to ask (or pick) an "agenda" first; it just picks the right service.
+  const sid = typeof serviceId === "string" ? serviceId.trim() : "";
+  if (sid && ctx.serviceCalendarMap) {
+    const cid = ctx.serviceCalendarMap[sid];
+    if (cid && ctx.calendars.some((c) => c.id === cid)) return { id: cid };
+  }
+  // Explicit override / back-compat: an index the model passed (still honoured; redundant once
+  // the service routes correctly, but a useful tie-breaker the model may set when staff was named).
   const idx = Number(rawIndex);
   if (Number.isInteger(idx) && idx >= 1 && idx <= ctx.calendars.length) {
     return { id: ctx.calendars[idx - 1].id };
   }
+  // Only when we can derive nothing (no resolvable service AND no valid index): ask, framed as
+  // people/locations (the caller's message instructs human phrasing, never raw internal names).
   return { needAsk: true, options: ctx.calendars.map((c) => c.name) };
 }
 
@@ -712,11 +731,11 @@ export function createTools(
       case "get_available_slots": {
         // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
         // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
-        const slotCal = resolveBookingCalendar(ctx, args.calendar_index);
+        const slotCal = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
         if ("needAsk" in slotCal) {
           return {
-            error: "kies_agenda",
-            message: `Dit bedrijf heeft meerdere agenda's: ${slotCal.options.join(", ")}. Vraag de klant eerst welke agenda (medewerker/locatie) het wordt en roep daarna get_available_slots opnieuw aan met de bijbehorende calendar_index.`,
+            error: "kies_medewerker",
+            message: `Deze dienst wordt door meerdere medewerkers of locaties (${slotCal.options.join(", ")}) aangeboden. Vraag de klant kort en menselijk bij wie of waar ze de afspraak willen ("bij wie wil je de afspraak?"), of bied "geen voorkeur" aan als het ze niet uitmaakt. Presenteer de opties als personen of plekken in natuurlijke taal (vertaal/normaliseer de namen mee naar de taal van de klant); noem ze NOOIT "agenda's" en dump geen technische namen. Pak daarna de service_type_id van de gekozen persoon/locatie en roep opnieuw aan.`,
           };
         }
         const { data, error } = await supabase.rpc("get_available_slots", {
@@ -822,11 +841,11 @@ export function createTools(
         if (committing) {
           calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
         } else {
-          const bookCal = resolveBookingCalendar(ctx, args.calendar_index);
+          const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
           if ("needAsk" in bookCal) {
             return {
-              error: "kies_agenda",
-              message: `Dit bedrijf heeft meerdere agenda's: ${bookCal.options.join(", ")}. Vraag de klant eerst in welke agenda (medewerker/locatie) geboekt moet worden en roep book_appointment daarna opnieuw aan met de bijbehorende calendar_index en een service_type_id uit díe agenda.`,
+              error: "kies_medewerker",
+              message: `Deze dienst wordt door meerdere medewerkers of locaties (${bookCal.options.join(", ")}) aangeboden. Vraag de klant kort en menselijk bij wie of waar ze de afspraak willen ("bij wie wil je de afspraak?"), of bied "geen voorkeur" aan als het ze niet uitmaakt. Presenteer de opties als personen of plekken in natuurlijke taal (vertaal/normaliseer de namen mee); noem ze NOOIT "agenda's" en dump geen technische namen. Pak daarna de service_type_id van de gekozen persoon/locatie en roep book_appointment opnieuw aan.`,
             };
           }
           calId = bookCal.id;
