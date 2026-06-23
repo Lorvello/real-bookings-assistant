@@ -39,6 +39,12 @@ export interface PromptContext {
   bookingHorizonNL?: string | null; // same date, human Dutch ("vrijdag 21 augustus 2026")
   minimumNoticeHours?: number | null; // minimum advance notice in hours (minimum_notice_hours, NULL→24 to match the slot RPC); null = none
   earliestBookingNL?: string | null; // first bookable moment = now + minimumNoticeHours, human Dutch ("morgen om 09:00")
+  // A2 multi-calendar: present + non-null ONLY when this owner has >1 active calendar (staff/
+  // location). Each entry = a calendar the agent may book in, with a stable 1-based index it
+  // passes back as calendar_index. <services> above stays the ENTRY calendar's services; this
+  // block lists EACH calendar's own services (UUIDs differ per calendar). null = single calendar
+  // → no disambiguation, behaviour unchanged.
+  calendars?: Array<{ index: number; name: string; services: ServiceInfo[] }> | null;
 }
 
 // Render the injected business data as readable Dutch lines so the agent ALWAYS has the
@@ -165,6 +171,19 @@ ${
 ${ctx.services.map((s) => `- ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n")}
 </services>
 ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].name}). Vraag dus NOOIT "welke dienst wil je?" en som geen keuze op; ga er stilzwijgend van uit dat het om deze dienst gaat en vraag alleen naar datum/tijd (en de naam). Noem de dienst hooguit terloops in je bevestiging.\n` : ""}Vragen over welke diensten er zijn, hun prijs of duur beantwoord je DIRECT uit deze lijst, zonder een tool aan te roepen. Kies ALTIJD een service_type_id uit deze lijst; verzin nooit een id. end_time = start_time + de dienstduur.
+`
+      : ""
+  }${
+    ctx.calendars && ctx.calendars.length > 1
+      ? `
+<kalenders>
+Dit bedrijf heeft MEERDERE agenda's (bijv. per medewerker of locatie). Kies samen met de klant de JUISTE agenda voordat je beschikbaarheid checkt of boekt. Elke agenda heeft een eigen nummer (calendar_index) en eigen diensten met eigen id's.
+${ctx.calendars.map((c) => `Agenda ${c.index}: ${c.name}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
+</kalenders>
+Regels voor meerdere agenda's:
+- Vraag of bevestig kort WELKE agenda (medewerker/locatie) de klant wil, voordat je get_available_slots of book_appointment aanroept. Noem de namen, niet de nummers, tegen de klant.
+- Geef bij get_available_slots EN book_appointment ALTIJD calendar_index mee (het nummer van de gekozen agenda hierboven). Kies de service_type_id UIT die agenda's eigen dienstenlijst, nooit een id van een andere agenda.
+- Weet je nog niet welke agenda? Vraag het eerst; boek nooit zomaar in de eerste. Heeft de klant maar bij één agenda iets staan (verzetten/annuleren), dan vindt het systeem die afspraak zelf terug; je hoeft dan geen agenda te kiezen.
 `
       : ""
   }

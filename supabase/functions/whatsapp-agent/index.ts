@@ -167,9 +167,9 @@ Deno.serve(async (req) => {
     // scoped to THIS calendar (a customer's history at another business is irrelevant here).
     const lastService = (lastBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
 
-    // Phase 2 — reads that depend on phase 1 (business data needs user_id; conversation
+    // Phase 2: reads that depend on phase 1 (business data needs user_id; conversation
     // needs contact_id). Independent of each other → run in parallel.
-    const [businessData, conv] = await Promise.all([
+    const [businessData, conv, calSetRes] = await Promise.all([
       // Fetch ALL set business info once and inject it into the system prompt every turn
       // (see prompt.ts <business_data>), so the agent always has the truth in context and
       // never answers an info question without it (which caused false "no info" + a
@@ -180,8 +180,49 @@ Deno.serve(async (req) => {
             .eq("calendar_id", calendar_id).eq("contact_id", contactId).maybeSingle()
             .then((r) => r.data as { id?: string; context?: Record<string, unknown> } | null)
         : Promise.resolve(null),
+      // A2 multi-calendar: the FULL active calendar-set of THIS owner (staff/location).
+      // The inbound webhook routed the customer to ONE entry calendar (calendar_id), but a
+      // multi-calendar business needs the agent to read the whole set, disambiguate, and
+      // book in the RIGHT one. This set is the SERVER-SIDE ALLOWLIST: every booking/cancel/
+      // reschedule target is resolved from it, so the model can never reach another owner's
+      // calendar (no cross-leak). default-first + name for stable indexing; cap 5.
+      businessUserId
+        ? supabase.from("calendars").select("id, name")
+            .eq("user_id", businessUserId).eq("is_active", true)
+            .or("is_deleted.is.null,is_deleted.eq.false")
+            .order("is_default", { ascending: false }).order("name", { ascending: true })
+            .limit(5)
+        : Promise.resolve({ data: null }),
     ]);
     const businessType = (businessData?.business_type as string | null) ?? null;
+
+    // Build the calendar allowlist (always ≥1: at minimum the entry calendar). Guarantee the
+    // entry calendar is present even if the set query somehow misses it (race / just-created).
+    const calRows = ((calSetRes as { data?: Array<{ id: string; name: string | null }> | null })?.data) ?? [];
+    const calendars: Array<{ id: string; name: string }> = calRows
+      .map((c) => ({ id: c.id, name: (c.name ?? "").trim() || "Agenda" }));
+    if (!calendars.some((c) => c.id === calendar_id)) {
+      calendars.unshift({ id: calendar_id, name: "Agenda" });
+    }
+    const isMultiCalendar = calendars.length > 1;
+
+    // Per-calendar services for the prompt's <kalenders> block, ONLY when multi-calendar
+    // (single-calendar path stays byte-identical: zero extra queries, no block). One query
+    // for the whole set; service UUIDs differ per calendar so the agent picks the right one.
+    let calendarsForPrompt: Array<{ index: number; name: string; services: ServiceInfo[] }> | null = null;
+    if (isMultiCalendar) {
+      const ids = calendars.map((c) => c.id);
+      const { data: setSvc } = await supabase
+        .from("service_types").select("id, name, duration, price, description, calendar_id")
+        .in("calendar_id", ids).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false");
+      const byCal = new Map<string, ServiceInfo[]>();
+      for (const s of ((setSvc as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; calendar_id: string }>) ?? [])) {
+        const arr = byCal.get(s.calendar_id) ?? [];
+        arr.push({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description });
+        byCal.set(s.calendar_id, arr);
+      }
+      calendarsForPrompt = calendars.map((c, i) => ({ index: i + 1, name: c.name, services: byCal.get(c.id) ?? [] }));
+    }
 
     const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
     const convContext: Record<string, unknown> = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
@@ -326,6 +367,7 @@ Deno.serve(async (req) => {
       bookingHorizonNL,
       minimumNoticeHours,
       earliestBookingNL,
+      calendars: calendarsForPrompt,
     });
 
     // Build conversation turns. History already ends with the current inbound message
@@ -373,7 +415,7 @@ Deno.serve(async (req) => {
     const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel;
 
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
     let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler

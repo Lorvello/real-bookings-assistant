@@ -8,7 +8,12 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 
 export interface ToolContext {
-  calendarId: string;
+  calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
+  // A2 multi-calendar: the owner's FULL active calendar allowlist (default-first, cap 5), always
+  // ≥1 (at minimum the entry calendar). This is the SERVER-SIDE trust boundary: every booking,
+  // availability, cancel and reschedule target is resolved from THIS list, so the model can never
+  // reach a calendar outside the owner's own set (no cross-leak). Single-calendar = [entry calendar].
+  calendars: Array<{ id: string; name: string }>;
   phone: string; // customer's wa_id
   businessUserId: string; // owner user_id (for business_overview_v2 KB)
   conversationId: string | null; // whatsapp_conversations.id (needed for pay-and-book links)
@@ -31,7 +36,26 @@ interface UpcomingBooking {
   status: string;
   start_time: string;
   service_type_id: string;
+  calendar_id: string; // which of the owner's calendars this booking lives in (A2)
   service_types?: { name?: string } | null;
+}
+
+// A2: resolve the calendar a booking/availability action targets, from the owner's allowlist.
+// The model selects by calendar_index (1-based, matching the prompt's <kalenders> block) so it
+// never handles raw UUIDs and can never name a calendar outside ctx.calendars. Single-calendar
+// (the common case) ignores the index entirely and returns the entry calendar, so that path is
+// behaviourally unchanged. When multiple calendars exist and the model gave no valid index, we
+// REFUSE to guess (booking in the wrong staff/location calendar is a real error) and ask.
+function resolveBookingCalendar(
+  ctx: ToolContext,
+  rawIndex: unknown,
+): { id: string } | { needAsk: true; options: string[] } {
+  if (ctx.calendars.length <= 1) return { id: ctx.calendarId };
+  const idx = Number(rawIndex);
+  if (Number.isInteger(idx) && idx >= 1 && idx <= ctx.calendars.length) {
+    return { id: ctx.calendars[idx - 1].id };
+  }
+  return { needAsk: true, options: ctx.calendars.map((c) => c.name) };
 }
 
 // Find WHICH of the caller's own upcoming active bookings to act on. Always scoped
@@ -47,9 +71,12 @@ async function resolveTarget(
 ): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean }> {
   const { data } = await supabase
     .from("bookings")
-    .select("id, status, start_time, service_type_id, service_types(name)")
+    .select("id, status, start_time, service_type_id, calendar_id, service_types(name)")
     .eq("customer_phone", ctx.phone)
-    .eq("calendar_id", ctx.calendarId)
+    // A2: search the customer's bookings across the owner's WHOLE calendar allowlist, not just
+    // the entry calendar, so "cancel/move my appointment" finds it wherever it lives. The action
+    // then runs on the found booking's own calendar_id (always inside the allowlist → no leak).
+    .in("calendar_id", ctx.calendars.map((c) => c.id))
     .in("status", ["confirmed", "pending"])
     .gt("start_time", new Date().toISOString())
     .order("start_time", { ascending: true })
@@ -517,6 +544,7 @@ export function createTools(
         properties: {
           service_type_id: { type: "string", description: "UUID van de dienst (uit de services-lijst)." },
           date: { type: "string", description: "Datum in YYYY-MM-DD." },
+          calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda. Laat WEG als er maar één agenda is." },
         },
         required: ["service_type_id", "date"],
       },
@@ -553,6 +581,7 @@ export function createTools(
           start_time: { type: "string", description: "ALTERNATIEF voor date+time: de exacte 'start'-waarde (ISO 8601) van een slot uit get_available_slots, ongewijzigd gekopieerd. Gebruik date+time als je die hebt; val alleen op start_time terug als je al een ISO-slot uit get_available_slots koos. Reconstrueer een ISO-tijd NOOIT zelf." },
           end_time: { type: "string", description: "Alleen nodig bij start_time: ISO 8601 = start_time + de dienstduur. Bij date+time berekent de tool de eindtijd zelf." },
           customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
+          calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview." },
           confirmed: { type: "boolean", description: "Laat WEG of false bij de eerste (preview) aanroep. Zet op true bij de tweede aanroep, NADAT de klant de samenvatting bevestigde, om echt te boeken." },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
         },
@@ -640,23 +669,43 @@ export function createTools(
         // cancel/reschedule as a lookup, which sets a pending_cancel marker — a mis-commit landmine).
         const { data } = await supabase
           .from("bookings")
-          .select("start_time, status, service_types(name)")
+          .select("start_time, status, calendar_id, service_types(name)")
           .eq("customer_phone", ctx.phone)
-          .eq("calendar_id", ctx.calendarId)
+          // A2: across the owner's whole calendar allowlist, so the customer sees appointments
+          // in any of the business's calendars (not only the one the webhook routed them to).
+          .in("calendar_id", ctx.calendars.map((c) => c.id))
           .in("status", ["confirmed", "pending"])
           .gt("start_time", new Date().toISOString())
           .order("start_time", { ascending: true })
           .limit(5);
-        const list = ((data as Array<{ start_time: string; status: string; service_types?: { name?: string } | null }>) ?? []);
+        const list = ((data as Array<{ start_time: string; status: string; calendar_id: string; service_types?: { name?: string } | null }>) ?? []);
         if (list.length === 0) return { appointments: [], message: "Deze klant heeft geen aankomende afspraken." };
+        const calName = (id: string) => ctx.calendars.find((c) => c.id === id)?.name ?? null;
+        const multi = ctx.calendars.length > 1;
         return {
-          appointments: list.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), status: b.status })),
+          appointments: list.map((b) => ({
+            service: b.service_types?.name ?? null,
+            when: nlWhen(b.start_time),
+            status: b.status,
+            // Only surface the calendar (staff/location) when the business has more than one,
+            // so the customer/agent can tell apart same-time appointments in different calendars.
+            ...(multi ? { agenda: calName(b.calendar_id) } : {}),
+          })),
         };
       }
 
       case "get_available_slots": {
+        // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
+        // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
+        const slotCal = resolveBookingCalendar(ctx, args.calendar_index);
+        if ("needAsk" in slotCal) {
+          return {
+            error: "kies_agenda",
+            message: `Dit bedrijf heeft meerdere agenda's: ${slotCal.options.join(", ")}. Vraag de klant eerst welke agenda (medewerker/locatie) het wordt en roep daarna get_available_slots opnieuw aan met de bijbehorende calendar_index.`,
+          };
+        }
         const { data, error } = await supabase.rpc("get_available_slots", {
-          p_calendar_id: ctx.calendarId,
+          p_calendar_id: slotCal.id,
           p_service_type_id: String(args.service_type_id),
           p_date: String(args.date),
         });
@@ -721,7 +770,7 @@ export function createTools(
           bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string } | undefined;
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
           const { pending_booking: _drop, ...rest } = bookCtx;
@@ -736,6 +785,26 @@ export function createTools(
         let start = String((committing ? pendingBook!.start_time : args.start_time) ?? "");
         let end = String((committing ? pendingBook!.end_time : args.end_time) ?? "");
 
+        // A2: which of the owner's calendars are we booking in? On COMMIT use the calendar stored
+        // during the preview (authoritative, like start_time), so the confirm turn needs no
+        // calendar_index. On a fresh PREVIEW resolve from the model's calendar_index against the
+        // owner allowlist; when multiple calendars exist and no valid index was given, refuse to
+        // guess (booking in the wrong staff/location is a real error) and ask which one. Every
+        // value of calId comes from ctx.calendars → it can never point at another owner's calendar.
+        let calId = ctx.calendarId;
+        if (committing) {
+          calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
+        } else {
+          const bookCal = resolveBookingCalendar(ctx, args.calendar_index);
+          if ("needAsk" in bookCal) {
+            return {
+              error: "kies_agenda",
+              message: `Dit bedrijf heeft meerdere agenda's: ${bookCal.options.join(", ")}. Vraag de klant eerst in welke agenda (medewerker/locatie) geboekt moet worden en roep book_appointment daarna opnieuw aan met de bijbehorende calendar_index en een service_type_id uit díe agenda.`,
+            };
+          }
+          calId = bookCal.id;
+        }
+
         // FAST PATH (preview only): the customer named a concrete date+time, so resolve the EXACT
         // slot SERVER-SIDE rather than forcing a separate get_available_slots LLM round-trip (the
         // dominant per-turn latency cost ~3s). On commit we always use the stored pending_booking,
@@ -744,7 +813,7 @@ export function createTools(
         // Date guards run BEFORE any slot resolution (cheap, and they short-circuit the wrong
         // model answers). bookPolicy is fetched ONCE here and reused for the max/day cap below
         // (no extra round-trip — it was already fetched unconditionally further down).
-        const bookPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        const bookPolicy = await getCalendarPolicy(supabase, calId);
         if (!committing && isPastDateNL(args.date)) {
           return { error: "datum_verleden", message: "Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
         }
@@ -753,7 +822,7 @@ export function createTools(
         }
         if (!committing && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur, bookPolicy.minimumNoticeHours);
+          const r = await resolveSlotForTime(supabase, calId, serviceId, String(args.date), String(args.time), dur, bookPolicy.minimumNoticeHours);
           if ("error" in r) {
             return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag de klant kort de gewenste dag en tijd." };
           }
@@ -787,7 +856,7 @@ export function createTools(
                 .from("bookings")
                 .select("id, start_time")
                 .eq("customer_phone", ctx.phone)
-                .eq("calendar_id", ctx.calendarId)
+                .eq("calendar_id", calId)
                 .in("status", ["confirmed", "pending"])
                 .gte("start_time", dayStart)
                 .lt("start_time", dayEnd);
@@ -860,7 +929,9 @@ export function createTools(
             .from("bookings")
             .select("start_time")
             .eq("customer_phone", ctx.phone)
-            .eq("calendar_id", ctx.calendarId)
+            // A2: scope the duplicate check to the TARGET calendar, so a legitimate booking with a
+            // different staff member/location is not falsely blocked by an appointment elsewhere.
+            .eq("calendar_id", calId)
             .in("status", ["confirmed", "pending"])
             .gt("start_time", new Date().toISOString())
             .order("start_time", { ascending: true })
@@ -886,7 +957,7 @@ export function createTools(
           const { count } = await supabase
             .from("bookings")
             .select("id", { count: "exact", head: true })
-            .eq("calendar_id", ctx.calendarId)
+            .eq("calendar_id", calId)
             .in("status", ["confirmed", "pending"])
             // Match get_available_slots' day-count: exclude soft-deleted rows so the slot
             // RPC (which offers) and this guard (which refuses) agree on whether a day is full.
@@ -903,7 +974,7 @@ export function createTools(
         const { data: ps } = await supabase
           .from("payment_settings")
           .select("secure_payments_enabled, payment_required_for_booking")
-          .eq("calendar_id", ctx.calendarId)
+          .eq("calendar_id", calId)
           .maybeSingle();
         const paymentRequired = !!(
           (ps as { secure_payments_enabled?: boolean; payment_required_for_booking?: boolean } | null)
@@ -916,7 +987,7 @@ export function createTools(
         // bookings_no_overlap exclusion constraint catches a race on insert.
         // Email is null for WhatsApp (verified allowed).
         const { data: valid, error: valErr } = await supabase.rpc("validate_booking_security", {
-          p_calendar_id: ctx.calendarId,
+          p_calendar_id: calId,
           p_service_type_id: serviceId,
           p_start_time: start,
           p_end_time: end,
@@ -945,7 +1016,7 @@ export function createTools(
             await supabase.from("whatsapp_conversations").update({
               context: {
                 ...bookCtx,
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, at: Date.now() },
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, at: Date.now() },
               },
             }).eq("id", ctx.conversationId);
           }
@@ -960,7 +1031,7 @@ export function createTools(
         // is confirmed immediately. A pending booking still occupies the slot
         // (availability + bookings_no_overlap count status IN confirmed,pending).
         const insertRow: Record<string, unknown> = {
-          calendar_id: ctx.calendarId,
+          calendar_id: calId,
           service_type_id: serviceId,
           customer_name: customerName,
           customer_phone: ctx.phone,
@@ -1069,7 +1140,9 @@ export function createTools(
             return { error: "geen_boeking", message: "Die afspraak kan ik niet meer vinden om te annuleren (mogelijk al weg). Vraag de klant of er nog iets is." };
           }
           const b = target.booking!;
-          const policy = await getCalendarPolicy(supabase, ctx.calendarId);
+          // A2: enforce the policy of the calendar the booking actually lives in (it may be a
+          // non-entry calendar of the same owner), not the entry calendar.
+          const policy = await getCalendarPolicy(supabase, b.calendar_id);
           if (!policy.allowCancellations) {
             await clearPending();
             return { error: "annuleren_niet_toegestaan", message: "Annuleren kan bij dit bedrijf niet via de assistent. Verwijs naar het annuleringsbeleid." };
@@ -1115,7 +1188,7 @@ export function createTools(
 
         // Honour the "Allow cancellations" + "Cancellation deadline" Operations settings before
         // offering to cancel (so we never ask to confirm something that can't be cancelled).
-        const cancelPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        const cancelPolicy = await getCalendarPolicy(supabase, b.calendar_id);
         if (!cancelPolicy.allowCancellations) {
           return {
             error: "annuleren_niet_toegestaan",
@@ -1177,7 +1250,7 @@ export function createTools(
         let newEnd = String(args.end_time ?? "");
         // Policy fetched ONCE here (reused for the cancel-deadline check below) so the date
         // guards short-circuit before any slot resolution.
-        const reschedPolicy = await getCalendarPolicy(supabase, ctx.calendarId);
+        const reschedPolicy = await getCalendarPolicy(supabase, b.calendar_id);
         if (isPastDateNL(args.date)) {
           return { error: "datum_verleden", message: "Die nieuwe datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
         }
@@ -1186,7 +1259,7 @@ export function createTools(
         }
         if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, ctx.calendarId, serviceId, String(args.date), String(args.time), dur, reschedPolicy.minimumNoticeHours);
+          const r = await resolveSlotForTime(supabase, b.calendar_id, serviceId, String(args.date), String(args.time), dur, reschedPolicy.minimumNoticeHours);
           if ("error" in r) {
             return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag kort de gewenste dag en tijd." };
           }
