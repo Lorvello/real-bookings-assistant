@@ -545,7 +545,11 @@ Deno.serve(async (req) => {
     // Affirmation across the agent's languages (NL/EN/DE/FR/ES/PT/IT). Only consulted when a
     // proposal is already pending (confirmCancel/confirmBook), so a short "oui"/"sí"/"sim" in
     // that context is a confirmation, not ambiguous. (FR "oui" was missing → French confirms stalled.)
-    const AFFIRM_RE = /\b(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait|genau|gerne|bitte)\b/i;
+    // Boundaries are Unicode-aware lookarounds, NOT \b: V8's \b is ASCII-only, so a trailing \b
+    // after an accented vowel (sí/sì/oké) never matched and ES/IT "sí"/"sì" confirms silently
+    // stalled with 0 DB-row (R8 repro "sí, está bien"). \p{L}\p{N} + the u flag treat accented
+    // letters as word chars, so the boundary holds while "simpel"/"klaar"/"jasmijn" stay excluded.
+    const AFFIRM_RE = /(?<![\p{L}\p{N}])(ja|jaha|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord|oui|ouais|volontiers|sí|si|claro|vale|perfecto|sì|certo|esatto|perfetto|sim|perfeito|parfait|genau|gerne|bitte|klar|passt)(?![\p{L}\p{N}])/iu;
     const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     // A hypothetical / policy QUESTION that merely contains a cancel word ("krijg ik geld terug als ik
     // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
