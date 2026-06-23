@@ -44,7 +44,10 @@ export interface PromptContext {
   // passes back as calendar_index. <services> above stays the ENTRY calendar's services; this
   // block lists EACH calendar's own services (UUIDs differ per calendar). null = single calendar
   // → no disambiguation, behaviour unchanged.
-  calendars?: Array<{ index: number; name: string; services: ServiceInfo[] }> | null;
+  // A4: openingHours = that calendar's OWN bookable weekly hours (text), since hours differ per
+  // staff/location. In multi-calendar mode the single <business_data> "openingstijden" line is
+  // dropped (it would assert one wrong "the" hours) and these per-agenda hours are the truth.
+  calendars?: Array<{ index: number; name: string; services: ServiceInfo[]; openingHours?: string | null }> | null;
 }
 
 // Render the injected business data as readable Dutch lines so the agent ALWAYS has the
@@ -159,7 +162,12 @@ ${ctx.calendarHint}
 - Noemt de klant een datum die VÓÓR vandaag (${ctx.todayISO}) ligt — dus al geweest? Zeg dan eerlijk en kort dat die datum al voorbij is en vraag om een datum in de toekomst. Zeg NOOIT dat je "die dag gesloten" bent (dat klopt niet en is verwarrend) en reken er nooit openingstijden bij. Boek of verzet nooit naar het verleden.${ctx.bookingHorizonISO ? `
 - Je kunt maximaal ${ctx.bookingWindowDays} dagen vooruit boeken, dus tot en met ${ctx.bookingHorizonNL} (ISO ${ctx.bookingHorizonISO}). Noemt de klant een datum NÁ ${ctx.bookingHorizonISO}, dus te ver in de toekomst? Zeg dan vriendelijk dat je zó ver vooruit nog niet kunt boeken en tot wanneer wél (bijvoorbeeld: "zo ver vooruit kan ik nog niet, je kunt tot en met ${ctx.bookingHorizonNL} een afspraak maken"). Zeg NOOIT dat zo'n datum "al voorbij" of "gesloten" is, en reken er nooit openingstijden bij. Boek of verzet nooit voorbij ${ctx.bookingHorizonISO}.` : ""}${ctx.minimumNoticeHours && ctx.minimumNoticeHours > 0 ? `
 - Er geldt een minimale aanmeldtijd: een afspraak kan pas vanaf ${ctx.minimumNoticeHours} uur van tevoren${ctx.earliestBookingNL ? `, dus ten vroegste ${ctx.earliestBookingNL}` : ""}. Vraagt de klant een tijd die eerder is dan dat (bijvoorbeeld nog vandaag terwijl dat te kort dag is)? Reken dat niet zelf uit, maar roep gewoon book_appointment aan; geeft de tool 'niet_beschikbaar' terug omdat het te vroeg is, leg het dan eerlijk uit ("we hebben minimaal ${ctx.minimumNoticeHours} uur van tevoren nodig${ctx.earliestBookingNL ? `, het eerste dat kan is ${ctx.earliestBookingNL}` : ""}") en bied het eerstvolgende vrije moment uit available_slots aan. Beloof nooit een tijd binnen die aanmeldtijd.` : ""}
-- Een duidelijke relatieve datum ("morgen", "aanstaande dinsdag", "volgende week maandag") is NIET dubbelzinnig: resolve 'm STIL via deze lijst en ga meteen door. Vraag dan NOOIT "bedoel je [datum], klopt dat?" als aparte stap; de boek-preview (stap 1) toont de datum al, dus daar kan de klant corrigeren. Alleen bij een écht dubbelzinnige verwijzing vraag je het kort na.
+- Een duidelijke relatieve datum ("morgen", "aanstaande dinsdag", "volgende week maandag") is NIET dubbelzinnig: resolve 'm STIL via deze lijst en ga meteen door. Vraag dan NOOIT "bedoel je [datum], klopt dat?" als aparte stap; de boek-preview (stap 1) toont de datum al, dus daar kan de klant corrigeren. Alleen bij een écht dubbelzinnige verwijzing vraag je het kort na.${
+        ctx.calendars && ctx.calendars.length > 1
+          ? `
+- LET OP (meerdere agenda's): de open/gesloten-dagen in deze tabel gelden voor maar ÉÉN agenda, niet voor alle. Andere agenda's hebben ANDERE openingstijden (zie <kalenders>). Gebruik deze tabel dus enkel om een relatieve datum naar de juiste ISO-datum om te zetten, NIET om te bepalen of "het bedrijf" of een specifieke agenda op een dag open is, en geef 'm NOOIT door als "onze openingstijden".`
+          : ""
+      }
 </kalender>
 `
       : ""
@@ -177,12 +185,15 @@ ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].nam
     ctx.calendars && ctx.calendars.length > 1
       ? `
 <kalenders>
-Dit bedrijf heeft MEERDERE agenda's (bijv. per medewerker of locatie). Kies samen met de klant de JUISTE agenda voordat je beschikbaarheid checkt of boekt. Elke agenda heeft een eigen nummer (calendar_index) en eigen diensten met eigen id's.
-${ctx.calendars.map((c) => `Agenda ${c.index}: ${c.name}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
+Dit bedrijf heeft MEERDERE agenda's (bijv. per medewerker of locatie). Kies samen met de klant de JUISTE agenda voordat je beschikbaarheid checkt of boekt. Elke agenda heeft een eigen nummer (calendar_index), eigen openingstijden en eigen diensten met eigen id's.
+${ctx.calendars.map((c) => `Agenda ${c.index}: ${c.name}${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
 </kalenders>
 Regels voor meerdere agenda's:
 - Vraag of bevestig kort WELKE agenda (medewerker/locatie) de klant wil, voordat je get_available_slots of book_appointment aanroept. Noem de namen, niet de nummers, tegen de klant.
 - Geef bij get_available_slots EN book_appointment ALTIJD calendar_index mee (het nummer van de gekozen agenda hierboven). Kies de service_type_id UIT die agenda's eigen dienstenlijst, nooit een id van een andere agenda.
+- OPENINGSTIJDEN VERSCHILLEN per agenda. Beantwoord een vraag over openingstijden met de openingstijden van de JUISTE agenda hierboven, niet met die uit de <kalender> (die geldt voor maar één agenda). Noemde de klant een specifieke agenda (medewerker/locatie)? Geef díe agenda's openingstijden. Noemde de klant GEEN agenda (bv. "wat zijn jullie openingstijden?")? Geef dan ALTIJD de openingstijden PER agenda (elke agenda met zijn naam en uren), of vraag welke agenda ze bedoelen. Geef NOOIT alleen de uren van de standaard-agenda als "onze openingstijden" alsof die voor het hele bedrijf gelden, want de andere agenda's wijken af.
+- Citeer de "Openingstijden:"-regel van een agenda LETTERLIJK zoals hierboven (bijv. "Maandag t/m vrijdag 09:00-17:00, zaterdag en zondag gesloten"). Vat de dagen NOOIT zelf samen en laat NOOIT een dag weg: schrijf nooit "Maandag, Vrijdag" als er "Maandag t/m vrijdag" staat. Neem de reeks exact over.
+- De concrete dag-tabel in <kalender> (open/gesloten) geldt voor de STANDAARD-agenda. Voor een ANDERE agenda bepaal je open/gesloten uit díe agenda's openingstijden hierboven, en is get_available_slots altijd doorslaggevend voor of een dag/tijd echt vrij is (0 tijden terug = die dag dicht voor die agenda → bied een andere dag of agenda aan). Gebruik de <kalender> alleen om een relatieve datum naar de juiste ISO-datum om te zetten (een datum is hetzelfde voor elke agenda).
 - Weet je nog niet welke agenda? Vraag het eerst; boek nooit zomaar in de eerste. Heeft de klant maar bij één agenda iets staan (verzetten/annuleren), dan vindt het systeem die afspraak zelf terug; je hoeft dan geen agenda te kiezen.
 `
       : ""

@@ -221,7 +221,15 @@ Deno.serve(async (req) => {
         arr.push({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description });
         byCal.set(s.calendar_id, arr);
       }
-      calendarsForPrompt = calendars.map((c, i) => ({ index: i + 1, name: c.name, services: byCal.get(c.id) ?? [] }));
+      // A4: per-calendar opening hours. Hours differ per staff/location, so each <kalenders>
+      // entry carries its OWN bookable weekly hours (same availability_rules source as
+      // get_available_slots → spoken hours match what that agenda can actually book). Reuse the
+      // entry calendar's already-fetched schedule (weeklyHours); fetch the others in parallel.
+      const hoursByCal = new Map<string, string | null>([[calendar_id, weeklyHours?.text ?? null]]);
+      const otherCals = calendars.filter((c) => c.id !== calendar_id);
+      const otherHours = await Promise.all(otherCals.map((c) => getCalendarWeeklyHours(supabase, c.id)));
+      otherCals.forEach((c, i) => hoursByCal.set(c.id, otherHours[i]?.text ?? null));
+      calendarsForPrompt = calendars.map((c, i) => ({ index: i + 1, name: c.name, services: byCal.get(c.id) ?? [], openingHours: hoursByCal.get(c.id) ?? null }));
     }
 
     const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
@@ -274,10 +282,16 @@ Deno.serve(async (req) => {
     // Single source of truth for opening hours = the BOOKABLE schedule of THIS calendar
     // (availability_rules, via getCalendarWeeklyHours). Override the spoken hours that
     // fetchBusinessData derived from the separate, often-stale business_overview.calendars[0]
-    // JSON, and build the concrete-date <kalender> from the same source — so "what the agent
+    // JSON, and build the concrete-date <kalender> from the same source, so "what the agent
     // says is open" always equals "what it can actually book". Fall back to the old struct only
     // if this calendar has no availability schedule at all.
-    if (weeklyHours?.text && businessData) businessData.opening_hours = weeklyHours.text;
+    // A4: in MULTI-calendar mode hours differ per agenda, so a single generic "openingstijden"
+    // line would assert one wrong "the" hours. Drop it here and surface per-agenda hours in
+    // <kalenders> (calendarsForPrompt.openingHours) instead. Single-calendar = unchanged.
+    if (businessData) {
+      if (isMultiCalendar) delete businessData.opening_hours;
+      else if (weeklyHours?.text) businessData.opening_hours = weeklyHours.text;
+    }
 
     // Cancellation/reschedule policy ANSWER inject. The agent already ENFORCES the deadline
     // (getCalendarPolicy in tools.ts gates BOTH cancel and reschedule on

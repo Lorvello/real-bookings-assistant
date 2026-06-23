@@ -659,8 +659,15 @@ export function createTools(
         // into <business_data>. Without this the tool returned a SEPARATE, often-stale
         // business_overview_v2.calendars[0].opening_hours, so a model that called this tool for
         // hours got values inconsistent with the injected context (A1d, 2026-06-23).
-        const wh = await getCalendarWeeklyHours(supabase, ctx.calendarId);
-        if (wh?.text) out.opening_hours = wh.text;
+        // A4: in MULTI-calendar mode hours differ per agenda and this tool has no calendar_index,
+        // so returning a single (entry-calendar) opening_hours could quote the WRONG agenda's
+        // hours. Drop it here; the per-agenda hours live in the prompt's <kalenders> block.
+        if (ctx.calendars.length > 1) {
+          delete out.opening_hours;
+        } else {
+          const wh = await getCalendarWeeklyHours(supabase, ctx.calendarId);
+          if (wh?.text) out.opening_hours = wh.text;
+        }
         return out;
       }
 
