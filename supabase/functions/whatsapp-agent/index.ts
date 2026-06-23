@@ -106,6 +106,59 @@ function detectCustomerLanguage(msg: string): string | null {
   return LANG_NL_NAME[best] ?? null;
 }
 
+// Re-render an ISO instant in English (same Europe/Amsterdam tz) so a non-Dutch customer never
+// reads a Dutch date inside an English sentence ("booked for dinsdag 30 juni"). The tool's `when`
+// fields are always Dutch (nlWhen); this localizes from the canonical ISO the tool result carries.
+// Shared by deterministicConfirmation (commit) and deterministicPreview (preview read-back).
+function enWhen(iso: string | undefined, fallback: string): string {
+  if (!iso) return fallback;
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" });
+  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" });
+  return `${date} ${time}`;
+}
+
+// ITEM 12: deterministic two-phase-booking PREVIEW read-back. The COMMIT already reuses the
+// server-stored slot, but the customer-facing preview ("...klopt dat?") was model prose: a 20B
+// model misreads the <kalender> and echoes a divergent weekday for the SAME stored slot, so the
+// customer confirms "donderdag 25 juni" while the stored slot is "dinsdag 30 juni" -> wrong-DB-state
+// on commit. Mirror deterministicConfirmation: template the read-back from the SERVER proposal so
+// the date shown == the slot stored == the slot committed. Fires only on a successful preview
+// (book_appointment -> needs_confirmation + proposal); errors / niet_beschikbaar (the ITEM 5
+// two-slot offer) carry no proposal and stay model-generated. NL default, English floor for any
+// non-Dutch customer (the same floor the shipped commit confirmation uses).
+function deterministicPreview(
+  toolCalls: { name: string; result: unknown }[],
+  customerLanguage: string | null,
+): string | null {
+  let pv: Record<string, any> | null = null;
+  for (let i = toolCalls.length - 1; i >= 0; i--) {
+    const t = toolCalls[i];
+    if (
+      t.name === "book_appointment" && t.result && typeof t.result === "object" &&
+      (t.result as Record<string, unknown>).needs_confirmation === true &&
+      (t.result as Record<string, unknown>).proposal
+    ) {
+      pv = t.result as Record<string, any>;
+      break;
+    }
+  }
+  if (!pv) return null;
+  const p = pv.proposal as { service?: string | null; when?: string; customer_name?: string | null };
+  const en = customerLanguage != null;
+  const when = en ? enWhen(pv.start_time, p.when ?? "") : (p.when ?? "");
+  if (!when) return null;
+  // Service is an owner-configured proper noun: never translated, only included if present.
+  const svc = (p.service ?? "").trim();
+  const name = (p.customer_name ?? "").trim() || null;
+  if (en) {
+    const head = svc ? `I'll put you down for ${svc} on ${when}` : `I'll put you down for ${when}`;
+    return name ? `${head} in the name of ${name}. Is that correct?` : `${head}. Is that correct?`;
+  }
+  const head = svc ? `Ik zet ${svc} op ${when}` : `Ik zet je op ${when}`;
+  return name ? `${head} op naam ${name}, klopt dat?` : `${head}, klopt dat?`;
+}
+
 // gpt-oss-20b intermittently returns EMPTY text after a SUCCESSFUL commit tool call (~40% of
 // commit turns observed): the booking/reschedule/cancel went through (DB correct) but the model
 // emitted no final message, so the customer got the generic "Sorry, iets mis" fallback, telling
@@ -128,17 +181,6 @@ function deterministicConfirmation(
     return null;
   };
   const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
-  // The tool's `when` is always Dutch (nlWhen). Now that B1 makes this the PRIMARY reply on EVERY
-  // commit, an English customer would otherwise read a Dutch date inside an English sentence
-  // ("booked for dinsdag 30 juni"). Re-render the instant in English (same Europe/Amsterdam tz)
-  // from the ISO start_time the tool result carries, so the whole confirmation is one language.
-  const enWhen = (iso: string | undefined, fallback: string): string => {
-    if (!iso) return fallback;
-    const d = new Date(iso);
-    const date = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" });
-    const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" });
-    return `${date} ${time}`;
-  };
   const book = okResult("book_appointment");
   if (book) {
     const bookWhen = en ? enWhen(book.start_time, book.when) : book.when;
@@ -584,6 +626,15 @@ Deno.serve(async (req) => {
     // correct booking, never the wrong one.
     const cancelCommitMissed = confirmCancel && !succeededMutation;
 
+    // ITEM 12, Book-commit-missed (mirrors cancelCommitMissed): the customer AFFIRMED a fresh
+    // pending booking (server-detected confirmBook) but no booking SUCCEEDED this turn. The model
+    // either narrated "geboekt" without committing, asked another question, or re-ran a PREVIEW
+    // instead of the commit (the C383 failure: a valid slot affirmed with "ja", yet the date was
+    // lost and no row was written). Force the commit. book_appointment with confirmBook reuses the
+    // SERVER-stored pending_booking slot, so the nudge can only ever book the exact previewed slot,
+    // never a model-reconstructed (possibly wrong) date.
+    const bookCommitMissed = confirmBook && !succeededMutation;
+
     // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
     // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
     // no pending_booking proposal exists and the customer's next "ja" has nothing to commit.
@@ -615,9 +666,11 @@ Deno.serve(async (req) => {
     // this targets only the no-success case. Excludes cancelCommitMissed (handled above).
     const emptyNoAction = !(result.text || "").trim() && !succeededMutation && !cancelCommitMissed;
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || emptyNoAction) {
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || emptyNoAction) {
       const nudgeText = cancelCommitMissed
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true om 'm echt te annuleren, en antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
+        : bookCommitMissed
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde afspraak, maar je hebt book_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geboekt. Roep NU book_appointment aan met confirmed:true om 'm echt te boeken. Het systeem gebruikt het in de preview opgeslagen tijdslot: geef de datum of tijd NIET opnieuw door en bereken niets na. Vraag niets extra's en zeg NOOIT dat er geboekt is voordat de tool 'ok' teruggaf."
         : reschedStall
         ? "[systeem] Je beschreef een verzetting naar een concrete tijd maar riep reschedule_appointment niet aan, dus er is NIETS verzet. Roep NU reschedule_appointment aan met date (YYYY-MM-DD) + time (HH:MM) van die nieuwe tijd. De genoemde tijd is de bevestiging: vraag niet om 'oké?' of 'klopt dat?', verzet meteen en antwoord met het resultaat ('Gedaan, je staat nu op ...')."
         : bookPreviewMissed
@@ -638,7 +691,7 @@ Deno.serve(async (req) => {
       // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
       const accept = !!retry.text && (
-        (confirmStall || reschedStall || cancelCommitMissed)
+        (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       );
@@ -658,9 +711,19 @@ Deno.serve(async (req) => {
     const committed = result.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
     if (committed) {
       replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || replyText;
-    } else if (!replyText) {
-      const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
-      if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || "";
+    } else {
+      // ITEM 12: on a successful booking PREVIEW turn, OVERRIDE the model's prose read-back with the
+      // server-templated one so the date the customer confirms is exactly the slot stored in
+      // pending_booking (the commit reuses it). This makes the "confirmed 25 juni / stored 30 juni"
+      // divergence structurally impossible. Only fires when book_appointment returned
+      // needs_confirmation + proposal; if it didn't (no preview this turn), fall through unchanged.
+      const preview = deterministicPreview(result.toolCalls, customerLanguage);
+      if (preview) {
+        replyText = preview;
+      } else if (!replyText) {
+        const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
+        if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || "";
+      }
     }
 
     // Deterministic outbound hygiene: strip em-dashes etc. (the "written by AI" tell) so it

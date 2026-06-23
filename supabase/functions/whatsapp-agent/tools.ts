@@ -1068,6 +1068,12 @@ export function createTools(
           }
           return {
             needs_confirmation: true,
+            // start_time = the SERVER-resolved canonical ISO instant that was just stored in
+            // pending_booking. index.ts re-renders THIS into the customer-facing preview read-back
+            // (deterministicPreview), so the date the customer confirms == the slot that will be
+            // committed. Without it, the model's prose read-back can echo a divergent weekday for
+            // the same slot (ITEM 12: confirmed "donderdag 25 juni", stored "dinsdag 30 juni").
+            start_time: start,
             proposal: { service: svcName, when: nlWhen(start), customer_name: customerName === "Privé" ? null : customerName },
             message: "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
           };
