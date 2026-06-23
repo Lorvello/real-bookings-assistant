@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
 import { createHmac } from "node:crypto"
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
-import { sendWhatsAppText } from '../_shared/whatsappSend.ts';
+import { sendWhatsAppText, sendReadReceiptWithTyping } from '../_shared/whatsappSend.ts';
 
 // Normalise a phone to wa_id form (country code, digits only). Dutch 06… → 316…; strips +.
 function normalizePhone(raw: string): string {
@@ -469,6 +469,11 @@ serve(async (req) => {
               if (isDuplicate) {
                 console.log(`process_whatsapp_message: duplicaat message ${message.id} — agent overgeslagen (Meta-retry)`);
               } else {
+                // Read receipt + "typing..." indicator: fire immediately (NOT awaited) so
+                // the bubble shows within ~150ms while the agent runs, turning the multi-
+                // second turn into visible activity instead of silence. Best-effort; awaited
+                // at the end of this branch only to keep it alive inside the background task.
+                const typingDone = sendReadReceiptWithTyping(message.id);
                 // De agent via een directe fetch aanroepen (NIET functions.invoke: dat
                 // voerde de agent-function in praktijk niet uit vanuit deze edge function).
                 const agentUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/whatsapp-agent`;
@@ -490,6 +495,7 @@ serve(async (req) => {
                 } catch (agentErr) {
                   console.error('whatsapp-agent fetch error:', agentErr);
                 }
+                await typingDone.catch(() => {});
               }
             }
           }

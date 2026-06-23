@@ -16,6 +16,40 @@ export interface WhatsAppSendResult {
   error?: string;
 }
 
+// Mark an inbound message as read AND show a "typing..." indicator in ONE Graph
+// call (WhatsApp Cloud API typing-indicators, GA 2025). The bubble shows for up
+// to 25s or until we send our reply, whichever comes first, so firing this the
+// instant an inbound arrives turns the multi-second agent turn into visible
+// activity (blue ticks + typing) instead of dead silence. Best-effort: it never
+// throws and is not on the reply's critical path. Needs the inbound message id
+// (wamid). Docs: developers.facebook.com/docs/whatsapp/cloud-api/typing-indicators
+export async function sendReadReceiptWithTyping(inboundMessageId: string): Promise<void> {
+  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+  if (!token || !inboundMessageId) return;
+  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+  try {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        status: "read",
+        message_id: inboundMessageId,
+        typing_indicator: { type: "text" },
+      }),
+    });
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}));
+      console.error("WhatsApp typing/read mislukt", resp.status, JSON.stringify(data).slice(0, 200));
+    }
+  } catch (e) {
+    console.error("WhatsApp typing/read exception:", e);
+  }
+}
+
 export async function sendWhatsAppText(to: string, body: string): Promise<WhatsAppSendResult> {
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
   if (!token) {
