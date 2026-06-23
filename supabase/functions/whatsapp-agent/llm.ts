@@ -4,8 +4,13 @@
 //   LLM_PROVIDER=gemini  -> Gemini Flash-Lite (original; kept for easy revert)
 // Default is gemini unless LLM_PROVIDER is set. groq + openai share runAgentOpenAI (Chat
 // Completions wire format) parameterized by {baseUrl, key, model}. Only this file knows the formats.
-// LIVE (Supabase secrets, verified 2026-06-19): LLM_PROVIDER=openai, OPENAI_MODEL=gpt-4.1-mini
-// -> production runs gpt-4.1-mini. The System-Overhaul W1 latency measurement showed gpt-4.1-mini
+// LIVE (Supabase secrets, 2026-06-23 A1c): LLM_PROVIDER=groq, GROQ_MODEL=openai/gpt-oss-20b
+// -> production runs Groq gpt-oss-20b (paid Dev tier). Proven on the §6 gate testpad: warm p50
+// ~2.2s, no turn >5s (hits the <3s gate gpt-4.1-mini missed at ~4s), all hard gates green
+// (two-phase book+cancel, name-gate, NL/EN), ~5x cheaper per token. SAFE-REVERT = LLM_PROVIDER=openai
+// (OPENAI_MODEL=gpt-4.1-mini, the prior live default, kept as fallback). Watch-item: gpt-oss-20b
+// once called get_business_data for opening hours instead of answering from injected <business_data>.
+// (Prior context) The System-Overhaul W1 latency measurement showed gpt-4.1-mini
 // is both FASTER (p50 ~4s vs gpt-5-mini's ~6-8s on 2-tool turns; no >10s) AND more tool-compliant
 // (it calls book/reschedule DIRECTLY on the first pass — gpt-5-mini stalled with an "ik check even"
 // announce and needed a server nudge), while preserving every hard gate (two-phase book/cancel,
