@@ -552,7 +552,14 @@ Deno.serve(async (req) => {
       reschedLang.test(result.text) && concreteWhenInText.test(result.text) &&
       !cancelIntent && !confirmCancel && !confirmStall && !bookPreviewMissed;
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed) {
+    // Empty-turn-no-action: the model returned NO text AND no successful mutation, e.g. a
+    // reschedule-to-a-closed-day request where gpt-oss-20b sometimes emits nothing, so the
+    // customer got the generic error fallback with no guidance. Nudge it once to actually
+    // answer. Empty text AFTER a successful mutation is handled deterministically later, so
+    // this targets only the no-success case. Excludes cancelCommitMissed (handled above).
+    const emptyNoAction = !(result.text || "").trim() && !succeededMutation && !cancelCommitMissed;
+
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || emptyNoAction) {
       const nudgeText = cancelCommitMissed
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true om 'm echt te annuleren, en antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
         : reschedStall
@@ -563,6 +570,8 @@ Deno.serve(async (req) => {
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
         : confirmStall
         ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde — herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
+        : emptyNoAction
+        ? "[systeem] Je gaf GEEN antwoord aan de klant. Beantwoord hun LAATSTE bericht kort en behulpzaam in hun taal: roep de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) als er een actie nodig is, of leg kort uit wat er kan. Vraagt de klant een dag die GESLOTEN is (zie <kalender>/<kalenders>), zeg dat dan eerlijk, noem de openingstijden en bied een open dag aan. Stuur nooit een lege of generieke foutmelding."
         : "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht.";
       const nudged: Content[] = [
         ...contents,
