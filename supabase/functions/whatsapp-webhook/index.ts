@@ -35,6 +35,15 @@ const MAX_REQUESTS_PER_WINDOW = 100;
 const VERIFY_TOKEN = Deno.env.get('WHATSAPP_VERIFY_TOKEN');
 const APP_SECRET = Deno.env.get('WHATSAPP_APP_SECRET');
 
+// Module-scope service-role client (B2 latency quick-win). Built ONCE per warm isolate rather
+// than per request, so warm invokes reuse the client + its kept-alive connections (the keep-warm
+// cron holds this isolate hot). Safe to share: stateless service-role, no per-request auth state.
+// createClient opens no socket by itself, and the keep-warm ping early-returns above this point.
+const supabaseClient = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+);
+
 // Critical security check on initialization
 if (!APP_SECRET) {
   console.error(`
@@ -187,11 +196,6 @@ serve(async (req) => {
   if (req.headers.get('x-keep-warm') === '1') {
     return new Response('warm', { status: 200, headers: corsHeaders })
   }
-
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-  )
 
   const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
 

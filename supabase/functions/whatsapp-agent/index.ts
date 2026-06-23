@@ -18,6 +18,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Module-scope service-role client (B2 latency quick-win). Created ONCE per warm isolate
+// instead of per invoke, so a warm request reuses the client + its kept-alive HTTP/TLS
+// connections (the keep-warm cron holds the isolate warm, so this stays hot between calls).
+// Safe to share: it is a stateless SERVICE-ROLE client (no per-request auth/session state to
+// leak between customers). createClient itself opens no socket (the first query does), so this
+// adds no cold-start cost and the keep-warm ping still early-returns before any query runs.
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+);
+
 function nlTime(d: Date): string {
   const tz = "Europe/Amsterdam";
   const time = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz });
@@ -166,11 +177,6 @@ Deno.serve(async (req) => {
       });
     }
     phoneForFallback = phone;
-
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    );
 
     // --- Load context (own loader; get_conversation_context RPC is buggy) ---
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
