@@ -128,26 +128,56 @@ function deterministicConfirmation(
     return null;
   };
   const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
+  // The tool's `when` is always Dutch (nlWhen). Now that B1 makes this the PRIMARY reply on EVERY
+  // commit, an English customer would otherwise read a Dutch date inside an English sentence
+  // ("booked for dinsdag 30 juni"). Re-render the instant in English (same Europe/Amsterdam tz)
+  // from the ISO start_time the tool result carries, so the whole confirmation is one language.
+  const enWhen = (iso: string | undefined, fallback: string): string => {
+    if (!iso) return fallback;
+    const d = new Date(iso);
+    const date = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" });
+    const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" });
+    return `${date} ${time}`;
+  };
   const book = okResult("book_appointment");
   if (book) {
+    const bookWhen = en ? enWhen(book.start_time, book.when) : book.when;
     if (book.payment_url) {
       return en
-        ? `Your spot is reserved for ${book.when}. Please complete the payment here to confirm: ${book.payment_url}`
-        : `Je plek is gereserveerd voor ${book.when}. Rond de betaling af via deze link om te bevestigen: ${book.payment_url}`;
+        ? `Your spot is reserved for ${bookWhen}. Please complete the payment here to confirm: ${book.payment_url}`
+        : `Je plek is gereserveerd voor ${bookWhen}. Rond de betaling af via deze link om te bevestigen: ${book.payment_url}`;
     }
-    return en ? `Done! You're booked for ${book.when}. 🎉` : `Gelukt! Je staat genoteerd voor ${book.when}. 🎉`;
+    return en ? `Done! You're booked for ${bookWhen}. 🎉` : `Gelukt! Je staat genoteerd voor ${bookWhen}. 🎉`;
   }
   const resched = okResult("reschedule_appointment");
   if (resched?.rescheduled?.to) {
+    const reWhen = en ? enWhen(resched.rescheduled.to_start_time, resched.rescheduled.to) : resched.rescheduled.to;
     return en
-      ? `Done, your appointment is now on ${resched.rescheduled.to}.`
-      : `Gedaan, je afspraak staat nu op ${resched.rescheduled.to}.`;
+      ? `Done, your appointment is now on ${reWhen}.`
+      : `Gedaan, je afspraak staat nu op ${reWhen}.`;
   }
   const cancel = okResult("cancel_appointment");
   if (cancel?.cancelled) {
     return en ? `Done, your appointment has been cancelled.` : `Gedaan, je afspraak is geannuleerd.`;
   }
   return null;
+}
+
+// B1 (2e-LLM-call collapse): a mutation tool result that represents a COMPLETED commit, exactly
+// the set deterministicConfirmation() can template. Used to (a) stop the agent loop right after a
+// successful book/cancel/reschedule so the compose model-call (call 2) never runs (~2-2.5s saved),
+// and (b) force the deterministic confirmation as the PRIMARY reply on committed turns. A PREVIEW
+// returns needs_confirmation (no ok:true) and is excluded, so two-phase preview turns stay
+// model-generated. Book commit / pay-and-book / same-turn already_booked carry ok:true; cancel
+// commit carries ok:true + cancelled; reschedule commit carries ok:true + rescheduled.to.
+function isCommittedMutation(name: string, result: unknown): boolean {
+  if (!result || typeof result !== "object") return false;
+  const r = result as Record<string, any>;
+  if (r.ok !== true) return false;
+  if (name === "book_appointment") return true;
+  if (name === "cancel_appointment") return !!r.cancelled;
+  if (name === "reschedule_appointment") return !!(r.rescheduled && r.rescheduled.to);
+  return false;
 }
 
 Deno.serve(async (req) => {
@@ -490,7 +520,11 @@ Deno.serve(async (req) => {
 
     // --- Run the agent ---
     const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
-    let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
+    // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
+    // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
+    // ~40% preview-prose drift on commit turns; the reply is templated deterministically below). Only
+    // the PRIMARY call gets it; the stall-retry below keeps call 2 (its accept-gate needs retry.text).
+    let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2, stopOnToolResult: isCommittedMutation });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
     // ("ik check even / momentje / one moment / ich prüfe …") and ends the turn WITHOUT
@@ -607,12 +641,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // If the model produced NO text but a mutation SUCCEEDED this turn, confirm deterministically
-    // from the tool result instead of the generic error fallback (gpt-oss-20b empty-text-after-
-    // commit, A2-WATCH). isErr treats a preview (needs_confirmation) as non-success, so an empty
-    // PREVIEW turn never falsely claims "booked" (only a real commit does).
+    // B1: on a turn that COMMITTED a book/cancel/reschedule, the confirmation is deterministic
+    // (NL/EN template from the tool result). The PRIMARY runAgent call already skipped call 2
+    // (stopOnToolResult), and even when a stall-retry composed prose we override it so a committed
+    // action can never read as a preview ("...klopt dat?", the A2-WATCH residue). Two-phase previews
+    // and info turns have no committed mutation, so they fall through and stay model-generated.
+    // Fallback (unchanged): empty text after a non-committed-but-succeeded mutation still templates,
+    // so an empty PREVIEW turn never falsely claims "booked" (isErr excludes needs_confirmation).
     let replyText = (result.text || "").trim();
-    if (!replyText) {
+    const committed = result.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
+    if (committed) {
+      replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || replyText;
+    } else if (!replyText) {
       const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
       if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || "";
     }

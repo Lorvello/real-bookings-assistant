@@ -70,6 +70,13 @@ export interface RunOpts {
   execute: ToolExecutor;
   maxSteps?: number;
   temperature?: number;
+  // B1 (2e-LLM-call collapse): when a tool result this step satisfies this predicate, STOP the
+  // loop and return empty text instead of making the follow-up model call that composes the prose.
+  // The caller (index.ts) passes the "successful book/cancel/reschedule COMMIT" predicate so a
+  // committed mutation skips call 2 (~2-2.5s saved) and the caller builds a deterministic
+  // confirmation from the tool result. Provider-agnostic: llm.ts knows nothing about booking
+  // semantics, only "if this fires, don't ask the model to write the reply".
+  stopOnToolResult?: (name: string, result: unknown) => boolean;
 }
 
 // Provider dispatch.
@@ -186,6 +193,12 @@ async function runAgentOpenAI(
       toolCalls.push({ name: tc.function.name, args, result });
       messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result) });
     }
+
+    // B1: if a tool this step committed a mutation the caller can confirm deterministically,
+    // stop now and skip the compose model-call (call 2). Empty text -> caller templates the reply.
+    if (opts.stopOnToolResult && toolCalls.some((t) => opts.stopOnToolResult!(t.name, t.result))) {
+      return { text: "", steps: step + 1, toolCalls };
+    }
   }
 
   return { text: "", steps: maxSteps, toolCalls };
@@ -283,6 +296,12 @@ async function runAgentGemini(opts: RunOpts): Promise<AgentResult> {
       responseParts.push({ functionResponse: fr });
     }
     contents.push({ role: "user", parts: responseParts });
+
+    // B1 (parity with the OpenAI/Groq path): stop after a caller-confirmable commit, skipping
+    // the compose model-call. Dormant while provider != gemini, kept identical for a clean flip.
+    if (opts.stopOnToolResult && toolCalls.some((t) => opts.stopOnToolResult!(t.name, t.result))) {
+      return { text: "", steps: step + 1, toolCalls };
+    }
   }
 
   return { text: "", steps: maxSteps, toolCalls };
