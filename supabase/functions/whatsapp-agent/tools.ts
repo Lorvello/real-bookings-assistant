@@ -1187,7 +1187,13 @@ export function createTools(
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();
-            return { error: "geen_boeking", message: "Die afspraak kan ik niet meer vinden om te annuleren (mogelijk al weg). Vraag de klant of er nog iets is." };
+            return {
+              error: "geen_boeking",
+              // message = customer-facing text the model may render; guidance = internal-only
+              // instruction (ITEM 3: keep directives OUT of customer-text strings).
+              message: "Die afspraak kan ik niet meer vinden om te annuleren, mogelijk is hij al weg.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
           }
           const b = target.booking!;
           // A2: enforce the policy of the calendar the booking actually lives in (it may be a
@@ -1195,11 +1201,19 @@ export function createTools(
           const policy = await getCalendarPolicy(supabase, b.calendar_id);
           if (!policy.allowCancellations) {
             await clearPending();
-            return { error: "annuleren_niet_toegestaan", message: "Annuleren kan bij dit bedrijf niet via de assistent. Zeg dit vriendelijk en verwijs de klant naar RECHTSTREEKS contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg NOOIT 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens." };
+            return {
+              error: "annuleren_niet_toegestaan",
+              message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
+              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
+            };
           }
           if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
             await clearPending();
-            return { error: "te_laat_annuleren", message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk via de assistent. Zeg dit vriendelijk en verwijs de klant naar RECHTSTREEKS contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg NOOIT 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.` };
+            return {
+              error: "te_laat_annuleren",
+              message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk via mij.`,
+              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
+            };
           }
           // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
           // reporting isn't blank — the policy was already enforced just above.
@@ -1230,7 +1244,8 @@ export function createTools(
         if (target.ambiguous) {
           return {
             error: "meerdere_afspraken",
-            message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant bedoelt.",
+            message: "Je hebt meerdere aankomende afspraken staan.",
+            guidance: "Vraag kort welke van deze afspraken de klant wil annuleren.",
             appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
           };
         }
@@ -1242,13 +1257,15 @@ export function createTools(
         if (!cancelPolicy.allowCancellations) {
           return {
             error: "annuleren_niet_toegestaan",
-            message: "Annuleren kan bij dit bedrijf niet via de assistent. Verwijs naar het annuleringsbeleid of vraag de klant contact op te nemen met het bedrijf.",
+            message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
+            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf (telefoon of e-mail uit <business_data> indien aanwezig); verzin geen contactgegevens.",
           };
         }
         if (cancelPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < cancelPolicy.cancellationDeadlineHours) {
           return {
             error: "te_laat_annuleren",
-            message: `Annuleren kan tot ${formatHoursNL(cancelPolicy.cancellationDeadlineHours)} van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.`,
+            message: `Annuleren kan tot ${formatHoursNL(cancelPolicy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk.`,
+            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf; bied eventueel aan een andere tijd te zoeken.",
           };
         }
 
@@ -1261,7 +1278,8 @@ export function createTools(
         return {
           needs_confirmation: true,
           appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time },
-          message: "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true.",
+          // guidance = internal-only (the model composes the customer-facing read-back itself).
+          guidance: "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true.",
         };
       }
 
