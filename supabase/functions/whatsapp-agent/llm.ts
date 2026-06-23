@@ -1,7 +1,9 @@
 // Tool-calling agent loop with a provider switch.
+//   LLM_PROVIDER=groq    -> Groq LPU, OpenAI-compatible (default model openai/gpt-oss-20b: fastest+cheapest)
 //   LLM_PROVIDER=openai  -> OpenAI Chat Completions (default model gpt-5-nano: fast + cheap)
 //   LLM_PROVIDER=gemini  -> Gemini Flash-Lite (original; kept for easy revert)
-// Default is gemini unless LLM_PROVIDER is set. Only this file knows the wire formats.
+// Default is gemini unless LLM_PROVIDER is set. groq + openai share runAgentOpenAI (Chat
+// Completions wire format) parameterized by {baseUrl, key, model}. Only this file knows the formats.
 // LIVE (Supabase secrets, verified 2026-06-19): LLM_PROVIDER=openai, OPENAI_MODEL=gpt-4.1-mini
 // -> production runs gpt-4.1-mini. The System-Overhaul W1 latency measurement showed gpt-4.1-mini
 // is both FASTER (p50 ~4s vs gpt-5-mini's ~6-8s on 2-tool turns; no >10s) AND more tool-compliant
@@ -68,7 +70,25 @@ export interface RunOpts {
 // Provider dispatch.
 export async function runAgent(opts: RunOpts): Promise<AgentResult> {
   const provider = (Deno.env.get("LLM_PROVIDER") || "gemini").toLowerCase();
-  if (provider === "openai") return runAgentOpenAI(opts);
+  // Groq = OpenAI-compatible Chat Completions on the LPU (sub-100ms TTFT). Reuses the OpenAI
+  // path with a different base URL + key + model. A1 RE-EVAL (2026-06-23): direct-probe warm
+  // p50 ~0.3s/tool-turn + ~0.6-0.75s/book-turn on openai/gpt-oss-20b, ~5-13x faster than
+  // gpt-4.1-mini AND cheaper ($0.075/$0.30 per 1M). Groq is behind Cloudflare (postOpenAI sends
+  // a Mozilla UA so a Deno UA isn't 403'd with code 1010).
+  if (provider === "groq") {
+    return runAgentOpenAI(opts, {
+      baseUrl: "https://api.groq.com/openai/v1",
+      key: Deno.env.get("GROQ_API_KEY") ?? "",
+      model: Deno.env.get("GROQ_MODEL") || "openai/gpt-oss-20b",
+    });
+  }
+  if (provider === "openai") {
+    return runAgentOpenAI(opts, {
+      baseUrl: "https://api.openai.com/v1",
+      key: Deno.env.get("OPENAI_API_KEY") ?? "",
+      model: Deno.env.get("OPENAI_MODEL") || "gpt-5-nano",
+    });
+  }
   return runAgentGemini(opts);
 }
 
@@ -77,16 +97,18 @@ export async function runAgent(opts: RunOpts): Promise<AgentResult> {
 // GPT-5 reasoning models: no custom temperature (only default), use
 // max_completion_tokens, reasoning_effort=minimal for speed/cost.
 // ---------------------------------------------------------------------------
-async function postOpenAI(key: string, body: unknown): Promise<any> {
+async function postOpenAI(baseUrl: string, key: string, body: unknown): Promise<any> {
   let lastErr = "";
   for (let attempt = 0; attempt < 3; attempt++) {
-    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    const resp = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      // Mozilla UA: Groq sits behind Cloudflare, which 403s (code 1010) a default Deno UA.
+      // Harmless for OpenAI. Same WAF-evasion pattern as the Supabase Mgmt-API helper.
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}`, "User-Agent": "Mozilla/5.0" },
       body: JSON.stringify(body),
     });
     if (resp.ok) return await resp.json();
-    lastErr = `OpenAI ${resp.status}: ${(await resp.text()).slice(0, 300)}`;
+    lastErr = `LLM ${resp.status}: ${(await resp.text()).slice(0, 300)}`;
     if (resp.status === 429 || resp.status >= 500) {
       await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
       continue;
@@ -96,10 +118,13 @@ async function postOpenAI(key: string, body: unknown): Promise<any> {
   throw new Error(lastErr || "OpenAI failed after retries");
 }
 
-async function runAgentOpenAI(opts: RunOpts): Promise<AgentResult> {
-  const key = Deno.env.get("OPENAI_API_KEY");
-  if (!key) throw new Error("OPENAI_API_KEY ontbreekt");
-  const model = Deno.env.get("OPENAI_MODEL") || "gpt-5-nano";
+async function runAgentOpenAI(
+  opts: RunOpts,
+  cfg: { baseUrl: string; key: string; model: string },
+): Promise<AgentResult> {
+  const { baseUrl, model } = cfg;
+  const key = cfg.key;
+  if (!key) throw new Error("LLM API key ontbreekt (OPENAI_API_KEY / GROQ_API_KEY)");
   const maxSteps = opts.maxSteps ?? 6;
   const toolCalls: AgentResult["toolCalls"] = [];
 
@@ -129,7 +154,7 @@ async function runAgentOpenAI(opts: RunOpts): Promise<AgentResult> {
       body.tool_choice = "auto";
     }
 
-    const data = await postOpenAI(key, body);
+    const data = await postOpenAI(baseUrl, key, body);
     const msg = data?.choices?.[0]?.message;
     if (!msg) return { text: "", steps: step + 1, toolCalls };
 
