@@ -179,6 +179,15 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Keep-warm ping (pg_cron, every few min). Return immediately, BEFORE any
+  // signature validation, DB work or agent invoke. A scheduled ping keeps this
+  // function's isolate + module graph warm so the first real "hallo" of the day
+  // does not pay a deep cold start (~2.2s measured). Harmless if hit by anyone:
+  // it processes nothing, touches no data and reveals nothing.
+  if (req.headers.get('x-keep-warm') === '1') {
+    return new Response('warm', { status: 200, headers: corsHeaders })
+  }
+
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',

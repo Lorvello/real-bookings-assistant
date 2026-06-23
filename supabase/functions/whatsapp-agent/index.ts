@@ -142,6 +142,16 @@ function deterministicConfirmation(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Keep-warm ping (pg_cron, every few min). Return BEFORE parsing the body,
+  // loading context or calling the LLM, so a scheduled ping keeps this function's
+  // isolate + module graph warm at ~zero cost (no Groq call, no DB read). Without
+  // this, the first real message after an idle gap pays a deep cold start (the
+  // agent ran 5.3s cold vs ~2.4s warm in measurement). The ping still passes the
+  // gateway's verify_jwt via the public anon key (see the cron migration).
+  if (req.headers.get("x-keep-warm") === "1") {
+    return new Response("warm", { status: 200, headers: corsHeaders });
+  }
+
   // Hoisted so the catch can send the customer a graceful fallback instead of leaving them
   // hanging: the inbound message is already recorded + the webhook already 200'd Meta, so a
   // thrown agent run would otherwise silently drop the message (Meta won't retry).
