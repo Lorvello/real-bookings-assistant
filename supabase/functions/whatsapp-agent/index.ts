@@ -11,7 +11,7 @@ import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from ".
 import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours } from "./tools.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
-import { sanitizeReply } from "../_shared/sanitizeReply.ts";
+import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -668,6 +668,20 @@ Deno.serve(async (req) => {
     // WhatsApp send and the persisted transcript so they always match.
     const reply = sanitizeReply(replyText) ||
       "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
+
+    // One-question-per-turn discipline (ITEM 4): the prompt (<role>/<booking_flow>) asks for
+    // exactly one clear next step per turn, but a 20B/temp-0.2 model does not always hold it
+    // (persona-probe: it bundled service + day/time + staff into one message). Flag, never
+    // rewrite, a reply that stacks two or more questions: a tone slip is not a wrong-DB-state,
+    // so mangling a legit binary offer ("om 10:00 of 14:00?") would be worse than the slip.
+    // The warn makes the slip visible in the edge logs and provable on the testpad (defense-in-depth).
+    const questionCount = countCustomerQuestions(reply);
+    if (questionCount >= 2) {
+      console.warn(
+        `one-question-guardrail: reply stacks ${questionCount} questions (expected 1):`,
+        JSON.stringify(reply),
+      );
+    }
 
     // --- Reply + persist outbound ---
     const send = await sendWhatsAppText(phone, reply);

@@ -83,6 +83,26 @@ export function stripInternalDirectives(text: string): { clean: string; stripped
   return { clean: t, stripped };
 }
 
+// --- 1b. One-question-per-turn detector (defense-in-depth regression signal) ---------
+
+// Count the customer-facing questions in a reply. The persona-probe found the 20B/temp-0.2
+// model bundling service + day/time + staff into ONE message (two or more questions at once),
+// which a prompt rule alone does not reliably prevent on a small model. The prompt
+// (<role> + <booking_flow>) does the behavioural work; this is its "garantie in code" companion,
+// but a deliberately NON-destructive one: asking two things is a tone slip, not a wrong-DB-state,
+// so the reply is never auto-rewritten (that would risk mangling a legit binary offer like
+// "om 10:00 of 14:00?", which is ONE question). Instead the choke point (index.ts) flags a 2+
+// result so the slip is visible in the edge logs and assertable on the testpad (ITEM 4 / ITEM 7).
+// Method: ignore URLs (a payment link's query string contains "?"), then count runs of "?" so
+// "echt??" counts once and "10:00 of 14:00?" counts once, while "welke dienst? en wanneer?"
+// counts twice.
+export function countCustomerQuestions(text: string): number {
+  if (!text) return 0;
+  const noUrls = text.replace(/https?:\/\/\S+/gi, " ");
+  const runs = noUrls.match(/\?+/g);
+  return runs ? runs.length : 0;
+}
+
 // --- 2. Em-dash hygiene + public entry point ----------------------------------------
 
 export function sanitizeReply(text: string): string {
