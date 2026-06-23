@@ -29,8 +29,12 @@ export const createDefaultCalendarSettings = async (
 
   try {
     const defaultSettings = {
+      // confirmation_required + allow_waitlist are INERT (ITEM 2, 2026-06-23): not honored by
+      // the WhatsApp agent and not enforced anywhere. confirmation_required defaults to false
+      // to match real instant-booking behavior (a true default was a landmine for a future
+      // naive wiring). See migration 20260623120000_neutralize_orphaned_booking_flags.sql.
       calendar_id: calendarId,
-      confirmation_required: true,
+      confirmation_required: false,
       allow_waitlist: false,
       whatsapp_bot_active: false,
       slot_duration: 30,
