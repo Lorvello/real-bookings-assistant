@@ -246,6 +246,37 @@ serve(async (req) => {
   }
 });
 
+// Stripe rejects business_profile.url unless it is a valid URL. A merchant who saved
+// junk in the website field (e.g. " v v") must NOT be blocked from onboarding, so we
+// validate and skip an invalid value instead of passing it through.
+function sanitizeWebsiteUrl(raw: any): string | null {
+  if (typeof raw !== 'string') return null;
+  const s = raw.trim();
+  if (!s || /\s/.test(s) || !s.includes('.')) return null;
+  const withScheme = /^https?:\/\//i.test(s) ? s : `https://${s}`;
+  try {
+    const u = new URL(withScheme);
+    if ((u.protocol !== 'http:' && u.protocol !== 'https:') || !u.hostname.includes('.')) return null;
+    return u.href;
+  } catch {
+    return null;
+  }
+}
+
+// Stripe rejects business_profile.support_phone when it is not a plausible phone number.
+// A merchant who saved junk (letters, too few digits) in the phone field must NOT be blocked
+// from onboarding (same failure class as the website field), so we validate and skip an
+// invalid value instead of passing it through. Returns the trimmed phone or null to skip.
+function sanitizePhone(raw: any): string | null {
+  if (typeof raw !== 'string') return null;
+  const s = raw.trim().replace(/\s+/g, ' ');
+  if (!s) return null;
+  const digits = (s.match(/\d/g) ?? []).length;
+  // Only phone punctuation + at least 7 digits; rejects letters/junk, accepts common formats.
+  if (!/^[+\d\s().-]+$/.test(s) || digits < 7) return null;
+  return s;
+}
+
 async function createNewStripeAccount(stripe: any, user: any, prefillData: any): Promise<string> {
   const accountData: any = {
     type: 'express',
@@ -256,16 +287,19 @@ async function createNewStripeAccount(stripe: any, user: any, prefillData: any):
     }
   };
   
-  // Only add non-restricted prefill data for new accounts
-  if (prefillData.business_phone) {
+  // Only add non-restricted prefill data for new accounts. Skip a malformed phone so a junk
+  // value can never block account creation (mirrors the website sanitize below).
+  const safePhone = sanitizePhone(prefillData.business_phone);
+  if (safePhone) {
     accountData.business_profile = {
-      support_phone: prefillData.business_phone
+      support_phone: safePhone
     };
   }
   
-  if (prefillData.website) {
+  const safeWebsite = sanitizeWebsiteUrl(prefillData.website);
+  if (safeWebsite) {
     accountData.business_profile = accountData.business_profile || {};
-    accountData.business_profile.url = prefillData.website;
+    accountData.business_profile.url = safeWebsite;
   }
   
   const stripeAccount = await stripe.accounts.create(accountData);

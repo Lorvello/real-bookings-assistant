@@ -8,7 +8,7 @@ import { businessTypes } from '@/constants/settingsOptions';
 import { PLATFORM_WHATSAPP_DISPLAY, PLATFORM_WHATSAPP_LABEL } from '@/constants/platform';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
-import { validateWebsite } from '@/utils/socialValidation';
+import { validateWebsite, validateEmail, validatePhone, type FieldValidation } from '@/utils/socialValidation';
 import { SettingsSection } from './SettingsSection';
 import { SettingsField } from './SettingsField';
 import { SettingsSaveBar } from './SettingsSaveBar';
@@ -34,6 +34,10 @@ export const AIKnowledgeTab: React.FC = () => {
     website?: string; instagram?: string; facebook?: string;
     linkedin?: string; tiktok?: string; youtube?: string; x?: string;
   }>({});
+  // Per-field validation errors for the validated BUSINESS fields (email, phone). These flow
+  // downstream: business_phone is sent to Stripe Connect as support_phone (rejected when
+  // malformed, like the website bug), and both are shared by the WhatsApp agent.
+  const [businessErrors, setBusinessErrors] = useState<Record<string, string | undefined>>({});
 
   // Sync local state when the server data arrives / changes. The settings shell only
   // mounts this tab once profileData has an id, so local state is initialised from
@@ -79,6 +83,14 @@ export const AIKnowledgeTab: React.FC = () => {
     { key: 'website', validate: (v) => validateWebsite(v) },
   ];
 
+  // Business fields that carry a format validator (the rest are free text, only trimmed).
+  // Keyed by DB column. Email + phone flow downstream (Stripe support_phone / agent), so a
+  // malformed value is blocked + flagged here, exactly like the website field.
+  const BUSINESS_VALIDATORS: Record<string, (v: string) => FieldValidation> = {
+    business_email: validateEmail,
+    business_phone: validatePhone,
+  };
+
   // The business fields this tab owns (everything it can edit on this page).
   const BUSINESS_FIELDS = [
     'business_name', 'business_type', 'business_type_other',
@@ -96,15 +108,28 @@ export const AIKnowledgeTab: React.FC = () => {
   const saveAllChanges = async () => {
     const changes: Record<string, any> = {};
 
+    // Business fields: trim every text value (the website bug was untrimmed junk " v v"),
+    // and run the format validator on the validated ones (email/phone). An invalid value is
+    // flagged inline + skipped (never written), mirroring the link-field flow below.
+    const nextBusinessErrors: Record<string, string | undefined> = {};
+    let skippedInvalid = 0;
     for (const k of BUSINESS_FIELDS) {
-      const localVal = (localBusinessData as any)?.[k] ?? '';
+      const rawLocal = (localBusinessData as any)?.[k] ?? '';
+      const localVal = typeof rawLocal === 'string' ? rawLocal.trim() : rawLocal;
       const serverVal = (businessData as any)?.[k] ?? '';
+      const validate = BUSINESS_VALIDATORS[k];
+      if (validate) {
+        const r = validate(typeof localVal === 'string' ? localVal : '');
+        if (!r.ok) { nextBusinessErrors[k] = r.error; skippedInvalid++; continue; }
+        if (r.normalized !== serverVal) changes[k] = r.normalized;
+        continue;
+      }
       if (localVal !== serverVal) changes[k] = localVal;
     }
+    setBusinessErrors(nextBusinessErrors);
 
     const nextErrors: typeof socialErrors = {};
     const normalizedUpdates: Record<string, string> = {};
-    let skippedInvalid = 0;
     for (const { key, validate } of SOCIAL_FIELDS) {
       const raw = (localProfileData as any)?.[key] ?? '';
       const r = validate(raw);
@@ -188,9 +213,23 @@ export const AIKnowledgeTab: React.FC = () => {
       textarea?: boolean;
       rows?: number;
       hint?: React.ReactNode;
+      validate?: (v: string) => FieldValidation;
     },
   ) => {
     const value = (localBusinessData as any)?.[field] || '';
+    const error = businessErrors[field];
+    const onChange = (v: string) => {
+      updateBusinessField(field, v);
+      // Clear a standing error the moment the user edits, so they aren't nagged while typing.
+      if (error) setBusinessErrors((prev) => ({ ...prev, [field]: undefined }));
+    };
+    // Validate on blur (only for validated fields) so junk is caught before save, like website.
+    const onBlur = opts?.validate
+      ? (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+          const r = opts.validate!(e.target.value);
+          setBusinessErrors((prev) => ({ ...prev, [field]: r.ok ? undefined : r.error }));
+        }
+      : undefined;
     return (
       <SettingsField
         label={label}
@@ -199,12 +238,13 @@ export const AIKnowledgeTab: React.FC = () => {
         optional={opts?.optional}
         required={opts?.required}
         hint={opts?.hint}
+        error={error}
       >
         {opts?.textarea ? (
           <Textarea
             id={field}
             value={value}
-            onChange={(e) => updateBusinessField(field, e.target.value)}
+            onChange={(e) => onChange(e.target.value)}
             rows={opts.rows ?? 3}
             placeholder={opts?.placeholder}
           />
@@ -212,8 +252,10 @@ export const AIKnowledgeTab: React.FC = () => {
           <Input
             id={field}
             value={value}
-            onChange={(e) => updateBusinessField(field, e.target.value)}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
             placeholder={opts?.placeholder}
+            aria-invalid={!!error}
           />
         )}
       </SettingsField>
@@ -312,8 +354,8 @@ export const AIKnowledgeTab: React.FC = () => {
               </p>
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {businessField('business_email', 'Business email', { placeholder: 'name@yourbusiness.com', optional: true })}
-              {businessField('business_phone', 'Business phone', { placeholder: '+31 6 12345678', optional: true })}
+              {businessField('business_email', 'Business email', { placeholder: 'name@yourbusiness.com', optional: true, validate: validateEmail })}
+              {businessField('business_phone', 'Business phone', { placeholder: '+31 6 12345678', optional: true, validate: validatePhone })}
               <div className="md:col-span-2">
                 <SettingsField
                   label={PLATFORM_WHATSAPP_LABEL}

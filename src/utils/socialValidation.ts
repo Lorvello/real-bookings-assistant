@@ -30,6 +30,39 @@ export function validateWebsite(raw?: string | null): FieldValidation {
   }
 }
 
+// A basic email shape: something@something.tld, no whitespace. Deliberately permissive
+// (full RFC 5322 is overkill and rejects valid addresses); the goal is to catch obvious
+// junk (no @, spaces, missing domain) before it is stored and shown by the agent.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Business email: optional. Trim; must look like an email. Stored as typed (trimmed). */
+export function validateEmail(raw?: string | null): FieldValidation {
+  const value = (raw ?? '').trim();
+  if (!value) return { ok: true, normalized: '' };
+  if (!EMAIL_RE.test(value)) {
+    return { ok: false, normalized: value, error: 'Enter a valid email, e.g. name@yourbusiness.com' };
+  }
+  return { ok: true, normalized: value };
+}
+
+/**
+ * Business phone: optional. Trim and collapse internal whitespace. Must be a plausible
+ * phone (only +, digits, spaces, -, (), . and at least 7 digits). This is the field sent
+ * to Stripe Connect as business_profile.support_phone, which Stripe rejects when malformed
+ * (mirrors the website-field bug). Random text is rejected here too.
+ */
+export function validatePhone(raw?: string | null): FieldValidation {
+  const value = (raw ?? '').trim().replace(/\s+/g, ' ');
+  if (!value) return { ok: true, normalized: '' };
+  const digits = (value.match(/\d/g) ?? []).length;
+  // Only phone punctuation (+, digits, spaces, -, (), .) and at least 7 digits. Rejects
+  // letters/junk but accepts "(020) 123-4567", "+31 6 12345678", "0612345678".
+  if (!/^[+\d\s().-]+$/.test(value) || digits < 7) {
+    return { ok: false, normalized: value, error: 'Enter a valid phone number, e.g. +31 6 12345678' };
+  }
+  return { ok: true, normalized: value };
+}
+
 export interface SocialPlatform {
   /** canonical domain, e.g. instagram.com */
   domain: string;
