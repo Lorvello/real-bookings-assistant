@@ -1176,11 +1176,11 @@ export function createTools(
           const policy = await getCalendarPolicy(supabase, b.calendar_id);
           if (!policy.allowCancellations) {
             await clearPending();
-            return { error: "annuleren_niet_toegestaan", message: "Annuleren kan bij dit bedrijf niet via de assistent. Verwijs naar het annuleringsbeleid." };
+            return { error: "annuleren_niet_toegestaan", message: "Annuleren kan bij dit bedrijf niet via de assistent. Zeg dit vriendelijk en verwijs de klant naar RECHTSTREEKS contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg NOOIT 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens." };
           }
           if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
             await clearPending();
-            return { error: "te_laat_annuleren", message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren. Voor deze afspraak is dat niet meer mogelijk; verwijs naar het annuleringsbeleid.` };
+            return { error: "te_laat_annuleren", message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk via de assistent. Zeg dit vriendelijk en verwijs de klant naar RECHTSTREEKS contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg NOOIT 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.` };
           }
           // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
           // reporting isn't blank — the policy was already enforced just above.
