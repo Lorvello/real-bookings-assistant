@@ -95,6 +95,50 @@ function detectCustomerLanguage(msg: string): string | null {
   return LANG_NL_NAME[best] ?? null;
 }
 
+// gpt-oss-20b intermittently returns EMPTY text after a SUCCESSFUL commit tool call (~40% of
+// commit turns observed): the booking/reschedule/cancel went through (DB correct) but the model
+// emitted no final message, so the customer got the generic "Sorry, iets mis" fallback, telling
+// them it failed when it did not (the A2-WATCH issue). When the model gave no text but a mutation
+// SUCCEEDED this turn, build a deterministic confirmation from the tool result instead. The action
+// already happened, so this touches no gate. NL by default; English for any non-Dutch customer
+// (the universal floor; the model normally writes the customer's language, this is the rare
+// fallback). `when` is the tool's already-formatted local time.
+function deterministicConfirmation(
+  toolCalls: { name: string; result: unknown }[],
+  customerLanguage: string | null,
+): string | null {
+  const okResult = (name: string): Record<string, any> | null => {
+    for (let i = toolCalls.length - 1; i >= 0; i--) {
+      const t = toolCalls[i];
+      if (t.name === name && t.result && typeof t.result === "object" && (t.result as Record<string, unknown>).ok === true) {
+        return t.result as Record<string, any>;
+      }
+    }
+    return null;
+  };
+  const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
+  const book = okResult("book_appointment");
+  if (book) {
+    if (book.payment_url) {
+      return en
+        ? `Your spot is reserved for ${book.when}. Please complete the payment here to confirm: ${book.payment_url}`
+        : `Je plek is gereserveerd voor ${book.when}. Rond de betaling af via deze link om te bevestigen: ${book.payment_url}`;
+    }
+    return en ? `Done! You're booked for ${book.when}. 🎉` : `Gelukt! Je staat genoteerd voor ${book.when}. 🎉`;
+  }
+  const resched = okResult("reschedule_appointment");
+  if (resched?.rescheduled?.to) {
+    return en
+      ? `Done, your appointment is now on ${resched.rescheduled.to}.`
+      : `Gedaan, je afspraak staat nu op ${resched.rescheduled.to}.`;
+  }
+  const cancel = okResult("cancel_appointment");
+  if (cancel?.cancelled) {
+    return en ? `Done, your appointment has been cancelled.` : `Gedaan, je afspraak is geannuleerd.`;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -538,10 +582,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    // If the model produced NO text but a mutation SUCCEEDED this turn, confirm deterministically
+    // from the tool result instead of the generic error fallback (gpt-oss-20b empty-text-after-
+    // commit, A2-WATCH). isErr treats a preview (needs_confirmation) as non-success, so an empty
+    // PREVIEW turn never falsely claims "booked" (only a real commit does).
+    let replyText = (result.text || "").trim();
+    if (!replyText) {
+      const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
+      if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || "";
+    }
+
     // Deterministic outbound hygiene: strip em-dashes etc. (the "written by AI" tell) so it
-    // never depends on the model obeying the prompt rule. Applied once → used for BOTH the
+    // never depends on the model obeying the prompt rule. Applied once, used for BOTH the
     // WhatsApp send and the persisted transcript so they always match.
-    const reply = sanitizeReply(result.text || "") ||
+    const reply = sanitizeReply(replyText) ||
       "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
     // --- Reply + persist outbound ---

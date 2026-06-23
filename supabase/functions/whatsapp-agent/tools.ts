@@ -645,9 +645,17 @@ export function createTools(
   // Turn-local: how many book_appointment PREVIEWS happened this turn. The two-phase
   // flow stores a SINGLE pending_booking, so a compound request ("book Monday 15:30 AND
   // Tuesday 09:30") previewed twice would keep only the last and then commit one while
-  // the model's prose claims both — agent/DB divergence. We refuse a 2nd preview in the
+  // the model's prose claims both (agent/DB divergence). We refuse a 2nd preview in the
   // same turn and tell the model to handle one booking at a time.
   let bookPreviewsThisTurn = 0;
+
+  // Turn-local: once a booking has COMMITTED this turn, remember it so a redundant 2nd
+  // book_appointment call in the SAME turn (gpt-oss-20b sometimes re-fires after committing)
+  // returns the already-booked confirmation instead of running a fresh preview that finds the
+  // slot "taken" by the customer's OWN just-made booking and tells them it's unavailable
+  // (DB correct, reply contradicts it; the A2-WATCH redundant-call case). One commit per turn,
+  // so this never blocks a legitimate booking.
+  let bookedThisTurn: { when: string; payment_url?: string } | null = null;
 
   const execute: ToolExecutor = async (name, args) => {
     switch (name) {
@@ -764,6 +772,18 @@ export function createTools(
       }
 
       case "book_appointment": {
+        // Idempotency for a redundant SAME-TURN re-fire after a successful commit: return the
+        // already-booked confirmation immediately, so the model can't run a fresh preview that
+        // reports the slot "taken" by the customer's own just-made booking (A2-WATCH).
+        if (bookedThisTurn) {
+          return {
+            ok: true,
+            already_booked: true,
+            when: bookedThisTurn.when,
+            ...(bookedThisTurn.payment_url ? { payment_required: true, payment_url: bookedThisTurn.payment_url } : {}),
+            message: "Deze afspraak is in deze beurt AL geboekt. Bevestig dat kort en vriendelijk; zeg NIET dat de tijd bezet of niet beschikbaar is en boek niet opnieuw.",
+          };
+        }
         // Server-driven TWO-PHASE booking (mirrors cancel_appointment): the first call only
         // PREVIEWS (stores a pending_booking proposal, NO insert), the customer confirms, then
         // the COMMIT inserts using the SERVER-STORED exact values. This makes an accidental
@@ -1070,7 +1090,9 @@ export function createTools(
 
         if (!paymentRequired) {
           await clearPendingBook();
-          return { ok: true, booking_id: booking.id, start_time: booking.start_time, when: nlWhen(booking.start_time) };
+          const whenNL = nlWhen(booking.start_time);
+          bookedThisTurn = { when: whenNL };
+          return { ok: true, booking_id: booking.id, start_time: booking.start_time, when: whenNL };
         }
 
         // Pay-and-book: mint a hosted Stripe payment link tied to THIS booking via
@@ -1108,11 +1130,13 @@ export function createTools(
           };
         }
         await clearPendingBook();
+        const whenPayNL = nlWhen(booking.start_time);
+        bookedThisTurn = { when: whenPayNL, payment_url: payUrl };
         return {
           ok: true,
           booking_id: booking.id,
           start_time: booking.start_time,
-          when: nlWhen(booking.start_time),
+          when: whenPayNL,
           payment_required: true,
           payment_url: payUrl,
         };
