@@ -494,7 +494,7 @@ export function createTools(
     {
       name: "get_business_data",
       description:
-        "Bedrijfsinfo en beleid: adres/locatie, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding en contact (e-mail/telefoon/WhatsApp-nummer). Gebruik bij vragen over het bedrijf, waar ze zitten, wanneer ze open zijn, of hoe je ze bereikt.",
+        "ZELDZAME fallback voor bedrijfsinfo/beleid (adres, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact). Deze info staat AL in <business_data> in je context: beantwoord vragen over het bedrijf, openingstijden, locatie en contact DAAR direct uit, zonder deze tool. Roep dit ALLEEN aan als een gevraagd detail echt NIET in <business_data> staat.",
       parameters: { type: "object", properties: {} },
     },
     {
@@ -624,7 +624,15 @@ export function createTools(
     switch (name) {
       case "get_business_data": {
         const out = await fetchBusinessData(supabase, ctx.businessUserId);
-        return out ?? { error: "geen bedrijfsdata" };
+        if (!out) return { error: "geen bedrijfsdata" };
+        // Single source of truth for opening hours = the BOOKABLE weekly schedule
+        // (availability_rules via getCalendarWeeklyHours), IDENTICAL to what index.ts injects
+        // into <business_data>. Without this the tool returned a SEPARATE, often-stale
+        // business_overview_v2.calendars[0].opening_hours, so a model that called this tool for
+        // hours got values inconsistent with the injected context (A1d, 2026-06-23).
+        const wh = await getCalendarWeeklyHours(supabase, ctx.calendarId);
+        if (wh?.text) out.opening_hours = wh.text;
+        return out;
       }
 
       case "get_my_appointments": {
