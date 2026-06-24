@@ -21,10 +21,25 @@ import { AuthContext } from '@/contexts/AuthContext';
 import { UserStatusContext } from '@/contexts/UserStatusContext';
 import { CalendarContext } from '@/contexts/CalendarContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-// useIsMobile() returns false on first paint, so the shell briefly renders the
-// desktop sidebar (CalendarSwitcherSection needs CalendarContext); supply it so
-// the harness survives that first render even at a mobile width.
+// A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
+// (in the render body, before any passive effect runs). That first value is what
+// drives the desktop-shell flash: at a mobile width it MUST be true. Read it via
+// window.__firstPaintMobile after mount. Dev-only.
+(window as any).__firstPaintMobile = undefined;
+function FirstPaintProbe() {
+  const mobile = useIsMobile();
+  if ((window as any).__firstPaintMobile === undefined) {
+    (window as any).__firstPaintMobile = mobile;
+  }
+  return null;
+}
+
+// When this harness is driven at a DESKTOP width the real desktop sidebar mounts
+// and CalendarSwitcherSection needs CalendarContext; supply it so desktop runs of
+// the harness survive. (Since the A1a useIsMobile first-paint fix the sidebar no
+// longer flashes in at mobile widths, but the mock stays for the desktop case.)
 const calendars: any[] = [
   { id: 'cal-1', name: 'Glow Studio', slug: 'glow-studio', timezone: 'Europe/Amsterdam', is_active: true },
 ];
@@ -108,6 +123,7 @@ function Harness() {
       <AuthContext.Provider value={mockAuthValue}>
         <UserStatusContext.Provider value={mockUserStatusValue}>
           <CalendarContext.Provider value={mockCalendarValue}>
+            <FirstPaintProbe />
             <div className="dark">
               <DashboardLayout>
                 <TallContent />
