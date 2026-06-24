@@ -192,7 +192,7 @@ function isBeyondWindowNL(date: unknown, windowDays: number | null): boolean {
 // Extract clock times ("14:00", "14.30", "14u30", "2 uur") from a message, normalised to
 // HH:MM. Server-side disambiguation fallback: the small model often fails to pass match_time,
 // so we read the time the customer named directly to resolve WHICH booking they meant.
-function extractClockTimes(msg: unknown): string[] {
+export function extractClockTimes(msg: unknown): string[] {
   const s = typeof msg === "string" ? msg : "";
   const out: string[] = [];
   const re = /(\d{1,2})[:.u](\d{2})|(\d{1,2})\s*uur/gi;

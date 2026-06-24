@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours } from "./tools.ts";
+import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -158,6 +159,11 @@ function deterministicPreview(
   const head = svc ? `Ik zet ${svc} op ${when}` : `Ik zet je op ${when}`;
   return name ? `${head} op naam ${name}, klopt dat?` : `${head}, klopt dat?`;
 }
+
+// ---------------------------------------------------------------------------
+// P0-1 slot-offer guard (the "no fabricated time" guarantee) lives in ./slotOfferGuard.ts,
+// extracted so its pure logic is unit-testable. Imported above; wired into reply-assembly
+// below (enforceSlotOffer) + the no-query re-query nudge (extractOfferedClockTimes / OFFER_CONTEXT_RE).
 
 // gpt-oss-20b intermittently returns EMPTY text after a SUCCESSFUL commit tool call (~40% of
 // commit turns observed): the booking/reschedule/cancel went through (DB correct) but the model
@@ -670,7 +676,18 @@ Deno.serve(async (req) => {
     // this targets only the no-success case. Excludes cancelCommitMissed (handled above).
     const emptyNoAction = !(result.text || "").trim() && !succeededMutation && !cancelCommitMissed;
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || emptyNoAction) {
+    // P0-1: the reply OFFERS concrete clock times but the model called NO get_available_slots this
+    // turn (and no book/reschedule that resolved real slots) -> the offer has zero server backing.
+    // Nudge it to query first, so the deterministic guard in reply-assembly then has ground truth to
+    // validate against. Gated on offer-context + actually-offered times (ranges/echoes excluded), so
+    // info, recall and opening-hours replies never trigger it. !calledMutationTool excludes preview/
+    // commit turns (those carry their own real slots / deterministic templating).
+    const calledSlots = result.toolCalls.some((t) => t.name === "get_available_slots");
+    const offeredTimesPrimary = extractOfferedClockTimes(result.text || "", String(message));
+    const slotOfferUnbacked = !calledMutationTool && !calledSlots && offeredTimesPrimary.length > 0 &&
+      OFFER_CONTEXT_RE.test(result.text || "");
+
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || emptyNoAction || slotOfferUnbacked) {
       const nudgeText = cancelCommitMissed
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true om 'm echt te annuleren, en antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
         : bookCommitMissed
@@ -685,6 +702,8 @@ Deno.serve(async (req) => {
         ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde — herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
         : emptyNoAction
         ? "[systeem] Je gaf GEEN antwoord aan de klant. Beantwoord hun LAATSTE bericht kort en behulpzaam in hun taal: roep de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) als er een actie nodig is, of leg kort uit wat er kan. Vraagt de klant een dag die GESLOTEN is (zie <kalender>/<kalenders>), zeg dat dan eerlijk, noem de openingstijden en bied een open dag aan. Stuur nooit een lege of generieke foutmelding."
+        : slotOfferUnbacked
+        ? "[systeem] Je noemde concrete tijden zonder get_available_slots deze beurt aan te roepen. Verzin NOOIT zelf tijden. Roep NU get_available_slots aan voor de juiste dienst + datum (en bij meerdere agenda's de juiste calendar_index) en bied ALLEEN de tijden uit dat resultaat aan. Weet je de dienst of de dag nog niet, vraag die dan kort in plaats van een tijd te noemen."
         : "[systeem] Je kondigde een actie aan maar voerde 'm niet uit en riep geen tool aan. Voer de actie NU uit: roep direct de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) en antwoord met het resultaat, in de taal van de klant. Stuur geen 'ik check even'-bericht.";
       const nudged: Content[] = [
         ...contents,
@@ -727,6 +746,13 @@ Deno.serve(async (req) => {
       } else if (!replyText) {
         const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
         if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || "";
+      } else {
+        // P0-1: model-prose reply (not a committed mutation, not a server-templated preview).
+        // Enforce the "no fabricated time" guarantee: any clock time the reply OFFERS must come
+        // from THIS turn's real get_available_slots result, else rebuild the offer from the real
+        // free slots. No-ops on info/recall turns (no slots query ran), so it only ever touches a
+        // reply that proposes times while a query gave ground truth to check them against.
+        replyText = enforceSlotOffer(replyText, result.toolCalls, String(message), customerLanguage);
       }
     }
 
