@@ -10,6 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours } from "./tools.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
+import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -767,6 +768,15 @@ Deno.serve(async (req) => {
         // free slots. No-ops on info/recall turns (no slots query ran), so it only ever touches a
         // reply that proposes times while a query gave ground truth to check them against.
         replyText = enforceSlotOffer(replyText, result.toolCalls, String(message), customerLanguage);
+        // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
+        // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
+        // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"
+        // in the customer's language. Only model-prose passes here; server templates never hit it.
+        const beforeFW = replyText;
+        replyText = neutralizeForbiddenAvailabilityWords(replyText, customerLanguage);
+        if (replyText !== beforeFW) {
+          console.warn("forbidden-word-guard: neutralized availability word:", JSON.stringify(beforeFW));
+        }
       }
     }
 
