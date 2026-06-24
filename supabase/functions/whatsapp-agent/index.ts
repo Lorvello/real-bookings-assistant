@@ -43,7 +43,15 @@ function nlTime(d: Date): string {
 // of computing a relative date ("aanstaande zondag") or deciding "is that day open?" itself
 // (both failed live: it asked "welke zondag bedoel je?" and offered a closed Sunday). This
 // removes the date reasoning from the model entirely.
-function buildCalendarHint(now: Date, byDay: Record<string, { open: boolean; start?: string; end?: string }> | null): string | null {
+// includeStatus=true (single-calendar): each row carries the authoritative open/closed of THE
+// one calendar, so the model reads "is that day open?" straight off the table. includeStatus=false
+// (P1-2, MULTI-calendar): the table is a status-LESS date->ISO->weekday map only. Open/closed
+// differs per staff/location and lives in <kalenders>, so the shared table must not assert an
+// entry-centric open/closed the model could echo for the whole business or a non-entry agenda
+// (the "Maandag is open" claim was entry-calendar-centric: true for the entry calendar, wrong for
+// another agenda closed that day). Stripping the status removes the structural seduction at the
+// source instead of repeatedly warning the model against it.
+function buildCalendarHint(now: Date, byDay: Record<string, { open: boolean; start?: string; end?: string }> | null, includeStatus = true): string | null {
   if (!byDay) return null;
   const tz = "Europe/Amsterdam";
   const todayStr = now.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD in Amsterdam
@@ -52,13 +60,17 @@ function buildCalendarHint(now: Date, byDay: Record<string, { open: boolean; sta
   const lines: string[] = [];
   for (let i = 0; i < 14; i++) {
     const dt = new Date(Date.UTC(y, m - 1, d + i, 11, 0, 0)); // 11:00 UTC = mid-day Amsterdam (date-safe across DST)
-    const dutchDay = cap(dt.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz }));
     const label = dt.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: tz });
     const iso = dt.toLocaleDateString("en-CA", { timeZone: tz });
-    const st = byDay[dutchDay];
-    const status = st?.open ? `open ${st.start}-${st.end}` : "GESLOTEN";
     const mark = i === 0 ? " (vandaag)" : i === 1 ? " (morgen)" : "";
-    lines.push(`- ${label} [${iso}]: ${status}${mark}`);
+    if (includeStatus) {
+      const dutchDay = cap(dt.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz }));
+      const st = byDay[dutchDay];
+      const status = st?.open ? `open ${st.start}-${st.end}` : "GESLOTEN";
+      lines.push(`- ${label} [${iso}]: ${status}${mark}`);
+    } else {
+      lines.push(`- ${label} [${iso}]${mark}`);
+    }
   }
   return lines.join("\n");
 }
@@ -469,7 +481,9 @@ Deno.serve(async (req) => {
     }
     const openingStruct = weeklyHours?.byDay ??
       ((businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null);
-    const calendarHint = buildCalendarHint(now, openingStruct);
+    // P1-2: single-calendar -> the table carries the one calendar's open/closed (authoritative).
+    // Multi-calendar -> status-less date map only; per-agenda open/closed comes from <kalenders>.
+    const calendarHint = buildCalendarHint(now, openingStruct, !isMultiCalendar);
 
     // Booking horizon for the prompt: how far ahead this calendar accepts bookings
     // (booking_window_days). Without this the model called a far-future date "al voorbij"

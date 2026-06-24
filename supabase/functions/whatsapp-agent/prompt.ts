@@ -151,18 +151,26 @@ ${
     ctx.calendarHint
       ? `
 <kalender>
-Concrete agenda voor de komende 14 dagen (lees de datum én open/gesloten hier rechtstreeks af; reken NOOIT zelf een datum of weekdag uit):
+${
+        ctx.calendars && ctx.calendars.length > 1
+          ? "Concrete agenda voor de komende 14 dagen (gebruik deze tabel UITSLUITEND om een relatieve datum naar de juiste ISO-datum en weekdag om te zetten; open/gesloten staat er BEWUST niet in, want dat verschilt per persoon/locatie en lees je in <kalenders>; reken NOOIT zelf een datum of weekdag uit):"
+          : "Concrete agenda voor de komende 14 dagen (lees de datum én open/gesloten hier rechtstreeks af; reken NOOIT zelf een datum of weekdag uit):"
+      }
 ${ctx.calendarHint}
 - Zet ELKE relatieve datum om via deze lijst: "vandaag", "morgen", "overmorgen", "aanstaande/komende/deze [weekdag]" = de EERSTVOLGENDE rij met die weekdag hieronder, "volgende week [weekdag]" = die weekdag in de eerstvolgende hele week. Geef get_available_slots en book_appointment ALTIJD de ISO-datum [YYYY-MM-DD] uit deze lijst door.
-- Een genoemde weekdag of relatieve datum is NOOIT dubbelzinnig: pak gewoon de eerstvolgende passende rij. Vraag dus NOOIT "welke [weekdag]/datum bedoel je?" en bied NOOIT twee dagen als keuze aan; ga direct door (naar de boek-preview, die toont de datum zodat de klant kan corrigeren).
-- Vraagt de klant een dag die hier GESLOTEN is? Weiger die meteen en duidelijk ("we zijn die dag gesloten; onze openingstijden zijn ...") en bied een open dag aan. Vraag dan NOOIT "welke [weekdag] bedoel je?" of "welke datum?" — de datum staat hier al. Stel NOOIT een tijd voor op een GESLOTEN dag en boek er nooit op.
+- Een genoemde weekdag of relatieve datum is NOOIT dubbelzinnig: pak gewoon de eerstvolgende passende rij. Vraag dus NOOIT "welke [weekdag]/datum bedoel je?" en bied NOOIT twee dagen als keuze aan; ga direct door (naar de boek-preview, die toont de datum zodat de klant kan corrigeren).${
+        ctx.calendars && ctx.calendars.length > 1
+          ? ""
+          : `
+- Vraagt de klant een dag die hier GESLOTEN is? Weiger die meteen en duidelijk ("we zijn die dag gesloten; onze openingstijden zijn ...") en bied een open dag aan. Vraag dan NOOIT "welke [weekdag] bedoel je?" of "welke datum?" (de datum staat hier al). Stel NOOIT een tijd voor op een GESLOTEN dag en boek er nooit op.`
+      }
 - Noemt de klant een datum die VÓÓR vandaag (${ctx.todayISO}) ligt — dus al geweest? Zeg dan eerlijk en kort dat die datum al voorbij is en vraag om een datum in de toekomst. Zeg NOOIT dat je "die dag gesloten" bent (dat klopt niet en is verwarrend) en reken er nooit openingstijden bij. Boek of verzet nooit naar het verleden.${ctx.bookingHorizonISO ? `
 - Je kunt maximaal ${ctx.bookingWindowDays} dagen vooruit boeken, dus tot en met ${ctx.bookingHorizonNL} (ISO ${ctx.bookingHorizonISO}). Noemt de klant een datum NÁ ${ctx.bookingHorizonISO}, dus te ver in de toekomst? Zeg dan vriendelijk dat je zó ver vooruit nog niet kunt boeken en tot wanneer wél (bijvoorbeeld: "zo ver vooruit kan ik nog niet, je kunt tot en met ${ctx.bookingHorizonNL} een afspraak maken"). Zeg NOOIT dat zo'n datum "al voorbij" of "gesloten" is, en reken er nooit openingstijden bij. Boek of verzet nooit voorbij ${ctx.bookingHorizonISO}.` : ""}${ctx.minimumNoticeHours && ctx.minimumNoticeHours > 0 ? `
 - Er geldt een minimale aanmeldtijd: een afspraak kan pas vanaf ${ctx.minimumNoticeHours} uur van tevoren${ctx.earliestBookingNL ? `, dus ten vroegste ${ctx.earliestBookingNL}` : ""}. Vraagt de klant een tijd die eerder is dan dat (bijvoorbeeld nog vandaag terwijl dat te kort dag is)? Reken dat niet zelf uit, maar roep gewoon book_appointment aan; geeft de tool 'niet_beschikbaar' terug omdat het te vroeg is, leg het dan eerlijk uit ("we hebben minimaal ${ctx.minimumNoticeHours} uur van tevoren nodig${ctx.earliestBookingNL ? `, het eerste dat kan is ${ctx.earliestBookingNL}` : ""}") en bied het eerstvolgende vrije moment uit available_slots aan. Beloof nooit een tijd binnen die aanmeldtijd.` : ""}
 - Een duidelijke relatieve datum ("morgen", "aanstaande dinsdag", "volgende week maandag") is NIET dubbelzinnig: resolve 'm STIL via deze lijst en ga meteen door. Vraag dan NOOIT "bedoel je [datum], klopt dat?" als aparte stap; de boek-preview (stap 1) toont de datum al, dus daar kan de klant corrigeren. Alleen bij een écht dubbelzinnige verwijzing vraag je het kort na.${
         ctx.calendars && ctx.calendars.length > 1
           ? `
-- LET OP (meerdere medewerkers/locaties): de open/gesloten-dagen in deze tabel gelden voor maar ÉÉN persoon/locatie, niet voor alle. De anderen hebben ANDERE openingstijden (zie <kalenders>). Gebruik deze tabel dus enkel om een relatieve datum naar de juiste ISO-datum om te zetten, NIET om te bepalen of "het bedrijf" of een specifieke persoon/locatie op een dag open is, en geef 'm NOOIT door als "onze openingstijden".`
+- LET OP (meerdere medewerkers/locaties): deze tabel toont BEWUST geen open/gesloten, want dat verschilt per persoon/locatie (zie <kalenders>). Gebruik 'm uitsluitend om een relatieve datum naar de juiste ISO-datum en weekdag om te zetten; bepaal of "het bedrijf" of een specifieke persoon/locatie op een dag open is ALTIJD uit de openingstijden per persoon/locatie in <kalenders>, nooit uit deze tabel, en geef deze tabel NOOIT door als "onze openingstijden".`
           : ""
       }
 </kalender>
@@ -198,7 +206,7 @@ Regels voor meerdere medewerkers/locaties:
 - Geef bij get_available_slots en book_appointment de service_type_id van de gekozen persoon/locatie mee; kies nooit een id van een andere persoon/locatie. calendar_index meesturen mag als extra bevestiging, maar de service bepaalt de kalender al, dus zonder kan ook.
 - OPENINGSTIJDEN VERSCHILLEN per persoon/locatie. Beantwoord een vraag over openingstijden met de uren van de JUISTE persoon/locatie hierboven, niet met die uit de <kalender> (die geldt voor maar één van hen). Noemde de klant een specifieke persoon/plek? Geef díe uren. Noemde de klant niemand (bv. "wat zijn jullie openingstijden?")? Geef dan ALTIJD de openingstijden PER persoon/locatie (elk met zijn naam en uren), of vraag bij wie ze terecht willen. Geef NOOIT alleen de uren van de eerste als "onze openingstijden" alsof die voor het hele bedrijf gelden, want de andere wijken af.
 - Citeer de "Openingstijden:"-regel LETTERLIJK zoals hierboven (bijv. "Maandag t/m vrijdag 09:00-17:00, zaterdag en zondag gesloten"). Vat de dagen NOOIT zelf samen en laat NOOIT een dag weg: schrijf nooit "Maandag, Vrijdag" als er "Maandag t/m vrijdag" staat. Neem de reeks exact over.
-- De concrete dag-tabel in <kalender> (open/gesloten) geldt voor maar ÉÉN persoon/locatie. Voor een ANDERE bepaal je open/gesloten uit díe persoon/locatie's openingstijden hierboven, en is get_available_slots altijd doorslaggevend voor of een dag/tijd echt vrij is (0 tijden terug = die dag dicht voor die persoon/locatie, bied dan een andere dag of een andere persoon/locatie aan). Gebruik de <kalender> alleen om een relatieve datum naar de juiste ISO-datum om te zetten (een datum is hetzelfde voor iedereen).
+- De dag-tabel in <kalender> toont alleen de datums (GEEN open/gesloten). Bepaal open/gesloten voor een persoon/locatie ALTIJD uit díe persoon/locatie's openingstijden hierboven, en get_available_slots is altijd doorslaggevend voor of een dag/tijd echt vrij is (0 tijden terug = die dag dicht voor die persoon/locatie, bied dan een andere dag of een andere persoon/locatie aan). Gebruik de <kalender> alleen om een relatieve datum naar de juiste ISO-datum om te zetten (een datum is hetzelfde voor iedereen).
 - Voor annuleren of verzetten hoef je GEEN persoon/locatie te kiezen: het systeem vindt de eigen afspraak van de klant zelf terug, waar die ook staat.
 `
       : ""
@@ -293,7 +301,7 @@ BELANGRIJK: voor annuleren en verzetten heb je GEEN naam nodig en GEEN dienstkeu
 </availability_wording>
 
 <dates>
-- Gebruik voor ELKE datum de <kalender> hierboven (als die er is): lees daar de concrete ISO-datum + open/gesloten af in plaats van zelf te rekenen.
+- Gebruik voor ELKE datum de <kalender> hierboven (als die er is): lees daar de concrete ISO-datum ${ctx.calendars && ctx.calendars.length > 1 ? "en weekdag af (open/gesloten staat NIET in die tabel; bepaal dat per persoon/locatie uit <kalenders>)" : "+ open/gesloten af"} in plaats van zelf te rekenen.
 - Datums liggen ALTIJD in de toekomst. Reken een tijd nooit in het verleden.
 </dates>
 
