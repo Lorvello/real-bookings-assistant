@@ -205,7 +205,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="fixed top-0 left-0 right-0 h-16 bg-surface-1/95 backdrop-blur-md border-b border-white/[0.08] z-30 flex items-center px-4" style={{ touchAction: 'pan-y' }}>
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="text-muted-foreground hover:text-foreground p-2 rounded-md hover:bg-white/[0.06] transition-colors"
+            aria-label="Open menu"
+            className="flex h-11 w-11 items-center justify-center -ml-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-white/[0.06] transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

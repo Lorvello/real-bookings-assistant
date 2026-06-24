@@ -9,7 +9,10 @@ import { cn } from "@/lib/utils";
 const buttonVariants = cva(
   // PLAYBOOK §4: press feedback (active:scale), a real full-opacity offset focus ring,
   // tight ease-out transition on transform/color/filter. Weight 500, not 600.
-  "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-[transform,background-color,box-shadow,filter,border-color] duration-150 active:scale-[0.97] motion-reduce:active:scale-100 motion-reduce:transition-none outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  // min-h-11 md:min-h-0 = a 44px minimum tap target on mobile (A1b touch-target
+  // sweep) for EVERY button, since all size variants below are < 44px tall; the
+  // md: reset restores each size's exact desktop height, so desktop is unchanged.
+  "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium min-h-11 md:min-h-0 transition-[transform,background-color,box-shadow,filter,border-color] duration-150 active:scale-[0.97] motion-reduce:active:scale-100 motion-reduce:transition-none outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {

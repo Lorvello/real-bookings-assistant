@@ -22,6 +22,7 @@ import { UserStatusContext } from '@/contexts/UserStatusContext';
 import { CalendarContext } from '@/contexts/CalendarContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
+import Dashboard from '@/pages/Dashboard';
 
 // A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
 // (in the render body, before any passive effect runs). That first value is what
@@ -51,12 +52,18 @@ const mockCalendarValue: any = {
   loading: false,
   refreshCalendars: async () => {},
   selectCalendar: () => {},
+  selectAllCalendars: () => {},
   setViewingAllCalendars: () => {},
 };
 
 const mockAuthValue: any = {
-  user: { id: 'u-owner', email: 'owner@glowstudio.example' },
-  session: { user: { id: 'u-owner' } },
+  // Developer email → getEnvironmentConfig(email).allowMockData = true on a dev
+  // host, so the BI/Performance/FutureInsights optimized-* hooks return their rich
+  // getMock*Data() and every Pro tab renders fully populated (heaviest content =
+  // strongest horizontal-overflow test for the A1b mobile sweep). The Overview tab
+  // is still hook-bound, so its cache is seeded below.
+  user: { id: 'u-owner', email: 'business01003@gmail.com' },
+  session: { user: { id: 'u-owner', email: 'business01003@gmail.com' } },
   loading: false,
   isAuthenticated: true,
   signIn: async () => {},
@@ -66,21 +73,54 @@ const mockAuthValue: any = {
 
 const mockUserStatusValue: any = {
   userStatus: {
-    userType: 'active_subscriber',
+    userType: 'paid_subscriber',
     isExpired: false,
     isSetupIncomplete: false,
     needsUpgrade: false,
     statusMessage: 'Active',
   },
+  // Paid tenant, every Pro tab unlocked so the real BI/Performance/FutureInsights
+  // tab CONTENT mounts at mobile widths (the heaviest, widest content = best
+  // horizontal-overflow probe for the A1b sweep).
   accessControl: {
     canCreateBookings: true,
     canAccessWhatsApp: true,
     canAccessBookingAssistant: true,
+    canAccessAPI: true,
+    canAccessFutureInsights: true,
+    canAccessBusinessIntelligence: true,
+    canAccessPerformance: true,
+    canAccessCustomerSatisfaction: true,
+    canAccessTeamMembers: true,
+    canAccessTaxCompliance: true,
     maxCalendars: 3,
+    maxBookingsPerMonth: null,
+    maxTeamMembers: 5,
+    maxWhatsAppContacts: 500,
   },
   isLoading: false,
   invalidateCache: async () => {},
 };
+
+// Seed the react-query cache so the Overview tab's hooks (useNextAppointment /
+// usePopularService / useWeeklyInsights, keyed by the active calendar ids) resolve
+// to deterministic data without Supabase (the populated owner). Mirrors
+// dashboard-main.tsx's makeClient('populated').
+function seedDashboardCache(qc: QueryClient) {
+  const ids = ['cal-1'];
+  const next = new Date();
+  next.setHours(next.getHours() + 2, 30, 0, 0);
+  qc.setQueryData(['next-appointment', ids], {
+    customer_name: 'Emma van der Berg',
+    service_name: 'Knippen & Stylen',
+    start_time: next.toISOString(),
+    time_until: '2h 30m',
+  });
+  qc.setQueryData(['popular-service', ids], { service_name: 'Knippen & Stylen', booking_count: 28, percentage: 35 });
+  qc.setQueryData(['weekly-insights', ids], { current_week: 28, previous_week: 22, growth_percentage: 27, trend: 'up' });
+  qc.setQueryData(['calendar-count', mockAuthValue.user.id], 1);
+  qc.setQueryData(['whatsapp-contacts-count', mockAuthValue.user.id, undefined], 320);
+}
 
 // A page taller than any phone viewport, so a broken scroll container makes the
 // bottom rows physically unreachable. Row 30 + the bottom action bar are the
@@ -112,9 +152,18 @@ function TallContent() {
   );
 }
 
+// ?surface=dashboard mounts the REAL Dashboard page (which carries its own
+// DashboardLayout) inside the shell so the per-route A1b mobile sweep exercises the
+// surface INSIDE the real shell at mobile widths. Default (no/unknown param) keeps
+// the A0/A1a TallContent scroll + first-paint probe so those regressions still run.
+const surface = new URLSearchParams(window.location.search).get('surface') || 'probe';
+
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: { retry: false, refetchOnWindowFocus: false, staleTime: Infinity, refetchOnMount: false },
+  },
 });
+if (surface === 'dashboard') seedDashboardCache(queryClient);
 
 function Harness() {
   return (
@@ -125,9 +174,13 @@ function Harness() {
           <CalendarContext.Provider value={mockCalendarValue}>
             <FirstPaintProbe />
             <div className="dark">
-              <DashboardLayout>
-                <TallContent />
-              </DashboardLayout>
+              {surface === 'dashboard' ? (
+                <Dashboard />
+              ) : (
+                <DashboardLayout>
+                  <TallContent />
+                </DashboardLayout>
+              )}
             </div>
             <Toaster />
           </CalendarContext.Provider>
