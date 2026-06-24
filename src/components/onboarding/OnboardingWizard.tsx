@@ -118,7 +118,7 @@ export const OnboardingWizard = () => {
                 ? `${totalSteps} quick steps to your first booking.`
                 : `${totalSteps - completedSteps} step${
                     totalSteps - completedSteps === 1 ? '' : 's'
-                  } to go — almost there.`}
+                  } to go, almost there.`}
             </p>
           </div>
         </div>

@@ -1,10 +1,14 @@
 // DEV-ONLY no-auth visual harness for the first-run OnboardingWizard
-// (launch-ready-loop §7, Ronde 23 — D5 premium first-run). useOnboardingProgress
-// derives steps from useProfile (a non-react-query custom hook that fetches by
-// user.id) + useCalendarContext + Supabase fetches, so without a real profile the
-// step list is empty — this harness therefore verifies the wizard CHROME (the
-// surface-raised container, brand glow, circular progress ring, header tokens) at
-// the 0% fresh-start state; the per-step card token swaps are reviewed from code.
+// (launch-ready-loop §7; ITEM 2, tenant onboarding E2E). useOnboardingProgress
+// derives steps from useProfile + useCalendarContext + Supabase fetches. useProfile
+// hydrates synchronously from localStorage['userProfile'] when the cached userId
+// matches the (mock) auth user and the version matches, and skips the network fetch;
+// useOnboardingProgress short-circuits its service/availability/settings queries when
+// calendars.length === 0. So we prime a PARTIAL profile (business info filled,
+// nothing else) for the mock user below: the REAL wizard + REAL hook then render the
+// genuine step-card states (step 1 completed with the emerald "Done" pill, steps 2-4
+// incomplete with icon + CTA) at a realistic 1/4 = 25% mid-onboarding state, with NO
+// network calls. `?state=fresh` clears the seed to show the 0/4 cold-start chrome.
 // Not part of the production build.
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -18,9 +22,34 @@ import { CalendarContext } from '@/contexts/CalendarContext';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
+const MOCK_USER_ID = 'u-owner';
+
+// Prime (or clear) the useProfile localStorage cache BEFORE the component mounts so
+// the real hook hydrates from it without a Supabase round-trip. `?state=fresh` shows
+// the 0/4 cold start; default shows a 1/4 mid-onboarding state with mixed card states.
+const isFresh = new URLSearchParams(window.location.search).get('state') === 'fresh';
+try {
+  if (isFresh) {
+    localStorage.removeItem('userProfile');
+  } else {
+    localStorage.setItem('userProfile', JSON.stringify({
+      version: '2.0',
+      userId: MOCK_USER_ID,
+      timestamp: Date.now(),
+      data: {
+        id: MOCK_USER_ID,
+        email: 'owner@glowstudio.example',
+        full_name: 'Sofia Vermeer',
+        business_name: 'Glow Studio',
+        business_type: 'salon',
+      },
+    }));
+  }
+} catch (_) { /* storage blocked, falls back to 0/4 chrome */ }
+
 const mockAuthValue: any = {
-  user: { id: 'u-owner', email: 'owner@glowstudio.example' },
-  session: { user: { id: 'u-owner' } },
+  user: { id: MOCK_USER_ID, email: 'owner@glowstudio.example' },
+  session: { user: { id: MOCK_USER_ID } },
   loading: false, isAuthenticated: true,
   signIn: async () => {}, signOut: async () => {}, signUp: async () => {},
 };
