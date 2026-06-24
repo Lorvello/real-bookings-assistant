@@ -64,6 +64,37 @@ const mockUserStatusValue: any = {
   invalidateCache: async () => {},
 };
 
+// Paid-tenant variant: every Pro tab UNLOCKED so the real BusinessIntelligence /
+// Performance / FutureInsights tab CONTENT mounts (the locked sections above only
+// prove the LockedTabPanel gate). Pairing it with the DEVELOPER_EMAIL on a dev
+// host flips getEnvironmentConfig().allowMockData to true, so the optimized-* hooks
+// return their rich getMock*Data() instead of hitting Supabase, so every tab
+// renders fully populated with zero cache-seeding. The launch reality for a paid
+// owner who already has bookings (Lorvello = paid_subscriber). Dev-only.
+const paidAccessControl = {
+  ...mockAccessControl,
+  canAccessBusinessIntelligence: true,
+  canAccessPerformance: true,
+  canAccessFutureInsights: true,
+  canAccessCustomerSatisfaction: true,
+  canAccessTaxCompliance: true,
+  canAccessAPI: true,
+};
+
+const paidUserStatusValue: any = {
+  ...mockUserStatusValue,
+  userStatus: { ...mockUserStatusValue.userStatus, userType: 'paid_subscriber' },
+  accessControl: paidAccessControl,
+};
+
+// Same owner id (so the seeded overview query keys still match) but the developer
+// email, which is the ONLY thing that switches allowMockData on in dev.
+const devAuthValue: any = {
+  ...mockAuthValue,
+  user: { id: 'u-owner', email: 'business01003@gmail.com' },
+  session: { user: { id: 'u-owner', email: 'business01003@gmail.com' } },
+};
+
 const calendars: any[] = [
   { id: 'cal-1', name: 'Glow Studio — Main', slug: 'glow-studio', timezone: 'Europe/Amsterdam', is_active: true },
 ];
@@ -173,7 +204,7 @@ function Harness() {
               <SectionLabel>First-run — onboarded, 0 bookings (the launch reality)</SectionLabel>
               <Surface mode="firstrun" />
 
-              <SectionLabel>Locked Pro tab (trial owner) — in-tab upsell, not a screen-cover</SectionLabel>
+              <SectionLabel>Locked Pro tab (trial owner), in-tab upsell, not a screen-cover</SectionLabel>
               <div className="surface-raised rounded-xl p-0.5 md:p-6">
                 <LockedTabPanel
                   feature="Business Intelligence"
@@ -183,6 +214,13 @@ function Harness() {
                   onUpgrade={() => alert('Upgrade (harness)')}
                 />
               </div>
+
+              <SectionLabel>Paid tenant, all Pro tabs unlocked + populated (click each tab)</SectionLabel>
+              <AuthContext.Provider value={devAuthValue}>
+                <UserStatusContext.Provider value={paidUserStatusValue}>
+                  <Surface mode="populated" />
+                </UserStatusContext.Provider>
+              </AuthContext.Provider>
             </div>
           </div>
           <Toaster />
