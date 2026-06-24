@@ -690,7 +690,25 @@ export function createTools(
         // so returning a single (entry-calendar) opening_hours could quote the WRONG agenda's
         // hours. Drop it here; the per-agenda hours live in the prompt's <kalenders> block.
         if (ctx.calendars.length > 1) {
+          // P2-5 (2026-06-24): per-agenda hours differ, so a single opening_hours could quote the
+          // WRONG agenda. Don't return one (or nothing): return EVERY calendar's bookable weekly
+          // hours keyed by name, so a model that DID call this tool gives a COMPLETE, correctly-
+          // attributed answer instead of dropping a calendar. Observed: tool-call turns answered
+          // with only one agenda's hours; no-tool turns read <kalenders> and stayed complete. The
+          // structural source-of-truth stays availability_rules (getCalendarWeeklyHours), identical
+          // to <kalenders>. Rare path (the prompt tells the model to answer from context).
           delete out.opening_hours;
+          // Array (not a name-keyed object): calendar names are NOT guaranteed unique (index.ts
+          // defaults a nameless calendar to "Agenda"), so an object would silently collapse two
+          // same-named calendars and drop one, reintroducing the very bug this fixes. An array
+          // preserves every calendar, mirroring the per-index <kalenders> block.
+          const perCal = (await Promise.all(
+            ctx.calendars.map(async (c) => {
+              const wh = await getCalendarWeeklyHours(supabase, c.id);
+              return wh?.text ? { name: c.name, hours: wh.text } : null;
+            }),
+          )).filter((e): e is { name: string; hours: string } => e !== null);
+          if (perCal.length) out.opening_hours_per_person = perCal;
         } else {
           const wh = await getCalendarWeeklyHours(supabase, ctx.calendarId);
           if (wh?.text) out.opening_hours = wh.text;
