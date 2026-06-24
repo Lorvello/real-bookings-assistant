@@ -46,7 +46,7 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
         type: 'signup',
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
@@ -95,8 +95,8 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
   return (
     <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
       <CardHeader className="text-center">
-        <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-          <Mail className="w-6 h-6 text-blue-600" />
+        <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-primary/15 ring-1 ring-primary/25">
+          <Mail className="w-6 h-6 text-primary" />
         </div>
         <CardTitle className="text-2xl font-bold text-foreground">
           Verify Your Email
@@ -108,24 +108,24 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
       
       <CardContent className="space-y-4">
         <div className="text-sm text-muted-foreground space-y-3">
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <div className="p-3 rounded-lg bg-primary/[0.06] border border-primary/20">
             <div className="flex items-center space-x-2 mb-2">
-              <CheckCircle className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-blue-800">Next Steps:</span>
+              <CheckCircle className="w-4 h-4 text-primary" />
+              <span className="font-medium text-foreground">Next Steps:</span>
             </div>
-            <ol className="list-decimal list-inside space-y-1 text-blue-700">
+            <ol className="list-decimal list-inside space-y-1 text-foreground/70">
               <li>Check your email inbox</li>
               <li>Click the verification link</li>
               <li>Return here to sign in</li>
             </ol>
           </div>
 
-          <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+          <div className="p-3 rounded-lg bg-amber-500/[0.06] border border-amber-500/20">
             <div className="flex items-center space-x-2 mb-2">
-              <AlertCircle className="w-4 h-4 text-yellow-600" />
-              <span className="font-medium text-yellow-800">Can't find the email?</span>
+              <AlertCircle className="w-4 h-4 text-amber-400" />
+              <span className="font-medium text-amber-200">Can't find the email?</span>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-yellow-700">
+            <ul className="list-disc list-inside space-y-1 text-amber-100/70">
               <li>Check your spam or junk folder</li>
               <li>Make sure {email} is correct</li>
               <li>Wait a few minutes for delivery</li>
@@ -134,7 +134,7 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
           </div>
 
           {resendCount > 0 && (
-            <div className="text-center text-sm text-green-600">
+            <div className="text-center text-sm text-emerald-400">
               ✓ Verification email sent {resendCount} time{resendCount > 1 ? 's' : ''}
             </div>
           )}

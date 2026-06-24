@@ -45,6 +45,11 @@ interface UserRegistrationResult {
   userId?: string;
   calendarId?: string;
   calendarSlug?: string;
+  /** True when signup did NOT return an active session (email confirmation
+   * required). The caller must route to /verify-email instead of /dashboard;
+   * otherwise the user lands on an auth-gated page with no session and bounces
+   * to /login (a silent dead-end). With mailer_autoconfirm on this is false. */
+  needsEmailVerification?: boolean;
   error?: string;
 }
 
@@ -64,7 +69,7 @@ export const useUserRegistration = () => {
         password: data.password,
         phone: data.phone || undefined,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: data.fullName,
             phone: data.phone || null
@@ -126,17 +131,23 @@ export const useUserRegistration = () => {
       console.log('[UserRegistration] Auth completed, user will be in setup_incomplete state');
 
       // Success! The handle_new_user trigger will create the user record with NULL business info
-      // This puts them in "setup_incomplete" state automatically
-      
+      // This puts them in "setup_incomplete" state automatically.
+      // When email confirmation is required, signUp returns no session: route the
+      // caller to /verify-email instead of the auth-gated /dashboard.
+      const needsEmailVerification = !authData.session;
+
       toast({
         title: "Account created successfully! 🎉",
-        description: "Please complete your business setup to start your 30-day trial.",
+        description: needsEmailVerification
+          ? "Check your inbox to verify your email, then complete your business setup."
+          : "Please complete your business setup to start your 30-day trial.",
       });
 
       setLoading(false);
       return {
         success: true,
         userId: authData.user.id,
+        needsEmailVerification,
         calendarId: undefined, // Will be created during setup completion
         calendarSlug: undefined
       };

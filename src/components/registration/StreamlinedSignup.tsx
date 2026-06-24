@@ -169,7 +169,14 @@ export const StreamlinedSignup: React.FC = () => {
       if (result.success) {
         // Clear any stale password reset markers to prevent redirect issues
         sessionStorage.removeItem('password-reset-requested');
-        navigate('/dashboard');
+        // No session yet (email confirmation required) -> show the verify page,
+        // not the auth-gated dashboard (which would bounce to /login). With
+        // mailer_autoconfirm on, a session exists and we go straight to setup.
+        if (result.needsEmailVerification) {
+          navigate('/verify-email', { state: { email: formData.email } });
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         // Handle specific registration errors
         let errorMessage = result.error || 'Registration failed. Please try again.';
