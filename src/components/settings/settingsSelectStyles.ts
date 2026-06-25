@@ -11,10 +11,18 @@ import type { StylesConfig } from 'react-select';
  * Matches the shadcn <Input>/<Select> styling so a searchable select sits flush
  * next to every other field on the page.
  */
-export const settingsSelectStyles: StylesConfig<any, false> = {
+/**
+ * Factory so the control's min-height can be raised to 44px on mobile (touch-target,
+ * DoD §2). react-select renders inline styles, so there is no Tailwind `md:` escape
+ * hatch; the consumer keys this on `useIsMobile()` instead, which re-renders on resize.
+ * Desktop keeps the original 40px (flush with the 36-40px shadcn fields beside it).
+ */
+export const makeSettingsSelectStyles = (
+  opts?: { controlMinHeight?: number },
+): StylesConfig<any, false> => ({
   control: (base, state) => ({
     ...base,
-    minHeight: 40,
+    minHeight: opts?.controlMinHeight ?? 40,
     backgroundColor: 'hsl(var(--muted))',
     borderRadius: 8,
     borderWidth: 1,
@@ -65,4 +73,8 @@ export const settingsSelectStyles: StylesConfig<any, false> = {
   }),
   indicatorSeparator: (base) => ({ ...base, backgroundColor: 'hsl(0 0% 100% / 0.08)' }),
   noOptionsMessage: (base) => ({ ...base, color: 'hsl(var(--subtle-foreground))', fontSize: 14 }),
-};
+});
+
+/** Back-compat default (desktop 40px control). New call sites should prefer the
+ *  factory with a mobile-aware `controlMinHeight` from `useIsMobile()`. */
+export const settingsSelectStyles = makeSettingsSelectStyles();

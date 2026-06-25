@@ -63,7 +63,12 @@ export function SettingsSection({
                       <button
                         type="button"
                         aria-label="More information"
-                        className="-m-1 flex h-6 w-6 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        // h-11 w-11 -m-2.5 → a 44px mobile tap target (touch-target, DoD §2)
+                        // while the Info glyph stays visually 16px; the negative margin absorbs
+                        // the extra size so the header row layout is unchanged. Desktop is
+                        // byte-identical via md: resets (24px box, -m-1). One spacious tooltip
+                        // per section header, so the enlarged hit-zone can't crowd a dense row.
+                        className="-m-2.5 flex h-11 w-11 items-center justify-center rounded-md text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:-m-1 md:h-6 md:w-6"
                       >
                         <Info className="h-4 w-4" />
                       </button>

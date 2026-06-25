@@ -8,11 +8,12 @@ import { businessTypes } from '@/constants/settingsOptions';
 import { PLATFORM_WHATSAPP_DISPLAY, PLATFORM_WHATSAPP_LABEL } from '@/constants/platform';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { validateWebsite, validateEmail, validatePhone, type FieldValidation } from '@/utils/socialValidation';
 import { SettingsSection } from './SettingsSection';
 import { SettingsField } from './SettingsField';
 import { SettingsSaveBar } from './SettingsSaveBar';
-import { settingsSelectStyles } from './settingsSelectStyles';
+import { makeSettingsSelectStyles } from './settingsSelectStyles';
 
 export const AIKnowledgeTab: React.FC = () => {
   const {
@@ -23,6 +24,15 @@ export const AIKnowledgeTab: React.FC = () => {
   } = useSettingsContext();
 
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  // The searchable business-type react-select uses inline styles, so its control
+  // height can't use a Tailwind `md:` reset like the shadcn fields. Raise it to 44px
+  // on mobile (touch-target, DoD §2); keep the desktop 40px flush with sibling inputs.
+  const selectStyles = useMemo(
+    () => makeSettingsSelectStyles({ controlMinHeight: isMobile ? 44 : 40 }),
+    [isMobile],
+  );
 
   // Local state for pending changes (buffered)
   const [localProfileData, setLocalProfileData] = useState(profileData);
@@ -321,7 +331,7 @@ export const AIKnowledgeTab: React.FC = () => {
                 placeholder="Search and select business type…"
                 isSearchable
                 menuPlacement="auto"
-                styles={settingsSelectStyles}
+                styles={selectStyles}
               />
               {(localBusinessData as any)?.business_type === 'other' && (
                 <Input

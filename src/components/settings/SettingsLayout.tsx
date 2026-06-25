@@ -108,7 +108,9 @@ export const SettingsTabs = () => {
     cn(
       // Calm left-rail nav item: neutral at rest, white-alpha hover, emerald wash +
       // 2px left bar when active (PLAYBOOK §2c selected system). No movement.
-      'group relative mb-0 flex w-full shrink-0 items-center gap-3 rounded-lg border-0 px-3 py-2.5 text-left',
+      // min-h-11 md:min-h-0 → the mobile horizontal-scroller nav items are >=44px tall
+      // (touch-target, DoD §2); the desktop vertical rail keeps its natural two-line height.
+      'group relative mb-0 flex min-h-11 w-full shrink-0 items-center gap-3 rounded-lg border-0 px-3 py-2.5 text-left md:min-h-0',
       'text-sm text-muted-foreground transition-colors duration-150',
       'hover:bg-white/[0.03] hover:text-foreground',
       'data-[state=active]:bg-primary/[0.10] data-[state=active]:text-foreground data-[state=active]:shadow-none',
