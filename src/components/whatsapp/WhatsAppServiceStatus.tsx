@@ -19,21 +19,21 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
     return (
       <Card className="border-border/50 bg-muted/20 mb-6">
         <CardHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
               <AlertCircle aria-hidden="true" className="h-5 w-5 text-destructive" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <CardTitle className="text-foreground text-lg">
                 WhatsApp Service Inactive
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
-                {userStatus.isExpired 
-                  ? "Your trial has expired. Upgrade to reactivate the WhatsApp booking assistant." 
+              <CardDescription className="text-muted-foreground mt-1.5">
+                {userStatus.isExpired
+                  ? "Your trial has expired. Upgrade to reactivate the WhatsApp booking assistant."
                   : "WhatsApp booking assistant requires an active subscription."}
               </CardDescription>
             </div>
-            <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+            <Badge variant="destructive" className="shrink-0 bg-destructive/10 text-destructive border-destructive/20">
               <Lock className="h-3 w-3 mr-1" />
               Inactive
             </Badge>

@@ -146,7 +146,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold text-foreground truncate">{displayName}</h2>
+              <h2 className="text-lg font-semibold text-foreground line-clamp-2">{displayName}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <Badge
                   variant="outline"
@@ -159,7 +159,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="gap-2" aria-label="Schedule appointment" onClick={() => setBookingModalOpen(true)}>
+            <Button variant="outline" size="sm" className="gap-2 min-w-11 md:min-w-0" aria-label="Schedule appointment" onClick={() => setBookingModalOpen(true)}>
               <Calendar aria-hidden="true" className="h-4 w-4" />
               <span className="hidden sm:inline">Schedule appointment</span>
             </Button>
@@ -167,7 +167,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2"
+                className="gap-2 min-w-11 md:min-w-0"
                 aria-label="Close conversation"
                 disabled={closeConversation.isPending}
                 onClick={handleCloseConversation}
@@ -222,7 +222,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                   Bookings ({contact.all_bookings.length})
                 </h3>
               </CardHeader>
-              <CardContent className="space-y-3 max-h-48 overflow-y-auto">
+              <CardContent className="space-y-3">
                 {contact.all_bookings.slice(0, 5).map((booking) => (
                   <div key={booking.booking_id} className="p-2 bg-muted/30 rounded border border-border">
                     <div className="flex items-center gap-2 text-sm">
