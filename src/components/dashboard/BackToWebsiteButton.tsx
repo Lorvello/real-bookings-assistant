@@ -15,8 +15,8 @@ export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite, tooltipsDi
         <button
           onClick={onBackToWebsite}
           className={`
-            group flex items-center rounded-lg transition-all duration-200 text-muted-foreground hover:bg-white/[0.06] hover:text-foreground hover:scale-105
-            ${isSidebarOpen 
+            group flex items-center rounded-lg transition-all duration-200 text-muted-foreground hover:bg-white/[0.06] hover:text-foreground hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+            ${isSidebarOpen
               ? 'px-2 py-2 min-h-11 md:min-h-0 text-sm font-medium w-full text-left'
               : 'w-12 h-12 justify-center mx-auto'
             }

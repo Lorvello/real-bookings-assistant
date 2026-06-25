@@ -88,7 +88,7 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
                 onNavigate(item.href);
               }}
               className={`
-                group flex items-center rounded-lg px-2 py-2 min-h-11 md:min-h-0 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
+                group flex items-center rounded-lg px-2 py-2 min-h-11 md:min-h-0 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
                 ${isActive || isSubActive
                   ? 'bg-primary/[0.12] text-accent-foreground'
                   : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
@@ -125,7 +125,7 @@ export function NavigationMenu({ isSidebarOpen, onNavigate }: NavigationMenuProp
                       key={subItem.name}
                       onClick={() => onNavigate(subItem.href)}
                       className={`
-                        group flex items-center rounded-lg px-2 py-2 min-h-11 md:min-h-0 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105
+                        group flex items-center rounded-lg px-2 py-2 min-h-11 md:min-h-0 text-sm font-medium transition-all duration-200 w-full text-left hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
                         ${isSubActive
                           ? 'bg-primary/[0.12] text-accent-foreground'
                           : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
