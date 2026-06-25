@@ -23,6 +23,9 @@ import { CalendarContext } from '@/contexts/CalendarContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Dashboard from '@/pages/Dashboard';
+import { SettingsContext, type SettingsContextType } from '@/contexts/SettingsContext';
+import { SettingsTabs } from '@/components/settings/SettingsLayout';
+import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 
 // A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
 // (in the render body, before any passive effect runs). That first value is what
@@ -152,10 +155,79 @@ function TallContent() {
   );
 }
 
+// ITEM A1c: ?surface=settings mounts the REAL SettingsTabs (AI Knowledge active by
+// default) inside the real DashboardLayout against a mock SettingsContext, so the
+// Settings tab strip + AI Knowledge form + floating SaveBar are exercised INSIDE the
+// real mobile shell (the 64px fixed header + bounded scroll container) at 375/390/414.
+// Mirrors SettingsLayout's inner markup (the `dark` wrapper + padding + page header +
+// SettingsTabs) minus the live SettingsProvider. Services + Operations populated
+// content keep their dedicated standalone harnesses (services.html / operations.html),
+// which mount the same real components at full mobile width (the shell adds no
+// horizontal constraint beyond full-width, proven by the A1b dashboard-in-shell run).
+const mockProfile = {
+  id: 'preview-user',
+  full_name: 'Demo Owner',
+  website: 'www.glowstudio.nl',
+};
+const mockBusiness = {
+  business_name: 'Glow Studio',
+  business_type: 'beauty_salon',
+  business_description:
+    'A calm boutique beauty studio in the heart of Amsterdam offering facials, lash and brow treatments by appointment.',
+  business_email: 'hello@glowstudio.nl',
+  business_phone: '+31 6 12345678',
+  business_street: 'Prinsengracht',
+  business_number: '42',
+  business_postal: '1015 DV',
+  business_city: 'Amsterdam',
+  business_country: 'Netherlands',
+  cancellation_policy:
+    'Free cancellation up to 24h before your appointment. Later cancellations or no-shows are charged 50%. Rescheduling is free anytime.',
+  payment_info: 'Pay in the studio by card or cash. A 20% deposit confirms appointments over €100.',
+  preparation_info: '',
+  parking_info: '',
+  public_transport_info: '',
+  accessibility_info: '',
+  other_info: '',
+};
+const mockSettingsValue: SettingsContextType = {
+  profileData: mockProfile,
+  setProfileData: () => {},
+  businessData: mockBusiness,
+  setBusinessData: () => {},
+  loading: false,
+  isLoading: false,
+  loadError: null,
+  saveError: null,
+  saveFields: async () => {
+    await new Promise((r) => setTimeout(r, 700));
+    return true;
+  },
+  refetch: async () => {},
+};
+
+function SettingsSurface() {
+  // Mirror SettingsLayout's inner content (it wraps SettingsProvider, which we replace
+  // with the mock context above so no live RLS fetch is needed).
+  return (
+    <SettingsContext.Provider value={mockSettingsValue}>
+      <div className="dark min-h-full bg-background p-3 sm:p-4 md:p-8">
+        <div className="w-full">
+          <SimplePageHeader title="Settings" />
+          <div className="mt-6 md:mt-8">
+            <SettingsTabs />
+          </div>
+        </div>
+      </div>
+    </SettingsContext.Provider>
+  );
+}
+
 // ?surface=dashboard mounts the REAL Dashboard page (which carries its own
 // DashboardLayout) inside the shell so the per-route A1b mobile sweep exercises the
-// surface INSIDE the real shell at mobile widths. Default (no/unknown param) keeps
-// the A0/A1a TallContent scroll + first-paint probe so those regressions still run.
+// surface INSIDE the real shell at mobile widths. ?surface=settings mounts the real
+// Settings surface (see above). Default (no/unknown param) keeps the A0/A1a
+// TallContent scroll + first-paint probe so those regressions still run.
 const surface = new URLSearchParams(window.location.search).get('surface') || 'probe';
 
 const queryClient = new QueryClient({
@@ -176,6 +248,10 @@ function Harness() {
             <div className="dark">
               {surface === 'dashboard' ? (
                 <Dashboard />
+              ) : surface === 'settings' ? (
+                <DashboardLayout>
+                  <SettingsSurface />
+                </DashboardLayout>
               ) : (
                 <DashboardLayout>
                   <TallContent />

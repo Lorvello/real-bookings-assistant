@@ -45,7 +45,11 @@ export function SettingsSaveBar({
     >
       <div
         className={cn(
-          'glass flex items-center gap-3 rounded-full border border-white/[0.10] py-2 pl-5 pr-2 transition-[opacity,transform] duration-300 ease-out',
+          // Mobile: a touch more compact (gap-2/pl-4) so the pill fits a 375px phone
+          // without the Discard/Save buttons clipping off the screen edges; desktop
+          // keeps the roomier gap-3/pl-5. (A1c: the pill was 402px wide, overflowing
+          // 375/390 viewports.)
+          'glass flex items-center gap-2 rounded-full border border-white/[0.10] py-2 pl-4 pr-2 transition-[opacity,transform] duration-300 ease-out md:gap-3 md:pl-5',
           show ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-3 opacity-0',
           show && 'pointer-events-auto',
         )}
@@ -59,7 +63,10 @@ export function SettingsSaveBar({
           <>
             <span className="flex items-center gap-2 whitespace-nowrap pr-1 text-sm text-muted-foreground">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-              {label}
+              {/* On a phone show just the first word ("Unsaved") so the pill fits;
+                  the full label ("Unsaved changes") returns at md+. */}
+              <span className="md:hidden">{label.split(' ')[0]}</span>
+              <span className="hidden md:inline">{label}</span>
             </span>
             <div className="flex items-center gap-1.5">
               <Button
@@ -73,7 +80,7 @@ export function SettingsSaveBar({
               <Button
                 onClick={onSave}
                 loading={saving}
-                className="rounded-full px-5"
+                className="rounded-full px-4 md:px-5"
               >
                 {saveLabel}
               </Button>
