@@ -138,7 +138,7 @@ function MemberActions({
               onClick={() => onResend(user.id)}
               aria-label="Resend invitation"
               title="Resend invitation"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-foreground"
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -148,7 +148,7 @@ function MemberActions({
               onClick={() => onCancelInvite(user.id)}
               aria-label="Cancel invitation"
               title="Cancel invitation"
-              className="h-8 w-8 text-muted-foreground hover:text-destructive-foreground"
+              className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-destructive-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -181,7 +181,7 @@ function MemberActions({
         onClick={() => onRemove(user.id)}
         aria-label={`Remove ${who}`}
         title="Remove member"
-        className="h-8 w-8 text-muted-foreground hover:text-destructive-foreground"
+        className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-destructive-foreground"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -259,7 +259,7 @@ function MemberCard({ user, ...handlers }: { user: TeamUser } & MemberActionHand
         <p className="truncate font-medium text-foreground">{user.user?.full_name || 'Unknown user'}</p>
         <p className="truncate text-sm text-muted-foreground">{user.user?.email}</p>
         {user.type === 'invitation' && user.status === 'pending' && user.expires_at && (
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 text-xs text-subtle-foreground">
             Expires {new Date(user.expires_at).toLocaleDateString()}
           </p>
         )}

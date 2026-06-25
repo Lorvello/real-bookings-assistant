@@ -105,6 +105,7 @@ export function AddTeamMemberDialog({
                 onChange={(e) => onEmailChange(e.target.value)}
                 placeholder="jane@example.com"
                 autoComplete="off"
+                required
               />
             </SettingsField>
           </div>
