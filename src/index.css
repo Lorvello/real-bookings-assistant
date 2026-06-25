@@ -223,10 +223,18 @@
     max-height: 100dvh;
   }
 
-  /* Optimized sidebar transitions */
+  /* Optimized sidebar transitions.
+     NOTE: do NOT set `transform: translateZ(0)` here. This element drives its
+     open/closed slide via Tailwind's `-translate-x-full` / `translate-x-0`
+     utilities, which live in this same `@layer utilities`. A hardcoded
+     `transform` on `.sidebar-transform` ties on specificity and wins on source
+     order, pinning the transform to identity, so on mobile the drawer never
+     slides off-screen and sits permanently expanded, eating the viewport
+     (desktop was unaffected because it collapses via width, not transform).
+     `will-change: transform` already gives the compositor its hint without
+     overriding the live translate. */
   .sidebar-transform {
     will-change: transform;
-    transform: translateZ(0);
     backface-visibility: hidden;
   }
   
