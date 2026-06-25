@@ -18,6 +18,7 @@ import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 import { ServiceTypeCard } from '@/components/settings/service-types/ServiceTypeCard';
 import { ServiceTypeForm } from '@/components/settings/service-types/ServiceTypeForm';
 import { ServiceTypesEmptyState } from '@/components/settings/service-types/ServiceTypesEmptyState';
+import { ServiceTypesLoadingState } from '@/components/settings/service-types/ServiceTypesLoadingState';
 import { InlineCalendarCreation } from '@/components/settings/service-types/InlineCalendarCreation';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -77,6 +78,11 @@ function Harness() {
                           <ServiceTypeCard key={s.id} service={s} onEdit={() => {}} onDelete={() => {}} />
                         ))}
                       </div>
+                    </SettingsSection>
+
+                    {/* 1b. Loading skeleton (cold-load placeholder) */}
+                    <SettingsSection icon={Tag} title="Services (loading skeleton)">
+                      <ServiceTypesLoadingState />
                     </SettingsSection>
 
                     {/* 2. Empty state */}

@@ -33,7 +33,10 @@ const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   description: '',
   duration: '30',
   price: '0',
-  color: '#3B82F6',
+  // Default to the brand emerald (in the SERVICE_COLORS palette) so a new service's
+  // colour dot is on-brand by default instead of a generic blue; the user can still
+  // pick any palette hue to colour-code their services on the calendar.
+  color: '#10B981',
   tax_enabled: false,
   tax_behavior: 'exclusive',
   tax_code: '',
@@ -95,7 +98,7 @@ export function ServiceTypesManager() {
       description: service.description || '',
       duration: service.duration.toString(),
       price: (service.price || 0).toString(),
-      color: service.color || '#3B82F6',
+      color: service.color || '#10B981',
       tax_enabled: (service as any).tax_enabled || false,
       tax_behavior: (service as any).tax_behavior || 'exclusive',
       tax_code: (service as any).tax_code || '',

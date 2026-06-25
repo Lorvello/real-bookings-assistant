@@ -51,9 +51,9 @@ export function StripeStatusBadge({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge 
-            variant="outline" 
-            className="bg-amber-500/10 text-amber-500 border-amber-500/30 gap-1"
+          <Badge
+            variant="outline"
+            className="gap-1 border-warning/30 bg-warning/10 text-warning-foreground"
           >
             <AlertTriangle className="h-3 w-3" />
             Not linked to Stripe

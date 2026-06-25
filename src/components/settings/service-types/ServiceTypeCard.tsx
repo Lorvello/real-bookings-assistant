@@ -30,9 +30,11 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
   return (
     <Card className="group relative flex h-full flex-col border-white/[0.06] transition-colors hover:border-white/15 hover:bg-white/[0.015]">
       <CardContent className="flex flex-1 flex-col p-4">
-        {/* Header: color + name. Row actions float top-right so they never reserve
-            layout width (which would truncate short names prematurely). */}
-        <div className="mb-3 flex min-w-0 items-center gap-2.5 pr-2">
+        {/* Header: color + name. On desktop the actions are hover-revealed and float
+            top-right so they never reserve layout width (which would truncate short
+            names prematurely). On mobile the actions are always visible, so the title
+            row reserves their width (pr-24) to keep a long name from sliding under them. */}
+        <div className="mb-3 flex min-w-0 items-center gap-2.5 pr-24 md:pr-2">
           <span
             className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white/10"
             style={{ backgroundColor: service.color }}
@@ -44,7 +46,7 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 min-w-11 p-0 text-muted-foreground hover:text-foreground md:min-w-0"
               onClick={() => onEdit(service)}
               aria-label={`Edit ${service.name}`}
             >
@@ -53,7 +55,7 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive-foreground"
+              className="h-8 w-8 min-w-11 p-0 text-muted-foreground hover:text-destructive-foreground md:min-w-0"
               onClick={() => onDelete(service.id)}
               aria-label={`Delete ${service.name}`}
             >

@@ -10,27 +10,30 @@ import { Skeleton } from '@/components/ui/skeleton';
 export function ServiceTypesLoadingState() {
   return (
     <div
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
       aria-label="Loading services"
     >
       {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i} className="border-border">
-          <CardContent className="p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <Skeleton className="w-3 h-3 rounded-full" />
+        // Mirror ServiceTypeCard's structure exactly (border, color dot + name,
+        // 2 description lines, bottom meta row, a badge) so the real cards swap in
+        // with zero layout jump.
+        <Card key={i} className="flex h-full flex-col border-white/[0.06]">
+          <CardContent className="flex flex-1 flex-col p-4">
+            <div className="mb-3 flex items-center gap-2.5">
+              <Skeleton className="h-2.5 w-2.5 shrink-0 rounded-full" />
               <Skeleton className="h-4 w-32" />
             </div>
-            <Skeleton className="h-5 w-24 rounded-full" />
-            <div className="space-y-2 pt-2">
-              <div className="flex justify-between">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-12" />
-              </div>
-              <div className="flex justify-between">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-14" />
-              </div>
+            <div className="mb-3 space-y-1.5">
+              <Skeleton className="h-3.5 w-full" />
+              <Skeleton className="h-3.5 w-3/5" />
+            </div>
+            <div className="mt-auto flex items-center gap-2 pt-1">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+            <div className="mt-3">
+              <Skeleton className="h-5 w-28 rounded-full" />
             </div>
           </CardContent>
         </Card>
