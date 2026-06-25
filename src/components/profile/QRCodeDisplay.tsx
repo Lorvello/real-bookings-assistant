@@ -35,10 +35,11 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 160 }
 
   return (
     <section aria-label="QR code" className="flex flex-col md:flex-row items-center gap-4">
-      <div ref={containerRef} className="surface-raised p-4 rounded-xl">
-        <div className="bg-white p-2 rounded-lg">
-          <QRCode value={data} size={size} />
-        </div>
+      {/* Single white QR tile sitting directly on the section card (no redundant
+          surface-raised frame around it, since the section already provides the card).
+          The white padding doubles as the QR quiet-zone for reliable scanning. */}
+      <div ref={containerRef} className="w-fit rounded-xl bg-white p-3">
+        <QRCode value={data} size={size} />
       </div>
       <div className="flex flex-col gap-2 w-full md:w-auto">
         <Button type="button" variant="secondary" onClick={handleDownload}>
