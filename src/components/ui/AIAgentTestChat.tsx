@@ -232,7 +232,7 @@ function PlaceholdersAndVanishInput({
         disabled={!value}
         type="submit"
         aria-label="Send message"
-        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 sm:h-10 sm:w-10 rounded-full disabled:bg-muted bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50"
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-11 w-11 sm:h-10 sm:w-10 rounded-full disabled:bg-muted bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50"
       >
         <Send aria-hidden="true" className="text-white h-3 w-3 sm:h-4 sm:w-4" />
       </button>

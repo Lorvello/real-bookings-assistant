@@ -37,6 +37,19 @@ import { TimezoneDisplay } from '@/components/availability/TimezoneDisplay';
 import { BookingsFilters } from '@/components/bookings/BookingsFilters';
 import { BookingsList } from '@/components/bookings/BookingsList';
 import { WhatsAppUnifiedView } from '@/components/whatsapp/WhatsAppUnifiedView';
+// ITEM A1f (LAST Phase A cluster): these three are FULL pages that each render their own
+// DashboardLayout (exactly like Dashboard), so we mount them DIRECTLY (real page + real shell,
+// the most faithful mount). Their data hooks are direct-Supabase (not cache-seedable): with no
+// backend they error to their empty/initial state, which still renders the full real layout
+// (e.g. WhatsAppBookingAssistant's platformNumber is the PLATFORM_WHATSAPP_NUMBER constant, so the
+// QR-placeholder + number row + cards all render; Profile's qrValue falls back to a user-id JSON so
+// the QR renders; TestAIAgent's AIAgentTestChat only calls Supabase on submit so it renders fully).
+// The 4th A1f surface, the /settings Payments TAB, is hook-heavy (usePaymentSettings et al.) and is
+// covered by its own standalone harness preview/payments.html (real presentational components, full
+// mobile width = same page padding as the real settings page; no floating SaveBar there).
+import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
+import TestAIAgent from '@/pages/TestAIAgent';
+import Profile from '@/pages/Profile';
 
 // A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
 // (in the render body, before any passive effect runs). That first value is what
@@ -514,6 +527,12 @@ function Harness() {
                 <DashboardLayout>
                   <ConversationsSurface />
                 </DashboardLayout>
+              ) : surface === 'whatsapp' ? (
+                <WhatsAppBookingAssistantPage />
+              ) : surface === 'testai' ? (
+                <TestAIAgent />
+              ) : surface === 'profile' ? (
+                <Profile />
               ) : (
                 <DashboardLayout>
                   <TallContent />
