@@ -46,6 +46,10 @@ function InvoiceDownload({ invoice }: { invoice: BillingInvoice }) {
     <Button
       variant="ghost"
       size="sm"
+      // min-w-11 md:min-w-0 → a 44px-wide mobile tap target for this icon-only download
+      // button (it sits in the mobile invoice card); the md: reset restores the natural
+      // sm-button width on desktop. Width-only, so it cannot introduce horizontal overflow.
+      className="min-w-11 md:min-w-0"
       onClick={() => window.open(invoice.invoiceUrl!, '_blank')}
       aria-label={`Download invoice from ${invoice.date}`}
     >
