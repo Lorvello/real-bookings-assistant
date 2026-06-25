@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, AlertCircle, Zap } from 'lucide-react';
+import { MessageCircle, Zap } from 'lucide-react';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { SubscriptionModal } from '@/components/SubscriptionModal';
 
@@ -52,17 +52,14 @@ export const WhatsAppNotAvailable: React.FC = () => {
       {/* Header */}
       <div className="surface-raised rounded-xl p-6">
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <MessageCircle className="h-8 w-8 text-muted-foreground" />
-            <div className="absolute -top-1 -right-1 bg-destructive rounded-full p-1">
-              <AlertCircle className="h-3 w-3 text-destructive-foreground" />
-            </div>
+          <div className="shrink-0 rounded-lg bg-white/[0.04] border border-white/[0.08] p-2.5">
+            <MessageCircle className="h-6 w-6 text-muted-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-[-0.02em] text-foreground">
               {getTitle()}
             </h1>
-            <p className="text-muted-foreground mt-1">Upgrade to activate your WhatsApp booking assistant</p>
+            <p className="text-sm text-muted-foreground mt-1">Upgrade to activate your WhatsApp booking assistant</p>
           </div>
         </div>
       </div>
@@ -70,13 +67,13 @@ export const WhatsAppNotAvailable: React.FC = () => {
       {/* Main Content Card */}
       <Card>
         <CardHeader className="text-center pb-4">
-          <CardTitle className="text-xl md:text-2xl font-bold text-foreground">
+          <CardTitle className="text-base md:text-lg font-medium text-foreground">
             Reactivate Your WhatsApp Booking Agent
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="text-center">
-            <p className="text-muted-foreground text-base md:text-lg leading-relaxed">
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
               {getDescription()}
             </p>
           </div>
@@ -85,7 +82,7 @@ export const WhatsAppNotAvailable: React.FC = () => {
             <div className="flex items-start space-x-4">
               <Zap className="h-6 w-6 text-primary mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-4 text-lg">
+                <h3 className="text-base font-medium text-foreground mb-4">
                   WhatsApp Booking Agent Features
                 </h3>
                 <ul className="text-muted-foreground space-y-3">
@@ -118,8 +115,8 @@ export const WhatsAppNotAvailable: React.FC = () => {
             <Button className="flex-1" size="lg" onClick={handleActionClick}>
               {getActionText()}
             </Button>
-            <Button variant="outline" size="lg" className="flex-1">
-              Contact Support
+            <Button asChild variant="outline" size="lg" className="flex-1">
+              <a href="mailto:support@bookingsassistant.com">Contact Support</a>
             </Button>
           </div>
 

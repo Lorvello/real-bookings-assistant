@@ -174,7 +174,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             {(qrUrl || (whatsappLink && qrExists)) && (
               <button
                 onClick={handleCopyLink}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="rounded px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
                 {linkCopied ? 'Link copied!' : 'Copy WhatsApp Link'}
               </button>
@@ -198,7 +198,8 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   onClick={handleCopyNumber}
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-white/[0.06]"
+                  aria-label={copied ? 'Number copied' : 'Copy WhatsApp number'}
+                  className="shrink-0 min-w-11 md:min-w-0 hover:bg-white/[0.06]"
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-accent-foreground" />

@@ -23,6 +23,11 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
   const [calendarId, setCalendarId] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState('ons bedrijf');
   const [message, setMessage] = useState('');
+  // Last persisted value, so Save can be disabled when nothing changed.
+  const [savedValue, setSavedValue] = useState('');
+
+  const MAX_LEN = 600;
+  const isDirty = message.trim() !== savedValue.trim();
 
   useEffect(() => {
     const load = async () => {
@@ -49,16 +54,17 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
         setCalendarId(cid);
 
         // Existing custom welcome (NULL → show the default template).
+        let resolved = defaultWelcome(name);
         if (cid) {
           const { data: cs } = await supabase
             .from('calendar_settings')
             .select('whatsapp_welcome_message')
             .eq('calendar_id', cid)
             .maybeSingle();
-          setMessage(cs?.whatsapp_welcome_message?.trim() || defaultWelcome(name));
-        } else {
-          setMessage(defaultWelcome(name));
+          resolved = cs?.whatsapp_welcome_message?.trim() || defaultWelcome(name);
         }
+        setMessage(resolved);
+        setSavedValue(resolved);
       } catch (err) {
         console.error('Error loading welcome message:', err);
         toast.error('Could not load the welcome message');
@@ -83,6 +89,8 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
         .from('calendar_settings')
         .upsert({ calendar_id: calendarId, whatsapp_welcome_message: value }, { onConflict: 'calendar_id' });
       if (error) throw error;
+      // New baseline so the editor returns to a clean (not-dirty) state.
+      setSavedValue(trimmed);
       toast.success('Welcome message saved');
     } catch (err) {
       console.error('Error saving welcome message:', err);
@@ -114,22 +122,31 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
             onChange={(e) => setMessage(e.target.value)}
             disabled={loading || saving}
             rows={4}
-            maxLength={600}
+            maxLength={MAX_LEN}
             placeholder={defaultWelcome(businessName)}
             className="bg-background border-white/[0.08] text-foreground resize-none"
           />
-          <p className="text-xs text-muted-foreground">
-            Tip: use <code className="px-1 rounded bg-white/[0.06]">{'{bedrijf}'}</code> to fill in your business name automatically.
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              Tip: use <code className="px-1 rounded bg-white/[0.06]">{'{bedrijf}'}</code> to fill in your business name automatically.
+            </p>
+            <span
+              className="shrink-0 text-xs tabular-nums text-subtle-foreground"
+              aria-live="polite"
+            >
+              {message.length}/{MAX_LEN}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
           <Button
             onClick={handleSave}
-            disabled={loading || saving || !calendarId}
+            loading={saving}
+            disabled={loading || saving || !calendarId || !isDirty}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            {saving ? 'Saving...' : 'Save'}
+            Save
           </Button>
           <Button
             onClick={handleReset}
