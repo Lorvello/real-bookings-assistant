@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useTeamInvitations } from '@/hooks/useTeamInvitations';
@@ -80,17 +81,8 @@ export const UserManagement = ({
     );
   }, [isProfileInitialized, localProfileData, baseProfile]);
 
-  // Warn before leaving with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+  // Warn before leaving with unsaved changes (shared across every SaveBar surface)
+  useUnsavedChangesWarning(hasUnsavedChanges);
 
   const saveAllChanges = async () => {
     if (!localProfileData) return;

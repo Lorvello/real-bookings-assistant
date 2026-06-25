@@ -17,7 +17,7 @@ export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite, tooltipsDi
           className={`
             group flex items-center rounded-lg transition-all duration-200 text-muted-foreground hover:bg-white/[0.06] hover:text-foreground hover:scale-105
             ${isSidebarOpen 
-              ? 'px-2 py-2 text-sm font-medium w-full text-left' 
+              ? 'px-2 py-2 min-h-11 md:min-h-0 text-sm font-medium w-full text-left'
               : 'w-12 h-12 justify-center mx-auto'
             }
           `}

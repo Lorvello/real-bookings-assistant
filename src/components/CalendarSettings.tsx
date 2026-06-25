@@ -6,6 +6,7 @@ import { CalendarPolicySettings } from './calendar-settings/CalendarPolicySettin
 import { GlobalSettings } from './calendar-settings/GlobalSettings';
 import { SettingsSection } from './settings/SettingsSection';
 import { SettingsSaveBar } from './settings/SettingsSaveBar';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 
 interface CalendarSettingsProps {
   calendarId: string;
@@ -18,6 +19,10 @@ export function CalendarSettings({ calendarId, showGlobalSettings = true }: Cale
   const [justSaved, setJustSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(savedTimer.current), []);
+
+  // Warn before leaving with unsaved changes (shared across every SaveBar surface;
+  // Operations was the only floating-SaveBar tab missing this guard).
+  useUnsavedChangesWarning(hasPendingChanges);
 
   const handleSave = async () => {
     const ok = await saveAllChanges();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import Select from 'react-select';
 import { Info, AlertCircle, CheckCircle, Building2, Globe, BookOpen } from 'lucide-react';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -72,17 +73,8 @@ export const AIKnowledgeTab: React.FC = () => {
     return profileChanged || businessChanged;
   }, [localProfileData, localBusinessData, profileData, businessData]);
 
-  // Warn user before leaving with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+  // Warn before leaving with unsaved changes (shared across every SaveBar surface)
+  useUnsavedChangesWarning(hasUnsavedChanges);
 
   // The website/link fields this tab owns, each with its validator. Reduced to
   // Website only (the 5 social platforms were orphan fields, now removed).

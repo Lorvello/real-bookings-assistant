@@ -27,13 +27,19 @@ const getPageTitle = (pathname: string) => {
     return 'Dashboard';
   }
   
+  // Keys are the first path segment of each logged-in route; titles mirror the
+  // sidebar NavigationMenu labels so the mobile header never disagrees with the
+  // nav. (The old 'whatsapp'/'bookings-assistant' keys were stale and never
+  // matched the real '/whatsapp-booking-assistant' route, so its mobile header
+  // fell through to the ugly auto-capitalized 'Whatsapp-booking-assistant'.)
   const pageMap: Record<string, string> = {
     'calendar': 'Calendar',
     'bookings': 'Bookings',
     'availability': 'Availability',
-    'whatsapp': 'WhatsApp',
-    'bookings-assistant': 'Bookings Assistant',
+    'conversations': 'WhatsApp',
+    'whatsapp-booking-assistant': 'Booking Assistant',
     'test-ai-agent': 'Test AI Agent',
+    'profile': 'Profile',
     'settings': 'Settings'
   };
   
