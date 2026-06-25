@@ -23,7 +23,7 @@ import type { BusinessStripeAccount } from '@/types/payments';
 function AccountTechnicalDetails({ accountId, isTestMode }: { accountId: string; isTestMode: boolean }) {
   return (
     <details className="group mt-4">
-      <summary className="inline-flex cursor-pointer select-none list-none items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-muted-foreground [&::-webkit-details-marker]:hidden">
+      <summary className="inline-flex min-h-11 cursor-pointer select-none list-none items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-muted-foreground md:min-h-0 [&::-webkit-details-marker]:hidden">
         <ChevronRight aria-hidden="true" className="h-3 w-3 transition-transform group-open:rotate-90 motion-reduce:transition-none" />
         Technical details
       </summary>
@@ -86,7 +86,7 @@ function BenefitsList({ onResearch }: { onResearch: (t: ResearchTopic) => void }
             <button
               type="button"
               onClick={() => onResearch(topic)}
-              className="group flex w-full items-center gap-2.5 rounded-lg py-1 text-left text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="group flex w-full min-h-11 items-center gap-2.5 rounded-lg py-1 text-left text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:min-h-0"
             >
               <ArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
               <span>{label}</span>

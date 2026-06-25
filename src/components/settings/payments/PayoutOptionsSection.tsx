@@ -66,7 +66,7 @@ function FeeBreakdown({
       <CollapsibleTrigger asChild>
         <button
           type="button"
-          className="group mt-3 flex items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="group mt-3 flex min-h-11 items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:min-h-0"
         >
           <span>View fee breakdown example</span>
           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />

@@ -15,10 +15,10 @@ export function FundFlowCard({ title, items, className }: FundFlowCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className={cn("relative border border-muted/40 rounded-lg bg-background/50", className)}>
+    <div className={cn("relative rounded-lg border border-white/[0.06] bg-white/[0.02]", className)}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-3 flex items-center justify-between hover:bg-muted/20 transition-colors rounded-lg"
+        className="w-full min-h-11 p-3 flex items-center justify-between hover:bg-white/[0.02] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring md:min-h-0"
       >
         <span className="text-xs font-medium text-foreground">{title}</span>
         {isExpanded ? (
@@ -30,7 +30,7 @@ export function FundFlowCard({ title, items, className }: FundFlowCardProps) {
       
       {/* Simple dropdown without overlay */}
       {isExpanded && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-muted/40 rounded-lg shadow-sm z-10">
+        <div className="absolute top-full left-0 right-0 z-10 mt-1 rounded-lg border border-white/[0.08] bg-popover shadow-lg">
           <div className="p-2 space-y-1">
             {items.map((item, index) => (
               <div key={index} className="py-1">

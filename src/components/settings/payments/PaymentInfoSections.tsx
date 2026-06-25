@@ -121,7 +121,7 @@ export function FundFlowSection({
         <button
           type="button"
           onClick={onLearnMoreFees}
-          className="flex items-center gap-1.5 text-xs text-accent-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="flex min-h-11 items-center gap-1.5 text-xs text-accent-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:min-h-0"
         >
           <TrendingUp className="h-3 w-3" />
           Learn more in Fees
@@ -274,14 +274,12 @@ export function FeesSection({
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">{row.name}</span>
                   {row.currencyInfo && (
-                    <button
-                      type="button"
-                      onClick={onCurrencyInfo}
-                      className="rounded-full p-0.5 text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      aria-label={`Currency conversion info for ${row.name}`}
-                    >
-                      <Info className="h-3 w-3" />
-                    </button>
+                    // Passive marker (NOT a tap target): each per-row icon opened the SAME
+                    // generic currency dialog as the "Currency conversion fee" control below,
+                    // so in a dense 32px row it was a redundant sub-44 hit area that can't be
+                    // grown without crowding its neighbours. Kept as a visual signal that this
+                    // method may settle in card currency; the one tappable explainer lives below.
+                    <Info aria-hidden="true" className="h-3 w-3 shrink-0 text-subtle-foreground" />
                   )}
                 </div>
                 <span className="text-xs font-medium tabular-nums text-muted-foreground">{row.fee}</span>
@@ -291,19 +289,22 @@ export function FeesSection({
         </div>
 
         <div className="border-t border-white/[0.05] pt-4">
-          <div className="mb-1.5 flex items-center gap-2">
+          <div className="mb-1.5 flex items-center gap-1">
             <h5 className="text-xs font-medium text-muted-foreground">Currency conversion fee</h5>
+            {/* The one tappable currency explainer (the per-row icons above are passive markers).
+                Negative-margin idiom: 44px tap target on mobile, 24px on desktop, no layout shift. */}
             <button
               type="button"
               onClick={onCurrencyInfo}
-              className="rounded-full p-1 text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Currency conversion info"
+              className="-m-2.5 flex h-11 w-11 items-center justify-center rounded-full text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:-m-1 md:h-6 md:w-6"
+              aria-label="About the currency conversion fee"
             >
               <Info className="h-4 w-4" />
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            An extra 2% fee applies when the customer's payment currency differs from your account currency.
+            An extra 2% fee applies when the customer's payment currency differs from your account
+            currency (more likely for the card-based methods marked above).
           </p>
         </div>
 

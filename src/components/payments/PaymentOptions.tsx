@@ -412,7 +412,9 @@ export function PaymentOptions({
               e.stopPropagation();
               setOpenModalId(method.id);
             }}
-            className="-m-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-subtle-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            // Mobile 44px tap target via the negative-margin idiom (absorbs into the card's
+            // p-4 padding so layout/row-height is unchanged); resets to 32px on desktop.
+            className="-m-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-subtle-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:-m-1 md:h-8 md:w-8"
             aria-label={`More info about ${method.name}`}
           >
             <Info className="h-4 w-4" />
