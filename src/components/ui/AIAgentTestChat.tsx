@@ -199,6 +199,8 @@ function PlaceholdersAndVanishInput({
     <form
       className={cn(
         "w-full relative mx-auto bg-background rounded-2xl sm:rounded-full overflow-hidden shadow-xl border border-primary/20 transition duration-200",
+        // Visible, on-brand focus indicator (the inner input clears its own ring): emerald bloom on the pill.
+        "focus-within:border-primary/60 focus-within:shadow-[0_0_0_3px_rgba(26,127,77,0.25)]",
         "h-12 sm:h-14", // Smaller height on mobile
         value && "bg-background-secondary"
       )}
@@ -222,6 +224,7 @@ function PlaceholdersAndVanishInput({
         ref={inputRef}
         value={value}
         type="text"
+        aria-label="Type your message"
         className={cn(
           "w-full relative text-sm z-50 border-none text-foreground bg-transparent h-full rounded-2xl sm:rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-8 pr-16 sm:pr-20",
           animating && "text-transparent"
@@ -232,7 +235,7 @@ function PlaceholdersAndVanishInput({
         disabled={!value}
         type="submit"
         aria-label="Send message"
-        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-11 w-11 sm:h-10 sm:w-10 rounded-full disabled:bg-muted bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50"
+        className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-11 w-11 sm:h-10 sm:w-10 rounded-full disabled:bg-muted bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70"
       >
         <Send aria-hidden="true" className="text-white h-3 w-3 sm:h-4 sm:w-4" />
       </button>
@@ -257,12 +260,19 @@ function PlaceholdersAndVanishInput({
   );
 }
 
-export default function AIAgentTestPage() {
+export default function AIAgentTestPage({
+  framed = true,
+  // Copy is context-specific: defaults are the public marketing voice (unchanged); the logged-in
+  // Test-AI-Agent page passes owner-facing strings ("Your AI Agent", etc.).
+  title = "AI Agent Demo",
+  greeting = "Hello! I'm your AI agent. Ask me a question to test my capabilities!",
+  hint = "Press Enter to send your message • Powered by AI",
+}: { framed?: boolean; title?: string; greeting?: string; hint?: string } = {}) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       type: "bot",
-      content: "Hello! I'm your AI agent. Ask me a question to test my capabilities!",
+      content: greeting,
       timestamp: new Date(),
     },
   ]);
@@ -297,7 +307,7 @@ export default function AIAgentTestPage() {
       throw error;
     }
 
-    return data.reply || "Sorry, ik kon geen antwoord genereren.";
+    return data.reply || "Sorry, I couldn't generate a response.";
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -330,7 +340,7 @@ export default function AIAgentTestPage() {
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "bot",
-        content: "Sorry, er ging iets mis. Probeer het opnieuw.",
+        content: "Sorry, something went wrong. Please try again.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
@@ -350,16 +360,22 @@ export default function AIAgentTestPage() {
           transition={{ duration: 0.3 }}
           className="w-full h-full flex flex-col"
         >
-          {/* Chat Container - Smaller on mobile */}
-          <div className="bg-background/50 backdrop-blur-sm border border-primary/20 rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col h-full">
+          {/* Chat Container - Smaller on mobile.
+              framed (default, public marketing surfaces): the chat carries its own card (border + shadow).
+              framed={false} (the logged-in Test AI Agent page): fill the parent's surface-raised frame
+              seamlessly so there is ONE card, not a double-ring. */}
+          <div className={cn(
+            "overflow-hidden flex flex-col h-full",
+            framed && "bg-background/50 backdrop-blur-sm border border-primary/20 rounded-lg sm:rounded-2xl shadow-2xl"
+          )}>
             {/* Chat Header - More compact on mobile */}
-            <div className="bg-gradient-to-r from-background to-background-secondary px-2 sm:px-6 py-2 sm:py-4 border-b border-primary/20">
+            <div className="bg-gradient-to-r from-background to-background-secondary px-3 sm:px-6 py-3 sm:py-4 border-b border-primary/20">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-primary rounded-full">
                   <Bot aria-hidden="true" className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground text-sm sm:text-base">AI Agent Demo</h3>
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">{title}</h3>
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">Online and ready to help</p>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
@@ -370,7 +386,7 @@ export default function AIAgentTestPage() {
             </div>
 
             {/* Messages - More compact on mobile */}
-            <div role="log" aria-live="polite" aria-label="Conversation messages" className="flex-1 overflow-y-auto p-2 sm:p-6 space-y-2 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
+            <div role="log" aria-live="polite" aria-label="Conversation messages" className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -442,7 +458,7 @@ export default function AIAgentTestPage() {
                 onSubmit={handleSubmit}
               />
               <p className="text-xs text-muted-foreground mt-1 sm:mt-2 text-center">
-                Press Enter to send your message • Powered by AI
+                {hint}
               </p>
             </div>
           </div>

@@ -15,7 +15,15 @@ export default function TestAIAgent() {
         <SimplePageHeader title="Test AI Agent" />
 
         <div className="surface-raised rounded-xl h-[600px] md:h-[700px] overflow-hidden">
-          <AIAgentTestChat />
+          {/* framed={false}: the surface-raised wrapper is the single app-standard frame; the chat fills it
+              seamlessly (no redundant inner border/radius/shadow = no double-ring).
+              Owner-facing copy (this is the tenant testing THEIR configured agent, not a marketing demo). */}
+          <AIAgentTestChat
+            framed={false}
+            title="Your AI Agent"
+            greeting="Hi, I'm your AI booking assistant. Ask me anything a customer might."
+            hint="Press Enter to send"
+          />
         </div>
       </div>
     </div>
