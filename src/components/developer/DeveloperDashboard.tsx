@@ -9,7 +9,9 @@ export const DeveloperDashboard = () => {
   const { isDeveloper } = useDeveloperAccess();
   const [open, setOpen] = useState(false);
 
-  // Only render for developers in development environment
+  // Only render for the single developer account (in every environment, incl.
+  // production, so the live site can be tested as a developer). The DeveloperOverlay
+  // wrapper additionally restricts WHERE this appears to the logged-in app routes.
   if (!isDeveloper) {
     return null;
   }
