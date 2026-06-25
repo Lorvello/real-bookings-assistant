@@ -187,7 +187,7 @@ export function CalendarDayCell({
         
         {hasMultipleBookings && (
           <div
-            className="text-center py-1 sm:py-2 bg-primary/10 rounded-lg ring-1 ring-primary/20 hover:bg-primary/[0.16] transition-colors duration-150 cursor-pointer"
+            className="text-center px-1 py-1 sm:py-2 bg-primary/10 rounded-lg ring-1 ring-primary/20 hover:bg-primary/[0.16] transition-colors duration-150 cursor-pointer"
             onClick={handleMultipleBookingsClick}
           >
             <div className="text-accent-foreground font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">

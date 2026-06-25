@@ -76,7 +76,7 @@ export function CalendarHeader({
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('prev')}
-              className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 min-w-11 md:min-w-0 rounded-md text-muted-foreground hover:text-foreground"
               disabled={loading}
               aria-label="Previous period"
             >
@@ -97,7 +97,7 @@ export function CalendarHeader({
               variant="ghost"
               size="icon"
               onClick={() => onNavigate('next')}
-              className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 min-w-11 md:min-w-0 rounded-md text-muted-foreground hover:text-foreground"
               disabled={loading}
               aria-label="Next period"
             >

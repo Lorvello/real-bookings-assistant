@@ -86,7 +86,7 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
       console.log('Creating calendar with data:', {
         name: data.name,
         description: data.description,
-        color: data.color || '#3B82F6',
+        color: data.color || '#10B981',
         slug: slug,
         user_id: user.id,
         is_active: true,
@@ -98,7 +98,7 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
         .insert({
           name: data.name,
           description: data.description,
-          color: data.color || '#3B82F6',
+          color: data.color || '#10B981',
           slug: slug,
           user_id: user.id,
           is_active: true,

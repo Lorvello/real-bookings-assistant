@@ -53,7 +53,7 @@ export function CreateCalendarDialog({
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
   const [newCalendar, setNewCalendar] = useState({
     name: '',
-    color: '#3B82F6',
+    color: '#10B981',
     location: ''
   });
 
@@ -149,7 +149,7 @@ export function CreateCalendarDialog({
       // Reset form
       setNewCalendar({ 
         name: '', 
-        color: '#3B82F6',
+        color: '#10B981',
         location: ''
       });
       setSelectedServiceTypes([]);

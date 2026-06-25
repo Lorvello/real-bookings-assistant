@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { SettingsField } from '@/components/settings/SettingsField';
-import { ColorPicker, SERVICE_COLORS } from './ColorPicker';
+import { ColorPicker } from './ColorPicker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,7 +58,10 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [calendarName, setCalendarName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(SERVICE_COLORS[0]);
+  // New calendars default to brand emerald (#10B981, in the palette); the full
+  // multi-hue palette stays available for per-calendar colour-coding. Matches the
+  // CreateCalendarDialog + service-default emerald default (B3/B8).
+  const [selectedColor, setSelectedColor] = useState('#10B981');
   const [availability, setAvailability] = useState<WeekAvailability>(DEFAULT_AVAILABILITY);
 
   const updateDayAvailability = (day: number, updates: Partial<DayAvailability>) => {

@@ -113,7 +113,9 @@ export function ModernMonthView({ bookings, currentDate, viewingAllCalendars = f
       {/* Optimized Calendar Grid with subtle gradient background */}
       <div className="flex-1 overflow-y-auto" style={{ scrollBehavior: 'smooth' }}>
         <div className="p-1 sm:p-2">
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+          {/* gap-1.5 on mobile (vs sm:gap-1) gives adjacent day chips a real gutter
+              so booking text never reads as fused across narrow phone columns (B8). */}
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-1">
             {days.map(day => {
               const dayBookings = getBookingsForDay(day);
 
