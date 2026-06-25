@@ -33,6 +33,12 @@ import { CalendarContent } from '@/components/calendar/CalendarContent';
 import { AvailabilityTabs } from '@/components/availability/AvailabilityTabs';
 import { AvailabilityDayRow } from '@/components/availability/AvailabilityDayRow';
 import { TimezoneDisplay } from '@/components/availability/TimezoneDisplay';
+// ITEM B7: the real Date Overrides flow + the Weekly Hours "Edit All" chrome for the
+// availability premium pass. DateOverrides is hook-bound but harness-safe: useAvailabilityOverrides
+// short-circuits to overrides:[] for a calendar id with no rows, so the real empty state + add form render.
+import { DateOverrides } from '@/components/availability/DateOverrides';
+import { Button as AvailButton } from '@/components/ui/button';
+import { Edit2 as AvailEdit2 } from 'lucide-react';
 // ITEM A1e: real route widgets for the bookings + conversations (wide-content) in-shell sweep.
 import { BookingsFilters } from '@/components/bookings/BookingsFilters';
 import { BookingsList } from '@/components/bookings/BookingsList';
@@ -360,32 +366,47 @@ function AvailabilitySurface() {
         <SimplePageHeader title="Availability" />
         <CalendarSwitcher />
         <AvailabilityTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="grid gap-6 p-1 md:p-2 lg:grid-cols-3">
-          <div className="surface-raised rounded-xl p-4 sm:p-6 lg:col-span-2">
-            <h2 className="mb-2 text-sm font-semibold text-foreground">Weekly hours</h2>
-            <div className="divide-y divide-white/[0.05]">
-              {AVAIL_DAYS.map((day) => (
-                <AvailabilityDayRow
-                  key={day.key}
-                  day={day}
-                  dayAvailability={state[day.key]}
-                  openDropdowns={openDropdowns}
-                  hasPendingUpdates={false}
-                  hasSyncingRules={false}
-                  onUpdateDayEnabled={(key: string, enabled: boolean) =>
-                    setState((s) => ({ ...s, [key]: { ...s[key], enabled } }))}
-                  onUpdateTimeBlock={noop}
-                  onAddTimeBlock={noop}
-                  onRemoveTimeBlock={noop}
-                  onCopyDay={noop}
-                  onToggleDropdown={(id: string) => setOpenDropdowns((d) => ({ ...d, [id]: !d[id] }))}
-                  onCloseDropdown={(id: string) => setOpenDropdowns((d) => ({ ...d, [id]: false }))}
-                />
-              ))}
-            </div>
+        {activeTab === 'overrides' ? (
+          // B7: the REAL Date Overrides flow (empty state + Add Schedule Exception + add form),
+          // inside the real AvailabilityManager card wrapper (surface-raised rounded-xl p-4).
+          <div className="surface-raised rounded-xl p-4">
+            <DateOverrides />
           </div>
-          <TimezoneDisplay currentTimezone="Europe/Amsterdam" onTimezoneChange={async () => {}} />
-        </div>
+        ) : (
+          <div className="grid gap-6 p-1 md:p-2 lg:grid-cols-3">
+            <div className="surface-raised rounded-xl p-4 sm:p-6 lg:col-span-2">
+              {/* Mirror AvailabilityOverview's real "Weekly Hours" card header (title + Edit All ghost button). */}
+              <div className="mb-2 flex flex-row items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">Weekly hours</h2>
+                <AvailButton variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <AvailEdit2 className="mr-2 h-4 w-4" />
+                  Edit All
+                </AvailButton>
+              </div>
+              <div className="divide-y divide-white/[0.05]">
+                {AVAIL_DAYS.map((day) => (
+                  <AvailabilityDayRow
+                    key={day.key}
+                    day={day}
+                    dayAvailability={state[day.key]}
+                    openDropdowns={openDropdowns}
+                    hasPendingUpdates={false}
+                    hasSyncingRules={false}
+                    onUpdateDayEnabled={(key: string, enabled: boolean) =>
+                      setState((s) => ({ ...s, [key]: { ...s[key], enabled } }))}
+                    onUpdateTimeBlock={noop}
+                    onAddTimeBlock={noop}
+                    onRemoveTimeBlock={noop}
+                    onCopyDay={noop}
+                    onToggleDropdown={(id: string) => setOpenDropdowns((d) => ({ ...d, [id]: !d[id] }))}
+                    onCloseDropdown={(id: string) => setOpenDropdowns((d) => ({ ...d, [id]: false }))}
+                  />
+                ))}
+              </div>
+            </div>
+            <TimezoneDisplay currentTimezone="Europe/Amsterdam" onTimezoneChange={async () => {}} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -84,7 +84,11 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
   }
 
   return (
-    <div className="space-y-6">
+    // Cap the exceptions flow at a premium reading width so the single-column form,
+    // date picker and reason textarea don't stretch to full-bleed on wide desktops
+    // (the /availability route has no SettingsTabs width wrapper). Matches the
+    // surface's existing max-w-2xl empty-state width; mobile is unaffected.
+    <div className="space-y-6 max-w-2xl">
       {/* Header */}
       <div className="flex items-center space-x-3 mb-6">
         <div className="p-2 bg-primary/20 rounded-2xl">
@@ -149,6 +153,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                 <Switch
                   checked={newOverride.is_available}
                   onCheckedChange={(is_available) => setNewOverride(prev => ({ ...prev, is_available }))}
+                  aria-label="Available on this day"
                   className="data-[state=checked]:bg-primary"
                 />
               </div>
@@ -192,8 +197,9 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
             {/* Reason */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Reason (optional)</label>
+              <label htmlFor="override-reason" className="text-sm font-medium text-foreground">Reason (optional)</label>
               <Textarea
+                id="override-reason"
                 placeholder="E.g. vacation, holiday, special hours..."
                 value={newOverride.reason}
                 onChange={(e) => setNewOverride(prev => ({ ...prev, reason: e.target.value }))}
@@ -276,7 +282,8 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                   variant="outline"
                   size="sm"
                   onClick={() => removeOverride(override.id)}
-                  className="text-destructive hover:text-destructive bg-destructive/10 hover:bg-destructive/20 border-destructive/20 rounded-2xl"
+                  aria-label="Remove schedule exception"
+                  className="min-w-11 md:min-w-0 text-destructive hover:text-destructive bg-destructive/10 hover:bg-destructive/20 border-destructive/20 rounded-2xl"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

@@ -73,7 +73,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             variant="ghost"
             size="icon"
             onClick={() => onAddTimeBlock(dayKey)}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+            className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-foreground hover:bg-accent"
             title="Add time slot"
           >
             <Plus className="h-4 w-4" />
@@ -86,7 +86,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             variant="ghost"
             size="icon"
             onClick={() => onCopyDay(dayKey)}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+            className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-foreground hover:bg-accent"
             title="Copy to next day"
           >
             <Copy className="h-4 w-4" />
@@ -99,7 +99,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             variant="ghost"
             size="icon"
             onClick={() => onRemoveTimeBlock(dayKey, block.id)}
-            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             title="Remove time slot"
           >
             <Trash2 className="h-4 w-4" />
