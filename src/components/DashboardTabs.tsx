@@ -50,11 +50,15 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
   const hasPerformanceAccess = checkAccess('canAccessPerformance');
   const hasFutureInsightsAccess = checkAccess('canAccessFutureInsights');
 
-  // Premium underline tabs (one accent) — replaces the old 5-color pill bar.
+  // Premium underline tabs (one accent), replacing the old 5-color pill bar.
   // min-h-11 = 44px tap target on mobile (A1b touch-target sweep); md:min-h-0
   // reverts to the natural py-2.5 height on desktop, so desktop is unchanged.
+  // B1 premium pass: drop the local `transition-colors` + `shadow-none` overrides so
+  // the ui/tabs base wins. The active underline keeps its designed soft accent glow
+  // (`shadow-[0_3px_14px_-3px_primary/0.7]`) and ALL state changes ease over 200ms
+  // (color, border, bg AND box-shadow), reduced-motion-safe via the global block.
   const triggerClass =
-    'relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 min-h-11 md:min-h-0 text-muted-foreground transition-colors hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none';
+    'relative flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 min-h-11 md:min-h-0 text-muted-foreground hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground';
   const proBadgeClass =
     'ml-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground ring-1 ring-primary/20';
 
