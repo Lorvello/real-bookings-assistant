@@ -18,7 +18,10 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-9 w-full items-center justify-between rounded-lg border border-white/[0.08] bg-muted px-3 text-sm focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-subtle-foreground [&>span]:line-clamp-1",
+      // min-h-11 md:min-h-0 = >=44px mobile touch target (DoD §2), desktop byte-identical
+      // via the md reset. HEIGHT-only on purpose (same proven safety as the Button/Input
+      // fixes: cannot introduce horizontal overflow on any surface). A1e.
+      "flex h-9 min-h-11 md:min-h-0 w-full items-center justify-between rounded-lg border border-white/[0.08] bg-muted px-3 text-sm focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-subtle-foreground [&>span]:line-clamp-1",
       className
     )}
     {...props}

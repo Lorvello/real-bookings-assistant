@@ -33,6 +33,10 @@ import { CalendarContent } from '@/components/calendar/CalendarContent';
 import { AvailabilityTabs } from '@/components/availability/AvailabilityTabs';
 import { AvailabilityDayRow } from '@/components/availability/AvailabilityDayRow';
 import { TimezoneDisplay } from '@/components/availability/TimezoneDisplay';
+// ITEM A1e: real route widgets for the bookings + conversations (wide-content) in-shell sweep.
+import { BookingsFilters } from '@/components/bookings/BookingsFilters';
+import { BookingsList } from '@/components/bookings/BookingsList';
+import { WhatsAppUnifiedView } from '@/components/whatsapp/WhatsAppUnifiedView';
 
 // A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
 // (in the render body, before any passive effect runs). That first value is what
@@ -374,6 +378,95 @@ function AvailabilitySurface() {
   );
 }
 
+// ITEM A1e: ?surface=bookings + ?surface=conversations sweep the two "wide-content"
+// routes INSIDE the real DashboardLayout at mobile widths. Both pages are hook-bound to
+// Supabase, so (like A1c/A1d) we mount their REAL inner widgets with proven mock data,
+// wrapped EXACTLY as Bookings.tsx / Conversations.tsx wrap them (page padding + the real
+// card classes), inside the real shell. Bookings = the real BookingsFilters + BookingsList
+// (-> VirtualizedBookingsList -> BookingCard / BookingsEmptyState), proven pure in
+// bookings-main.tsx. Conversations = the REAL WhatsAppUnifiedView (its lg:hidden mobile
+// branch shows ONE pane at a time with a "Back to list" button) fed from a seeded
+// react-query cache (same keys as conversations-main.tsx), so the real mobile pane switch
+// is exercised. The hook-only wrappers we skip (useBookingsFilters / WhatsAppDashboard's
+// limit + webhook hooks) add no NEW layout primitive beyond these widgets.
+const bIso = (hoursFromNow: number) => {
+  const d = new Date();
+  d.setHours(d.getHours() + hoursFromNow, 0, 0, 0);
+  return d.toISOString();
+};
+const mockBookingRows: any[] = [
+  { id: 'b-1', start_time: bIso(26), end_time: bIso(27), status: 'confirmed', customer_name: 'Emma van der Berg', customer_email: 'emma.vanderberg@example.com', customer_phone: '+31 6 18 84 22 19', service_name: 'Cut & Style', notes: 'Prefers a quiet corner near the window.', total_price: 55 },
+  { id: 'b-2', start_time: bIso(50), end_time: bIso(51), status: 'pending', customer_name: 'Lars Janssen', customer_email: 'lars.janssen@example.com', customer_phone: '+31 6 24 55 90 03', service_name: 'Beard Trim', notes: null, total_price: 25 },
+  { id: 'b-3', start_time: bIso(-48), end_time: bIso(-47), status: 'completed', customer_name: 'Sofia Martens', customer_email: 'sofia.martens.longemail@example.com', customer_phone: null, service_name: 'Balayage & Treatment', notes: null, total_price: 120 },
+  { id: 'b-4', start_time: bIso(-20), end_time: bIso(-19), status: 'cancelled', customer_name: 'Daan de Vries', customer_email: 'daan@example.com', customer_phone: '+31 6 33 21 88 04', service_name: 'Manicure', notes: 'Cancelled, rebooked next week.', total_price: 35 },
+];
+
+function BookingsSurface() {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [dateRange, setDateRange] = React.useState<any>({ type: 'all' });
+  const [sortBy, setSortBy] = React.useState('newest');
+  // Mirror Bookings.tsx's populated branch (page wrapper + header + CalendarSwitcher +
+  // BookingsFilters + BookingsList).
+  return (
+    <div className="bg-background min-h-full p-4 sm:p-6 md:p-8">
+      <div className="space-y-4 md:space-y-6">
+        <SimplePageHeader title="Bookings" />
+        <div className="mb-4 md:mb-6">
+          <CalendarSwitcher />
+        </div>
+        <BookingsFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+        />
+        <BookingsList bookings={mockBookingRows} loading={false} hasFilters={false} onBookingClick={() => {}} />
+      </div>
+    </div>
+  );
+}
+
+const CONV_CAL = 'cal-1';
+const convIso = (hoursFromNow: number) => {
+  const d = new Date();
+  d.setHours(d.getHours() + hoursFromNow);
+  return d.toISOString();
+};
+const convContacts: any[] = [
+  { contact_id: 'c-1', phone_number: '+31 6 18 84 22 19', display_name: 'Emma van der Berg', first_name: 'Emma', last_name: 'van der Berg', conversation_status: 'active', last_message_at: convIso(-0.3), conversation_created_at: convIso(-24 * 9), all_bookings: [{ booking_id: 'b-1', calendar_id: CONV_CAL, calendar_name: 'Glow Studio Main', business_name: 'Glow Studio', start_time: convIso(48), end_time: convIso(49), service_type_id: 's-1', service_name: 'Cut & Style', status: 'confirmed', customer_name: 'Emma van der Berg', customer_email: null }] },
+  { contact_id: 'c-2', phone_number: '+31 6 24 55 90 03', display_name: 'Lars Janssen', first_name: 'Lars', conversation_status: 'pending', last_message_at: convIso(-3), conversation_created_at: convIso(-24 * 2), all_bookings: [{ booking_id: 'b-3', calendar_id: CONV_CAL, calendar_name: 'Glow Studio Main', business_name: 'Glow Studio', start_time: convIso(72), end_time: convIso(73), service_type_id: 's-1', service_name: 'Beard Trim', status: 'pending', customer_name: 'Lars Janssen', customer_email: null }] },
+  { contact_id: 'c-3', phone_number: '+31 6 91 02 77 41', display_name: 'Sofia Martens', conversation_status: 'closed', last_message_at: convIso(-24 * 4), conversation_created_at: convIso(-24 * 30), all_bookings: [] },
+];
+const convMessages: any[] = [
+  { id: 'm-1', content: 'Hi! Do you have a slot for a cut this week?', direction: 'inbound', created_at: convIso(-2), status: 'delivered' },
+  { id: 'm-2', content: 'Hello Emma! Of course. We have Thursday at 14:00 or Friday at 10:30. Which works best for you?', direction: 'outbound', created_at: convIso(-2), status: 'delivered' },
+  { id: 'm-3', content: 'Thursday 14:00 is perfect.', direction: 'inbound', created_at: convIso(-1.9), status: 'delivered' },
+  { id: 'm-4', content: "Great, you're booked for a Cut & Style on Thursday at 14:00. See you then! 💇", direction: 'outbound', created_at: convIso(-1.9), status: 'delivered' },
+];
+function seedConversationsCache(qc: QueryClient) {
+  qc.setQueryData(['whatsapp-contact-overview', CONV_CAL, true], convContacts);
+  qc.setQueryData(['whatsapp-messages', 'c-1'], convMessages);
+}
+
+function ConversationsSurface() {
+  // Mirror Conversations.tsx's selected-calendar branch (h-full flex column + the
+  // surface-raised rounded-xl overflow-hidden card holding the unified 3-pane/mobile view).
+  // Mount WhatsAppUnifiedView directly (skips WhatsAppDashboard's limit/webhook hooks, which
+  // add no layout primitive) so the real lg:hidden mobile pane switch runs inside the shell.
+  return (
+    <div className="bg-background h-full flex flex-col p-3 md:p-8">
+      <div className="shrink-0 mb-4 md:mb-6">
+        <SimplePageHeader title="WhatsApp" />
+      </div>
+      <div className="flex-1 min-h-0 surface-raised rounded-xl overflow-hidden">
+        <WhatsAppUnifiedView calendarId={CONV_CAL} />
+      </div>
+    </div>
+  );
+}
+
 // ?surface=dashboard mounts the REAL Dashboard page (which carries its own
 // DashboardLayout) inside the shell so the per-route A1b mobile sweep exercises the
 // surface INSIDE the real shell at mobile widths. ?surface=settings mounts the real
@@ -388,6 +481,7 @@ const queryClient = new QueryClient({
   },
 });
 if (surface === 'dashboard') seedDashboardCache(queryClient);
+if (surface === 'conversations') seedConversationsCache(queryClient);
 
 function Harness() {
   return (
@@ -411,6 +505,14 @@ function Harness() {
               ) : surface === 'availability' ? (
                 <DashboardLayout>
                   <AvailabilitySurface />
+                </DashboardLayout>
+              ) : surface === 'bookings' ? (
+                <DashboardLayout>
+                  <BookingsSurface />
+                </DashboardLayout>
+              ) : surface === 'conversations' ? (
+                <DashboardLayout>
+                  <ConversationsSurface />
                 </DashboardLayout>
               ) : (
                 <DashboardLayout>
