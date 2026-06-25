@@ -81,7 +81,11 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-white/[0.06] focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      // min-h-11 on mobile = 44px touch target (DoD §2); md:min-h-0 resets to the
+      // natural ~30px on desktop (byte-identical). Height-only -> no horizontal-overflow
+      // risk (same proven-safe global pattern as Button/Input/Select). items-center keeps
+      // the label vertically centred at the taller mobile height.
+      "relative flex min-h-11 cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-white/[0.06] focus:text-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 md:min-h-0",
       inset && "pl-8",
       className
     )}

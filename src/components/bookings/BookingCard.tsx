@@ -58,7 +58,11 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
       className="surface-raised cursor-pointer transition-transform duration-150 active:scale-[0.985] motion-reduce:active:scale-100 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
+        {/* Mobile: stack the status badge ABOVE the date as its own row (flex-col-reverse
+            puts the DOM-last badge on top) so the date title gets the full width and no
+            longer wraps into / collides with the badge. Desktop (sm+): the original
+            title-left / badge-right row. */}
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <Calendar aria-hidden="true" className="w-5 h-5 text-subtle-foreground shrink-0 mt-0.5" />
             <div className="min-w-0">
@@ -71,7 +75,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
               </div>
             </div>
           </div>
-          <span className="shrink-0">{getStatusBadge(booking.status)}</span>
+          <span className="shrink-0 self-start">{getStatusBadge(booking.status)}</span>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
