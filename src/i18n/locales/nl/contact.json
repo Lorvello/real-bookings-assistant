@@ -1,0 +1,87 @@
+{
+  "contact": {
+    "hero": {
+      "badge": "Neem contact op",
+      "titleStart": "Laten we een ",
+      "titleAccent": "gesprek beginnen",
+      "subtitle": "Heb je vragen of ben je klaar om je boekingservaring te transformeren? We horen graag van je."
+    },
+    "success": {
+      "title": "Bedankt!",
+      "body": "We hebben je bericht ontvangen en nemen snel contact met je op.",
+      "button": "Nog een bericht versturen"
+    },
+    "form": {
+      "heading": "Stuur ons een bericht",
+      "name": "Naam *",
+      "namePlaceholder": "Je naam",
+      "email": "E-mail *",
+      "emailPlaceholder": "jouw@email.com",
+      "company": "Bedrijf",
+      "companyPlaceholder": "Je bedrijf",
+      "country": "Land *",
+      "countryPlaceholder": "Selecteer je land",
+      "subject": "Onderwerp *",
+      "subjectPlaceholder": "Selecteer een onderwerp",
+      "budget": "Budgetindicatie",
+      "budgetPlaceholder": "Selecteer budget",
+      "message": "Bericht *",
+      "messagePlaceholder": "Vertel ons over je wensen...",
+      "scheduleCheckbox": "Ik wil graag een afspraak inplannen",
+      "scheduleHint": "Kies hieronder een datum en tijd om direct te boeken",
+      "pickDateTime": "Kies datum en tijd voor de afspraak",
+      "date": "Datum *",
+      "times": "Beschikbare tijden (CET) *",
+      "noSlots": "Geen beschikbare tijden op deze datum",
+      "pickDateFirst": "Kies een datum om beschikbare tijden te zien",
+      "meetingConfirm": "Afspraak: {{date}} om {{time}} CET",
+      "realtimeNote": "✓ Beschikbare tijden worden in realtime getoond. Zodra een tijd geboekt is, wordt die gereserveerd.",
+      "sending": "Versturen...",
+      "scheduleBtn": "Afspraak inplannen",
+      "sendBtn": "Bericht versturen"
+    },
+    "subjects": {
+      "general": "Algemene vraag",
+      "sales": "Verkoopvraag",
+      "partnership": "Samenwerking",
+      "support": "Ondersteuning",
+      "demo": "Demo aanvragen"
+    },
+    "budgets": {
+      "exploring": "Ik oriënteer me nog",
+      "starter": "Starter-abonnement (€30/maand)",
+      "professional": "Professional-abonnement (€60/maand)",
+      "enterprise": "Enterprise (prijs op maat)"
+    },
+    "countries": {
+      "nl": "Nederland",
+      "be": "België",
+      "de": "Duitsland",
+      "uk": "Verenigd Koninkrijk",
+      "us": "Verenigde Staten",
+      "fr": "Frankrijk",
+      "es": "Spanje",
+      "it": "Italië",
+      "other": "Overig"
+    },
+    "validation": {
+      "name": "Naam moet minstens 2 tekens bevatten",
+      "email": "Voer een geldig e-mailadres in",
+      "country": "Selecteer je land",
+      "subject": "Selecteer een onderwerp",
+      "message": "Bericht moet minstens 10 tekens bevatten"
+    },
+    "toast": {
+      "meetingRequiredTitle": "Gegevens voor de afspraak ontbreken",
+      "meetingRequiredDesc": "Selecteer zowel een datum als een tijd voor je afspraak.",
+      "slotTakenTitle": "Tijdslot niet meer beschikbaar",
+      "slotTakenDesc": "Dit tijdslot is zojuist geboekt. Kies een andere tijd.",
+      "meetingScheduledTitle": "Afspraak ingepland!",
+      "messageSentTitle": "Bericht verzonden!",
+      "meetingScheduledDesc": "Je afspraak is ingepland op {{date}} om {{time}} CET.",
+      "messageSentDesc": "We nemen zo snel mogelijk contact met je op.",
+      "errorTitle": "Er ging iets mis",
+      "errorDesc": "Probeer het later opnieuw."
+    }
+  }
+}

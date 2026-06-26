@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -47,31 +48,33 @@ const contactFormSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
-const subjectOptions = [
-  { value: 'general', label: 'General Inquiry' },
-  { value: 'sales', label: 'Sales Question' },
-  { value: 'partnership', label: 'Partnership' },
-  { value: 'support', label: 'Support' },
-  { value: 'demo', label: 'Request a Demo' },
+// [value, i18n key, English default label]. The value is what the form submits
+// (language-stable); the label is what i18n translates.
+const SUBJECT_DEFS: Array<[string, string, string]> = [
+  ['general', 'contact.subjects.general', 'General Inquiry'],
+  ['sales', 'contact.subjects.sales', 'Sales Question'],
+  ['partnership', 'contact.subjects.partnership', 'Partnership'],
+  ['support', 'contact.subjects.support', 'Support'],
+  ['demo', 'contact.subjects.demo', 'Request a Demo'],
 ];
 
-const budgetOptions = [
-  { value: 'exploring', label: 'Just exploring' },
-  { value: 'starter', label: 'Starter Plan (€30/month)' },
-  { value: 'professional', label: 'Professional Plan (€60/month)' },
-  { value: 'enterprise', label: 'Enterprise (Custom pricing)' },
+const BUDGET_DEFS: Array<[string, string, string]> = [
+  ['exploring', 'contact.budgets.exploring', 'Just exploring'],
+  ['starter', 'contact.budgets.starter', 'Starter Plan (€30/month)'],
+  ['professional', 'contact.budgets.professional', 'Professional Plan (€60/month)'],
+  ['enterprise', 'contact.budgets.enterprise', 'Enterprise (Custom pricing)'],
 ];
 
-const countryOptions = [
-  { value: 'nl', label: 'Netherlands' },
-  { value: 'be', label: 'Belgium' },
-  { value: 'de', label: 'Germany' },
-  { value: 'uk', label: 'United Kingdom' },
-  { value: 'us', label: 'United States' },
-  { value: 'fr', label: 'France' },
-  { value: 'es', label: 'Spain' },
-  { value: 'it', label: 'Italy' },
-  { value: 'other', label: 'Other' },
+const COUNTRY_DEFS: Array<[string, string, string]> = [
+  ['nl', 'contact.countries.nl', 'Netherlands'],
+  ['be', 'contact.countries.be', 'Belgium'],
+  ['de', 'contact.countries.de', 'Germany'],
+  ['uk', 'contact.countries.uk', 'United Kingdom'],
+  ['us', 'contact.countries.us', 'United States'],
+  ['fr', 'contact.countries.fr', 'France'],
+  ['es', 'contact.countries.es', 'Spain'],
+  ['it', 'contact.countries.it', 'Italy'],
+  ['other', 'contact.countries.other', 'Other'],
 ];
 
 const timeSlots = [
@@ -79,10 +82,30 @@ const timeSlots = [
 ];
 
 const Contact = () => {
+  const { t } = useTranslation('contact');
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedSlots, setBookedSlots] = useState<{ date: string; time: string }[]>([]);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Localized validation schema + option labels. The form submits the stable
+  // value codes; only the displayed label/message is translated. The resolver is
+  // captured by useForm at mount, so messages render in the page's load language.
+  const localizedSchema = z.object({
+    name: z.string().min(2, t('contact.validation.name', 'Name must be at least 2 characters')),
+    email: z.string().email(t('contact.validation.email', 'Please enter a valid email address')),
+    company: z.string().optional(),
+    country: z.string().min(1, t('contact.validation.country', 'Please select your country')),
+    subject: z.string().min(1, t('contact.validation.subject', 'Please select a subject')),
+    budget: z.string().optional(),
+    message: z.string().min(10, t('contact.validation.message', 'Message must be at least 10 characters')),
+    requestMeeting: z.boolean().default(false),
+    meetingDate: z.date().optional(),
+    meetingTime: z.string().optional(),
+  });
+  const subjectOptions = SUBJECT_DEFS.map(([value, key, en]) => ({ value, label: t(key, en) }));
+  const budgetOptions = BUDGET_DEFS.map(([value, key, en]) => ({ value, label: t(key, en) }));
+  const countryOptions = COUNTRY_DEFS.map(([value, key, en]) => ({ value, label: t(key, en) }));
 
   useSEO({
     title: "Contact Us - Get in Touch",
@@ -91,7 +114,7 @@ const Contact = () => {
   });
 
   const form = useForm<ContactFormValues>({
-    resolver: zodResolver(contactFormSchema),
+    resolver: zodResolver(localizedSchema),
     defaultValues: {
       name: '',
       email: '',
@@ -166,8 +189,8 @@ const Contact = () => {
       if (data.requestMeeting) {
         if (!data.meetingDate || !data.meetingTime) {
           toast({
-            title: "Meeting details required",
-            description: "Please select both a date and time for your meeting.",
+            title: t('contact.toast.meetingRequiredTitle', 'Meeting details required'),
+            description: t('contact.toast.meetingRequiredDesc', 'Please select both a date and time for your meeting.'),
             variant: "destructive",
           });
           setIsSubmitting(false);
@@ -181,8 +204,8 @@ const Contact = () => {
 
         if (!isAvailable) {
           toast({
-            title: "Time slot no longer available",
-            description: "This time slot was just booked. Please select another time.",
+            title: t('contact.toast.slotTakenTitle', 'Time slot no longer available'),
+            description: t('contact.toast.slotTakenDesc', 'This time slot was just booked. Please select another time.'),
             variant: "destructive",
           });
           setIsSubmitting(false);
@@ -224,18 +247,18 @@ const Contact = () => {
 
       setIsSuccess(true);
       toast({
-        title: data.requestMeeting ? "Meeting scheduled!" : "Message sent!",
-        description: data.requestMeeting 
-          ? `Your meeting is scheduled for ${format(data.meetingDate!, 'PPP')} at ${data.meetingTime} CET.`
-          : "We'll get back to you as soon as possible.",
+        title: data.requestMeeting ? t('contact.toast.meetingScheduledTitle', 'Meeting scheduled!') : t('contact.toast.messageSentTitle', 'Message sent!'),
+        description: data.requestMeeting
+          ? t('contact.toast.meetingScheduledDesc', 'Your meeting is scheduled for {{date}} at {{time}} CET.', { date: format(data.meetingDate!, 'PPP'), time: data.meetingTime })
+          : t('contact.toast.messageSentDesc', "We'll get back to you as soon as possible."),
       });
 
       form.reset();
     } catch (error) {
       console.error('Error submitting form:', error);
       toast({
-        title: "Something went wrong",
-        description: "Please try again later.",
+        title: t('contact.toast.errorTitle', 'Something went wrong'),
+        description: t('contact.toast.errorDesc', 'Please try again later.'),
         variant: "destructive",
       });
     } finally {
@@ -269,22 +292,22 @@ const Contact = () => {
             <ScrollAnimatedSection animation="fade-up" delay={0} as="div">
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm mb-6">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse" />
-                <span className="text-emerald-300 text-sm font-medium tracking-wide">Get in Touch</span>
+                <span className="text-emerald-300 text-sm font-medium tracking-wide">{t('contact.hero.badge', 'Get in Touch')}</span>
               </div>
             </ScrollAnimatedSection>
 
             {/* Heading */}
             <ScrollAnimatedSection animation="fade-up" delay={100} as="h1" className="text-4xl md:text-5xl xl:text-6xl font-bold mb-6">
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
-                Let's Start a{' '}
+                {t('contact.hero.titleStart', "Let's Start a ")}
               </span>
               <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent">
-                Conversation
+                {t('contact.hero.titleAccent', 'Conversation')}
               </span>
             </ScrollAnimatedSection>
 
             <ScrollAnimatedSection animation="fade-up" delay={200} as="p" className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto">
-              Have questions or ready to transform your booking experience? We'd love to hear from you.
+              {t('contact.hero.subtitle', "Have questions or ready to transform your booking experience? We'd love to hear from you.")}
             </ScrollAnimatedSection>
           </div>
         </section>
@@ -297,15 +320,15 @@ const Contact = () => {
                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="h-8 w-8 text-emerald-400" />
                 </div>
-                <h2 className="text-2xl font-semibold text-white mb-4">Thank you!</h2>
+                <h2 className="text-2xl font-semibold text-white mb-4">{t('contact.success.title', 'Thank you!')}</h2>
                 <p className="text-slate-300 mb-6">
-                  We've received your message and will get back to you shortly.
+                  {t('contact.success.body', "We've received your message and will get back to you shortly.")}
                 </p>
                 <Button
                   onClick={() => setIsSuccess(false)}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  Send another message
+                  {t('contact.success.button', 'Send another message')}
                 </Button>
               </div>
             ) : (
@@ -314,7 +337,7 @@ const Contact = () => {
                   <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
                     <Mail className="h-5 w-5 text-emerald-400" />
                   </div>
-                  Send Us a Message
+                  {t('contact.form.heading', 'Send Us a Message')}
                 </h2>
 
                 <Form {...form}>
@@ -326,10 +349,10 @@ const Contact = () => {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Name *</FormLabel>
+                            <FormLabel className="text-slate-300">{t('contact.form.name', 'Name *')}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Your name"
+                                placeholder={t('contact.form.namePlaceholder', 'Your name')}
                                 className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
                                 {...field}
                               />
@@ -343,11 +366,11 @@ const Contact = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Email *</FormLabel>
+                            <FormLabel className="text-slate-300">{t('contact.form.email', 'Email *')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="email"
-                                placeholder="your@email.com"
+                                placeholder={t('contact.form.emailPlaceholder', 'your@email.com')}
                                 className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
                                 {...field}
                               />
@@ -365,10 +388,10 @@ const Contact = () => {
                         name="company"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Company</FormLabel>
+                            <FormLabel className="text-slate-300">{t('contact.form.company', 'Company')}</FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="Your company"
+                                placeholder={t('contact.form.companyPlaceholder', 'Your company')}
                                 className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500"
                                 {...field}
                               />
@@ -382,11 +405,11 @@ const Contact = () => {
                         name="country"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Country *</FormLabel>
+                            <FormLabel className="text-slate-300">{t('contact.form.country', 'Country *')}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
-                                  <SelectValue placeholder="Select your country" />
+                                  <SelectValue placeholder={t('contact.form.countryPlaceholder', 'Select your country')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-slate-800 border-slate-700">
@@ -414,11 +437,11 @@ const Contact = () => {
                         name="subject"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Subject *</FormLabel>
+                            <FormLabel className="text-slate-300">{t('contact.form.subject', 'Subject *')}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
-                                  <SelectValue placeholder="Select a topic" />
+                                  <SelectValue placeholder={t('contact.form.subjectPlaceholder', 'Select a topic')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-slate-800 border-slate-700">
@@ -442,11 +465,11 @@ const Contact = () => {
                         name="budget"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-slate-300">Budget indication</FormLabel>
+                            <FormLabel className="text-slate-300">{t('contact.form.budget', 'Budget indication')}</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:border-emerald-500">
-                                  <SelectValue placeholder="Select budget" />
+                                  <SelectValue placeholder={t('contact.form.budgetPlaceholder', 'Select budget')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-slate-800 border-slate-700">
@@ -473,10 +496,10 @@ const Contact = () => {
                       name="message"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-slate-300">Message *</FormLabel>
+                          <FormLabel className="text-slate-300">{t('contact.form.message', 'Message *')}</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Tell us about your needs..."
+                              placeholder={t('contact.form.messagePlaceholder', 'Tell us about your needs...')}
                               rows={4}
                               className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500 focus:border-emerald-500 resize-none"
                               {...field}
@@ -502,10 +525,10 @@ const Contact = () => {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="text-white font-medium cursor-pointer">
-                              I'd like to schedule a meeting
+                              {t('contact.form.scheduleCheckbox', "I'd like to schedule a meeting")}
                             </FormLabel>
                             <p className="text-sm text-slate-400">
-                              Select a date and time below to book directly
+                              {t('contact.form.scheduleHint', 'Select a date and time below to book directly')}
                             </p>
                           </div>
                         </FormItem>
@@ -517,7 +540,7 @@ const Contact = () => {
                       <div className="space-y-4 p-5 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
                         <div className="flex items-center gap-2 mb-4">
                           <CalendarIcon className="h-5 w-5 text-emerald-400" />
-                          <span className="text-white font-medium">Select meeting date & time</span>
+                          <span className="text-white font-medium">{t('contact.form.pickDateTime', 'Select meeting date & time')}</span>
                         </div>
                         
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -527,7 +550,7 @@ const Contact = () => {
                             name="meetingDate"
                             render={({ field }) => (
                               <FormItem className="flex flex-col">
-                                <FormLabel className="text-slate-300 mb-2">Date *</FormLabel>
+                                <FormLabel className="text-slate-300 mb-2">{t('contact.form.date', 'Date *')}</FormLabel>
                                 <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-2">
                                   <Calendar
                                     mode="single"
@@ -555,7 +578,7 @@ const Contact = () => {
                               <FormItem className="flex flex-col">
                                 <FormLabel className="text-slate-300 mb-2">
                                   <Clock className="inline h-4 w-4 mr-1 text-emerald-400" />
-                                  Available Times (CET) *
+                                  {t('contact.form.times', 'Available Times (CET) *')}
                                 </FormLabel>
                                 <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 flex-1">
                                   {watchMeetingDate ? (
@@ -582,13 +605,13 @@ const Contact = () => {
                                           ))}
                                         </div>
                                       ) : (
-                                        <p className="text-slate-500 text-sm">No available slots for this date</p>
+                                        <p className="text-slate-500 text-sm">{t('contact.form.noSlots', 'No available slots for this date')}</p>
                                       )}
                                     </div>
                                   ) : (
                                     <div className="flex items-center justify-center h-full min-h-[120px]">
                                       <p className="text-slate-500 text-sm text-center">
-                                        Select a date to see available times
+                                        {t('contact.form.pickDateFirst', 'Select a date to see available times')}
                                       </p>
                                     </div>
                                   )}
@@ -603,13 +626,13 @@ const Contact = () => {
                           <div className="flex items-center gap-2 p-3 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
                             <CheckCircle className="h-4 w-4 text-emerald-400" />
                             <span className="text-emerald-300 text-sm">
-                              Meeting: {format(watchMeetingDate, 'PPP')} at {form.watch('meetingTime')} CET
+                              {t('contact.form.meetingConfirm', 'Meeting: {{date}} at {{time}} CET', { date: format(watchMeetingDate, 'PPP'), time: form.watch('meetingTime') })}
                             </span>
                           </div>
                         )}
 
                         <p className="text-sm text-emerald-300/80">
-                          ✓ Available slots are shown in real-time. Once booked, the slot is reserved.
+                          {t('contact.form.realtimeNote', '✓ Available slots are shown in real-time. Once booked, the slot is reserved.')}
                         </p>
                       </div>
                     )}
@@ -623,12 +646,12 @@ const Contact = () => {
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Sending...
+                          {t('contact.form.sending', 'Sending...')}
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <Send className="h-5 w-5" />
-                          {watchRequestMeeting ? 'Schedule Meeting' : 'Send Message'}
+                          {watchRequestMeeting ? t('contact.form.scheduleBtn', 'Schedule Meeting') : t('contact.form.sendBtn', 'Send Message')}
                         </div>
                       )}
                     </Button>
