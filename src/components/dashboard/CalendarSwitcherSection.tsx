@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, Plus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ interface CalendarSwitcherSectionProps {
 }
 
 export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSectionProps) {
+  const { t } = useTranslation('app');
   const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading, refreshCalendars } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -44,7 +46,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
       <div className="border-t border-border p-4">
         <div className="mb-3">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Switch Calendar
+            {t('app.calSwitch.switch', 'Switch Calendar')}
           </p>
         </div>
         
@@ -59,7 +61,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                 {viewingAllCalendars ? (
                   <>
                     <div className="w-3 h-3 bg-muted-foreground rounded-full flex-shrink-0" />
-                    <span className="truncate text-sm">All calendars</span>
+                    <span className="truncate text-sm">{t('app.calSwitch.all', 'All calendars')}</span>
                   </>
                 ) : (
                   <>
@@ -68,7 +70,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                       style={{ backgroundColor: selectedCalendar?.color || '#6B7280' }}
                     />
                     <span className="truncate text-sm">
-                      {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
+                      {selectedCalendar ? selectedCalendar.name : t('app.calSwitch.selectPlaceholder', 'Select calendar')}
                     </span>
                   </>
                 )}
@@ -78,9 +80,9 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
           </DropdownMenuTrigger>
           
           <DropdownMenuContent className="w-64 bg-card border-border z-50" align="end">
-            <DropdownMenuLabel className="text-foreground">Select Calendar</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-foreground">{t('app.calSwitch.selectLabel', 'Select Calendar')}</DropdownMenuLabel>
             <p className="px-2 pb-1.5 text-xs leading-snug text-muted-foreground">
-              Switching changes the bookings, availability and stats shown across the whole dashboard.
+              {t('app.calSwitch.hint', 'Switching changes the bookings, availability and stats shown across the whole dashboard.')}
             </p>
             <DropdownMenuSeparator />
             
@@ -92,11 +94,11 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
               <div className="w-3 h-3 bg-muted-foreground rounded-full" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2">
-                  <span className="font-medium text-foreground">All calendars</span>
-                  <Badge variant="outline" className="text-xs border-border">Mixed</Badge>
+                  <span className="font-medium text-foreground">{t('app.calSwitch.all', 'All calendars')}</span>
+                  <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.mixed', 'Mixed')}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  View all appointments together
+                  {t('app.calSwitch.allDesc', 'View all appointments together')}
                 </p>
               </div>
               {viewingAllCalendars && (
@@ -122,10 +124,10 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                   <div className="flex items-center space-x-2">
                     <span className="font-medium truncate text-foreground">{calendar.name}</span>
                     {calendar.is_default && (
-                      <Badge variant="outline" className="text-xs border-border">Default</Badge>
+                      <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
                     )}
                     {isActive && (
-                      <Badge className="text-xs bg-primary/15 text-primary border-transparent">Active</Badge>
+                      <Badge className="text-xs bg-primary/15 text-primary border-transparent">{t('app.calSwitch.active', 'Active')}</Badge>
                     )}
                   </div>
                   {calendar.description && (
@@ -138,8 +140,8 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                   variant="ghost"
                   size="sm"
                   onClick={(e) => handleEditCalendar(calendar, e)}
-                  aria-label={`Edit ${calendar.name}`}
-                  title="Edit calendar"
+                  aria-label={t('app.calSwitch.editAria', 'Edit {{name}}', { name: calendar.name })}
+                  title={t('app.calSwitch.editTitle', 'Edit calendar')}
                   className="shrink-0 p-1 h-7 w-7 text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground transition"
                 >
                   <Edit className="h-3.5 w-3.5" />
@@ -158,7 +160,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
               className="hover:bg-muted focus:bg-muted"
             >
               <Plus className="w-4 h-4 mr-2" />
-              New calendar
+              {t('app.calSwitch.new', 'New calendar')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

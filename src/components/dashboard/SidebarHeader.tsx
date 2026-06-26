@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { PanelLeft, PanelRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -12,6 +13,7 @@ interface SidebarHeaderProps {
 }
 
 export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false, tooltipsDisabled = false }: SidebarHeaderProps) {
+  const { t } = useTranslation('app');
   return (
     <div className="flex h-16 items-center justify-between pr-4 pl-2 border-b border-white/[0.08]">
       {/* Logo - only show when expanded */}
@@ -19,7 +21,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
         <div className="transition-all duration-300 select-none">
           <img 
             src="/lovable-uploads/81803cac-40e1-4777-b914-5ca4e2490468.png" 
-            alt="Bookings Assistant logo" 
+            alt={t('app.logoAlt', 'Bookings Assistant logo')}
             className={`w-auto pointer-events-none select-none ${isMobile ? 'h-10' : 'h-12'}`}
             width="107"
             height="48"

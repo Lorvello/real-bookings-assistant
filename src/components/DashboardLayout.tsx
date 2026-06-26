@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SidebarHeader } from '@/components/dashboard/SidebarHeader';
@@ -19,30 +21,32 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Helper function to get page title from pathname
-const getPageTitle = (pathname: string) => {
+// Helper function to get page title from pathname. Takes `t` so the mobile
+// header title follows the EN<->NL toggle; called in the render body (not
+// memoized) so it recomputes with the current language.
+const getPageTitle = (pathname: string, t: TFunction) => {
   const segments = pathname.split('/').filter(Boolean);
-  
+
   if (segments.length === 0 || segments[0] === 'dashboard') {
-    return 'Dashboard';
+    return t('app.pageTitle.dashboard', 'Dashboard');
   }
-  
+
   // Keys are the first path segment of each logged-in route; titles mirror the
   // sidebar NavigationMenu labels so the mobile header never disagrees with the
   // nav. (The old 'whatsapp'/'bookings-assistant' keys were stale and never
   // matched the real '/whatsapp-booking-assistant' route, so its mobile header
   // fell through to the ugly auto-capitalized 'Whatsapp-booking-assistant'.)
   const pageMap: Record<string, string> = {
-    'calendar': 'Calendar',
-    'bookings': 'Bookings',
-    'availability': 'Availability',
-    'conversations': 'WhatsApp',
-    'whatsapp-booking-assistant': 'Booking Assistant',
-    'test-ai-agent': 'Test AI Agent',
-    'profile': 'Profile',
-    'settings': 'Settings'
+    'calendar': t('app.pageTitle.calendar', 'Calendar'),
+    'bookings': t('app.pageTitle.bookings', 'Bookings'),
+    'availability': t('app.pageTitle.availability', 'Availability'),
+    'conversations': t('app.pageTitle.whatsapp', 'WhatsApp'),
+    'whatsapp-booking-assistant': t('app.pageTitle.bookingAssistant', 'Booking Assistant'),
+    'test-ai-agent': t('app.pageTitle.testAi', 'Test AI Agent'),
+    'profile': t('app.pageTitle.profile', 'Profile'),
+    'settings': t('app.pageTitle.settings', 'Settings')
   };
-  
+
   return pageMap[segments[0]] || segments[0].charAt(0).toUpperCase() + segments[0].slice(1);
 };
 
@@ -53,6 +57,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation('app');
   const { signOut } = useAuth();
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -108,7 +113,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   };
 
-  const currentPageTitle = getPageTitle(location.pathname);
+  const currentPageTitle = getPageTitle(location.pathname, t);
 
   return (
     <AuthenticatedPageWrapper>
@@ -211,7 +216,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="fixed top-0 left-0 right-0 h-16 bg-surface-1/95 backdrop-blur-md border-b border-white/[0.08] z-30 flex items-center px-4" style={{ touchAction: 'pan-y' }}>
           <button
             onClick={() => setIsSidebarOpen(true)}
-            aria-label="Open menu"
+            aria-label={t('app.openMenu', 'Open menu')}
             className="flex h-11 w-11 items-center justify-center -ml-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-white/[0.06] transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

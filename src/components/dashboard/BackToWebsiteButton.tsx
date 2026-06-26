@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -10,6 +11,7 @@ interface BackToWebsiteButtonProps {
 }
 
 export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite, tooltipsDisabled = false }: BackToWebsiteButtonProps) {
+  const { t } = useTranslation('app');
   return (
     <div className="px-2 py-2 border-b border-white/[0.08]">
         <button
@@ -27,7 +29,7 @@ export function BackToWebsiteButton({ isSidebarOpen, onBackToWebsite, tooltipsDi
           />
           {isSidebarOpen && (
             <span className="transition-all duration-300 opacity-100 translate-x-0">
-              Back to Website
+              {t('app.backToWebsite', 'Back to Website')}
             </span>
           )}
         </button>

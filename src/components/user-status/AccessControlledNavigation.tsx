@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Calendar,
   Home,
@@ -19,7 +20,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useAvailabilityAlerts } from '@/hooks/useAvailabilityAlerts';
 
 interface NavItem {
-  name: string;
+  name: string;        // stable English identifier (React key + state); never shown raw, see labelKey
+  labelKey: string;    // i18n key for the displayed label (EN default == name)
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   requiresAccess?: keyof import('@/types/userStatus').AccessControl;
@@ -27,14 +29,14 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Calendar', href: '/calendar', icon: Calendar, requiresAccess: 'canCreateBookings', description: 'View and manage calendar' },
-  { name: 'Bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canCreateBookings', description: 'View and manage bookings' },
-  { name: 'Availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
-  { name: 'WhatsApp', href: '/conversations', icon: MessageCircle, description: 'WhatsApp conversations' },
-  { name: 'Bookings Assistant', href: '/whatsapp-booking-assistant', icon: Phone, description: 'WhatsApp booking assistant setup' },
-  { name: 'Test your AI agent', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Dashboard', labelKey: 'app.nav.dashboard', href: '/dashboard', icon: Home },
+  { name: 'Calendar', labelKey: 'app.nav.calendar', href: '/calendar', icon: Calendar, requiresAccess: 'canCreateBookings', description: 'View and manage calendar' },
+  { name: 'Bookings', labelKey: 'app.nav.bookings', href: '/bookings', icon: BookOpen, requiresAccess: 'canCreateBookings', description: 'View and manage bookings' },
+  { name: 'Availability', labelKey: 'app.nav.availability', href: '/availability', icon: Clock, description: 'Set your working hours' },
+  { name: 'WhatsApp', labelKey: 'app.nav.whatsapp', href: '/conversations', icon: MessageCircle, description: 'WhatsApp conversations' },
+  { name: 'Bookings Assistant', labelKey: 'app.nav.bookingsAssistant', href: '/whatsapp-booking-assistant', icon: Phone, description: 'WhatsApp booking assistant setup' },
+  { name: 'Test your AI agent', labelKey: 'app.nav.testAi', href: '/test-ai-agent', icon: Bot, requiresAccess: 'canUseAI', description: 'AI assistant features' },
+  { name: 'Settings', labelKey: 'app.nav.settings', href: '/settings', icon: Settings },
 ];
 
 interface AccessControlledNavigationProps {
@@ -46,6 +48,7 @@ interface AccessControlledNavigationProps {
 
 export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobileNavigate, tooltipsDisabled = false }: AccessControlledNavigationProps) {
   const location = useLocation();
+  const { t } = useTranslation('app');
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
   const { hasAlerts, alertCount } = useAvailabilityAlerts();
@@ -144,8 +147,8 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
     if (item.href === '/whatsapp-booking-assistant') {
       if (userStatus.isSetupIncomplete) {
         toast({
-          title: "Setup Required",
-          description: "Complete your account setup to access this feature.",
+          title: t('app.toast.setupRequiredTitle', 'Setup Required'),
+          description: t('app.toast.setupRequiredDesc', 'Complete your account setup to access this feature.'),
           variant: "destructive",
         });
         onNavigate('/settings');
@@ -161,8 +164,8 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
     if (item.href === '/test-ai-agent') {
       if (userStatus.isSetupIncomplete) {
         toast({
-          title: "Setup Required",
-          description: "Complete your account setup to access this feature.",
+          title: t('app.toast.setupRequiredTitle', 'Setup Required'),
+          description: t('app.toast.setupRequiredDesc', 'Complete your account setup to access this feature.'),
           variant: "destructive",
         });
         onNavigate('/settings');
@@ -171,8 +174,8 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
       }
       if (userStatus.userType === 'expired_trial') {
         toast({
-          title: "Trial Expired",
-          description: "Upgrade to a premium plan to access the AI agent.",
+          title: t('app.toast.trialExpiredTitle', 'Trial Expired'),
+          description: t('app.toast.trialExpiredDesc', 'Upgrade to a premium plan to access the AI agent.'),
           variant: "destructive",
         });
         onNavigate('/settings');
@@ -181,8 +184,8 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
       }
       if (userStatus.userType === 'canceled_and_inactive') {
         toast({
-          title: "Subscription Required",
-          description: "Reactivate your subscription to access the AI agent.",
+          title: t('app.toast.subRequiredTitle', 'Subscription Required'),
+          description: t('app.toast.subRequiredDesc', 'Reactivate your subscription to access the AI agent.'),
           variant: "destructive",
         });
         onNavigate('/settings');
@@ -203,12 +206,12 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
     }
     
     if (!isPaidSubscriber && item.requiresAccess && !accessControl[item.requiresAccess]) {
-      let title = "Access Restricted";
-      let description = "This feature requires an active subscription.";
-      
+      let title = t('app.toast.accessRestrictedTitle', 'Access Restricted');
+      let description = t('app.toast.accessRestrictedDesc', 'This feature requires an active subscription.');
+
       if (userStatus.isExpired) {
-        title = "Subscription Expired";
-        description = "This feature requires an active subscription.";
+        title = t('app.toast.subExpiredTitle', 'Subscription Expired');
+        description = t('app.toast.accessRestrictedDesc', 'This feature requires an active subscription.');
       }
       
       toast({
@@ -236,7 +239,7 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
           <button
             key={item.name}
             onClick={() => handleItemClick(item)}
-            title={!isSidebarOpen ? item.name : undefined}
+            title={!isSidebarOpen ? t(item.labelKey, item.name) : undefined}
             className={`
               group relative flex items-center w-full text-left rounded-md outline-none
               transition-[background-color,color,box-shadow] duration-150 min-h-[44px] touch-manipulation mb-1
@@ -284,14 +287,16 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="right">
-                    <p>{alertCount} calendar{alertCount > 1 ? 's' : ''} need{alertCount === 1 ? 's' : ''} availability setup</p>
+                    <p>{alertCount === 1
+                      ? t('app.availabilityAlertOne', '{{count}} calendar needs availability setup', { count: alertCount })
+                      : t('app.availabilityAlertOther', '{{count}} calendars need availability setup', { count: alertCount })}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
             </div>
             {isSidebarOpen && (
               <span className="truncate">
-                {item.name}
+                {t(item.labelKey, item.name)}
               </span>
             )}
             {isSidebarOpen && item.isRestricted && (

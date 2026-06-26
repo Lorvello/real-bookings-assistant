@@ -1,0 +1,57 @@
+{
+  "app": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "calendar": "Agenda",
+      "bookings": "Boekingen",
+      "availability": "Beschikbaarheid",
+      "whatsapp": "WhatsApp",
+      "bookingsAssistant": "Boekingsassistent",
+      "testAi": "Test je AI-agent",
+      "settings": "Instellingen"
+    },
+    "pageTitle": {
+      "dashboard": "Dashboard",
+      "calendar": "Agenda",
+      "bookings": "Boekingen",
+      "availability": "Beschikbaarheid",
+      "whatsapp": "WhatsApp",
+      "bookingAssistant": "Boekingsassistent",
+      "testAi": "Test AI-agent",
+      "profile": "Profiel",
+      "settings": "Instellingen"
+    },
+    "openMenu": "Menu openen",
+    "logoAlt": "Bookings Assistant logo",
+    "backToWebsite": "Terug naar website",
+    "signOut": "Uitloggen",
+    "userFallback": "Gebruiker",
+    "availabilityAlertOne": "{{count}} agenda heeft beschikbaarheid nodig",
+    "availabilityAlertOther": "{{count}} agenda's hebben beschikbaarheid nodig",
+    "calSwitch": {
+      "switch": "Agenda wisselen",
+      "all": "Alle agenda's",
+      "selectPlaceholder": "Selecteer agenda",
+      "selectLabel": "Selecteer agenda",
+      "hint": "Wisselen verandert de boekingen, beschikbaarheid en statistieken in het hele dashboard.",
+      "mixed": "Gemengd",
+      "allDesc": "Bekijk alle afspraken samen",
+      "default": "Standaard",
+      "active": "Actief",
+      "editAria": "{{name}} bewerken",
+      "editTitle": "Agenda bewerken",
+      "new": "Nieuwe agenda"
+    },
+    "toast": {
+      "setupRequiredTitle": "Setup vereist",
+      "setupRequiredDesc": "Rond je accountinstellingen af om deze functie te gebruiken.",
+      "trialExpiredTitle": "Proefperiode verlopen",
+      "trialExpiredDesc": "Upgrade naar een betaald abonnement om de AI-agent te gebruiken.",
+      "subRequiredTitle": "Abonnement vereist",
+      "subRequiredDesc": "Heractiveer je abonnement om de AI-agent te gebruiken.",
+      "accessRestrictedTitle": "Toegang beperkt",
+      "accessRestrictedDesc": "Deze functie vereist een actief abonnement.",
+      "subExpiredTitle": "Abonnement verlopen"
+    }
+  }
+}
