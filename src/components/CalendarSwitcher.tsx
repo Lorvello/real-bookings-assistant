@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface CalendarSwitcherProps {
 }
 
 export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwitcherProps) {
+  const { t } = useTranslation('app');
   const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading, refreshCalendars } = useCalendarContext();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -64,7 +66,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                   {viewingAllCalendars && !hideAllCalendarsOption ? (
                     <>
                       <Grid3X3 className="w-2 h-2 sm:w-3 sm:h-3 text-muted-foreground" />
-                      <span className="truncate text-xs sm:text-sm">All calendars</span>
+                      <span className="truncate text-xs sm:text-sm">{t('app.calSwitch.all', 'All calendars')}</span>
                     </>
                   ) : (
                     <>
@@ -73,7 +75,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                         style={{ backgroundColor: selectedCalendar?.color || 'hsl(var(--subtle-foreground))' }}
                       />
                       <span className="truncate text-xs sm:text-sm">
-                        {selectedCalendar ? selectedCalendar.name : 'Select calendar'}
+                        {selectedCalendar ? selectedCalendar.name : t('app.calSwitch.selectPlaceholder', 'Select calendar')}
                       </span>
                     </>
                   )}
@@ -85,7 +87,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
             <DropdownMenuContent className="w-72 bg-card border-border z-50">
               <DropdownMenuLabel className="flex items-center space-x-2 text-foreground">
                 <Calendar className="h-4 w-4" />
-                <span>Calendar View</span>
+                <span>{t('app.calSwitch.calendarView', 'Calendar View')}</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               
@@ -99,11 +101,11 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     <Grid3X3 className="w-3 h-3 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-foreground">All calendars</span>
-                        <Badge variant="outline" className="text-xs border-border">Mixed</Badge>
+                        <span className="font-medium text-foreground">{t('app.calSwitch.all', 'All calendars')}</span>
+                        <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.mixed', 'Mixed')}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        View all appointments together
+                        {t('app.calSwitch.allDesc', 'View all appointments together')}
                       </p>
                     </div>
                     {viewingAllCalendars && (
@@ -129,7 +131,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                     <div className="flex items-center space-x-2">
                       <span className="font-medium truncate text-foreground">{calendar.name}</span>
                       {calendar.is_default && (
-                        <Badge variant="outline" className="text-xs border-border">Default</Badge>
+                        <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
                       )}
                     </div>
                     {calendar.description && (
@@ -138,7 +140,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                       </p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Owner: You
+                      {t('app.calSwitch.ownerYou', 'Owner: You')}
                     </p>
                   </div>
                   <div className="flex items-center space-x-1">
@@ -173,10 +175,10 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 }`}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                New calendar
+                {t('app.calSwitch.new', 'New calendar')}
                 {!checkAccess('canCreateBookings') && (
                   <Badge variant="outline" className="ml-auto text-xs">
-                    {userStatus.userType === 'expired_trial' ? 'Upgrade' : 'Reactivate'}
+                    {userStatus.userType === 'expired_trial' ? t('app.status.btnUpgrade', 'Upgrade') : t('app.status.btnReactivate', 'Reactivate')}
                   </Badge>
                 )}
               </DropdownMenuItem>

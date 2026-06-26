@@ -40,7 +40,9 @@
       "active": "Actief",
       "editAria": "{{name}} bewerken",
       "editTitle": "Agenda bewerken",
-      "new": "Nieuwe agenda"
+      "new": "Nieuwe agenda",
+      "calendarView": "Agendaweergave",
+      "ownerYou": "Eigenaar: jij"
     },
     "toast": {
       "setupRequiredTitle": "Setup vereist",

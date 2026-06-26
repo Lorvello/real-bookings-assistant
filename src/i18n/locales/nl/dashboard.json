@@ -1,0 +1,34 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "welcomeTitle": "Welkom op je dashboard",
+    "emptyTitle": "Maak je eerste agenda",
+    "emptyDesc": "Je hebt een agenda nodig voordat je dashboard boekingen en inzichten kan tonen. Maak er een om te beginnen.",
+    "createCalendar": "Agenda maken",
+    "tab": {
+      "overview": "Overzicht",
+      "liveOps": "Live operaties",
+      "bi": "Business Intelligence",
+      "performance": "Prestaties",
+      "futureInsights": "Toekomstinzichten"
+    },
+    "proBadge": "Pro",
+    "locked": {
+      "proFeature": "Pro-functie",
+      "cta": "Upgraden naar Pro",
+      "perfFeature": "Prestaties & efficiëntie",
+      "biDesc": "Geavanceerde bedrijfsstatistieken, omzetanalyses en service-prestaties om je bedrijf te laten groeien.",
+      "biBullet1": "Omzet- en service-analyses",
+      "biBullet2": "Best presterende diensten",
+      "biBullet3": "Groeitrends in de tijd",
+      "perfDesc": "Prestatiestatistieken, no-show-cijfers, klanttevredenheid en efficiëntie-analyses.",
+      "perfBullet1": "No-show- en efficiëntiecijfers",
+      "perfBullet2": "Piekuuranalyse",
+      "perfBullet3": "Klanttevredenheidsscores",
+      "futureDesc": "Geavanceerde voorspellingen, seizoenspatronen en AI-aanbevelingen om je bedrijf te laten groeien.",
+      "futureBullet1": "Vraagvoorspelling",
+      "futureBullet2": "Seizoensgebonden boekingspatronen",
+      "futureBullet3": "AI-groeiaanbevelingen"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Lock, ArrowUp, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -31,10 +32,11 @@ export function LockedTabPanel({
   feature,
   description,
   bullets,
-  ctaText = 'Upgrade to Pro',
+  ctaText,
   icon: Icon = Lock,
   onUpgrade,
 }: LockedTabPanelProps) {
+  const { t } = useTranslation('dashboard');
   return (
     <div className="relative isolate overflow-hidden rounded-xl">
       {/* Blurred faux-analytics backdrop — atmosphere only, never read as data.
@@ -66,7 +68,7 @@ export function LockedTabPanel({
         </div>
 
         <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-gold-foreground ring-1 ring-gold/20">
-          <Lock className="h-3 w-3" aria-hidden /> Pro feature
+          <Lock className="h-3 w-3" aria-hidden /> {t('dashboard.locked.proFeature', 'Pro feature')}
         </span>
 
         <h3 className="text-xl font-semibold tracking-[-0.01em] text-foreground">{feature}</h3>
@@ -85,7 +87,7 @@ export function LockedTabPanel({
 
         <Button onClick={onUpgrade} className="mt-7 gap-2">
           <ArrowUp className="h-4 w-4" aria-hidden />
-          {ctaText}
+          {ctaText ?? t('dashboard.locked.cta', 'Upgrade to Pro')}
         </Button>
       </div>
     </div>

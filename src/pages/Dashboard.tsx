@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -18,6 +19,7 @@ import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
   const { user, loading: authLoading } = useAuth();
   const { calendars, selectedCalendar, viewingAllCalendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
   const { userStatus } = useUserStatus();
@@ -99,21 +101,21 @@ const Dashboard = () => {
     return (
       <DashboardLayout>
         <div className="bg-background min-h-0 p-3 sm:p-4 md:p-8 pb-6 sm:pb-8 md:pb-12">
-          <SimplePageHeader title="Dashboard" />
+          <SimplePageHeader title={t('dashboard.title', 'Dashboard')} />
           <div className="mt-4 surface-raised rounded-xl p-8">
             <div className="text-center space-y-6">
               <div className="glow-accent relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
                 <CalendarIcon aria-hidden="true" className="h-6 w-6 text-accent-foreground" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold text-foreground">Create your first calendar</h2>
+                <h2 className="text-xl font-semibold text-foreground">{t('dashboard.emptyTitle', 'Create your first calendar')}</h2>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  You need a calendar before your dashboard can show bookings and insights. Create one to get started.
+                  {t('dashboard.emptyDesc', 'You need a calendar before your dashboard can show bookings and insights. Create one to get started.')}
                 </p>
               </div>
               <Button onClick={() => setCreateCalendarOpen(true)} size="lg" className="gap-2">
                 <Plus aria-hidden="true" className="h-4 w-4" />
-                Create calendar
+                {t('dashboard.createCalendar', 'Create calendar')}
               </Button>
             </div>
           </div>
@@ -133,13 +135,13 @@ const Dashboard = () => {
         {/* Show Onboarding Wizard for Setup Incomplete Users */}
         {userStatus.isSetupIncomplete ? (
           <div className="space-y-4 sm:space-y-6">
-            <SimplePageHeader title="Welcome to your Dashboard" />
+            <SimplePageHeader title={t('dashboard.welcomeTitle', 'Welcome to your Dashboard')} />
             <OnboardingWizard />
           </div>
         ) : (
           <>
-            <SimplePageHeader title="Dashboard" />
-            
+            <SimplePageHeader title={t('dashboard.title', 'Dashboard')} />
+
             {/* Calendar Switcher and Date Filter */}
             <div className="mb-1 sm:mb-2 md:mb-6">
               <div className="space-y-1 sm:space-y-2">

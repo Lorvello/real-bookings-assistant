@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OverviewTab } from './dashboard-tabs/OverviewTab';
 import { BusinessIntelligenceTab } from './dashboard-tabs/BusinessIntelligenceTab';
@@ -29,6 +30,7 @@ interface DashboardTabsProps {
 export function DashboardTabs({ calendarIds, dateRange, onTabChange }: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const { t } = useTranslation('dashboard');
   const { checkAccess } = useAccessControl();
   const { userStatus } = useUserStatus();
 
@@ -81,14 +83,14 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               className={triggerClass}
             >
               <LayoutDashboard className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="text-xs md:text-sm whitespace-nowrap">Overview</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">{t('dashboard.tab.overview', 'Overview')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="live-operations"
               className={triggerClass}
             >
               <Radio className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="text-xs md:text-sm whitespace-nowrap">Live Operations</span>
+              <span className="text-xs md:text-sm whitespace-nowrap">{t('dashboard.tab.liveOps', 'Live Operations')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="business-intelligence"
@@ -99,8 +101,8 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               ) : (
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
-              <span className="text-xs md:text-sm whitespace-nowrap">Business Intelligence</span>
-              {!hasBusinessIntelligenceAccess && <span className={proBadgeClass}>Pro</span>}
+              <span className="text-xs md:text-sm whitespace-nowrap">{t('dashboard.tab.bi', 'Business Intelligence')}</span>
+              {!hasBusinessIntelligenceAccess && <span className={proBadgeClass}>{t('dashboard.proBadge', 'Pro')}</span>}
             </TabsTrigger>
             <TabsTrigger
               value="performance-efficiency"
@@ -111,8 +113,8 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               ) : (
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
-              <span className="text-xs md:text-sm whitespace-nowrap">Performance</span>
-              {!hasPerformanceAccess && <span className={proBadgeClass}>Pro</span>}
+              <span className="text-xs md:text-sm whitespace-nowrap">{t('dashboard.tab.performance', 'Performance')}</span>
+              {!hasPerformanceAccess && <span className={proBadgeClass}>{t('dashboard.proBadge', 'Pro')}</span>}
             </TabsTrigger>
             <TabsTrigger
               value="future-insights"
@@ -123,8 +125,8 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               ) : (
                 <Lock className="h-3 w-3 md:h-4 md:w-4" />
               )}
-              <span className="text-xs md:text-sm whitespace-nowrap">Future Insights</span>
-              {!hasFutureInsightsAccess && <span className={proBadgeClass}>Pro</span>}
+              <span className="text-xs md:text-sm whitespace-nowrap">{t('dashboard.tab.futureInsights', 'Future Insights')}</span>
+              {!hasFutureInsightsAccess && <span className={proBadgeClass}>{t('dashboard.proBadge', 'Pro')}</span>}
             </TabsTrigger>
           </TabsList>
           </div>
@@ -146,9 +148,9 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               />
             ) : (
               <LockedTabPanel
-                feature="Business Intelligence"
-                description="Advanced business metrics, revenue analytics and service performance to grow your business."
-                bullets={['Revenue & service analytics', 'Top-performing services', 'Growth trends over time']}
+                feature={t('dashboard.tab.bi', 'Business Intelligence')}
+                description={t('dashboard.locked.biDesc', 'Advanced business metrics, revenue analytics and service performance to grow your business.')}
+                bullets={[t('dashboard.locked.biBullet1', 'Revenue & service analytics'), t('dashboard.locked.biBullet2', 'Top-performing services'), t('dashboard.locked.biBullet3', 'Growth trends over time')]}
                 icon={TrendingUp}
                 onUpgrade={handleUpgrade}
               />
@@ -165,9 +167,9 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               />
             ) : (
               <LockedTabPanel
-                feature="Performance & Efficiency"
-                description="Performance metrics, no-show rates, customer satisfaction and efficiency analytics."
-                bullets={['No-show & efficiency rates', 'Peak-hour analysis', 'Customer satisfaction scores']}
+                feature={t('dashboard.locked.perfFeature', 'Performance & Efficiency')}
+                description={t('dashboard.locked.perfDesc', 'Performance metrics, no-show rates, customer satisfaction and efficiency analytics.')}
+                bullets={[t('dashboard.locked.perfBullet1', 'No-show & efficiency rates'), t('dashboard.locked.perfBullet2', 'Peak-hour analysis'), t('dashboard.locked.perfBullet3', 'Customer satisfaction scores')]}
                 icon={Activity}
                 onUpgrade={handleUpgrade}
               />
@@ -187,9 +189,9 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
               <FutureInsightsTab calendarIds={calendarIds} />
             ) : (
               <LockedTabPanel
-                feature="Future Insights"
-                description="Advanced predictions, seasonal patterns and AI recommendations to grow your business."
-                bullets={['Demand forecasting', 'Seasonal booking patterns', 'AI growth recommendations']}
+                feature={t('dashboard.tab.futureInsights', 'Future Insights')}
+                description={t('dashboard.locked.futureDesc', 'Advanced predictions, seasonal patterns and AI recommendations to grow your business.')}
+                bullets={[t('dashboard.locked.futureBullet1', 'Demand forecasting'), t('dashboard.locked.futureBullet2', 'Seasonal booking patterns'), t('dashboard.locked.futureBullet3', 'AI growth recommendations')]}
                 icon={Brain}
                 onUpgrade={handleUpgrade}
               />
