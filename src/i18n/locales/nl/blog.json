@@ -1,0 +1,31 @@
+{
+  "blog": {
+    "hero": {
+      "badge": "Blog & bronnen",
+      "titleInsights": "Inzichten & ",
+      "titleAccent": "bronnen",
+      "subtitle": "Tips en inzichten over WhatsApp-boekingsautomatisering om je bedrijf te laten groeien."
+    },
+    "card": {
+      "readMore": "Lees meer",
+      "readTime": "{{time}} leestijd"
+    },
+    "subscribe": {
+      "title": "Blijf op de hoogte",
+      "subtitle": "Ontvang de nieuwste tips in je inbox.",
+      "successInline": "Je bent geabonneerd!",
+      "placeholder": "jouw@email.com",
+      "button": "Abonneren"
+    },
+    "toast": {
+      "invalidTitle": "Ongeldig e-mailadres",
+      "invalidDesc": "Voer een geldig e-mailadres in.",
+      "alreadyTitle": "Al geabonneerd",
+      "alreadyDesc": "Dit e-mailadres is al aangemeld voor onze nieuwsbrief.",
+      "errorTitle": "Er ging iets mis",
+      "errorDesc": "Probeer het later opnieuw.",
+      "successTitle": "Geabonneerd!",
+      "successDesc": "Je bent succesvol aangemeld voor onze nieuwsbrief."
+    }
+  }
+}

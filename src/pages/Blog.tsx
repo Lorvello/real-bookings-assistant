@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, ArrowRight, Sparkles, Mail, Check } from 'lucide-react';
 import Header from '@/components/Header';
@@ -12,8 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useSEO } from '@/hooks/useSEO';
 
 const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = ({ article, index }) => {
+  const { t, i18n } = useTranslation('blog');
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(i18n.language === 'nl' ? 'nl-NL' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -53,7 +55,7 @@ const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = (
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                {article.readTime} read
+                {t('blog.card.readTime', '{{time}} read', { time: article.readTime })}
               </span>
             </div>
             
@@ -69,7 +71,7 @@ const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = (
             
             {/* Read more link */}
             <div className="inline-flex items-center gap-2 text-emerald-400 font-medium text-sm">
-              Read more
+              {t('blog.card.readMore', 'Read more')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </CardContent>
@@ -80,6 +82,7 @@ const BlogCard: React.FC<{ article: typeof blogArticles[0]; index: number }> = (
 };
 
 const Blog: React.FC = () => {
+  const { t } = useTranslation('blog');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -95,8 +98,8 @@ const Blog: React.FC = () => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address.",
+        title: t('blog.toast.invalidTitle', 'Invalid email'),
+        description: t('blog.toast.invalidDesc', 'Please enter a valid email address.'),
         variant: "destructive"
       });
       return;
@@ -112,24 +115,24 @@ const Blog: React.FC = () => {
     if (error) {
       if (error.code === '23505') {
         toast({
-          title: "Already subscribed",
-          description: "This email is already subscribed to our newsletter.",
+          title: t('blog.toast.alreadyTitle', 'Already subscribed'),
+          description: t('blog.toast.alreadyDesc', 'This email is already subscribed to our newsletter.'),
         });
       } else {
         toast({
-          title: "Something went wrong",
-          description: "Please try again later.",
+          title: t('blog.toast.errorTitle', 'Something went wrong'),
+          description: t('blog.toast.errorDesc', 'Please try again later.'),
           variant: "destructive"
         });
       }
       return;
     }
-    
+
     setSuccess(true);
     setEmail('');
     toast({
-      title: "Subscribed!",
-      description: "You've successfully subscribed to our newsletter.",
+      title: t('blog.toast.successTitle', 'Subscribed!'),
+      description: t('blog.toast.successDesc', "You've successfully subscribed to our newsletter."),
     });
   };
 
@@ -158,16 +161,16 @@ const Blog: React.FC = () => {
           <ScrollAnimatedSection animation="fade-down" delay={0} as="div">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-xs font-medium text-emerald-400">Blog & Resources</span>
+              <span className="text-xs font-medium text-emerald-400">{t('blog.hero.badge', 'Blog & Resources')}</span>
             </div>
           </ScrollAnimatedSection>
           
           {/* Main heading */}
           <ScrollAnimatedSection animation="fade-up" delay={100} as="div">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              <span className="text-white">Insights & </span>
+              <span className="text-white">{t('blog.hero.titleInsights', 'Insights & ')}</span>
               <span className="bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400 bg-clip-text text-transparent">
-                Resources
+                {t('blog.hero.titleAccent', 'Resources')}
               </span>
             </h1>
           </ScrollAnimatedSection>
@@ -175,7 +178,7 @@ const Blog: React.FC = () => {
           {/* Subtitle */}
           <ScrollAnimatedSection animation="fade-up" delay={200} as="div">
             <p className="text-base sm:text-lg text-slate-400 max-w-xl mx-auto">
-              Tips and insights about WhatsApp booking automation to help grow your business.
+              {t('blog.hero.subtitle', 'Tips and insights about WhatsApp booking automation to help grow your business.')}
             </p>
           </ScrollAnimatedSection>
         </div>
@@ -201,15 +204,15 @@ const Blog: React.FC = () => {
                 <Mail className="w-4.5 h-4.5 text-emerald-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Stay updated</h2>
-                <p className="text-sm text-slate-400">Get the latest tips in your inbox.</p>
+                <h2 className="text-lg font-semibold text-white">{t('blog.subscribe.title', 'Stay updated')}</h2>
+                <p className="text-sm text-slate-400">{t('blog.subscribe.subtitle', 'Get the latest tips in your inbox.')}</p>
               </div>
             </div>
             
             {success ? (
               <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg py-2.5 px-4 text-sm">
                 <Check className="w-4 h-4" />
-                <span className="font-medium">You're subscribed!</span>
+                <span className="font-medium">{t('blog.subscribe.successInline', "You're subscribed!")}</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex gap-2">
@@ -217,7 +220,7 @@ const Blog: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder={t('blog.subscribe.placeholder', 'your@email.com')}
                   className="flex-1 px-3.5 py-2.5 rounded-lg bg-slate-700/40 border border-slate-600/50 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/50"
                 />
                 <Button 
@@ -226,7 +229,7 @@ const Blog: React.FC = () => {
                   size="sm"
                   className="px-4 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium"
                 >
-                  {loading ? '...' : 'Subscribe'}
+                  {loading ? '...' : t('blog.subscribe.button', 'Subscribe')}
                 </Button>
               </form>
             )}
