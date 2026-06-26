@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface MethodologyModalProps {
@@ -9,6 +10,7 @@ interface MethodologyModalProps {
 }
 
 const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation('whyUs');
   const [showContent, setShowContent] = useState(false);
 
   // Body scroll lock and content animation trigger
@@ -40,7 +42,7 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
         {/* Modal Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 sm:from-slate-900/95 sm:via-gray-900/95 sm:to-slate-800/95 backdrop-blur-md border-b border-slate-600/40 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-            Research Methodology
+            {t('whyus.methodology.generalTitle', 'Research Methodology')}
           </h2>
           <button
             onClick={onClose}
@@ -61,10 +63,10 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Research Overview
+              {t('whyus.methodology.researchOverview', 'Research Overview')}
             </h3>
             <p className="text-slate-300 leading-relaxed text-sm">
-              Our data comes from analyzing booking patterns across 10,247 businesses in 45 countries over 18 months (January 2023 - June 2024). We tracked response times, conversion rates, and customer satisfaction through direct business reporting, customer surveys, and third-party analytics.
+              {t('whyus.methodology.generalOverview', 'Our data comes from analyzing booking patterns across 10,247 businesses in 45 countries over 18 months (January 2023 - June 2024). We tracked response times, conversion rates, and customer satisfaction through direct business reporting, customer surveys, and third-party analytics.')}
             </p>
           </ScrollAnimatedSection>
 
@@ -77,24 +79,24 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Methodology Details
+              {t('whyus.methodology.methodologyDetails', 'Methodology Details')}
             </h3>
             <div className="space-y-2">
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Response time measured from initial customer contact to business reply</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.generalBullet1', 'Response time measured from initial customer contact to business reply')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Booking completion tracked from first inquiry to confirmed appointment</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.generalBullet2', 'Booking completion tracked from first inquiry to confirmed appointment')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">No-show rates measured over 90-day periods with comparative analysis</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.generalBullet3', 'No-show rates measured over 90-day periods with comparative analysis')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Customer satisfaction via post-booking surveys (1-10 scale) across 47,000+ responses</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.generalBullet4', 'Customer satisfaction via post-booking surveys (1-10 scale) across 47,000+ responses')}</span>
               </div>
             </div>
           </ScrollAnimatedSection>
@@ -108,11 +110,11 @@ const MethodologyModal: React.FC<MethodologyModalProps> = ({ isOpen, onClose }) 
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Study Limitations
+              {t('whyus.methodology.studyLimitations', 'Study Limitations')}
             </h3>
             <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
               <p className="text-slate-300 leading-relaxed text-sm">
-                Results may vary by industry, business size, and implementation quality. Data represents businesses actively using automated systems vs manual processes.
+                {t('whyus.methodology.generalLimitations', 'Results may vary by industry, business size, and implementation quality. Data represents businesses actively using automated systems vs manual processes.')}
               </p>
             </div>
           </ScrollAnimatedSection>

@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface CaseStudiesMethodologyModalProps {
@@ -9,6 +10,7 @@ interface CaseStudiesMethodologyModalProps {
 }
 
 const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation('whyUs');
   const [showContent, setShowContent] = useState(false);
 
   // Body scroll lock and content animation trigger
@@ -40,7 +42,7 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
         {/* Modal Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 sm:from-slate-900/95 sm:via-gray-900/95 sm:to-slate-800/95 backdrop-blur-md border-b border-slate-600/40 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-            Case Studies Methodology
+            {t('whyus.methodology.caseTitle', 'Case Studies Methodology')}
           </h2>
           <button
             onClick={onClose}
@@ -61,10 +63,10 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Research Overview
+              {t('whyus.methodology.researchOverview', 'Research Overview')}
             </h3>
             <p className="text-slate-300 leading-relaxed text-sm">
-              Our case studies methodology involves comprehensive business performance analysis before and after WhatsApp integration. Each case study represents verified business results tracked through multiple measurement systems and validated by third-party audits over 6-12 month periods.
+              {t('whyus.methodology.caseOverview', 'Our case studies methodology involves comprehensive business performance analysis before and after WhatsApp integration. Each case study represents verified business results tracked through multiple measurement systems and validated by third-party audits over 6-12 month periods.')}
             </p>
           </ScrollAnimatedSection>
 
@@ -77,28 +79,28 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Methodology Details
+              {t('whyus.methodology.methodologyDetails', 'Methodology Details')}
             </h3>
             <div className="space-y-2">
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Business performance tracked over 6-12 month periods before and after WhatsApp implementation</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.caseBullet1', 'Business performance tracked over 6-12 month periods before and after WhatsApp implementation')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Staff time measurements recorded through time-tracking systems and productivity audits</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.caseBullet2', 'Staff time measurements recorded through time-tracking systems and productivity audits')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Revenue impact calculated through booking volume analysis and missed opportunity tracking</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.caseBullet3', 'Revenue impact calculated through booking volume analysis and missed opportunity tracking')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Customer satisfaction measured through post-service surveys and retention analysis</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.caseBullet4', 'Customer satisfaction measured through post-service surveys and retention analysis')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Implementation success tracked through real-time calendar integration and booking analytics</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.caseBullet5', 'Implementation success tracked through real-time calendar integration and booking analytics')}</span>
               </div>
             </div>
           </ScrollAnimatedSection>
@@ -112,11 +114,11 @@ const CaseStudiesMethodologyModal: React.FC<CaseStudiesMethodologyModalProps> = 
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Study Limitations
+              {t('whyus.methodology.studyLimitations', 'Study Limitations')}
             </h3>
             <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
               <p className="text-slate-300 leading-relaxed text-sm">
-                Case studies represent individual business results. Outcomes may vary based on business size, implementation quality, staff training, and industry-specific factors. Results reflect businesses that completed full integration and training programs.
+                {t('whyus.methodology.caseLimitations', 'Case studies represent individual business results. Outcomes may vary based on business size, implementation quality, staff training, and industry-specific factors. Results reflect businesses that completed full integration and training programs.')}
               </p>
             </div>
           </ScrollAnimatedSection>

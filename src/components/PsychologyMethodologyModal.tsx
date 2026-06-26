@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 interface PsychologyMethodologyModalProps {
@@ -9,6 +10,7 @@ interface PsychologyMethodologyModalProps {
 }
 
 const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation('whyUs');
   const [showContent, setShowContent] = useState(false);
 
   // Body scroll lock and content animation trigger
@@ -40,7 +42,7 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
         {/* Modal Header */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-gray-900 to-slate-800 sm:from-slate-900/95 sm:via-gray-900/95 sm:to-slate-800/95 backdrop-blur-md border-b border-slate-600/40 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent">
-            Psychology Research Methodology
+            {t('whyus.methodology.psychTitle', 'Psychology Research Methodology')}
           </h2>
           <button
             onClick={onClose}
@@ -61,10 +63,10 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Research Overview
+              {t('whyus.methodology.researchOverview', 'Research Overview')}
             </h3>
             <p className="text-slate-300 leading-relaxed text-sm">
-              Our psychological behavior research analyzed consumer messaging preferences and purchase patterns across 25,000+ customers in 15 countries. We examined how communication channels affect customer decision-making and engagement patterns.
+              {t('whyus.methodology.psychOverview', 'Our psychological behavior research analyzed consumer messaging preferences and purchase patterns across 25,000+ customers in 15 countries. We examined how communication channels affect customer decision-making and engagement patterns.')}
             </p>
           </ScrollAnimatedSection>
 
@@ -77,28 +79,28 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Methodology Details
+              {t('whyus.methodology.methodologyDetails', 'Methodology Details')}
             </h3>
             <div className="space-y-2">
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Consumer messaging preferences measured through survey of 25,000+ customers across 15 countries</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.psychBullet1', 'Consumer messaging preferences measured through survey of 25,000+ customers across 15 countries')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Purchase likelihood tracked via behavioral analysis comparing chat vs email customer journeys</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.psychBullet2', 'Purchase likelihood tracked via behavioral analysis comparing chat vs email customer journeys')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Mobile usage patterns analyzed through app analytics and user behavior tracking over 12-month period</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.psychBullet3', 'Mobile usage patterns analyzed through app analytics and user behavior tracking over 12-month period')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Communication preference data collected via post-interaction surveys and customer interviews</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.psychBullet4', 'Communication preference data collected via post-interaction surveys and customer interviews')}</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
                 <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                <span className="text-slate-300 text-sm">Psychological response patterns measured through A/B testing across different communication channels</span>
+                <span className="text-slate-300 text-sm">{t('whyus.methodology.psychBullet5', 'Psychological response patterns measured through A/B testing across different communication channels')}</span>
               </div>
             </div>
           </ScrollAnimatedSection>
@@ -112,11 +114,11 @@ const PsychologyMethodologyModal: React.FC<PsychologyMethodologyModalProps> = ({
           >
             <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-              Study Limitations
+              {t('whyus.methodology.studyLimitations', 'Study Limitations')}
             </h3>
             <div className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/40">
               <p className="text-slate-300 leading-relaxed text-sm">
-                Results reflect general consumer behavior trends. Individual preferences may vary by demographic, industry, and cultural factors. Data represents aggregate patterns across diverse customer segments.
+                {t('whyus.methodology.psychLimitations', 'Results reflect general consumer behavior trends. Individual preferences may vary by demographic, industry, and cultural factors. Data represents aggregate patterns across diverse customer segments.')}
               </p>
             </div>
           </ScrollAnimatedSection>

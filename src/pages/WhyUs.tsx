@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import Testimonials from '@/components/ui/testimonials-columns-1';
@@ -17,6 +18,7 @@ import MobileFirstDataDisclaimer from '@/components/MobileFirstDataDisclaimer';
 import MobileFirstMethodologyModal from '@/components/MobileFirstMethodologyModal';
 
 const WhyUs = () => {
+  const { t } = useTranslation('whyUs');
   useVoiceflowChatbot();
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
@@ -46,65 +48,65 @@ const WhyUs = () => {
   const proofPoints = [
     {
       number: "24/7",
-      label: "Always taking bookings",
+      label: t('whyus.proof.p1Label', "Always taking bookings"),
       icon: Users
     },
     {
       number: "0",
-      label: "Apps to install",
+      label: t('whyus.proof.p2Label', "Apps to install"),
       icon: Calendar
     },
     {
       number: "30sec",
-      label: "Average Response",
+      label: t('whyus.proof.p3Label', "Average Response"),
       icon: TrendingUp
     },
     {
       number: "Auto",
-      label: "Reminders that cut no-shows",
+      label: t('whyus.proof.p4Label', "Reminders that cut no-shows"),
       icon: Shield
     }
   ];
 
   const whatsappVsTraditionalStats = [
     {
-      metric: "Response Time",
-      phoneCalls: "24-48 hours",
-      websiteForms: "12-24 hours",
-      whatsapp: "Under 30 seconds",
-      improvement: "15x faster",
+      metric: t('whyus.compareStats.s1Metric', "Response Time"),
+      phoneCalls: t('whyus.compareStats.s1Phone', "24-48 hours"),
+      websiteForms: t('whyus.compareStats.s1Web', "12-24 hours"),
+      whatsapp: t('whyus.compareStats.s1Wa', "Under 30 seconds"),
+      improvement: t('whyus.compareStats.s1Imp', "15x faster"),
       icon: Clock
     },
     {
-      metric: "Availability",
-      phoneCalls: "Business hours only",
-      websiteForms: "24/7 but delays",
-      whatsapp: "Instant 24/7",
-      improvement: "Always available",
+      metric: t('whyus.compareStats.s2Metric', "Availability"),
+      phoneCalls: t('whyus.compareStats.s2Phone', "Business hours only"),
+      websiteForms: t('whyus.compareStats.s2Web', "24/7 but delays"),
+      whatsapp: t('whyus.compareStats.s2Wa', "Instant 24/7"),
+      improvement: t('whyus.compareStats.s2Imp', "Always available"),
       icon: Shield
     },
     {
-      metric: "Booking Completion",
-      phoneCalls: "~25%",
-      websiteForms: "~15%",
-      whatsapp: "85-95%",
-      improvement: "3x higher success",
+      metric: t('whyus.compareStats.s3Metric', "Booking Completion"),
+      phoneCalls: t('whyus.compareStats.s3Phone', "~25%"),
+      websiteForms: t('whyus.compareStats.s3Web', "~15%"),
+      whatsapp: t('whyus.compareStats.s3Wa', "85-95%"),
+      improvement: t('whyus.compareStats.s3Imp', "3x higher success"),
       icon: Target
     },
     {
-      metric: "Customer Satisfaction",
-      phoneCalls: "~60%",
-      websiteForms: "~45%",
-      whatsapp: "95%+",
-      improvement: "40% improvement",
+      metric: t('whyus.compareStats.s4Metric', "Customer Satisfaction"),
+      phoneCalls: t('whyus.compareStats.s4Phone', "~60%"),
+      websiteForms: t('whyus.compareStats.s4Web', "~45%"),
+      whatsapp: t('whyus.compareStats.s4Wa', "95%+"),
+      improvement: t('whyus.compareStats.s4Imp', "40% improvement"),
       icon: Heart
     },
     {
-      metric: "No-Show Rate",
-      phoneCalls: "~35%",
-      websiteForms: "~40%",
-      whatsapp: "<20%",
-      improvement: "50% reduction",
+      metric: t('whyus.compareStats.s5Metric', "No-Show Rate"),
+      phoneCalls: t('whyus.compareStats.s5Phone', "~35%"),
+      websiteForms: t('whyus.compareStats.s5Web', "~40%"),
+      whatsapp: t('whyus.compareStats.s5Wa', "<20%"),
+      improvement: t('whyus.compareStats.s5Imp', "50% reduction"),
       icon: UserCheck
     }
   ];
@@ -112,122 +114,122 @@ const WhyUs = () => {
   const psychologicalBenefits = [
     {
       icon: Heart,
-      title: "Personal Touch",
-      description: "85% of consumers prefer messaging a business over emailing. WhatsApp creates a personal, trusted connection that email simply can't match.",
-      mobileDescription: "85% prefer messaging - more personal and trusted than email communication.",
+      title: t('whyus.psychBenefits.b1Title', "Personal Touch"),
+      description: t('whyus.psychBenefits.b1Desc', "85% of consumers prefer messaging a business over emailing. WhatsApp creates a personal, trusted connection that email simply can't match."),
+      mobileDescription: t('whyus.psychBenefits.b1Mobile', "85% prefer messaging - more personal and trusted than email communication."),
     },
     {
       icon: Brain,
-      title: "Lower Threshold",
-      description: "53% of customers are more likely to purchase from businesses reachable via chat. It feels less formal and more approachable than email.",
-      mobileDescription: "53% more likely to buy from chat-enabled businesses - less formal barrier.",
+      title: t('whyus.psychBenefits.b2Title', "Lower Threshold"),
+      description: t('whyus.psychBenefits.b2Desc', "53% of customers are more likely to purchase from businesses reachable via chat. It feels less formal and more approachable than email."),
+      mobileDescription: t('whyus.psychBenefits.b2Mobile', "53% more likely to buy from chat-enabled businesses - less formal barrier."),
     },
     {
       icon: Smartphone,
-      title: "Mobile-First Behavior",
-      description: "People check their phone 96 times per day. WhatsApp seamlessly integrates into their natural mobile behavior patterns.",
-      mobileDescription: "96x daily phone checks - WhatsApp fits natural mobile habits.",
+      title: t('whyus.psychBenefits.b3Title', "Mobile-First Behavior"),
+      description: t('whyus.psychBenefits.b3Desc', "People check their phone 96 times per day. WhatsApp seamlessly integrates into their natural mobile behavior patterns."),
+      mobileDescription: t('whyus.psychBenefits.b3Mobile', "96x daily phone checks - WhatsApp fits natural mobile habits."),
     },
     {
       icon: Zap,
-      title: "Real-time Interaction",
-      description: "Two-way communication flows naturally in one conversation. Customers can instantly ask questions, confirm details, or request changes.",
-      mobileDescription: "Instant two-way communication - ask, confirm, change in real-time.",
+      title: t('whyus.psychBenefits.b4Title', "Real-time Interaction"),
+      description: t('whyus.psychBenefits.b4Desc', "Two-way communication flows naturally in one conversation. Customers can instantly ask questions, confirm details, or request changes."),
+      mobileDescription: t('whyus.psychBenefits.b4Mobile', "Instant two-way communication - ask, confirm, change in real-time."),
     }
   ];
 
   const sectorCaseStudies = [
     {
-      sector: "Healthcare & Medical",
+      sector: t('whyus.caseStudies.s1Sector', "Healthcare & Medical"),
       icon: Shield,
-      headerStats: ["75% less phone time", "50% fewer no-shows", "24/7 availability"],
+      headerStats: [t('whyus.caseStudies.s1Stat1', "75% less phone time"), t('whyus.caseStudies.s1Stat2', "50% fewer no-shows"), t('whyus.caseStudies.s1Stat3', "24/7 availability")],
       caseTitle: "Dr. Martinez Family Practice",
-      caseBefore: "Receptionists spent 3+ hours daily playing phone tag - patients calling during busy hours, getting voicemail, calling back repeatedly. Manual appointment book checking during calls caused 2-3 minute holds. Double bookings happened weekly.",
-      caseAfter: "WhatsApp automation handles bookings instantly 24/7. Staff focus on patient care instead of answering phones. Zero double bookings with real-time calendar sync.",
-      mobileBefore: "3hrs daily phone tag, manual scheduling, double bookings weekly.",
-      mobileAfter: "24/7 instant booking, zero phone tag, no scheduling conflicts.",
+      caseBefore: t('whyus.caseStudies.s1Before', "Receptionists spent 3+ hours daily playing phone tag - patients calling during busy hours, getting voicemail, calling back repeatedly. Manual appointment book checking during calls caused 2-3 minute holds. Double bookings happened weekly."),
+      caseAfter: t('whyus.caseStudies.s1After', "WhatsApp automation handles bookings instantly 24/7. Staff focus on patient care instead of answering phones. Zero double bookings with real-time calendar sync."),
+      mobileBefore: t('whyus.caseStudies.s1MobileBefore', "3hrs daily phone tag, manual scheduling, double bookings weekly."),
+      mobileAfter: t('whyus.caseStudies.s1MobileAfter', "24/7 instant booking, zero phone tag, no scheduling conflicts."),
       implementation: [
-        "24/7 WhatsApp booking bot with calendar integration",
-        "Automated reminders 24h + 2h before appointments",
-        "Instant confirmations with appointment details",
-        "Easy rescheduling without calling office"
+        t('whyus.caseStudies.s1Impl1', "24/7 WhatsApp booking bot with calendar integration"),
+        t('whyus.caseStudies.s1Impl2', "Automated reminders 24h + 2h before appointments"),
+        t('whyus.caseStudies.s1Impl3', "Instant confirmations with appointment details"),
+        t('whyus.caseStudies.s1Impl4', "Easy rescheduling without calling office")
       ],
       results: [
-        "3 hours/day staff time saved on phone calls",
-        "50% reduction in no-shows with WhatsApp reminders",
-        "35% more bookings from after-hours availability",
-        "Zero double bookings with automated calendar sync"
+        t('whyus.caseStudies.s1Res1', "3 hours/day staff time saved on phone calls"),
+        t('whyus.caseStudies.s1Res2', "50% reduction in no-shows with WhatsApp reminders"),
+        t('whyus.caseStudies.s1Res3', "35% more bookings from after-hours availability"),
+        t('whyus.caseStudies.s1Res4', "Zero double bookings with automated calendar sync")
       ],
-      quote: "Our staff used to spend half their day answering the same booking questions. Now they can focus on what matters - taking care of patients."
+      quote: t('whyus.caseStudies.s1Quote', "Our staff used to spend half their day answering the same booking questions. Now they can focus on what matters - taking care of patients.")
     },
     {
-      sector: "Beauty & Wellness",
+      sector: t('whyus.caseStudies.s2Sector', "Beauty & Wellness"),
       icon: Star,
-      headerStats: ["4x more after-hours bookings", "65% staff time savings", "40% fewer no-shows"],
+      headerStats: [t('whyus.caseStudies.s2Stat1', "4x more after-hours bookings"), t('whyus.caseStudies.s2Stat2', "65% staff time savings"), t('whyus.caseStudies.s2Stat3', "40% fewer no-shows")],
       caseTitle: "Bella Vista Hair & Beauty Studio",
-      caseBefore: "Walk-in only policy caused 30+ minute wait times and lost customers. Staff interrupted treatments to answer booking calls. Lost 60% of calls during busy periods when stylists couldn't answer phones.",
-      caseAfter: "WhatsApp booking captures clients anytime. Staff work uninterrupted. Revenue increased 45% from previously missed opportunities.",
-      mobileBefore: "Walk-ins only, 30min waits, 60% missed calls during treatments.",
-      mobileAfter: "24/7 booking, no interruptions, 45% revenue increase.",
+      caseBefore: t('whyus.caseStudies.s2Before', "Walk-in only policy caused 30+ minute wait times and lost customers. Staff interrupted treatments to answer booking calls. Lost 60% of calls during busy periods when stylists couldn't answer phones."),
+      caseAfter: t('whyus.caseStudies.s2After', "WhatsApp booking captures clients anytime. Staff work uninterrupted. Revenue increased 45% from previously missed opportunities."),
+      mobileBefore: t('whyus.caseStudies.s2MobileBefore', "Walk-ins only, 30min waits, 60% missed calls during treatments."),
+      mobileAfter: t('whyus.caseStudies.s2MobileAfter', "24/7 booking, no interruptions, 45% revenue increase."),
       implementation: [
-        "Intelligent WhatsApp bot understanding beauty services",
-        "Real-time stylist availability checking",
-        "Automated appointment confirmations with prep instructions",
-        "Smart reminder system reducing no-shows"
+        t('whyus.caseStudies.s2Impl1', "Intelligent WhatsApp bot understanding beauty services"),
+        t('whyus.caseStudies.s2Impl2', "Real-time stylist availability checking"),
+        t('whyus.caseStudies.s2Impl3', "Automated appointment confirmations with prep instructions"),
+        t('whyus.caseStudies.s2Impl4', "Smart reminder system reducing no-shows")
       ],
       results: [
-        "4x more bookings from after-hours WhatsApp availability",
-        "65% reduction in time spent on phone bookings",
-        "40% fewer no-shows with personalized WhatsApp reminders",
-        "45% revenue increase from captured missed opportunities"
+        t('whyus.caseStudies.s2Res1', "4x more bookings from after-hours WhatsApp availability"),
+        t('whyus.caseStudies.s2Res2', "65% reduction in time spent on phone bookings"),
+        t('whyus.caseStudies.s2Res3', "40% fewer no-shows with personalized WhatsApp reminders"),
+        t('whyus.caseStudies.s2Res4', "45% revenue increase from captured missed opportunities")
       ],
-      quote: "Before, we lost so many clients who called during treatments and got no answer. Now WhatsApp works 24/7 and books them instantly."
+      quote: t('whyus.caseStudies.s2Quote', "Before, we lost so many clients who called during treatments and got no answer. Now WhatsApp works 24/7 and books them instantly.")
     },
     {
-      sector: "Professional Services",
+      sector: t('whyus.caseStudies.s3Sector', "Professional Services"),
       icon: Users,
-      headerStats: ["85% faster scheduling", "24/7 availability", "3x response rates"],
+      headerStats: [t('whyus.caseStudies.s3Stat1', "85% faster scheduling"), t('whyus.caseStudies.s3Stat2', "24/7 availability"), t('whyus.caseStudies.s3Stat3', "3x response rates")],
       caseTitle: "Thompson Legal Associates",
-      caseBefore: "Consultation scheduling took 4-6 phone calls per client - attorney availability checks, court schedule conflicts, client callback loops. Receptionists spent 40% of their time on booking coordination.",
-      caseAfter: "WhatsApp bot handles complex scheduling instantly, syncing with attorney calendars and court dates. Clients book preferred times without phone tag.",
-      mobileBefore: "4-6 calls per booking, 40% receptionist time on scheduling.",
-      mobileAfter: "Instant booking with calendar sync, no phone tag needed.",
+      caseBefore: t('whyus.caseStudies.s3Before', "Consultation scheduling took 4-6 phone calls per client - attorney availability checks, court schedule conflicts, client callback loops. Receptionists spent 40% of their time on booking coordination."),
+      caseAfter: t('whyus.caseStudies.s3After', "WhatsApp bot handles complex scheduling instantly, syncing with attorney calendars and court dates. Clients book preferred times without phone tag."),
+      mobileBefore: t('whyus.caseStudies.s3MobileBefore', "4-6 calls per booking, 40% receptionist time on scheduling."),
+      mobileAfter: t('whyus.caseStudies.s3MobileAfter', "Instant booking with calendar sync, no phone tag needed."),
       implementation: [
-        "Advanced WhatsApp bot with attorney calendar integration",
-        "Court schedule conflict checking",
-        "Automated consultation prep and document requests",
-        "Client portal links sent automatically"
+        t('whyus.caseStudies.s3Impl1', "Advanced WhatsApp bot with attorney calendar integration"),
+        t('whyus.caseStudies.s3Impl2', "Court schedule conflict checking"),
+        t('whyus.caseStudies.s3Impl3', "Automated consultation prep and document requests"),
+        t('whyus.caseStudies.s3Impl4', "Client portal links sent automatically")
       ],
       results: [
-        "85% faster consultation scheduling process",
-        "3x higher client response rates vs phone calls",
-        "60% reduction in scheduling-related staff time",
-        "24/7 availability increasing bookings by 30%"
+        t('whyus.caseStudies.s3Res1', "85% faster consultation scheduling process"),
+        t('whyus.caseStudies.s3Res2', "3x higher client response rates vs phone calls"),
+        t('whyus.caseStudies.s3Res3', "60% reduction in scheduling-related staff time"),
+        t('whyus.caseStudies.s3Res4', "24/7 availability increasing bookings by 30%")
       ],
-      quote: "Legal scheduling is complex - court dates, attorney availability, client conflicts. WhatsApp automation handles it all instantly while we focus on cases."
+      quote: t('whyus.caseStudies.s3Quote', "Legal scheduling is complex - court dates, attorney availability, client conflicts. WhatsApp automation handles it all instantly while we focus on cases.")
     },
     {
-      sector: "Fitness & Training",
+      sector: t('whyus.caseStudies.s4Sector', "Fitness & Training"),
       icon: Award,
-      headerStats: ["50% more PT sessions", "24/7 booking", "90% less no-shows"],
+      headerStats: [t('whyus.caseStudies.s4Stat1', "50% more PT sessions"), t('whyus.caseStudies.s4Stat2', "24/7 booking"), t('whyus.caseStudies.s4Stat3', "90% less no-shows")],
       caseTitle: "FitCore Personal Training Center",
-      caseBefore: "Phone bookings only during gym hours (6am-10pm). Clients forgot sessions without reminders. Manual scheduling caused trainer conflicts. Lost revenue from missed calls during training sessions.",
-      caseAfter: "WhatsApp enables 24/7 booking with trainer availability sync. Automated reminders cut no-shows to under 10%. Revenue up 50% from better booking capture.",
-      mobileBefore: "Limited phone hours, forgotten sessions, trainer conflicts, missed calls.",
-      mobileAfter: "24/7 booking, auto reminders, conflict-free scheduling, 50% revenue boost.",
+      caseBefore: t('whyus.caseStudies.s4Before', "Phone bookings only during gym hours (6am-10pm). Clients forgot sessions without reminders. Manual scheduling caused trainer conflicts. Lost revenue from missed calls during training sessions."),
+      caseAfter: t('whyus.caseStudies.s4After', "WhatsApp enables 24/7 booking with trainer availability sync. Automated reminders cut no-shows to under 10%. Revenue up 50% from better booking capture."),
+      mobileBefore: t('whyus.caseStudies.s4MobileBefore', "Limited phone hours, forgotten sessions, trainer conflicts, missed calls."),
+      mobileAfter: t('whyus.caseStudies.s4MobileAfter', "24/7 booking, auto reminders, conflict-free scheduling, 50% revenue boost."),
       implementation: [
-        "Smart WhatsApp bot with trainer schedule integration",
-        "Automatic session reminders with prep tips",
-        "Easy session rescheduling without phone calls",
-        "Payment links and membership renewals via chat"
+        t('whyus.caseStudies.s4Impl1', "Smart WhatsApp bot with trainer schedule integration"),
+        t('whyus.caseStudies.s4Impl2', "Automatic session reminders with prep tips"),
+        t('whyus.caseStudies.s4Impl3', "Easy session rescheduling without phone calls"),
+        t('whyus.caseStudies.s4Impl4', "Payment links and membership renewals via chat")
       ],
       results: [
-        "50% increase in personal training session bookings",
-        "90% reduction in no-shows with WhatsApp reminders",
-        "24/7 booking availability vs 16 hours phone coverage",
-        "Zero scheduling conflicts with automated calendar sync"
+        t('whyus.caseStudies.s4Res1', "50% increase in personal training session bookings"),
+        t('whyus.caseStudies.s4Res2', "90% reduction in no-shows with WhatsApp reminders"),
+        t('whyus.caseStudies.s4Res3', "24/7 booking availability vs 16 hours phone coverage"),
+        t('whyus.caseStudies.s4Res4', "Zero scheduling conflicts with automated calendar sync")
       ],
-      quote: "Personal training relies on consistent sessions. WhatsApp reminders and easy rescheduling keep clients engaged and trainers' calendars full."
+      quote: t('whyus.caseStudies.s4Quote', "Personal training relies on consistent sessions. WhatsApp reminders and easy rescheduling keep clients engaged and trainers' calendars full.")
     }
   ];
 
@@ -288,29 +290,29 @@ const WhyUs = () => {
   // Detailed explanations for card backs
   const cardBackContent = [
     {
-      title: "Always taking bookings",
-      content: "Your assistant answers on WhatsApp around the clock, so customers can book, reschedule or cancel at any hour, even when you are closed. Every request is captured instead of lost to a missed call or a full voicemail."
+      title: t('whyus.cardBack.c1Title', "Always taking bookings"),
+      content: t('whyus.cardBack.c1Content', "Your assistant answers on WhatsApp around the clock, so customers can book, reschedule or cancel at any hour, even when you are closed. Every request is captured instead of lost to a missed call or a full voicemail.")
     },
     {
-      title: "No app to install",
-      content: "Customers book in the WhatsApp they already use every day, so there is nothing to download and no account to create. That lower threshold means more requests actually turn into booked appointments."
+      title: t('whyus.cardBack.c2Title', "No app to install"),
+      content: t('whyus.cardBack.c2Content', "Customers book in the WhatsApp they already use every day, so there is nothing to download and no account to create. That lower threshold means more requests actually turn into booked appointments.")
     },
     {
-      title: "30sec Average Response",
-      content: "While traditional booking methods take minutes or hours, our AI responds instantly to customer inquiries. This includes understanding context, checking availability, and confirming appointments - all in under 30 seconds on average."
+      title: t('whyus.cardBack.c3Title', "30sec Average Response"),
+      content: t('whyus.cardBack.c3Content', "While traditional booking methods take minutes or hours, our AI responds instantly to customer inquiries. This includes understanding context, checking availability, and confirming appointments - all in under 30 seconds on average.")
     },
     {
-      title: "Reminders that cut no-shows",
-      content: "Automatic WhatsApp reminders and one-tap rescheduling make it easy for customers to keep or move an appointment instead of just not turning up. Because people actually read WhatsApp, the reminders land where email often doesn't."
+      title: t('whyus.cardBack.c4Title', "Reminders that cut no-shows"),
+      content: t('whyus.cardBack.c4Content', "Automatic WhatsApp reminders and one-tap rescheduling make it easy for customers to keep or move an appointment instead of just not turning up. Because people actually read WhatsApp, the reminders land where email often doesn't.")
     }
   ];
 
   // Psychological benefits back side content
   const psychBackContent = [
-    "Psychology research from Dr. Sherry Turkle at MIT reveals that messaging feels like 'being heard' rather than 'being processed.' Businesses report customers share more personal details via WhatsApp, creating genuine relationships. One salon owner noted: 'Clients text me like a friend, not a service provider.'",
-    "Behavioral economics shows messaging removes 'email anxiety' - the fear of formal communication. Customers admit they delay emailing businesses but message instantly. Case study: A dental practice saw 340% more appointment requests when switching from email forms to WhatsApp chat.",
-    "Anthropological studies show phones are 'digital extensions of self.' WhatsApp integrates into daily rituals - checking messages while commuting, during breaks, before sleep. Unlike emails buried in inboxes, WhatsApp messages demand immediate attention through our ingrained behavioral patterns.",
-    "Cognitive research proves immediate responses trigger dopamine release, creating positive associations with your brand. Customers describe WhatsApp booking as 'effortless' and 'natural.' One restaurant owner shared: 'Customers book tables mid-conversation with friends - it's seamless.'"
+    t('whyus.psychBack.pb1', "Psychology research from Dr. Sherry Turkle at MIT reveals that messaging feels like 'being heard' rather than 'being processed.' Businesses report customers share more personal details via WhatsApp, creating genuine relationships. One salon owner noted: 'Clients text me like a friend, not a service provider.'"),
+    t('whyus.psychBack.pb2', "Behavioral economics shows messaging removes 'email anxiety' - the fear of formal communication. Customers admit they delay emailing businesses but message instantly. Case study: A dental practice saw 340% more appointment requests when switching from email forms to WhatsApp chat."),
+    t('whyus.psychBack.pb3', "Anthropological studies show phones are 'digital extensions of self.' WhatsApp integrates into daily rituals - checking messages while commuting, during breaks, before sleep. Unlike emails buried in inboxes, WhatsApp messages demand immediate attention through our ingrained behavioral patterns."),
+    t('whyus.psychBack.pb4', "Cognitive research proves immediate responses trigger dopamine release, creating positive associations with your brand. Customers describe WhatsApp booking as 'effortless' and 'natural.' One restaurant owner shared: 'Customers book tables mid-conversation with friends - it's seamless.'")
   ];
 
 
@@ -343,11 +345,11 @@ const WhyUs = () => {
           >
             <div className="hidden md:inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
               <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
-              <span className="text-emerald-300 text-sm font-medium tracking-wide">Proven Results</span>
+              <span className="text-emerald-300 text-sm font-medium tracking-wide">{t('whyus.hero.badge', 'Proven Results')}</span>
             </div>
             <div className="md:hidden inline-flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
               <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5 animate-pulse"></div>
-              <span className="text-emerald-300 text-xs font-medium tracking-wide">Proven Results</span>
+              <span className="text-emerald-300 text-xs font-medium tracking-wide">{t('whyus.hero.badge', 'Proven Results')}</span>
             </div>
           </ScrollAnimatedSection>
 
@@ -359,17 +361,17 @@ const WhyUs = () => {
             className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 -mx-3 md:mx-0 tracking-tight"
           >
             <span className="hidden md:inline bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
-              Why{' '}
+              {t('whyus.hero.titleWhy', 'Why ')}
             </span>
             <span className="md:hidden bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
-              Why{' '}
+              {t('whyus.hero.titleWhy', 'Why ')}
             </span>
             <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
-              Appointment Businesses
+              {t('whyus.hero.titleAccent', 'Appointment Businesses')}
             </span>
             <div className="md:hidden h-0"></div>
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent">
-              {' '}Choose WhatsApp
+              {t('whyus.hero.titleChoose', ' Choose WhatsApp')}
             </span>
           </ScrollAnimatedSection>
 
@@ -380,7 +382,7 @@ const WhyUs = () => {
             as="p" 
             className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
           >
-            95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking.
+            {t('whyus.hero.subtitle', '95% higher response rates vs phone calls, 18x faster than web forms, 50% fewer no-shows than manual booking.')}
           </ScrollAnimatedSection>
           
           {/* Premium Social Proof Stats */}
@@ -414,7 +416,7 @@ const WhyUs = () => {
                      >
                         {/* Small corner button */}
                          <div className="absolute top-1.5 right-1.5 text-[8px] md:text-[9px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
-                           Learn more
+                           {t('whyus.hero.learnMore', 'Learn more')}
                            <ArrowRight className="w-2 h-2 md:w-2.5 md:h-2.5" />
                          </div>
                         
@@ -453,13 +455,13 @@ const WhyUs = () => {
            <div className="text-center mb-12 md:mb-20">
              <ScrollAnimatedSection delay={100}>
                    <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-center mb-6 md:mb-8 bg-gradient-to-r from-emerald-400 via-white to-emerald-400 bg-clip-text text-transparent">
-                     WhatsApp vs Traditional Booking
+                     {t('whyus.compare.heading', 'WhatsApp vs Traditional Booking')}
                    </h2>
               </ScrollAnimatedSection>
               <ScrollAnimatedSection delay={200}>
                  <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-                  <span className="md:hidden">Data from thousands of businesses</span>
-                  <span className="hidden md:inline">Data-driven comparison across thousands of businesses worldwide</span>
+                  <span className="md:hidden">{t('whyus.compare.subtitleMobile', 'Data from thousands of businesses')}</span>
+                  <span className="hidden md:inline">{t('whyus.compare.subtitleDesktop', 'Data-driven comparison across thousands of businesses worldwide')}</span>
                 </p>
              </ScrollAnimatedSection>
            </div>
@@ -470,14 +472,14 @@ const WhyUs = () => {
                 <table className="w-full">
                    <thead>
                      <tr className="bg-gradient-to-r from-slate-800/60 to-slate-800/40 border-b border-slate-600/50">
-                       <th className="text-left py-6 px-12 text-slate-100 text-lg font-bold tracking-tight">Metric</th>
-                       <th className="text-center py-6 px-8 text-slate-400 text-lg font-bold tracking-tight">Phone Calls</th>
-                       <th className="text-center py-6 px-8 text-slate-400 text-lg font-bold tracking-tight">Website Forms</th>
+                       <th className="text-left py-6 px-12 text-slate-100 text-lg font-bold tracking-tight">{t('whyus.compare.thMetric', 'Metric')}</th>
+                       <th className="text-center py-6 px-8 text-slate-400 text-lg font-bold tracking-tight">{t('whyus.compare.thPhone', 'Phone Calls')}</th>
+                       <th className="text-center py-6 px-8 text-slate-400 text-lg font-bold tracking-tight">{t('whyus.compare.thWebsite', 'Website Forms')}</th>
                        <th className="text-center py-6 px-8 text-green-400 text-lg font-bold tracking-tight bg-green-400/10 border-x border-green-400/20 shadow-[0_0_20px_rgba(16,185,129,0.3)] relative">
                          <div className="absolute inset-0 bg-gradient-to-b from-green-400/5 to-green-400/10"></div>
                          <span className="relative z-10">WhatsApp</span>
                        </th>
-                       <th className="text-center py-6 px-8 text-emerald-400 text-lg font-bold tracking-tight">Improvement</th>
+                       <th className="text-center py-6 px-8 text-emerald-400 text-lg font-bold tracking-tight">{t('whyus.compare.thImprovement', 'Improvement')}</th>
                      </tr>
                   </thead>
                   <tbody>
@@ -511,19 +513,19 @@ const WhyUs = () => {
              <div className="hidden md:block text-center mb-16 space-y-3">
                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-medium">
                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                 <span>WhatsApp adoption and appointment-industry research</span>
+                 <span>{t('whyus.compare.credDesktop', 'WhatsApp adoption and appointment-industry research')}</span>
                </div>
                <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                 <button 
+                 <button
                    onClick={openMethodologyModal}
                    className="text-emerald-400 hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70 font-medium"
                  >
-                   View methodology
+                   {t('whyus.viewMethodology', 'View methodology')}
                  </button>
                  <span>•</span>
-                 <span>Data updated monthly</span>
+                 <span>{t('whyus.compare.updatedMonthly', 'Data updated monthly')}</span>
                  <span>•</span>
-                 <span>Results may vary by industry</span>
+                 <span>{t('whyus.compare.varyByIndustry', 'Results may vary by industry')}</span>
                </div>
              </div>
 
@@ -533,14 +535,14 @@ const WhyUs = () => {
                   <table className="w-full min-w-[500px]">
                     <thead>
                       <tr className="border-b border-slate-600/50">
-                        <th className="text-left py-3 px-2 text-slate-100 text-[10px] font-bold tracking-tight">Metric</th>
-                        <th className="text-center py-3 px-2 text-slate-400 text-[10px] font-bold tracking-tight">Phone</th>
-                        <th className="text-center py-3 px-2 text-slate-400 text-[10px] font-bold tracking-tight">Website</th>
+                        <th className="text-left py-3 px-2 text-slate-100 text-[10px] font-bold tracking-tight">{t('whyus.compare.thMetric', 'Metric')}</th>
+                        <th className="text-center py-3 px-2 text-slate-400 text-[10px] font-bold tracking-tight">{t('whyus.compare.thPhoneShort', 'Phone')}</th>
+                        <th className="text-center py-3 px-2 text-slate-400 text-[10px] font-bold tracking-tight">{t('whyus.compare.thWebsiteShort', 'Website')}</th>
                         <th className="text-center py-3 px-2 text-green-400 text-[10px] font-bold tracking-tight bg-green-400/10 border-x border-green-400/20 relative">
                           <div className="absolute inset-0 bg-gradient-to-b from-green-400/5 to-green-400/10"></div>
                           <span className="relative z-10">WhatsApp</span>
                         </th>
-                        <th className="text-center py-3 px-2 text-emerald-400 text-[10px] font-bold tracking-tight">Improve</th>
+                        <th className="text-center py-3 px-2 text-emerald-400 text-[10px] font-bold tracking-tight">{t('whyus.compare.thImproveShort', 'Improve')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -574,20 +576,20 @@ const WhyUs = () => {
                 <div className="md:hidden text-center mb-1 -mt-2">
                   <div className="flex items-center justify-center gap-1 text-[8px] text-slate-400 font-medium mb-1.5">
                     <span className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></span>
-                    <span>WhatsApp adoption and industry research</span>
+                    <span>{t('whyus.compare.credMobile', 'WhatsApp adoption and industry research')}</span>
                   </div>
-                  
+
                   <div className="flex items-center justify-center gap-2 text-[7px] text-slate-500">
-                    <button 
+                    <button
                       onClick={openMethodologyModal}
                       className="text-emerald-400 font-medium hover:text-emerald-300 transition-colors duration-300 underline decoration-emerald-400/50 hover:decoration-emerald-300/70"
                     >
-                      View methodology
+                      {t('whyus.viewMethodology', 'View methodology')}
                     </button>
                     <span>•</span>
-                    <span>Data updated monthly</span>
+                    <span>{t('whyus.compare.updatedMonthly', 'Data updated monthly')}</span>
                     <span>•</span>
-                    <span>Results may vary</span>
+                    <span>{t('whyus.compare.varyShort', 'Results may vary')}</span>
                   </div>
                 </div>
           </div>
@@ -599,18 +601,18 @@ const WhyUs = () => {
           <div className="text-center mb-12 md:mb-20">
             <ScrollAnimatedSection delay={100}>
               <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-6 md:mb-8 px-3 sm:px-0">
-                Why WhatsApp Works{" "}
+                {t('whyus.psych.headingPre', 'Why WhatsApp Works ')}
                 <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent">
-                  <span className="md:hidden">Psychologically</span>
-                  <span className="hidden md:inline">Psychologically</span>
-                </span>{" "}
-                Better
+                  <span className="md:hidden">{t('whyus.psych.headingAccent', 'Psychologically')}</span>
+                  <span className="hidden md:inline">{t('whyus.psych.headingAccent', 'Psychologically')}</span>
+                </span>
+                {t('whyus.psych.headingPost', ' Better')}
               </h2>
             </ScrollAnimatedSection>
             <ScrollAnimatedSection delay={200}>
               <p className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto px-3 sm:px-0">
-                <span className="md:hidden">How people feel and behave matters</span>
-                <span className="hidden md:inline">It's not just about numbers - it's about how people feel and behave</span>
+                <span className="md:hidden">{t('whyus.psych.subtitleMobile', 'How people feel and behave matters')}</span>
+                <span className="hidden md:inline">{t('whyus.psych.subtitleDesktop', "It's not just about numbers - it's about how people feel and behave")}</span>
               </p>
             </ScrollAnimatedSection>
           </div>
@@ -677,7 +679,7 @@ const WhyUs = () => {
                       {/* Bottom Element - RESTORED AND IMPROVED FOR MOBILE */}
                       <div className="mt-1 md:mt-4 text-right">
                         <span className="text-emerald-400 text-[8px] md:text-sm font-medium opacity-80">
-                          See evidence →
+                          {t('whyus.psych.seeEvidence', 'See evidence →')}
                         </span>
                       </div>
                     </div>
@@ -713,11 +715,11 @@ const WhyUs = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-3xl md:text-4xl xl:text-5xl font-bold text-white mb-4 md:mb-6 px-3 sm:px-0">
-              <span className="text-green-400">Proven Results</span> Across All Sectors
+              <span className="text-green-400">{t('whyus.cases.headingAccent', 'Proven Results')}</span>{t('whyus.cases.headingRest', ' Across All Sectors')}
             </h2>
             <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto px-3 sm:px-0">
-              <span className="md:hidden">Real businesses, dramatic improvements</span>
-              <span className="hidden md:inline">In-depth case studies of real businesses that saw dramatic improvements</span>
+              <span className="md:hidden">{t('whyus.cases.subtitleMobile', 'Real businesses, dramatic improvements')}</span>
+              <span className="hidden md:inline">{t('whyus.cases.subtitleDesktop', 'In-depth case studies of real businesses that saw dramatic improvements')}</span>
             </p>
           </div>
           
@@ -753,11 +755,11 @@ const WhyUs = () => {
                       <h4 className="text-lg font-bold text-white mb-3">{study.caseTitle}</h4>
                       <div className="space-y-4">
                         <div>
-                          <span className="text-red-400 font-semibold">Before:</span>
+                          <span className="text-red-400 font-semibold">{t('whyus.cases.before', 'Before:')}</span>
                           <p className="text-slate-300 text-sm mt-1">{study.caseBefore}</p>
                         </div>
                         <div>
-                          <span className="text-green-400 font-semibold">After:</span>
+                          <span className="text-green-400 font-semibold">{t('whyus.cases.after', 'After:')}</span>
                           <p className="text-slate-300 text-sm mt-1">{study.caseAfter}</p>
                         </div>
                       </div>
@@ -766,7 +768,7 @@ const WhyUs = () => {
 
                   {/* Implementation */}
                   <div>
-                    <h4 className="text-lg font-bold text-white mb-3">Implementation</h4>
+                    <h4 className="text-lg font-bold text-white mb-3">{t('whyus.cases.implementation', 'Implementation')}</h4>
                     <div className="space-y-2">
                       {study.implementation.map((item, idx) => (
                         <div key={idx} className="flex items-start space-x-2">
@@ -779,7 +781,7 @@ const WhyUs = () => {
 
                   {/* Results */}
                   <div>
-                    <h4 className="text-lg font-bold text-white mb-3">Results</h4>
+                    <h4 className="text-lg font-bold text-white mb-3">{t('whyus.cases.results', 'Results')}</h4>
                     <div className="space-y-2 mb-4">
                       {study.results.map((result, idx) => (
                         <div key={idx} className="flex items-start space-x-2">
@@ -831,11 +833,11 @@ const WhyUs = () => {
                       <h4 className="text-sm font-bold text-white mb-2">{study.caseTitle}</h4>
                       <div className="space-y-3 text-xs">
                         <div>
-                          <span className="text-red-400 font-semibold">Before:</span>
+                          <span className="text-red-400 font-semibold">{t('whyus.cases.before', 'Before:')}</span>
                           <p className="text-slate-300 mt-1">{study.mobileBefore}</p>
                         </div>
                         <div>
-                          <span className="text-green-400 font-semibold">After:</span>
+                          <span className="text-green-400 font-semibold">{t('whyus.cases.after', 'After:')}</span>
                           <p className="text-slate-300 mt-1">{study.mobileAfter}</p>
                         </div>
                         <div className="bg-slate-800/50 rounded-lg p-3 border-l-2 border-green-400">
@@ -859,7 +861,7 @@ const WhyUs = () => {
                       ? 'bg-green-400 w-6'
                       : 'bg-slate-600 hover:bg-slate-500'
                   }`}
-                  aria-label={`Go to case study ${index + 1}`}
+                  aria-label={t('whyus.cases.goTo', 'Go to case study {{n}}', { n: index + 1 })}
                 />
               ))}
             </div>
@@ -892,20 +894,20 @@ const WhyUs = () => {
               as="h2" 
               className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 tracking-tight"
             >
-              <span className="text-white">Why </span>
+              <span className="text-white">{t('whyus.mobileFirst.headingWhy', 'Why ')}</span>
               <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent">
-                Mobile-First
+                {t('whyus.mobileFirst.headingAccent', 'Mobile-First')}
               </span>
-              <span className="text-white"> Wins</span>
+              <span className="text-white">{t('whyus.mobileFirst.headingWins', ' Wins')}</span>
             </ScrollAnimatedSection>
 
-            <ScrollAnimatedSection 
-              animation="fade-up" 
+            <ScrollAnimatedSection
+              animation="fade-up"
               delay={200}
-              as="p" 
+              as="p"
               className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed font-light"
             >
-              Three fundamental shifts driving customer behavior and business success
+              {t('whyus.mobileFirst.subtitle', 'Three fundamental shifts driving customer behavior and business success')}
             </ScrollAnimatedSection>
           </div>
           
@@ -914,21 +916,21 @@ const WhyUs = () => {
             {[
               {
                 icon: TabletSmartphone,
-                title: "Universal Adoption",
-                description: "96 daily interactions per user",
-                detail: "Natural mobile behavior drives engagement"
+                title: t('whyus.mobileFirst.i1Title', "Universal Adoption"),
+                description: t('whyus.mobileFirst.i1Desc', "96 daily interactions per user"),
+                detail: t('whyus.mobileFirst.i1Detail', "Natural mobile behavior drives engagement")
               },
               {
                 icon: Rocket,
-                title: "Instant Response",
-                description: "Sub-30 second expectations",
-                detail: "Speed determines conversion success"
+                title: t('whyus.mobileFirst.i2Title', "Instant Response"),
+                description: t('whyus.mobileFirst.i2Desc', "Sub-30 second expectations"),
+                detail: t('whyus.mobileFirst.i2Detail', "Speed determines conversion success")
               },
               {
                 icon: Users,
-                title: "Personal Trust",
-                description: "85% prefer messaging",
-                detail: "Conversational commerce builds loyalty"
+                title: t('whyus.mobileFirst.i3Title', "Personal Trust"),
+                description: t('whyus.mobileFirst.i3Desc', "85% prefer messaging"),
+                detail: t('whyus.mobileFirst.i3Detail', "Conversational commerce builds loyalty")
               }
             ].map((item, index) => (
               <ScrollAnimatedSection 
@@ -961,21 +963,21 @@ const WhyUs = () => {
               <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-[0_16px_40px_-14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
                 <div className="text-center space-y-4">
                   <h3 className="text-xl font-bold text-white">
-                    The Mobile-First Advantage
+                    {t('whyus.mobileFirst.advantageTitle', 'The Mobile-First Advantage')}
                   </h3>
-                  
+
                   <p className="text-slate-300 text-sm leading-relaxed">
-                    WhatsApp delivers <span className="text-emerald-300 font-medium">18x faster responses</span>, 
-                    <span className="text-emerald-300 font-medium"> 50% higher attendance</span>, and 
-                    <span className="text-emerald-300 font-medium"> 95% customer satisfaction</span> compared to traditional booking methods.
+                    {t('whyus.mobileFirst.summaryLead', 'WhatsApp delivers ')}<span className="text-emerald-300 font-medium">{t('whyus.mobileFirst.summaryStat1', '18x faster responses')}</span>{t('whyus.mobileFirst.summaryMid1', ', ')}
+                    <span className="text-emerald-300 font-medium">{t('whyus.mobileFirst.summaryStat2', '50% higher attendance')}</span>{t('whyus.mobileFirst.summaryMid2', ', and ')}
+                    <span className="text-emerald-300 font-medium">{t('whyus.mobileFirst.summaryStat3', '95% customer satisfaction')}</span>{t('whyus.mobileFirst.summaryEnd', ' compared to traditional booking methods.')}
                   </p>
 
                   {/* Mobile Metrics Grid */}
                   <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/[0.06]">
                     {[
-                      { label: "Faster", value: "18x" },
-                      { label: "Attendance", value: "+50%" },
-                      { label: "Satisfaction", value: "95%" }
+                      { label: t('whyus.mobileFirst.metricFasterShort', "Faster"), value: "18x" },
+                      { label: t('whyus.mobileFirst.metricAttendanceShort', "Attendance"), value: "+50%" },
+                      { label: t('whyus.mobileFirst.metricSatisfactionShort', "Satisfaction"), value: "95%" }
                     ].map((metric, index) => (
                       <div key={index} className="text-center">
                         <div className="text-emerald-300 text-lg font-bold">{metric.value}</div>
@@ -997,21 +999,21 @@ const WhyUs = () => {
               {[
                 {
                   icon: TabletSmartphone,
-                  title: "Universal Adoption",
-                  stat: "96x Daily",
-                  insight: "Mobile devices are checked 96 times per day. WhatsApp integrates seamlessly into this natural behavior, ensuring maximum reach and engagement without disrupting user patterns."
+                  title: t('whyus.mobileFirst.i1Title', "Universal Adoption"),
+                  stat: t('whyus.mobileFirst.i1Stat', "96x Daily"),
+                  insight: t('whyus.mobileFirst.i1Insight', "Mobile devices are checked 96 times per day. WhatsApp integrates seamlessly into this natural behavior, ensuring maximum reach and engagement without disrupting user patterns.")
                 },
                 {
                   icon: Rocket,
-                  title: "Instant Response",
-                  stat: "<30 Sec",
-                  insight: "Modern customers expect immediate acknowledgment. WhatsApp delivers instant responses while traditional channels create friction, leading to higher conversion rates and customer satisfaction."
+                  title: t('whyus.mobileFirst.i2Title', "Instant Response"),
+                  stat: t('whyus.mobileFirst.i2Stat', "<30 Sec"),
+                  insight: t('whyus.mobileFirst.i2Insight', "Modern customers expect immediate acknowledgment. WhatsApp delivers instant responses while traditional channels create friction, leading to higher conversion rates and customer satisfaction.")
                 },
                 {
                   icon: Users,
-                  title: "Personal Trust",
-                  stat: "85% Prefer",
-                  insight: "Messaging feels more personal and trusted than email. This preference drives higher engagement rates and builds stronger customer relationships through conversational commerce."
+                  title: t('whyus.mobileFirst.i3Title', "Personal Trust"),
+                  stat: t('whyus.mobileFirst.i3Stat', "85% Prefer"),
+                  insight: t('whyus.mobileFirst.i3Insight', "Messaging feels more personal and trusted than email. This preference drives higher engagement rates and builds stronger customer relationships through conversational commerce.")
                 }
               ].map((item, index) => (
                 <ScrollAnimatedSection 
@@ -1031,7 +1033,7 @@ const WhyUs = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-emerald-300">{item.stat}</div>
-                          <div className="text-xs text-slate-400 uppercase tracking-wider">Key Metric</div>
+                          <div className="text-xs text-slate-400 uppercase tracking-wider">{t('whyus.mobileFirst.keyMetric', 'Key Metric')}</div>
                         </div>
                       </div>
 
@@ -1064,21 +1066,21 @@ const WhyUs = () => {
                   
                   <div className="space-y-6">
                     <h3 className="text-2xl md:text-3xl font-bold text-white">
-                      The Mobile-First Advantage
+                      {t('whyus.mobileFirst.advantageTitle', 'The Mobile-First Advantage')}
                     </h3>
-                    
+
                     <p className="text-lg md:text-xl text-slate-300 leading-relaxed">
-                      WhatsApp delivers <span className="text-emerald-300 font-medium">18x faster responses</span>, 
-                      <span className="text-emerald-300 font-medium"> 50% higher attendance</span>, and 
-                      <span className="text-emerald-300 font-medium"> 95% customer satisfaction</span> compared to traditional booking methods.
+                      {t('whyus.mobileFirst.summaryLead', 'WhatsApp delivers ')}<span className="text-emerald-300 font-medium">{t('whyus.mobileFirst.summaryStat1', '18x faster responses')}</span>{t('whyus.mobileFirst.summaryMid1', ', ')}
+                      <span className="text-emerald-300 font-medium">{t('whyus.mobileFirst.summaryStat2', '50% higher attendance')}</span>{t('whyus.mobileFirst.summaryMid2', ', and ')}
+                      <span className="text-emerald-300 font-medium">{t('whyus.mobileFirst.summaryStat3', '95% customer satisfaction')}</span>{t('whyus.mobileFirst.summaryEnd', ' compared to traditional booking methods.')}
                     </p>
 
                     {/* Integrated Metrics */}
                     <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/[0.06]">
                       {[
-                        { label: "Faster Response", value: "18x" },
-                        { label: "Higher Attendance", value: "+50%" },
-                        { label: "Satisfaction Rate", value: "95%" }
+                        { label: t('whyus.mobileFirst.metricFaster', "Faster Response"), value: "18x" },
+                        { label: t('whyus.mobileFirst.metricAttendance', "Higher Attendance"), value: "+50%" },
+                        { label: t('whyus.mobileFirst.metricSatisfaction', "Satisfaction Rate"), value: "95%" }
                       ].map((metric, index) => (
                         <div key={index} className="text-center">
                           <div className="text-emerald-300 text-xl font-bold">{metric.value}</div>
