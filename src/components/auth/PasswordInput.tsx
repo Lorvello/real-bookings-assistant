@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,16 +21,18 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   value,
   onChange,
   disabled = false,
-  placeholder = "Enter your password",
+  placeholder,
   autoComplete = "current-password",
   required = false
 }) => {
+  const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
+  const ph = placeholder ?? t('auth.passwordInput.placeholder', 'Enter your password');
 
   return (
     <div className="space-y-2">
       <Label htmlFor={id} className="text-foreground">
-        Password
+        {t('auth.passwordInput.label', 'Password')}
       </Label>
       <div className="relative">
         <Input 
@@ -40,7 +43,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           onChange={onChange}
           disabled={disabled}
           autoComplete={autoComplete}
-          placeholder={placeholder}
+          placeholder={ph}
           className="pr-10"
         />
         <Button

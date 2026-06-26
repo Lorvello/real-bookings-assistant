@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +14,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   mode = 'signin',
   className = ''
 }) => {
+  const { t } = useTranslation('auth');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -36,8 +38,8 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
       if (error) {
         console.error('[GoogleAuth] OAuth error:', error);
         toast({
-          title: "Google Sign In Failed",
-          description: error.message || "Could not connect to Google. Please try again.",
+          title: t('auth.google.failTitle', 'Google Sign In Failed'),
+          description: error.message || t('auth.google.failDesc', 'Could not connect to Google. Please try again.'),
           variant: "destructive",
         });
         setLoading(false);
@@ -46,17 +48,17 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     } catch (error) {
       console.error('[GoogleAuth] Unexpected error:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: t('auth.google.errTitle', 'Error'),
+        description: t('auth.google.errDesc', 'Something went wrong. Please try again.'),
         variant: "destructive",
       });
       setLoading(false);
     }
   };
 
-  const buttonText = mode === 'signin' 
-    ? 'Sign in with Google' 
-    : 'Sign up with Google';
+  const buttonText = mode === 'signin'
+    ? t('auth.google.signin', 'Sign in with Google')
+    : t('auth.google.signup', 'Sign up with Google');
 
   return (
     <Button
@@ -88,7 +90,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           />
         </svg>
       )}
-      {loading ? 'Connecting...' : buttonText}
+      {loading ? t('auth.google.connecting', 'Connecting...') : buttonText}
     </Button>
   );
 };

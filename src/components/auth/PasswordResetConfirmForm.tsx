@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { useErrorHandler } from '@/hooks/useErrorHandler';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export const PasswordResetConfirmForm: React.FC = () => {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const { toast } = useToast();
   const { handleError } = useErrorHandler();
@@ -84,12 +86,12 @@ export const PasswordResetConfirmForm: React.FC = () => {
       console.log("❌ Error in URL:", errors);
       setHasValidTokens(false);
       
-      let errorMessage = "Problem with Reset Link";
-      let errorDescription = "Please request a new reset link.";
-      
+      let errorMessage = t('auth.confirm.problemTitle', 'Problem with Reset Link');
+      let errorDescription = t('auth.confirm.problemDesc', 'Please request a new reset link.');
+
       if (errors.error_code === 'otp_expired' || errors.error === 'access_denied') {
-        errorMessage = "Reset Link Expired";
-        errorDescription = "This password reset link has expired. Reset links are only valid for 1 hour. Please request a new one.";
+        errorMessage = t('auth.confirm.expiredTitle', 'Reset Link Expired');
+        errorDescription = t('auth.confirm.expiredDesc', 'This password reset link has expired. Reset links are only valid for 1 hour. Please request a new one.');
       } else if (errors.error_description) {
         errorDescription = decodeURIComponent(errors.error_description.replace(/\+/g, ' '));
       }
@@ -131,8 +133,8 @@ export const PasswordResetConfirmForm: React.FC = () => {
           console.error("❌ Session setting error:", error);
           setHasValidTokens(false);
           toast({
-            title: "Session Error",
-            description: "Failed to establish reset session. The reset link may be invalid or expired.",
+            title: t('auth.confirm.sessionErrTitle', 'Session Error'),
+            description: t('auth.confirm.sessionErrDesc', 'Failed to establish reset session. The reset link may be invalid or expired.'),
             variant: "destructive",
           });
         } else {
@@ -146,18 +148,18 @@ export const PasswordResetConfirmForm: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('auth.confirm.pwRequired', 'Password is required');
     } else {
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.isValid) {
-        newErrors.password = passwordValidation.errors[0] || 'Password does not meet security requirements';
+        newErrors.password = passwordValidation.errors[0] || t('auth.confirm.pwWeak', 'Password does not meet security requirements');
       }
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = t('auth.confirm.pwConfirm', 'Please confirm your password');
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('auth.confirm.pwNoMatch', 'Passwords do not match');
     }
 
     setErrors(newErrors);
@@ -187,17 +189,17 @@ export const PasswordResetConfirmForm: React.FC = () => {
             error.message?.includes('should be different') ||
             error.code === 'same_password') {
           toast({
-            title: "Same Password",
-            description: "Your new password must be different from your current password. Please choose a different password.",
+            title: t('auth.confirm.samePwTitle', 'Same Password'),
+            description: t('auth.confirm.samePwDesc', 'Your new password must be different from your current password. Please choose a different password.'),
             variant: "destructive",
           });
           return;
         }
-        
+
         if (error.message.includes('token') || error.message.includes('session')) {
           toast({
-            title: "Reset Link Expired",
-            description: "This password reset link has expired. Please request a new one.",
+            title: t('auth.confirm.expiredTitle', 'Reset Link Expired'),
+            description: t('auth.confirm.expiredShort', 'This password reset link has expired. Please request a new one.'),
             variant: "destructive",
           });
           navigate('/forgot-password');
@@ -211,8 +213,8 @@ export const PasswordResetConfirmForm: React.FC = () => {
       console.log('[PasswordReset] Password updated successfully');
       
       toast({
-        title: "Password Updated",
-        description: "Your password has been successfully updated. You can now sign in with your new password.",
+        title: t('auth.confirm.updatedTitle', 'Password Updated'),
+        description: t('auth.confirm.updatedDesc', 'Your password has been successfully updated. You can now sign in with your new password.'),
       });
 
       // Clear password reset marker and sign out to ensure clean state
@@ -235,7 +237,7 @@ export const PasswordResetConfirmForm: React.FC = () => {
         <CardContent className="p-8">
           <div className="flex flex-col items-center justify-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Checking reset link...</p>
+            <p className="text-muted-foreground">{t('auth.confirm.checking', 'Checking reset link...')}</p>
           </div>
         </CardContent>
       </Card>
@@ -248,19 +250,19 @@ export const PasswordResetConfirmForm: React.FC = () => {
       <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-foreground">
-            Set New Password
+            {t('auth.confirm.setNewTitle', 'Set New Password')}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Enter your new password below
+            {t('auth.confirm.setNewSubtitle', 'Enter your new password below')}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handlePasswordUpdate} className="space-y-4">
             <div className="space-y-2">
               <PasswordInput
-                label="New Password"
-                placeholder="Enter your new password"
+                label={t('auth.confirm.newPassword', 'New Password')}
+                placeholder={t('auth.confirm.newPasswordPh', 'Enter your new password')}
                 value={password}
                 onChange={setPassword}
                 showStrengthIndicator={true}
@@ -271,34 +273,34 @@ export const PasswordResetConfirmForm: React.FC = () => {
 
             <div className="space-y-2">
               <PasswordInput
-                label="Confirm New Password"
-                placeholder="Confirm your new password"
+                label={t('auth.confirm.confirmNew', 'Confirm New Password')}
+                placeholder={t('auth.confirm.confirmNewPh', 'Confirm your new password')}
                 value={confirmPassword}
                 onChange={setConfirmPassword}
                 required={true}
                 error={errors.confirmPassword}
               />
-              
+
               {confirmPassword && password === confirmPassword && (
                 <div className="flex items-center space-x-1 text-green-500">
                   <CheckCircle className="h-4 w-4" />
-                  <span className="text-sm">Passwords match</span>
+                  <span className="text-sm">{t('auth.confirm.passwordsMatch', 'Passwords match')}</span>
                 </div>
               )}
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3"
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating Password...
+                  {t('auth.confirm.updating', 'Updating Password...')}
                 </>
               ) : (
-                'Update Password'
+                t('auth.confirm.update', 'Update Password')
               )}
             </Button>
           </form>
@@ -312,44 +314,44 @@ export const PasswordResetConfirmForm: React.FC = () => {
     <Card className="w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold text-foreground">
-          Reset Your Password
+          {t('auth.confirm.howToTitle', 'Reset Your Password')}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          How to reset your password
+          {t('auth.confirm.howToSubtitle', 'How to reset your password')}
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="flex items-start space-x-3 p-4 bg-muted/50 rounded-lg">
           <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">
-              No reset link detected
+              {t('auth.confirm.noLinkTitle', 'No reset link detected')}
             </p>
             <p className="text-sm text-muted-foreground">
-              To reset your password, you need to click on the reset link from the email we sent you.
+              {t('auth.confirm.noLinkBody', 'To reset your password, you need to click on the reset link from the email we sent you.')}
             </p>
           </div>
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-sm font-medium text-foreground">Follow these steps:</h3>
+          <h3 className="text-sm font-medium text-foreground">{t('auth.confirm.followSteps', 'Follow these steps:')}</h3>
           <ol className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start space-x-2">
               <span className="font-medium text-foreground">1.</span>
-              <span>Go to the "Forgot Password" page</span>
+              <span>{t('auth.confirm.step1', 'Go to the "Forgot Password" page')}</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="font-medium text-foreground">2.</span>
-              <span>Enter your email address</span>
+              <span>{t('auth.confirm.step2', 'Enter your email address')}</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="font-medium text-foreground">3.</span>
-              <span>Check your email for the reset link</span>
+              <span>{t('auth.confirm.step3', 'Check your email for the reset link')}</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="font-medium text-foreground">4.</span>
-              <span>Click the "Reset Password" button in the email</span>
+              <span>{t('auth.confirm.step4', 'Click the "Reset Password" button in the email')}</span>
             </li>
           </ol>
         </div>
@@ -359,14 +361,14 @@ export const PasswordResetConfirmForm: React.FC = () => {
             onClick={() => navigate('/forgot-password')}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Go to Forgot Password
+            {t('auth.confirm.goForgot', 'Go to Forgot Password')}
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => navigate('/login')}
             className="w-full"
           >
-            Back to Login
+            {t('auth.confirm.backToLogin', 'Back to Login')}
           </Button>
         </div>
       </CardContent>
