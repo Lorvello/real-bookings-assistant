@@ -57,8 +57,8 @@ const subjectOptions = [
 
 const budgetOptions = [
   { value: 'exploring', label: 'Just exploring' },
-  { value: 'starter', label: 'Starter Plan (€20/month)' },
-  { value: 'professional', label: 'Professional Plan (€48/month)' },
+  { value: 'starter', label: 'Starter Plan (€30/month)' },
+  { value: 'professional', label: 'Professional Plan (€60/month)' },
   { value: 'enterprise', label: 'Enterprise (Custom pricing)' },
 ];
 
