@@ -35,6 +35,7 @@ import nlPrivacy from '../locales/nl/privacy.json';
 import nlBlog from '../locales/nl/blog.json';
 import nlBlogArticle from '../locales/nl/blogArticle.json';
 import nlBusinessSearch from '../locales/nl/businessSearch.json';
+import nlPublicBooking from '../locales/nl/publicBooking.json';
 
 const SRC = resolve(__dirname, '../..');
 
@@ -98,6 +99,7 @@ const nlKeys = new Set<string>([
   ...flattenKeys(nlBlog as Record<string, unknown>),
   ...flattenKeys(nlBlogArticle as Record<string, unknown>),
   ...flattenKeys(nlBusinessSearch as Record<string, unknown>),
+  ...flattenKeys(nlPublicBooking as Record<string, unknown>),
 ]);
 
 describe('i18n guard 1: EN inline-default snapshot (the EN source of truth)', () => {

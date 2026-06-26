@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import { supabase } from '@/integrations/supabase/client';
 import { getPublishableKeyForMode } from '@/utils/stripeConfig';
@@ -17,6 +18,7 @@ interface BookingPaymentFormProps {
 // MATCHING publishable key. On success the stripe-webhook (payment_intent.succeeded
 // -> confirmBookingPaid) confirms the booking + sends the confirmation email.
 export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaymentFormProps) {
+  const { t } = useTranslation('publicBooking');
   const cardRef = useRef<HTMLDivElement>(null);
   const stripeRef = useRef<any>(null);
   const cardElRef = useRef<any>(null);
@@ -38,7 +40,7 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
           },
         });
         if (invErr || !data?.success || !data.client_secret) {
-          throw new Error(data?.error || 'Could not start the payment.');
+          throw new Error(data?.error || t('publicBooking.pay.errStart', 'Could not start the payment.'));
         }
 
         // 2. Load Stripe with the publishable key matching the server's mode.
@@ -66,7 +68,7 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
         if (!cancelled) setStatus('ready');
       } catch (e: any) {
         if (!cancelled) {
-          setError(e.message || 'Could not start the payment. Please try again.');
+          setError(e.message || t('publicBooking.pay.errStartRetry', 'Could not start the payment. Please try again.'));
           setStatus('error');
         }
       }
@@ -90,14 +92,14 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
     });
 
     if (payErr) {
-      setError(payErr.message || 'Payment failed. Please check your card details.');
+      setError(payErr.message || t('publicBooking.pay.errFailed', 'Payment failed. Please check your card details.'));
       setStatus('error');
       return;
     }
     if (paymentIntent?.status === 'succeeded') {
       onPaid();
     } else {
-      setError('Payment not completed. Please try again.');
+      setError(t('publicBooking.pay.errNotCompleted', 'Payment not completed. Please try again.'));
       setStatus('error');
     }
   };
@@ -108,16 +110,16 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/30">
           <Lock aria-hidden="true" className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">Pay to confirm</h1>
+        <h1 className="mt-5 text-2xl font-semibold">{t('publicBooking.pay.title', 'Pay to confirm')}</h1>
         <p className="mt-1.5 text-sm text-white/50">
-          {serviceName ? `Complete the payment for ${serviceName} to confirm your appointment.` : 'Complete the payment to confirm your appointment.'}
+          {serviceName ? t('publicBooking.pay.completeWithService', 'Complete the payment for {{service}} to confirm your appointment.', { service: serviceName }) : t('publicBooking.pay.complete', 'Complete the payment to confirm your appointment.')}
         </p>
       </div>
 
       <div className="px-8 py-6">
         {status === 'init' && (
           <div className="flex items-center justify-center py-6 text-white/50">
-            <Loader2 aria-label="Loading" className="h-5 w-5 animate-spin" />
+            <Loader2 aria-label={t('publicBooking.pay.loading', 'Loading')} className="h-5 w-5 animate-spin" />
           </div>
         )}
 
@@ -135,13 +137,13 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
             size="lg"
           >
             {status === 'paying' ? (
-              <><Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" /> Paying…</>
+              <><Loader2 aria-hidden="true" className="mr-2 h-4 w-4 animate-spin" /> {t('publicBooking.pay.paying', 'Paying…')}</>
             ) : (
-              'Pay now'
+              t('publicBooking.pay.payNow', 'Pay now')
             )}
           </Button>
           <p className="mt-3 text-center text-xs text-white/40">
-            Secured by Stripe. Your card details never touch our servers.
+            {t('publicBooking.pay.securedBy', 'Secured by Stripe. Your card details never touch our servers.')}
           </p>
         </div>
       </div>

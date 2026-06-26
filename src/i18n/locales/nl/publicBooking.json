@@ -1,0 +1,48 @@
+{
+  "publicBooking": {
+    "pb": {
+      "loading": "Laden",
+      "notFoundTitle": "Niet gevonden",
+      "notFoundBody": "Deze boekingspagina bestaat niet of is niet langer actief.",
+      "confirmedTitle": "Boeking bevestigd",
+      "confirmedThanks": "Bedankt {{name}}, we hebben je aanvraag ontvangen.",
+      "service": "Dienst",
+      "date": "Datum",
+      "time": "Tijd",
+      "emailNote": "Je ontvangt een bevestiging per e-mail.",
+      "bookOnline": "Maak online een afspraak",
+      "chooseService": "Kies een dienst",
+      "noServices": "Geen diensten beschikbaar.",
+      "free": "Gratis",
+      "change": "Wijzigen",
+      "chooseDate": "Kies een datum",
+      "chooseTime": "Kies een tijd",
+      "selectDateFirst": "Kies eerst een datum.",
+      "loadingAvail": "Beschikbaarheid laden…",
+      "noTimes": "Geen vrije tijden op deze dag. Probeer een andere datum.",
+      "yourDetails": "Jouw gegevens",
+      "name": "Naam *",
+      "email": "E-mail *",
+      "emailError": "Voer een geldig e-mailadres in (bijv. naam@voorbeeld.nl).",
+      "phone": "Telefoon",
+      "optional": "(optioneel)",
+      "booking": "Boeken…",
+      "confirmBooking": "Boeking bevestigen",
+      "chooseAnother": "Kies een andere dienst",
+      "poweredBy": "Mogelijk gemaakt door Bookings Assistant"
+    },
+    "pay": {
+      "loading": "Laden",
+      "title": "Betaal om te bevestigen",
+      "completeWithService": "Rond de betaling voor {{service}} af om je afspraak te bevestigen.",
+      "complete": "Rond de betaling af om je afspraak te bevestigen.",
+      "paying": "Betalen…",
+      "payNow": "Nu betalen",
+      "securedBy": "Beveiligd door Stripe. Je kaartgegevens komen nooit op onze servers.",
+      "errStart": "Kon de betaling niet starten.",
+      "errStartRetry": "Kon de betaling niet starten. Probeer het opnieuw.",
+      "errFailed": "Betaling mislukt. Controleer je kaartgegevens.",
+      "errNotCompleted": "Betaling niet voltooid. Probeer het opnieuw."
+    }
+  }
+}
