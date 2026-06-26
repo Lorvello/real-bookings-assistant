@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { Input } from "@/components/ui/input";
 import { ChevronDown, Search } from "lucide-react";
 
@@ -361,6 +362,7 @@ interface SearchableSelectProps {
 }
 
 function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: SearchableSelectProps) {
+  const { t } = useTranslation('home');
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0 });
@@ -468,7 +470,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
               <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-slate-400" />
               <Input
                 type="text"
-                placeholder="Search languages..."
+                placeholder={t('bento.multiLanguage.searchPlaceholder', 'Search languages...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 h-7 text-xs bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
@@ -494,7 +496,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
               ))
             ) : (
               <div className="px-3 py-2 text-xs text-slate-400 text-center">
-                No languages found
+                {t('bento.multiLanguage.noResults', 'No languages found')}
               </div>
             )}
           </div>
@@ -506,6 +508,7 @@ function SearchableSelect({ languages, selectedLanguage, onLanguageChange }: Sea
 }
 
 export function TranslationDemo() {
+  const { t } = useTranslation('home');
   const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   const selectedLang = languages.find(lang => lang.code === selectedLanguage);
@@ -516,13 +519,13 @@ export function TranslationDemo() {
     <div className="absolute inset-3">
       {/* Badge */}
       <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-        200+ Languages
+        {t('bento.multiLanguage.badge', '200+ Languages')}
       </div>
 
       <div className="h-full flex flex-col">
         {/* Language Selection */}
         <div className="space-y-2 mb-4">
-          <label className="text-xs text-slate-300 font-medium">Select customer language:</label>
+          <label className="text-xs text-slate-300 font-medium">{t('bento.multiLanguage.selectLabel', 'Select customer language:')}</label>
           <SearchableSelect
             languages={languages}
             selectedLanguage={selectedLanguage}

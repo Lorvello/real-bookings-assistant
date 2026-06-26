@@ -2,37 +2,39 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 const Footer: React.FC = () => {
+  const { t } = useTranslation('common');
   const currentYear = new Date().getFullYear();
 
   const productLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'How It Works', href: '/how-it-works' },
-    { name: 'Why Us', href: '/why-us' },
-    { name: 'Pricing', href: '/#pricing' },
-    { name: 'FAQ', href: '/faq' },
+    { id: 'home', name: t('footer.links.home', 'Home'), href: '/' },
+    { id: 'howItWorks', name: t('footer.links.howItWorks', 'How It Works'), href: '/how-it-works' },
+    { id: 'whyUs', name: t('footer.links.whyUs', 'Why Us'), href: '/why-us' },
+    { id: 'pricing', name: t('footer.links.pricing', 'Pricing'), href: '/#pricing' },
+    { id: 'faq', name: t('footer.links.faq', 'FAQ'), href: '/faq' },
   ];
 
   const companyLinks = [
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+    { id: 'about', name: t('footer.links.about', 'About'), href: '/about' },
+    { id: 'contact', name: t('footer.links.contact', 'Contact'), href: '/contact' },
   ];
 
   const resourceLinks = [
-    { name: 'Blog', href: '/blog' },
+    { id: 'blog', name: t('footer.links.blog', 'Blog'), href: '/blog' },
   ];
 
-  const comingSoonLinks = ['Help Center'];
+  const comingSoonLinks = [{ id: 'helpCenter', name: t('footer.links.helpCenter', 'Help Center') }];
 
   const legalLinks = [
-    { name: 'Terms of Service', href: '/terms-of-service' },
-    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { id: 'terms', name: t('footer.links.terms', 'Terms of Service'), href: '/terms-of-service' },
+    { id: 'privacy', name: t('footer.links.privacy', 'Privacy Policy'), href: '/privacy-policy' },
   ];
 
   const handleComingSoon = (e: React.MouseEvent) => {
     e.preventDefault();
-    toast.info('This feature will come soon.');
+    toast.info(t('footer.comingSoonToast', 'This feature will come soon.'));
   };
 
 
@@ -56,8 +58,7 @@ const Footer: React.FC = () => {
             </Link>
             
             <p className="mt-6 text-muted-foreground leading-relaxed max-w-md font-garamond font-light text-base md:text-lg">
-              AI-powered WhatsApp booking automation for modern businesses. 
-              Let your customers book appointments 24/7 while you focus on what matters most.
+              {t('footer.tagline', 'AI-powered WhatsApp booking automation for modern businesses. Let your customers book appointments 24/7 while you focus on what matters most.')}
             </p>
 
             {/* Contact - Subtle email link */}
@@ -76,11 +77,11 @@ const Footer: React.FC = () => {
           {/* Product links */}
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
-              Product
+              {t('footer.headings.product', 'Product')}
             </h3>
             <ul className="space-y-4">
               {productLinks.map((link) => (
-                <li key={link.name}>
+                <li key={link.id}>
                   <Link 
                     to={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
@@ -96,11 +97,11 @@ const Footer: React.FC = () => {
           {/* Company links */}
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
-              Company
+              {t('footer.headings.company', 'Company')}
             </h3>
             <ul className="space-y-4">
               {companyLinks.map((link) => (
-                <li key={link.name}>
+                <li key={link.id}>
                   <Link 
                     to={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
@@ -115,11 +116,11 @@ const Footer: React.FC = () => {
 
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
-              Resources
+              {t('footer.headings.resources', 'Resources')}
             </h3>
             <ul className="space-y-4">
               {resourceLinks.map((link) => (
-                <li key={link.name}>
+                <li key={link.id}>
                   <Link 
                     to={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
@@ -129,13 +130,13 @@ const Footer: React.FC = () => {
                   </Link>
                 </li>
               ))}
-              {comingSoonLinks.map((name) => (
-                <li key={name}>
-                  <button 
+              {comingSoonLinks.map((item) => (
+                <li key={item.id}>
+                  <button
                     onClick={handleComingSoon}
                     className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group cursor-pointer font-garamond font-light text-base"
                   >
-                    {name}
+                    {item.name}
                     <ArrowUpRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                   </button>
                 </li>
@@ -146,11 +147,11 @@ const Footer: React.FC = () => {
           {/* Legal links */}
           <div>
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-6">
-              Legal
+              {t('footer.headings.legal', 'Legal')}
             </h3>
             <ul className="space-y-4">
               {legalLinks.map((link) => (
-                <li key={link.name}>
+                <li key={link.id}>
                   <Link 
                     to={link.href}
                     className="text-muted-foreground hover:text-primary transition-colors duration-200 inline-flex items-center gap-1 group font-garamond font-light text-base"
@@ -168,10 +169,10 @@ const Footer: React.FC = () => {
         <div className="mt-16 pt-8 border-t border-border/30">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-base text-muted-foreground font-garamond font-light">
-              © {currentYear} BookingsAssistant. All rights reserved.
+              {t('footer.rights', '© {{year}} BookingsAssistant. All rights reserved.', { year: currentYear })}
             </p>
             <p className="text-base text-muted-foreground/60 font-garamond font-light">
-              Empowering businesses with AI-driven automation
+              {t('footer.empower', 'Empowering businesses with AI-driven automation')}
             </p>
           </div>
         </div>

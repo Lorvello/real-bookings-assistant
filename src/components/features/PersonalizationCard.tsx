@@ -1,7 +1,9 @@
 import { GearIcon } from "@radix-ui/react-icons";
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export const PersonalizationCard = () => {
+  const { t } = useTranslation('home');
   const [tonePosition, setTonePosition] = useState(33); // 33% for "Friendly"
   const [multiLanguage, setMultiLanguage] = useState(true);
   const [smartFAQ, setSmartFAQ] = useState(true);
@@ -101,14 +103,14 @@ export const PersonalizationCard = () => {
       <div className="absolute inset-3 flex flex-col">
         {/* AI Personality Section */}
         <div className="mb-3">
-          <p className="text-slate-300 text-[8px] font-medium mb-2">AI Personality & Tone</p>
-          
+          <p className="text-slate-300 text-[8px] font-medium mb-2">{t('bento.personalization.title', 'AI Personality & Tone')}</p>
+
           {/* Tone Slider */}
           <div className="mb-2">
             <div className="flex justify-between text-[6px] text-slate-400 mb-1">
-              <span>Professional</span>
-              <span>Friendly</span>
-              <span>Casual</span>
+              <span>{t('bento.personalization.tonePro', 'Professional')}</span>
+              <span>{t('bento.personalization.toneFriendly', 'Friendly')}</span>
+              <span>{t('bento.personalization.toneCasual', 'Casual')}</span>
             </div>
             <div 
               ref={sliderRef}
@@ -141,7 +143,7 @@ export const PersonalizationCard = () => {
           
           {/* Language Toggle */}
           <div className="flex items-center justify-between">
-            <span className="text-slate-300 text-[7px]">🌐 Multi-language</span>
+            <span className="text-slate-300 text-[7px]">{t('bento.personalization.multiLanguage', '🌐 Multi-language')}</span>
             <div 
               className={`w-4 h-2 rounded-full relative cursor-pointer transition-all duration-300 hover:scale-110 ${
                 multiLanguage ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
@@ -167,7 +169,7 @@ export const PersonalizationCard = () => {
             smartFAQ ? 'border border-emerald-500/30' : 'border border-slate-600/30'
           }`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-white text-[7px] font-medium">📚 Smart FAQ</span>
+              <span className="text-white text-[7px] font-medium">{t('bento.personalization.smartFaq', '📚 Smart FAQ')}</span>
               <div 
                 className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
                   smartFAQ ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40' : 'bg-slate-500'
@@ -184,7 +186,7 @@ export const PersonalizationCard = () => {
             </div>
             <p className={`text-[6px] transition-colors duration-200 ${
               smartFAQ ? 'text-emerald-300' : 'text-slate-400'
-            }`}>Auto-answers common questions</p>
+            }`}>{t('bento.personalization.smartFaqDesc', 'Auto-answers common questions')}</p>
           </div>
           
           {/* Booking Logic */}
@@ -192,7 +194,7 @@ export const PersonalizationCard = () => {
             smartBooking ? 'border border-emerald-500/30' : 'border border-slate-600/30'
           }`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-white text-[7px] font-medium">🧠 Smart Booking</span>
+              <span className="text-white text-[7px] font-medium">{t('bento.personalization.smartBooking', '🧠 Smart Booking')}</span>
               <div 
                 className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
                   smartBooking ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40' : 'bg-slate-500'
@@ -209,7 +211,7 @@ export const PersonalizationCard = () => {
             </div>
             <p className={`text-[6px] transition-colors duration-200 ${
               smartBooking ? 'text-emerald-300' : 'text-slate-400'
-            }`}>Upselling & rebooking</p>
+            }`}>{t('bento.personalization.smartBookingDesc', 'Upselling & rebooking')}</p>
           </div>
           
           {/* Context Awareness */}
@@ -217,7 +219,7 @@ export const PersonalizationCard = () => {
             contextAI ? 'border border-primary/30' : 'border border-slate-600/30'
           }`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-white text-[7px] font-medium">🎯 Context AI</span>
+              <span className="text-white text-[7px] font-medium">{t('bento.personalization.contextAi', '🎯 Context AI')}</span>
               <div 
                 className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
                   contextAI ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
@@ -234,7 +236,7 @@ export const PersonalizationCard = () => {
             </div>
             <p className={`text-[6px] transition-colors duration-200 ${
               contextAI ? 'text-primary' : 'text-slate-400'
-            }`}>Remembers preferences</p>
+            }`}>{t('bento.personalization.contextAiDesc', 'Remembers preferences')}</p>
           </div>
           
           {/* Proactive Engagement */}
@@ -242,7 +244,7 @@ export const PersonalizationCard = () => {
             proactiveMode ? 'border border-primary/30' : 'border border-slate-600/30'
           }`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-white text-[7px] font-medium">⚡ Proactive</span>
+              <span className="text-white text-[7px] font-medium">{t('bento.personalization.proactive', '⚡ Proactive')}</span>
               <div 
                 className={`w-3 h-1.5 rounded-full relative transition-all duration-300 hover:scale-110 cursor-pointer ${
                   proactiveMode ? 'bg-primary shadow-lg shadow-primary/40' : 'bg-slate-500'
@@ -259,7 +261,7 @@ export const PersonalizationCard = () => {
             </div>
             <p className={`text-[6px] transition-colors duration-200 ${
               proactiveMode ? 'text-primary' : 'text-slate-400'
-            }`}>Sends follow-ups</p>
+            }`}>{t('bento.personalization.proactiveDesc', 'Sends follow-ups')}</p>
           </div>
         </div>
       </div>

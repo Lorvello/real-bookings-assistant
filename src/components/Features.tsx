@@ -2,8 +2,14 @@
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { bookingFeatures } from "./features/FeatureData";
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
+import { useTranslation } from "react-i18next";
+
+// Stable i18n ids in render order (matches bookingFeatures), so the bento card
+// copy is translated here without touching the JSX-bearing FeatureData module.
+const CARD_IDS = ['automation', 'personalization', 'calendar', 'smartResponses', 'reminders', 'analytics', 'multilingual', 'monitoring'];
 
 const Features = () => {
+  const { t } = useTranslation('home');
   return (
     <section className="hidden md:block py-16 md:py-16 px-3 md:px-4 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
@@ -27,21 +33,32 @@ const Features = () => {
           {/* Header - HEADERS (Largest) */}
           <div className="text-center pt-16 md:pt-20">
             <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Everything You Need To{" "}
+              {t('features.titlePre', 'Everything You Need To')}{" "}
               <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent biolum-text-subtle">
-                Automate Bookings
+                {t('features.titleAccent', 'Automate Bookings')}
               </span>
             </h2>
             <p className="text-base md:text-xl text-slate-400 max-w-3xl mx-auto px-3 sm:px-0 font-garamond font-light">
-              <span className="md:hidden">Features that maximize bookings and revenue</span>
-              <span className="hidden md:inline">Powerful features that work seamlessly together to maximize your bookings and revenue</span>
+              <span className="md:hidden">{t('features.subtitleMobile', 'Features that maximize bookings and revenue')}</span>
+              <span className="hidden md:inline">{t('features.subtitleDesktop', 'Powerful features that work seamlessly together to maximize your bookings and revenue')}</span>
             </p>
           </div>
           
           {/* Bento Grid Features */}
           <div className="mb-12 md:mb-32">
             <BentoGrid>
-              {bookingFeatures.map((feature, idx) => <BentoCard key={idx} {...feature} />)}
+              {bookingFeatures.map((feature, idx) => {
+                const id = CARD_IDS[idx];
+                return (
+                  <BentoCard
+                    key={idx}
+                    {...feature}
+                    name={id ? t(`features.cards.${id}.name`, feature.name) : feature.name}
+                    description={id ? t(`features.cards.${id}.description`, feature.description) : feature.description}
+                    cta={t('features.cta', feature.cta)}
+                  />
+                );
+              })}
             </BentoGrid>
           </div>
         </StaggeredAnimationContainer>

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Send, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ function PlaceholdersAndVanishInput({
   onChange,
   onSubmit,
 }: PlaceholdersAndVanishInputProps) {
+  const { t } = useTranslation('home');
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -224,7 +226,7 @@ function PlaceholdersAndVanishInput({
         ref={inputRef}
         value={value}
         type="text"
-        aria-label="Type your message"
+        aria-label={t('demo.aiAgent.ariaType', 'Type your message')}
         className={cn(
           "w-full relative text-sm z-50 border-none text-foreground bg-transparent h-full rounded-2xl sm:rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-8 pr-16 sm:pr-20",
           animating && "text-transparent"
@@ -234,7 +236,7 @@ function PlaceholdersAndVanishInput({
       <button
         disabled={!value}
         type="submit"
-        aria-label="Send message"
+        aria-label={t('demo.aiAgent.ariaSend', 'Send message')}
         className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-11 w-11 sm:h-10 sm:w-10 rounded-full disabled:bg-muted bg-primary hover:bg-whatsapp transition duration-200 flex items-center justify-center disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70"
       >
         <Send aria-hidden="true" className="text-white h-3 w-3 sm:h-4 sm:w-4" />
@@ -262,17 +264,22 @@ function PlaceholdersAndVanishInput({
 
 export default function AIAgentTestPage({
   framed = true,
-  // Copy is context-specific: defaults are the public marketing voice (unchanged); the logged-in
-  // Test-AI-Agent page passes owner-facing strings ("Your AI Agent", etc.).
-  title = "AI Agent Demo",
-  greeting = "Hello! I'm your AI agent. Ask me a question to test my capabilities!",
-  hint = "Press Enter to send your message • Powered by AI",
+  // Copy is context-specific: when no prop is passed (public marketing demo) the strings are the
+  // translated marketing defaults; the logged-in Test-AI-Agent page passes its own owner-facing
+  // strings ("Your AI Agent", etc.), which override the defaults and are translated in Blok D-app.
+  title,
+  greeting,
+  hint,
 }: { framed?: boolean; title?: string; greeting?: string; hint?: string } = {}) {
+  const { t } = useTranslation('home');
+  const resolvedTitle = title ?? t('demo.aiAgent.title', 'AI Agent Demo');
+  const resolvedGreeting = greeting ?? t('demo.aiAgent.greeting', "Hello! I'm your AI agent. Ask me a question to test my capabilities!");
+  const resolvedHint = hint ?? t('demo.aiAgent.hint', 'Press Enter to send your message • Powered by AI');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       type: "bot",
-      content: greeting,
+      content: resolvedGreeting,
       timestamp: new Date(),
     },
   ]);
@@ -280,11 +287,11 @@ export default function AIAgentTestPage({
   const [inputValue, setInputValue] = useState("");
 
   const placeholders = [
-    "Ask me something about your business...",
-    "Test my knowledge about marketing...",
-    "Ask me about WhatsApp automation...",
-    "Ask me for a lead generation strategy...",
-    "Test my creativity with content ideas...",
+    t('demo.aiAgent.placeholder1', "Ask me something about your business..."),
+    t('demo.aiAgent.placeholder2', "Test my knowledge about marketing..."),
+    t('demo.aiAgent.placeholder3', "Ask me about WhatsApp automation..."),
+    t('demo.aiAgent.placeholder4', "Ask me for a lead generation strategy..."),
+    t('demo.aiAgent.placeholder5', "Test my creativity with content ideas..."),
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,7 +314,7 @@ export default function AIAgentTestPage({
       throw error;
     }
 
-    return data.reply || "Sorry, I couldn't generate a response.";
+    return data.reply || t('demo.aiAgent.errorNoResponse', "Sorry, I couldn't generate a response.");
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -340,7 +347,7 @@ export default function AIAgentTestPage({
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "bot",
-        content: "Sorry, something went wrong. Please try again.",
+        content: t('demo.aiAgent.errorGeneric', "Sorry, something went wrong. Please try again."),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
@@ -375,18 +382,18 @@ export default function AIAgentTestPage({
                   <Bot aria-hidden="true" className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground text-sm sm:text-base">{title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Online and ready to help</p>
+                  <h3 className="font-semibold text-foreground text-sm sm:text-base">{resolvedTitle}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{t('demo.aiAgent.online', 'Online and ready to help')}</p>
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-whatsapp rounded-full animate-pulse motion-reduce:animate-none"></div>
-                  <span className="text-xs text-muted-foreground">Live</span>
+                  <span className="text-xs text-muted-foreground">{t('demo.aiAgent.live', 'Live')}</span>
                 </div>
               </div>
             </div>
 
             {/* Messages - More compact on mobile */}
-            <div role="log" aria-live="polite" aria-label="Conversation messages" className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
+            <div role="log" aria-live="polite" aria-label={t('demo.aiAgent.ariaLog', 'Conversation messages')} className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 bg-gradient-to-b from-background-secondary/30 to-background/30 min-h-0">
               <AnimatePresence>
                 {messages.map((message) => (
                   <motion.div
@@ -458,7 +465,7 @@ export default function AIAgentTestPage({
                 onSubmit={handleSubmit}
               />
               <p className="text-xs text-muted-foreground mt-1 sm:mt-2 text-center">
-                {hint}
+                {resolvedHint}
               </p>
             </div>
           </div>

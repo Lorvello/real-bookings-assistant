@@ -6,9 +6,11 @@ import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Bot, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import StaggeredAnimationContainer from './StaggeredAnimationContainer';
 
 const ProcessSection = () => {
+  const { t } = useTranslation('home');
   return (
     <section className="py-2 md:py-16 pt-16 md:pt-16 relative overflow-hidden" style={{
       backgroundColor: 'hsl(217, 35%, 12%)'
@@ -32,11 +34,10 @@ const ProcessSection = () => {
           {/* Section header - HEADERS (Largest) */}
           <div className="text-center">
             <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-6 md:mb-6 px-3 sm:px-0">
-              See How It <span className="text-emerald-400 biolum-text-subtle">Works</span>
+              {t('process.titlePre', 'See How It')} <span className="text-emerald-400 biolum-text-subtle">{t('process.titleAccent', 'Works')}</span>
             </h2>
             <p className="text-base md:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed px-3 sm:px-0 mb-12 md:mb-8 font-garamond font-light">
-              From first message to confirmed appointment in less than 30 seconds. 
-              Watch how our AI handles the entire booking process automatically.
+              {t('process.subtitle', 'From first message to confirmed appointment in less than 30 seconds. Watch how our AI handles the entire booking process automatically.')}
             </p>
           </div>
 
@@ -47,12 +48,10 @@ const ProcessSection = () => {
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-semibold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30">
                   1
                 </div>
-                <h3 className="text-lg md:text-2xl font-semibold text-white">Customer Starts WhatsApp Chat</h3>
+                <h3 className="text-lg md:text-2xl font-semibold text-white">{t('process.step1Title', 'Customer Starts WhatsApp Chat')}</h3>
               </div>
               <p className="text-base md:text-xl text-slate-400 leading-relaxed px-3 lg:px-0 font-garamond font-light">
-                Your customer sends a simple message expressing their need. Our AI agent 
-                responds immediately with intelligent questions to understand their preferences 
-                and find the perfect appointment time.
+                {t('process.step1Body', 'Your customer sends a simple message expressing their need. Our AI agent responds immediately with intelligent questions to understand their preferences and find the perfect appointment time.')}
               </p>
             </div>
             
@@ -70,10 +69,10 @@ const ProcessSection = () => {
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-semibold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30 aspect-square">
                   2
                 </div>
-                <h3 className="text-lg md:text-2xl font-semibold text-white">Appointment Automatically Booked</h3>
+                <h3 className="text-lg md:text-2xl font-semibold text-white">{t('process.step2Title', 'Appointment Automatically Booked')}</h3>
               </div>
                <p className="text-base md:text-xl text-slate-400 leading-relaxed px-1 lg:px-0 font-garamond font-light">
-                 Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.
+                 {t('process.step2Body', 'Integrate with your existing calendar system, or use our professional high-end calendar solution designed for optimal appointment management.')}
                </p>
              </div>
              
@@ -92,11 +91,10 @@ const ProcessSection = () => {
                 <div className="w-6 h-6 md:w-12 md:h-12 text-white rounded-full flex items-center justify-center font-semibold text-xs md:text-lg bg-gradient-to-br from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/30">
                   3
                 </div>
-                <h3 className="text-lg md:text-2xl font-semibold text-white">Test The AI Agent Yourself</h3>
+                <h3 className="text-lg md:text-2xl font-semibold text-white">{t('process.step3Title', 'Test The AI Agent Yourself')}</h3>
               </div>
               <p className="text-base md:text-xl text-slate-400 leading-relaxed max-w-3xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 font-garamond font-light">
-                Try it yourself! Chat with our AI agent and experience how fast and natural 
-                the booking process is. No registration required.
+                {t('process.step3Body', 'Try it yourself! Chat with our AI agent and experience how fast and natural the booking process is. No registration required.')}
               </p>
             </div>
             
@@ -108,15 +106,15 @@ const ProcessSection = () => {
                     className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-base md:text-lg px-8 md:px-6 py-3 md:py-4 h-auto rounded-lg border border-slate-700 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                   >
                   <Bot className="mr-2 h-4 w-4 md:h-5 md:w-5 text-white" />
-                  <span className="hidden md:inline">Try AI Agent Demo</span>
-                  <span className="md:hidden">Try Demo</span>
+                  <span className="hidden md:inline">{t('process.tryDemoFull', 'Try AI Agent Demo')}</span>
+                  <span className="md:hidden">{t('process.tryDemoShort', 'Try Demo')}</span>
                 </Button>
               </DialogTrigger>
                 {/* Significantly reduced modal size for mobile */}
                 <DialogContent className="max-w-[85vw] w-[85vw] md:max-w-2xl md:w-full h-[60vh] md:h-[80vh] max-h-[400px] md:max-h-[600px] p-0 bg-slate-900 border-slate-700 data-[state=open]:animate-in data-[state=open]:fade-in-100 data-[state=open]:scale-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:scale-out-95 duration-300">
-                  <DialogTitle className="sr-only">AI Agent Demo</DialogTitle>
+                  <DialogTitle className="sr-only">{t('process.demoTitle', 'AI Agent Demo')}</DialogTitle>
                   <DialogDescription className="sr-only">
-                    Test our AI booking agent in this demo chat interface
+                    {t('process.demoDescription', 'Test our AI booking agent in this demo chat interface')}
                   </DialogDescription>
                   <AIAgentTestChat />
                 </DialogContent>

@@ -1,6 +1,7 @@
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 const globalNetworkImage = "/lovable-uploads/a19bc752-d6ec-4498-944d-aa62ff083b1f.jpg";
 const automationImage = "/lovable-uploads/c4bcff68-784e-45d1-9ab5-01bf16fcdf6a.jpg";
 const paymentSuccessImage = "/lovable-uploads/ca02afe5-2602-415b-8d13-928d829aa206.jpg";
@@ -60,8 +61,32 @@ export const WhatsAppBenefits = ({
   benefits = defaultBenefits,
   className = "",
 }: WhatsAppBenefitsProps & { className?: string }) => {
+  const { t } = useTranslation('home');
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
-  const enhancedBenefits = benefits;
+  // Localize the default benefits (the homepage passes no override). A caller
+  // that supplies its own `benefits` keeps full control; only the built-in
+  // marketing defaults are translated.
+  const localizedDefaults = [
+    {
+      ...defaultBenefits[0],
+      title: t('solution.benefits.benefit1.title', defaultBenefits[0].title),
+      description: t('solution.benefits.benefit1.description', defaultBenefits[0].description),
+      mobileDescription: t('solution.benefits.benefit1.mobileDescription', defaultBenefits[0].mobileDescription),
+    },
+    {
+      ...defaultBenefits[1],
+      title: t('solution.benefits.benefit2.title', defaultBenefits[1].title),
+      description: t('solution.benefits.benefit2.description', defaultBenefits[1].description),
+      mobileDescription: t('solution.benefits.benefit2.mobileDescription', defaultBenefits[1].mobileDescription),
+    },
+    {
+      ...defaultBenefits[2],
+      title: t('solution.benefits.benefit3.title', defaultBenefits[2].title),
+      description: t('solution.benefits.benefit3.description', defaultBenefits[2].description),
+      mobileDescription: t('solution.benefits.benefit3.mobileDescription', defaultBenefits[2].mobileDescription),
+    },
+  ];
+  const enhancedBenefits = benefits === defaultBenefits ? localizedDefaults : benefits;
   
   // Mobile slideshow state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -198,7 +223,7 @@ export const WhatsAppBenefits = ({
           {/* Swipe hint */}
           <div className="text-center mt-3 px-4">
             <p className="text-sm text-slate-500 font-garamond font-light">
-              Swipe or tap arrows to explore
+              {t('solution.benefits.swipeHint', 'Swipe or tap arrows to explore')}
             </p>
           </div>
         </div>

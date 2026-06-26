@@ -1,10 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Sparkles, Zap, Scissors, Stethoscope, Dumbbell } from "lucide-react";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 const HeroSection: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('home');
   const handleStartTrial = () => {
     navigate('/signup');
   };
@@ -29,31 +31,31 @@ const HeroSection: React.FC = () => {
         <div className="space-y-2 md:space-y-8">
         <h1 className="text-4xl md:text-6xl xl:text-7xl font-light text-white leading-tight md:leading-[0.95] tracking-tighter opacity-100">
             <span className="text-transparent bg-clip-text bg-gradient-to-b from-emerald-200 via-emerald-400 to-emerald-600 biolum-text font-normal">
-              Bookings
+              {t('hero.titleLine1Accent', 'Bookings')}
             </span>
-            <span className="text-white/90">{" "}on Auto Pilot</span>
+            <span className="text-white/90">{" "}{t('hero.titleLine1Rest', 'on Auto Pilot')}</span>
             <br />
-            <span className="font-serif italic font-normal text-emerald-400 biolum-text">via WhatsApp</span>
+            <span className="font-serif italic font-normal text-emerald-400 biolum-text">{t('hero.titleLine2', 'via WhatsApp')}</span>
           </h1>
 
           <p className="text-base md:text-2xl text-slate-400 max-w-4xl mx-auto leading-relaxed animate-appear opacity-100 delay-300 px-4 md:px-0 mb-6 md:mb-0 font-garamond font-light">
-            <span className="md:hidden">AI Books Appointments, Zero Missed Opportunities</span>
-            <span className="hidden md:inline">Your AI assistant books appointments through WhatsApp while you sleep.{" "}
-            <span className="text-emerald-400 biolum-text-subtle">24/7 automation</span>,{" "}
-            <span className="text-emerald-400 biolum-text-subtle">instant responses</span>,{" "}
-            <span className="text-emerald-400 biolum-text-subtle">zero missed opportunities</span>.</span>
+            <span className="md:hidden">{t('hero.subtitleMobile', 'AI Books Appointments, Zero Missed Opportunities')}</span>
+            <span className="hidden md:inline">{t('hero.subtitleDesktopLead', 'Your AI assistant books appointments through WhatsApp while you sleep.')}{" "}
+            <span className="text-emerald-400 biolum-text-subtle">{t('hero.subtitleTag1', '24/7 automation')}</span>,{" "}
+            <span className="text-emerald-400 biolum-text-subtle">{t('hero.subtitleTag2', 'instant responses')}</span>,{" "}
+            <span className="text-emerald-400 biolum-text-subtle">{t('hero.subtitleTag3', 'zero missed opportunities')}</span>.</span>
           </p>
 
           {/* CTA Section - BUTTONS (Medium-Large) */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-6 pt-6 md:pt-8 animate-appear opacity-100 delay-500 px-4 sm:px-0">
             <Button onClick={handleStartTrial} className="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 md:px-8 md:py-6 text-sm md:text-lg font-semibold rounded-xl shadow-lg shadow-emerald-500/25 border-0 transition-all duration-300 hover:scale-105 hover:shadow-emerald-500/40 group min-h-[40px] md:min-h-[48px]">
               <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 group-hover:rotate-12 transition-transform" />
-              Start Free 30-Day Trial
+              {t('hero.ctaTrial', 'Start Free 30-Day Trial')}
             </Button>
-            
+
             <button onClick={handleHowItWorks} className="w-full sm:w-auto text-slate-300 hover:text-white text-sm md:text-lg font-semibold flex items-center justify-center gap-2 group transition-colors min-h-[40px] md:min-h-[48px] px-4">
               <Zap className="w-4 h-4 md:w-5 md:h-5 group-hover:text-emerald-400 transition-colors" />
-              See how it works
+              {t('hero.ctaHow', 'See how it works')}
             </button>
           </div>
 
@@ -76,12 +78,12 @@ const HeroSection: React.FC = () => {
                   <Stethoscope className="w-3 h-3 md:w-4 md:h-4 text-slate-700" />
                 </div>
               </div>
-              <span className="text-slate-400 text-sm md:text-base font-garamond font-light">1000+ businesses automated</span>
+              <span className="text-slate-400 text-sm md:text-base font-garamond font-light">{t('hero.socialProofBusinesses', '1000+ businesses automated')}</span>
             </div>
-            
+
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => <span key={i} className="text-yellow-400 text-xs md:text-lg">★</span>)}
-              <span className="text-slate-400 text-sm md:text-base ml-1 font-garamond font-light">4.9/5 rating</span>
+              <span className="text-slate-400 text-sm md:text-base ml-1 font-garamond font-light">{t('hero.socialProofRating', '4.9/5 rating')}</span>
             </div>
           </div>
         </div>

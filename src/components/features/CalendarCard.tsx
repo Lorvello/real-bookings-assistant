@@ -2,8 +2,11 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { X, Check, Calendar, Users, MessageCircle, Clock, CheckCircle, Activity } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const CalendarCard = () => {
+  const { t, i18n } = useTranslation('home');
+  const monthLocale = i18n.language?.split('-')[0] === 'nl' ? 'nl-NL' : 'en-US';
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
@@ -253,7 +256,7 @@ export const CalendarCard = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-white text-[12px] font-semibold">
-              {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              {currentMonth.toLocaleDateString(monthLocale, { month: 'long', year: 'numeric' })}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -266,7 +269,7 @@ export const CalendarCard = () => {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Month
+                {t('bento.calendar.month', 'Month')}
               </button>
               <button 
                 onClick={() => setCalendarView('week')}
@@ -276,7 +279,7 @@ export const CalendarCard = () => {
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Week
+                {t('bento.calendar.week', 'Week')}
               </button>
             </div>
           </div>
@@ -287,7 +290,15 @@ export const CalendarCard = () => {
           <div className="flex-1 flex flex-col">
                 <div className="grid grid-cols-7 gap-1 text-[7px] mb-2">
                   {/* Day Headers */}
-                  {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
+                  {[
+                    t('bento.calendar.dayShort.mon', 'Mo'),
+                    t('bento.calendar.dayShort.tue', 'Tu'),
+                    t('bento.calendar.dayShort.wed', 'We'),
+                    t('bento.calendar.dayShort.thu', 'Th'),
+                    t('bento.calendar.dayShort.fri', 'Fr'),
+                    t('bento.calendar.dayShort.sat', 'Sa'),
+                    t('bento.calendar.dayShort.sun', 'Su'),
+                  ].map((day) => (
                     <div key={day} className="text-slate-400 text-center py-1 font-medium border-b border-slate-700/30">{day}</div>
                   ))}
                   
@@ -321,7 +332,7 @@ export const CalendarCard = () => {
                 
                  {/* Booking Summary - Optimized */}
                 <div className="bg-slate-700/50 rounded-lg p-2 mt-2">
-                  <div className="text-slate-300 text-[8px] font-medium mb-1">Today's Bookings</div>
+                  <div className="text-slate-300 text-[8px] font-medium mb-1">{t('bento.calendar.todaysBookings', "Today's Bookings")}</div>
                   <div className="space-y-1">
                     {[
                       { time: "09:00", name: "John", service: "Personal Training" },
@@ -332,7 +343,7 @@ export const CalendarCard = () => {
                     ].map((booking, idx) => (
                       <div key={idx} className="flex justify-between items-center text-[7px]">
                         <span className="text-slate-400">{booking.time} - {booking.name} ({booking.service})</span>
-                        <span className="text-emerald-400">Confirmed</span>
+                        <span className="text-emerald-400">{t('bento.calendar.confirmed', 'Confirmed')}</span>
                       </div>
                     ))}
                   </div>
@@ -342,8 +353,16 @@ export const CalendarCard = () => {
           <div className="space-y-1 flex-1">
                 {/* Week Headers */}
                 <div className="grid grid-cols-8 gap-1 text-[7px]">
-                  <div className="text-slate-400 text-center py-1 font-medium">Time</div>
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                  <div className="text-slate-400 text-center py-1 font-medium">{t('bento.calendar.time', 'Time')}</div>
+                  {[
+                    t('bento.calendar.dayShort.mon', 'Mon'),
+                    t('bento.calendar.dayShort.tue', 'Tue'),
+                    t('bento.calendar.dayShort.wed', 'Wed'),
+                    t('bento.calendar.dayShort.thu', 'Thu'),
+                    t('bento.calendar.dayShort.fri', 'Fri'),
+                    t('bento.calendar.dayShort.sat', 'Sat'),
+                    t('bento.calendar.dayShort.sun', 'Sun'),
+                  ].map((day, index) => {
                     // Get the date for this day in the current month
                     const weekStartDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 7); // Start from 7th
                     const dayDate = weekStartDate.getDate() + index;
@@ -422,7 +441,7 @@ export const CalendarCard = () => {
                       selectedBooking.status === 'confirmed' ? 'bg-emerald-400' : 'bg-yellow-400'
                     }`} />
                     <span className="text-white text-[10px] font-semibold">
-                      {selectedBooking.status === 'confirmed' ? 'Confirmed' : 'Pending'}
+                      {selectedBooking.status === 'confirmed' ? t('bento.calendar.confirmed', 'Confirmed') : t('bento.calendar.pending', 'Pending')}
                     </span>
                   </div>
                   
@@ -433,15 +452,15 @@ export const CalendarCard = () => {
                   
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[8px]">
-                      <span className="text-slate-400">Time:</span>
+                      <span className="text-slate-400">{t('bento.calendar.labelTime', 'Time:')}</span>
                       <span className="text-white">{selectedBooking.time} ({selectedBooking.duration})</span>
                     </div>
                     <div className="flex items-center gap-2 text-[8px]">
-                      <span className="text-slate-400">Phone:</span>
+                      <span className="text-slate-400">{t('bento.calendar.labelPhone', 'Phone:')}</span>
                       <span className="text-white">{selectedBooking.phone}</span>
                     </div>
                     <div className="flex items-center gap-2 text-[8px]">
-                      <span className="text-slate-400">Email:</span>
+                      <span className="text-slate-400">{t('bento.calendar.labelEmail', 'Email:')}</span>
                       <span className="text-white">{selectedBooking.email}</span>
                     </div>
                   </div>

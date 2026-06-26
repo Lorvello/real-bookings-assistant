@@ -3,138 +3,140 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import { EnterpriseContactForm } from "@/components/EnterpriseContactForm";
 
 export const Pricing = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('home');
   const [isAnnual, setIsAnnual] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const plans = [
     {
-      name: "Starter",
+      name: t('pricing.plans.starter.name', "Starter"),
       monthlyPrice: 30,
       annualPrice: 24,
-      description: "Perfect for beginners with basic WhatsApp automation and calendar management",
+      description: t('pricing.plans.starter.description', "Perfect for beginners with basic WhatsApp automation and calendar management"),
       features: [
         {
-          text: "Unlimited WhatsApp contact management",
-          tooltip: "Unlimited WhatsApp contacts with smart categorization and automated responses"
+          text: t('pricing.plans.starter.features.f1.text', "Unlimited WhatsApp contact management"),
+          tooltip: t('pricing.plans.starter.features.f1.tooltip', "Unlimited WhatsApp contacts with smart categorization and automated responses")
         },
         {
-          text: "Dual-calendar orchestration system",
-          tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
+          text: t('pricing.plans.starter.features.f2.text', "Dual-calendar orchestration system"),
+          tooltip: t('pricing.plans.starter.features.f2.tooltip', "Seamlessly sync and manage two separate calendars with automated booking coordination")
         },
         {
-          text: "Individual user access management",
-          tooltip: "Single user account with full access to your calendar and booking system"
+          text: t('pricing.plans.starter.features.f3.text', "Individual user access management"),
+          tooltip: t('pricing.plans.starter.features.f3.tooltip', "Single user account with full access to your calendar and booking system")
         },
         {
-          text: "AI-powered intelligent reminder sequences",
-          tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
+          text: t('pricing.plans.starter.features.f4.text', "AI-powered intelligent reminder sequences"),
+          tooltip: t('pricing.plans.starter.features.f4.tooltip', "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates")
         },
         {
-          text: "Essential dashboard overview & live operations monitoring",
-          tooltip: "Real-time view of bookings, appointments, and live operations monitoring with basic analytics"
+          text: t('pricing.plans.starter.features.f5.text', "Essential dashboard overview & live operations monitoring"),
+          tooltip: t('pricing.plans.starter.features.f5.tooltip', "Real-time view of bookings, appointments, and live operations monitoring with basic analytics")
         },
         {
-          text: "Global multi-language localization",
-          tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
+          text: t('pricing.plans.starter.features.f6.text', "Global multi-language localization"),
+          tooltip: t('pricing.plans.starter.features.f6.tooltip', "Automatically communicate with customers in their preferred language across multiple regions")
         },
         {
-          text: "Streamlined payment processing & collection",
-          tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
+          text: t('pricing.plans.starter.features.f7.text', "Streamlined payment processing & collection"),
+          tooltip: t('pricing.plans.starter.features.f7.tooltip', "Integrated payment system for booking deposits and service payments with automated invoicing")
         }
       ],
       popular: false,
-      cta: "Start Your Free Trial Now",
+      cta: t('pricing.plans.starter.cta', "Start Your Free Trial Now"),
       color: "from-slate-600 to-slate-700"
     },
     {
-      name: "Professional",
+      name: t('pricing.plans.professional.name', "Professional"),
       monthlyPrice: 60,
       annualPrice: 48,
-      description: "Advanced features for teams with extended contact management and collaboration tools",
+      description: t('pricing.plans.professional.description', "Advanced features for teams with extended contact management and collaboration tools"),
       features: [
         {
-          text: "All Starter premium features included",
-          tooltip: "Everything from the Starter plan plus additional professional features"
+          text: t('pricing.plans.professional.features.f1.text', "All Starter premium features included"),
+          tooltip: t('pricing.plans.professional.features.f1.tooltip', "Everything from the Starter plan plus additional professional features")
         },
         {
-          text: "Unlimited calendar orchestration platform",
-          tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
+          text: t('pricing.plans.professional.features.f2.text', "Unlimited calendar orchestration platform"),
+          tooltip: t('pricing.plans.professional.features.f2.tooltip', "Connect and manage unlimited calendars across different platforms with advanced synchronization")
         },
         {
-          text: "Advanced team collaboration suite (up to 10 users)",
-          tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
+          text: t('pricing.plans.professional.features.f3.text', "Advanced team collaboration suite (up to 10 users)"),
+          tooltip: t('pricing.plans.professional.features.f3.tooltip', "Multi-user workspace with role-based permissions, shared calendars, and team communication tools")
         },
         {
-          text: "Multi-location business coordination",
-          tooltip: "Manage bookings and operations across multiple business locations with centralized control"
+          text: t('pricing.plans.professional.features.f4.text', "Multi-location business coordination"),
+          tooltip: t('pricing.plans.professional.features.f4.tooltip', "Manage bookings and operations across multiple business locations with centralized control")
         },
         {
-          text: "Automated tax compliance & administration (Coming Soon)",
-          tooltip: "Coming soon: Automatic tax calculation and compliance based on your local tax regulations."
+          text: t('pricing.plans.professional.features.f5.text', "Automated tax compliance & administration (Coming Soon)"),
+          tooltip: t('pricing.plans.professional.features.f5.tooltip', "Coming soon: Automatic tax calculation and compliance based on your local tax regulations.")
         },
         {
-          text: "Flexible installment payment options",
-          tooltip: "Allow customers to pay in installments with customizable payment schedules. Set up deposits, payment splits, and automated collection for better cash flow management"
+          text: t('pricing.plans.professional.features.f6.text', "Flexible installment payment options"),
+          tooltip: t('pricing.plans.professional.features.f6.tooltip', "Allow customers to pay in installments with customizable payment schedules. Set up deposits, payment splits, and automated collection for better cash flow management")
         },
         {
-          text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-          tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
+          text: t('pricing.plans.professional.features.f7.text', "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights"),
+          tooltip: t('pricing.plans.professional.features.f7.tooltip', "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization")
         },
         {
-          text: "Dedicated priority customer success",
-          tooltip: "Priority support with faster response times and dedicated success manager for onboarding and optimization"
+          text: t('pricing.plans.professional.features.f8.text', "Dedicated priority customer success"),
+          tooltip: t('pricing.plans.professional.features.f8.tooltip', "Priority support with faster response times and dedicated success manager for onboarding and optimization")
         }
       ],
       popular: true,
-      cta: "Start Your Free Trial Now",
+      cta: t('pricing.plans.professional.cta', "Start Your Free Trial Now"),
       color: "from-emerald-500 to-green-500"
     },
     {
-      name: "Enterprise",
+      name: t('pricing.plans.enterprise.name', "Enterprise"),
       monthlyPrice: null,
       annualPrice: null,
-      description: "Complete business solution with dedicated WhatsApp number and premium support",
+      description: t('pricing.plans.enterprise.description', "Complete business solution with dedicated WhatsApp number and premium support"),
       features: [
         {
-          text: "Complete professional suite included",
-          tooltip: "All Professional plan features plus enterprise-grade capabilities"
+          text: t('pricing.plans.enterprise.features.f1.text', "Complete professional suite included"),
+          tooltip: t('pricing.plans.enterprise.features.f1.tooltip', "All Professional plan features plus enterprise-grade capabilities")
         },
         {
-          text: "Unlimited enterprise user access management",
-          tooltip: "Unlimited team members with advanced role management, department hierarchies, and granular permissions"
+          text: t('pricing.plans.enterprise.features.f2.text', "Unlimited enterprise user access management"),
+          tooltip: t('pricing.plans.enterprise.features.f2.tooltip', "Unlimited team members with advanced role management, department hierarchies, and granular permissions")
         },
         {
-          text: "Dedicated WhatsApp Business API with custom branding",
-          tooltip: "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark"
+          text: t('pricing.plans.enterprise.features.f3.text', "Dedicated WhatsApp Business API with custom branding"),
+          tooltip: t('pricing.plans.enterprise.features.f3.tooltip', "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark")
         },
         {
-          text: "Intelligent voice call routing & distribution",
-          tooltip: "Automated phone call management with smart routing to available team members and call recording capabilities"
+          text: t('pricing.plans.enterprise.features.f4.text', "Intelligent voice call routing & distribution"),
+          tooltip: t('pricing.plans.enterprise.features.f4.tooltip', "Automated phone call management with smart routing to available team members and call recording capabilities")
         },
         {
-          text: "Omnichannel social media DM orchestration",
-          tooltip: "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard"
+          text: t('pricing.plans.enterprise.features.f5.text', "Omnichannel social media DM orchestration"),
+          tooltip: t('pricing.plans.enterprise.features.f5.tooltip', "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard")
         },
         {
-          text: "Advanced reputation management & review analytics",
-          tooltip: "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring"
+          text: t('pricing.plans.enterprise.features.f6.text', "Advanced reputation management & review analytics"),
+          tooltip: t('pricing.plans.enterprise.features.f6.tooltip', "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring")
         },
         {
-          text: "Enterprise SLA with dedicated success management",
-          tooltip: "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times"
+          text: t('pricing.plans.enterprise.features.f7.text', "Enterprise SLA with dedicated success management"),
+          tooltip: t('pricing.plans.enterprise.features.f7.tooltip', "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times")
         },
         {
-          text: "White-glove onboarding & strategic integration consulting",
-          tooltip: "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation"
+          text: t('pricing.plans.enterprise.features.f8.text', "White-glove onboarding & strategic integration consulting"),
+          tooltip: t('pricing.plans.enterprise.features.f8.tooltip', "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation")
         }
       ],
       popular: false,
-      cta: "Contact Sales",
+      cta: t('pricing.plans.enterprise.cta', "Contact Sales"),
       color: "from-slate-900 to-black",
       isEnterprise: true
     }
@@ -204,13 +206,13 @@ export const Pricing = () => {
           <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-8 md:mb-16">
             <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-2 md:px-6 md:py-3 mb-4 md:mb-8">
               <Star className="w-4 h-4 md:w-5 md:h-5 text-emerald-400 mr-2" />
-              <span className="text-emerald-400 font-garamond font-light text-base md:text-lg">Simple Pricing</span>
+              <span className="text-emerald-400 font-garamond font-light text-base md:text-lg">{t('pricing.badge', 'Simple Pricing')}</span>
             </div>
             <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-4 md:mb-6 px-3 sm:px-0">
-              Choose Your <span className="text-emerald-400 biolum-text-subtle">Perfect Plan</span>
+              {t('pricing.titlePre', 'Choose Your')} <span className="text-emerald-400 biolum-text-subtle">{t('pricing.titleAccent', 'Perfect Plan')}</span>
             </h2>
             <p className="text-base md:text-xl text-slate-400 max-w-3xl mx-auto px-3 sm:px-0 font-garamond font-light">
-              Start with our free trial and scale as you grow. No setup fees, no contracts.
+              {t('pricing.subtitle', 'Start with our free trial and scale as you grow. No setup fees, no contracts.')}
             </p>
           </ScrollAnimatedSection>
 
@@ -225,7 +227,7 @@ export const Pricing = () => {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  Monthly
+                  {t('pricing.billingMonthly', 'Monthly')}
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
@@ -235,10 +237,10 @@ export const Pricing = () => {
                       : 'text-slate-300 hover:text-white'
                   }`}
                 >
-                  Annual
+                  {t('pricing.billingAnnual', 'Annual')}
                   {isAnnual && (
                     <span className="absolute -top-2 -right-2 bg-gradient-to-br from-black via-slate-800 to-black text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-slate-600/30 ring-1 ring-white/10 backdrop-blur-sm">
-                      Save 20%
+                      {t('pricing.save20', 'Save 20%')}
                     </span>
                   )}
                 </button>
@@ -271,7 +273,7 @@ export const Pricing = () => {
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                       <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
-                        Most Popular
+                        {t('pricing.mostPopular', 'Most Popular')}
                       </div>
                     </div>
                   )}
@@ -288,25 +290,25 @@ export const Pricing = () => {
                           <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm biolum-text-subtle">
                             €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                           </span>
-                          <span className="text-slate-400 text-xl ml-2 font-garamond font-light">/month</span>
+                          <span className="text-slate-400 text-xl ml-2 font-garamond font-light">{t('pricing.perMonth', '/month')}</span>
                         </div>
                         {isAnnual && (
                           <div className="text-base text-emerald-400/90 mb-1 biolum-text-subtle font-garamond font-light">
-                            Billed annually (€{plan.annualPrice * 12}/year)
+                            {t('pricing.billedAnnually', 'Billed annually (€{{total}}/year)', { total: plan.annualPrice * 12 })}
                           </div>
                         )}
                         <div className="text-sm text-slate-500 font-garamond font-light">
-                          Save €{((plan.monthlyPrice - plan.annualPrice) * 12)} per year
+                          {t('pricing.savePerYear', 'Save €{{amount}} per year', { amount: (plan.monthlyPrice - plan.annualPrice) * 12 })}
                         </div>
                       </div>
                     ) : (
                       <div>
                         <div className="flex items-baseline justify-center mb-2">
-                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm biolum-text-subtle">From €300</span>
-                          <span className="text-slate-400 text-xl ml-2 font-garamond font-light">/month</span>
+                          <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm biolum-text-subtle">{t('pricing.plans.enterprise.fromPriceDesktop', 'From €300')}</span>
+                          <span className="text-slate-400 text-xl ml-2 font-garamond font-light">{t('pricing.perMonth', '/month')}</span>
                         </div>
                         <div className="text-sm text-slate-500 font-garamond font-light">
-                          Custom pricing based on your needs
+                          {t('pricing.customPricing', 'Custom pricing based on your needs')}
                         </div>
                       </div>
                     )}
@@ -393,7 +395,7 @@ export const Pricing = () => {
                         {plan.popular && (
                           <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 z-10">
                             <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
-                              Most Popular
+                              {t('pricing.mostPopular', 'Most Popular')}
                             </div>
                           </div>
                         )}
@@ -410,25 +412,25 @@ export const Pricing = () => {
                                 <span className="text-xl font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">
                                   €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                 </span>
-                                <span className="text-slate-400/90 text-base ml-1 font-garamond font-light">/month</span>
+                                <span className="text-slate-400/90 text-base ml-1 font-garamond font-light">{t('pricing.perMonth', '/month')}</span>
                               </div>
                               {isAnnual && (
                                 <div className="text-xs text-emerald-400/90 mb-0.5 biolum-text-subtle font-garamond font-light">
-                                  Billed annually (€{(plan.annualPrice || 0) * 12}/year)
+                                  {t('pricing.billedAnnually', 'Billed annually (€{{total}}/year)', { total: (plan.annualPrice || 0) * 12 })}
                                 </div>
                               )}
                               <div className="text-[10px] text-slate-500 font-garamond font-light">
-                                Save €{((plan.monthlyPrice - (plan.annualPrice || 0)) * 12)} per year
+                                {t('pricing.savePerYear', 'Save €{{amount}} per year', { amount: (plan.monthlyPrice - (plan.annualPrice || 0)) * 12 })}
                               </div>
                             </div>
                           ) : (
                             <div>
                               <div className="flex items-baseline justify-center mb-1">
-                                <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">From €499</span>
-                                <span className="text-slate-400/90 text-sm ml-1 font-garamond font-light">/month</span>
+                                <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg biolum-text-subtle">{t('pricing.plans.enterprise.fromPriceMobile', 'From €499')}</span>
+                                <span className="text-slate-400/90 text-sm ml-1 font-garamond font-light">{t('pricing.perMonth', '/month')}</span>
                               </div>
                               <div className="text-[10px] text-slate-500 font-garamond font-light">
-                                Custom pricing
+                                {t('pricing.customPricingShort', 'Custom pricing')}
                               </div>
                             </div>
                           )}
@@ -506,7 +508,7 @@ export const Pricing = () => {
               
               <div className="text-center mt-4">
                 <p className="text-sm text-slate-500 font-garamond font-light">
-                  Swipe or tap arrows to explore plans
+                  {t('pricing.swipeHint', 'Swipe or tap arrows to explore plans')}
                 </p>
               </div>
             </div>
@@ -514,7 +516,7 @@ export const Pricing = () => {
 
           <ScrollAnimatedSection animation="fade-up" delay={800} className="text-center mt-12">
             <p className="text-slate-400 text-xs sm:text-base font-garamond font-light">
-              30 days free trial • No credit card required • Cancel anytime
+              {t('pricing.footnote', '30 days free trial • No credit card required • Cancel anytime')}
             </p>
           </ScrollAnimatedSection>
         </div>

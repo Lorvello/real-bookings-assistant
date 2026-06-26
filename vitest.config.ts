@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+// Use the SWC React plugin (the one actually in devDependencies + used by vite.config.ts);
+// the old `@vitejs/plugin-react` import was not installed and broke every test run.
+import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 
 export default defineConfig({

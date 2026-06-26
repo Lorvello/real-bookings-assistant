@@ -1,0 +1,315 @@
+{
+  "hero": {
+    "titleLine1Accent": "Boekingen",
+    "titleLine1Rest": "op de automatische piloot",
+    "titleLine2": "via WhatsApp",
+    "subtitleMobile": "AI plant afspraken in, geen gemiste kansen",
+    "subtitleDesktopLead": "Je AI-assistent plant afspraken via WhatsApp terwijl jij slaapt.",
+    "subtitleTag1": "24/7 automatisering",
+    "subtitleTag2": "directe antwoorden",
+    "subtitleTag3": "geen gemiste kansen",
+    "ctaTrial": "Start je gratis proef van 30 dagen",
+    "ctaHow": "Bekijk hoe het werkt",
+    "socialProofBusinesses": "1000+ bedrijven geautomatiseerd",
+    "socialProofRating": "4,9/5 beoordeling"
+  },
+  "process": {
+    "titlePre": "Bekijk hoe het",
+    "titleAccent": "werkt",
+    "subtitle": "Van eerste bericht tot bevestigde afspraak in minder dan 30 seconden. Bekijk hoe onze AI het hele boekingsproces automatisch afhandelt.",
+    "step1Title": "Klant start WhatsApp-gesprek",
+    "step1Body": "Je klant stuurt een eenvoudig bericht met zijn vraag. Onze AI-assistent reageert direct met slimme vragen om de voorkeuren te begrijpen en de perfecte afspraaktijd te vinden.",
+    "step2Title": "Afspraak automatisch ingepland",
+    "step2Body": "Koppel je bestaande agenda, of gebruik onze professionele agenda-oplossing van topkwaliteit, ontworpen voor optimaal afsprakenbeheer.",
+    "step3Title": "Test de AI-assistent zelf",
+    "step3Body": "Probeer het zelf! Chat met onze AI-assistent en ervaar hoe snel en natuurlijk het boekingsproces is. Geen registratie nodig.",
+    "tryDemoFull": "Probeer AI-demo",
+    "tryDemoShort": "Probeer demo",
+    "demoTitle": "AI-assistent demo",
+    "demoDescription": "Test onze AI-boekingsassistent in deze demo-chat"
+  },
+  "solution": {
+    "titlePre": "Maak kennis met je",
+    "titleAccent1": "24/7",
+    "titleAccent2": "boekingsassistent",
+    "subtitleMobile": "AI die nooit slaapt en nooit een boeking mist.",
+    "subtitleDesktop": "De AI die nooit slaapt, nooit een lead mist en sneller afspraken inplant dan welke mens dan ook.",
+    "kicker": "Dit maakt het revolutionair:",
+    "features": {
+      "instant": {
+        "title": "Directe WhatsApp-antwoorden",
+        "description": "Reageert binnen seconden op elk bericht, 24/7. Je klanten krijgen meteen antwoord op hun vragen en zien direct de beschikbare tijden.",
+        "mobileDescription": "Direct 24/7 antwoord met beschikbare tijden.",
+        "stat": "Gemiddelde reactietijd: 3 seconden"
+      },
+      "smart": {
+        "title": "Slimme gesprekken",
+        "description": "Begrijpt de context, stelt de juiste vragen en begeleidt klanten naar de perfecte afspraaktijd die voor iedereen werkt.",
+        "mobileDescription": "Slimme vragen voor de perfecte afspraaktijd.",
+        "stat": "98% klanttevredenheid"
+      },
+      "everyBusiness": {
+        "title": "Perfect voor elk bedrijf",
+        "description": "Salons, klinieken, sportscholen, consultants. Als jij afspraken inplant, past onze AI zich aan jouw specifieke bedrijf aan.",
+        "mobileDescription": "Past zich aan elk afspraakgedreven bedrijf aan.",
+        "stat": "Gemiddeld 300% meer boekingen"
+      }
+    },
+    "benefits": {
+      "heading": "Waarom kiezen voor WhatsApp-boekingen?",
+      "description": "Bewezen resultaten die je bedrijf transformeren. Bereik direct 2,95 miljard klanten met 24/7 automatisering en veilige betalingen.",
+      "linkText": "Start je gratis proef van 30 dagen",
+      "swipeHint": "Veeg of tik op de pijlen om te ontdekken",
+      "benefit1": {
+        "title": "2,95 miljard klanten klaar om te boeken",
+        "description": "Bereik klanten waar ze al zijn. Door de wereldwijde populariteit van WhatsApp zijn er geen app-downloads of nieuwe accounts nodig. Gewoon direct boeken in het populairste berichtenplatform ter wereld.",
+        "mobileDescription": "Bereik direct miljarden gebruikers zonder app-downloads. Boek rechtstreeks via hun favoriete berichtenplatform."
+      },
+      "benefit2": {
+        "title": "24/7 boeken zonder personeel",
+        "description": "Je AI-assistent slaapt nooit. Klanten boeken direct een afspraak om 3 uur 's nachts of tijdens drukke uren, zonder extra personeelskosten. Pak elke boekingskans terwijl jij je op je bedrijf richt.",
+        "mobileDescription": "AI handelt boekingen 24/7 af terwijl jij slaapt of klanten helpt. Geen gemiste kansen, geen extra personeelskosten."
+      },
+      "benefit3": {
+        "title": "80% minder no-shows met directe betaling",
+        "description": "Vooruitbetaling via WhatsApp zorgt voor commitment. Word 50 tot 75% sneller betaald (1 tot 2 dagen in plaats van 7 tot 14 dagen), terwijl je annuleringen drastisch vermindert en je cashflow verbetert.",
+        "mobileDescription": "Veilige WhatsApp-betalingen zorgen voor echt commitment. Word direct betaald in plaats van weken te wachten op traditionele facturen."
+      }
+    }
+  },
+  "features": {
+    "titlePre": "Alles wat je nodig hebt om",
+    "titleAccent": "boekingen te automatiseren",
+    "subtitleMobile": "Functies die boekingen en omzet maximaliseren",
+    "subtitleDesktop": "Krachtige functies die naadloos samenwerken om je boekingen en omzet te maximaliseren",
+    "cta": "Meer informatie",
+    "cards": {
+      "automation": {
+        "name": "100% automatische boekingen",
+        "description": "Geen handmatig werk nodig. Boekt, bevestigt en verzet automatisch"
+      },
+      "personalization": {
+        "name": "Volledig gepersonaliseerd",
+        "description": "Stel de AI-assistent af op je diensten, FAQ's en boekingslogica"
+      },
+      "calendar": {
+        "name": "Eigen agenda",
+        "description": "Krijg je eigen professionele agenda met volledige controle"
+      },
+      "smartResponses": {
+        "name": "Slimme AI-antwoorden",
+        "description": "Zie hoe onze AI intelligente, contextuele antwoorden geeft"
+      },
+      "reminders": {
+        "name": "Automatische herinneringen",
+        "description": "Stuurt bevestigingen en herinneringen om no-shows te verminderen"
+      },
+      "analytics": {
+        "name": "Gedetailleerde analyses",
+        "description": "Volg boekingspercentages, populaire tijden en gegenereerde omzet"
+      },
+      "multilingual": {
+        "name": "Meertalige ondersteuning",
+        "description": "Communiceert automatisch in de voorkeurstaal van je klanten"
+      },
+      "monitoring": {
+        "name": "Realtime dashboard-monitoring",
+        "description": "Bekijk live boekingen, prestaties en klantinteracties"
+      }
+    }
+  },
+  "testimonials": {
+    "badge": "Voor wie het is",
+    "titlePre": "Gebouwd voor elk",
+    "titleAccent": "afspraakgedreven bedrijf",
+    "subtitle": "Van salons tot klinieken tot studio's: als jij afspraken inplant, past de WhatsApp-assistent er perfect bij.",
+    "useCases": {
+      "salons": { "sector": "Kap- en schoonheidssalons", "text": "Klanten boeken, verzetten en annuleren hun afspraak rechtstreeks via WhatsApp. Geen app om te installeren, geen telefonisch heen en weer." },
+      "medical": { "sector": "Huisartsen en tandartsen", "text": "Patiënten vragen een tijd aan in een chat. De assistent checkt je echte beschikbaarheid en bevestigt het." },
+      "fitness": { "sector": "Sportscholen en yogastudio's", "text": "Leden boeken een les met een bericht. Een annulering geeft de plek automatisch weer vrij." },
+      "consultants": { "sector": "Consultants en coaches", "text": "Prospects boeken een gesprek zonder e-mailgedoe. Automatische herinneringen verminderen no-shows." },
+      "nail": { "sector": "Nagel- en beautybars", "text": "De assistent kent je openingstijden en diensten, dus een snelle vraag wordt een geboekte afspraak." },
+      "restaurants": { "sector": "Restaurants en proeflokalen", "text": "Gasten reserveren via WhatsApp en krijgen een directe bevestiging, dag en nacht." },
+      "pet": { "sector": "Trimsalons", "text": "Baasjes boeken een trimbeurt in een chat en krijgen de dag ervoor een herinnering." },
+      "massage": { "sector": "Massage en wellness", "text": "Klanten boeken en verzetten hun eigen behandelingen, de klok rond." },
+      "independent": { "sector": "Zelfstandige professionals", "text": "Eén WhatsApp-lijn runt rustig je hele agenda terwijl jij aan het werk bent." }
+    }
+  },
+  "pricing": {
+    "badge": "Eenvoudige prijzen",
+    "titlePre": "Kies je",
+    "titleAccent": "perfecte abonnement",
+    "subtitle": "Begin met onze gratis proef en groei mee. Geen instelkosten, geen contracten.",
+    "billingMonthly": "Maandelijks",
+    "billingAnnual": "Jaarlijks",
+    "save20": "Bespaar 20%",
+    "mostPopular": "Meest gekozen",
+    "perMonth": "/maand",
+    "billedAnnually": "Jaarlijks gefactureerd (€{{total}}/jaar)",
+    "savePerYear": "Bespaar €{{amount}} per jaar",
+    "customPricing": "Aangepaste prijs op basis van jouw wensen",
+    "customPricingShort": "Aangepaste prijs",
+    "swipeHint": "Veeg of tik op de pijlen om abonnementen te bekijken",
+    "footnote": "30 dagen gratis proberen • Geen creditcard nodig • Altijd opzegbaar",
+    "plans": {
+      "starter": {
+        "name": "Starter",
+        "description": "Perfect voor starters met basis WhatsApp-automatisering en agendabeheer",
+        "cta": "Start nu je gratis proef",
+        "features": {
+          "f1": { "text": "Onbeperkt WhatsApp-contactbeheer", "tooltip": "Onbeperkt WhatsApp-contacten met slimme categorisering en geautomatiseerde antwoorden" },
+          "f2": { "text": "Dubbel-agenda orkestratiesysteem", "tooltip": "Synchroniseer en beheer naadloos twee aparte agenda's met geautomatiseerde boekingscoördinatie" },
+          "f3": { "text": "Individueel gebruikersbeheer", "tooltip": "Eén gebruikersaccount met volledige toegang tot je agenda en boekingssysteem" },
+          "f4": { "text": "AI-gestuurde slimme herinneringsreeksen", "tooltip": "Geautomatiseerde herinneringen via WhatsApp om no-shows te verminderen en de opkomst te verbeteren" },
+          "f5": { "text": "Essentieel dashboardoverzicht en live operationele monitoring", "tooltip": "Realtime overzicht van boekingen, afspraken en live operationele monitoring met basisanalyses" },
+          "f6": { "text": "Wereldwijde meertalige lokalisatie", "tooltip": "Communiceer automatisch met klanten in hun voorkeurstaal in meerdere regio's" },
+          "f7": { "text": "Gestroomlijnde betalingsverwerking en -inning", "tooltip": "Geïntegreerd betaalsysteem voor aanbetalingen en servicebetalingen met automatische facturatie" }
+        }
+      },
+      "professional": {
+        "name": "Professional",
+        "description": "Geavanceerde functies voor teams met uitgebreid contactbeheer en samenwerkingstools",
+        "cta": "Start nu je gratis proef",
+        "features": {
+          "f1": { "text": "Alle premiumfuncties van Starter inbegrepen", "tooltip": "Alles uit het Starter-abonnement plus extra professionele functies" },
+          "f2": { "text": "Onbeperkt agenda-orkestratieplatform", "tooltip": "Koppel en beheer onbeperkt agenda's op verschillende platforms met geavanceerde synchronisatie" },
+          "f3": { "text": "Geavanceerde teamsamenwerkingssuite (tot 10 gebruikers)", "tooltip": "Werkruimte voor meerdere gebruikers met rolgebaseerde rechten, gedeelde agenda's en teamcommunicatietools" },
+          "f4": { "text": "Coördinatie van meerdere vestigingen", "tooltip": "Beheer boekingen en activiteiten op meerdere vestigingen vanuit één centraal punt" },
+          "f5": { "text": "Geautomatiseerde belastingadministratie (binnenkort)", "tooltip": "Binnenkort: automatische belastingberekening en naleving op basis van je lokale belastingregels." },
+          "f6": { "text": "Flexibele betaling in termijnen", "tooltip": "Laat klanten in termijnen betalen met aanpasbare betaalschema's. Stel aanbetalingen, gespreide betalingen en automatische inning in voor een betere cashflow" },
+          "f7": { "text": "Complete analysesuite: Business Intelligence, prestatietracking en toekomstinzichten", "tooltip": "Uitgebreide analyses met afspraaktrends, inzicht in klantgedrag, omzettracking, conversiepercentages en voorspellende analyses voor groei en optimalisatie" },
+          "f8": { "text": "Toegewijde prioritaire klantenondersteuning", "tooltip": "Prioritaire ondersteuning met snellere reactietijden en een toegewijde succesmanager voor onboarding en optimalisatie" }
+        }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Complete bedrijfsoplossing met eigen WhatsApp-nummer en premium ondersteuning",
+        "cta": "Neem contact op met sales",
+        "fromPriceDesktop": "Vanaf €300",
+        "fromPriceMobile": "Vanaf €499",
+        "features": {
+          "f1": { "text": "Complete professionele suite inbegrepen", "tooltip": "Alle functies van het Professional-abonnement plus enterprise-mogelijkheden" },
+          "f2": { "text": "Onbeperkt gebruikersbeheer voor enterprises", "tooltip": "Onbeperkt teamleden met geavanceerd rolbeheer, afdelingshiërarchieën en gedetailleerde rechten" },
+          "f3": { "text": "Eigen WhatsApp Business API met eigen branding", "tooltip": "Je eigen WhatsApp Business API-verbinding met eigen branding, geverifieerd zakelijk account en groen vinkje" },
+          "f4": { "text": "Slimme routering en verdeling van inkomende gesprekken", "tooltip": "Geautomatiseerd telefoonbeheer met slimme routering naar beschikbare teamleden en gespreksopname" },
+          "f5": { "text": "Omnichannel-beheer van social media-berichten", "tooltip": "Eén overzicht voor directe berichten op Facebook, Instagram, Twitter, LinkedIn en andere platforms" },
+          "f6": { "text": "Geavanceerd reputatiebeheer en reviewanalyse", "tooltip": "Monitor en beheer online reviews op Google, Facebook en andere platforms met automatische antwoordsuggesties en reputatiescores" },
+          "f7": { "text": "Enterprise-SLA met toegewijd succesmanagement", "tooltip": "99,9% uptime-garantie, een toegewijde accountmanager en enterprise-ondersteuning met gegarandeerde reactietijden" },
+          "f8": { "text": "Persoonlijke onboarding en strategisch integratieadvies", "tooltip": "Volledige hulp bij de installatie, maatwerkintegratie met bestaande systemen, personeelstraining en doorlopend strategisch advies" }
+        }
+      }
+    }
+  },
+  "bento": {
+    "booking": {
+      "online": "online",
+      "msgCustomer1": "Hoi, ik wil mijn afspraak verzetten",
+      "msgAi1": "Natuurlijk! Je hebt morgen om 14:00 een controle ingepland. Welk moment komt je beter uit?",
+      "msgCustomer2": "Kunnen we het naar volgende week vrijdag verplaatsen?",
+      "msgAiTimesLead": "Perfect! Dit zijn de beschikbare tijden voor vrijdag:",
+      "msgCustomer3": "16:00 is goed",
+      "msgAiConfirm": "Afspraak verzet naar vrijdag 16:00 ✅",
+      "inputPlaceholder": "Typ een bericht"
+    },
+    "personalization": {
+      "title": "AI-persoonlijkheid en toon",
+      "tonePro": "Professioneel",
+      "toneFriendly": "Vriendelijk",
+      "toneCasual": "Informeel",
+      "multiLanguage": "🌐 Meertalig",
+      "smartFaq": "📚 Slimme FAQ",
+      "smartFaqDesc": "Beantwoordt veelgestelde vragen automatisch",
+      "smartBooking": "🧠 Slim boeken",
+      "smartBookingDesc": "Upselling en herboeken",
+      "contextAi": "🎯 Context-AI",
+      "contextAiDesc": "Onthoudt voorkeuren",
+      "proactive": "⚡ Proactief",
+      "proactiveDesc": "Stuurt opvolgberichten"
+    },
+    "calendar": {
+      "month": "Maand",
+      "week": "Week",
+      "time": "Tijd",
+      "todaysBookings": "Boekingen vandaag",
+      "confirmed": "Bevestigd",
+      "pending": "In behandeling",
+      "labelTime": "Tijd:",
+      "labelPhone": "Telefoon:",
+      "labelEmail": "E-mail:",
+      "dayShort": { "mon": "Ma", "tue": "Di", "wed": "Wo", "thu": "Do", "fri": "Vr", "sat": "Za", "sun": "Zo" }
+    },
+    "smartResponses": {
+      "normal": "Normaal",
+      "vs": "vs",
+      "smartAi": "Slimme AI",
+      "rows": {
+        "r1": { "normal": "\"We zijn gesloten\"", "smart": "\"We zijn nu gesloten, maar morgen om 9:00 weer open. Zal ik een afspraak inplannen?\"" },
+        "r2": { "normal": "\"Kies een dienst\"", "smart": "\"Op basis van je vorige bezoek (knipbeurt) raad ik aan: knippen + wassen voor €40?\"" },
+        "r3": { "normal": "\"Kies een tijd\"", "smart": "\"Je kwam vorige keer op donderdag om 15:00. Zelfde tijd deze week?\"" },
+        "r4": { "normal": "\"Betaal na de afspraak\"", "smart": "\"Knipbeurt €25, betalen met contant of pin. Wil je direct bevestigen?\"" },
+        "r5": { "normal": "\"Annuleren niet mogelijk\"", "smart": "\"Natuurlijk, welke afspraak wil je annuleren? Zal ik meteen een nieuwe tijd voorstellen?\"" },
+        "r6": { "normal": "\"Maandag t/m vrijdag 9-17u\"", "smart": "\"We zijn vandaag open tot 17:00. Kan ik je nu nog inplannen of liever morgen?\"" },
+        "r7": { "normal": "\"Vul je gegevens in\"", "smart": "\"Hallo Sarah! Dezelfde contactgegevens als vorige keer gebruiken?\"" }
+      }
+    },
+    "reminders": {
+      "timeAgo": "13 min geleden",
+      "message": "🔔 Herinnering: je afspraak is morgen om 14:00."
+    },
+    "analytics": {
+      "response": "Reactie",
+      "views": "Weergaven",
+      "convert": "Conversie",
+      "noShows": "No-shows"
+    },
+    "multiLanguage": {
+      "badge": "200+ talen",
+      "selectLabel": "Kies klanttaal:",
+      "searchPlaceholder": "Zoek talen...",
+      "noResults": "Geen talen gevonden"
+    },
+    "monitoring": {
+      "today": "Vandaag",
+      "todayRevenue": "€375 omzet",
+      "activeNow": "Nu actief",
+      "confirmedCount": "2 bevestigd",
+      "messagesIn": "12 in",
+      "messagesOut": "5 uit",
+      "avgResponse": "2 min gem. reactie"
+    }
+  },
+  "demo": {
+    "whatsappChat": {
+      "online": "online",
+      "inputPlaceholder": "Typ een bericht",
+      "msg1": "Hoi! Ik wil graag morgen een knipafspraak maken.",
+      "msg2": "Hoi! Dat help ik je graag mee. Welke tijd komt morgen het beste uit?",
+      "msg3": "Rond 14:00 zou perfect zijn!",
+      "msg4": "Perfect! Ik heb 14:00 beschikbaar. Je ontvangt zo de bevestiging! 💇‍♀️"
+    },
+    "calendarMockup": {
+      "monthLabel": "Juli 2025",
+      "overview": "Agenda-overzicht",
+      "appointments": "afspraken",
+      "appointmentsCount": "{{count}} afspraken",
+      "legend": "Afspraken"
+    },
+    "aiAgent": {
+      "title": "AI-assistent demo",
+      "greeting": "Hallo! Ik ben je AI-assistent. Stel me een vraag om mijn mogelijkheden te testen!",
+      "hint": "Druk op Enter om je bericht te versturen • Mogelijk gemaakt door AI",
+      "online": "Online en klaar om te helpen",
+      "live": "Live",
+      "ariaType": "Typ je bericht",
+      "ariaSend": "Bericht versturen",
+      "ariaLog": "Gespreksberichten",
+      "placeholder1": "Vraag me iets over je bedrijf...",
+      "placeholder2": "Test mijn kennis over marketing...",
+      "placeholder3": "Vraag me over WhatsApp-automatisering...",
+      "placeholder4": "Vraag me om een leadgeneratiestrategie...",
+      "placeholder5": "Test mijn creativiteit met content-ideeën...",
+      "errorNoResponse": "Sorry, ik kon geen antwoord genereren.",
+      "errorGeneric": "Sorry, er ging iets mis. Probeer het opnieuw."
+    }
+  }
+}

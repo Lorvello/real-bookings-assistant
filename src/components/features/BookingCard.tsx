@@ -1,7 +1,9 @@
 
 import { LightningBoltIcon as BoltIcon } from "@radix-ui/react-icons";
+import { useTranslation } from "react-i18next";
 
 export const BookingCard = () => {
+  const { t } = useTranslation('home');
   return (
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -25,7 +27,7 @@ export const BookingCard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-[8px]">Dental Care AI</h3>
-                    <p className="text-[6px] text-white/90">online</p>
+                    <p className="text-[6px] text-white/90">{t('bento.booking.online', 'online')}</p>
                   </div>
                 </div>
                 
@@ -35,42 +37,42 @@ export const BookingCard = () => {
                     {/* Customer message */}
                     <div className="flex justify-end">
                       <div className="bg-whatsapp-msg-bg rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Hi, I need to reschedule my appointment</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">{t('bento.booking.msgCustomer1', 'Hi, I need to reschedule my appointment')}</p>
                       </div>
                     </div>
                     
                     {/* AI response 1 */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better for you?</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">{t('bento.booking.msgAi1', 'Of course! You have a cleaning scheduled for tomorrow at 2:00 PM. When would work better for you?')}</p>
                       </div>
                     </div>
                     
                     {/* Customer choice */}
                     <div className="flex justify-end">
                       <div className="bg-whatsapp-msg-bg rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Can we move it to next week Friday?</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">{t('bento.booking.msgCustomer2', 'Can we move it to next week Friday?')}</p>
                       </div>
                     </div>
                     
                     {/* AI response 3 - time slots */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Perfect! Here are available times for Friday:<br />🕐 9:00 AM<br />🕐 1:00 PM<br />🕐 4:00 PM</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">{t('bento.booking.msgAiTimesLead', 'Perfect! Here are available times for Friday:')}<br />🕐 9:00 AM<br />🕐 1:00 PM<br />🕐 4:00 PM</p>
                       </div>
                     </div>
                     
                     {/* Customer time choice */}
                     <div className="flex justify-end">
                       <div className="bg-whatsapp-msg-bg rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">4:00 PM works</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">{t('bento.booking.msgCustomer3', '4:00 PM works')}</p>
                       </div>
                     </div>
                     
                     {/* Final confirmation */}
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg px-2 py-1.5 max-w-[75%] shadow-sm">
-                        <p className="text-gray-800 text-[9px] font-medium leading-tight">Appointment rescheduled to Friday 4:00 PM ✅</p>
+                        <p className="text-gray-800 text-[9px] font-medium leading-tight">{t('bento.booking.msgAiConfirm', 'Appointment rescheduled to Friday 4:00 PM ✅')}</p>
                       </div>
                     </div>
                   </div>
@@ -81,7 +83,7 @@ export const BookingCard = () => {
                   <div className="flex items-center space-x-3">
                     <span className="text-gray-500 text-sm">😊</span>
                     <div className="flex-1 bg-white rounded-full px-2 py-1">
-                      <div className="text-[9px] text-gray-400 font-medium">Type a message</div>
+                      <div className="text-[9px] text-gray-400 font-medium">{t('bento.booking.inputPlaceholder', 'Type a message')}</div>
                     </div>
                     <span className="text-gray-500 text-sm">🎤</span>
                   </div>

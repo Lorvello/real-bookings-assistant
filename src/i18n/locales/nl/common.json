@@ -1,0 +1,42 @@
+{
+  "language": {
+    "label": "Taal"
+  },
+  "nav": {
+    "home": "Home",
+    "howItWorks": "Hoe het werkt",
+    "whyUs": "Waarom wij",
+    "about": "Over ons",
+    "pricing": "Prijzen",
+    "faq": "Veelgestelde vragen",
+    "contact": "Contact",
+    "logIn": "Inloggen",
+    "getStarted": "Aan de slag",
+    "dashboard": "Dashboard"
+  },
+  "footer": {
+    "tagline": "AI-gestuurde WhatsApp-boekingsautomatisering voor moderne bedrijven. Laat je klanten 24/7 afspraken maken terwijl jij je richt op wat echt belangrijk is.",
+    "headings": {
+      "product": "Product",
+      "company": "Bedrijf",
+      "resources": "Bronnen",
+      "legal": "Juridisch"
+    },
+    "links": {
+      "home": "Home",
+      "howItWorks": "Hoe het werkt",
+      "whyUs": "Waarom wij",
+      "pricing": "Prijzen",
+      "faq": "Veelgestelde vragen",
+      "about": "Over ons",
+      "contact": "Contact",
+      "blog": "Blog",
+      "helpCenter": "Helpcentrum",
+      "terms": "Servicevoorwaarden",
+      "privacy": "Privacybeleid"
+    },
+    "comingSoonToast": "Deze functie komt binnenkort.",
+    "rights": "© {{year}} BookingsAssistant. Alle rechten voorbehouden.",
+    "empower": "Bedrijven versterken met AI-gedreven automatisering"
+  }
+}

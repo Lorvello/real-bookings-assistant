@@ -2,6 +2,7 @@
 import React from 'react';
 import { PanelLeft, PanelRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import LanguageToggle from '@/components/LanguageToggle';
 
 interface SidebarHeaderProps {
   isSidebarOpen: boolean;
@@ -28,6 +29,11 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
         </div>
       )}
       
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {/* Language switch (EN/NL) - only when the sidebar is expanded; carries the
+            same localStorage choice from the public site into the logged-in app. */}
+        {isSidebarOpen && <LanguageToggle />}
+
       {/* Toggle Button - positioned correctly */}
       <button
         onClick={onToggleSidebar}
@@ -45,6 +51,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
           }`} />
         )}
       </button>
+      </div>
     </div>
   );
 }

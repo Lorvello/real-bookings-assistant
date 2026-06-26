@@ -2,6 +2,11 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+// Initialize i18n (EN<->NL) BEFORE the first render so the chosen language is
+// resolved synchronously from localStorage (no flash-of-English). See
+// src/i18n/index.ts + I18N_ARCHITECTURE.md.
+import './i18n'
+
 // Initialize production security
 import './utils/productionSecurity'
 import { secureLogger } from './utils/secureLogger'

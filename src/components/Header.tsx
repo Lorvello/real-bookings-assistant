@@ -2,25 +2,28 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
+import LanguageToggle from "@/components/LanguageToggle";
 import { useAuth } from '@/hooks/useAuth';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const { t } = useTranslation('common');
   const navigate = useNavigate();
   const location = useLocation();
   const { isHeaderVisible } = useScrollDirection(10);
-  
+
   const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'How it Works', path: '/how-it-works' },
-    { name: 'Why Us', path: '/why-us' },
-    { name: 'About', path: '/about' },
-    { name: 'Pricing', path: '/#pricing' },
-    { name: 'FAQ', path: '/faq' },
-    { name: 'Contact', path: '/contact' }
+    { name: t('nav.home', 'Home'), path: '/' },
+    { name: t('nav.howItWorks', 'How it Works'), path: '/how-it-works' },
+    { name: t('nav.whyUs', 'Why Us'), path: '/why-us' },
+    { name: t('nav.about', 'About'), path: '/about' },
+    { name: t('nav.pricing', 'Pricing'), path: '/#pricing' },
+    { name: t('nav.faq', 'FAQ'), path: '/faq' },
+    { name: t('nav.contact', 'Contact'), path: '/contact' }
   ];
 
   const handleNavClick = () => {
@@ -82,7 +85,7 @@ const Header = () => {
 
       return item.path === '/#pricing' ? (
         <a
-          key={item.name}
+          key={item.path}
           href={item.path}
           onClick={handlePricingClick}
           aria-current={isActive ? 'page' : undefined}
@@ -92,7 +95,7 @@ const Header = () => {
         </a>
       ) : (
         <Link
-          key={item.name}
+          key={item.path}
           to={item.path}
           onClick={handleNavClick}
           aria-current={isActive ? 'page' : undefined}
@@ -157,6 +160,7 @@ const Header = () => {
 
           {/* Desktop CTA Buttons */}
           <div className="hidden lg:flex items-center gap-2">
+            <LanguageToggle />
             {/* Hairline divider separating navigation from account actions */}
             <span aria-hidden="true" className="h-5 w-px bg-white/10 mr-1" />
             {!user && (
@@ -165,7 +169,7 @@ const Header = () => {
                   variant="ghost"
                   className="text-slate-200 hover:text-white hover:bg-white/[0.08] font-medium px-5 py-2.5"
                 >
-                  Log In
+                  {t('nav.logIn', 'Log In')}
                 </Button>
               </Link>
             )}
@@ -173,7 +177,7 @@ const Header = () => {
               onClick={handleGetStarted}
               className={ctaButtonClass}
             >
-              {user ? 'Dashboard' : 'Get Started'}
+              {user ? t('nav.dashboard', 'Dashboard') : t('nav.getStarted', 'Get Started')}
             </Button>
           </div>
 
@@ -198,13 +202,17 @@ const Header = () => {
             </div>
             {/* Account-action block, visually grouped + divided from the nav links */}
             <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-sm text-slate-400 font-medium">{t('language.label', 'Language')}</span>
+                <LanguageToggle />
+              </div>
               {!user && (
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
                   <Button
                     variant="ghost"
                     className="text-slate-200 hover:text-white hover:bg-white/[0.08] font-medium w-full justify-start px-4"
                   >
-                    Log In
+                    {t('nav.logIn', 'Log In')}
                   </Button>
                 </Link>
               )}
@@ -212,7 +220,7 @@ const Header = () => {
                 onClick={handleGetStarted}
                 className={`${ctaButtonClass} w-full`}
               >
-                {user ? 'Dashboard' : 'Get Started'}
+                {user ? t('nav.dashboard', 'Dashboard') : t('nav.getStarted', 'Get Started')}
               </Button>
             </div>
           </div>

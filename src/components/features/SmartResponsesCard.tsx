@@ -1,7 +1,9 @@
 
 import { Check, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const SmartResponsesCard = () => {
+  const { t } = useTranslation('home');
   return (
     <div className="absolute inset-0">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
@@ -11,11 +13,11 @@ export const SmartResponsesCard = () => {
         {/* Header */}
         <div className="flex items-center justify-center mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-white text-[10px] font-semibold">Normal</span>
+            <span className="text-white text-[10px] font-semibold">{t('bento.smartResponses.normal', 'Normal')}</span>
             <div className="w-4 h-4 bg-emerald-500/30 rounded-full flex items-center justify-center">
-              <span className="text-[8px] text-emerald-400">vs</span>
+              <span className="text-[8px] text-emerald-400">{t('bento.smartResponses.vs', 'vs')}</span>
             </div>
-            <span className="text-emerald-400 text-[10px] font-semibold">Smart AI</span>
+            <span className="text-emerald-400 text-[10px] font-semibold">{t('bento.smartResponses.smartAi', 'Smart AI')}</span>
           </div>
         </div>
         
@@ -35,20 +37,20 @@ export const SmartResponsesCard = () => {
               <div className="bg-red-600/20 border border-red-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-red-600/30 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/20 transform">
                 <div className="flex items-center gap-1 mb-1">
                   <X className="w-2 h-2 text-red-400" />
-                  <span className="text-red-400 text-[7px] font-medium">Normal</span>
+                  <span className="text-red-400 text-[7px] font-medium">{t('bento.smartResponses.normal', 'Normal')}</span>
                 </div>
                 <div className="bg-red-500/10 rounded px-2 py-1">
-                  <p className="text-red-300 text-[7px] leading-tight">{comparison.normal}</p>
+                  <p className="text-red-300 text-[7px] leading-tight">{t(`bento.smartResponses.rows.r${index + 1}.normal`, comparison.normal)}</p>
                 </div>
               </div>
               
               <div className="bg-emerald-600/20 border border-emerald-500/30 rounded-lg p-2 cursor-pointer transition-all duration-300 ease-out hover:scale-110 hover:bg-emerald-600/30 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/20 transform">
                 <div className="flex items-center gap-1 mb-1">
                   <Check className="w-2 h-2 text-emerald-400" />
-                  <span className="text-emerald-400 text-[7px] font-medium">Smart AI</span>
+                  <span className="text-emerald-400 text-[7px] font-medium">{t('bento.smartResponses.smartAi', 'Smart AI')}</span>
                 </div>
                 <div className="bg-emerald-500/10 rounded px-2 py-1">
-                  <p className="text-emerald-300 text-[7px] leading-tight">{comparison.smart}</p>
+                  <p className="text-emerald-300 text-[7px] leading-tight">{t(`bento.smartResponses.rows.r${index + 1}.smart`, comparison.smart)}</p>
                 </div>
               </div>
             </div>

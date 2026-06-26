@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { motion } from "motion/react";
+import { useTranslation } from "react-i18next";
 
 // HONEST pre-launch social proof. The product has not launched and has no customers
 // yet, so there are NO testimonials here on purpose: fabricated quotes + stock-photo
@@ -9,15 +10,15 @@ import { motion } from "motion/react";
 // each kind of appointment business — with no invented names, photos, quotes or stats.
 // When real customers exist, swap these for genuine, attributable testimonials.
 const useCases = [
-  { sector: "Hair & beauty salons", text: "Clients book, move and cancel their appointment straight from WhatsApp. No app to install, no phone tag." },
-  { sector: "Medical & dental practices", text: "Patients request a time in a chat. The assistant checks your real availability and confirms it." },
-  { sector: "Fitness & yoga studios", text: "Members book a class by message. A cancellation frees the spot automatically." },
-  { sector: "Consultants & coaches", text: "Prospects book a call without the email back-and-forth. Automatic reminders reduce no-shows." },
-  { sector: "Nail & beauty bars", text: "The assistant knows your hours and services, so a quick question turns into a booked slot." },
-  { sector: "Restaurants & tasting rooms", text: "Guests reserve over WhatsApp and get an instant confirmation, day or night." },
-  { sector: "Pet grooming", text: "Owners book grooming in a chat and get a reminder the day before the visit." },
-  { sector: "Massage & wellness", text: "Clients book and reschedule their own treatments, around the clock." },
-  { sector: "Independent professionals", text: "One WhatsApp line quietly runs your whole calendar while you work." },
+  { key: "salons", sector: "Hair & beauty salons", text: "Clients book, move and cancel their appointment straight from WhatsApp. No app to install, no phone tag." },
+  { key: "medical", sector: "Medical & dental practices", text: "Patients request a time in a chat. The assistant checks your real availability and confirms it." },
+  { key: "fitness", sector: "Fitness & yoga studios", text: "Members book a class by message. A cancellation frees the spot automatically." },
+  { key: "consultants", sector: "Consultants & coaches", text: "Prospects book a call without the email back-and-forth. Automatic reminders reduce no-shows." },
+  { key: "nail", sector: "Nail & beauty bars", text: "The assistant knows your hours and services, so a quick question turns into a booked slot." },
+  { key: "restaurants", sector: "Restaurants & tasting rooms", text: "Guests reserve over WhatsApp and get an instant confirmation, day or night." },
+  { key: "pet", sector: "Pet grooming", text: "Owners book grooming in a chat and get a reminder the day before the visit." },
+  { key: "massage", sector: "Massage & wellness", text: "Clients book and reschedule their own treatments, around the clock." },
+  { key: "independent", sector: "Independent professionals", text: "One WhatsApp line quietly runs your whole calendar while you work." },
 ];
 
 export const TestimonialsColumn = (props: {
@@ -25,6 +26,7 @@ export const TestimonialsColumn = (props: {
   testimonials: typeof useCases;
   duration?: number;
 }) => {
+  const { t } = useTranslation('home');
   return (
     <div className={props.className}>
       <motion.div
@@ -41,12 +43,12 @@ export const TestimonialsColumn = (props: {
       >
         {new Array(2).fill(0).map((_, index) => (
           <React.Fragment key={`usecase-group-${index}`}>
-            {props.testimonials.map(({ text, sector }, i) => (
+            {props.testimonials.map(({ key, text, sector }, i) => (
               <div className="p-3 md:p-10 rounded-2xl md:rounded-3xl border shadow-lg shadow-primary/10 max-w-[280px] md:max-w-xs w-full" key={`${index}-${i}`}>
-                <div className="text-xs md:text-lg leading-tight md:leading-normal font-garamond font-light">{text}</div>
+                <div className="text-xs md:text-lg leading-tight md:leading-normal font-garamond font-light">{t(`testimonials.useCases.${key}.text`, text)}</div>
                 <div className="flex items-center gap-2 mt-3 md:mt-5">
                   <span className="h-2 w-2 rounded-full bg-emerald-400/80 shrink-0" aria-hidden="true" />
-                  <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{sector}</div>
+                  <div className="font-medium tracking-tight leading-tight text-[10px] md:text-base md:leading-5">{t(`testimonials.useCases.${key}.sector`, sector)}</div>
                 </div>
               </div>
             ))}
@@ -62,6 +64,7 @@ const secondColumn = useCases.slice(3, 6);
 const thirdColumn = useCases.slice(6, 9);
 
 const Testimonials = () => {
+  const { t } = useTranslation('home');
   return (
     <section className="py-8 md:py-20 pt-32 md:pt-20 relative overflow-hidden">
       {/* Background decoration */}
@@ -82,14 +85,14 @@ const Testimonials = () => {
           className="text-center mb-6 md:mb-16"
         >
           <div className="inline-flex items-center bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5 md:px-6 md:py-3 mb-4 md:mb-8">
-            <span className="text-emerald-400 font-garamond font-light text-sm md:text-lg">Who it's for</span>
+            <span className="text-emerald-400 font-garamond font-light text-sm md:text-lg">{t('testimonials.badge', "Who it's for")}</span>
           </div>
 
           <h2 className="text-3xl md:text-5xl xl:text-6xl font-medium text-white mb-3 md:mb-6 px-3 sm:px-0">
-            Built for every <span className="text-emerald-400 biolum-text-subtle">appointment business</span>
+            {t('testimonials.titlePre', 'Built for every')} <span className="text-emerald-400 biolum-text-subtle">{t('testimonials.titleAccent', 'appointment business')}</span>
           </h2>
           <p className="text-base md:text-xl text-slate-400 max-w-3xl mx-auto px-3 sm:px-0 font-garamond font-light">
-            From salons to clinics to studios: if you book appointments, the WhatsApp assistant fits right in.
+            {t('testimonials.subtitle', 'From salons to clinics to studios: if you book appointments, the WhatsApp assistant fits right in.')}
           </p>
         </motion.div>
 
