@@ -4,7 +4,6 @@ import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { User } from 'lucide-react';
 
 import mathewPhoto from '@/assets/mathew-photo.png';
 import lucianoPhoto from '@/assets/luciano-photo.png';
@@ -90,9 +89,9 @@ const About = () => {
                       </div>
                       <div className="space-y-4 text-slate-300 leading-relaxed">
                         <p>
-                          The front-end architect and product visionary behind BookingsAssistant. With deep expertise in 
-                          React, TypeScript, and modern web technologies, Mathew has spent 7+ years mastering AI integration 
-                          and automation systems.
+                          The front-end architect and product visionary behind BookingsAssistant. With hands-on expertise in
+                          React, TypeScript, and modern web technologies, Mathew focuses on weaving AI and automation
+                          into a product that feels effortless to use.
                         </p>
                         <p>
                           His focus on user experience and interface design ensures that complex technology feels simple 
@@ -132,7 +131,7 @@ const About = () => {
                         <p>
                           The backend and automation expert behind BookingsAssistant. Luciano built the brains of the
                           product: the WhatsApp AI agent that holds the conversation, checks availability and books
-                          appointments automatically — wired together across Supabase and a real-time automation layer.
+                          appointments automatically, wired together across Supabase and a real-time automation layer.
                         </p>
                         <p>
                           With deep experience in AI agents, workflow automation and database architecture, he makes
@@ -171,7 +170,7 @@ const About = () => {
                     <CardContent className="p-6">
                       <h3 className="text-lg font-bold text-white mb-3">WhatsApp Native</h3>
                       <p className="text-slate-400 text-sm leading-relaxed">
-                        95%+ adoption in Europe. Your customers won't download another app or create another account. 
+                        Near-universal adoption across Europe. Your customers won't download another app or create another account.
                         They message you at 10 PM, our AI responds instantly.
                       </p>
                     </CardContent>
@@ -225,7 +224,7 @@ const About = () => {
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
                           <span className="text-white font-medium block mb-2">Real-time Calendar</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Instant availability checks with conflict prevention. No double bookings, automatic synchronization across all channels.
+                            Instant availability checks with conflict prevention. No double bookings, kept consistent in real time across your calendars.
                           </p>
                         </div>
 
@@ -233,7 +232,7 @@ const About = () => {
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
                           <span className="text-white font-medium block mb-2">Multi-tenant Architecture</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Built to scale from 1 to 10,000+ businesses with complete data isolation and enterprise-grade security.
+                            Built to scale from 1 to 10,000+ businesses, with each business's data kept isolated through row-level security.
                           </p>
                         </div>
 
@@ -249,7 +248,7 @@ const About = () => {
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
                           <span className="text-white font-medium block mb-2">WhatsApp Business API</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Official Meta partnership for reliable message delivery, enterprise-grade uptime, and verified business profiles.
+                            Built on Meta's official WhatsApp Business Cloud API for reliable message delivery and verified business profiles.
                           </p>
                         </div>
 
