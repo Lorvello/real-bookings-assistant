@@ -52,6 +52,24 @@
       "accessRestrictedTitle": "Toegang beperkt",
       "accessRestrictedDesc": "Deze functie vereist een actief abonnement.",
       "subExpiredTitle": "Abonnement verlopen"
+    },
+    "status": {
+      "planFree": "Gratis abonnement",
+      "planStarter": "Starter-abonnement",
+      "planProfessional": "Professional-abonnement",
+      "planEnterprise": "Enterprise-abonnement",
+      "planSuffix": "{{tier}}-abonnement",
+      "trialDaysOne": "{{count}} dag gratis proefperiode resterend",
+      "trialDaysOther": "{{count}} dagen gratis proefperiode resterend",
+      "completeSetup": "Installatie afronden",
+      "upgradeKeepAccess": "Upgrade om toegang te houden",
+      "accessEndsSoon": "Toegang stopt binnenkort",
+      "btnUpgradeNow": "Nu upgraden",
+      "btnReactivate": "Heractiveren",
+      "btnFixPayment": "Betaling herstellen",
+      "btnUpgrade": "Upgraden",
+      "loadingEllipsis": "Laden…",
+      "limitedAccess": "Beperkte toegang tot upgrade"
     }
   }
 }

@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Clock, AlertTriangle, CheckCircle, XCircle, Zap, Crown } from 'lucide-react';
 import { UserStatus } from '@/types/userStatus';
 import { useNavigate } from 'react-router-dom';
@@ -13,22 +15,22 @@ interface StatusIndicatorProps {
   tooltipsDisabled?: boolean;
 }
 
-const formatSubscriptionTier = (tier?: string) => {
+const formatSubscriptionTier = (tier: string | undefined, t: TFunction) => {
   if (!tier) return null;
 
   switch (tier) {
     case 'free':
-      return 'Free Plan';
+      return t('app.status.planFree', 'Free Plan');
     case 'starter':
-      return 'Starter Plan';
+      return t('app.status.planStarter', 'Starter Plan');
     case 'professional':
-      return 'Professional Plan';
+      return t('app.status.planProfessional', 'Professional Plan');
     case 'enterprise':
-      return 'Enterprise Plan';
+      return t('app.status.planEnterprise', 'Enterprise Plan');
     default:
-      // Never silently blank on a real (e.g. newly-added) tier — the goal is that
+      // Never silently blank on a real (e.g. newly-added) tier: the goal is that
       // the indicator ALWAYS shows the real plan. Title-case the raw value instead.
-      return `${tier.charAt(0).toUpperCase()}${tier.slice(1)} Plan`;
+      return t('app.status.planSuffix', '{{tier}} Plan', { tier: `${tier.charAt(0).toUpperCase()}${tier.slice(1)}` });
   }
 };
 
@@ -49,6 +51,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
   const { userType, statusMessage, statusColor, daysRemaining } = userStatus;
   const navigate = useNavigate();
   const { profile } = useProfile();
+  const { t } = useTranslation('app');
 
   // Initialize cache from localStorage (same as useProfile does)
   const [cachedTierInfo, setCachedTierInfo] = useState<{
@@ -94,7 +97,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
 
   // Always prefer current profile data if available, fallback to cached data
   const currentTier = profile?.subscription_tier || cachedTierInfo.tier;
-  const tierDisplay = formatSubscriptionTier(currentTier);
+  const tierDisplay = formatSubscriptionTier(currentTier, t);
   const hasActiveSubscription = profile?.subscription_status === 'active' || cachedTierInfo.isActive;
 
   const getIcon = () => {
@@ -173,7 +176,9 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
             {userType === 'setup_incomplete' ? (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-warning-foreground">
-                  {daysRemaining} Days Free Trial Remaining
+                  {daysRemaining === 1
+                    ? t('app.status.trialDaysOne', '{{count}} Day Free Trial Remaining', { count: daysRemaining })
+                    : t('app.status.trialDaysOther', '{{count}} Days Free Trial Remaining', { count: daysRemaining })}
                 </p>
                 {currentTier && tierDisplay && (
                   <div className="flex items-center gap-1">
@@ -189,7 +194,7 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
                   onClick={() => navigate('/dashboard')}
                   className="w-full h-6 text-xs py-1 px-2 border-warning/40 text-warning-foreground hover:bg-warning/10"
                 >
-                  Complete Setup
+                  {t('app.status.completeSetup', 'Complete Setup')}
                 </Button>
               </div>
             ) : (
@@ -209,12 +214,12 @@ export function StatusIndicator({ userStatus, isExpanded, tooltipsDisabled = fal
                 {/* Show additional info based on user type */}
                 {userType === 'trial' && daysRemaining <= 3 && (
                   <p className="text-xs text-subtle-foreground mt-1">
-                    Upgrade to keep access
+                    {t('app.status.upgradeKeepAccess', 'Upgrade to keep access')}
                   </p>
                 )}
                 {userType === 'canceled_subscriber' && (
                   <p className="text-xs text-subtle-foreground mt-1">
-                    Access will end soon
+                    {t('app.status.accessEndsSoon', 'Access will end soon')}
                   </p>
                 )}
               </div>

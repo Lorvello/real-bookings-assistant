@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowUp, CreditCard, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserStatus } from '@/types/userStatus';
@@ -19,6 +20,7 @@ const PAID_LAPSED_TYPES = ['missed_payment', 'canceled_subscriber', 'canceled_an
 
 export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradePromptProps) {
   const { userType, needsUpgrade, isCanceled } = userStatus;
+  const { t } = useTranslation('app');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -62,11 +64,11 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
   };
 
   const getButtonText = () => {
-    if (userType === 'expired_trial') return 'Upgrade Now';
-    if (userType === 'canceled_subscriber') return 'Reactivate';
-    if (userType === 'canceled_and_inactive') return 'Reactivate';
-    if (userType === 'missed_payment') return 'Fix Payment';
-    return 'Upgrade';
+    if (userType === 'expired_trial') return t('app.status.btnUpgradeNow', 'Upgrade Now');
+    if (userType === 'canceled_subscriber') return t('app.status.btnReactivate', 'Reactivate');
+    if (userType === 'canceled_and_inactive') return t('app.status.btnReactivate', 'Reactivate');
+    if (userType === 'missed_payment') return t('app.status.btnFixPayment', 'Fix Payment');
+    return t('app.status.btnUpgrade', 'Upgrade');
   };
 
   const getButtonIcon = () => {
@@ -93,11 +95,11 @@ export function UpgradePrompt({ userStatus, isExpanded, onUpgrade }: UpgradeProm
           size="sm"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : getButtonIcon()}
-          {isExpanded ? (loading ? 'Loading…' : getButtonText()) : ''}
+          {isExpanded ? (loading ? t('app.status.loadingEllipsis', 'Loading…') : getButtonText()) : ''}
         </Button>
         {isExpanded && (userType === 'expired_trial' || userType === 'canceled_and_inactive') && (
           <p className="text-xs text-subtle-foreground text-center mt-2">
-            Limited access until upgrade
+            {t('app.status.limitedAccess', 'Limited access until upgrade')}
           </p>
         )}
       </div>
