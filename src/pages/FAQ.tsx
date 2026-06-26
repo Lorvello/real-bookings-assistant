@@ -26,10 +26,10 @@ const FAQ = () => {
 
   const recommendedQuestions = [
     "What does it cost?",
-    "Do you provide the WhatsApp number and calendar?", 
+    "Do you provide the WhatsApp number and calendar?",
     "For which types of businesses is this suitable?",
     "Is it difficult to set up?",
-    "Can I use my existing WhatsApp number instead?"
+    "Can it process payments?"
   ];
 
   const faqSections = [
@@ -43,7 +43,7 @@ const FAQ = () => {
         },
         {
           question: "How does it work exactly?",
-          answer: "Customers send a WhatsApp message to your business number. Our AI understands their request, checks your availability, automatically books the appointment and sends confirmations to both parties. Everything synchronizes with your calendar."
+          answer: "Customers send a WhatsApp message to your business number. Our AI understands their request, checks your availability, automatically books the appointment and sends confirmations to both parties. Everything is kept in sync with your calendar."
         },
         {
           question: "For which types of businesses is this suitable?",
@@ -51,11 +51,11 @@ const FAQ = () => {
         },
         {
           question: "How much time does this save me?",
-          answer: "On average, our customers save 10-15 hours per week on answering phones and scheduling appointments. You can focus completely on your customers instead of administration."
+          answer: "It takes the back-and-forth of phone calls and manual scheduling off your plate. Instead of answering booking requests yourself, you can focus on your customers while the assistant handles the appointments."
         },
         {
           question: "Is it difficult to set up?",
-          answer: "No! Setup usually takes 5-10 minutes. You connect your WhatsApp number, import your calendar and the AI automatically learns your services and prices."
+          answer: "No. Setup usually takes just a few minutes. You connect the WhatsApp number, set up your calendar and add your services and prices, and the assistant is ready to start booking."
         }
       ]
     },
@@ -65,31 +65,23 @@ const FAQ = () => {
       items: [
         {
           question: "Do you provide the WhatsApp number and calendar?",
-          answer: "Yes! We provide you with a professional WhatsApp Business number and a complete calendar system. However, if you prefer, you can also connect your own existing WhatsApp number and calendar."
-        },
-        {
-          question: "Can I use my existing WhatsApp number instead?",
-          answer: "Absolutely! While we provide a professional WhatsApp Business number, you can choose to use your own existing number if you prefer."
-        },
-        {
-          question: "Which calendars does it integrate with?",
-          answer: "Our professional calendar system works seamlessly, but you can also connect Google Calendar, Outlook, Apple Calendar, Calendly and most popular calendar applications. Also CRM systems like Notion, Airtable and HubSpot."
+          answer: "Yes. We provide a professional WhatsApp Business number and a complete calendar system, so you can get started without needing any extra tools."
         },
         {
           question: "Does it work in multiple languages?",
-          answer: "Yes! Our AI speaks fluent Dutch, English, Spanish, French, German and 20+ other languages. You can adjust the tone and style to match your business."
+          answer: "Yes. The assistant works in Dutch and English, and can handle conversations in several other languages too. We're expanding language support over time."
         },
         {
           question: "What happens if the AI makes a mistake?",
-          answer: "The AI doesn't make mistakes. You always get notifications of booked appointments and can cancel or modify them within 5 minutes."
+          answer: "You stay in control. You're notified of every booked appointment and can review, change or cancel any appointment from your dashboard at any time."
         },
         {
           question: "Is my data safe?",
-          answer: "Absolutely. We are GDPR compliant, use end-to-end encryption and have SOC 2 certification. Your customer data is never shared."
+          answer: "Yes. We are GDPR compliant, your data is stored securely on European servers, and we never sell your customer data. You can read exactly how we handle data in our Privacy Policy."
         },
         {
           question: "Can I customize the chatbot?",
-          answer: "Yes! You can fully customize the personality, responses, services, prices and availability. It feels like your personal assistant."
+          answer: "Yes. You set your own services, prices, availability and business information, and the assistant uses all of that to answer your customers accurately, as if it were your own assistant."
         }
       ]
     },
@@ -99,7 +91,7 @@ const FAQ = () => {
       items: [
         {
           question: "What does it cost?",
-          answer: "Starter starts at €20/month, Professional €48/month and Enterprise custom pricing. Starter and Professional plans have a free 30-day trial. Enterprise has no free trial."
+          answer: "We offer a free plan, Starter at €30/month, Professional at €60/month, and Enterprise from €300/month. Starter and Professional come with a free 30-day trial and no credit card is required. Enterprise is tailored to your needs, so it doesn't include a free trial."
         },
         {
           question: "Are there setup costs?",
@@ -107,15 +99,15 @@ const FAQ = () => {
         },
         {
           question: "Can I upgrade or downgrade?",
-          answer: "Yes, you can always switch between plans. Changes take effect from the next billing period."
+          answer: "Yes, you can switch to a different plan. Changes take effect from your next billing period, so just let us know when you'd like to move up or down."
         },
         {
           question: "What happens if I stop?",
-          answer: "You can always export your data. We keep your data for 30 days after cancellation in case you want to come back."
+          answer: "You can cancel anytime and export your data. If you decide to come back later, just reach out and we'll help you pick up where you left off."
         },
         {
           question: "Is there a long-term contract?",
-          answer: "No, you can cancel monthly. However, you get 20% discount with annual payment."
+          answer: "No, you can cancel monthly. And if you pay annually you get a 20% discount."
         }
       ]
     },
@@ -125,27 +117,23 @@ const FAQ = () => {
       items: [
         {
           question: "Can it reschedule and cancel appointments?",
-          answer: "Yes! Customers can modify their appointments themselves via WhatsApp. The system automatically checks new availability."
+          answer: "Yes. Customers can reschedule or cancel their appointments themselves via WhatsApp. The assistant checks new availability automatically and follows the cancellation rules you set."
         },
         {
           question: "Does it send reminders?",
-          answer: "Yes, automatic reminders 24 hours and 2 hours before the appointment. You can set frequency and timing yourself."
+          answer: "Yes. The platform can send automatic appointment reminders by email, and you control when they go out, so customers are less likely to forget their appointment."
         },
         {
           question: "Can it process payments?",
-          answer: "Not directly at the moment, but we can send payment links via WhatsApp. Full payment integration is coming soon."
+          answer: "Yes. You can ask customers to pay a deposit or prepay when they book, securely through Stripe. It's optional and you set it per service."
         },
         {
-          question: "Does it handle no-shows?",
-          answer: "Yes! The system detects no-shows and can automatically send follow-up messages or offer replacement appointments."
+          question: "Does it help reduce no-shows?",
+          answer: "Yes. Automatic reminders keep the appointment top of mind for your customers, which helps reduce no-shows."
         },
         {
           question: "Can I offer multiple services?",
-          answer: "Absolutely. You can set different services, prices and duration. The AI understands what customers want."
-        },
-        {
-          question: "Does it work for group appointments?",
-          answer: "Yes, you can set group classes, workshops or events with maximum number of participants."
+          answer: "Absolutely. You can set different services, each with their own price and duration, and the assistant guides customers to the right one."
         }
       ]
     },
@@ -155,41 +143,33 @@ const FAQ = () => {
       items: [
         {
           question: "What type of support can I get?",
-          answer: "Starter: dedicated support. Professional: priority support. Enterprise: dedicated priority support."
+          answer: "You can reach us by email, and there's a built-in chatbot for quick questions. Professional and Enterprise plans get priority support."
         },
         {
           question: "How quickly do I get a response?",
-          answer: "Dedicated support: within 24 hours. Priority support: within 4 hours. Dedicated priority support: within 1 hour."
+          answer: "We aim to reply quickly, usually within one business day, and faster for customers on higher plans."
         },
         {
           question: "Is training available?",
-          answer: "Yes! We offer free onboarding sessions, video tutorials and for Enterprise customers personalized training."
+          answer: "Yes. We provide onboarding guides to help you get set up, and Enterprise customers get hands-on help."
         },
         {
           question: "Can your team set it up for me?",
-          answer: "For Enterprise customers we do \"done-for-you\" setup. For other plans we have detailed guides and support."
+          answer: "For Enterprise customers we offer a done-for-you setup. Other plans have step-by-step guides and support to make setup easy."
         }
       ]
     },
     {
-      title: "Integrations",
+      title: "Website & Calendar",
       icon: Zap,
       items: [
         {
-          question: "Which CRM systems are supported?",
-          answer: "Notion, Airtable, HubSpot, Salesforce, Pipedrive and many others via API connections."
-        },
-        {
           question: "Does it work with my website?",
-          answer: "Yes! You can place a WhatsApp widget on your website that directly links to the booking bot."
-        },
-        {
-          question: "Can it create social media posts?",
-          answer: "Enterprise customers get automatic social media content creation and posting (Instagram, Facebook, LinkedIn)."
+          answer: "Yes. You can add a WhatsApp link or QR code to your website that takes customers straight to your booking assistant."
         },
         {
           question: "What's included in the professional calendar system?",
-          answer: "Our professional calendar system includes automatic appointment scheduling, conflict detection, availability management, team coordination, and seamless integration with your existing tools - all ready to use from day one."
+          answer: "Our calendar system includes automatic appointment scheduling, conflict detection, availability management and per-service settings, all ready to use from day one."
         }
       ]
     },
@@ -199,23 +179,11 @@ const FAQ = () => {
       items: [
         {
           question: "Can it manage multiple locations?",
-          answer: "Enterprise customers can manage unlimited locations and numbers from one dashboard."
+          answer: "Professional and Enterprise plans support multiple calendars, so you can manage more than one location or team member from a single dashboard."
         },
         {
           question: "Are analytics available?",
-          answer: "Yes! Detailed reports on booking percentages, popular times, no-show percentages and revenue tracking."
-        },
-        {
-          question: "Can it screen customers?",
-          answer: "Yes, you can set pre-booking questions to qualify new customers before they book."
-        },
-        {
-          question: "Does it work with waiting lists?",
-          answer: "Yes! When you're fully booked, customers can join the waiting list and automatically get notified of cancellations."
-        },
-        {
-          question: "Can it upsell?",
-          answer: "Absolutely. The AI can suggest additional services, products or longer sessions during the booking process."
+          answer: "Yes. Professional and Enterprise plans include analytics on your bookings, so you can see how your schedule is performing."
         }
       ]
     },
@@ -225,7 +193,7 @@ const FAQ = () => {
       items: [
         {
           question: "What if WhatsApp is down?",
-          answer: "We have backup systems and can temporarily switch to SMS or email notifications."
+          answer: "WhatsApp is highly reliable. If there's ever a brief interruption, your data and bookings stay safe in your dashboard, and customers can reach the assistant again as soon as it's back."
         },
         {
           question: "My customers aren't tech-savvy, does this work?",
@@ -233,31 +201,27 @@ const FAQ = () => {
         },
         {
           question: "Can I turn it off during holidays?",
-          answer: "Yes, you can activate vacation mode that informs customers about your absence and when you'll be back."
+          answer: "Yes. You can block off holidays or any specific dates in your availability settings, so the assistant won't offer those times to customers."
         },
         {
           question: "What if I lose my phone?",
-          answer: "Your WhatsApp Business account is linked to our platform, not to your phone. You can always log in via the web interface."
+          answer: "Your booking assistant runs on our platform, not on your personal phone. You can always log in through the web dashboard."
         },
         {
           question: "How do I cancel my subscription?",
-          answer: "You can always cancel from your dashboard or by contacting support. No cancellation fees."
+          answer: "You can cancel from your dashboard or by contacting support. There are no cancellation fees."
         },
         {
           question: "Do you offer refunds?",
-          answer: "We offer a 30-day free trial, so you can test everything risk-free. After that no refunds but you can always cancel."
-        },
-        {
-          question: "Can I pause my subscription?",
-          answer: "Enterprise customers can pause their subscription. Other plans must cancel and restart when ready."
+          answer: "We offer a 30-day free trial, so you can test everything risk-free before you pay. After that, you can cancel anytime."
         },
         {
           question: "Which countries do you support?",
-          answer: "We support businesses worldwide, with local phone number support in 50+ countries."
+          answer: "WhatsApp works worldwide, and to start we're focused on businesses in the Netherlands and the rest of Europe."
         },
         {
           question: "Is there an app?",
-          answer: "Yes! We have mobile apps for iOS and Android to manage your bookings on the go."
+          answer: "Bookings Assistant runs in your web browser and works great on mobile. You can even add it to your home screen so it opens like an app, with no separate download needed."
         },
         {
           question: "Can multiple team members get access?",
@@ -352,8 +316,8 @@ const FAQ = () => {
             as="p" 
             className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto mb-8 md:mb-12 px-3 sm:px-0 leading-relaxed font-light"
           >
-            Everything you need to know about our AI-powered WhatsApp booking platform. 
-            <br className="hidden md:block" />
+            Everything you need to know about our AI-powered WhatsApp booking platform.
+            <br className="hidden md:block" />{' '}
             <span className="text-emerald-300">Can't find what you're looking for? Contact our support team</span>.
           </ScrollAnimatedSection>
 
