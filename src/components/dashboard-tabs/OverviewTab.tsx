@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useNextAppointment } from '@/hooks/dashboard/useNextAppointment';
 import { usePopularService } from '@/hooks/dashboard/usePopularService';
@@ -20,6 +22,8 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ calendarIds }: OverviewTabProps) {
+  const { t, i18n } = useTranslation('dashboard');
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const { calendars } = useCalendarContext();
   const { useMockData } = useMockDataControl();
 
@@ -74,10 +78,10 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10">
           <AlertCircle className="h-5 w-5 text-destructive-foreground" />
         </div>
-        <p className="text-sm font-medium text-foreground">Couldn't load your dashboard data</p>
-        <p className="text-xs text-subtle-foreground">Check your connection and try again.</p>
+        <p className="text-sm font-medium text-foreground">{t('dashboard.overview.errTitle', "Couldn't load your dashboard data")}</p>
+        <p className="text-xs text-subtle-foreground">{t('dashboard.overview.errDesc', 'Check your connection and try again.')}</p>
         <Button variant="secondary" size="sm" onClick={retryAll} className="mt-1 gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" /> Retry
+          <RefreshCw className="h-3.5 w-3.5" /> {t('dashboard.overview.retry', 'Retry')}
         </Button>
       </div>
     );
@@ -95,7 +99,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
       {useMockData && (
         <div className="flex items-center justify-end">
           <Badge variant="secondary" className="bg-muted text-subtle-foreground ring-1 ring-white/[0.06] text-[10px] font-medium uppercase tracking-wider">
-            Sample data
+            {t('dashboard.overview.sampleData', 'Sample data')}
           </Badge>
         </div>
       )}
@@ -122,7 +126,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="min-w-0">
               <p className="text-eyebrow uppercase text-subtle-foreground flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-accent-foreground" /> Next appointment
+                <Clock className="h-3.5 w-3.5 text-accent-foreground" /> {t('dashboard.overview.nextAppointment', 'Next appointment')}
               </p>
               {nextAppointment ? (
                 <>
@@ -131,7 +135,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                   </div>
                   {nextAppointment.start_time && (
                     <p className="mt-2 text-sm font-medium text-foreground/90 tabular-nums">
-                      {format(new Date(nextAppointment.start_time), 'EEE d MMM · HH:mm')}
+                      {format(new Date(nextAppointment.start_time), 'EEE d MMM · HH:mm', { locale: dateLocale })}
                     </p>
                   )}
                   <p className="mt-1 text-sm text-muted-foreground truncate">
@@ -141,10 +145,10 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
               ) : (
                 <>
                   <div className="mt-2 md:mt-3 font-serif italic text-2xl md:text-4xl text-foreground/90 leading-tight">
-                    All clear for now
+                    {t('dashboard.overview.allClear', 'All clear for now')}
                   </div>
                   <p className="mt-1.5 text-sm text-muted-foreground">
-                    Nothing scheduled today. Enjoy the quiet.
+                    {t('dashboard.overview.allClearDesc', 'Nothing scheduled today. Enjoy the quiet.')}
                   </p>
                 </>
               )}
@@ -154,10 +158,10 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             {weeklyInsights ? (
               <div className="flex shrink-0 items-center gap-4 rounded-lg bg-white/[0.03] px-4 py-3 ring-1 ring-white/[0.06]">
                 <div>
-                  <p className="text-eyebrow uppercase text-subtle-foreground">This week</p>
+                  <p className="text-eyebrow uppercase text-subtle-foreground">{t('dashboard.overview.thisWeek', 'This week')}</p>
                   <p className="mt-0.5 text-2xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">
                     <CountUp value={weeklyInsights.current_week || 0} />
-                    <span className="ml-1 text-sm font-medium text-subtle-foreground">booked</span>
+                    <span className="ml-1 text-sm font-medium text-subtle-foreground">{t('dashboard.overview.booked', 'booked')}</span>
                   </p>
                 </div>
                 {weeklyInsights.trend === 'up' ? (
@@ -187,7 +191,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           <div className="relative glow-accent surface-raised rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
-                Popular Service
+                {t('dashboard.overview.popularService', 'Popular Service')}
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-primary/10 ring-1 ring-primary/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <TrendingUp className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
@@ -201,16 +205,18 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                     <CountUp value={popularService.percentage} />%
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground font-medium truncate">
-                    {popularService.service_name} • {popularService.booking_count} bookings
+                    {popularService.service_name} • {popularService.booking_count === 1
+                      ? t('dashboard.overview.bookingsOne', '{{count}} booking', { count: popularService.booking_count })
+                      : t('dashboard.overview.bookingsOther', '{{count}} bookings', { count: popularService.booking_count })}
                   </div>
                 </>
               ) : (
                 <>
                   <div className="text-base md:text-lg font-medium leading-snug text-foreground/80 mb-0.5 md:mb-1.5">
-                    No bookings yet
+                    {t('dashboard.overview.noBookings', 'No bookings yet')}
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground">
-                    Your most-booked service will appear here.
+                    {t('dashboard.overview.noBookingsDesc', 'Your most-booked service will appear here.')}
                   </div>
                 </>
               )}
@@ -228,7 +234,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
           <div className="relative glow-accent surface-raised rounded-lg md:rounded-2xl min-h-[72px] md:min-h-[11rem] p-3 md:p-6">
             <div className="flex items-center justify-between mb-1 md:mb-4">
               <h3 className="text-[11px] md:text-xs font-semibold text-subtle-foreground uppercase tracking-[0.08em]">
-                Weekly Growth
+                {t('dashboard.overview.weeklyGrowth', 'Weekly Growth')}
               </h3>
               <div className="w-4 h-4 md:w-12 md:h-12 bg-primary/10 ring-1 ring-primary/20 rounded-md md:rounded-xl flex items-center justify-center">
                 <BarChart3 className="h-2 w-2 md:h-6 md:w-6 text-accent-foreground" />
@@ -240,7 +246,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 <>
                   <div className="text-lg md:text-4xl font-semibold text-foreground leading-none tabular-nums tracking-[-0.03em] mb-0.5 md:mb-2">
                     {weeklyInsights.is_new ? (
-                      'New'
+                      t('dashboard.overview.new', 'New')
                     ) : (
                       <>
                         {weeklyInsights.trend === 'up' ? '+' : weeklyInsights.trend === 'down' ? '-' : ''}
@@ -250,19 +256,19 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                   </div>
                   <div className="flex items-center gap-1.5 text-xs md:text-sm font-medium truncate">
                     {weeklyInsights.is_new ? (
-                      <span className="text-muted-foreground">No prior week to compare yet</span>
+                      <span className="text-muted-foreground">{t('dashboard.overview.noPriorWeek', 'No prior week to compare yet')}</span>
                     ) : weeklyInsights.trend === 'up' ? (
                       <span className="flex items-center gap-1 text-success-foreground">
-                        <TrendingUp className="h-3 w-3 md:h-4 md:w-4" /> Rising
+                        <TrendingUp className="h-3 w-3 md:h-4 md:w-4" /> {t('dashboard.overview.rising', 'Rising')}
                       </span>
                     ) : weeklyInsights.trend === 'down' ? (
                       <span className="flex items-center gap-1 text-destructive-foreground">
-                        <TrendingDown className="h-3 w-3 md:h-4 md:w-4" /> Falling
+                        <TrendingDown className="h-3 w-3 md:h-4 md:w-4" /> {t('dashboard.overview.falling', 'Falling')}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">Stable</span>
+                      <span className="text-muted-foreground">{t('dashboard.overview.stable', 'Stable')}</span>
                     )}
-                    {!weeklyInsights.is_new && <span className="text-subtle-foreground hidden md:inline">vs last week</span>}
+                    {!weeklyInsights.is_new && <span className="text-subtle-foreground hidden md:inline">{t('dashboard.overview.vsLastWeek', 'vs last week')}</span>}
                   </div>
                   {/* micro-chart: last vs this week — baseline gridline, labeled values,
                       hover shows exact count, bars draw up on view (§5/§9) */}
@@ -275,19 +281,19 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                       <div className="hidden md:block mt-4">
                         <div className="flex items-end gap-2 h-10 border-b border-white/[0.06]">
                           <div
-                            title={`Last week: ${prev} bookings`}
+                            title={t('dashboard.overview.lastWeekTitle', 'Last week: {{count}} bookings', { count: prev })}
                             className="bar-grow flex-1 rounded-t-sm bg-white/[0.10] transition-colors hover:bg-white/[0.16]"
                             style={{ height: `${Math.max(10, (prev / max) * 100)}%`, animationDelay: '0.25s' }}
                           />
                           <div
-                            title={`This week: ${cur} bookings (${delta >= 0 ? '+' : ''}${delta} vs last)`}
+                            title={t('dashboard.overview.thisWeekTitle', 'This week: {{count}} bookings ({{delta}} vs last)', { count: cur, delta: `${delta >= 0 ? '+' : ''}${delta}` })}
                             className="bar-grow flex-1 rounded-t-sm bg-gradient-to-t from-primary/40 to-primary shadow-[0_0_16px_-4px_hsl(var(--primary)/0.5)]"
                             style={{ height: `${Math.max(10, (cur / max) * 100)}%`, animationDelay: '0.35s' }}
                           />
                         </div>
                         <div className="mt-1.5 flex justify-between text-[10px] font-medium text-subtle-foreground tabular-nums">
-                          <span>Last · {prev}</span>
-                          <span className="text-accent-foreground">This · {cur}</span>
+                          <span>{t('dashboard.overview.lastShort', 'Last · {{count}}', { count: prev })}</span>
+                          <span className="text-accent-foreground">{t('dashboard.overview.thisShort', 'This · {{count}}', { count: cur })}</span>
                         </div>
                       </div>
                     );
@@ -296,10 +302,10 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
               ) : (
                 <>
                   <div className="text-base md:text-lg font-medium leading-snug text-foreground/80 mb-0.5 md:mb-1.5">
-                    Tracking starts soon
+                    {t('dashboard.overview.trackingSoon', 'Tracking starts soon')}
                   </div>
                   <div className="text-xs md:text-sm text-muted-foreground">
-                    Week-over-week trends after your first bookings.
+                    {t('dashboard.overview.trackingSoonDesc', 'Week-over-week trends after your first bookings.')}
                   </div>
                 </>
               )}
