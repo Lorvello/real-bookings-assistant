@@ -321,19 +321,16 @@ const WhyUs = () => {
       
       {/* Hero Section - Premium Design */}
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 px-3 md:px-4 relative overflow-hidden">
-        {/* Enhanced Background decoration with emerald accents */}
+        {/* Refined ambient background: two restrained emerald glows + a soft central wash (calmer = more premium) */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-48 h-48 md:w-72 md:h-72 bg-gradient-to-r from-emerald-600/20 via-slate-600/10 to-emerald-500/15 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-96 md:h-96 bg-gradient-to-l from-emerald-500/15 via-slate-600/10 to-emerald-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-emerald-700/10 via-slate-700/5 to-emerald-600/10 rounded-full blur-3xl"></div>
-          <div className="absolute top-32 right-1/4 w-32 h-32 bg-gradient-to-r from-emerald-400/20 to-emerald-600/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-gradient-to-r from-emerald-600/15 to-emerald-500/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+          <div className="absolute top-20 left-10 w-56 h-56 md:w-80 md:h-80 bg-gradient-to-br from-emerald-600/12 to-emerald-500/5 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-20 right-10 w-64 h-64 md:w-[26rem] md:h-[26rem] bg-gradient-to-tl from-emerald-500/12 to-emerald-600/5 rounded-full blur-[120px]"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[820px] h-[420px] bg-gradient-to-r from-emerald-700/8 via-transparent to-emerald-600/8 rounded-full blur-[140px]"></div>
         </div>
-        
-        {/* Advanced Grid pattern overlay */}
+
+        {/* Single fine grid, masked to fade toward the edges for a more intentional, high-end canvas */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(16_185_129,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(16_185_129,0.05)_1px,transparent_1px)] bg-[size:32px_32px] md:bg-[size:64px_64px] opacity-40"></div>
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(71_85_105,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(71_85_105,0.08)_1px,transparent_1px)] bg-[size:16px_16px] md:bg-[size:32px_32px] opacity-20"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(16_185_129,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(16_185_129,0.04)_1px,transparent_1px)] bg-[size:36px_36px] md:bg-[size:72px_72px] opacity-50 [mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,black,transparent)] [-webkit-mask-image:radial-gradient(ellipse_70%_60%_at_50%_40%,black,transparent)]"></div>
         </div>
         
         <div className="max-w-6xl mx-auto text-center relative z-10 px-4 md:px-6 lg:px-8">
@@ -410,7 +407,7 @@ const WhyUs = () => {
                   >
                      {/* Front Side */}
                      <div 
-                       className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-3 md:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group"
+                       className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3 md:p-4 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_20px_48px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(16,185,129,0.12)] hover:scale-[1.02] transform transition-all duration-500 group"
                        style={{
                          backfaceVisibility: 'hidden'
                        }}
@@ -432,7 +429,7 @@ const WhyUs = () => {
                     
                      {/* Back Side */}
                      <div 
-                       className="absolute inset-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-3 md:p-4 shadow-[0_8px_32px_rgba(0,0,0,0.12),0_2px_8px_rgba(16,185,129,0.08)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.16),0_4px_16px_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
+                       className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-3 md:p-4 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_20px_48px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(16,185,129,0.12)] transform transition-all duration-500 flex flex-col justify-center"
                        style={{
                          backfaceVisibility: 'hidden',
                          transform: 'rotateY(180deg)'
@@ -468,7 +465,7 @@ const WhyUs = () => {
            </div>
           
             {/* Desktop: Enhanced Premium Professional Table */}
-            <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-gradient-to-b from-slate-800/40 to-slate-900/40 rounded-3xl shadow-[0_32px_64px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.25),0_0_40px_rgba(16,185,129,0.1)] border border-slate-600/30 mb-8 overflow-hidden hover:shadow-[0_40px_80px_rgba(0,0,0,0.5),0_0_60px_rgba(16,185,129,0.15)] transition-all duration-500" delay={300}>
+            <ScrollAnimatedSection className="hidden md:block backdrop-blur-sm bg-gradient-to-b from-slate-800/40 to-slate-900/40 rounded-3xl shadow-[0_24px_60px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 mb-8 overflow-hidden hover:shadow-[0_32px_72px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(16,185,129,0.12)] hover:border-emerald-500/20 transition-all duration-500" delay={300}>
               <div className="overflow-x-auto">
                 <table className="w-full">
                    <thead>
@@ -531,7 +528,7 @@ const WhyUs = () => {
              </div>
 
               {/* Mobile: Compact Table */}
-              <ScrollAnimatedSection className="md:hidden overflow-x-auto bg-gradient-to-b from-slate-800/50 to-slate-900/40 border border-slate-600/40 rounded-2xl shadow-[0_16px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(16,185,129,0.05)] mb-8" delay={300}>
+              <ScrollAnimatedSection className="md:hidden overflow-x-auto bg-gradient-to-b from-slate-800/50 to-slate-900/40 border border-white/10 rounded-2xl shadow-[0_16px_40px_-14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] mb-8" delay={300}>
                 <div className="overflow-x-auto min-w-full">
                   <table className="w-full min-w-[500px]">
                     <thead>
@@ -637,7 +634,7 @@ const WhyUs = () => {
                 >
                   {/* Front Side */}
                   <div 
-                    className="absolute inset-0 p-3 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500"
+                    className="absolute inset-0 p-3 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-white/10 shadow-[0_20px_48px_-16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_28px_56px_-18px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(16,185,129,0.12)] hover:border-emerald-400/30 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500"
                     style={{
                       backfaceVisibility: 'hidden'
                     }}
@@ -688,7 +685,7 @@ const WhyUs = () => {
 
                    {/* Back Side */}
                   <div 
-                    className="absolute inset-0 p-3 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-slate-600/30 shadow-[0_20px_40px_rgba(0,0,0,0.25)] hover:shadow-[0_24px_48px_rgba(16,185,129,0.12)] hover:border-emerald-400/40 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500 flex items-center justify-center"
+                    className="absolute inset-0 p-3 md:p-6 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-slate-800/50 via-slate-900/40 to-slate-800/30 border border-white/10 shadow-[0_20px_48px_-16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_28px_56px_-18px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(16,185,129,0.12)] hover:border-emerald-400/30 hover:bg-gradient-to-br hover:from-slate-800/60 hover:via-slate-900/50 hover:to-emerald-900/10 transform hover:scale-[1.01] hover:-translate-y-1 transition-all duration-500 flex items-center justify-center"
                     style={{
                       backfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)'
@@ -729,14 +726,14 @@ const WhyUs = () => {
             {sectorCaseStudies.map((study, index) => (
               <ScrollAnimatedSection 
                 key={index} 
-                className="relative backdrop-blur-xl bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-slate-900/40 border border-slate-600/40 rounded-3xl p-8 shadow-[0_24px_48px_rgba(0,0,0,0.4),0_12px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_32px_64px_rgba(16,185,129,0.12),0_16px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(16,185,129,0.15)] hover:border-emerald-500/40 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-slate-800/70 hover:to-emerald-900/20 transition-all duration-500 transform hover:scale-[1.01] hover:-translate-y-1"
+                className="relative backdrop-blur-xl bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-slate-900/40 border border-white/10 rounded-3xl p-8 shadow-[0_24px_56px_-16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_32px_72px_-18px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(16,185,129,0.14)] hover:border-emerald-500/30 hover:bg-gradient-to-br hover:from-slate-900/90 hover:via-slate-800/70 hover:to-emerald-900/20 transition-all duration-500 transform hover:scale-[1.01] hover:-translate-y-1"
                 delay={index * 200}
               >
                 <div className="grid lg:grid-cols-3 gap-8">
                   {/* Header */}
                   <div className="lg:col-span-3">
                     <div className="flex items-center space-x-4 mb-6">
-                      <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-green-600/15 border border-emerald-400/20 rounded-2xl flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                         <study.icon className="w-8 h-8 text-green-400" />
                       </div>
                       <div>
@@ -814,10 +811,10 @@ const WhyUs = () => {
               <div className="flex pb-4">
                 {sectorCaseStudies.map((study, index) => (
                   <div key={index} className="w-[95vw] flex-none snap-start snap-always px-2">
-                     <div className="relative backdrop-blur-xl bg-gradient-to-br from-slate-900/85 via-slate-800/65 to-slate-900/45 border border-slate-600/40 rounded-2xl p-4 h-full shadow-[0_16px_32px_rgba(0,0,0,0.4),0_8px_16px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.08)]">
+                     <div className="relative backdrop-blur-xl bg-gradient-to-br from-slate-900/85 via-slate-800/65 to-slate-900/45 border border-white/10 rounded-2xl p-4 h-full shadow-[0_18px_44px_-16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.08)]">
                       {/* Header */}
                       <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-green-600/15 border border-emerald-400/20 rounded-xl flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                           <study.icon className="w-6 h-6 text-green-400" />
                         </div>
                         <div>
@@ -939,7 +936,7 @@ const WhyUs = () => {
                 animation="fade-up" 
                 delay={400 + index * 150}
               >
-                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
+                <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-[0_16px_40px_-14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-emerald-400/30 rounded-xl flex items-center justify-center flex-shrink-0">
                       <item.icon className="w-6 h-6 text-emerald-300" />
@@ -961,7 +958,7 @@ const WhyUs = () => {
               animation="fade-up" 
               delay={850}
             >
-              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
+              <div className="bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 shadow-[0_16px_40px_-14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.05] hover:border-emerald-500/20 transition-all duration-300">
                 <div className="text-center space-y-4">
                   <h3 className="text-xl font-bold text-white">
                     The Mobile-First Advantage
@@ -1025,7 +1022,7 @@ const WhyUs = () => {
                 >
                   <div className="relative h-full">
                     {/* Clean Card Design */}
-                    <div className="relative h-full bg-white/[0.02] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8 hover:bg-white/[0.04] hover:border-emerald-500/15 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
+                    <div className="relative h-full bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-8 shadow-[0_18px_44px_-16px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:bg-white/[0.05] hover:border-emerald-500/20 hover:shadow-[0_26px_56px_-18px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(16,185,129,0.12)] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
                       
                       {/* Icon and Stat Integration */}
                       <div className="flex items-center justify-between mb-6">
@@ -1063,7 +1060,7 @@ const WhyUs = () => {
               className="text-center"
             >
               <div className="relative group max-w-4xl mx-auto">
-                <div className="relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-8 md:p-12 hover:bg-white/[0.05] hover:border-emerald-500/15 transition-all duration-500">
+                <div className="relative bg-white/[0.03] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-8 md:p-12 shadow-[0_24px_56px_-16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.07)] hover:bg-white/[0.05] hover:border-emerald-500/20 hover:shadow-[0_30px_64px_-18px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(16,185,129,0.12)] transition-all duration-500">
                   
                   <div className="space-y-6">
                     <h3 className="text-2xl md:text-3xl font-bold text-white">
