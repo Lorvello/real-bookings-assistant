@@ -33,19 +33,26 @@ const Header = () => {
 
   const handlePricingClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
-    navigate('/#pricing');
-    setTimeout(() => {
-      const appScrollContainer = document.querySelector('[data-scroll-container]');
-      
-      if (appScrollContainer) {
-        // Scroll to absolute bottom of page
-        appScrollContainer.scrollTo({ 
-          top: appScrollContainer.scrollHeight,
-          behavior: 'instant'
-        });
-      }
-    }, 300);
     setIsMobileMenuOpen(false);
+    // Route to home (no-op if already there) then SMOOTH-scroll to the real
+    // #pricing section. Previous version scrolled to scrollHeight (absolute
+    // bottom) with behavior:'instant' after a fixed 300ms timer, which jumped,
+    // could overshoot the section, and on a slow cross-route mount sometimes
+    // fired before home rendered. We poll a few rAFs for #pricing to exist (the
+    // home route mounts async) and scroll the element itself into view, so it
+    // lands precisely on Pricing from ANY route. scrollIntoView walks up to the
+    // [data-scroll-container] (the app's single scroll parent).
+    navigate('/#pricing');
+    let tries = 0;
+    const scrollToPricing = () => {
+      const pricing = document.getElementById('pricing');
+      if (pricing) {
+        pricing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (tries++ < 60) {
+        requestAnimationFrame(scrollToPricing);
+      }
+    };
+    requestAnimationFrame(scrollToPricing);
   };
 
   const handleGetStarted = () => {
