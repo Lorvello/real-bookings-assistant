@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const StepIndicator = () => {
+  const { t } = useTranslation('howItWorks');
   return (
     <div className="text-center relative py-12 md:py-16">
       {/* Enhanced Background decoration with emerald accents */}
@@ -16,9 +18,9 @@ const StepIndicator = () => {
         {/* Premium Step indicators with enhanced animations */}
         <div className="inline-flex items-center gap-4 md:gap-16 mb-6 md:mb-10">
           {[
-            { number: '1', delay: '0ms', title: 'Connect' },
-            { number: '2', delay: '200ms', title: 'Setup' },
-            { number: '3', delay: '400ms', title: 'Launch' }
+            { number: '1', delay: '0ms', title: t('hiw.indicator.stepConnect', 'Connect') },
+            { number: '2', delay: '200ms', title: t('hiw.indicator.stepSetup', 'Setup') },
+            { number: '3', delay: '400ms', title: t('hiw.indicator.stepLaunch', 'Launch') }
           ].map((step, index) => (
             <React.Fragment key={index}>
               <div 
@@ -82,7 +84,7 @@ const StepIndicator = () => {
             </div>
             
             <h3 className="text-3xl md:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-emerald-300 via-emerald-200 to-emerald-400 bg-clip-text text-transparent drop-shadow-2xl tracking-tight">
-              3 Steps. 5 Minutes. Done.
+              {t('hiw.indicator.heading', '3 Steps. 5 Minutes. Done.')}
             </h3>
             
             {/* Right sparkle */}
@@ -94,8 +96,8 @@ const StepIndicator = () => {
           </div>
           
           <p className="text-xs md:text-lg text-slate-300 max-w-3xl mx-auto font-light leading-relaxed">
-            Our intelligent system handles everything automatically, so you can focus on what matters most, 
-            <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent font-semibold"> serving your customers</span>.
+            {t('hiw.indicator.subtitle1', 'Our intelligent system handles everything automatically, so you can focus on what matters most, ')}
+            <span className="bg-gradient-to-r from-emerald-300 to-emerald-400 bg-clip-text text-transparent font-semibold">{t('hiw.indicator.subtitleAccent', ' serving your customers')}</span>{t('hiw.indicator.subtitle2', '.')}
           </p>
         </div>
       </div>

@@ -8,9 +8,11 @@
 //       this snapshot IS the EN extract: CI fails if any default string changes
 //       unintentionally, forcing a deliberate `-u` and a translator follow-up.
 //
-//   (2) NL coverage. Every extracted key must have a value in nl/common.json or
-//       nl/home.json, so "fall back to EN" is an ALLOW-LISTED state, not silent
-//       rot. A `t()` key with no NL value fails the build.
+//   (2) NL coverage. Every extracted key must have a value in one of the shipped
+//       NL namespaces (nl/common.json, nl/home.json, nl/howItWorks.json, and so
+//       on; add each new per-page namespace to the import list below), so "fall
+//       back to EN" is an ALLOW-LISTED state, not silent rot. A `t()` key with no
+//       NL value fails the build.
 //
 // Only STATIC string-literal keys/defaults are scanned. Dynamic keys built with
 // template literals (e.g. `t(`features.cards.${id}.name`, ...)`) are skipped by
@@ -23,6 +25,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import nlCommon from '../locales/nl/common.json';
 import nlHome from '../locales/nl/home.json';
+import nlHowItWorks from '../locales/nl/howItWorks.json';
 
 const SRC = resolve(__dirname, '../..');
 
@@ -76,6 +79,7 @@ const extracted = extractDefaults();
 const nlKeys = new Set<string>([
   ...flattenKeys(nlCommon as Record<string, unknown>),
   ...flattenKeys(nlHome as Record<string, unknown>),
+  ...flattenKeys(nlHowItWorks as Record<string, unknown>),
 ]);
 
 describe('i18n guard 1: EN inline-default snapshot (the EN source of truth)', () => {

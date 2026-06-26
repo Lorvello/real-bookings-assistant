@@ -38,5 +38,69 @@
     "comingSoonToast": "Deze functie komt binnenkort.",
     "rights": "© {{year}} BookingsAssistant. Alle rechten voorbehouden.",
     "empower": "Bedrijven versterken met AI-gedreven automatisering"
+  },
+  "enterpriseForm": {
+    "title": "Aan de slag met Enterprise",
+    "sectionContact": "Contactgegevens",
+    "sectionFeatures": "Interesse in Enterprise-functies",
+    "sectionAdditional": "Aanvullende informatie",
+    "fullName": "Volledige naam *",
+    "email": "E-mailadres *",
+    "companyName": "Bedrijfsnaam *",
+    "companyWebsite": "Bedrijfswebsite *",
+    "phoneNumber": "Telefoonnummer",
+    "companySize": "Huidige bedrijfsgrootte *",
+    "companySizePlaceholder": "Selecteer bedrijfsgrootte",
+    "featuresLabel": "Selecteer de functies waarin je het meest geïnteresseerd bent *",
+    "messageLabel": "Bericht / wensen",
+    "messagePlaceholder": "Vertel ons over je specifieke wensen, doelen of vragen over onze Enterprise-oplossing...",
+    "requestMeeting": "Vraag een persoonlijk adviesgesprek aan",
+    "requestMeetingDesc": "Ons enterprise-team plant een gesprek in om je wensen te bespreken en ons platform te demonstreren.",
+    "submitting": "Versturen...",
+    "submit": "Vraag Enterprise-adviesgesprek aan",
+    "sizes": {
+      "s1": "1-10 medewerkers",
+      "s2": "11-50 medewerkers",
+      "s3": "51-200 medewerkers",
+      "s4": "200+ medewerkers"
+    },
+    "features": {
+      "f1": "Volledige professionele suite inbegrepen",
+      "f2": "Onbeperkt gebruikersbeheer voor enterprises",
+      "f3": "Toegewijde WhatsApp Business API met eigen branding",
+      "f4": "Slimme routering en verdeling van telefoongesprekken",
+      "f5": "Omnichannel-orkestratie van social media-DM's",
+      "f6": "Geavanceerd reputatiebeheer en review-analyse",
+      "f7": "Enterprise-SLA met toegewijd succesmanagement",
+      "f8": "Persoonlijke onboarding en strategisch integratieadvies"
+    },
+    "toast": {
+      "rateLimitClientTitle": "Te veel aanvragen",
+      "rateLimitClientDesc": "Wacht even voordat je nog een formulier verstuurt.",
+      "rateLimitServerTitle": "Limiet bereikt",
+      "rateLimitServerDesc": "Je hebt te veel formulieren verstuurd. Probeer het later opnieuw.",
+      "successTitle": "Enterprise-aanvraag verzonden",
+      "successDesc": "Bedankt voor je interesse! Ons enterprise-team neemt binnen 24 uur contact met je op.",
+      "failTitle": "Verzenden mislukt",
+      "failDesc": "Er ging iets mis bij het verzenden van je aanvraag. Probeer het opnieuw of neem rechtstreeks contact met ons op."
+    }
+  },
+  "dayModal": {
+    "ariaAppointmentsOn": "Afspraken op {{date}}",
+    "close": "Sluiten",
+    "noAppointments": "Geen afspraken",
+    "appointmentFallback": "Afspraak",
+    "backToList": "Terug naar lijst",
+    "bookingDetails": "Boekingsdetails",
+    "calendarLabel": "Agenda:",
+    "duration": "Duur: {{minutes}} minuten",
+    "status": "Status",
+    "price": "Prijs",
+    "notes": "Notities",
+    "internalNotes": "Interne notities",
+    "statusConfirmed": "Bevestigd",
+    "statusPending": "In afwachting",
+    "statusCancelled": "Geannuleerd",
+    "statusUnknown": "Onbekend"
   }
 }

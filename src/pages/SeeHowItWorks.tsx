@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header';
 import ProcessHighlights from '@/components/how-it-works/ProcessHighlights';
 import AITestSection from '@/components/how-it-works/AITestSection';
@@ -11,6 +12,7 @@ import { useVoiceflowChatbot } from '@/hooks/useVoiceflowChatbot';
 import { useSEO } from '@/hooks/useSEO';
 
 const SeeHowItWorks = () => {
+  const { t } = useTranslation('howItWorks');
   useVoiceflowChatbot();
   const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
 
@@ -52,7 +54,7 @@ const SeeHowItWorks = () => {
             >
               <div className="inline-flex items-center px-3 py-1 md:px-4 md:py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
                 <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
-                <span className="text-emerald-300 text-sm font-medium tracking-wide">3 Steps to Success</span>
+                <span className="text-emerald-300 text-sm font-medium tracking-wide">{t('hiw.hero.badge', '3 Steps to Success')}</span>
               </div>
             </ScrollAnimatedSection>
 
@@ -64,10 +66,10 @@ const SeeHowItWorks = () => {
               className="text-3xl md:text-5xl xl:text-6xl font-bold mb-6 md:mb-8 px-1 sm:px-0 tracking-tight"
             >
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
-                How does{' '}
+                {t('hiw.hero.title1', 'How does ')}
               </span>
               <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
-                it work?
+                {t('hiw.hero.title2', 'it work?')}
               </span>
             </ScrollAnimatedSection>
 
@@ -78,9 +80,9 @@ const SeeHowItWorks = () => {
               as="p" 
               className="text-xs md:text-xl text-slate-300 max-w-4xl mx-auto mb-6 md:mb-8 px-3 sm:px-0 leading-relaxed font-light"
             >
-              Step by step explanation of how easy it is to get started with our system. 
+              {t('hiw.hero.subtitle1', 'Step by step explanation of how easy it is to get started with our system. ')}
               <br className="hidden md:block" />
-              <span className="text-emerald-300"> No complicated installation, no tech hassle</span>, just go live immediately.
+              <span className="text-emerald-300">{t('hiw.hero.subtitleAccent', ' No complicated installation, no tech hassle')}</span>{t('hiw.hero.subtitle2', ', just go live immediately.')}
             </ScrollAnimatedSection>
             
             <ScrollAnimatedSection 

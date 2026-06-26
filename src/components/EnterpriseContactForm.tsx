@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -32,23 +33,25 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Building2, Phone, Mail, Globe, Users, MessageSquare, X } from 'lucide-react';
 
-const enterpriseFeatures = [
-  'Complete professional suite included',
-  
-  'Unlimited enterprise user access management',
-  'Dedicated WhatsApp Business API with custom branding',
-  'Intelligent voice call routing & distribution',
-  'Omnichannel social media DM orchestration',
-  'Advanced reputation management & review analytics',
-  'Enterprise SLA with dedicated success management',
-  'White-glove onboarding & strategic integration consulting',
+// Canonical English feature/size values: these are submitted to the backend, so
+// they must stay stable regardless of UI language. The visible label is what the
+// i18n layer translates (value -> form data; label -> what the user reads).
+const ENTERPRISE_FEATURE_DEFS: Array<[key: string, value: string]> = [
+  ['enterpriseForm.features.f1', 'Complete professional suite included'],
+  ['enterpriseForm.features.f2', 'Unlimited enterprise user access management'],
+  ['enterpriseForm.features.f3', 'Dedicated WhatsApp Business API with custom branding'],
+  ['enterpriseForm.features.f4', 'Intelligent voice call routing & distribution'],
+  ['enterpriseForm.features.f5', 'Omnichannel social media DM orchestration'],
+  ['enterpriseForm.features.f6', 'Advanced reputation management & review analytics'],
+  ['enterpriseForm.features.f7', 'Enterprise SLA with dedicated success management'],
+  ['enterpriseForm.features.f8', 'White-glove onboarding & strategic integration consulting'],
 ];
 
-const companySizeOptions = [
-  { value: '1-10', label: '1-10 employees' },
-  { value: '11-50', label: '11-50 employees' },
-  { value: '51-200', label: '51-200 employees' },
-  { value: '200+', label: '200+ employees' },
+const COMPANY_SIZE_DEFS: Array<[value: string, key: string, label: string]> = [
+  ['1-10', 'enterpriseForm.sizes.s1', '1-10 employees'],
+  ['11-50', 'enterpriseForm.sizes.s2', '11-50 employees'],
+  ['51-200', 'enterpriseForm.sizes.s3', '51-200 employees'],
+  ['200+', 'enterpriseForm.sizes.s4', '200+ employees'],
 ];
 
 const formSchema = z.object({
@@ -85,6 +88,16 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('common');
+
+  const enterpriseFeatures = ENTERPRISE_FEATURE_DEFS.map(([key, value]) => ({
+    value,
+    label: t(key, value),
+  }));
+  const companySizeOptions = COMPANY_SIZE_DEFS.map(([value, key, label]) => ({
+    value,
+    label: t(key, label),
+  }));
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -106,8 +119,8 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
     const rateLimit = checkContactFormRateLimit('client');
     if (!rateLimit.allowed) {
       toast({
-        title: "Te veel aanvragen",
-        description: "Wacht even voordat je nog een formulier verstuurt.",
+        title: t('enterpriseForm.toast.rateLimitClientTitle', 'Too many requests'),
+        description: t('enterpriseForm.toast.rateLimitClientDesc', 'Please wait before submitting another form.'),
         variant: "destructive"
       });
       return;
@@ -129,8 +142,8 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
         // Handle 429 rate limit from server
         if (error.status === 429) {
           toast({
-            title: "Limiet bereikt",
-            description: "Je hebt te veel formulieren verstuurd. Probeer het later opnieuw.",
+            title: t('enterpriseForm.toast.rateLimitServerTitle', 'Limit reached'),
+            description: t('enterpriseForm.toast.rateLimitServerDesc', "You've submitted too many forms. Please try again later."),
             variant: "destructive"
           });
           return;
@@ -139,8 +152,8 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
       }
 
       toast({
-        title: 'Enterprise Inquiry Submitted',
-        description: 'Thank you for your interest! Our enterprise team will contact you within 24 hours.',
+        title: t('enterpriseForm.toast.successTitle', 'Enterprise Inquiry Submitted'),
+        description: t('enterpriseForm.toast.successDesc', 'Thank you for your interest! Our enterprise team will contact you within 24 hours.'),
       });
 
       form.reset();
@@ -148,8 +161,8 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
     } catch (error) {
       console.error('Error submitting enterprise contact form:', error);
       toast({
-        title: 'Submission Failed',
-        description: 'There was an error submitting your inquiry. Please try again or contact us directly.',
+        title: t('enterpriseForm.toast.failTitle', 'Submission Failed'),
+        description: t('enterpriseForm.toast.failDesc', 'There was an error submitting your inquiry. Please try again or contact us directly.'),
         variant: 'destructive',
       });
     } finally {
@@ -171,7 +184,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gray-900 border-gray-700">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white text-center">
-            Get Started with Enterprise
+            {t('enterpriseForm.title', 'Get Started with Enterprise')}
           </DialogTitle>
         </DialogHeader>
 
@@ -181,7 +194,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
             <div className="space-y-6">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-700">
                 <Building2 className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-white">Contact Information</h3>
+                <h3 className="text-lg font-semibold text-white">{t('enterpriseForm.sectionContact', 'Contact Information')}</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -190,7 +203,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-300">Full Name *</FormLabel>
+                      <FormLabel className="text-gray-300">{t('enterpriseForm.fullName', 'Full Name *')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -210,7 +223,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                     <FormItem>
                       <FormLabel className="text-gray-300 flex items-center gap-1">
                         <Mail className="h-4 w-4" />
-                        Email Address *
+                        {t('enterpriseForm.email', 'Email Address *')}
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -230,7 +243,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                   name="companyName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-300">Company Name *</FormLabel>
+                      <FormLabel className="text-gray-300">{t('enterpriseForm.companyName', 'Company Name *')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
@@ -250,7 +263,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                     <FormItem>
                       <FormLabel className="text-gray-300 flex items-center gap-1">
                         <Globe className="h-4 w-4" />
-                        Company Website *
+                        {t('enterpriseForm.companyWebsite', 'Company Website *')}
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -271,7 +284,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                     <FormItem>
                       <FormLabel className="text-gray-300 flex items-center gap-1">
                         <Phone className="h-4 w-4" />
-                        Phone Number
+                        {t('enterpriseForm.phoneNumber', 'Phone Number')}
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -292,12 +305,12 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                     <FormItem>
                       <FormLabel className="text-gray-300 flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        Current Business Size *
+                        {t('enterpriseForm.companySize', 'Current Business Size *')}
                       </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger className="bg-gray-800 border-gray-600 text-white">
-                            <SelectValue placeholder="Select company size" />
+                            <SelectValue placeholder={t('enterpriseForm.companySizePlaceholder', 'Select company size')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-gray-800 border-gray-600">
@@ -319,7 +332,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
             <div className="space-y-6">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-700">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-white">Enterprise Features Interest</h3>
+                <h3 className="text-lg font-semibold text-white">{t('enterpriseForm.sectionFeatures', 'Enterprise Features Interest')}</h3>
               </div>
               
               <FormField
@@ -327,28 +340,28 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                 name="selectedFeatures"
                 render={() => (
                   <FormItem>
-                    <FormLabel className="text-gray-300">Select the features you're most interested in *</FormLabel>
+                    <FormLabel className="text-gray-300">{t('enterpriseForm.featuresLabel', "Select the features you're most interested in *")}</FormLabel>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                       {enterpriseFeatures.map((feature) => (
                         <FormField
-                          key={feature}
+                          key={feature.value}
                           control={form.control}
                           name="selectedFeatures"
                           render={({ field }) => {
                             return (
                               <FormItem
-                                key={feature}
+                                key={feature.value}
                                 className="flex flex-row items-start space-x-3 space-y-0"
                               >
                                 <FormControl>
                                   <Checkbox
-                                    checked={field.value?.includes(feature)}
-                                    onCheckedChange={(checked) => handleFeatureToggle(feature, checked as boolean)}
+                                    checked={field.value?.includes(feature.value)}
+                                    onCheckedChange={(checked) => handleFeatureToggle(feature.value, checked as boolean)}
                                     className="mt-1"
                                   />
                                 </FormControl>
                                 <FormLabel className="text-sm text-gray-300 font-normal leading-relaxed cursor-pointer">
-                                  {feature}
+                                  {feature.label}
                                 </FormLabel>
                               </FormItem>
                             );
@@ -366,7 +379,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
             <div className="space-y-6">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-700">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-white">Additional Information</h3>
+                <h3 className="text-lg font-semibold text-white">{t('enterpriseForm.sectionAdditional', 'Additional Information')}</h3>
               </div>
               
               <FormField
@@ -374,11 +387,11 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                 name="message"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-300">Message / Requirements</FormLabel>
+                    <FormLabel className="text-gray-300">{t('enterpriseForm.messageLabel', 'Message / Requirements')}</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
-                        placeholder="Tell us about your specific requirements, goals, or any questions you have about our Enterprise solution..."
+                        placeholder={t('enterpriseForm.messagePlaceholder', 'Tell us about your specific requirements, goals, or any questions you have about our Enterprise solution...')}
                         className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400 min-h-[100px] resize-none"
                       />
                     </FormControl>
@@ -400,10 +413,10 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel className="text-gray-300 font-normal">
-                        Request a personalized consultation meeting
+                        {t('enterpriseForm.requestMeeting', 'Request a personalized consultation meeting')}
                       </FormLabel>
                       <p className="text-sm text-gray-400">
-                        Our enterprise team will schedule a call to discuss your specific needs and demonstrate our platform.
+                        {t('enterpriseForm.requestMeetingDesc', 'Our enterprise team will schedule a call to discuss your specific needs and demonstrate our platform.')}
                       </p>
                     </div>
                   </FormItem>
@@ -418,7 +431,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                 disabled={isSubmitting}
                 className="px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               >
-                {isSubmitting ? 'Submitting...' : 'Request Enterprise Consultation'}
+                {isSubmitting ? t('enterpriseForm.submitting', 'Submitting...') : t('enterpriseForm.submit', 'Request Enterprise Consultation')}
               </Button>
             </div>
           </form>

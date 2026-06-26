@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { MessageCircle, Calendar, Users, CheckCircle, Bot, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const StepThreeDetails = () => {
+  const { t } = useTranslation('howItWorks');
   return (
     <div className="relative group">
       {/* Premium card with multiple shadow layers - Mobile: much smaller, Desktop: unchanged */}
@@ -31,7 +33,7 @@ const StepThreeDetails = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">Step Three</span>
+            <span className="text-emerald-300 font-semibold text-xs md:text-sm uppercase tracking-wider">{t('hiw.step3.eyebrow', 'Step Three')}</span>
             <div className="w-6 md:w-12 h-0.5 bg-gradient-to-r from-emerald-400 to-transparent mt-0.5"></div>
           </div>
         </div>
@@ -39,12 +41,11 @@ const StepThreeDetails = () => {
         {/* Premium Typography - Mobile: much smaller */}
         <h3 className="text-base md:text-2xl xl:text-3xl font-bold mb-1 md:mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
-          Your system goes live immediately
+          {t('hiw.step3.title', 'Your system goes live immediately')}
         </h3>
-        
+
         <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
-          That's it! Your entire booking system is instantly active and ready to serve customers 24/7. 
-          You can adjust settings anytime, but everything works perfectly from day one.
+          {t('hiw.step3.desc', "That's it! Your entire booking system is instantly active and ready to serve customers 24/7. You can adjust settings anytime, but everything works perfectly from day one.")}
         </p>
         
         {/* Enhanced Feature List - Mobile: smaller */}
@@ -56,8 +57,8 @@ const StepThreeDetails = () => {
               <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs md:text-base mb-0.5">Instant activation</h4>
-              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">Everything works immediately after account creation</p>
+              <h4 className="font-bold text-white text-xs md:text-base mb-0.5">{t('hiw.step3.feat1Title', 'Instant activation')}</h4>
+              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">{t('hiw.step3.feat1Sub', 'Everything works immediately after account creation')}</p>
             </div>
           </div>
           
@@ -68,8 +69,8 @@ const StepThreeDetails = () => {
               <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs md:text-base mb-0.5">Optional customization</h4>
-              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">Adjust settings anytime to match your preferences</p>
+              <h4 className="font-bold text-white text-xs md:text-base mb-0.5">{t('hiw.step3.feat2Title', 'Optional customization')}</h4>
+              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">{t('hiw.step3.feat2Sub', 'Adjust settings anytime to match your preferences')}</p>
             </div>
           </div>
           
@@ -80,8 +81,8 @@ const StepThreeDetails = () => {
               <div className="absolute inset-0 bg-emerald-400/20 rounded-full blur-sm -z-10"></div>
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs md:text-base mb-0.5">24/7 ready to serve</h4>
-              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">Your customers can book immediately via WhatsApp</p>
+              <h4 className="font-bold text-white text-xs md:text-base mb-0.5">{t('hiw.step3.feat3Title', '24/7 ready to serve')}</h4>
+              <p className="text-slate-300 text-[10px] md:text-sm leading-relaxed">{t('hiw.step3.feat3Sub', 'Your customers can book immediately via WhatsApp')}</p>
             </div>
           </div>
         </div>
@@ -94,10 +95,10 @@ const StepThreeDetails = () => {
           <div className="relative z-10">
             <div className="flex items-center justify-center gap-1 md:gap-3 mb-0.5 md:mb-2">
               <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-              <span className="text-emerald-200 font-bold text-sm md:text-lg tracking-wide">Live Status</span>
+              <span className="text-emerald-200 font-bold text-sm md:text-lg tracking-wide">{t('hiw.step3.bannerTitle', 'Live Status')}</span>
             </div>
             <p className="text-emerald-100 text-[10px] md:text-sm leading-relaxed">
-              Your complete booking system is active and serving customers
+              {t('hiw.step3.bannerText', 'Your complete booking system is active and serving customers')}
             </p>
           </div>
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
@@ -119,7 +120,7 @@ const StepThreeDetails = () => {
                   <div className="absolute -inset-4 bg-emerald-400/10 rounded-full opacity-40 blur-lg"></div>
                 </div>
               </div>
-              <h4 className="text-sm md:text-xl font-bold text-white tracking-wide">System Active</h4>
+              <h4 className="text-sm md:text-xl font-bold text-white tracking-wide">{t('hiw.step3.visualTitle', 'System Active')}</h4>
             </div>
             
             {/* Enhanced Status Cards - Mobile: smaller */}
@@ -130,9 +131,9 @@ const StepThreeDetails = () => {
                             transition-all duration-300 hover:shadow-emerald-500/10 text-center">
                 <div className="flex items-center justify-center gap-1 md:gap-3 mb-0.5 md:mb-2">
                   <Calendar className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />
-                  <span className="text-white font-bold text-xs md:text-sm">Calendar Live</span>
+                  <span className="text-white font-bold text-xs md:text-sm">{t('hiw.step3.card1Title', 'Calendar Live')}</span>
                 </div>
-                <p className="text-slate-300 text-[10px]">Accepting bookings instantly</p>
+                <p className="text-slate-300 text-[10px]">{t('hiw.step3.card1Sub', 'Accepting bookings instantly')}</p>
               </div>
               
               <div className="bg-gradient-to-r from-slate-700/60 to-slate-600/40 
@@ -141,9 +142,9 @@ const StepThreeDetails = () => {
                             transition-all duration-300 hover:shadow-emerald-500/10 text-center">
                 <div className="flex items-center justify-center gap-1 md:gap-3 mb-0.5 md:mb-2">
                   <Users className="w-3 h-3 md:w-5 md:h-5 text-emerald-400" />
-                  <span className="text-white font-bold text-xs md:text-sm">AI Assistant</span>
+                  <span className="text-white font-bold text-xs md:text-sm">{t('hiw.step3.card2Title', 'AI Assistant')}</span>
                 </div>
-                <p className="text-slate-300 text-[10px]">Ready to help customers</p>
+                <p className="text-slate-300 text-[10px]">{t('hiw.step3.card2Sub', 'Ready to help customers')}</p>
               </div>
               
               <div className="bg-gradient-to-r from-emerald-500/20 via-emerald-500/15 to-emerald-600/10 
@@ -152,7 +153,7 @@ const StepThreeDetails = () => {
                             relative overflow-hidden">
                 <div className="flex items-center justify-center gap-1 md:gap-3 relative z-10">
                   <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-                  <span className="text-emerald-200 text-xs md:text-sm font-bold tracking-wide">Live and Serving</span>
+                  <span className="text-emerald-200 text-xs md:text-sm font-bold tracking-wide">{t('hiw.step3.badge', 'Live and Serving')}</span>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
               </div>

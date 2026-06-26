@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CheckCircle, Sparkles, TrendingUp, Clock, Users, Zap, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 
 const ResultSummary = () => {
+  const { t } = useTranslation('howItWorks');
   const [activeStatIndex, setActiveStatIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<boolean[]>([false, false, false, false]);
   const statsCarouselRef = useRef<HTMLDivElement>(null);
@@ -45,29 +47,29 @@ const ResultSummary = () => {
   };
 
   const stats = [
-    { 
-      value: '30sec', 
-      label: 'Average booking time', 
+    {
+      value: '30sec',
+      label: t('hiw.results.stat1Label', 'Average booking time'),
       icon: Clock,
-      detailText: "Complete bookings from first message to confirmation in under 30 seconds. No phone calls, forms, or back-and-forth emails needed. Customers book instantly through familiar WhatsApp interface while you sleep."
+      detailText: t('hiw.results.stat1Detail', "Complete bookings from first message to confirmation in under 30 seconds. No phone calls, forms, or back-and-forth emails needed. Customers book instantly through familiar WhatsApp interface while you sleep.")
     },
-    { 
-      value: '40%', 
-      label: 'Reduction in service costs', 
+    {
+      value: '40%',
+      label: t('hiw.results.stat2Label', 'Reduction in service costs'),
       icon: Users,
-      detailText: "Businesses report 30-40% reductions in customer service costs while improving quality. Staff productivity increases 75% with 3x booking efficiency. 70% of inquiries handled without human intervention."
+      detailText: t('hiw.results.stat2Detail', "Businesses report 30-40% reductions in customer service costs while improving quality. Staff productivity increases 75% with 3x booking efficiency. 70% of inquiries handled without human intervention.")
     },
-    { 
-      value: '10x', 
-      label: 'Return on investment potential', 
+    {
+      value: '10x',
+      label: t('hiw.results.stat3Label', 'Return on investment potential'),
       icon: TrendingUp,
-      detailText: "Companies like Tata CLiQ achieved 10x ROI generating $500k in WhatsApp sales monthly. 89% uplift in purchases per user, 72% higher sessions. 60-80% reduction in customer acquisition costs."
+      detailText: t('hiw.results.stat3Detail', "Companies like Tata CLiQ achieved 10x ROI generating $500k in WhatsApp sales monthly. 89% uplift in purchases per user, 72% higher sessions. 60-80% reduction in customer acquisition costs.")
     },
-    { 
-      value: '24/7', 
-      label: 'Automated availability', 
+    {
+      value: '24/7',
+      label: t('hiw.results.stat4Label', 'Automated availability'),
       icon: Zap,
-      detailText: "Automated systems provide round-the-clock availability without staffing costs. 90% of users respond within 30 minutes vs 12-hour email response times. 42% higher 6-month retention rates."
+      detailText: t('hiw.results.stat4Detail', "Automated systems provide round-the-clock availability without staffing costs. 90% of users respond within 30 minutes vs 12-hour email response times. 42% higher 6-month retention rates.")
     }
   ];
 
@@ -77,7 +79,7 @@ const ResultSummary = () => {
         {/* Powerful direct header - reduced size on mobile and less spacing */}
         <ScrollAnimatedSection animation="fade-up" delay={0} className="text-center mb-12 md:mb-24">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-black bg-gradient-to-r from-white via-slate-100 to-emerald-200 bg-clip-text text-transparent tracking-wide leading-tight drop-shadow-2xl">
-            Proven results that transform businesses
+            {t('hiw.results.heading', 'Proven results that transform businesses')}
           </h2>
         </ScrollAnimatedSection>
         
@@ -126,7 +128,7 @@ const ResultSummary = () => {
                     
                     {/* Learn more text */}
                     <div className="absolute top-1.5 right-1.5 text-[8px] lg:text-[9px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
-                      Learn more
+                      {t('hiw.results.learnMore', 'Learn more')}
                       <ArrowRight className="w-2 h-2 lg:w-2.5 lg:h-2.5" />
                     </div>
                     
@@ -221,7 +223,7 @@ const ResultSummary = () => {
                    >
                     {/* Learn more text */}
                     <div className="absolute top-1.5 right-1.5 text-[8px] text-slate-500 group-hover:text-emerald-400 transition-colors duration-200 flex items-center gap-0.5">
-                      Learn more
+                      {t('hiw.results.learnMore', 'Learn more')}
                       <ArrowRight className="w-2 h-2" />
                     </div>
                     

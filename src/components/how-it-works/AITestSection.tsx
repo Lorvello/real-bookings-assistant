@@ -1,9 +1,11 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 
 const AITestSection = () => {
+  const { t } = useTranslation('howItWorks');
   return (
     <section className="py-12 md:py-16 px-3 md:px-4 relative overflow-hidden">
       {/* Background decoration */}
@@ -21,20 +23,20 @@ const AITestSection = () => {
             {/* Main Title with Professional Styling */}
             <ScrollAnimatedSection animation="fade-up" delay={200} as="h2" className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-1 sm:px-0 tracking-tight">
               <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
-                Test Our{' '}
+                {t('hiw.aiTest.title1', 'Test Our ')}
               </span>
               <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
-                AI Assistant
+                {t('hiw.aiTest.title2', 'AI Assistant')}
               </span>
             </ScrollAnimatedSection>
 
             {/* Enhanced Subtitle */}
             <ScrollAnimatedSection animation="fade-up" delay={400} as="p" className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto leading-relaxed font-light px-3 sm:px-0">
-              <span className="md:hidden">Experience how quickly our AI handles booking conversations. No registration required!</span>
-              <span className="hidden md:inline">Experience how quickly and naturally our AI handles booking conversations.{" "}
+              <span className="md:hidden">{t('hiw.aiTest.subtitleMobile', 'Experience how quickly our AI handles booking conversations. No registration required!')}</span>
+              <span className="hidden md:inline">{t('hiw.aiTest.subtitleDesktopLead', 'Experience how quickly and naturally our AI handles booking conversations.')}{" "}
               <br />
-              <span className="text-emerald-400 font-semibold">No registration required</span>,{" "}
-              <span className="text-emerald-400 font-semibold">try it right now!</span></span>
+              <span className="text-emerald-400 font-semibold">{t('hiw.aiTest.noRegistration', 'No registration required')}</span>,{" "}
+              <span className="text-emerald-400 font-semibold">{t('hiw.aiTest.tryNow', 'try it right now!')}</span></span>
             </ScrollAnimatedSection>
           </ScrollAnimatedSection>
           

@@ -1,0 +1,88 @@
+{
+  "hiw": {
+    "hero": {
+      "badge": "3 stappen naar succes",
+      "title1": "Hoe werkt ",
+      "title2": "het?",
+      "subtitle1": "Stap voor stap uitgelegd hoe makkelijk het is om met ons systeem te beginnen. ",
+      "subtitleAccent": " Geen ingewikkelde installatie, geen technisch gedoe",
+      "subtitle2": ", ga gewoon direct live."
+    },
+    "indicator": {
+      "stepConnect": "Verbinden",
+      "stepSetup": "Instellen",
+      "stepLaunch": "Live gaan",
+      "heading": "3 stappen. 5 minuten. Klaar.",
+      "subtitle1": "Ons slimme systeem regelt alles automatisch, zodat jij je kunt richten op wat het belangrijkst is, ",
+      "subtitleAccent": "je klanten helpen",
+      "subtitle2": "."
+    },
+    "step1": {
+      "eyebrow": "Stap één",
+      "title": "Maak een account aan en krijg je professionele agenda",
+      "desc": "Maak gewoon je account aan en krijg direct toegang tot je professionele agendasysteem. Je kunt ook je bestaande agenda koppelen als je dat liever hebt.",
+      "feature1": "Direct een professionele agenda klaar",
+      "feature2": "Optie om je bestaande agenda te koppelen",
+      "feature3": "Meteen ingesteld, geen wachttijd",
+      "visualTitle": "Agenda gereed",
+      "visualRow": "Professionele agenda",
+      "visualBadge": "Direct actief"
+    },
+    "step2": {
+      "eyebrow": "Stap twee",
+      "title": "Krijg direct je WhatsApp-nummer",
+      "desc": "Bij je account krijg je meteen een WhatsApp-nummer toegewezen. Je kunt er ook voor kiezen om je bestaande zakelijke nummer te koppelen als je dat liever hebt.",
+      "optionATitle": "Direct nummer toegewezen",
+      "optionABadge": "Automatisch",
+      "optionADesc": "Je unieke WhatsApp-nummer wordt meteen toegewezen zodra je account is aangemaakt.",
+      "optionAPerfectValue": "Direct beginnen, geen instellingen nodig",
+      "optionBTitle": "Bestaand nummer koppelen",
+      "optionBDesc": "Je kunt ook je bestaande zakelijke WhatsApp-nummer aan ons systeem koppelen.",
+      "optionBPerfectValue": "Bestaand zakelijk nummer, consistente merkbeleving",
+      "optionBNote": "*Alleen voor Enterprise-abonnees",
+      "perfectForLabel": "Perfect voor:",
+      "visualTitle": "WhatsApp gereed",
+      "visualBadge": "Nummer toegewezen",
+      "visualRow": "Klaar voor klanten"
+    },
+    "step3": {
+      "eyebrow": "Stap drie",
+      "title": "Je systeem gaat direct live",
+      "desc": "Dat is alles! Je hele boekingssysteem is meteen actief en klaar om 24/7 klanten te helpen. Je kunt instellingen altijd aanpassen, maar alles werkt vanaf dag één perfect.",
+      "feat1Title": "Directe activering",
+      "feat1Sub": "Alles werkt meteen nadat je account is aangemaakt",
+      "feat2Title": "Optionele aanpassingen",
+      "feat2Sub": "Pas instellingen altijd aan naar jouw voorkeuren",
+      "feat3Title": "24/7 klaar om te helpen",
+      "feat3Sub": "Je klanten kunnen meteen boeken via WhatsApp",
+      "bannerTitle": "Live-status",
+      "bannerText": "Je complete boekingssysteem is actief en helpt klanten",
+      "visualTitle": "Systeem actief",
+      "card1Title": "Agenda live",
+      "card1Sub": "Accepteert meteen boekingen",
+      "card2Title": "AI-assistent",
+      "card2Sub": "Klaar om klanten te helpen",
+      "badge": "Live en in bedrijf"
+    },
+    "results": {
+      "heading": "Bewezen resultaten die bedrijven transformeren",
+      "learnMore": "Meer weten",
+      "stat1Label": "Gemiddelde boekingstijd",
+      "stat1Detail": "Boekingen volledig afgerond, van eerste bericht tot bevestiging, in minder dan 30 seconden. Geen telefoontjes, formulieren of e-mails heen en weer. Klanten boeken meteen via de vertrouwde WhatsApp-interface, terwijl jij slaapt.",
+      "stat2Label": "Lagere servicekosten",
+      "stat2Detail": "Bedrijven melden 30-40% lagere klantenservicekosten terwijl de kwaliteit stijgt. De productiviteit van medewerkers neemt met 75% toe, met 3x meer boekingsefficiëntie. 70% van de vragen wordt afgehandeld zonder tussenkomst van een mens.",
+      "stat3Label": "Mogelijk rendement op investering",
+      "stat3Detail": "Bedrijven zoals Tata CLiQ behaalden 10x ROI en genereerden $500k aan WhatsApp-verkopen per maand. 89% meer aankopen per gebruiker, 72% meer sessies. 60-80% lagere acquisitiekosten voor klanten.",
+      "stat4Label": "Geautomatiseerde beschikbaarheid",
+      "stat4Detail": "Geautomatiseerde systemen bieden 24-uurs beschikbaarheid zonder personeelskosten. 90% van de gebruikers reageert binnen 30 minuten, tegenover 12 uur bij e-mail. 42% hogere retentie na 6 maanden."
+    },
+    "aiTest": {
+      "title1": "Test onze ",
+      "title2": "AI-assistent",
+      "subtitleMobile": "Ervaar hoe snel onze AI boekingsgesprekken afhandelt. Geen registratie nodig!",
+      "subtitleDesktopLead": "Ervaar hoe snel en natuurlijk onze AI boekingsgesprekken afhandelt.",
+      "noRegistration": "Geen registratie nodig",
+      "tryNow": "probeer het nu meteen!"
+    }
+  }
+}
