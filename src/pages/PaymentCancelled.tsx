@@ -1,10 +1,12 @@
 import { XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Customer-facing page reached after a cancelled/abandoned Stripe payment for a
  * booking. Matches the public booking page; no account/dashboard involved.
  */
 export default function PaymentCancelled() {
+  const { t } = useTranslation('payment');
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0a0f1a] px-4 text-white">
       <div
@@ -18,12 +20,11 @@ export default function PaymentCancelled() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15 ring-1 ring-amber-500/30">
           <XCircle aria-hidden="true" className="h-9 w-9 text-amber-400" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">Payment cancelled</h1>
+        <h1 className="mt-5 text-2xl font-semibold">{t('payment.cancelled.title', 'Payment cancelled')}</h1>
         <p className="mt-2 text-sm text-white/55">
-          The payment wasn't completed, so your appointment isn't confirmed yet. You
-          can try again via your booking link or contact the business.
+          {t('payment.cancelled.body', "The payment wasn't completed, so your appointment isn't confirmed yet. You can try again via your booking link or contact the business.")}
         </p>
-        <p className="mt-6 text-xs text-white/35">Nothing was charged.</p>
+        <p className="mt-6 text-xs text-white/35">{t('payment.cancelled.notCharged', 'Nothing was charged.')}</p>
       </div>
     </div>
   );

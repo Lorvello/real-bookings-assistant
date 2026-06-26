@@ -1,0 +1,14 @@
+{
+  "payment": {
+    "success": {
+      "title": "Betaling geslaagd",
+      "body": "Je betaling is ontvangen en je afspraak is bevestigd. Je ontvangt een bevestiging per e-mail.",
+      "closeHint": "Je kunt dit venster sluiten."
+    },
+    "cancelled": {
+      "title": "Betaling geannuleerd",
+      "body": "De betaling is niet voltooid, dus je afspraak is nog niet bevestigd. Je kunt het opnieuw proberen via je boekingslink of contact opnemen met het bedrijf.",
+      "notCharged": "Er is niets in rekening gebracht."
+    }
+  }
+}

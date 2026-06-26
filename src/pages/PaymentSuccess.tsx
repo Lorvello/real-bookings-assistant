@@ -1,12 +1,14 @@
 import { CheckCircle2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Customer-facing page reached after a successful Stripe payment for a booking
  * (whatsapp-payment-handler / installment flows redirect here). End customers
- * have no account/dashboard — this is a simple, premium confirmation that
+ * have no account/dashboard: this is a simple, premium confirmation that
  * matches the public booking page.
  */
 export default function PaymentSuccess() {
+  const { t } = useTranslation('payment');
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0a0f1a] px-4 text-white">
       <div
@@ -20,12 +22,11 @@ export default function PaymentSuccess() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/30">
           <CheckCircle2 aria-hidden="true" className="h-9 w-9 text-primary" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">Payment successful</h1>
+        <h1 className="mt-5 text-2xl font-semibold">{t('payment.success.title', 'Payment successful')}</h1>
         <p className="mt-2 text-sm text-white/55">
-          Your payment has been received and your appointment is confirmed. You'll
-          receive a confirmation by email.
+          {t('payment.success.body', "Your payment has been received and your appointment is confirmed. You'll receive a confirmation by email.")}
         </p>
-        <p className="mt-6 text-xs text-white/35">You can close this window.</p>
+        <p className="mt-6 text-xs text-white/35">{t('payment.success.closeHint', 'You can close this window.')}</p>
       </div>
     </div>
   );
