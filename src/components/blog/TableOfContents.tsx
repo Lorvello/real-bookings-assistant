@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ArticleSection } from '@/data/blogArticles';
 
@@ -14,6 +15,7 @@ interface TOCItem {
 }
 
 export const TableOfContents: React.FC<TableOfContentsProps> = ({ sections, className }) => {
+  const { t } = useTranslation('blogArticle');
   const [activeId, setActiveId] = useState<string>('');
 
   const headings: TOCItem[] = sections
@@ -56,7 +58,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({ sections, clas
   return (
     <nav className={cn('space-y-2', className)}>
       <h3 className="text-sm font-semibold text-foreground mb-4 uppercase tracking-wider">
-        Inhoudsopgave
+        {t('blogArticle.toc', 'Contents')}
       </h3>
       <ul className="space-y-2">
         {headings.map((heading) => (

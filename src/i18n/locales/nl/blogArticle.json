@@ -1,0 +1,17 @@
+{
+  "blogArticle": {
+    "backToBlog": "Terug naar blog",
+    "readTime": "{{time}} leestijd",
+    "toc": "Inhoudsopgave",
+    "cta": {
+      "title": "Klaar om je boekingsproces te automatiseren?",
+      "body": "Ontdek hoe BookingsAssistant je bedrijf kan helpen met WhatsApp-boekingsautomatisering.",
+      "trial": "Start gratis proef",
+      "demo": "Plan een demo"
+    },
+    "nav": {
+      "previous": "Vorig artikel",
+      "next": "Volgend artikel"
+    }
+  }
+}

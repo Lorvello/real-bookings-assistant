@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { useSEO } from '@/hooks/useSEO';
 import { ArticleSchema, BreadcrumbSchema } from '@/components/SEO/StructuredData';
 
 const BlogArticle: React.FC = () => {
+  const { t, i18n } = useTranslation('blogArticle');
   const { slug } = useParams<{ slug: string }>();
   useScrollToTop();
   
@@ -38,7 +40,7 @@ const BlogArticle: React.FC = () => {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(i18n.language === 'nl' ? 'nl-NL' : 'en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -93,7 +95,7 @@ const BlogArticle: React.FC = () => {
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to blog</span>
+              <span>{t('blogArticle.backToBlog', 'Back to blog')}</span>
             </Link>
 
             {/* Title */}
@@ -113,7 +115,7 @@ const BlogArticle: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>{article.readTime} read time</span>
+                <span>{t('blogArticle.readTime', '{{time}} read time', { time: article.readTime })}</span>
               </div>
             </div>
           </ScrollAnimatedSection>
@@ -146,17 +148,17 @@ const BlogArticle: React.FC = () => {
         <ScrollAnimatedSection animation="fade-up">
           <div className="max-w-3xl mx-auto text-center p-8 md:p-12 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Ready to automate your booking process?
+              {t('blogArticle.cta.title', 'Ready to automate your booking process?')}
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Discover how BookingsAssistant can help your business with WhatsApp booking automation.
+              {t('blogArticle.cta.body', 'Discover how BookingsAssistant can help your business with WhatsApp booking automation.')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
-                <Link to="/signup">Start Free Trial</Link>
+                <Link to="/signup">{t('blogArticle.cta.trial', 'Start Free Trial')}</Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link to="/contact">Schedule a Demo</Link>
+                <Link to="/contact">{t('blogArticle.cta.demo', 'Schedule a Demo')}</Link>
               </Button>
             </div>
           </div>
