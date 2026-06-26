@@ -27,6 +27,7 @@ import nlCommon from '../locales/nl/common.json';
 import nlHome from '../locales/nl/home.json';
 import nlHowItWorks from '../locales/nl/howItWorks.json';
 import nlWhyUs from '../locales/nl/whyUs.json';
+import nlAbout from '../locales/nl/about.json';
 
 const SRC = resolve(__dirname, '../..');
 
@@ -82,6 +83,7 @@ const nlKeys = new Set<string>([
   ...flattenKeys(nlHome as Record<string, unknown>),
   ...flattenKeys(nlHowItWorks as Record<string, unknown>),
   ...flattenKeys(nlWhyUs as Record<string, unknown>),
+  ...flattenKeys(nlAbout as Record<string, unknown>),
 ]);
 
 describe('i18n guard 1: EN inline-default snapshot (the EN source of truth)', () => {

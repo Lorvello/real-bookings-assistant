@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import { useSEO } from '@/hooks/useSEO';
 
 const About = () => {
+  const { t } = useTranslation('about');
   useSEO({
     title: "About Us - Our Story & Team",
     description: "Meet the founders of Bookings Assistant. Learn how we're revolutionizing appointment scheduling with AI-powered WhatsApp automation for businesses worldwide.",
@@ -43,20 +45,19 @@ const About = () => {
             <div className="max-w-4xl mx-auto text-center">
               <ScrollAnimatedSection animation="fade-up" delay={0} as="div">
                 <span className="inline-block px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-sm font-medium mb-6">
-                  Our Story
+                  {t('about.hero.badge', 'Our Story')}
                 </span>
               </ScrollAnimatedSection>
               <ScrollAnimatedSection animation="fade-up" delay={100} as="h1">
                 <span className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight block">
-                  About{' '}
+                  {t('about.hero.titleAbout', 'About ')}
                   <span className="bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">
                     BookingsAssistant
                   </span>
                 </span>
               </ScrollAnimatedSection>
               <ScrollAnimatedSection animation="fade-up" delay={200} as="p" className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
-                We got tired of watching small business owners waste hours on endless back-and-forth emails and phone tag. 
-                Everyone was already on WhatsApp, so we built a system that handles booking conversations automatically.
+                {t('about.hero.subtitle', 'We got tired of watching small business owners waste hours on endless back-and-forth emails and phone tag. Everyone was already on WhatsApp, so we built a system that handles booking conversations automatically.')}
               </ScrollAnimatedSection>
             </div>
           </section>
@@ -65,7 +66,7 @@ const About = () => {
           <section className="py-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <ScrollAnimatedSection animation="fade-up" delay={0} as="h2" className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
-                Meet the Founders
+                {t('about.founders.heading', 'Meet the Founders')}
               </ScrollAnimatedSection>
 
               <div className="grid md:grid-cols-2 max-w-5xl mx-auto gap-8">
@@ -83,26 +84,22 @@ const About = () => {
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-white">Mathew Groen</h3>
-                          <p className="text-emerald-400 text-sm font-medium">Co-Founder & Lead Developer</p>
-                          <p className="text-slate-500 text-sm">18 August 2003 · Netherlands</p>
+                          <p className="text-emerald-400 text-sm font-medium">{t('about.founders.mathewRole', 'Co-Founder & Lead Developer')}</p>
+                          <p className="text-slate-500 text-sm">{t('about.founders.mathewMeta', '18 August 2003 · Netherlands')}</p>
                         </div>
                       </div>
                       <div className="space-y-4 text-slate-300 leading-relaxed">
                         <p>
-                          The front-end architect and product visionary behind BookingsAssistant. With hands-on expertise in
-                          React, TypeScript, and modern web technologies, Mathew focuses on weaving AI and automation
-                          into a product that feels effortless to use.
+                          {t('about.founders.mathewBio1', 'The front-end architect and product visionary behind BookingsAssistant. With hands-on expertise in React, TypeScript, and modern web technologies, Mathew focuses on weaving AI and automation into a product that feels effortless to use.')}
                         </p>
                         <p>
-                          His focus on user experience and interface design ensures that complex technology feels simple 
-                          and intuitive. He architected the entire customer-facing platform with scalability in mind, 
-                          building systems that can grow from startup to enterprise without missing a beat.
+                          {t('about.founders.mathewBio2', 'His focus on user experience and interface design ensures that complex technology feels simple and intuitive. He architected the entire customer-facing platform with scalability in mind, building systems that can grow from startup to enterprise without missing a beat.')}
                         </p>
                         <div className="flex flex-wrap gap-2 pt-2">
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">React</span>
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">TypeScript</span>
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">UX/UI</span>
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">AI Integration</span>
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">{t('about.founders.tagAiIntegration', 'AI Integration')}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -123,25 +120,21 @@ const About = () => {
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-white">Luciano</h3>
-                          <p className="text-emerald-400 text-sm font-medium">Co-Founder & Backend Expert</p>
-                          <p className="text-slate-500 text-sm">Netherlands</p>
+                          <p className="text-emerald-400 text-sm font-medium">{t('about.founders.lucianoRole', 'Co-Founder & Backend Expert')}</p>
+                          <p className="text-slate-500 text-sm">{t('about.founders.lucianoMeta', 'Netherlands')}</p>
                         </div>
                       </div>
                       <div className="space-y-4 text-slate-300 leading-relaxed">
                         <p>
-                          The backend and automation expert behind BookingsAssistant. Luciano built the brains of the
-                          product: the WhatsApp AI agent that holds the conversation, checks availability and books
-                          appointments automatically, wired together across Supabase and a real-time automation layer.
+                          {t('about.founders.lucianoBio1', 'The backend and automation expert behind BookingsAssistant. Luciano built the brains of the product: the WhatsApp AI agent that holds the conversation, checks availability and books appointments automatically, wired together across Supabase and a real-time automation layer.')}
                         </p>
                         <p>
-                          With deep experience in AI agents, workflow automation and database architecture, he makes
-                          sure every booking, payment and message flows reliably from WhatsApp straight into the system.
-                          If Mathew builds what you see, Luciano builds what makes it actually work.
+                          {t('about.founders.lucianoBio2', 'With deep experience in AI agents, workflow automation and database architecture, he makes sure every booking, payment and message flows reliably from WhatsApp straight into the system. If Mathew builds what you see, Luciano builds what makes it actually work.')}
                         </p>
                         <div className="flex flex-wrap gap-2 pt-2">
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Supabase</span>
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">AI Agents</span>
-                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Automation</span>
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">{t('about.founders.tagAiAgents', 'AI Agents')}</span>
+                          <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">{t('about.founders.tagAutomation', 'Automation')}</span>
                           <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-emerald-400 text-xs group-hover:bg-emerald-500/20 transition-colors duration-300">Backend</span>
                         </div>
                       </div>
@@ -157,9 +150,9 @@ const About = () => {
           <section className="py-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto">
               <ScrollAnimatedSection animation="fade-up" delay={0} as="h2" className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">
-                What Makes Us{' '}
+                {t('about.bento.headingPre', 'What Makes Us ')}
                 <span className="bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent">
-                  Different
+                  {t('about.bento.headingAccent', 'Different')}
                 </span>
               </ScrollAnimatedSection>
 
@@ -168,10 +161,9 @@ const About = () => {
                 <ScrollAnimatedSection animation="fade-up" delay={100} as="div">
                   <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/50 transition-all duration-500 shadow-xl shadow-black/10 h-full">
                     <CardContent className="p-6">
-                      <h3 className="text-lg font-bold text-white mb-3">WhatsApp Native</h3>
+                      <h3 className="text-lg font-bold text-white mb-3">{t('about.bento.whatsappTitle', 'WhatsApp Native')}</h3>
                       <p className="text-slate-400 text-sm leading-relaxed">
-                        Near-universal adoption across Europe. Your customers won't download another app or create another account.
-                        They message you at 10 PM, our AI responds instantly.
+                        {t('about.bento.whatsappBody', "Near-universal adoption across Europe. Your customers won't download another app or create another account. They message you at 10 PM, our AI responds instantly.")}
                       </p>
                     </CardContent>
                   </Card>
@@ -181,10 +173,9 @@ const About = () => {
                 <ScrollAnimatedSection animation="fade-up" delay={200} as="div">
                   <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border-slate-700/30 hover:border-slate-600/50 transition-all duration-500 shadow-xl shadow-black/10 h-full">
                     <CardContent className="p-6">
-                      <h3 className="text-lg font-bold text-white mb-3">Our Vision</h3>
+                      <h3 className="text-lg font-bold text-white mb-3">{t('about.bento.visionTitle', 'Our Vision')}</h3>
                       <p className="text-slate-400 text-sm leading-relaxed">
-                        Starting in the Netherlands, our goal is simple: make automated booking accessible to thousands of 
-                        small businesses worldwide. Every business should say "Just WhatsApp me."
+                        {t('about.bento.visionBody', 'Starting in the Netherlands, our goal is simple: make automated booking accessible to thousands of small businesses worldwide. Every business should say "Just WhatsApp me."')}
                       </p>
                     </CardContent>
                   </Card>
@@ -194,12 +185,12 @@ const About = () => {
                 <ScrollAnimatedSection animation="fade-up" delay={300} as="div">
                   <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur-xl border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-500 shadow-xl shadow-emerald-500/5 h-full">
                     <CardContent className="p-6 flex flex-col h-full">
-                      <h3 className="text-lg font-bold text-white mb-3">Let's Talk</h3>
+                      <h3 className="text-lg font-bold text-white mb-3">{t('about.bento.talkTitle', "Let's Talk")}</h3>
                       <p className="text-slate-300 text-sm leading-relaxed mb-4 flex-grow">
-                        Want intelligent booking automation for your business? We'd love to show you what's possible.
+                        {t('about.bento.talkBody', "Want intelligent booking automation for your business? We'd love to show you what's possible.")}
                       </p>
                       <Button asChild size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white w-full">
-                        <Link to="/contact">Get in touch</Link>
+                        <Link to="/contact">{t('about.bento.talkBtn', 'Get in touch')}</Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -209,54 +200,54 @@ const About = () => {
                 <ScrollAnimatedSection animation="fade-up" delay={400} as="div" className="md:col-span-2 lg:col-span-3">
                   <Card className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-xl border-slate-700/30 shadow-xl shadow-black/10">
                     <CardContent className="p-8">
-                      <h3 className="text-xl font-bold text-white mb-6">The Technology Stack</h3>
+                      <h3 className="text-xl font-bold text-white mb-6">{t('about.bento.stackTitle', 'The Technology Stack')}</h3>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {/* Conversational AI */}
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
-                          <span className="text-white font-medium block mb-2">Conversational AI</span>
+                          <span className="text-white font-medium block mb-2">{t('about.bento.t1Title', 'Conversational AI')}</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Natural language understanding that grasps context and intent. No menus, no commands, just natural conversations. Our system continuously updates to leverage the latest and most powerful AI models available, ensuring you always benefit from cutting-edge technology as the AI landscape evolves.
+                            {t('about.bento.t1Body', 'Natural language understanding that grasps context and intent. No menus, no commands, just natural conversations. Our system continuously updates to leverage the latest and most powerful AI models available, ensuring you always benefit from cutting-edge technology as the AI landscape evolves.')}
                           </p>
                         </div>
 
                         {/* Real-time Calendar */}
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
-                          <span className="text-white font-medium block mb-2">Real-time Calendar</span>
+                          <span className="text-white font-medium block mb-2">{t('about.bento.t2Title', 'Real-time Calendar')}</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Instant availability checks with conflict prevention. No double bookings, kept consistent in real time across your calendars.
+                            {t('about.bento.t2Body', 'Instant availability checks with conflict prevention. No double bookings, kept consistent in real time across your calendars.')}
                           </p>
                         </div>
 
                         {/* Multi-tenant Architecture */}
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
-                          <span className="text-white font-medium block mb-2">Multi-tenant Architecture</span>
+                          <span className="text-white font-medium block mb-2">{t('about.bento.t3Title', 'Multi-tenant Architecture')}</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Built to scale from 1 to 10,000+ businesses, with each business's data kept isolated through row-level security.
+                            {t('about.bento.t3Body', "Built to scale from 1 to 10,000+ businesses, with each business's data kept isolated through row-level security.")}
                           </p>
                         </div>
 
                         {/* Secure Payments */}
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
-                          <span className="text-white font-medium block mb-2">Secure Payments</span>
+                          <span className="text-white font-medium block mb-2">{t('about.bento.t4Title', 'Secure Payments')}</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            PCI-compliant payments via Stripe Connect with automatic payouts and platform fee management.
+                            {t('about.bento.t4Body', 'PCI-compliant payments via Stripe Connect with automatic payouts and platform fee management.')}
                           </p>
                         </div>
 
                         {/* WhatsApp Business API */}
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
-                          <span className="text-white font-medium block mb-2">WhatsApp Business API</span>
+                          <span className="text-white font-medium block mb-2">{t('about.bento.t5Title', 'WhatsApp Business API')}</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Built on Meta's official WhatsApp Business Cloud API for reliable message delivery and verified business profiles.
+                            {t('about.bento.t5Body', "Built on Meta's official WhatsApp Business Cloud API for reliable message delivery and verified business profiles.")}
                           </p>
                         </div>
 
                         {/* Security */}
                         <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/20 hover:border-slate-600/40 transition-all duration-300">
-                          <span className="text-white font-medium block mb-2">Enterprise Security</span>
+                          <span className="text-white font-medium block mb-2">{t('about.bento.t6Title', 'Enterprise Security')}</span>
                           <p className="text-slate-400 text-sm leading-relaxed">
-                            Row-level security, encrypted data storage, rate limiting, and comprehensive audit logging for complete protection.
+                            {t('about.bento.t6Body', 'Row-level security, encrypted data storage, rate limiting, and comprehensive audit logging for complete protection.')}
                           </p>
                         </div>
                       </div>

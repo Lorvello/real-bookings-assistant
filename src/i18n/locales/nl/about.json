@@ -1,0 +1,47 @@
+{
+  "about": {
+    "hero": {
+      "badge": "Ons verhaal",
+      "titleAbout": "Over ",
+      "subtitle": "We waren het zat om te zien hoe kleine ondernemers uren verspilden aan eindeloos heen-en-weer mailen en telefoongedoe. Iedereen zat toch al op WhatsApp, dus bouwden we een systeem dat boekingsgesprekken automatisch afhandelt."
+    },
+    "founders": {
+      "heading": "Maak kennis met de oprichters",
+      "mathewRole": "Medeoprichter & lead-ontwikkelaar",
+      "mathewMeta": "18 augustus 2003 · Nederland",
+      "mathewBio1": "De front-end-architect en productvisionair achter BookingsAssistant. Met praktische kennis van React, TypeScript en moderne webtechnologie richt Mathew zich erop AI en automatisering te verweven in een product dat moeiteloos aanvoelt.",
+      "mathewBio2": "Door zijn focus op gebruikerservaring en interfaceontwerp voelt complexe technologie eenvoudig en intuïtief aan. Hij ontwierp het hele klantgerichte platform met schaalbaarheid in gedachten en bouwde systemen die kunnen meegroeien van start-up tot enterprise zonder een steek te laten vallen.",
+      "tagAiIntegration": "AI-integratie",
+      "lucianoRole": "Medeoprichter & backend-expert",
+      "lucianoMeta": "Nederland",
+      "lucianoBio1": "De backend- en automatiseringsexpert achter BookingsAssistant. Luciano bouwde het brein van het product: de WhatsApp-AI-agent die het gesprek voert, de beschikbaarheid controleert en automatisch afspraken boekt, aan elkaar geknoopt via Supabase en een realtime automatiseringslaag.",
+      "lucianoBio2": "Met diepgaande ervaring in AI-agents, workflowautomatisering en database-architectuur zorgt hij ervoor dat elke boeking, betaling en elk bericht betrouwbaar vanuit WhatsApp rechtstreeks het systeem in stroomt. Bouwt Mathew wat je ziet, dan bouwt Luciano wat het echt laat werken.",
+      "tagAiAgents": "AI-agents",
+      "tagAutomation": "Automatisering"
+    },
+    "bento": {
+      "headingPre": "Wat ons ",
+      "headingAccent": "anders maakt",
+      "whatsappTitle": "Helemaal in WhatsApp",
+      "whatsappBody": "Bijna iedereen in Europa gebruikt het. Je klanten hoeven geen extra app te downloaden of een account aan te maken. Ze sturen je om 22:00 uur een bericht en onze AI reageert meteen.",
+      "visionTitle": "Onze visie",
+      "visionBody": "We beginnen in Nederland met een simpel doel: geautomatiseerd boeken toegankelijk maken voor duizenden kleine bedrijven wereldwijd. Elk bedrijf zou moeten kunnen zeggen: 'App me gewoon op WhatsApp.'",
+      "talkTitle": "Even praten",
+      "talkBody": "Wil je slimme boekingsautomatisering voor je bedrijf? We laten je graag zien wat er mogelijk is.",
+      "talkBtn": "Neem contact op",
+      "stackTitle": "De technologie-stack",
+      "t1Title": "Conversationele AI",
+      "t1Body": "Natuurlijke taalverwerking die context en bedoeling begrijpt. Geen menu's, geen commando's, gewoon natuurlijke gesprekken. Ons systeem werkt zichzelf continu bij om de nieuwste en krachtigste AI-modellen te gebruiken, zodat je altijd profiteert van de modernste technologie naarmate het AI-landschap evolueert.",
+      "t2Title": "Realtime agenda",
+      "t2Body": "Directe beschikbaarheidscontroles met conflictpreventie. Geen dubbele boekingen, in realtime consistent gehouden over al je agenda's.",
+      "t3Title": "Multi-tenant-architectuur",
+      "t3Body": "Gebouwd om te schalen van 1 tot meer dan 10.000 bedrijven, waarbij de gegevens van elk bedrijf gescheiden blijven via row-level security.",
+      "t4Title": "Veilige betalingen",
+      "t4Body": "PCI-conforme betalingen via Stripe Connect met automatische uitbetalingen en beheer van de platformfee.",
+      "t5Title": "WhatsApp Business API",
+      "t5Body": "Gebouwd op Meta's officiële WhatsApp Business Cloud API voor betrouwbare berichtbezorging en geverifieerde bedrijfsprofielen.",
+      "t6Title": "Enterprise-beveiliging",
+      "t6Body": "Row-level security, versleutelde gegevensopslag, rate limiting en uitgebreide audit-logging voor complete bescherming."
+    }
+  }
+}

@@ -23,6 +23,7 @@ import nlCommon from './locales/nl/common.json';
 import nlHome from './locales/nl/home.json';
 import nlHowItWorks from './locales/nl/howItWorks.json';
 import nlWhyUs from './locales/nl/whyUs.json';
+import nlAbout from './locales/nl/about.json';
 
 export const LANGUAGE_STORAGE_KEY = 'ba.language';
 export const SUPPORTED_LANGUAGES = ['en', 'nl'] as const;
@@ -60,12 +61,13 @@ i18n.use(initReactI18next).init({
       home: nlHome,
       howItWorks: nlHowItWorks,
       whyUs: nlWhyUs,
+      about: nlAbout,
     },
   },
   lng: initialLanguage,
   fallbackLng: 'en',
   defaultNS: 'common',
-  ns: ['common', 'home', 'howItWorks', 'whyUs'],
+  ns: ['common', 'home', 'howItWorks', 'whyUs', 'about'],
   returnEmptyString: false, // empty NL value -> fall back to EN, never blank
   interpolation: {
     escapeValue: false, // React already escapes
