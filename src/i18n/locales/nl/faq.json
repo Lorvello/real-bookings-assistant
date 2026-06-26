@@ -1,0 +1,120 @@
+{
+  "faq": {
+    "hero": {
+      "badge": "Direct antwoord",
+      "titleLine1": "Veelgestelde ",
+      "titleLine2": "vragen",
+      "subtitle1": "Alles wat je moet weten over ons AI-gestuurde WhatsApp-boekingsplatform.",
+      "subtitleAccent": "Kun je niet vinden wat je zoekt? Neem contact op met ons supportteam",
+      "subtitle2": "."
+    },
+    "search": {
+      "placeholder": "Zoek in de veelgestelde vragen...",
+      "resultsFound": "{{count}} resultaten gevonden",
+      "popularHeading": "Populaire vragen:"
+    },
+    "noResults": {
+      "title": "Geen resultaten gevonden",
+      "body": "Probeer een andere zoekterm of bekijk hieronder alle vragen.",
+      "button": "Toon alle vragen"
+    },
+    "gen": {
+      "title": "Algemene vragen",
+      "q1": "Wat is jullie WhatsApp-boekingsplatform?",
+      "a1": "Ons platform is een AI-gestuurde WhatsApp-assistent die automatisch afspraken boekt, bevestigt en beheert voor dienstverlenende bedrijven. Klanten kunnen 24/7 via WhatsApp een afspraak maken, zonder dat jij er handmatig iets voor hoeft te doen.",
+      "q2": "Hoe werkt het precies?",
+      "a2": "Klanten sturen een WhatsApp-bericht naar je zakelijke nummer. Onze AI begrijpt hun verzoek, controleert je beschikbaarheid, boekt de afspraak automatisch en stuurt bevestigingen naar beide partijen. Alles blijft gesynchroniseerd met je agenda.",
+      "q3": "Voor welke soorten bedrijven is dit geschikt?",
+      "a3": "Perfect voor kappers, tandartsen, fysiotherapeuten, beautysalons, fitnessstudio's, consultants, advocaten, masseurs, nagelstudio's, barbershops en alle andere dienstverleners die met afspraken werken.",
+      "q4": "Hoeveel tijd bespaart me dit?",
+      "a4": "Het neemt het heen-en-weer bellen en handmatig inplannen uit handen. In plaats van zelf boekingsverzoeken te beantwoorden, kun je je op je klanten richten terwijl de assistent de afspraken regelt.",
+      "q5": "Is het moeilijk om in te stellen?",
+      "a5": "Nee. Het instellen duurt meestal maar een paar minuten. Je koppelt het WhatsApp-nummer, stelt je agenda in en voegt je diensten en prijzen toe, en de assistent is klaar om te beginnen met boeken."
+    },
+    "tech": {
+      "title": "Technische vragen",
+      "q1": "Leveren jullie het WhatsApp-nummer en de agenda?",
+      "a1": "Ja. Wij leveren een professioneel WhatsApp Business-nummer en een compleet agendasysteem, zodat je kunt beginnen zonder extra tools nodig te hebben.",
+      "q2": "Werkt het in meerdere talen?",
+      "a2": "Ja. De assistent werkt in het Nederlands en Engels en kan ook gesprekken in verschillende andere talen aan. We breiden de taalondersteuning na verloop van tijd uit.",
+      "q3": "Wat gebeurt er als de AI een fout maakt?",
+      "a3": "Jij houdt de controle. Je krijgt bij elke geboekte afspraak een melding en kunt elke afspraak op elk moment vanuit je dashboard bekijken, wijzigen of annuleren.",
+      "q4": "Zijn mijn gegevens veilig?",
+      "a4": "Ja. We zijn AVG-conform, je gegevens worden veilig op Europese servers opgeslagen en we verkopen je klantgegevens nooit. In ons privacybeleid lees je precies hoe we met gegevens omgaan.",
+      "q5": "Kan ik de chatbot aanpassen?",
+      "a5": "Ja. Je stelt je eigen diensten, prijzen, beschikbaarheid en bedrijfsinformatie in, en de assistent gebruikt dat allemaal om je klanten nauwkeurig te antwoorden, alsof het je eigen medewerker is."
+    },
+    "price": {
+      "title": "Prijzen & abonnementen",
+      "q1": "Wat kost het?",
+      "a1": "We bieden een gratis abonnement, Starter voor €30/maand, Professional voor €60/maand en Enterprise vanaf €300/maand. Bij Starter en Professional hoort een gratis proefperiode van 30 dagen en er is geen creditcard nodig. Enterprise wordt op maat gemaakt en bevat daarom geen gratis proefperiode.",
+      "q2": "Zijn er opstartkosten?",
+      "a2": "Geen opstartkosten. Je betaalt alleen het maandelijkse abonnement.",
+      "q3": "Kan ik upgraden of downgraden?",
+      "a3": "Ja, je kunt naar een ander abonnement overstappen. Wijzigingen gaan in vanaf je volgende factuurperiode, dus laat het ons gewoon weten wanneer je wilt op- of afschalen.",
+      "q4": "Wat gebeurt er als ik stop?",
+      "a4": "Je kunt op elk moment opzeggen en je gegevens exporteren. Wil je later terugkomen, neem dan contact op en we helpen je verder waar je gebleven was.",
+      "q5": "Zit er een langlopend contract aan vast?",
+      "a5": "Nee, je kunt maandelijks opzeggen. En als je jaarlijks betaalt, krijg je 20% korting."
+    },
+    "feat": {
+      "title": "Functies",
+      "q1": "Kan het afspraken verzetten en annuleren?",
+      "a1": "Ja. Klanten kunnen hun afspraken zelf verzetten of annuleren via WhatsApp. De assistent controleert automatisch de nieuwe beschikbaarheid en volgt de annuleringsregels die jij instelt.",
+      "q2": "Stuurt het herinneringen?",
+      "a2": "Ja. Het platform kan automatisch afspraakherinneringen per e-mail sturen, en jij bepaalt wanneer die verstuurd worden, zodat klanten hun afspraak minder snel vergeten.",
+      "q3": "Kan het betalingen verwerken?",
+      "a3": "Ja. Je kunt klanten vragen om bij het boeken een aanbetaling te doen of vooruit te betalen, veilig via Stripe. Het is optioneel en je stelt het per dienst in.",
+      "q4": "Helpt het no-shows te verminderen?",
+      "a4": "Ja. Automatische herinneringen houden de afspraak top of mind bij je klanten, wat helpt om no-shows te verminderen.",
+      "q5": "Kan ik meerdere diensten aanbieden?",
+      "a5": "Absoluut. Je kunt verschillende diensten instellen, elk met een eigen prijs en duur, en de assistent leidt klanten naar de juiste dienst."
+    },
+    "support": {
+      "title": "Ondersteuning",
+      "q1": "Wat voor support kan ik krijgen?",
+      "a1": "Je kunt ons per e-mail bereiken en er is een ingebouwde chatbot voor snelle vragen. Bij Professional en Enterprise krijg je voorrangssupport.",
+      "q2": "Hoe snel krijg ik antwoord?",
+      "a2": "We streven ernaar snel te reageren, meestal binnen één werkdag, en sneller voor klanten met een hoger abonnement.",
+      "q3": "Is er training beschikbaar?",
+      "a3": "Ja. We bieden onboarding-handleidingen om je op weg te helpen, en Enterprise-klanten krijgen persoonlijke hulp.",
+      "q4": "Kan jullie team het voor mij instellen?",
+      "a4": "Voor Enterprise-klanten bieden we een kant-en-klare installatie. Andere abonnementen hebben stapsgewijze handleidingen en support om het instellen makkelijk te maken."
+    },
+    "web": {
+      "title": "Website & agenda",
+      "q1": "Werkt het met mijn website?",
+      "a1": "Ja. Je kunt een WhatsApp-link of QR-code aan je website toevoegen die klanten direct naar je boekingsassistent brengt.",
+      "q2": "Wat zit er in het professionele agendasysteem?",
+      "a2": "Ons agendasysteem bevat automatische afsprakenplanning, conflictdetectie, beschikbaarheidsbeheer en instellingen per dienst, allemaal direct klaar voor gebruik."
+    },
+    "adv": {
+      "title": "Geavanceerde functies",
+      "q1": "Kan het meerdere locaties beheren?",
+      "a1": "Bij Professional en Enterprise worden meerdere agenda's ondersteund, zodat je meer dan één locatie of teamlid vanuit één dashboard kunt beheren.",
+      "q2": "Zijn er statistieken beschikbaar?",
+      "a2": "Ja. Professional en Enterprise bevatten statistieken over je boekingen, zodat je kunt zien hoe je agenda presteert."
+    },
+    "trouble": {
+      "title": "Problemen oplossen",
+      "q1": "Wat als WhatsApp eruit ligt?",
+      "a1": "WhatsApp is zeer betrouwbaar. Mocht er ooit een korte onderbreking zijn, dan blijven je gegevens en boekingen veilig in je dashboard, en kunnen klanten de assistent weer bereiken zodra het terug is.",
+      "q2": "Mijn klanten zijn niet technisch, werkt dit?",
+      "a2": "Ja! WhatsApp is voor de meeste mensen vertrouwd. De AI gebruikt eenvoudige taal en begeleidt klanten stap voor stap.",
+      "q3": "Kan ik het uitzetten tijdens vakanties?",
+      "a3": "Ja. Je kunt vakanties of specifieke data blokkeren in je beschikbaarheidsinstellingen, zodat de assistent die tijden niet aan klanten aanbiedt.",
+      "q4": "Wat als ik mijn telefoon kwijtraak?",
+      "a4": "Je boekingsassistent draait op ons platform, niet op je persoonlijke telefoon. Je kunt altijd inloggen via het webdashboard.",
+      "q5": "Hoe zeg ik mijn abonnement op?",
+      "a5": "Je kunt opzeggen vanuit je dashboard of door contact op te nemen met support. Er zijn geen opzegkosten.",
+      "q6": "Bieden jullie terugbetalingen?",
+      "a6": "We bieden een gratis proefperiode van 30 dagen, zodat je alles risicovrij kunt uitproberen voordat je betaalt. Daarna kun je op elk moment opzeggen.",
+      "q7": "Welke landen ondersteunen jullie?",
+      "a7": "WhatsApp werkt wereldwijd, en om te beginnen richten we ons op bedrijven in Nederland en de rest van Europa.",
+      "q8": "Is er een app?",
+      "a8": "Bookings Assistant draait in je webbrowser en werkt prima op mobiel. Je kunt het zelfs aan je startscherm toevoegen, zodat het opent als een app, zonder aparte download.",
+      "q9": "Kunnen meerdere teamleden toegang krijgen?",
+      "a9": "Professional en Enterprise ondersteunen toegang voor meerdere teamleden met verschillende rechtenniveaus."
+    }
+  }
+}

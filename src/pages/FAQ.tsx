@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header';
 import ScrollAnimatedSection from '@/components/ScrollAnimatedSection';
 import PublicPageWrapper from '@/components/PublicPageWrapper';
@@ -15,6 +16,7 @@ import { useSEO } from '@/hooks/useSEO';
 import { FAQSchema } from '@/components/SEO/StructuredData';
 
 const FAQ = () => {
+  const { t, i18n } = useTranslation('faq');
   useVoiceflowChatbot();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -24,214 +26,218 @@ const FAQ = () => {
     canonical: "/faq",
   });
 
+  // Reuse the exact question keys from faqSections so clicking a recommended
+  // question still matches the (translated) question text in the search filter.
   const recommendedQuestions = [
-    "What does it cost?",
-    "Do you provide the WhatsApp number and calendar?",
-    "For which types of businesses is this suitable?",
-    "Is it difficult to set up?",
-    "Can it process payments?"
+    t('faq.price.q1', "What does it cost?"),
+    t('faq.tech.q1', "Do you provide the WhatsApp number and calendar?"),
+    t('faq.gen.q3', "For which types of businesses is this suitable?"),
+    t('faq.gen.q5', "Is it difficult to set up?"),
+    t('faq.feat.q3', "Can it process payments?")
   ];
 
   const faqSections = [
     {
-      title: "General Questions",
+      title: t('faq.gen.title', "General Questions"),
       icon: HelpCircle,
       items: [
         {
-          question: "What is your WhatsApp booking platform?",
-          answer: "Our platform is an AI-powered WhatsApp assistant that automatically books, confirms and manages appointments for service-oriented businesses. Customers can make appointments 24/7 via WhatsApp without any manual intervention from you."
+          question: t('faq.gen.q1', "What is your WhatsApp booking platform?"),
+          answer: t('faq.gen.a1', "Our platform is an AI-powered WhatsApp assistant that automatically books, confirms and manages appointments for service-oriented businesses. Customers can make appointments 24/7 via WhatsApp without any manual intervention from you.")
         },
         {
-          question: "How does it work exactly?",
-          answer: "Customers send a WhatsApp message to your business number. Our AI understands their request, checks your availability, automatically books the appointment and sends confirmations to both parties. Everything is kept in sync with your calendar."
+          question: t('faq.gen.q2', "How does it work exactly?"),
+          answer: t('faq.gen.a2', "Customers send a WhatsApp message to your business number. Our AI understands their request, checks your availability, automatically books the appointment and sends confirmations to both parties. Everything is kept in sync with your calendar.")
         },
         {
-          question: "For which types of businesses is this suitable?",
-          answer: "Perfect for hairdressers, dentists, physiotherapists, beauty salons, fitness studios, consultants, lawyers, massage therapists, nail studios, barbershops and all other service providers who work with appointments."
+          question: t('faq.gen.q3', "For which types of businesses is this suitable?"),
+          answer: t('faq.gen.a3', "Perfect for hairdressers, dentists, physiotherapists, beauty salons, fitness studios, consultants, lawyers, massage therapists, nail studios, barbershops and all other service providers who work with appointments.")
         },
         {
-          question: "How much time does this save me?",
-          answer: "It takes the back-and-forth of phone calls and manual scheduling off your plate. Instead of answering booking requests yourself, you can focus on your customers while the assistant handles the appointments."
+          question: t('faq.gen.q4', "How much time does this save me?"),
+          answer: t('faq.gen.a4', "It takes the back-and-forth of phone calls and manual scheduling off your plate. Instead of answering booking requests yourself, you can focus on your customers while the assistant handles the appointments.")
         },
         {
-          question: "Is it difficult to set up?",
-          answer: "No. Setup usually takes just a few minutes. You connect the WhatsApp number, set up your calendar and add your services and prices, and the assistant is ready to start booking."
+          question: t('faq.gen.q5', "Is it difficult to set up?"),
+          answer: t('faq.gen.a5', "No. Setup usually takes just a few minutes. You connect the WhatsApp number, set up your calendar and add your services and prices, and the assistant is ready to start booking.")
         }
       ]
     },
     {
-      title: "Technical Questions",
+      title: t('faq.tech.title', "Technical Questions"),
       icon: Zap,
       items: [
         {
-          question: "Do you provide the WhatsApp number and calendar?",
-          answer: "Yes. We provide a professional WhatsApp Business number and a complete calendar system, so you can get started without needing any extra tools."
+          question: t('faq.tech.q1', "Do you provide the WhatsApp number and calendar?"),
+          answer: t('faq.tech.a1', "Yes. We provide a professional WhatsApp Business number and a complete calendar system, so you can get started without needing any extra tools.")
         },
         {
-          question: "Does it work in multiple languages?",
-          answer: "Yes. The assistant works in Dutch and English, and can handle conversations in several other languages too. We're expanding language support over time."
+          question: t('faq.tech.q2', "Does it work in multiple languages?"),
+          answer: t('faq.tech.a2', "Yes. The assistant works in Dutch and English, and can handle conversations in several other languages too. We're expanding language support over time.")
         },
         {
-          question: "What happens if the AI makes a mistake?",
-          answer: "You stay in control. You're notified of every booked appointment and can review, change or cancel any appointment from your dashboard at any time."
+          question: t('faq.tech.q3', "What happens if the AI makes a mistake?"),
+          answer: t('faq.tech.a3', "You stay in control. You're notified of every booked appointment and can review, change or cancel any appointment from your dashboard at any time.")
         },
         {
-          question: "Is my data safe?",
-          answer: "Yes. We are GDPR compliant, your data is stored securely on European servers, and we never sell your customer data. You can read exactly how we handle data in our Privacy Policy."
+          question: t('faq.tech.q4', "Is my data safe?"),
+          answer: t('faq.tech.a4', "Yes. We are GDPR compliant, your data is stored securely on European servers, and we never sell your customer data. You can read exactly how we handle data in our Privacy Policy.")
         },
         {
-          question: "Can I customize the chatbot?",
-          answer: "Yes. You set your own services, prices, availability and business information, and the assistant uses all of that to answer your customers accurately, as if it were your own assistant."
+          question: t('faq.tech.q5', "Can I customize the chatbot?"),
+          answer: t('faq.tech.a5', "Yes. You set your own services, prices, availability and business information, and the assistant uses all of that to answer your customers accurately, as if it were your own assistant.")
         }
       ]
     },
     {
-      title: "Pricing & Plans",
+      title: t('faq.price.title', "Pricing & Plans"),
       icon: Star,
       items: [
         {
-          question: "What does it cost?",
-          answer: "We offer a free plan, Starter at €30/month, Professional at €60/month, and Enterprise from €300/month. Starter and Professional come with a free 30-day trial and no credit card is required. Enterprise is tailored to your needs, so it doesn't include a free trial."
+          question: t('faq.price.q1', "What does it cost?"),
+          answer: t('faq.price.a1', "We offer a free plan, Starter at €30/month, Professional at €60/month, and Enterprise from €300/month. Starter and Professional come with a free 30-day trial and no credit card is required. Enterprise is tailored to your needs, so it doesn't include a free trial.")
         },
         {
-          question: "Are there setup costs?",
-          answer: "No setup costs. You only pay the monthly subscription."
+          question: t('faq.price.q2', "Are there setup costs?"),
+          answer: t('faq.price.a2', "No setup costs. You only pay the monthly subscription.")
         },
         {
-          question: "Can I upgrade or downgrade?",
-          answer: "Yes, you can switch to a different plan. Changes take effect from your next billing period, so just let us know when you'd like to move up or down."
+          question: t('faq.price.q3', "Can I upgrade or downgrade?"),
+          answer: t('faq.price.a3', "Yes, you can switch to a different plan. Changes take effect from your next billing period, so just let us know when you'd like to move up or down.")
         },
         {
-          question: "What happens if I stop?",
-          answer: "You can cancel anytime and export your data. If you decide to come back later, just reach out and we'll help you pick up where you left off."
+          question: t('faq.price.q4', "What happens if I stop?"),
+          answer: t('faq.price.a4', "You can cancel anytime and export your data. If you decide to come back later, just reach out and we'll help you pick up where you left off.")
         },
         {
-          question: "Is there a long-term contract?",
-          answer: "No, you can cancel monthly. And if you pay annually you get a 20% discount."
+          question: t('faq.price.q5', "Is there a long-term contract?"),
+          answer: t('faq.price.a5', "No, you can cancel monthly. And if you pay annually you get a 20% discount.")
         }
       ]
     },
     {
-      title: "Features",
+      title: t('faq.feat.title', "Features"),
       icon: CheckCircle,
       items: [
         {
-          question: "Can it reschedule and cancel appointments?",
-          answer: "Yes. Customers can reschedule or cancel their appointments themselves via WhatsApp. The assistant checks new availability automatically and follows the cancellation rules you set."
+          question: t('faq.feat.q1', "Can it reschedule and cancel appointments?"),
+          answer: t('faq.feat.a1', "Yes. Customers can reschedule or cancel their appointments themselves via WhatsApp. The assistant checks new availability automatically and follows the cancellation rules you set.")
         },
         {
-          question: "Does it send reminders?",
-          answer: "Yes. The platform can send automatic appointment reminders by email, and you control when they go out, so customers are less likely to forget their appointment."
+          question: t('faq.feat.q2', "Does it send reminders?"),
+          answer: t('faq.feat.a2', "Yes. The platform can send automatic appointment reminders by email, and you control when they go out, so customers are less likely to forget their appointment.")
         },
         {
-          question: "Can it process payments?",
-          answer: "Yes. You can ask customers to pay a deposit or prepay when they book, securely through Stripe. It's optional and you set it per service."
+          question: t('faq.feat.q3', "Can it process payments?"),
+          answer: t('faq.feat.a3', "Yes. You can ask customers to pay a deposit or prepay when they book, securely through Stripe. It's optional and you set it per service.")
         },
         {
-          question: "Does it help reduce no-shows?",
-          answer: "Yes. Automatic reminders keep the appointment top of mind for your customers, which helps reduce no-shows."
+          question: t('faq.feat.q4', "Does it help reduce no-shows?"),
+          answer: t('faq.feat.a4', "Yes. Automatic reminders keep the appointment top of mind for your customers, which helps reduce no-shows.")
         },
         {
-          question: "Can I offer multiple services?",
-          answer: "Absolutely. You can set different services, each with their own price and duration, and the assistant guides customers to the right one."
+          question: t('faq.feat.q5', "Can I offer multiple services?"),
+          answer: t('faq.feat.a5', "Absolutely. You can set different services, each with their own price and duration, and the assistant guides customers to the right one.")
         }
       ]
     },
     {
-      title: "Support",
+      title: t('faq.support.title', "Support"),
       icon: Shield,
       items: [
         {
-          question: "What type of support can I get?",
-          answer: "You can reach us by email, and there's a built-in chatbot for quick questions. Professional and Enterprise plans get priority support."
+          question: t('faq.support.q1', "What type of support can I get?"),
+          answer: t('faq.support.a1', "You can reach us by email, and there's a built-in chatbot for quick questions. Professional and Enterprise plans get priority support.")
         },
         {
-          question: "How quickly do I get a response?",
-          answer: "We aim to reply quickly, usually within one business day, and faster for customers on higher plans."
+          question: t('faq.support.q2', "How quickly do I get a response?"),
+          answer: t('faq.support.a2', "We aim to reply quickly, usually within one business day, and faster for customers on higher plans.")
         },
         {
-          question: "Is training available?",
-          answer: "Yes. We provide onboarding guides to help you get set up, and Enterprise customers get hands-on help."
+          question: t('faq.support.q3', "Is training available?"),
+          answer: t('faq.support.a3', "Yes. We provide onboarding guides to help you get set up, and Enterprise customers get hands-on help.")
         },
         {
-          question: "Can your team set it up for me?",
-          answer: "For Enterprise customers we offer a done-for-you setup. Other plans have step-by-step guides and support to make setup easy."
+          question: t('faq.support.q4', "Can your team set it up for me?"),
+          answer: t('faq.support.a4', "For Enterprise customers we offer a done-for-you setup. Other plans have step-by-step guides and support to make setup easy.")
         }
       ]
     },
     {
-      title: "Website & Calendar",
+      title: t('faq.web.title', "Website & Calendar"),
       icon: Zap,
       items: [
         {
-          question: "Does it work with my website?",
-          answer: "Yes. You can add a WhatsApp link or QR code to your website that takes customers straight to your booking assistant."
+          question: t('faq.web.q1', "Does it work with my website?"),
+          answer: t('faq.web.a1', "Yes. You can add a WhatsApp link or QR code to your website that takes customers straight to your booking assistant.")
         },
         {
-          question: "What's included in the professional calendar system?",
-          answer: "Our calendar system includes automatic appointment scheduling, conflict detection, availability management and per-service settings, all ready to use from day one."
+          question: t('faq.web.q2', "What's included in the professional calendar system?"),
+          answer: t('faq.web.a2', "Our calendar system includes automatic appointment scheduling, conflict detection, availability management and per-service settings, all ready to use from day one.")
         }
       ]
     },
     {
-      title: "Advanced Features",
+      title: t('faq.adv.title', "Advanced Features"),
       icon: Star,
       items: [
         {
-          question: "Can it manage multiple locations?",
-          answer: "Professional and Enterprise plans support multiple calendars, so you can manage more than one location or team member from a single dashboard."
+          question: t('faq.adv.q1', "Can it manage multiple locations?"),
+          answer: t('faq.adv.a1', "Professional and Enterprise plans support multiple calendars, so you can manage more than one location or team member from a single dashboard.")
         },
         {
-          question: "Are analytics available?",
-          answer: "Yes. Professional and Enterprise plans include analytics on your bookings, so you can see how your schedule is performing."
+          question: t('faq.adv.q2', "Are analytics available?"),
+          answer: t('faq.adv.a2', "Yes. Professional and Enterprise plans include analytics on your bookings, so you can see how your schedule is performing.")
         }
       ]
     },
     {
-      title: "Troubleshooting",
+      title: t('faq.trouble.title', "Troubleshooting"),
       icon: MessageCircle,
       items: [
         {
-          question: "What if WhatsApp is down?",
-          answer: "WhatsApp is highly reliable. If there's ever a brief interruption, your data and bookings stay safe in your dashboard, and customers can reach the assistant again as soon as it's back."
+          question: t('faq.trouble.q1', "What if WhatsApp is down?"),
+          answer: t('faq.trouble.a1', "WhatsApp is highly reliable. If there's ever a brief interruption, your data and bookings stay safe in your dashboard, and customers can reach the assistant again as soon as it's back.")
         },
         {
-          question: "My customers aren't tech-savvy, does this work?",
-          answer: "Yes! WhatsApp is familiar to most people. The AI uses simple language and guides customers step by step."
+          question: t('faq.trouble.q2', "My customers aren't tech-savvy, does this work?"),
+          answer: t('faq.trouble.a2', "Yes! WhatsApp is familiar to most people. The AI uses simple language and guides customers step by step.")
         },
         {
-          question: "Can I turn it off during holidays?",
-          answer: "Yes. You can block off holidays or any specific dates in your availability settings, so the assistant won't offer those times to customers."
+          question: t('faq.trouble.q3', "Can I turn it off during holidays?"),
+          answer: t('faq.trouble.a3', "Yes. You can block off holidays or any specific dates in your availability settings, so the assistant won't offer those times to customers.")
         },
         {
-          question: "What if I lose my phone?",
-          answer: "Your booking assistant runs on our platform, not on your personal phone. You can always log in through the web dashboard."
+          question: t('faq.trouble.q4', "What if I lose my phone?"),
+          answer: t('faq.trouble.a4', "Your booking assistant runs on our platform, not on your personal phone. You can always log in through the web dashboard.")
         },
         {
-          question: "How do I cancel my subscription?",
-          answer: "You can cancel from your dashboard or by contacting support. There are no cancellation fees."
+          question: t('faq.trouble.q5', "How do I cancel my subscription?"),
+          answer: t('faq.trouble.a5', "You can cancel from your dashboard or by contacting support. There are no cancellation fees.")
         },
         {
-          question: "Do you offer refunds?",
-          answer: "We offer a 30-day free trial, so you can test everything risk-free before you pay. After that, you can cancel anytime."
+          question: t('faq.trouble.q6', "Do you offer refunds?"),
+          answer: t('faq.trouble.a6', "We offer a 30-day free trial, so you can test everything risk-free before you pay. After that, you can cancel anytime.")
         },
         {
-          question: "Which countries do you support?",
-          answer: "WhatsApp works worldwide, and to start we're focused on businesses in the Netherlands and the rest of Europe."
+          question: t('faq.trouble.q7', "Which countries do you support?"),
+          answer: t('faq.trouble.a7', "WhatsApp works worldwide, and to start we're focused on businesses in the Netherlands and the rest of Europe.")
         },
         {
-          question: "Is there an app?",
-          answer: "Bookings Assistant runs in your web browser and works great on mobile. You can even add it to your home screen so it opens like an app, with no separate download needed."
+          question: t('faq.trouble.q8', "Is there an app?"),
+          answer: t('faq.trouble.a8', "Bookings Assistant runs in your web browser and works great on mobile. You can even add it to your home screen so it opens like an app, with no separate download needed.")
         },
         {
-          question: "Can multiple team members get access?",
-          answer: "Professional and Enterprise plans support multiple team member access with different permission levels."
+          question: t('faq.trouble.q9', "Can multiple team members get access?"),
+          answer: t('faq.trouble.a9', "Professional and Enterprise plans support multiple team member access with different permission levels.")
         }
       ]
     }
   ];
 
-  // Filter FAQ sections based on search term
+  // Filter FAQ sections based on search term. Depends on i18n.language too, so the
+  // memo recomputes with freshly-translated faqSections when the language toggles
+  // (otherwise the visible sections would stay stuck in the first-render language).
   const filteredSections = useMemo(() => {
     if (!searchTerm) return faqSections;
 
@@ -242,7 +248,8 @@ const FAQ = () => {
         item.answer.toLowerCase().includes(searchTerm.toLowerCase())
       )
     })).filter(section => section.items.length > 0);
-  }, [searchTerm]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, i18n.language]);
 
   const handleRecommendedClick = (question: string) => {
     setSearchTerm(question);
@@ -289,7 +296,7 @@ const FAQ = () => {
           >
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-emerald-600/20 to-emerald-500/10 border border-emerald-500/30 backdrop-blur-sm">
               <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></div>
-              <span className="text-emerald-300 text-xs md:text-sm font-medium tracking-wide">Get Instant Answers</span>
+              <span className="text-emerald-300 text-xs md:text-sm font-medium tracking-wide">{t('faq.hero.badge', 'Get Instant Answers')}</span>
             </div>
           </ScrollAnimatedSection>
 
@@ -301,11 +308,11 @@ const FAQ = () => {
             className="text-3xl md:text-4xl xl:text-5xl font-bold mb-6 md:mb-8 px-3 sm:px-0 tracking-tight"
           >
             <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-200 bg-clip-text text-transparent drop-shadow-2xl">
-              Frequently Asked{' '}
+              {t('faq.hero.titleLine1', 'Frequently Asked ')}
             </span>
             <br className="md:hidden" />
             <span className="bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-500 bg-clip-text text-transparent drop-shadow-2xl glow-text">
-              Questions
+              {t('faq.hero.titleLine2', 'Questions')}
             </span>
           </ScrollAnimatedSection>
 
@@ -316,9 +323,9 @@ const FAQ = () => {
             as="p" 
             className="text-xs md:text-lg text-slate-300 max-w-4xl mx-auto mb-8 md:mb-12 px-3 sm:px-0 leading-relaxed font-light"
           >
-            Everything you need to know about our AI-powered WhatsApp booking platform.
+            {t('faq.hero.subtitle1', 'Everything you need to know about our AI-powered WhatsApp booking platform.')}
             <br className="hidden md:block" />{' '}
-            <span className="text-emerald-300">Can't find what you're looking for? Contact our support team</span>.
+            <span className="text-emerald-300">{t('faq.hero.subtitleAccent', "Can't find what you're looking for? Contact our support team")}</span>{t('faq.hero.subtitle2', '.')}
           </ScrollAnimatedSection>
 
           {/* Integrated Search Section - Made smaller on mobile */}
@@ -333,7 +340,7 @@ const FAQ = () => {
                 <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
                   <Input
                     type="text"
-                    placeholder="Search frequently asked questions..."
+                    placeholder={t('faq.search.placeholder', 'Search frequently asked questions...')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 md:pl-12 pr-4 py-4 h-12 md:h-14 text-base md:text-lg bg-transparent border border-slate-700/50 rounded-2xl text-white placeholder:text-slate-400 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
@@ -341,7 +348,7 @@ const FAQ = () => {
               </div>
               {searchTerm && (
                 <div className="mt-4 text-xs md:text-sm text-gray-300 text-center">
-                  {filteredSections.reduce((total, section) => total + section.items.length, 0)} results found
+                  {t('faq.search.resultsFound', '{{count}} results found', { count: filteredSections.reduce((total, section) => total + section.items.length, 0) })}
                 </div>
               )}
             </div>
@@ -349,7 +356,7 @@ const FAQ = () => {
             {/* Recommended Questions - Made smaller on mobile */}
             {!searchTerm && (
               <div className="text-center">
-                <h3 className="text-sm md:text-lg font-semibold text-white mb-4">Popular questions:</h3>
+                <h3 className="text-sm md:text-lg font-semibold text-white mb-4">{t('faq.search.popularHeading', 'Popular questions:')}</h3>
                 <div className="flex flex-wrap justify-center gap-3">
                   {recommendedQuestions.map((question, index) => (
                     <button
@@ -376,13 +383,13 @@ const FAQ = () => {
                 <div className="w-16 h-16 md:w-24 md:h-24 bg-transparent border border-slate-700/50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
                   <Search className="w-8 h-8 md:w-12 md:h-12 text-slate-400" />
                 </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-4">No results found</h3>
-                <p className="text-sm text-gray-300 md:text-base mb-6">Try a different search term or view all FAQs below.</p>
-                <button 
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-4">{t('faq.noResults.title', 'No results found')}</h3>
+                <p className="text-sm text-gray-300 md:text-base mb-6">{t('faq.noResults.body', 'Try a different search term or view all FAQs below.')}</p>
+                <button
                   onClick={() => setSearchTerm('')}
                   className="bg-emerald-500 text-white px-4 py-2 md:px-6 md:py-3 rounded-xl text-sm font-semibold md:text-base hover:bg-emerald-600 transition-colors"
                 >
-                  Show all FAQs
+                  {t('faq.noResults.button', 'Show all FAQs')}
                 </button>
               </div>
             </ScrollAnimatedSection>
