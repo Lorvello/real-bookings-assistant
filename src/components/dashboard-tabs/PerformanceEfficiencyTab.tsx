@@ -1,8 +1,7 @@
 import React from 'react';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
-import { useAccessControl } from '@/hooks/useAccessControl';
-import { AlertTriangle, XCircle, Star, CheckCircle, Activity, Info, Users, UserCheck, User } from 'lucide-react';
+import { AlertTriangle, XCircle, CheckCircle, Activity, Info, Users, UserCheck, User } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
 import { DateRange } from '@/components/dashboard/DateRangeFilter';
@@ -35,7 +34,6 @@ const getDynamicPeriodText = (dateRange: DateRange): string => {
 };
 
 export function PerformanceEfficiencyTab({ calendarIds, dateRange }: PerformanceEfficiencyTabProps) {
-  const { accessControl } = useAccessControl();
 
   const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
     calendarIds,
@@ -108,7 +106,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
     <TooltipProvider>
       <div className="space-y-4 md:space-y-12">
         {/* Operational Performance Metrics - mono-accent - Mobile optimized */}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 ${accessControl.canAccessCustomerSatisfaction ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3 md:gap-6`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
@@ -171,46 +169,16 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
             </TooltipContent>
           </Tooltip>
 
-          {/* Customer Satisfaction - Only for Enterprise users */}
-          {accessControl.canAccessCustomerSatisfaction && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.3 }}
-                  className="relative"
-                >
-                  <MetricCard
-                    title="Customer Satisfaction"
-                    value={performance?.customer_satisfaction_score != null ? `${performance.customer_satisfaction_score.toFixed(1)}/5` : '—'}
-                    subtitle={getMetricSubtitle('service quality')}
-                    icon={Star}
-                    variant="blue"
-                    delay={0.3}
-                  />
-                  <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
-                    <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
-                  </div>
-                </motion.div>
-              </TooltipTrigger>
-              <TooltipContent 
-                className="max-w-sm bg-popover border border-white/[0.12] text-foreground z-50 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]"
-                side="top"
-                align="center"
-                sideOffset={8}
-              >
-                <p className="text-sm">Average customer rating based on post-appointment feedback and reviews {periodText}. Scale of 1-5 stars measuring service quality.</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          {/* Customer Satisfaction card removed (2026-06-26): there is no review/rating pipeline yet,
+              so it rendered a permanent empty placeholder with a tooltip claiming a feature that does
+              not exist. Re-add when the automated post-appointment review collection is built (FUTURE_IDEAS). */}
 
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
                 className="relative"
               >
                 <MetricCard
@@ -219,7 +187,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                   subtitle={getMetricSubtitle('of all bookings')}
                   icon={CheckCircle}
                   variant="blue"
-                  delay={accessControl.canAccessCustomerSatisfaction ? 0.4 : 0.3}
+                  delay={0.3}
                 />
                 <div className="absolute top-3 right-3 p-1 rounded-full bg-card/50">
                   <Info className="h-3 w-3 text-subtle-foreground hover:text-muted-foreground transition-colors" />
