@@ -1,11 +1,13 @@
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useAccessControl = () => {
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
+  const { t } = useTranslation('app');
 
   // Auto-update expired users on component mount
   useEffect(() => {
@@ -21,8 +23,9 @@ export const useAccessControl = () => {
   };
 
   const requireAccess = (feature: keyof typeof accessControl, onDenied?: () => void) => {
-    // STABLE ACCESS: Don't show restrictions during loading/unknown states
-    if (userStatus.userType === 'unknown' && userStatus.statusMessage === 'Loading...') {
+    // STABLE ACCESS: Don't show restrictions during loading/unknown states.
+    // Uses the stable isStatusLoading flag (statusMessage is now i18n-translated).
+    if (userStatus.isStatusLoading) {
       return true; // Allow access during loading to prevent glitches
     }
     
@@ -31,44 +34,44 @@ export const useAccessControl = () => {
       if (feature === 'canAccessWhatsApp' && 
           (userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive')) {
         toast({
-          title: "WhatsApp Booking Agent Not Active",
-          description: "Your booking assistant is not active. Upgrade now or resubscribe to activate it.",
+          title: t('app.access.whatsappTitle', 'WhatsApp Booking Agent Not Active'),
+          description: t('app.access.whatsappDesc', 'Your booking assistant is not active. Upgrade now or resubscribe to activate it.'),
           variant: "destructive",
         });
       } else if (feature === 'canAccessBusinessIntelligence') {
         toast({
-          title: "Professional Feature",
-          description: "Business Intelligence is only available for Professional and Enterprise subscriptions.",
+          title: t('app.access.professionalFeature', 'Professional Feature'),
+          description: t('app.access.biDesc', 'Business Intelligence is only available for Professional and Enterprise subscriptions.'),
           variant: "destructive",
         });
       } else if (feature === 'canAccessPerformance') {
         toast({
-          title: "Professional Feature", 
-          description: "Performance & Efficiency is only available for Professional and Enterprise subscriptions.",
+          title: t('app.access.professionalFeature', 'Professional Feature'),
+          description: t('app.access.perfDesc', 'Performance & Efficiency is only available for Professional and Enterprise subscriptions.'),
           variant: "destructive",
         });
       } else if (feature === 'canAccessFutureInsights') {
         toast({
-          title: "Professional Feature",
-          description: "Future Insights is only available for Professional and Enterprise subscriptions.",
+          title: t('app.access.professionalFeature', 'Professional Feature'),
+          description: t('app.access.futureDesc', 'Future Insights is only available for Professional and Enterprise subscriptions.'),
           variant: "destructive",
         });
       } else if (feature === 'canAccessTeamMembers') {
         toast({
-          title: "Professional Feature",
-          description: "Team Members management is only available for Professional and Enterprise subscriptions.",
+          title: t('app.access.professionalFeature', 'Professional Feature'),
+          description: t('app.access.teamDesc', 'Team Members management is only available for Professional and Enterprise subscriptions.'),
           variant: "destructive",
         });
       } else if (feature === 'canAccessTaxCompliance') {
         toast({
-          title: "Professional Feature",
-          description: "Tax Compliance is only available for Professional and Enterprise subscriptions.",
+          title: t('app.access.professionalFeature', 'Professional Feature'),
+          description: t('app.access.taxDesc', 'Tax Compliance is only available for Professional and Enterprise subscriptions.'),
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Access Restricted",
-          description: `This feature requires an active subscription.`,
+          title: t('app.toast.accessRestrictedTitle', 'Access Restricted'),
+          description: t('app.toast.accessRestrictedDesc', 'This feature requires an active subscription.'),
           variant: "destructive",
         });
       }

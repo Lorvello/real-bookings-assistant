@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProfile } from '@/hooks/useProfile';
 import { UserStatus, UserType, AccessControl } from '@/types/userStatus';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,7 @@ const CACHE_VERSION = '3.0';
 export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { profile } = useProfile();
   const { tiers } = useSubscriptionTiers();
+  const { t, i18n } = useTranslation('app');
   
   // Global persistent state - loaded once and maintained across navigation
   const [userStatusType, setUserStatusType] = useState<string>(() => {
@@ -319,9 +321,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canEdit: false,
         canCreate: false,
         showUpgradePrompt: false,
-        statusMessage: 'Loading...',
+        statusMessage: t('app.status.msg.loading', 'Loading...'),
         statusColor: 'gray',
-        isSetupIncomplete: false
+        isSetupIncomplete: false,
+        isStatusLoading: true
       };
     }
 
@@ -340,9 +343,10 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         canEdit: false,
         canCreate: false,
         showUpgradePrompt: false,
-        statusMessage: 'Loading...',
+        statusMessage: t('app.status.msg.loading', 'Loading...'),
         statusColor: 'gray',
-        isSetupIncomplete: false
+        isSetupIncomplete: false,
+        isStatusLoading: true
       };
     }
 
@@ -365,7 +369,7 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
     // ADMIN BYPASS: Admins get full access always
     if (userStatusType === 'admin') {
       userType = 'subscriber'; // Treat as active subscriber
-      statusMessage = '👑 Admin Account - Full Access';
+      statusMessage = t('app.status.msg.admin', '👑 Admin Account - Full Access');
       statusColor = 'green';
     }
 
@@ -375,27 +379,29 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         break;
       case 'active_trial':
         userType = 'trial';
-        statusMessage = daysRemaining === 1 ? '1 Day Free Trial Remaining' : `${daysRemaining} Days Free Trial Remaining`;
+        statusMessage = daysRemaining === 1
+          ? t('app.status.trialDaysOne', '{{count}} Day Free Trial Remaining', { count: daysRemaining })
+          : t('app.status.trialDaysOther', '{{count}} Days Free Trial Remaining', { count: daysRemaining });
         statusColor = daysRemaining <= 1 ? 'red' : daysRemaining <= 3 ? 'yellow' : 'green';
         break;
       case 'expired_trial':
         userType = 'expired_trial';
-        statusMessage = 'Trial Expired. Upgrade Now';
+        statusMessage = t('app.status.msg.trialExpired', 'Trial Expired. Upgrade Now');
         statusColor = 'red';
         break;
       case 'missed_payment_grace':
         userType = 'missed_payment';
-        statusMessage = 'Payment Issue - Grace Period Active';
+        statusMessage = t('app.status.msg.paymentGrace', 'Payment Issue - Grace Period Active');
         statusColor = 'yellow';
         break;
       case 'missed_payment':
         userType = 'missed_payment';
-        statusMessage = 'Payment Issue - Update Payment Method';
+        statusMessage = t('app.status.msg.paymentUpdate', 'Payment Issue - Update Payment Method');
         statusColor = 'red';
         break;
       case 'paid_subscriber':
         userType = 'subscriber';
-        statusMessage = 'Active Subscription';
+        statusMessage = t('app.status.msg.activeSubscription', 'Active Subscription');
         statusColor = 'green';
         break;
       case 'canceled_but_active':
@@ -403,24 +409,26 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
         const remainingDays = subscriptionEndDate 
           ? Math.ceil((subscriptionEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
           : 0;
-        statusMessage = remainingDays > 0 
-          ? `Subscription ends in ${remainingDays} day${remainingDays === 1 ? '' : 's'}`
-          : 'Subscription ending soon';
+        statusMessage = remainingDays > 0
+          ? (remainingDays === 1
+              ? t('app.status.msg.subEndsInOne', 'Subscription ends in {{count}} day', { count: remainingDays })
+              : t('app.status.msg.subEndsInOther', 'Subscription ends in {{count}} days', { count: remainingDays }))
+          : t('app.status.msg.subEndingSoon', 'Subscription ending soon');
         statusColor = 'yellow';
         break;
       case 'canceled_and_inactive':
         userType = 'canceled_and_inactive';
-        statusMessage = 'Subscription Cancelled and Expired. Upgrade';
+        statusMessage = t('app.status.msg.subCancelledExpired', 'Subscription Cancelled and Expired. Upgrade');
         statusColor = 'red';
         break;
       case 'setup_incomplete':
         userType = 'setup_incomplete';
-        statusMessage = 'Complete Setup to Start Trial';
+        statusMessage = t('app.status.msg.completeSetupTrial', 'Complete Setup to Start Trial');
         statusColor = 'yellow';
         break;
       default:
         userType = 'unknown';
-        statusMessage = 'Unknown Status';
+        statusMessage = t('app.status.msg.unknown', 'Unknown Status');
         statusColor = 'gray';
     }
 
@@ -452,9 +460,12 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
       showUpgradePrompt,
       statusMessage,
       statusColor,
-      isSetupIncomplete
+      isSetupIncomplete,
+      isStatusLoading: false
     };
-  }, [profile, userStatusType, isLoading]);
+    // i18n.language + t are deps so statusMessage recomputes on EN<->NL toggle
+    // (the R28 stale-on-toggle gotcha, here at context level).
+  }, [profile, userStatusType, isLoading, t, i18n.language]);
 
   // Get subscription tier limits from database
   const getSubscriptionTierLimits = (tierName: string | null) => {

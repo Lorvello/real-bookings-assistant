@@ -19,6 +19,9 @@ export interface UserStatus {
   statusMessage: string;
   statusColor: 'green' | 'yellow' | 'red' | 'gray';
   isSetupIncomplete: boolean;
+  // Stable loading sentinel. statusMessage is now translated (i18n), so logic must
+  // NOT compare it to the English 'Loading...' string; check this flag instead.
+  isStatusLoading: boolean;
 }
 
 export interface AccessControl {

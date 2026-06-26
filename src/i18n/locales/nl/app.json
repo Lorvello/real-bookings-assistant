@@ -69,7 +69,31 @@
       "btnFixPayment": "Betaling herstellen",
       "btnUpgrade": "Upgraden",
       "loadingEllipsis": "Laden…",
-      "limitedAccess": "Beperkte toegang tot upgrade"
+      "limitedAccess": "Beperkte toegang tot upgrade",
+      "msg": {
+        "admin": "👑 Adminaccount - Volledige toegang",
+        "trialExpired": "Proefperiode verlopen. Upgrade nu",
+        "paymentGrace": "Betalingsprobleem - Respijtperiode actief",
+        "paymentUpdate": "Betalingsprobleem - Werk je betaalmethode bij",
+        "activeSubscription": "Actief abonnement",
+        "subEndsInOne": "Abonnement eindigt over {{count}} dag",
+        "subEndsInOther": "Abonnement eindigt over {{count}} dagen",
+        "subEndingSoon": "Abonnement eindigt binnenkort",
+        "subCancelledExpired": "Abonnement geannuleerd en verlopen. Upgrade",
+        "completeSetupTrial": "Rond installatie af om je proefperiode te starten",
+        "unknown": "Onbekende status",
+        "loading": "Laden..."
+      }
+    },
+    "access": {
+      "whatsappTitle": "WhatsApp-boekingsagent niet actief",
+      "whatsappDesc": "Je boekingsassistent is niet actief. Upgrade nu of neem opnieuw een abonnement om hem te activeren.",
+      "professionalFeature": "Professional-functie",
+      "biDesc": "Business Intelligence is alleen beschikbaar met een Professional- of Enterprise-abonnement.",
+      "perfDesc": "Prestaties & efficiëntie is alleen beschikbaar met een Professional- of Enterprise-abonnement.",
+      "futureDesc": "Future Insights is alleen beschikbaar met een Professional- of Enterprise-abonnement.",
+      "teamDesc": "Teamledenbeheer is alleen beschikbaar met een Professional- of Enterprise-abonnement.",
+      "taxDesc": "Belastingnaleving is alleen beschikbaar met een Professional- of Enterprise-abonnement."
     }
   }
 }

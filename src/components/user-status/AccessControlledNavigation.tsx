@@ -56,13 +56,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   // Memoize navigation items with ULTRA-STABLE state to prevent any flashing
   const navigationItems = useMemo(() => {
     // ULTIMATE FAILSAFE: Multiple checks for paid subscribers to prevent ANY glitches
-    const isPaidSubscriber = userStatus.userType === 'subscriber' || 
-                            userStatus.isSubscriber || 
-                            (userStatus.statusMessage === 'Active Subscription') ||
-                            (userStatus.statusColor === 'green' && userStatus.statusMessage.includes('Active'));
+    // Decoupled from statusMessage (which is now i18n-translated): the enum flags
+    // already capture every paid state the old string checks did (paid_subscriber +
+    // admin both set userType==='subscriber'/isSubscriber).
+    const isPaidSubscriber = userStatus.userType === 'subscriber' || userStatus.isSubscriber;
     
     // STABLE STATUS: Don't process navigation during unknown/loading states
-    if (userStatus.userType === 'unknown' && userStatus.statusMessage === 'Loading...') {
+    if (userStatus.isStatusLoading) {
       return navigation.map((item) => ({
         ...item,
         isActive: location.pathname === item.href,
@@ -126,13 +126,13 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
 
   const handleItemClick = (item: NavItem) => {
     // ULTIMATE FAILSAFE: Multiple checks for paid subscribers to prevent ANY access restrictions
-    const isPaidSubscriber = userStatus.userType === 'subscriber' || 
-                            userStatus.isSubscriber || 
-                            (userStatus.statusMessage === 'Active Subscription') ||
-                            (userStatus.statusColor === 'green' && userStatus.statusMessage.includes('Active'));
+    // Decoupled from statusMessage (which is now i18n-translated): the enum flags
+    // already capture every paid state the old string checks did (paid_subscriber +
+    // admin both set userType==='subscriber'/isSubscriber).
+    const isPaidSubscriber = userStatus.userType === 'subscriber' || userStatus.isSubscriber;
     
     // Don't process clicks during loading/unknown states to prevent glitches
-    if (userStatus.userType === 'unknown' && userStatus.statusMessage === 'Loading...') {
+    if (userStatus.isStatusLoading) {
       return;
     }
     
