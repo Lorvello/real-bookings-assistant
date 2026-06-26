@@ -56,6 +56,13 @@ import { WhatsAppUnifiedView } from '@/components/whatsapp/WhatsAppUnifiedView';
 import WhatsAppBookingAssistantPage from '@/pages/WhatsAppBookingAssistant';
 import TestAIAgent from '@/pages/TestAIAgent';
 import Profile from '@/pages/Profile';
+// C10 all-pages sweep additions: the last 3 logged-in pages that had no harness.
+// Success + TeamInvite are standalone centered cards (no DashboardLayout); SecurityAudit
+// carries its own DashboardLayout (admin). All three render under the same mocked
+// Auth/UserStatus/Calendar contexts + QueryClient already provided below.
+import Success from '@/pages/Success';
+import TeamInvite from '@/pages/TeamInvite';
+import SecurityAudit from '@/pages/SecurityAudit';
 
 // A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
 // (in the render body, before any passive effect runs). That first value is what
@@ -554,6 +561,12 @@ function Harness() {
                 <TestAIAgent />
               ) : surface === 'profile' ? (
                 <Profile />
+              ) : surface === 'success' ? (
+                <Success />
+              ) : surface === 'teaminvite' ? (
+                <TeamInvite />
+              ) : surface === 'security' ? (
+                <SecurityAudit />
               ) : (
                 <DashboardLayout>
                   <TallContent />

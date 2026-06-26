@@ -169,8 +169,10 @@ export default function Success() {
           <CardDescription>
             {isVerifying ? (
               'We are checking your subscription status...'
-            ) : (
+            ) : subscriptionTier ? (
               `Your ${subscriptionTier} subscription has been successfully activated.`
+            ) : (
+              'Your subscription has been successfully activated.'
             )}
           </CardDescription>
         </CardHeader>
@@ -178,6 +180,7 @@ export default function Success() {
         <CardContent className="space-y-4">
           {!isVerifying && (
             <>
+              {subscriptionTier && (
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h3 className="font-semibold mb-2">You now have access to:</h3>
                 <ul className="text-sm space-y-1 text-muted-foreground">
@@ -216,9 +219,10 @@ export default function Success() {
                   )}
                 </ul>
               </div>
+              )}
 
               <div className="flex flex-col gap-3">
-                <Button 
+                <Button
                   onClick={handleGoToDashboard}
                   className="w-full"
                 >
