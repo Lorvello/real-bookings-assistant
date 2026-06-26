@@ -30,6 +30,7 @@ import nlTerms from './locales/nl/terms.json';
 import nlPrivacy from './locales/nl/privacy.json';
 import nlBlog from './locales/nl/blog.json';
 import nlBlogArticle from './locales/nl/blogArticle.json';
+import nlBusinessSearch from './locales/nl/businessSearch.json';
 
 export const LANGUAGE_STORAGE_KEY = 'ba.language';
 export const SUPPORTED_LANGUAGES = ['en', 'nl'] as const;
@@ -74,12 +75,13 @@ i18n.use(initReactI18next).init({
       privacy: nlPrivacy,
       blog: nlBlog,
       blogArticle: nlBlogArticle,
+      businessSearch: nlBusinessSearch,
     },
   },
   lng: initialLanguage,
   fallbackLng: 'en',
   defaultNS: 'common',
-  ns: ['common', 'home', 'howItWorks', 'whyUs', 'about', 'faq', 'contact', 'terms', 'privacy', 'blog', 'blogArticle'],
+  ns: ['common', 'home', 'howItWorks', 'whyUs', 'about', 'faq', 'contact', 'terms', 'privacy', 'blog', 'blogArticle', 'businessSearch'],
   returnEmptyString: false, // empty NL value -> fall back to EN, never blank
   interpolation: {
     escapeValue: false, // React already escapes

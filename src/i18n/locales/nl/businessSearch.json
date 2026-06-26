@@ -1,0 +1,60 @@
+{
+  "businessSearch": {
+    "page": {
+      "title": "Bedrijven zoeken",
+      "subtitle": "Zoek bedrijven en bekijk hun beschikbaarheid",
+      "refresh": "Vernieuwen",
+      "searchCardTitle": "Zoeken",
+      "searchPlaceholder": "Zoek op bedrijfsnaam...",
+      "searchBtn": "Zoeken",
+      "filters": "Filters",
+      "businessTypeLabel": "Bedrijfstype",
+      "selectType": "Selecteer type",
+      "allTypes": "Alle types",
+      "cityLabel": "Stad",
+      "cityPlaceholder": "Zoek op stad...",
+      "resetFilters": "Filters wissen",
+      "resultsLabel": "Resultaten",
+      "businessSingular": "bedrijf",
+      "businessPlural": "bedrijven",
+      "loading": "Laden...",
+      "empty": "Geen bedrijven gevonden. Probeer andere zoektermen."
+    },
+    "types": {
+      "salon": "Kapsalon",
+      "clinic": "Kliniek",
+      "consultant": "Consultant",
+      "trainer": "Trainer",
+      "other": "Overig",
+      "unknown": "Onbekend"
+    },
+    "card": {
+      "priceOnRequest": "Prijs op aanvraag",
+      "unnamedBusiness": "Naamloos bedrijf",
+      "calendarSingular": "agenda",
+      "calendarPlural": "agenda's",
+      "contact": "Contact",
+      "website": "Website",
+      "address": "Adres",
+      "calendarsHeading": "Agenda's",
+      "totalStats": "Totaalstatistieken",
+      "totalBookings": "Totaal boekingen:",
+      "totalRevenue": "Totale omzet:",
+      "unnamedCalendar": "Naamloze agenda",
+      "inactive": "Inactief",
+      "serviceSingular": "dienst",
+      "servicePlural": "diensten",
+      "servicesHeading": "Diensten",
+      "openingHours": "Openingstijden",
+      "closed": "Gesloten",
+      "viewTimes": "Bekijk beschikbare tijden",
+      "dMon": "Ma",
+      "dTue": "Di",
+      "dWed": "Wo",
+      "dThu": "Do",
+      "dFri": "Vr",
+      "dSat": "Za",
+      "dSun": "Zo"
+    }
+  }
+}
