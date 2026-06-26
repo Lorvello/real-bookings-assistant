@@ -1,0 +1,77 @@
+{
+  "terms": {
+    "goBack": "Ga terug",
+    "title": "Servicevoorwaarden",
+    "lastUpdated": "Laatst bijgewerkt:",
+    "s1": {
+      "h": "1. Aanvaarding van de voorwaarden",
+      "p": "Door gebruik te maken van onze agenda-boekingsdienst ga je akkoord met deze servicevoorwaarden. Als je niet akkoord gaat met deze voorwaarden, mag je onze dienst niet gebruiken."
+    },
+    "s2": {
+      "h": "2. Beschrijving van de dienst",
+      "p": "Onze dienst biedt een multi-tenant agenda-boekingsplatform waarmee bedrijven kunnen:",
+      "li1": "Hun eigen agenda-instellingen beheren",
+      "li2": "Afspraaktypes instellen",
+      "li3": "Beschikbaarheidsschema's instellen",
+      "li4": "Geautomatiseerde boekingsprocessen opzetten"
+    },
+    "s3": {
+      "h": "3. Account en registratie",
+      "p": "Om onze dienst te gebruiken, moet je:",
+      "li1": "Tijdens de registratie juiste en volledige informatie verstrekken",
+      "li2": "Je accountgegevens up-to-date houden",
+      "li3": "Verantwoordelijk zijn voor alle activiteiten onder je account",
+      "li4": "Je wachtwoord veilig houden en niet delen"
+    },
+    "s4": {
+      "h": "4. Toegestaan gebruik",
+      "p1": "Je mag onze dienst gebruiken voor:",
+      "a1": "Legitieme zakelijke activiteiten",
+      "a2": "Het beheren van afspraken en boekingen",
+      "a3": "Communicatie met klanten over boekingen",
+      "p2": "Het is niet toegestaan om:",
+      "b1": "De dienst te gebruiken voor illegale activiteiten",
+      "b2": "Spam of ongewenste berichten te versturen",
+      "b3": "Te proberen de dienst te hacken of te misbruiken",
+      "b4": "Zonder toestemming toegang te krijgen tot accounts van andere gebruikers"
+    },
+    "s5": {
+      "h": "5. Gegevensbescherming",
+      "p": "Wij nemen gegevensbescherming serieus. Je persoonsgegevens worden verwerkt in overeenstemming met ons privacybeleid en de geldende privacywetgeving, waaronder de AVG."
+    },
+    "s6": {
+      "h": "6. Beschikbaarheid van de dienst",
+      "p": "We streven ernaar onze dienst 24/7 beschikbaar te houden, maar kunnen geen 100% uptime garanderen. Onderhoud en updates kunnen tijdelijke onderbrekingen van de dienst veroorzaken."
+    },
+    "s7": {
+      "h": "7. Betalingen en facturering",
+      "p": "De betalingsvoorwaarden staan vermeld in je abonnement. Alle prijzen zijn exclusief btw, tenzij anders vermeld. Betalingen zijn verschuldigd volgens de afgesproken betalingstermijnen."
+    },
+    "s8": {
+      "h": "8. Beëindiging",
+      "p": "Je kunt je account op elk moment opzeggen. Wij behouden ons het recht voor om accounts op te schorten of te beëindigen bij overtreding van deze voorwaarden of misbruik van de dienst."
+    },
+    "s9": {
+      "h": "9. Aansprakelijkheid",
+      "p": "Onze aansprakelijkheid is beperkt tot het bedrag dat je voor de dienst hebt betaald in de 12 maanden voorafgaand aan de claim. Wij zijn niet aansprakelijk voor indirecte schade of gevolgschade."
+    },
+    "s10": {
+      "h": "10. Wijzigingen",
+      "p": "Wij behouden ons het recht voor om deze voorwaarden te wijzigen. Wijzigingen worden 30 dagen na kennisgeving via e-mail of via onze website van kracht."
+    },
+    "s11": {
+      "h": "11. Toepasselijk recht",
+      "p": "Op deze voorwaarden is Nederlands recht van toepassing. Geschillen worden voorgelegd aan de bevoegde rechter in Nederland."
+    },
+    "s12": {
+      "h": "12. Contact",
+      "p": "Voor vragen over deze voorwaarden kun je contact met ons opnemen:",
+      "emailLabel": "E-mail:",
+      "phoneLabel": "Telefoon:"
+    },
+    "footer": {
+      "privacy": "Privacybeleid",
+      "faq": "Veelgestelde vragen"
+    }
+  }
+}

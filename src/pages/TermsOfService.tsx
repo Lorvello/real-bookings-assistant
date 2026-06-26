@@ -1,10 +1,12 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 const TermsOfService = () => {
+  const { t, i18n } = useTranslation('terms');
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -24,17 +26,17 @@ const TermsOfService = () => {
           className="inline-flex items-center text-sm text-gray-300 hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Go back
+          {t('terms.goBack', 'Go back')}
         </button>
 
         {/* Main Card */}
         <Card className="bg-card border-border shadow-xl">
           <CardHeader className="text-center border-b border-border">
             <CardTitle className="text-3xl font-bold text-foreground">
-              Terms of Service
+              {t('terms.title', 'Terms of Service')}
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Last updated: {new Date().toLocaleDateString('en-US')}
+              {t('terms.lastUpdated', 'Last updated:')} {new Date().toLocaleDateString(i18n.language === 'nl' ? 'nl-NL' : 'en-US')}
             </CardDescription>
           </CardHeader>
 
@@ -44,166 +46,152 @@ const TermsOfService = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  1. Acceptance of terms
+                  {t('terms.s1.h', '1. Acceptance of terms')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  By using our calendar booking service, you agree to these terms of service. 
-                  If you do not agree to these terms, you may not use our service.
+                  {t('terms.s1.p', 'By using our calendar booking service, you agree to these terms of service. If you do not agree to these terms, you may not use our service.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  2. Service description
+                  {t('terms.s2.h', '2. Service description')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  Our service provides a multi-tenant calendar booking platform where businesses can:
+                  {t('terms.s2.p', 'Our service provides a multi-tenant calendar booking platform where businesses can:')}
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Manage their own calendar settings</li>
-                  <li>Configure appointment types</li>
-                  <li>Set availability schedules</li>
-                  <li>Set up automated booking processes</li>
+                  <li>{t('terms.s2.li1', 'Manage their own calendar settings')}</li>
+                  <li>{t('terms.s2.li2', 'Configure appointment types')}</li>
+                  <li>{t('terms.s2.li3', 'Set availability schedules')}</li>
+                  <li>{t('terms.s2.li4', 'Set up automated booking processes')}</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  3. Account and registration
+                  {t('terms.s3.h', '3. Account and registration')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  To use our service, you must:
+                  {t('terms.s3.p', 'To use our service, you must:')}
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Provide accurate and complete information during registration</li>
-                  <li>Keep your account information up to date</li>
-                  <li>Be responsible for all activities under your account</li>
-                  <li>Keep your password secure and not share it</li>
+                  <li>{t('terms.s3.li1', 'Provide accurate and complete information during registration')}</li>
+                  <li>{t('terms.s3.li2', 'Keep your account information up to date')}</li>
+                  <li>{t('terms.s3.li3', 'Be responsible for all activities under your account')}</li>
+                  <li>{t('terms.s3.li4', 'Keep your password secure and not share it')}</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  4. Permitted use
+                  {t('terms.s4.h', '4. Permitted use')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  You may use our service for:
+                  {t('terms.s4.p1', 'You may use our service for:')}
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Legitimate business activities</li>
-                  <li>Managing appointments and bookings</li>
-                  <li>Communication with customers about bookings</li>
+                  <li>{t('terms.s4.a1', 'Legitimate business activities')}</li>
+                  <li>{t('terms.s4.a2', 'Managing appointments and bookings')}</li>
+                  <li>{t('terms.s4.a3', 'Communication with customers about bookings')}</li>
                 </ul>
                 <p className="text-muted-foreground leading-relaxed mt-4 mb-3">
-                  It is not permitted to:
+                  {t('terms.s4.p2', 'It is not permitted to:')}
                 </p>
                 <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-6">
-                  <li>Use the service for illegal activities</li>
-                  <li>Send spam or unwanted messages</li>
-                  <li>Attempt to hack or abuse the service</li>
-                  <li>Access other users' accounts without permission</li>
+                  <li>{t('terms.s4.b1', 'Use the service for illegal activities')}</li>
+                  <li>{t('terms.s4.b2', 'Send spam or unwanted messages')}</li>
+                  <li>{t('terms.s4.b3', 'Attempt to hack or abuse the service')}</li>
+                  <li>{t('terms.s4.b4', "Access other users' accounts without permission")}</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  5. Data protection
+                  {t('terms.s5.h', '5. Data protection')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  We take data protection seriously. Your personal data is processed 
-                  in accordance with our Privacy Policy and applicable privacy legislation, 
-                  including GDPR.
+                  {t('terms.s5.p', 'We take data protection seriously. Your personal data is processed in accordance with our Privacy Policy and applicable privacy legislation, including GDPR.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  6. Service availability
+                  {t('terms.s6.h', '6. Service availability')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  We strive to keep our service available 24/7, but cannot guarantee 
-                  100% uptime. Maintenance and updates may cause temporary 
-                  service interruptions.
+                  {t('terms.s6.p', 'We strive to keep our service available 24/7, but cannot guarantee 100% uptime. Maintenance and updates may cause temporary service interruptions.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  7. Payments and billing
+                  {t('terms.s7.h', '7. Payments and billing')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Payment terms are specified in your subscription. All prices 
-                  are exclusive of VAT unless otherwise stated. Payments are due 
-                  according to the agreed payment terms.
+                  {t('terms.s7.p', 'Payment terms are specified in your subscription. All prices are exclusive of VAT unless otherwise stated. Payments are due according to the agreed payment terms.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  8. Termination
+                  {t('terms.s8.h', '8. Termination')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  You may cancel your account at any time. We reserve the right 
-                  to suspend or terminate accounts for violation of these terms 
-                  or abuse of the service.
+                  {t('terms.s8.p', 'You may cancel your account at any time. We reserve the right to suspend or terminate accounts for violation of these terms or abuse of the service.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  9. Liability
+                  {t('terms.s9.h', '9. Liability')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  Our liability is limited to the amount you have paid for 
-                  the service in the 12 months preceding the claim. We are not 
-                  liable for indirect or consequential damages.
+                  {t('terms.s9.p', 'Our liability is limited to the amount you have paid for the service in the 12 months preceding the claim. We are not liable for indirect or consequential damages.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  10. Changes
+                  {t('terms.s10.h', '10. Changes')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  We reserve the right to modify these terms. 
-                  Changes will take effect 30 days after notification via email 
-                  or through our website.
+                  {t('terms.s10.p', 'We reserve the right to modify these terms. Changes will take effect 30 days after notification via email or through our website.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  11. Applicable law
+                  {t('terms.s11.h', '11. Applicable law')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  These terms are governed by Dutch law. Disputes 
-                  will be submitted to the competent court in the Netherlands.
+                  {t('terms.s11.p', 'These terms are governed by Dutch law. Disputes will be submitted to the competent court in the Netherlands.')}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2 text-green-500" />
-                  12. Contact
+                  {t('terms.s12.h', '12. Contact')}
                 </h2>
                 <p className="text-muted-foreground leading-relaxed mb-3">
-                  For questions about these terms, you can contact us:
+                  {t('terms.s12.p', 'For questions about these terms, you can contact us:')}
                 </p>
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <p className="text-muted-foreground">
-                    Email: <a href="mailto:support@bookingsassistant.com" className="text-primary hover:underline">support@bookingsassistant.com</a>
+                    {t('terms.s12.emailLabel', 'Email:')} <a href="mailto:support@bookingsassistant.com" className="text-primary hover:underline">support@bookingsassistant.com</a>
                   </p>
-                  <p className="text-muted-foreground">Phone: +31 20 794 2048</p>
+                  <p className="text-muted-foreground">{t('terms.s12.phoneLabel', 'Phone:')} +31 20 794 2048</p>
                 </div>
               </section>
 
@@ -213,14 +201,14 @@ const TermsOfService = () => {
             <div className="mt-8 pt-6 border-t border-border">
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <Button onClick={handleBack} className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Go back
+                  {t('terms.goBack', 'Go back')}
                 </Button>
                 <div className="flex flex-col sm:flex-row gap-4 text-sm">
                   <Link to="/privacy-policy" className="text-primary hover:text-primary/80 underline">
-                    Privacy Policy
+                    {t('terms.footer.privacy', 'Privacy Policy')}
                   </Link>
                   <Link to="/faq" className="text-primary hover:text-primary/80 underline">
-                    FAQ
+                    {t('terms.footer.faq', 'FAQ')}
                   </Link>
                 </div>
               </div>
