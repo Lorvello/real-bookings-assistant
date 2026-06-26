@@ -1,0 +1,117 @@
+{
+  "privacy": {
+    "goBack": "Ga terug",
+    "title": "Privacybeleid",
+    "lastUpdated": "Laatst bijgewerkt:",
+    "s1": {
+      "h": "1. Inleiding",
+      "p": "We respecteren je privacy en zetten ons in om je persoonsgegevens te beschermen. Dit privacybeleid legt uit hoe we je gegevens verzamelen, gebruiken, opslaan en beschermen wanneer je onze agenda-boekingsdienst gebruikt."
+    },
+    "s2": {
+      "h": "2. Welke gegevens we verzamelen",
+      "p": "We verzamelen de volgende categorieën persoonsgegevens:",
+      "accountH": "Accountgegevens:",
+      "acc1": "Volledige naam",
+      "acc2": "E-mailadres",
+      "acc3": "Telefoonnummer",
+      "acc4": "Bedrijfsnaam",
+      "acc5": "Wachtwoord (versleuteld opgeslagen)",
+      "bizH": "Bedrijfsgegevens:",
+      "biz1": "Bedrijfstype en omschrijving",
+      "biz2": "Dienstenaanbod en afspraaktypes",
+      "biz3": "Beschikbaarheidsschema's",
+      "biz4": "Boekingsinstellingen",
+      "usageH": "Gebruiksgegevens:",
+      "use1": "Inlogactiviteit en sessiegegevens",
+      "use2": "IP-adres en browserinformatie",
+      "use3": "Gebruiksstatistieken van het platform",
+      "use4": "Foutlogboeken en technische diagnostiek"
+    },
+    "s3": {
+      "h": "3. Hoe we je gegevens gebruiken",
+      "p": "We gebruiken je persoonsgegevens voor de volgende doeleinden:",
+      "li1": "Het leveren en onderhouden van onze agenda-boekingsdienst",
+      "li2": "Het verwerken van boekingen en afspraken",
+      "li3": "Het versturen van bevestigings- en herinnerings-e-mails",
+      "li4": "Het bieden van klantenservice en technische ondersteuning",
+      "li5": "Het verbeteren van onze dienst en gebruikerservaring",
+      "li6": "Het voldoen aan wettelijke verplichtingen",
+      "li7": "Het voorkomen van fraude en misbruik"
+    },
+    "s4": {
+      "h": "4. Delen en openbaarmaking van gegevens",
+      "p": "We delen je persoonsgegevens niet met derden, behalve in de volgende gevallen:",
+      "l1": "Met jouw toestemming:",
+      "v1": "Wanneer je uitdrukkelijk hebt ingestemd met het delen",
+      "l2": "Dienstverleners:",
+      "v2": "Vertrouwde partners die ons helpen de dienst te leveren (hosting, e-mail, betalingen)",
+      "l3": "Wettelijke verplichtingen:",
+      "v3": "Wanneer dit wettelijk of door een rechterlijk bevel vereist is",
+      "l4": "Bedrijfsoverdracht:",
+      "v4": "In geval van fusie, overname of verkoop van bedrijfsonderdelen"
+    },
+    "s5": {
+      "h": "5. Gegevensbeveiliging",
+      "p": "We nemen passende technische en organisatorische maatregelen om je gegevens te beschermen:",
+      "techH": "Technische beveiliging:",
+      "tech1": "SSL/TLS-versleuteling",
+      "tech2": "Beveiligde databases",
+      "tech3": "Regelmatige beveiligingsupdates",
+      "tech4": "Toegangscontroles",
+      "orgH": "Organisatorische beveiliging:",
+      "org1": "Beperkte toegang tot gegevens",
+      "org2": "Regelmatige beveiligingsaudits",
+      "org3": "Training van medewerkers",
+      "org4": "Procedures voor incidentafhandeling"
+    },
+    "s6": {
+      "h": "6. Je rechten onder de AVG",
+      "p": "Als inwoner van de EU heb je de volgende rechten met betrekking tot je persoonsgegevens:",
+      "r1h": "Recht op inzage",
+      "r1p": "Je kunt een kopie opvragen van alle persoonsgegevens die we van je hebben",
+      "r2h": "Recht op rectificatie",
+      "r2p": "Je kunt verzoeken om correctie van onjuiste of onvolledige gegevens",
+      "r3h": "Recht op verwijdering",
+      "r3p": "Je kunt verzoeken om verwijdering van je persoonsgegevens",
+      "r4h": "Recht op gegevensoverdraagbaarheid",
+      "r4p": "Je kunt je gegevens opvragen in een machineleesbaar formaat"
+    },
+    "s7": {
+      "h": "7. Bewaren van gegevens",
+      "p": "We bewaren je gegevens alleen zo lang als nodig is voor de doeleinden waarvoor ze zijn verzameld:",
+      "l1": "Actieve accounts:",
+      "v1": "Zolang je account actief is",
+      "l2": "Gesloten accounts:",
+      "v2": "Tot 30 dagen na sluiting (tenzij wettelijk anders vereist)",
+      "l3": "Boekingsgegevens:",
+      "v3": "Tot 7 jaar voor administratieve doeleinden",
+      "l4": "Logbestanden:",
+      "v4": "Maximaal 12 maanden"
+    },
+    "s8": {
+      "h": "8. Cookies en tracking",
+      "p": "Onze website gebruikt cookies en vergelijkbare technologieën voor:",
+      "li1": "Het onthouden van je voorkeuren en inlogstatus",
+      "li2": "Het analyseren van het websitegebruik voor verbeteringen",
+      "li3": "Het bieden van een gepersonaliseerde gebruikerservaring",
+      "closing": "Je kunt cookies beheren via je browserinstellingen, maar dit kan de functionaliteit beïnvloeden."
+    },
+    "s9": {
+      "h": "9. Wijzigingen in dit privacybeleid",
+      "p": "We kunnen dit privacybeleid van tijd tot tijd bijwerken. We informeren je over belangrijke wijzigingen via e-mail of een duidelijke melding op onze website. De datum van de laatste wijziging staat altijd bovenaan dit document vermeld."
+    },
+    "s10": {
+      "h": "10. Contact en vragen",
+      "p": "Voor vragen over dit privacybeleid of het uitoefenen van je rechten kun je contact met ons opnemen:",
+      "emailLabel": "E-mail:",
+      "privacyLabel": "Privacyvragen:",
+      "phoneLabel": "Telefoon:",
+      "dpoLabel": "Functionaris Gegevensbescherming:",
+      "closing": "Je hebt ook het recht om een klacht in te dienen bij de Autoriteit Persoonsgegevens als je vindt dat we niet juist met je gegevens omgaan."
+    },
+    "footer": {
+      "terms": "Servicevoorwaarden",
+      "faq": "Veelgestelde vragen"
+    }
+  }
+}
