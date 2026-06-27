@@ -42,6 +42,71 @@
       "trackingSoon": "Bijhouden begint binnenkort",
       "trackingSoonDesc": "Week-op-week-trends na je eerste boekingen."
     },
+    "liveOps": {
+      "status": {
+        "online": "Online",
+        "offline": "Offline",
+        "partial": "Gedeeltelijk",
+        "active": "Actief",
+        "paused": "Gepauzeerd",
+        "disconnected": "Niet verbonden",
+        "live": "Live"
+      },
+      "sys": {
+        "noCalendars": "Geen agenda's gevonden",
+        "calsOnline": "{{online}} van {{total}} agenda's online",
+        "subExpired": "Abonnement verlopen",
+        "noWhatsapp": "Geen WhatsApp-toegang",
+        "botDisabled": "Bot uitgeschakeld in instellingen",
+        "botActive": "Bot reageert overal op berichten",
+        "calsConnected": "{{connected}} van {{total}} agenda's verbonden",
+        "syncDetail": "Realtime-synchronisatie houdt je boekingen direct up-to-date in alle systemen",
+        "allConnected": "Alle {{total}} agenda's verbonden",
+        "heading": "Live-systeemstatus",
+        "calendarStatus": "Agendastatus",
+        "calOnlineTip": "Alle agenda's accepteren nieuwe afspraken.",
+        "calPartialTip": "Sommige agenda's zijn offline. Controleer de instellingen per agenda.",
+        "calOfflineTip": "Klanten kunnen geen nieuwe tijden boeken op offline agenda's.",
+        "assistant": "Bookings Assistant",
+        "assistantTip": "Je AI-boekingsassistent helpt klanten afspraken te maken via WhatsApp, voor al je agenda's tegelijk.",
+        "clickSettings": "Klik om instellingen te openen",
+        "realtimeSync": "Realtime-synchronisatie"
+      },
+      "header": {
+        "title": "Live-operatiecentrum",
+        "subtitle": "Realtime-gegevens, werkt automatisch elke minuut bij",
+        "lastUpdate": "Laatste update"
+      },
+      "err": {
+        "title": "Live-gegevens niet beschikbaar",
+        "desc": "We konden de live-operaties nu niet laden. Het ververst automatisch."
+      },
+      "metric": {
+        "todayTitle": "Vandaag",
+        "todaySubtitle": "bevestigde afspraken",
+        "convTitle": "Actieve gesprekken",
+        "convSubtitle": "open WhatsApp-chats",
+        "apptTitle": "Actieve afspraken",
+        "apptSubtitle": "momenteel bezig",
+        "nextTitle": "Volgende",
+        "none": "Geen",
+        "timeToday": "{{time}} vandaag",
+        "nothingMore": "verder niets vandaag",
+        "tipToday": "Toont het totaal aan bevestigde afspraken voor vandaag. Dit omvat alle geboekte diensten in je agenda.",
+        "tipConv": "Aantal WhatsApp-gesprekken dat nu actief (open) staat, van nieuwe aanvragen tot lopende klantgesprekken.",
+        "tipAppt": "Aantal afspraken dat nu bezig is. Dit zijn sessies die op dit moment plaatsvinden.",
+        "tipNext": "Klik om je volledige planning in de weekweergave te bekijken. Toont de tijd tot je volgende afspraak."
+      },
+      "plan": {
+        "heading": "Planning van vandaag",
+        "nextAppt": "Volgende afspraak",
+        "nextApptTip": "Klik om je volledige planning in de weekweergave te bekijken. Bekijk alle afspraken van vandaag en beheer je tijd.",
+        "clickAnywhere": "Klik ergens om de volledige planning te bekijken",
+        "freeDay": "Vrije dag vandaag",
+        "noAppts": "Geen afspraken gepland",
+        "clickCalendar": "Klik om de agenda te bekijken"
+      }
+    },
     "locked": {
       "proFeature": "Pro-functie",
       "cta": "Upgraden naar Pro",

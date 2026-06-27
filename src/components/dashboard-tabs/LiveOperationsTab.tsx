@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOptimizedLiveOperations } from '@/hooks/dashboard/useOptimizedLiveOperations';
@@ -21,15 +23,33 @@ interface LiveOperationsTabProps {
 }
 
 export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
+  const { t, i18n } = useTranslation('dashboard');
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const navigate = useNavigate();
   const { data: liveOps, isLoading, isError } = useOptimizedLiveOperations(calendarIds);
   const { userStatus, accessControl } = useUserStatus();
   const { calendars } = useCalendars();
   const { data: globalBotStatus } = useGlobalBotStatus();
   const multipleRealtimeStatus = useMultipleCalendarRealtimeStatus(calendarIds);
-  
+
   // Setup realtime subscription for first calendar (for backward compatibility)
   useRealtimeSubscription(calendarIds[0]);
+
+  // Display-only label for the status sentinel. The `status` field itself stays
+  // English (it is also a logic sentinel, compared in the tooltips below), so the
+  // i18n wrap is at the DISPLAY layer only (R41 decouple discipline).
+  const statusLabel = (s: string): string => {
+    switch (s) {
+      case 'Online': return t('dashboard.liveOps.status.online', 'Online');
+      case 'Offline': return t('dashboard.liveOps.status.offline', 'Offline');
+      case 'Partial': return t('dashboard.liveOps.status.partial', 'Partial');
+      case 'Active': return t('dashboard.liveOps.status.active', 'Active');
+      case 'Paused': return t('dashboard.liveOps.status.paused', 'Paused');
+      case 'Disconnected': return t('dashboard.liveOps.status.disconnected', 'Disconnected');
+      case 'Live': return t('dashboard.liveOps.status.live', 'Live');
+      default: return s;
+    }
+  };
 
   // Calculate system statuses
   const getCalendarStatus = () => {
@@ -37,99 +57,101 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
     const relevantCalendars = calendars.filter(cal => calendarIds.includes(cal.id));
     const onlineCount = relevantCalendars.filter(cal => cal.is_active).length;
     const totalCount = relevantCalendars.length;
-    
+
     if (totalCount === 0) {
-      return { 
-        status: 'Offline', 
-        color: 'red', 
-        bgColor: 'bg-destructive/10', 
-        borderColor: 'border-destructive/30', 
+      return {
+        status: 'Offline',
+        color: 'red',
+        bgColor: 'bg-destructive/10',
+        borderColor: 'border-destructive/30',
         textColor: 'text-destructive-foreground',
-        detail: 'No calendars found'
+        detail: t('dashboard.liveOps.sys.noCalendars', 'No calendars found')
       };
     }
-    
+
     if (onlineCount === totalCount) {
-      return { 
-        status: 'Online', 
-        color: 'green', 
-        bgColor: 'bg-success/10', 
-        borderColor: 'border-white/[0.12]', 
+      return {
+        status: 'Online',
+        color: 'green',
+        bgColor: 'bg-success/10',
+        borderColor: 'border-white/[0.12]',
         textColor: 'text-accent-foreground',
-        detail: `${onlineCount} of ${totalCount} calendars online`
+        detail: t('dashboard.liveOps.sys.calsOnline', '{{online}} of {{total}} calendars online', { online: onlineCount, total: totalCount })
       };
     }
-    
-    return { 
-      status: 'Partial', 
-      color: 'yellow', 
-      bgColor: 'bg-warning/10', 
-      borderColor: 'border-warning/30', 
+
+    return {
+      status: 'Partial',
+      color: 'yellow',
+      bgColor: 'bg-warning/10',
+      borderColor: 'border-warning/30',
       textColor: 'text-warning-foreground',
-      detail: `${onlineCount} of ${totalCount} calendars online`
+      detail: t('dashboard.liveOps.sys.calsOnline', '{{online}} of {{total}} calendars online', { online: onlineCount, total: totalCount })
     };
   };
 
   const getBookingsAssistantStatus = () => {
     // Check if subscription allows WhatsApp access
     if (!accessControl.canAccessWhatsApp || userStatus.isExpired) {
-      return { 
-        status: 'Offline', 
-        color: 'red', 
-        bgColor: 'bg-destructive/10', 
-        borderColor: 'border-destructive/30', 
+      return {
+        status: 'Offline',
+        color: 'red',
+        bgColor: 'bg-destructive/10',
+        borderColor: 'border-destructive/30',
         textColor: 'text-destructive-foreground',
-        reason: userStatus.isExpired ? 'Subscription expired' : 'No WhatsApp access',
+        reason: userStatus.isExpired
+          ? t('dashboard.liveOps.sys.subExpired', 'Subscription expired')
+          : t('dashboard.liveOps.sys.noWhatsapp', 'No WhatsApp access'),
         clickable: false
       };
     }
-    
+
     // Check if global bot is enabled
     if (!globalBotStatus?.whatsapp_bot_active) {
-      return { 
-        status: 'Paused', 
-        color: 'yellow', 
-        bgColor: 'bg-warning/10', 
-        borderColor: 'border-warning/30', 
+      return {
+        status: 'Paused',
+        color: 'yellow',
+        bgColor: 'bg-warning/10',
+        borderColor: 'border-warning/30',
         textColor: 'text-warning-foreground',
-        reason: 'Bot disabled in settings',
+        reason: t('dashboard.liveOps.sys.botDisabled', 'Bot disabled in settings'),
         clickable: true
       };
     }
-    
-    return { 
-      status: 'Active', 
-      color: 'green', 
-      bgColor: 'bg-success/10', 
-      borderColor: 'border-white/[0.12]', 
+
+    return {
+      status: 'Active',
+      color: 'green',
+      bgColor: 'bg-success/10',
+      borderColor: 'border-white/[0.12]',
       textColor: 'text-accent-foreground',
-      reason: 'Bot is responding to messages globally',
+      reason: t('dashboard.liveOps.sys.botActive', 'Bot is responding to messages globally'),
       clickable: true
     };
   };
 
   const getRealtimeStatus = () => {
     const { isConnected, connectionCount, totalCalendars } = multipleRealtimeStatus;
-    
+
     if (!isConnected) {
-      return { 
-        status: 'Disconnected', 
-        color: 'red', 
-        bgColor: 'bg-destructive/10', 
-        borderColor: 'border-destructive/30', 
+      return {
+        status: 'Disconnected',
+        color: 'red',
+        bgColor: 'bg-destructive/10',
+        borderColor: 'border-destructive/30',
         textColor: 'text-destructive-foreground',
-        reason: `${connectionCount} of ${totalCalendars} calendars connected`,
-        detail: 'Real-time sync keeps your bookings updated instantly across all systems'
+        reason: t('dashboard.liveOps.sys.calsConnected', '{{connected}} of {{total}} calendars connected', { connected: connectionCount, total: totalCalendars }),
+        detail: t('dashboard.liveOps.sys.syncDetail', 'Real-time sync keeps your bookings updated instantly across all systems')
       };
     }
-    return { 
-      status: 'Live', 
-      color: 'green', 
-      bgColor: 'bg-success/10', 
-      borderColor: 'border-white/[0.12]', 
+    return {
+      status: 'Live',
+      color: 'green',
+      bgColor: 'bg-success/10',
+      borderColor: 'border-white/[0.12]',
       textColor: 'text-accent-foreground',
-      reason: `All ${totalCalendars} calendars connected`,
-      detail: 'Real-time sync keeps your bookings updated instantly across all systems'
+      reason: t('dashboard.liveOps.sys.allConnected', 'All {{total}} calendars connected', { total: totalCalendars }),
+      detail: t('dashboard.liveOps.sys.syncDetail', 'Real-time sync keeps your bookings updated instantly across all systems')
     };
   };
 
@@ -164,8 +186,8 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
           <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-2xl flex items-center justify-center border border-destructive/20">
             <Activity className="h-8 w-8 text-destructive-foreground" />
           </div>
-          <p className="text-foreground font-medium mb-1">Live data unavailable</p>
-          <p className="text-sm text-muted-foreground">We couldn't load live operations right now. It refreshes automatically.</p>
+          <p className="text-foreground font-medium mb-1">{t('dashboard.liveOps.err.title', 'Live data unavailable')}</p>
+          <p className="text-sm text-muted-foreground">{t('dashboard.liveOps.err.desc', "We couldn't load live operations right now. It refreshes automatically.")}</p>
         </div>
       </div>
     );
@@ -182,16 +204,16 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
               <div className="absolute inset-0 w-4 h-4 bg-success rounded-full animate-ping opacity-75"></div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">Live Operations Center</h3>
-              <p className="text-sm text-muted-foreground">Real-time data - updates automatically every minute</p>
+              <h3 className="text-lg font-semibold text-foreground">{t('dashboard.liveOps.header.title', 'Live Operations Center')}</h3>
+              <p className="text-sm text-muted-foreground">{t('dashboard.liveOps.header.subtitle', 'Real-time data - updates automatically every minute')}</p>
             </div>
           </div>
-          
+
           {liveOps?.last_updated && (
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Last update</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.liveOps.header.lastUpdate', 'Last update')}</p>
               <p className="text-sm font-mono text-foreground">
-                {new Date(liveOps.last_updated).toLocaleTimeString('en-US')}
+                {new Date(liveOps.last_updated).toLocaleTimeString(i18n.language === 'nl' ? 'nl-NL' : 'en-US')}
               </p>
             </div>
           )}
@@ -201,16 +223,16 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
           <Tooltip>
             <TooltipTrigger asChild>
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
                 className="relative"
               >
                 <MetricCard
-                  title="Today"
+                  title={t('dashboard.liveOps.metric.todayTitle', 'Today')}
                   value={String(liveOps?.today_bookings || 0)}
-                  subtitle="confirmed appointments"
+                  subtitle={t('dashboard.liveOps.metric.todaySubtitle', 'confirmed appointments')}
                   icon={Calendar}
                   variant="green"
                   delay={0.1}
@@ -220,29 +242,29 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 </div>
               </motion.div>
             </TooltipTrigger>
-            <TooltipContent 
+            <TooltipContent
               className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
               <p className="text-sm">
-                Shows total confirmed appointments scheduled for today. This includes all booked services across your calendar.
+                {t('dashboard.liveOps.metric.tipToday', 'Shows total confirmed appointments scheduled for today. This includes all booked services across your calendar.')}
               </p>
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="relative"
               >
                 <MetricCard
-                  title="Active Conversations"
+                  title={t('dashboard.liveOps.metric.convTitle', 'Active Conversations')}
                   value={String(liveOps?.active_conversations_today || 0)}
-                  subtitle="open WhatsApp chats"
+                  subtitle={t('dashboard.liveOps.metric.convSubtitle', 'open WhatsApp chats')}
                   icon={MessageCircle}
                   variant="green"
                   delay={0.2}
@@ -252,29 +274,29 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 </div>
               </motion.div>
             </TooltipTrigger>
-            <TooltipContent 
+            <TooltipContent
               className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
               <p className="text-sm">
-                Number of WhatsApp conversations currently marked active (open), across new inquiries and ongoing customer chats.
+                {t('dashboard.liveOps.metric.tipConv', 'Number of WhatsApp conversations currently marked active (open), across new inquiries and ongoing customer chats.')}
               </p>
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="relative"
               >
                 <MetricCard
-                  title="Active Appointments"
+                  title={t('dashboard.liveOps.metric.apptTitle', 'Active Appointments')}
                   value={String(liveOps?.active_appointments || 0)}
-                  subtitle="currently ongoing"
+                  subtitle={t('dashboard.liveOps.metric.apptSubtitle', 'currently ongoing')}
                   icon={Users}
                   variant="green"
                   delay={0.3}
@@ -284,20 +306,20 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 </div>
               </motion.div>
             </TooltipTrigger>
-            <TooltipContent 
+            <TooltipContent
               className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
               <p className="text-sm">
-                Number of appointments currently in progress right now. These are live sessions happening at this moment.
+                {t('dashboard.liveOps.metric.tipAppt', 'Number of appointments currently in progress right now. These are live sessions happening at this moment.')}
               </p>
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
@@ -305,9 +327,11 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 onClick={handleTodayScheduleClick}
               >
                 <MetricCard
-                  title="Next"
-                  value={liveOps?.next_appointment_formatted || "None"}
-                  subtitle={liveOps?.next_appointment_time ? format(new Date(liveOps.next_appointment_time), 'HH:mm') + ' today' : "nothing more today"}
+                  title={t('dashboard.liveOps.metric.nextTitle', 'Next')}
+                  value={liveOps?.next_appointment_formatted || t('dashboard.liveOps.metric.none', 'None')}
+                  subtitle={liveOps?.next_appointment_time
+                    ? t('dashboard.liveOps.metric.timeToday', '{{time}} today', { time: format(new Date(liveOps.next_appointment_time), 'HH:mm', { locale: dateLocale }) })
+                    : t('dashboard.liveOps.metric.nothingMore', 'nothing more today')}
                   icon={Clock}
                   variant="green"
                   delay={0.4}
@@ -318,13 +342,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                 <div className="absolute inset-0 rounded-2xl border border-white/[0.08] group-hover:border-white/[0.14] transition-colors"></div>
               </motion.div>
             </TooltipTrigger>
-            <TooltipContent 
+            <TooltipContent
               className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
               side="top"
               align="center"
             >
               <p className="text-sm">
-                Click to view your full schedule in calendar week view. Shows time remaining until your next appointment.
+                {t('dashboard.liveOps.metric.tipNext', 'Click to view your full schedule in calendar week view. Shows time remaining until your next appointment.')}
               </p>
             </TooltipContent>
           </Tooltip>
@@ -340,46 +364,46 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   <div className="p-2 bg-muted/40 rounded-xl">
                     <Activity className="h-5 w-5 text-accent-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Live System Status</h3>
+                  <h3 className="text-lg font-semibold text-foreground">{t('dashboard.liveOps.sys.heading', 'Live System Status')}</h3>
                 </div>
-                
+
                 <div className="space-y-4">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] cursor-help relative">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 ${
-                            calendarStatus.color === 'green' ? 'bg-success' : 
+                            calendarStatus.color === 'green' ? 'bg-success' :
                             calendarStatus.color === 'yellow' ? 'bg-warning' : 'bg-destructive'
                           } rounded-full ${calendarStatus.color === 'green' ? 'animate-pulse' : ''}`}></div>
-                          <span className="text-sm font-medium text-foreground">Calendar Status</span>
+                          <span className="text-sm font-medium text-foreground">{t('dashboard.liveOps.sys.calendarStatus', 'Calendar Status')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`${calendarStatus.borderColor} ${calendarStatus.textColor} ${calendarStatus.bgColor}`}>
-                            {calendarStatus.status}
+                            {statusLabel(calendarStatus.status)}
                           </Badge>
                           <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent 
+                    <TooltipContent
                       className={`max-w-sm bg-background/95 border ${calendarStatus.borderColor} text-foreground z-50`}
                       side="top"
                       align="center"
                     >
                       <p className="text-sm">
-                        {calendarStatus.detail}. {calendarStatus.status === 'Online' 
-                          ? 'All calendars are accepting new appointments.'
+                        {calendarStatus.detail}. {calendarStatus.status === 'Online'
+                          ? t('dashboard.liveOps.sys.calOnlineTip', 'All calendars are accepting new appointments.')
                           : calendarStatus.status === 'Partial'
-                          ? 'Some calendars are offline. Check individual calendar settings.'
-                          : 'Customers cannot book new slots on offline calendars.'}
+                          ? t('dashboard.liveOps.sys.calPartialTip', 'Some calendars are offline. Check individual calendar settings.')
+                          : t('dashboard.liveOps.sys.calOfflineTip', 'Customers cannot book new slots on offline calendars.')}
                       </p>
                     </TooltipContent>
                   </Tooltip>
-                  
+
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div 
+                      <div
                         className={`flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] relative transition-colors ${
                           bookingsAssistantStatus.clickable ? 'cursor-pointer hover:bg-white/[0.06]' : 'cursor-help'
                         }`}
@@ -387,14 +411,14 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                       >
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 ${
-                            bookingsAssistantStatus.color === 'green' ? 'bg-success' : 
+                            bookingsAssistantStatus.color === 'green' ? 'bg-success' :
                             bookingsAssistantStatus.color === 'yellow' ? 'bg-warning' : 'bg-destructive'
                           } rounded-full ${bookingsAssistantStatus.color === 'green' ? 'animate-pulse' : ''}`}></div>
-                          <span className="text-sm font-medium text-foreground">Bookings Assistant</span>
+                          <span className="text-sm font-medium text-foreground">{t('dashboard.liveOps.sys.assistant', 'Bookings Assistant')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`${bookingsAssistantStatus.borderColor} ${bookingsAssistantStatus.textColor} ${bookingsAssistantStatus.bgColor}`}>
-                            {bookingsAssistantStatus.status}
+                            {statusLabel(bookingsAssistantStatus.status)}
                           </Badge>
                           {bookingsAssistantStatus.clickable ? (
                             <Settings className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
@@ -404,36 +428,36 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                         </div>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent 
+                    <TooltipContent
                       className={`max-w-sm bg-background/95 border ${bookingsAssistantStatus.borderColor} text-foreground z-50`}
                       side="top"
                       align="center"
                     >
                       <p className="text-sm">
-                        {bookingsAssistantStatus.reason}. Your AI booking assistant helps customers book appointments via WhatsApp globally across all calendars.
+                        {bookingsAssistantStatus.reason}. {t('dashboard.liveOps.sys.assistantTip', 'Your AI booking assistant helps customers book appointments via WhatsApp globally across all calendars.')}
                         {bookingsAssistantStatus.clickable && (
-                          <span className="block mt-1 text-xs opacity-75">Click to open settings</span>
+                          <span className="block mt-1 text-xs opacity-75">{t('dashboard.liveOps.sys.clickSettings', 'Click to open settings')}</span>
                         )}
                       </p>
                     </TooltipContent>
                   </Tooltip>
-                  
+
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex items-center justify-between p-4 bg-card/50 rounded-xl border border-white/[0.08] cursor-help relative">
                         <div className="flex items-center gap-3">
                           <Zap className={`h-4 w-4 ${realtimeSyncStatus.textColor}`} />
-                          <span className="text-sm font-medium text-foreground">Real-time Sync</span>
+                          <span className="text-sm font-medium text-foreground">{t('dashboard.liveOps.sys.realtimeSync', 'Real-time Sync')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={`${realtimeSyncStatus.borderColor} ${realtimeSyncStatus.textColor} ${realtimeSyncStatus.bgColor}`}>
-                            {realtimeSyncStatus.status}
+                            {statusLabel(realtimeSyncStatus.status)}
                           </Badge>
                           <Info className={`h-3 w-3 text-subtle-foreground/80 hover:text-foreground transition-colors`} />
                         </div>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent 
+                    <TooltipContent
                       className={`max-w-sm bg-background/95 border ${realtimeSyncStatus.borderColor} text-foreground z-50`}
                       side="top"
                       align="center"
@@ -459,10 +483,10 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                   <div className="p-2 bg-muted/40 rounded-xl">
                     <Calendar className="h-5 w-5 text-accent-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground">Today's Schedule</h3>
+                  <h3 className="text-lg font-semibold text-foreground">{t('dashboard.liveOps.plan.heading', "Today's Schedule")}</h3>
                   <ArrowRight className="h-4 w-4 text-accent-foreground/80 group-hover:text-accent-foreground group-hover:translate-x-1 transition-transform duration-150 ml-auto" />
                 </div>
-                
+
                 {liveOps?.next_appointment_time ? (
                   <div className="space-y-4">
                     <Tooltip>
@@ -470,13 +494,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                         <div className="p-4 bg-success/10 border border-white/[0.08] rounded-xl cursor-pointer relative group-hover:border-white/[0.14] transition-colors">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-semibold text-foreground mb-1">Next Appointment</p>
+                              <p className="font-semibold text-foreground mb-1">{t('dashboard.liveOps.plan.nextAppt', 'Next Appointment')}</p>
                               <p className="text-sm text-foreground font-mono">
-                                {format(new Date(liveOps.next_appointment_time), 'EEE d MMM, HH:mm')}
+                                {format(new Date(liveOps.next_appointment_time), 'EEE d MMM, HH:mm', { locale: dateLocale })}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge 
+                              <Badge
                                 variant="secondary"
                                 className="bg-success/15 text-accent-foreground border-white/[0.12]"
                               >
@@ -487,20 +511,20 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                           </div>
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent 
+                      <TooltipContent
                         className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
                         side="top"
                         align="center"
                       >
                         <p className="text-sm">
-                          Click to view your full schedule in calendar week view. See all today's appointments and manage your time.
+                          {t('dashboard.liveOps.plan.nextApptTip', "Click to view your full schedule in calendar week view. See all today's appointments and manage your time.")}
                         </p>
                       </TooltipContent>
                     </Tooltip>
-                    
+
                     <div className="text-center p-4 bg-card/30 rounded-xl border border-white/[0.08]">
                       <p className="text-sm text-muted-foreground">
-                        Click anywhere to view complete schedule
+                        {t('dashboard.liveOps.plan.clickAnywhere', 'Click anywhere to view complete schedule')}
                       </p>
                     </div>
                   </div>
@@ -509,9 +533,9 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
                     <div className="w-20 h-20 mx-auto mb-4 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
                       <Calendar className="h-10 w-10 text-muted-foreground" />
                     </div>
-                    <p className="text-foreground font-medium mb-1">Free day today</p>
-                    <p className="text-sm text-muted-foreground mb-4">No appointments scheduled</p>
-                    <p className="text-xs text-muted-foreground">Click to view calendar</p>
+                    <p className="text-foreground font-medium mb-1">{t('dashboard.liveOps.plan.freeDay', 'Free day today')}</p>
+                    <p className="text-sm text-muted-foreground mb-4">{t('dashboard.liveOps.plan.noAppts', 'No appointments scheduled')}</p>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.liveOps.plan.clickCalendar', 'Click to view calendar')}</p>
                   </div>
                 )}
               </div>
