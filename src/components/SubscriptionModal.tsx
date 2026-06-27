@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Check, X, ChevronLeft, ChevronRight, Info, ArrowRight } from 'lucide-react';
@@ -22,6 +23,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const { t } = useTranslation('home');
   const { toast } = useToast();
   const { tiers, isLoading } = useSubscriptionTiers();
   const testMode = isTestMode();
@@ -55,34 +57,34 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
 
     const planData = [
       {
-        name: "Starter",
+        name: t('pricing.plans.starter.name', 'Starter'),
         monthlyPrice: 30,
         annualPrice: 24,
-        description: "Perfect for beginners with basic WhatsApp automation and calendar management",
+        description: t('pricing.plans.starter.description', 'Perfect for beginners with basic WhatsApp automation and calendar management'),
         features: [
           {
-            text: "Unlimited WhatsApp contact management",
-            tooltip: "Unlimited WhatsApp contacts with smart categorization and automated responses"
+            text: t('pricing.plans.starter.features.f1.text', 'Unlimited WhatsApp contact management'),
+            tooltip: t('pricing.plans.starter.features.f1.tooltip', 'Unlimited WhatsApp contacts with smart categorization and automated responses')
           },
           {
-            text: "Dual-calendar orchestration system",
-            tooltip: "Seamlessly sync and manage two separate calendars with automated booking coordination"
+            text: t('pricing.plans.starter.features.f2.text', 'Dual-calendar orchestration system'),
+            tooltip: t('pricing.plans.starter.features.f2.tooltip', 'Seamlessly sync and manage two separate calendars with automated booking coordination')
           },
           {
-            text: "AI-powered intelligent reminder sequences",
-            tooltip: "Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates"
+            text: t('pricing.plans.starter.features.f4.text', 'AI-powered intelligent reminder sequences'),
+            tooltip: t('pricing.plans.starter.features.f4.tooltip', 'Automated reminder messages sent via WhatsApp to reduce no-shows and improve attendance rates')
           },
           {
-            text: "Essential dashboard overview & live operations monitoring",
-            tooltip: "Real-time view of bookings, appointments, and live operations monitoring with basic analytics"
+            text: t('pricing.plans.starter.features.f5.text', 'Essential dashboard overview & live operations monitoring'),
+            tooltip: t('pricing.plans.starter.features.f5.tooltip', 'Real-time view of bookings, appointments, and live operations monitoring with basic analytics')
           },
           {
-            text: "Global multi-language localization",
-            tooltip: "Automatically communicate with customers in their preferred language across multiple regions"
+            text: t('pricing.plans.starter.features.f6.text', 'Global multi-language localization'),
+            tooltip: t('pricing.plans.starter.features.f6.tooltip', 'Automatically communicate with customers in their preferred language across multiple regions')
           },
           {
-            text: "Streamlined payment processing & collection",
-            tooltip: "Integrated payment system for booking deposits and service payments with automated invoicing"
+            text: t('pricing.plans.starter.features.f7.text', 'Streamlined payment processing & collection'),
+            tooltip: t('pricing.plans.starter.features.f7.tooltip', 'Integrated payment system for booking deposits and service payments with automated invoicing')
           }
         ],
         popular: false,
@@ -91,38 +93,38 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
         stripePriceId: starterTier ? getPriceId(starterTier, isAnnual, testMode) : null
       },
       {
-        name: "Professional",
+        name: t('pricing.plans.professional.name', 'Professional'),
         monthlyPrice: 60,
         annualPrice: 48,
-        description: "Advanced features for teams with extended contact management and collaboration tools",
+        description: t('pricing.plans.professional.description', 'Advanced features for teams with extended contact management and collaboration tools'),
         features: [
           {
-            text: "All Starter premium features included",
-            tooltip: "Everything from the Starter plan plus additional professional features"
+            text: t('pricing.plans.professional.features.f1.text', 'All Starter premium features included'),
+            tooltip: t('pricing.plans.professional.features.f1.tooltip', 'Everything from the Starter plan plus additional professional features')
           },
           {
-            text: "Automated tax compliance & administration (Coming Soon)",
-            tooltip: "Coming soon: Automatic tax calculation and compliance based on your local tax regulations."
+            text: t('pricing.plans.professional.features.f5.text', 'Automated tax compliance & administration (Coming Soon)'),
+            tooltip: t('pricing.plans.professional.features.f5.tooltip', 'Coming soon: Automatic tax calculation and compliance based on your local tax regulations.')
           },
           {
-            text: "Unlimited calendar orchestration platform",
-            tooltip: "Connect and manage unlimited calendars across different platforms with advanced synchronization"
+            text: t('pricing.plans.professional.features.f2.text', 'Unlimited calendar orchestration platform'),
+            tooltip: t('pricing.plans.professional.features.f2.tooltip', 'Connect and manage unlimited calendars across different platforms with advanced synchronization')
           },
           {
-            text: "Advanced team collaboration suite (up to 10 users)",
-            tooltip: "Multi-user workspace with role-based permissions, shared calendars, and team communication tools"
+            text: t('pricing.plans.professional.features.f3.text', 'Advanced team collaboration suite (up to 10 users)'),
+            tooltip: t('pricing.plans.professional.features.f3.tooltip', 'Multi-user workspace with role-based permissions, shared calendars, and team communication tools')
           },
           {
-            text: "Multi-location business coordination",
-            tooltip: "Manage bookings and operations across multiple business locations with centralized control"
+            text: t('pricing.plans.professional.features.f4.text', 'Multi-location business coordination'),
+            tooltip: t('pricing.plans.professional.features.f4.tooltip', 'Manage bookings and operations across multiple business locations with centralized control')
           },
           {
-            text: "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights",
-            tooltip: "Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization"
+            text: t('pricing.plans.professional.features.f7.text', 'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights'),
+            tooltip: t('pricing.plans.professional.features.f7.tooltip', 'Comprehensive analytics including appointment trends, customer behavior insights, revenue tracking, conversion rates, and predictive analytics for business growth and optimization')
           },
           {
-            text: "Dedicated priority customer success",
-            tooltip: "Priority support with faster response times and dedicated success manager for onboarding and optimization"
+            text: t('pricing.plans.professional.features.f8.text', 'Dedicated priority customer success'),
+            tooltip: t('pricing.plans.professional.features.f8.tooltip', 'Priority support with faster response times and dedicated success manager for onboarding and optimization')
           }
         ],
         popular: true,
@@ -131,38 +133,38 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
         stripePriceId: professionalTier ? getPriceId(professionalTier, isAnnual, testMode) : null
       },
       {
-        name: "Enterprise",
+        name: t('pricing.plans.enterprise.name', 'Enterprise'),
         monthlyPrice: null,
         annualPrice: null,
-        description: "Complete business solution with dedicated WhatsApp number and premium support",
+        description: t('pricing.plans.enterprise.description', 'Complete business solution with dedicated WhatsApp number and premium support'),
         features: [
           {
-            text: "Complete professional suite included",
-            tooltip: "All Professional plan features plus enterprise-grade capabilities"
+            text: t('pricing.plans.enterprise.features.f1.text', 'Complete professional suite included'),
+            tooltip: t('pricing.plans.enterprise.features.f1.tooltip', 'All Professional plan features plus enterprise-grade capabilities')
           },
           {
-            text: "Dedicated WhatsApp Business API with custom branding",
-            tooltip: "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark"
+            text: t('pricing.plans.enterprise.features.f3.text', 'Dedicated WhatsApp Business API with custom branding'),
+            tooltip: t('pricing.plans.enterprise.features.f3.tooltip', 'Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark')
           },
           {
-            text: "Intelligent voice call routing & distribution",
-            tooltip: "Automated phone call management with smart routing to available team members and call recording capabilities"
+            text: t('pricing.plans.enterprise.features.f4.text', 'Intelligent voice call routing & distribution'),
+            tooltip: t('pricing.plans.enterprise.features.f4.tooltip', 'Automated phone call management with smart routing to available team members and call recording capabilities')
           },
           {
-            text: "Omnichannel social media DM orchestration",
-            tooltip: "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard"
+            text: t('pricing.plans.enterprise.features.f5.text', 'Omnichannel social media DM orchestration'),
+            tooltip: t('pricing.plans.enterprise.features.f5.tooltip', 'Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard')
           },
           {
-            text: "Advanced reputation management & review analytics",
-            tooltip: "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring"
+            text: t('pricing.plans.enterprise.features.f6.text', 'Advanced reputation management & review analytics'),
+            tooltip: t('pricing.plans.enterprise.features.f6.tooltip', 'Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring')
           },
           {
-            text: "Enterprise SLA with dedicated success management",
-            tooltip: "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times"
+            text: t('pricing.plans.enterprise.features.f7.text', 'Enterprise SLA with dedicated success management'),
+            tooltip: t('pricing.plans.enterprise.features.f7.tooltip', '99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times')
           },
           {
-            text: "White-glove onboarding & strategic integration consulting",
-            tooltip: "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation"
+            text: t('pricing.plans.enterprise.features.f8.text', 'White-glove onboarding & strategic integration consulting'),
+            tooltip: t('pricing.plans.enterprise.features.f8.tooltip', 'Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation')
           }
         ],
         popular: false,
@@ -173,7 +175,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
     ];
 
     return planData;
-  }, [tiers, isLoading, isAnnual, testMode]);
+  }, [tiers, isLoading, isAnnual, testMode, t]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => Math.min(prev + 1, plans.length - 1));
@@ -214,11 +216,11 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   const getModalTitle = () => {
     switch (userType) {
       case 'expired_trial':
-        return 'Your trial has expired';
+        return t('pricing.modal.titleExpired', 'Your trial has expired');
       case 'canceled_subscriber':
-        return 'Reactivate your subscription';
+        return t('pricing.modal.titleReactivate', 'Reactivate your subscription');
       default:
-        return 'Choose your plan';
+        return t('pricing.modal.titleChoose', 'Choose your plan');
     }
   };
 
@@ -232,8 +234,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
 
     if (!plan.stripePriceId) {
       toast({
-        title: "Error",
-        description: "Price configuration not available. Please try again later.",
+        title: t('pricing.modal.errorTitle', 'Error'),
+        description: t('pricing.modal.errPriceConfig', 'Price configuration not available. Please try again later.'),
         variant: "destructive",
       });
       return;
@@ -261,8 +263,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to start checkout process. Please try again.",
+        title: t('pricing.modal.errorTitle', 'Error'),
+        description: t('pricing.modal.errCheckout', 'Failed to start checkout process. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -306,7 +308,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                 {testMode && (
                   <div className="mb-4 text-center">
                     <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm bg-orange-500/90 text-white">
-                      🧪 TEST MODE - No real charges will be made
+                      {t('pricing.modal.testMode', '🧪 TEST MODE - No real charges will be made')}
                     </div>
                   </div>
                 )}
@@ -317,7 +319,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                       {getModalTitle()}
                     </h1>
                     <p className="mt-2 text-lg text-slate-300">
-                      Choose the perfect plan for your business
+                      {t('pricing.modal.subtitle', 'Choose the perfect plan for your business')}
                     </p>
                   </div>
                   <Button
@@ -346,7 +348,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                           : 'text-slate-300 hover:text-white'
                       }`}
                     >
-                      Monthly
+                      {t('pricing.billingMonthly', 'Monthly')}
                     </button>
                     <button
                       onClick={() => setIsAnnual(true)}
@@ -356,10 +358,10 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                           : 'text-slate-300 hover:text-white'
                       }`}
                     >
-                      Annual
+                      {t('pricing.billingAnnual', 'Annual')}
                       {isAnnual && (
                         <span className="absolute -top-2 -right-2 bg-gradient-to-br from-black via-slate-800 to-black text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-slate-600/30 ring-1 ring-white/10 backdrop-blur-sm">
-                          Save 20%
+                          {t('pricing.save20', 'Save 20%')}
                         </span>
                       )}
                     </button>
@@ -386,7 +388,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                     {plan.popular && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                         <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap shadow-lg shadow-emerald-500/30">
-                          Most Popular
+                          {t('pricing.mostPopular', 'Most Popular')}
                         </div>
                       </div>
                     )}
@@ -403,25 +405,25 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                             <span className="text-4xl font-bold text-emerald-400 drop-shadow-sm">
                               €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                             </span>
-                            <span className="text-slate-400 text-lg ml-2">/month</span>
+                            <span className="text-slate-400 text-lg ml-2">{t('pricing.perMonth', '/month')}</span>
                           </div>
                           {isAnnual && (
                             <div className="text-sm text-emerald-400/90 mb-1">
-                              Billed annually (€{plan.annualPrice * 12}/year)
+                              {t('pricing.billedAnnually', 'Billed annually (€{{total}}/year)', { total: plan.annualPrice * 12 })}
                             </div>
                           )}
                           <div className="text-xs text-slate-500">
-                            Save €{((plan.monthlyPrice - plan.annualPrice) * 12)} per year
+                            {t('pricing.savePerYear', 'Save €{{amount}} per year', { amount: (plan.monthlyPrice - plan.annualPrice) * 12 })}
                           </div>
                         </div>
                       ) : (
                         <div>
                           <div className="flex items-baseline justify-center mb-2">
-                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">From €300</span>
-                            <span className="text-slate-400 text-lg ml-2">/month</span>
+                            <span className="text-2xl font-semibold text-emerald-400 drop-shadow-sm">{t('pricing.plans.enterprise.fromPriceDesktop', 'From €300')}</span>
+                            <span className="text-slate-400 text-lg ml-2">{t('pricing.perMonth', '/month')}</span>
                           </div>
                           <div className="text-xs text-slate-500">
-                            Custom pricing based on your needs
+                            {t('pricing.customPricing', 'Custom pricing based on your needs')}
                           </div>
                         </div>
                       )}
@@ -440,11 +442,11 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                         {isCheckingOut ? (
                           <div className="flex items-center justify-center">
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
-                            Processing...
+                            {t('pricing.modal.processing', 'Processing...')}
                           </div>
                         ) : (
                           <>
-                            Choose Plan
+                            {t('pricing.modal.choosePlan', 'Choose Plan')}
                             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </>
                         )}
@@ -518,7 +520,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                             {plan.popular && (
                               <div className="absolute top-2.5 left-1/2 transform -translate-x-1/2 z-10">
                                 <div className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap shadow-lg shadow-emerald-500/40">
-                                  Most Popular
+                                  {t('pricing.mostPopular', 'Most Popular')}
                                 </div>
                               </div>
                             )}
@@ -535,25 +537,25 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                                     <span className="text-xl font-bold text-emerald-400 drop-shadow-lg">
                                       €{isAnnual ? plan.annualPrice : plan.monthlyPrice}
                                     </span>
-                                    <span className="text-slate-300/90 text-sm ml-1">/month</span>
+                                    <span className="text-slate-300/90 text-sm ml-1">{t('pricing.perMonth', '/month')}</span>
                                   </div>
                                   {isAnnual && (
                                     <div className="text-[10px] text-emerald-400/90 mb-0.5">
-                                      Billed annually (€{(plan.annualPrice || 0) * 12}/year)
+                                      {t('pricing.billedAnnually', 'Billed annually (€{{total}}/year)', { total: (plan.annualPrice || 0) * 12 })}
                                     </div>
                                   )}
                                   <div className="text-[9px] text-slate-500">
-                                    Save €{((plan.monthlyPrice - (plan.annualPrice || 0)) * 12)} per year
+                                    {t('pricing.savePerYear', 'Save €{{amount}} per year', { amount: (plan.monthlyPrice - (plan.annualPrice || 0)) * 12 })}
                                   </div>
                                 </div>
                               ) : (
                                 <div>
                                   <div className="flex items-baseline justify-center mb-1">
-                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">From €300</span>
-                                    <span className="text-slate-300/90 text-xs ml-1">/month</span>
+                                    <span className="text-lg font-semibold text-emerald-400 drop-shadow-lg">{t('pricing.plans.enterprise.fromPriceDesktop', 'From €300')}</span>
+                                    <span className="text-slate-300/90 text-xs ml-1">{t('pricing.perMonth', '/month')}</span>
                                   </div>
                                   <div className="text-[9px] text-slate-500">
-                                    Custom pricing
+                                    {t('pricing.customPricingShort', 'Custom pricing')}
                                   </div>
                                 </div>
                               )}
@@ -572,11 +574,11 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                                 {isCheckingOut ? (
                                   <div className="flex items-center justify-center">
                                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1"></div>
-                                    Processing...
+                                    {t('pricing.modal.processing', 'Processing...')}
                                   </div>
                                 ) : (
                                   <>
-                                    Choose Plan
+                                    {t('pricing.modal.choosePlan', 'Choose Plan')}
                                     <ArrowRight className="ml-1.5 w-2.5 h-2.5 group-hover:translate-x-1 transition-transform" />
                                   </>
                                 )}

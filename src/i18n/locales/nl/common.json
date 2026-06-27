@@ -102,5 +102,41 @@
     "statusPending": "In afwachting",
     "statusCancelled": "Geannuleerd",
     "statusUnknown": "Onbekend"
+  },
+  "offline": {
+    "backOnline": "Weer online",
+    "youreOffline": "Je bent offline"
+  },
+  "dataDisclaimer": {
+    "basedOn": "Gebaseerd op gegevens van 10.000+ bedrijven wereldwijd",
+    "viewMethodology": "Bekijk de methodologie",
+    "updatedMonthly": "Gegevens maandelijks bijgewerkt",
+    "resultsVary": "Resultaten kunnen per branche verschillen"
+  },
+  "errorBoundary": {
+    "title": "Er is iets misgegaan",
+    "body": "Er is een onverwachte fout opgetreden. Vernieuw de pagina of neem contact op met support als het probleem aanhoudt.",
+    "attempts": "Pogingen: {{current}}/{{max}}",
+    "maxReached": "Max pogingen bereikt",
+    "tryAgain": "Opnieuw proberen"
+  },
+  "routeError": {
+    "updateFailedTitle": "Automatisch bijwerken lukte niet",
+    "updatingTitle": "Pagina bijwerken…",
+    "stuckBody": "Er hangt een versie in de cache vast. Klik hieronder om die te wissen en de nieuwste versie te laden.",
+    "updatingBody": "Er is een nieuwe versie beschikbaar. De pagina wordt automatisch vernieuwd.",
+    "clearReload": "Cache wissen en herladen",
+    "refreshNow": "Nu vernieuwen",
+    "loadFailedTitle": "Pagina kon niet worden geladen",
+    "loadFailedBody": "Er ging iets mis bij het laden van deze pagina.",
+    "reload": "Herladen",
+    "dashboard": "Dashboard"
+  },
+  "stripeRedirect": {
+    "redirecting": "Doorsturen naar Stripe…",
+    "pleaseWait": "Even geduld. Je kunt dit venster sluiten zodra Stripe opent.",
+    "blockedTitle": "Directe doorgifte geblokkeerd",
+    "openNow": "Open Stripe nu",
+    "couldNotRedirect": "Kon niet doorsturen naar Stripe"
   }
 }

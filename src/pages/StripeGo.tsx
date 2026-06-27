@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { getStripeMode } from '@/utils/stripeConfig';
@@ -6,6 +7,7 @@ import { getStripeMode } from '@/utils/stripeConfig';
 // Simple utility route that performs a top-level redirect to Stripe dashboard
 // This helps bypass popup blockers and iframe restrictions
 const StripeGo: React.FC = () => {
+  const { t } = useTranslation('common');
   const [error, setError] = React.useState<string | null>(null);
   const [fallbackUrl, setFallbackUrl] = React.useState<string | null>(null);
 
@@ -34,7 +36,7 @@ const StripeGo: React.FC = () => {
       } catch (e: any) {
         console.error('[StripeGo] Error:', e);
         if (!cancelled) {
-          setError(e?.message || 'Kon niet doorsturen naar Stripe');
+          setError(e?.message || t('stripeRedirect.couldNotRedirect', 'Could not redirect to Stripe'));
           // Try to fetch a fallback URL once more
           try {
             const { data } = await supabase.functions.invoke('stripe-connect-login', {
@@ -57,12 +59,12 @@ const StripeGo: React.FC = () => {
         {!error ? (
           <>
             <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-primary" />
-            <h1 className="text-xl font-semibold mb-2">Doorsturen naar Stripe…</h1>
-            <p className="text-sm text-muted-foreground">Even geduld alsjeblieft. Dit venster kan gesloten worden nadat Stripe opent.</p>
+            <h1 className="text-xl font-semibold mb-2">{t('stripeRedirect.redirecting', 'Redirecting to Stripe…')}</h1>
+            <p className="text-sm text-muted-foreground">{t('stripeRedirect.pleaseWait', 'Please wait. You can close this window once Stripe opens.')}</p>
           </>
         ) : (
           <>
-            <h1 className="text-xl font-semibold mb-2">Directe doorgifte geblokkeerd</h1>
+            <h1 className="text-xl font-semibold mb-2">{t('stripeRedirect.blockedTitle', 'Direct redirect blocked')}</h1>
             <p className="text-sm text-muted-foreground mb-4">{error}</p>
             {fallbackUrl && (
               <a
@@ -72,7 +74,7 @@ const StripeGo: React.FC = () => {
                 className="inline-flex items-center justify-center px-4 py-2 rounded-md border"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Open Stripe nu
+                {t('stripeRedirect.openNow', 'Open Stripe now')}
               </a>
             )}
           </>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { validatePassword, getPasswordStrengthLabel, getPasswordStrengthColor } from '@/utils/passwordValidation';
+import { validatePassword, getPasswordStrengthColor } from '@/utils/passwordValidation';
 import { cn } from '@/lib/utils';
 
 interface PasswordInputProps {
@@ -18,8 +19,8 @@ interface PasswordInputProps {
 }
 
 export const PasswordInput: React.FC<PasswordInputProps> = ({
-  label = 'Password',
-  placeholder = 'Enter your password',
+  label,
+  placeholder,
   value,
   onChange,
   onBlur,
@@ -28,23 +29,47 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   error,
   className,
 }) => {
+  const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
   const validation = validatePassword(value);
 
+  // Resolve label/placeholder: a caller-supplied value wins (including '' to hide
+  // the label); otherwise fall back to the translated default.
+  const resolvedLabel = label ?? t('auth.passwordInput.label', 'Password');
+  const resolvedPlaceholder = placeholder ?? t('auth.passwordInput.placeholder', 'Enter your password');
+
+  const strengthLabel = (() => {
+    switch (validation.score) {
+      case 0:
+      case 1:
+        return t('auth.passwordInput.strength.veryWeak', 'Very Weak');
+      case 2:
+        return t('auth.passwordInput.strength.weak', 'Weak');
+      case 3:
+        return t('auth.passwordInput.strength.fair', 'Fair');
+      case 4:
+        return t('auth.passwordInput.strength.good', 'Good');
+      case 5:
+        return t('auth.passwordInput.strength.strong', 'Strong');
+      default:
+        return t('auth.passwordInput.strength.unknown', 'Unknown');
+    }
+  })();
+
   return (
     <div className={cn('space-y-2', className)}>
-      {label && (
+      {resolvedLabel && (
         <Label htmlFor="password">
-          {label}
+          {resolvedLabel}
           {required && <span className="text-destructive ml-1">*</span>}
         </Label>
       )}
-      
+
       <div className="relative">
         <Input
           id="password"
           type={showPassword ? 'text' : 'password'}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
@@ -76,9 +101,9 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
       {showStrengthIndicator && value && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Password strength:</span>
+            <span className="text-sm text-muted-foreground">{t('auth.passwordInput.strengthLabel', 'Password strength:')}</span>
             <span className={cn('text-sm font-medium', getPasswordStrengthColor(validation.score))}>
-              {getPasswordStrengthLabel(validation.score)}
+              {strengthLabel}
             </span>
           </div>
           

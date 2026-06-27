@@ -1,9 +1,11 @@
 import { useMemo, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useProfile } from './useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useOnboardingProgress = () => {
+  const { t, i18n } = useTranslation('app');
   const { profile } = useProfile();
   const { selectedCalendar, calendars } = useCalendarContext();
   const [serviceTypeCount, setServiceTypeCount] = useState(0);
@@ -91,26 +93,26 @@ export const useOnboardingProgress = () => {
       {
         key: 'business_info',
         completed: !!(profile.business_name && profile.business_type),
-        name: 'Business Information',
-        description: 'Complete your business profile'
+        name: t('app.onboarding.steps.businessInfo.name', 'Business Information'),
+        description: t('app.onboarding.steps.businessInfo.description', 'Complete your business profile')
       },
       {
         key: 'service_types',
         completed: serviceTypeCount > 0,
-        name: 'Service Types',
-        description: 'Add your services and pricing'
+        name: t('app.onboarding.steps.serviceTypes.name', 'Service Types'),
+        description: t('app.onboarding.steps.serviceTypes.description', 'Add your services and pricing')
       },
       {
         key: 'calendar_creation',
         completed: calendars.length > 0,
-        name: 'Create Your Calendar',
-        description: 'Set up your booking calendar'
+        name: t('app.onboarding.steps.calendarCreation.name', 'Create Your Calendar'),
+        description: t('app.onboarding.steps.calendarCreation.description', 'Set up your booking calendar')
       },
       {
         key: 'availability',
         completed: availabilityRulesCount > 0,
-        name: 'Availability',
-        description: 'Set your working hours'
+        name: t('app.onboarding.steps.availability.name', 'Availability'),
+        description: t('app.onboarding.steps.availability.description', 'Set your working hours')
       }
     ];
 
@@ -125,7 +127,7 @@ export const useOnboardingProgress = () => {
       nextSteps,
       allSteps: steps
     };
-  }, [profile, selectedCalendar, calendars.length, serviceTypeCount, availabilityRulesCount, bookingSettingsConfigured]);
+  }, [profile, selectedCalendar, calendars.length, serviceTypeCount, availabilityRulesCount, bookingSettingsConfigured, t, i18n.language]);
 
   return progress;
 };

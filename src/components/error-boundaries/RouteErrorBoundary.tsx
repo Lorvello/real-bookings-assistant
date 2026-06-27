@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { ProductionErrorHandler } from '@/utils/errorHandler';
+import i18n from '@/i18n';
 
 interface Props {
   children: ReactNode;
@@ -123,17 +124,21 @@ export class RouteErrorBoundary extends Component<Props, State> {
             <Alert className="max-w-md">
               <RefreshCw className={`h-5 w-5 ${stuck ? '' : 'animate-spin'}`} />
               <AlertTitle className="text-lg">
-                {stuck ? "Couldn't update automatically" : 'Updating page…'}
+                {stuck
+                  ? i18n.t('routeError.updateFailedTitle', "Couldn't update automatically")
+                  : i18n.t('routeError.updatingTitle', 'Updating page…')}
               </AlertTitle>
               <AlertDescription className="space-y-4">
                 <p>
                   {stuck
-                    ? 'A cached version is stuck. Click below to clear it and load the latest build.'
-                    : 'A new version is available. The page will refresh automatically.'}
+                    ? i18n.t('routeError.stuckBody', 'A cached version is stuck. Click below to clear it and load the latest build.')
+                    : i18n.t('routeError.updatingBody', 'A new version is available. The page will refresh automatically.')}
                 </p>
                 <Button onClick={this.handleHardReset} variant="default" className="w-full">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  {stuck ? 'Clear cache & reload' : 'Refresh now'}
+                  {stuck
+                    ? i18n.t('routeError.clearReload', 'Clear cache & reload')
+                    : i18n.t('routeError.refreshNow', 'Refresh now')}
                 </Button>
               </AlertDescription>
             </Alert>
@@ -145,10 +150,10 @@ export class RouteErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center p-4 bg-background">
           <Alert className="max-w-md">
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="text-lg">Page could not be loaded</AlertTitle>
+            <AlertTitle className="text-lg">{i18n.t('routeError.loadFailedTitle', 'Page could not be loaded')}</AlertTitle>
             <AlertDescription className="space-y-4">
               <p>
-                An error occurred while loading this page.
+                {i18n.t('routeError.loadFailedBody', 'An error occurred while loading this page.')}
                 {this.props.routeName && ` (${this.props.routeName})`}
               </p>
               {process.env.NODE_ENV === 'development' && this.state.error && (
@@ -162,11 +167,11 @@ export class RouteErrorBoundary extends Component<Props, State> {
               <div className="flex gap-2">
                 <Button onClick={this.handleRetry} variant="default" className="flex-1">
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Reload
+                  {i18n.t('routeError.reload', 'Reload')}
                 </Button>
                 <Button onClick={this.handleGoHome} variant="outline" className="flex-1">
                   <Home className="h-4 w-4 mr-2" />
-                  Dashboard
+                  {i18n.t('routeError.dashboard', 'Dashboard')}
                 </Button>
               </div>
             </AlertDescription>

@@ -1,5 +1,6 @@
 // Password validation utility with consistent security standards
 // Implements strong password requirements across all authentication forms
+import i18n from '@/i18n';
 
 export interface PasswordValidationResult {
   isValid: boolean;
@@ -37,7 +38,7 @@ export const validatePassword = (password: string): PasswordValidationResult => 
 
   // Length check
   if (password.length < PASSWORD_REQUIREMENTS.minLength) {
-    errors.push(`Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters long`);
+    errors.push(i18n.t('auth.passwordInput.errors.minLength', 'Password must be at least {{count}} characters long', { count: PASSWORD_REQUIREMENTS.minLength }));
   } else {
     score += 1;
     if (password.length >= 12) score += 1; // Bonus for longer passwords
@@ -45,28 +46,28 @@ export const validatePassword = (password: string): PasswordValidationResult => 
 
   // Uppercase check
   if (PASSWORD_REQUIREMENTS.requireUppercase && !/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
+    errors.push(i18n.t('auth.passwordInput.errors.uppercase', 'Password must contain at least one uppercase letter'));
   } else {
     score += 1;
   }
 
   // Lowercase check
   if (PASSWORD_REQUIREMENTS.requireLowercase && !/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter');
+    errors.push(i18n.t('auth.passwordInput.errors.lowercase', 'Password must contain at least one lowercase letter'));
   } else {
     score += 1;
   }
 
   // Numbers check
   if (PASSWORD_REQUIREMENTS.requireNumbers && !/\d/.test(password)) {
-    errors.push('Password must contain at least one number');
+    errors.push(i18n.t('auth.passwordInput.errors.number', 'Password must contain at least one number'));
   } else {
     score += 1;
   }
 
   // Special characters check
   if (PASSWORD_REQUIREMENTS.requireSpecialChars && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
+    errors.push(i18n.t('auth.passwordInput.errors.special', 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'));
   } else {
     score += 1;
   }
@@ -75,7 +76,7 @@ export const validatePassword = (password: string): PasswordValidationResult => 
   if (PASSWORD_REQUIREMENTS.checkCommonPasswords) {
     const lowerPassword = password.toLowerCase();
     if (COMMON_PASSWORDS.some(common => lowerPassword.includes(common.toLowerCase()))) {
-      errors.push('Password is too common and easily guessable');
+      errors.push(i18n.t('auth.passwordInput.errors.common', 'Password is too common and easily guessable'));
       score = Math.max(0, score - 1);
     }
   }
@@ -84,7 +85,7 @@ export const validatePassword = (password: string): PasswordValidationResult => 
   if (PASSWORD_REQUIREMENTS.preventKeyboardPatterns) {
     const lowerPassword = password.toLowerCase();
     if (KEYBOARD_PATTERNS.some(pattern => lowerPassword.includes(pattern))) {
-      errors.push('Password contains keyboard patterns that are not secure');
+      errors.push(i18n.t('auth.passwordInput.errors.keyboard', 'Password contains keyboard patterns that are not secure'));
       score = Math.max(0, score - 1);
     }
   }
@@ -93,7 +94,7 @@ export const validatePassword = (password: string): PasswordValidationResult => 
   if (PASSWORD_REQUIREMENTS.preventSequentialChars) {
     if (/abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i.test(password) ||
         /012|123|234|345|456|567|678|789|890/.test(password)) {
-      errors.push('Password contains sequential characters');
+      errors.push(i18n.t('auth.passwordInput.errors.sequential', 'Password contains sequential characters'));
       score = Math.max(0, score - 1);
     }
   }
@@ -102,7 +103,7 @@ export const validatePassword = (password: string): PasswordValidationResult => 
   if (PASSWORD_REQUIREMENTS.maxRepeatedChars) {
     const repeatedPattern = new RegExp(`(.)\\1{${PASSWORD_REQUIREMENTS.maxRepeatedChars},}`);
     if (repeatedPattern.test(password)) {
-      errors.push(`Password has too many repeated characters (max ${PASSWORD_REQUIREMENTS.maxRepeatedChars})`);
+      errors.push(i18n.t('auth.passwordInput.errors.repeated', 'Password has too many repeated characters (max {{count}})', { count: PASSWORD_REQUIREMENTS.maxRepeatedChars }));
       score = Math.max(0, score - 1);
     }
   }

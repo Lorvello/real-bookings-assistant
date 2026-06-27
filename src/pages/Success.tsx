@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { useProfile } from '@/hooks/useProfile';
 export default function Success() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation('payment');
   const { toast } = useToast();
   const { invalidateCache } = useUserStatus();
   const { refetch: refetchProfile } = useProfile();
@@ -103,8 +105,8 @@ export default function Success() {
         if (!toastShownRef.current) {
           toastShownRef.current = true;
           toast({
-            title: "Payment Successful!",
-            description: `Your ${displayTier} subscription has been activated.`,
+            title: t('payment.subscription.successTitle', 'Payment Successful!'),
+            description: t('payment.subscription.toastActivatedDesc', 'Your {{tier}} subscription has been activated.', { tier: displayTier }),
           });
         }
         
@@ -118,8 +120,8 @@ export default function Success() {
         if (!toastShownRef.current) {
           toastShownRef.current = true;
           toast({
-            title: "Verification Issue",
-            description: "Your payment was successful! Please check your dashboard or contact support if needed.",
+            title: t('payment.subscription.toastIssueTitle', 'Verification Issue'),
+            description: t('payment.subscription.toastIssueDesc', 'Your payment was successful! Please check your dashboard or contact support if needed.'),
             variant: "default",
           });
         }
@@ -128,7 +130,7 @@ export default function Success() {
     };
 
     verifySubscription();
-  }, [toast, invalidateCache, navigate, location.search]);
+  }, [toast, invalidateCache, navigate, location.search, t]);
 
   useEffect(() => {
     if (!isVerifying && countdown > 0) {
@@ -164,15 +166,17 @@ export default function Success() {
             )}
           </div>
           <CardTitle className="text-2xl">
-            {isVerifying ? 'Verifying Subscription...' : 'Payment Successful!'}
+            {isVerifying
+              ? t('payment.subscription.verifyingTitle', 'Verifying Subscription...')
+              : t('payment.subscription.successTitle', 'Payment Successful!')}
           </CardTitle>
           <CardDescription>
             {isVerifying ? (
-              'We are checking your subscription status...'
+              t('payment.subscription.checkingStatus', 'We are checking your subscription status...')
             ) : subscriptionTier ? (
-              `Your ${subscriptionTier} subscription has been successfully activated.`
+              t('payment.subscription.descActivatedTier', 'Your {{tier}} subscription has been successfully activated.', { tier: subscriptionTier })
             ) : (
-              'Your subscription has been successfully activated.'
+              t('payment.subscription.descActivated', 'Your subscription has been successfully activated.')
             )}
           </CardDescription>
         </CardHeader>
@@ -182,39 +186,39 @@ export default function Success() {
             <>
               {subscriptionTier && (
               <div className="bg-muted/50 p-4 rounded-lg">
-                <h3 className="font-semibold mb-2">You now have access to:</h3>
+                <h3 className="font-semibold mb-2">{t('payment.subscription.accessTo', 'You now have access to:')}</h3>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   {subscriptionTier === 'Starter' && (
                     <>
-                      <li>• Unlimited WhatsApp contact management</li>
-                      <li>• Dual-calendar orchestration system</li>
-                      <li>• AI-powered intelligent reminder sequences</li>
-                      <li>• Essential dashboard overview & live operations monitoring</li>
-                      <li>• Global multi-language localization</li>
-                      <li>• Streamlined payment processing & collection</li>
+                      <li>• {t('payment.subscription.features.starter.f1', 'Unlimited WhatsApp contact management')}</li>
+                      <li>• {t('payment.subscription.features.starter.f2', 'Dual-calendar orchestration system')}</li>
+                      <li>• {t('payment.subscription.features.starter.f3', 'AI-powered intelligent reminder sequences')}</li>
+                      <li>• {t('payment.subscription.features.starter.f4', 'Essential dashboard overview & live operations monitoring')}</li>
+                      <li>• {t('payment.subscription.features.starter.f5', 'Global multi-language localization')}</li>
+                      <li>• {t('payment.subscription.features.starter.f6', 'Streamlined payment processing & collection')}</li>
                     </>
                   )}
                   {subscriptionTier === 'Professional' && (
                     <>
-                      <li>• All Starter premium features included</li>
-                      <li>• Automated tax compliance & administration (Coming Soon)</li>
-                      <li>• Unlimited calendar orchestration platform</li>
-                      <li>• Advanced team collaboration suite (3+ users)</li>
-                      <li>• Multi-location business coordination</li>
-                      <li>• Complete analytics suite: Business Intelligence, Performance tracking & Future Insights</li>
-                      <li>• Dedicated priority customer success</li>
+                      <li>• {t('payment.subscription.features.professional.f1', 'All Starter premium features included')}</li>
+                      <li>• {t('payment.subscription.features.professional.f2', 'Automated tax compliance & administration (Coming Soon)')}</li>
+                      <li>• {t('payment.subscription.features.professional.f3', 'Unlimited calendar orchestration platform')}</li>
+                      <li>• {t('payment.subscription.features.professional.f4', 'Advanced team collaboration suite (3+ users)')}</li>
+                      <li>• {t('payment.subscription.features.professional.f5', 'Multi-location business coordination')}</li>
+                      <li>• {t('payment.subscription.features.professional.f6', 'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights')}</li>
+                      <li>• {t('payment.subscription.features.professional.f7', 'Dedicated priority customer success')}</li>
                     </>
                   )}
                   {subscriptionTier === 'Enterprise' && (
                     <>
-                      <li>• Complete professional suite included</li>
-                      
-                      <li>• Dedicated WhatsApp Business API with custom branding</li>
-                      <li>• Intelligent voice call routing & distribution</li>
-                      <li>• Omnichannel social media DM orchestration</li>
-                      <li>• Advanced reputation management & review analytics</li>
-                      <li>• Enterprise SLA with dedicated success management</li>
-                      <li>• White-glove onboarding & strategic integration consulting</li>
+                      <li>• {t('payment.subscription.features.enterprise.f1', 'Complete professional suite included')}</li>
+
+                      <li>• {t('payment.subscription.features.enterprise.f2', 'Dedicated WhatsApp Business API with custom branding')}</li>
+                      <li>• {t('payment.subscription.features.enterprise.f3', 'Intelligent voice call routing & distribution')}</li>
+                      <li>• {t('payment.subscription.features.enterprise.f4', 'Omnichannel social media DM orchestration')}</li>
+                      <li>• {t('payment.subscription.features.enterprise.f5', 'Advanced reputation management & review analytics')}</li>
+                      <li>• {t('payment.subscription.features.enterprise.f6', 'Enterprise SLA with dedicated success management')}</li>
+                      <li>• {t('payment.subscription.features.enterprise.f7', 'White-glove onboarding & strategic integration consulting')}</li>
                     </>
                   )}
                 </ul>
@@ -226,11 +230,13 @@ export default function Success() {
                   onClick={handleGoToDashboard}
                   className="w-full"
                 >
-                  Go to Dashboard
+                  {t('payment.subscription.goToDashboard', 'Go to Dashboard')}
                 </Button>
-                
+
                 <p className="text-sm text-muted-foreground">
-                  Automatic redirect in {countdown} seconds...
+                  {countdown === 1
+                    ? t('payment.subscription.redirectInOne', 'Automatic redirect in {{count}} second...', { count: countdown })
+                    : t('payment.subscription.redirectInOther', 'Automatic redirect in {{count}} seconds...', { count: countdown })}
                 </p>
               </div>
             </>

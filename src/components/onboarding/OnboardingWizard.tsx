@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 
 export const OnboardingWizard = () => {
+  const { t } = useTranslation('app');
   const { completionPercentage, completedSteps, totalSteps, nextSteps, allSteps } = useOnboardingProgress();
   const { userStatus, invalidateCache } = useUserStatus();
   const navigate = useNavigate();
@@ -66,15 +68,15 @@ export const OnboardingWizard = () => {
   const getStepCta = (step: any) => {
     switch (step.key) {
       case 'business_info':
-        return 'Set up';
+        return t('app.onboarding.cta.businessInfo', 'Set up');
       case 'service_types':
-        return 'Add services';
+        return t('app.onboarding.cta.serviceTypes', 'Add services');
       case 'calendar_creation':
-        return 'Create';
+        return t('app.onboarding.cta.calendarCreation', 'Create');
       case 'availability':
-        return 'Set hours';
+        return t('app.onboarding.cta.availability', 'Set hours');
       default:
-        return 'Start';
+        return t('app.onboarding.cta.default', 'Start');
     }
   };
 
@@ -112,13 +114,13 @@ export const OnboardingWizard = () => {
             </span>
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Complete your setup</h2>
+            <h2 className="text-xl font-semibold text-foreground">{t('app.onboarding.title', 'Complete your setup')}</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {completedSteps === 0
-                ? `${totalSteps} quick steps to your first booking.`
-                : `${totalSteps - completedSteps} step${
-                    totalSteps - completedSteps === 1 ? '' : 's'
-                  } to go, almost there.`}
+                ? t('app.onboarding.quickSteps', '{{count}} quick steps to your first booking.', { count: totalSteps })
+                : totalSteps - completedSteps === 1
+                ? t('app.onboarding.stepsToGoOne', '{{count}} step to go, almost there.', { count: totalSteps - completedSteps })
+                : t('app.onboarding.stepsToGoOther', '{{count}} steps to go, almost there.', { count: totalSteps - completedSteps })}
             </p>
           </div>
         </div>
@@ -153,7 +155,7 @@ export const OnboardingWizard = () => {
                     </h4>
                     {isCompleted && (
                       <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                        Done
+                        {t('app.onboarding.done', 'Done')}
                       </span>
                     )}
                   </div>

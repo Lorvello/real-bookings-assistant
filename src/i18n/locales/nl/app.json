@@ -96,6 +96,38 @@
       "futureDesc": "Future Insights is alleen beschikbaar met een Professional- of Enterprise-abonnement.",
       "teamDesc": "Teamledenbeheer is alleen beschikbaar met een Professional- of Enterprise-abonnement.",
       "taxDesc": "Belastingnaleving is alleen beschikbaar met een Professional- of Enterprise-abonnement."
+    },
+    "onboarding": {
+      "title": "Rond je setup af",
+      "quickSteps": "{{count}} snelle stappen tot je eerste boeking.",
+      "stepsToGoOne": "Nog {{count}} stap te gaan, je bent er bijna.",
+      "stepsToGoOther": "Nog {{count}} stappen te gaan, je bent er bijna.",
+      "done": "Klaar",
+      "cta": {
+        "businessInfo": "Instellen",
+        "serviceTypes": "Diensten toevoegen",
+        "calendarCreation": "Aanmaken",
+        "availability": "Tijden instellen",
+        "default": "Starten"
+      },
+      "steps": {
+        "businessInfo": {
+          "name": "Bedrijfsgegevens",
+          "description": "Maak je bedrijfsprofiel compleet"
+        },
+        "serviceTypes": {
+          "name": "Servicetypes",
+          "description": "Voeg je diensten en prijzen toe"
+        },
+        "calendarCreation": {
+          "name": "Maak je agenda aan",
+          "description": "Stel je boekingsagenda in"
+        },
+        "availability": {
+          "name": "Beschikbaarheid",
+          "description": "Stel je werktijden in"
+        }
+      }
     }
   }
 }

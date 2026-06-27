@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ const countryCodes = [
 ];
 
 export const StreamlinedSignup: React.FC = () => {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const location = useLocation();
   const { registerUser, loading } = useUserRegistration();
@@ -112,37 +114,37 @@ export const StreamlinedSignup: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+      newErrors.fullName = t('auth.signup.errFullName', 'Full name is required');
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required';
+      newErrors.email = t('auth.signup.errEmailRequired', 'Email address is required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t('auth.signup.errEmailInvalid', 'Please enter a valid email address');
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = t('auth.signup.errPhone', 'Phone number is required');
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = t('auth.signup.errPasswordRequired', 'Password is required');
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {
-        newErrors.password = passwordValidation.errors[0] || 'Password does not meet security requirements';
+        newErrors.password = passwordValidation.errors[0] || t('auth.signup.errPasswordWeak', 'Password does not meet security requirements');
       }
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = t('auth.signup.errConfirmRequired', 'Please confirm your password');
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = t('auth.signup.errPasswordsNoMatch', 'Passwords do not match');
     }
 
 
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and privacy policy';
+      newErrors.agreeToTerms = t('auth.signup.errTerms', 'You must agree to the terms and privacy policy');
     }
 
     setErrors(newErrors);
@@ -179,30 +181,30 @@ export const StreamlinedSignup: React.FC = () => {
         }
       } else {
         // Handle specific registration errors
-        let errorMessage = result.error || 'Registration failed. Please try again.';
-        
+        let errorMessage = result.error || t('auth.signup.errRegistration', 'Registration failed. Please try again.');
+
         if (result.error?.includes('already registered') || result.error?.includes('already been registered')) {
-          errorMessage = `An account with ${formData.email} already exists. Try signing in instead.`;
-          setErrors({ 
+          errorMessage = t('auth.signup.errAccountExists', 'An account with {{email}} already exists. Try signing in instead.', { email: formData.email });
+          setErrors({
             general: errorMessage,
-            email: 'This email is already registered'
+            email: t('auth.signup.errEmailAlreadyRegistered', 'This email is already registered')
           });
         } else if (result.error?.includes('invalid email')) {
-          setErrors({ 
-            general: 'Please enter a valid email address.',
-            email: 'Invalid email format'
+          setErrors({
+            general: t('auth.signup.errEmailInvalidGeneral', 'Please enter a valid email address.'),
+            email: t('auth.signup.errEmailInvalidFormat', 'Invalid email format')
           });
         } else if (result.error?.includes('password')) {
-          setErrors({ 
-            general: 'Password does not meet security requirements.',
-            password: 'Password too weak'
+          setErrors({
+            general: t('auth.signup.errPasswordRequirementsGeneral', 'Password does not meet security requirements.'),
+            password: t('auth.signup.errPasswordTooWeak', 'Password too weak')
           });
         } else {
           setErrors({ general: errorMessage });
         }
       }
     } catch (error) {
-      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+      setErrors({ general: t('auth.signup.errUnexpected', 'An unexpected error occurred. Please try again.') });
     } finally {
       setIsSubmitting(false);
     }
@@ -219,14 +221,14 @@ export const StreamlinedSignup: React.FC = () => {
           className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          {t('auth.signup.back', 'Back')}
         </Button>
         <CardHeader className="text-center pt-12">
           <CardTitle className="text-2xl font-bold text-foreground">
-            Create Your Account
+            {t('auth.signup.title', 'Create Your Account')}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Set up your WhatsApp booking assistant account - complete business setup after registration
+            {t('auth.signup.subtitle', 'Set up your WhatsApp booking assistant account - complete business setup after registration')}
           </CardDescription>
         </CardHeader>
 
@@ -242,12 +244,12 @@ export const StreamlinedSignup: React.FC = () => {
 
             {/* Full Name */}
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
+              <Label htmlFor="fullName">{t('auth.signup.fullName', 'Full Name *')}</Label>
               <Input
                 id="fullName"
                 value={formData.fullName}
                 onChange={(e) => updateFormData('fullName', e.target.value)}
-                placeholder="Enter your full name"
+                placeholder={t('auth.signup.fullNamePlaceholder', 'Enter your full name')}
                 className={errors.fullName ? 'border-red-500' : ''}
               />
               {errors.fullName && (
@@ -257,13 +259,13 @@ export const StreamlinedSignup: React.FC = () => {
 
             {/* Email */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address *</Label>
+              <Label htmlFor="email">{t('auth.signup.email', 'Email Address *')}</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => updateFormData('email', e.target.value)}
-                placeholder="Enter your email"
+                placeholder={t('auth.signup.emailPlaceholder', 'Enter your email')}
                 className={errors.email ? 'border-red-500' : ''}
               />
               {errors.email && (
@@ -273,7 +275,7 @@ export const StreamlinedSignup: React.FC = () => {
 
             {/* Phone Number */}
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number *</Label>
+              <Label htmlFor="phone">{t('auth.signup.phone', 'Phone Number *')}</Label>
               <div className="flex">
                 <Select
                   value={formData.countryCode}
@@ -295,7 +297,7 @@ export const StreamlinedSignup: React.FC = () => {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => updateFormData('phone', e.target.value)}
-                  placeholder="Enter phone number"
+                  placeholder={t('auth.signup.phonePlaceholder', 'Enter phone number')}
                   className={`ml-2 flex-1 ${errors.phone ? 'border-red-500' : ''}`}
                 />
               </div>
@@ -307,8 +309,8 @@ export const StreamlinedSignup: React.FC = () => {
             {/* Password */}
             <div className="space-y-2">
               <PasswordInput
-                label="Password"
-                placeholder="Create a strong password (8+ chars, numbers, special chars)"
+                label={t('auth.signup.passwordLabel', 'Password')}
+                placeholder={t('auth.signup.passwordPlaceholder', 'Create a strong password (8+ chars, numbers, special chars)')}
                 value={formData.password}
                 onChange={(value) => updateFormData('password', value)}
                 showStrengthIndicator={true}
@@ -319,14 +321,14 @@ export const StreamlinedSignup: React.FC = () => {
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password *</Label>
+              <Label htmlFor="confirmPassword">{t('auth.signup.confirmPassword', 'Confirm Password *')}</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={(e) => updateFormData('confirmPassword', e.target.value)}
-                  placeholder="Confirm your password"
+                  placeholder={t('auth.signup.confirmPasswordPlaceholder', 'Confirm your password')}
                   className={errors.confirmPassword ? 'border-red-500' : ''}
                 />
                 <Button
@@ -342,7 +344,7 @@ export const StreamlinedSignup: React.FC = () => {
               {formData.confirmPassword && formData.password === formData.confirmPassword && (
                 <div className="flex items-center space-x-1 text-green-500">
                   <CheckCircle className="h-4 w-4" />
-                  <span className="text-sm">Passwords match</span>
+                  <span className="text-sm">{t('auth.signup.passwordsMatch', 'Passwords match')}</span>
                 </div>
               )}
               {errors.confirmPassword && (
@@ -360,13 +362,13 @@ export const StreamlinedSignup: React.FC = () => {
                   onCheckedChange={(checked) => updateFormData('agreeToTerms', checked as boolean)}
                 />
                 <Label htmlFor="agreeToTerms" className="text-sm text-muted-foreground leading-relaxed">
-                  I agree to the{' '}
+                  {t('auth.signup.agreePrefix', 'I agree to the')}{' '}
                   <Link to="/terms-of-service" className="text-primary hover:text-primary/80 underline">
-                    Terms of Service
+                    {t('auth.signup.terms', 'Terms of Service')}
                   </Link>{' '}
-                  and{' '}
+                  {t('auth.signup.and', 'and')}{' '}
                   <Link to="/privacy-policy" className="text-primary hover:text-primary/80 underline">
-                    Privacy Policy
+                    {t('auth.signup.privacy', 'Privacy Policy')}
                   </Link>
                 </Label>
               </div>
@@ -385,10 +387,10 @@ export const StreamlinedSignup: React.FC = () => {
               {isSubmitting || loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
+                  {t('auth.signup.creating', 'Creating Account...')}
                 </>
               ) : (
-                'Start 30-Day Free Trial'
+                t('auth.signup.startTrial', 'Start 30-Day Free Trial')
               )}
             </Button>
 
@@ -398,7 +400,7 @@ export const StreamlinedSignup: React.FC = () => {
                 <span className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">or sign up with</span>
+                <span className="bg-card px-2 text-muted-foreground">{t('auth.signup.orSignUp', 'or sign up with')}</span>
               </div>
             </div>
 
@@ -408,18 +410,18 @@ export const StreamlinedSignup: React.FC = () => {
 
           {/* Trust Indicator */}
           <div className="text-sm text-muted-foreground text-center mt-3">
-            Cancel anytime • No credit card required
+            {t('auth.signup.trust', 'Cancel anytime • No credit card required')}
           </div>
 
           {/* Login Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link 
-                to="/login" 
+              {t('auth.signup.haveAccount', 'Already have an account?')}{' '}
+              <Link
+                to="/login"
                 className="font-medium text-primary hover:text-primary/80 underline"
               >
-                Sign in
+                {t('auth.signup.signIn', 'Sign in')}
               </Link>
             </p>
           </div>

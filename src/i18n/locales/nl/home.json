@@ -151,6 +151,18 @@
     "customPricingShort": "Aangepaste prijs",
     "swipeHint": "Veeg of tik op de pijlen om abonnementen te bekijken",
     "footnote": "30 dagen gratis proberen • Geen creditcard nodig • Altijd opzegbaar",
+    "modal": {
+      "titleExpired": "Je proefperiode is verlopen",
+      "titleReactivate": "Heractiveer je abonnement",
+      "titleChoose": "Kies je abonnement",
+      "subtitle": "Kies het perfecte abonnement voor je bedrijf",
+      "testMode": "🧪 TESTMODUS - Er worden geen echte kosten in rekening gebracht",
+      "processing": "Bezig...",
+      "choosePlan": "Kies abonnement",
+      "errorTitle": "Fout",
+      "errPriceConfig": "Prijsconfiguratie niet beschikbaar. Probeer het later opnieuw.",
+      "errCheckout": "Het afrekenen kon niet worden gestart. Probeer het opnieuw."
+    },
     "plans": {
       "starter": {
         "name": "Starter",

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ interface InvitationData {
 const TeamInvite = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
@@ -37,7 +39,7 @@ const TeamInvite = () => {
 
   useEffect(() => {
     if (!token) {
-      setError('No invitation token found');
+      setError(t('auth.teamInvite.noToken', 'No invitation token found'));
       setLoading(false);
       return;
     }
@@ -58,7 +60,7 @@ const TeamInvite = () => {
 
       const result = data as { success?: boolean; error?: string; invitation?: Record<string, unknown> } | null;
       if (error || !result || result.success !== true || !result.invitation) {
-        setError(result?.error || 'Invitation not found or expired');
+        setError(result?.error || t('auth.teamInvite.notFound', 'Invitation not found or expired'));
         return;
       }
 
@@ -78,7 +80,7 @@ const TeamInvite = () => {
       });
     } catch (err) {
       console.error('Error fetching invitation:', err);
-      setError('Something went wrong while loading the invitation');
+      setError(t('auth.teamInvite.loadError', 'Something went wrong while loading the invitation'));
     } finally {
       setLoading(false);
     }
@@ -101,12 +103,12 @@ const TeamInvite = () => {
       }
 
       if (!data || (data as { success?: boolean }).success !== true) {
-        throw new Error((data as { error?: string })?.error || 'Failed to accept invitation');
+        throw new Error((data as { error?: string })?.error || t('auth.teamInvite.acceptFailed', 'Failed to accept invitation'));
       }
 
       toast({
-        title: "Invitation accepted! 🎉",
-        description: "Check your email for a link to set your password, then log in.",
+        title: t('auth.teamInvite.acceptedTitle', 'Invitation accepted! 🎉'),
+        description: t('auth.teamInvite.acceptedDesc', 'Check your email for a link to set your password, then log in.'),
       });
 
       // Redirect to the login page with a success message.
@@ -117,8 +119,8 @@ const TeamInvite = () => {
     } catch (err: any) {
       console.error('Error accepting invitation:', err);
       toast({
-        title: "Error",
-        description: err.message || "Something went wrong while accepting the invitation.",
+        title: t('auth.teamInvite.errorTitle', 'Error'),
+        description: err.message || t('auth.teamInvite.acceptError', 'Something went wrong while accepting the invitation.'),
         variant: "destructive",
       });
     } finally {
@@ -133,7 +135,7 @@ const TeamInvite = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-center space-x-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <span>Loading invitation...</span>
+              <span>{t('auth.teamInvite.loading', 'Loading invitation...')}</span>
             </div>
           </CardContent>
         </Card>
@@ -147,16 +149,16 @@ const TeamInvite = () => {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <CardTitle className="text-red-700">Invalid invitation</CardTitle>
+            <CardTitle className="text-red-700">{t('auth.teamInvite.invalidTitle', 'Invalid invitation')}</CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => navigate('/login')} 
-              variant="outline" 
+            <Button
+              onClick={() => navigate('/login')}
+              variant="outline"
               className="w-full"
             >
-              Go to login page
+              {t('auth.teamInvite.goToLogin', 'Go to login page')}
             </Button>
           </CardContent>
         </Card>
@@ -168,7 +170,7 @@ const TeamInvite = () => {
     return null;
   }
 
-  const businessName = invitation.users?.business_name || invitation.users?.full_name || 'The team';
+  const businessName = invitation.users?.business_name || invitation.users?.full_name || t('auth.teamInvite.teamFallback', 'The team');
   const expiresAt = new Date(invitation.expires_at);
   const timeUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60)); // hours
 
@@ -177,34 +179,36 @@ const TeamInvite = () => {
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <UserPlus className="w-16 h-16 text-primary mx-auto mb-4" />
-          <CardTitle className="text-2xl">Team invitation</CardTitle>
+          <CardTitle className="text-2xl">{t('auth.teamInvite.title', 'Team invitation')}</CardTitle>
           <CardDescription>
-            You've been invited to join {businessName}
+            {t('auth.teamInvite.invitedToJoin', "You've been invited to join {{business}}", { business: businessName })}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
             <div>
-              <h4 className="font-medium text-gray-900">Business</h4>
+              <h4 className="font-medium text-gray-900">{t('auth.teamInvite.business', 'Business')}</h4>
               <p className="text-gray-600">{businessName}</p>
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Calendar</h4>
+              <h4 className="font-medium text-gray-900">{t('auth.teamInvite.calendar', 'Calendar')}</h4>
               <p className="text-gray-600">{invitation.calendars.name}</p>
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Your email</h4>
+              <h4 className="font-medium text-gray-900">{t('auth.teamInvite.yourEmail', 'Your email')}</h4>
               <p className="text-gray-600">{invitation.email}</p>
             </div>
             <div>
-              <h4 className="font-medium text-gray-900">Role</h4>
+              <h4 className="font-medium text-gray-900">{t('auth.teamInvite.role', 'Role')}</h4>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                invitation.role === 'editor' 
-                  ? 'bg-green-100 text-green-800' 
+                invitation.role === 'editor'
+                  ? 'bg-green-100 text-green-800'
                   : 'bg-blue-100 text-blue-800'
               }`}>
-                {invitation.role === 'editor' ? 'Editor (can edit)' : 'Viewer (view only)'}
+                {invitation.role === 'editor'
+                  ? t('auth.teamInvite.roleEditor', 'Editor (can edit)')
+                  : t('auth.teamInvite.roleViewer', 'Viewer (view only)')}
               </span>
             </div>
           </div>
@@ -212,34 +216,38 @@ const TeamInvite = () => {
           <Alert>
             <Clock className="h-4 w-4" />
             <AlertDescription>
-              This invitation expires in <strong>{timeUntilExpiry} hours</strong>.
-              Accept it as soon as possible to get access.
+              {t('auth.teamInvite.expiresPrefix', 'This invitation expires in')}{' '}
+              <strong>
+                {timeUntilExpiry === 1
+                  ? t('auth.teamInvite.expiresHoursOne', '{{count}} hour', { count: timeUntilExpiry })
+                  : t('auth.teamInvite.expiresHoursOther', '{{count}} hours', { count: timeUntilExpiry })}
+              </strong>.{' '}
+              {t('auth.teamInvite.expiresSuffix', 'Accept it as soon as possible to get access.')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">What do you get?</h4>
+            <h4 className="font-medium text-gray-900">{t('auth.teamInvite.whatYouGet', 'What do you get?')}</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Access to {businessName}'s calendar</span>
+                <span>{t('auth.teamInvite.benefitCalendar', "Access to {{business}}'s calendar", { business: businessName })}</span>
               </li>
               <li className="flex items-start space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Your own personal calendar</span>
+                <span>{t('auth.teamInvite.benefitOwnCalendar', 'Your own personal calendar')}</span>
               </li>
               <li className="flex items-start space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <span>
                   {invitation.role === 'editor'
-                    ? 'The ability to schedule and edit appointments'
-                    : 'An overview of all scheduled appointments'
-                  }
+                    ? t('auth.teamInvite.benefitEditor', 'The ability to schedule and edit appointments')
+                    : t('auth.teamInvite.benefitViewer', 'An overview of all scheduled appointments')}
                 </span>
               </li>
               <li className="flex items-start space-x-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                <span>Collaborate with the team</span>
+                <span>{t('auth.teamInvite.benefitCollaborate', 'Collaborate with the team')}</span>
               </li>
             </ul>
           </div>
@@ -253,24 +261,23 @@ const TeamInvite = () => {
               {accepting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Accepting...
+                  {t('auth.teamInvite.accepting', 'Accepting...')}
                 </>
               ) : (
-                'Accept invitation'
+                t('auth.teamInvite.accept', 'Accept invitation')
               )}
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => navigate('/login')}
               className="flex-1 sm:flex-initial"
             >
-              Later
+              {t('auth.teamInvite.later', 'Later')}
             </Button>
           </div>
 
           <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
-            <strong>Privacy:</strong> By accepting this invitation, {businessName} will get access
-            to your name and email address for team collaboration purposes.
+            <strong>{t('auth.teamInvite.privacyLabel', 'Privacy:')}</strong> {t('auth.teamInvite.privacyBody', 'By accepting this invitation, {{business}} will get access to your name and email address for team collaboration purposes.', { business: businessName })}
           </div>
         </CardContent>
       </Card>

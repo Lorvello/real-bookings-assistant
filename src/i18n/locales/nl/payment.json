@@ -9,6 +9,48 @@
       "title": "Betaling geannuleerd",
       "body": "De betaling is niet voltooid, dus je afspraak is nog niet bevestigd. Je kunt het opnieuw proberen via je boekingslink of contact opnemen met het bedrijf.",
       "notCharged": "Er is niets in rekening gebracht."
+    },
+    "subscription": {
+      "successTitle": "Betaling geslaagd!",
+      "verifyingTitle": "Abonnement verifiëren...",
+      "checkingStatus": "We controleren de status van je abonnement...",
+      "descActivatedTier": "Je {{tier}}-abonnement is succesvol geactiveerd.",
+      "descActivated": "Je abonnement is succesvol geactiveerd.",
+      "toastActivatedDesc": "Je {{tier}}-abonnement is geactiveerd.",
+      "toastIssueTitle": "Verificatieprobleem",
+      "toastIssueDesc": "Je betaling is geslaagd! Controleer je dashboard of neem contact op met support als dat nodig is.",
+      "accessTo": "Je hebt nu toegang tot:",
+      "goToDashboard": "Naar dashboard",
+      "redirectInOne": "Automatisch doorsturen over {{count}} seconde...",
+      "redirectInOther": "Automatisch doorsturen over {{count}} seconden...",
+      "features": {
+        "starter": {
+          "f1": "Onbeperkt WhatsApp-contactbeheer",
+          "f2": "Systeem voor dubbele agenda-orkestratie",
+          "f3": "AI-gestuurde slimme herinneringsreeksen",
+          "f4": "Essentieel dashboardoverzicht en live operationele monitoring",
+          "f5": "Wereldwijde meertalige lokalisatie",
+          "f6": "Gestroomlijnde betalingsverwerking en incasso"
+        },
+        "professional": {
+          "f1": "Alle premiumfuncties van Starter inbegrepen",
+          "f2": "Geautomatiseerde belastingnaleving en administratie (binnenkort)",
+          "f3": "Onbeperkt platform voor agenda-orkestratie",
+          "f4": "Geavanceerde teamsamenwerkingssuite (3+ gebruikers)",
+          "f5": "Coördinatie van meerdere locaties",
+          "f6": "Complete analysesuite: Business Intelligence, prestatietracking en Future Insights",
+          "f7": "Toegewijde prioriteit-klantenservice"
+        },
+        "enterprise": {
+          "f1": "Complete professionele suite inbegrepen",
+          "f2": "Toegewijde WhatsApp Business API met eigen branding",
+          "f3": "Slimme routering en verdeling van telefoongesprekken",
+          "f4": "Omnichannel-orkestratie van social media-DM's",
+          "f5": "Geavanceerd reputatiebeheer en review-analyse",
+          "f6": "Enterprise-SLA met toegewijd succesmanagement",
+          "f7": "Persoonlijke onboarding en strategisch integratieadvies"
+        }
+      }
     }
   }
 }
