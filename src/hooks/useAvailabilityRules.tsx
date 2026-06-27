@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AvailabilityRule } from '@/types/database';
@@ -7,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useAvailabilityRules = (scheduleId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [rules, setRules] = useState<AvailabilityRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -131,8 +133,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
     if (ruleData.day_of_week === undefined || !ruleData.start_time || !ruleData.end_time) {
       console.error('Cannot create rule: missing required fields', ruleData);
       toast({
-        title: "Error",
-        description: "Day of week, start time, and end time are required",
+        title: t('availabilityRules.requiredFields.title', 'Error'),
+        description: t('availabilityRules.requiredFields.description', 'Day of week, start time, and end time are required'),
         variant: "destructive",
       });
       return null;
@@ -168,8 +170,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
         // Don't show toast for duplicate key errors as they're handled automatically
         if (!error.message.includes('duplicate key')) {
           toast({
-            title: "Error",
-            description: `Failed to create availability rule: ${error.message}`,
+            title: t('availabilityRules.createError.title', 'Error'),
+            description: t('availabilityRules.createError.description', 'Failed to create availability rule: {{message}}', { message: error.message }),
             variant: "destructive",
           });
         }
@@ -184,8 +186,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       
       if (!error.message?.includes('duplicate key')) {
         toast({
-          title: "Error",
-          description: "An unexpected error occurred",
+          title: t('availabilityRules.createUnexpectedError.title', 'Error'),
+          description: t('availabilityRules.createUnexpectedError.description', 'An unexpected error occurred'),
           variant: "destructive",
         });
       }
@@ -207,8 +209,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
         console.error('Error updating rule:', error);
         setError(error.message);
         toast({
-          title: "Error",
-          description: `Failed to update availability rule: ${error.message}`,
+          title: t('availabilityRules.updateError.title', 'Error'),
+          description: t('availabilityRules.updateError.description', 'Failed to update availability rule: {{message}}', { message: error.message }),
           variant: "destructive",
         });
         return false;
@@ -219,8 +221,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       console.error('Error updating availability rule:', error);
       setError('An unexpected error occurred');
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilityRules.updateUnexpectedError.title', 'Error'),
+        description: t('availabilityRules.updateUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;
@@ -245,8 +247,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
         console.error('Error deleting rule:', error);
         setError(error.message);
         toast({
-          title: "Error",
-          description: `Failed to delete availability rule: ${error.message}`,
+          title: t('availabilityRules.deleteError.title', 'Error'),
+          description: t('availabilityRules.deleteError.description', 'Failed to delete availability rule: {{message}}', { message: error.message }),
           variant: "destructive",
         });
         return false;
@@ -257,8 +259,8 @@ export const useAvailabilityRules = (scheduleId?: string) => {
       console.error('Error deleting availability rule:', error);
       setError('An unexpected error occurred');
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilityRules.deleteUnexpectedError.title', 'Error'),
+        description: t('availabilityRules.deleteUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;

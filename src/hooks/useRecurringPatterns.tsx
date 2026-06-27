@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
@@ -16,6 +17,7 @@ export const useRecurringPatterns = (calendarId?: string) => {
   const [patterns, setPatterns] = useState<RecurringPattern[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchPatterns = async () => {
     if (!calendarId) {
@@ -36,8 +38,8 @@ export const useRecurringPatterns = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching recurring patterns:', error);
       toast({
-        title: "Error loading patterns",
-        description: "Could not load recurring patterns",
+        title: t('recurringPatterns.loadError.title', 'Error loading patterns'),
+        description: t('recurringPatterns.loadError.description', 'Could not load recurring patterns'),
         variant: "destructive",
       });
     } finally {
@@ -68,16 +70,16 @@ export const useRecurringPatterns = (calendarId?: string) => {
       const newPattern = data as RecurringPattern;
       setPatterns(prev => [newPattern, ...prev]);
       toast({
-        title: "Pattern created",
-        description: "Recurring availability pattern created successfully",
+        title: t('recurringPatterns.created.title', 'Pattern created'),
+        description: t('recurringPatterns.created.description', 'Recurring availability pattern created successfully'),
       });
       
       return newPattern;
     } catch (error) {
       console.error('Error creating pattern:', error);
       toast({
-        title: "Error creating pattern",
-        description: "Could not create pattern",
+        title: t('recurringPatterns.createError.title', 'Error creating pattern'),
+        description: t('recurringPatterns.createError.description', 'Could not create pattern'),
         variant: "destructive",
       });
       throw error;
@@ -98,16 +100,16 @@ export const useRecurringPatterns = (calendarId?: string) => {
       const updatedPattern = data as RecurringPattern;
       setPatterns(prev => prev.map(p => p.id === id ? updatedPattern : p));
       toast({
-        title: "Pattern updated",
-        description: "Recurring pattern updated successfully",
+        title: t('recurringPatterns.updated.title', 'Pattern updated'),
+        description: t('recurringPatterns.updated.description', 'Recurring pattern updated successfully'),
       });
       
       return updatedPattern;
     } catch (error) {
       console.error('Error updating pattern:', error);
       toast({
-        title: "Error updating pattern",
-        description: "Could not update pattern",
+        title: t('recurringPatterns.updateError.title', 'Error updating pattern'),
+        description: t('recurringPatterns.updateError.description', 'Could not update pattern'),
         variant: "destructive",
       });
       throw error;
@@ -125,14 +127,14 @@ export const useRecurringPatterns = (calendarId?: string) => {
       
       setPatterns(prev => prev.filter(p => p.id !== id));
       toast({
-        title: "Pattern deleted",
-        description: "Recurring pattern deleted successfully",
+        title: t('recurringPatterns.deleted.title', 'Pattern deleted'),
+        description: t('recurringPatterns.deleted.description', 'Recurring pattern deleted successfully'),
       });
     } catch (error) {
       console.error('Error deleting pattern:', error);
       toast({
-        title: "Error deleting pattern",
-        description: "Could not delete pattern",
+        title: t('recurringPatterns.deleteError.title', 'Error deleting pattern'),
+        description: t('recurringPatterns.deleteError.description', 'Could not delete pattern'),
         variant: "destructive",
       });
       throw error;

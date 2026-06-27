@@ -1,11 +1,13 @@
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WebhookEndpoint, WebhookEvent } from '@/types/database';
 
 export const useWebhooks = (calendarId?: string) => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [endpoints, setEndpoints] = useState<WebhookEndpoint[]>([]);
   const [events, setEvents] = useState<WebhookEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,24 +78,24 @@ export const useWebhooks = (calendarId?: string) => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to create webhook endpoint",
+          title: t('webhooks.errorTitle', "Error"),
+          description: t('webhooks.createFailed', "Failed to create webhook endpoint"),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Webhook endpoint created successfully",
+        title: t('webhooks.successTitle', "Success"),
+        description: t('webhooks.createSuccess', "Webhook endpoint created successfully"),
       });
 
       await fetchWebhookEndpoints();
     } catch (error) {
       console.error('Error creating webhook endpoint:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('webhooks.errorTitle', "Error"),
+        description: t('webhooks.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
     }
@@ -108,24 +110,24 @@ export const useWebhooks = (calendarId?: string) => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to update webhook endpoint",
+          title: t('webhooks.errorTitle', "Error"),
+          description: t('webhooks.updateFailed', "Failed to update webhook endpoint"),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Webhook endpoint updated successfully",
+        title: t('webhooks.successTitle', "Success"),
+        description: t('webhooks.updateSuccess', "Webhook endpoint updated successfully"),
       });
 
       await fetchWebhookEndpoints();
     } catch (error) {
       console.error('Error updating webhook endpoint:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('webhooks.errorTitle', "Error"),
+        description: t('webhooks.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
     }
@@ -140,24 +142,24 @@ export const useWebhooks = (calendarId?: string) => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to delete webhook endpoint",
+          title: t('webhooks.errorTitle', "Error"),
+          description: t('webhooks.deleteFailed', "Failed to delete webhook endpoint"),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Webhook endpoint deleted successfully",
+        title: t('webhooks.successTitle', "Success"),
+        description: t('webhooks.deleteSuccess', "Webhook endpoint deleted successfully"),
       });
 
       await fetchWebhookEndpoints();
     } catch (error) {
       console.error('Error deleting webhook endpoint:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('webhooks.errorTitle', "Error"),
+        description: t('webhooks.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
     }
@@ -175,22 +177,22 @@ export const useWebhooks = (calendarId?: string) => {
 
       if (response.ok) {
         toast({
-          title: "Success",
-          description: "Webhook retry initiated",
+          title: t('webhooks.successTitle', "Success"),
+          description: t('webhooks.retrySuccess', "Webhook retry initiated"),
         });
         await fetchWebhookEvents();
       } else {
         toast({
-          title: "Error",
-          description: "Failed to retry webhook",
+          title: t('webhooks.errorTitle', "Error"),
+          description: t('webhooks.retryFailed', "Failed to retry webhook"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Error retrying webhook:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('webhooks.errorTitle', "Error"),
+        description: t('webhooks.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
     }

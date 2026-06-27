@@ -1,12 +1,14 @@
 
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export function useWhatsAppConversationUpdates(calendarId?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   useEffect(() => {
     if (!calendarId) return;
@@ -35,8 +37,8 @@ export function useWhatsAppConversationUpdates(calendarId?: string) {
           // Show toast for newly linked conversations
           if (payload.old.calendar_id === null && payload.new.calendar_id) {
           toast({
-            title: "Conversation Linked",
-            description: "A WhatsApp conversation was automatically linked to an appointment",
+            title: t('whatsappConversationUpdates.linkedTitle', "Conversation Linked"),
+            description: t('whatsappConversationUpdates.linkedDescription', "A WhatsApp conversation was automatically linked to an appointment"),
           });
           }
         }
@@ -65,8 +67,8 @@ export function useWhatsAppConversationUpdates(calendarId?: string) {
             queryClient.invalidateQueries({ queryKey: ['whatsapp-contact-overview'] });
             
             toast({
-              title: "Automatic Linking",
-              description: "WhatsApp conversation linked to new appointment",
+              title: t('whatsappConversationUpdates.autoLinkTitle', "Automatic Linking"),
+              description: t('whatsappConversationUpdates.autoLinkDescription', "WhatsApp conversation linked to new appointment"),
             });
           }
         }
@@ -78,5 +80,5 @@ export function useWhatsAppConversationUpdates(calendarId?: string) {
       supabase.removeChannel(conversationsChannel);
       supabase.removeChannel(webhookChannel);
     };
-  }, [calendarId, queryClient, toast]);
+  }, [calendarId, queryClient, toast, t]);
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isTestMode } from '@/utils/stripeConfig';
@@ -9,6 +10,7 @@ export const usePaymentSettings = (calendarId?: string) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const parseSettings = (data: any): PaymentSettings => ({
     ...data,
@@ -44,8 +46,8 @@ export const usePaymentSettings = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching payment settings:', error);
       toast({
-        title: "Error",
-        description: "Failed to load payment settings",
+        title: t('paymentSettings.loadErrorTitle', "Error"),
+        description: t('paymentSettings.loadErrorDescription', "Failed to load payment settings"),
         variant: "destructive",
       });
     } finally {
@@ -74,16 +76,16 @@ export const usePaymentSettings = (calendarId?: string) => {
       setSettings(parseSettings(data));
 
       toast({
-        title: "Success",
-        description: "Payment settings updated successfully",
+        title: t('paymentSettings.updateSuccessTitle', "Success"),
+        description: t('paymentSettings.updateSuccessDescription', "Payment settings updated successfully"),
       });
 
       return true;
     } catch (error) {
       console.error('Error updating payment settings:', error);
       toast({
-        title: "Error",
-        description: "Failed to update payment settings",
+        title: t('paymentSettings.updateErrorTitle', "Error"),
+        description: t('paymentSettings.updateErrorDescription', "Failed to update payment settings"),
         variant: "destructive",
       });
       return false;
@@ -150,14 +152,14 @@ export const usePaymentSettings = (calendarId?: string) => {
         if (error) {
           console.error('Failed to sync payout settings to Stripe:', error);
           toast({
-            title: "Warning",
-            description: "Settings saved locally but failed to sync to Stripe",
+            title: t('paymentSettings.payoutSyncWarningTitle', "Warning"),
+            description: t('paymentSettings.payoutSyncWarningDescription', "Settings saved locally but failed to sync to Stripe"),
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Success",
-            description: `Payout settings updated to ${option} in Stripe`,
+            title: t('paymentSettings.payoutSyncSuccessTitle', "Success"),
+            description: t('paymentSettings.payoutSyncSuccessDescription', "Payout settings updated to {{option}} in Stripe", { option }),
           });
         }
       } catch (error) {

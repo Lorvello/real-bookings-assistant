@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
@@ -6,6 +7,7 @@ import { loadStripe } from '@stripe/stripe-js';
 export const useStripePayment = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const createPayment = async (bookingId: string, calendarId: string, confirmationToken: string) => {
     setLoading(true);
@@ -35,8 +37,8 @@ export const useStripePayment = () => {
     } catch (error: any) {
       console.error('Error creating payment:', error);
       toast({
-        title: "Betalingsfout",
-        description: error.message || "Er is een fout opgetreden bij het aanmaken van de betaling",
+        title: t('stripePayment.paymentErrorTitle', "Betalingsfout"),
+        description: error.message || t('stripePayment.createErrorDescription', "Er is een fout opgetreden bij het aanmaken van de betaling"),
         variant: "destructive",
       });
       return { success: false, error: error.message };
@@ -72,8 +74,8 @@ export const useStripePayment = () => {
 
       if (paymentIntent?.status === 'succeeded') {
         toast({
-          title: "Betaling geslaagd",
-          description: "Uw betaling is succesvol verwerkt",
+          title: t('stripePayment.successTitle', "Betaling geslaagd"),
+          description: t('stripePayment.successDescription', "Uw betaling is succesvol verwerkt"),
         });
         return { success: true, paymentIntent };
       } else {
@@ -82,8 +84,8 @@ export const useStripePayment = () => {
     } catch (error: any) {
       console.error('Error processing payment:', error);
       toast({
-        title: "Betalingsfout",
-        description: error.message || "Er is een fout opgetreden bij het verwerken van de betaling",
+        title: t('stripePayment.paymentErrorTitle', "Betalingsfout"),
+        description: error.message || t('stripePayment.processErrorDescription', "Er is een fout opgetreden bij het verwerken van de betaling"),
         variant: "destructive",
       });
       return { success: false, error: error.message };

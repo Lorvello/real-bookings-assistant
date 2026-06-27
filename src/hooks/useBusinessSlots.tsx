@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { BusinessSlot } from '@/types/businessAvailability';
@@ -7,6 +8,7 @@ import { BusinessSlot } from '@/types/businessAvailability';
 export const useBusinessSlots = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const getBusinessSlots = async (
     calendarSlug: string,
@@ -27,7 +29,7 @@ export const useBusinessSlots = () => {
       if (error) {
         console.error('Error fetching business slots:', error);
         toast({
-          title: "Fout bij ophalen beschikbare tijden",
+          title: t('businessSlots.fetchErrorTitle', 'Fout bij ophalen beschikbare tijden'),
           description: error.message,
           variant: "destructive",
         });
@@ -45,8 +47,8 @@ export const useBusinessSlots = () => {
     } catch (error) {
       console.error('Error fetching business slots:', error);
       toast({
-        title: "Fout bij ophalen beschikbare tijden",
-        description: "Er is een onverwachte fout opgetreden",
+        title: t('businessSlots.fetchErrorTitle', 'Fout bij ophalen beschikbare tijden'),
+        description: t('businessSlots.unexpectedError', 'Er is een onverwachte fout opgetreden'),
         variant: "destructive",
       });
       setLoading(false);

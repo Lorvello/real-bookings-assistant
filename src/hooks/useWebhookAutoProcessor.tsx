@@ -1,5 +1,6 @@
 
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,6 +16,7 @@ export function useWebhookAutoProcessor({
   intervalMs = 3000
 }: AutoProcessorConfig = {}) {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastProcessTimeRef = useRef<number>(0);
   const processingRef = useRef<boolean>(false);
@@ -75,8 +77,8 @@ export function useWebhookAutoProcessor({
             // Show success toast for significant webhook processing (only for global processor)
             if (data.successful >= 3 && isGlobalRef.current) {
               toast({
-                title: "Webhooks verwerkt",
-                description: `${data.successful} webhook(s) succesvol verzonden naar n8n`,
+                title: t('webhookAutoProcessor.processedTitle', "Webhooks verwerkt"),
+                description: t('webhookAutoProcessor.processedDescription', "{{count}} webhook(s) succesvol verzonden naar n8n", { count: data.successful }),
               });
             }
           }
@@ -92,8 +94,8 @@ export function useWebhookAutoProcessor({
         const timeSinceLastError = Date.now() - lastProcessTimeRef.current;
         if (timeSinceLastError > 60000 && isGlobalRef.current) {
           toast({
-            title: "Webhook processing issue",
-            description: "Er is een tijdelijk probleem met webhook verwerking",
+            title: t('webhookAutoProcessor.issueTitle', "Webhook processing issue"),
+            description: t('webhookAutoProcessor.issueDescription', "Er is een tijdelijk probleem met webhook verwerking"),
             variant: "destructive",
           });
         }
@@ -166,7 +168,7 @@ export function useWebhookAutoProcessor({
       supabase.removeChannel(webhookChannel);
       supabase.removeChannel(notificationChannel);
     };
-  }, [enabled, calendarId, intervalMs, toast]);
+  }, [enabled, calendarId, intervalMs, toast, t]);
 
   const getLastProcessTime = () => lastProcessTimeRef.current;
   const isProcessing = () => processingRef.current;

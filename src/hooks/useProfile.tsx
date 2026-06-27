@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UserProfile } from '@/types/database';
@@ -10,6 +11,7 @@ const PROFILE_CACHE_VERSION = '2.0'; // Updated after grace_period_end migration
 
 export const useProfile = () => {
   const { user } = useAuth();
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(() => {
     // Initialize with cached profile to prevent loading flash
@@ -127,8 +129,8 @@ export const useProfile = () => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to update profile",
+          title: t('profile.errorTitle', 'Error'),
+          description: t('profile.updateFailedDescription', 'Failed to update profile'),
           variant: "destructive",
         });
         return;
@@ -138,14 +140,14 @@ export const useProfile = () => {
       await fetchProfile();
       
       toast({
-        title: "Success",
-        description: "Profile updated successfully",
+        title: t('profile.successTitle', 'Success'),
+        description: t('profile.updateSuccessDescription', 'Profile updated successfully'),
       });
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('profile.errorTitle', 'Error'),
+        description: t('profile.unexpectedErrorDescription', 'An unexpected error occurred'),
         variant: "destructive",
       });
     }

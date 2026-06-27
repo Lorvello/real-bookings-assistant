@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +36,7 @@ export const useInstallmentSettings = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchSettings = async () => {
     if (!user) return;
@@ -63,8 +65,8 @@ export const useInstallmentSettings = () => {
     } catch (error) {
       console.error('Error fetching installment settings:', error);
       toast({
-        title: "Error loading settings",
-        description: "Could not load installment settings.",
+        title: t('installmentSettings.loadErrorTitle', "Error loading settings"),
+        description: t('installmentSettings.loadErrorDescription', "Could not load installment settings."),
         variant: "destructive"
       });
     } finally {
@@ -97,15 +99,15 @@ export const useInstallmentSettings = () => {
 
       setSettings(mergedSettings as InstallmentSettings);
       toast({
-        title: "Settings saved",
-        description: "Installment settings have been updated successfully.",
+        title: t('installmentSettings.saveSuccessTitle', "Settings saved"),
+        description: t('installmentSettings.saveSuccessDescription', "Installment settings have been updated successfully."),
       });
       return true;
     } catch (error) {
       console.error('Error updating installment settings:', error);
       toast({
-        title: "Error saving settings",
-        description: error.message || "Could not save installment settings.",
+        title: t('installmentSettings.saveErrorTitle', "Error saving settings"),
+        description: error.message || t('installmentSettings.saveErrorDescription', "Could not save installment settings."),
         variant: "destructive"
       });
       return false;

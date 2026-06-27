@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,6 +55,7 @@ interface UserRegistrationResult {
 }
 
 export const useUserRegistration = () => {
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -84,27 +86,27 @@ export const useUserRegistration = () => {
         
         // Handle specific authentication errors with user-friendly messages
         if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
-          errorMessage = 'This email address is already registered';
+          errorMessage = t('userRegistration.error.alreadyRegistered', 'This email address is already registered');
         } else if (authError.message.includes('invalid_email') || authError.message.includes('invalid email')) {
-          errorMessage = 'Please enter a valid email address';
+          errorMessage = t('userRegistration.error.invalidEmail', 'Please enter a valid email address');
         } else if (authError.message.includes('weak_password') || authError.message.includes('password')) {
-          errorMessage = 'Password does not meet security requirements (minimum 8 characters with uppercase, lowercase, numbers, and special characters)';
+          errorMessage = t('userRegistration.error.weakPassword', 'Password does not meet security requirements (minimum 8 characters with uppercase, lowercase, numbers, and special characters)');
         } else if (authError.message.includes('signup_disabled')) {
-          errorMessage = 'Account registration is currently disabled. Please contact support.';
+          errorMessage = t('userRegistration.error.signupDisabled', 'Account registration is currently disabled. Please contact support.');
         } else if (authError.message.includes('rate_limit') || authError.message.includes('too_many_requests')) {
-          errorMessage = 'Too many registration attempts. Please wait a few minutes and try again.';
+          errorMessage = t('userRegistration.error.rateLimit', 'Too many registration attempts. Please wait a few minutes and try again.');
         } else if (authError.message.includes('network') || authError.message.includes('fetch')) {
-          errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+          errorMessage = t('userRegistration.error.network', 'Network connection failed. Please check your internet connection and try again.');
         } else if (authError.message.includes('email_rate_limit_exceeded')) {
-          errorMessage = 'Email verification limit reached. Please wait before requesting another verification email.';
+          errorMessage = t('userRegistration.error.emailRateLimitExceeded', 'Email verification limit reached. Please wait before requesting another verification email.');
         } else {
           // For unknown errors, provide a generic but helpful message
-          errorMessage = 'Unable to create account. Please try again or contact support if the issue continues.';
+          errorMessage = t('userRegistration.error.generic', 'Unable to create account. Please try again or contact support if the issue continues.');
         }
 
         if (shouldShowToast) {
           toast({
-            title: "Registration Failed",
+            title: t('userRegistration.registrationFailedTitle', 'Registration Failed'),
             description: errorMessage,
             variant: "destructive",
           });
@@ -115,10 +117,10 @@ export const useUserRegistration = () => {
       }
 
       if (!authData.user) {
-        const errorMessage = "User could not be created";
+        const errorMessage = t('userRegistration.userNotCreatedDescription', 'User could not be created');
         console.error('[UserRegistration] No user returned from auth');
         toast({
-          title: "Registration failed",
+          title: t('userRegistration.registrationFailedLowerTitle', 'Registration failed'),
           description: errorMessage,
           variant: "destructive",
         });
@@ -137,10 +139,10 @@ export const useUserRegistration = () => {
       const needsEmailVerification = !authData.session;
 
       toast({
-        title: "Account created successfully! 🎉",
+        title: t('userRegistration.accountCreatedTitle', 'Account created successfully! 🎉'),
         description: needsEmailVerification
-          ? "Check your inbox to verify your email, then complete your business setup."
-          : "Please complete your business setup to start your 30-day trial.",
+          ? t('userRegistration.accountCreatedVerifyDescription', 'Check your inbox to verify your email, then complete your business setup.')
+          : t('userRegistration.accountCreatedTrialDescription', 'Please complete your business setup to start your 30-day trial.'),
       });
 
       setLoading(false);
@@ -154,8 +156,8 @@ export const useUserRegistration = () => {
     } catch (error) {
       console.error('[UserRegistration] Unexpected error:', error);
       toast({
-        title: "Registration failed",
-        description: "An unexpected error occurred",
+        title: t('userRegistration.registrationFailedLowerTitle', 'Registration failed'),
+        description: t('userRegistration.unexpectedErrorDescription', 'An unexpected error occurred'),
         variant: "destructive",
       });
       setLoading(false);

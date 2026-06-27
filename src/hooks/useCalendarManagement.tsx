@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { updateCalendarName, updateCalendarSettings } from './calendar-settings/calendarSettingsUtils';
@@ -5,6 +6,7 @@ import { CalendarSettings } from '@/types/database';
 
 export const useCalendarManagement = () => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { refreshCalendars } = useCalendarContext();
 
   /**
@@ -18,16 +20,16 @@ export const useCalendarManagement = () => {
 
       if (!success) {
         toast({
-          title: "Error",
-          description: "Cannot update calendar name",
+          title: t('calendarManagement.errorTitle', 'Error'),
+          description: t('calendarManagement.nameUpdateFailedDescription', 'Cannot update calendar name'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Calendar name updated successfully",
+        title: t('calendarManagement.successTitle', 'Success'),
+        description: t('calendarManagement.nameUpdatedDescription', 'Calendar name updated successfully'),
       });
 
       await refreshCalendars();
@@ -35,8 +37,8 @@ export const useCalendarManagement = () => {
     } catch (error) {
       console.error('Error updating calendar name:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('calendarManagement.errorTitle', 'Error'),
+        description: t('calendarManagement.unexpectedErrorDescription', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;
@@ -57,24 +59,24 @@ export const useCalendarManagement = () => {
 
       if (!success) {
         toast({
-          title: "Error",
-          description: "Cannot save calendar settings",
+          title: t('calendarManagement.errorTitle', 'Error'),
+          description: t('calendarManagement.settingsSaveFailedDescription', 'Cannot save calendar settings'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Calendar settings saved successfully",
+        title: t('calendarManagement.successTitle', 'Success'),
+        description: t('calendarManagement.settingsSavedDescription', 'Calendar settings saved successfully'),
       });
 
       return true;
     } catch (error) {
       console.error('Error saving calendar settings:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('calendarManagement.errorTitle', 'Error'),
+        description: t('calendarManagement.unexpectedErrorDescription', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useDeleteCalendar = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const deleteCalendar = async (calendarId: string) => {
     setLoading(true);
@@ -19,14 +21,14 @@ export const useDeleteCalendar = () => {
       }
 
       toast({
-        title: "Calendar deleted",
-        description: "Calendar has been deleted successfully",
+        title: t('deleteCalendar.deletedTitle', 'Calendar deleted'),
+        description: t('deleteCalendar.deletedDescription', 'Calendar has been deleted successfully'),
       });
     } catch (error) {
       console.error('Error deleting calendar:', error);
       toast({
-        title: "Error deleting calendar",
-        description: "Could not delete calendar. Please try again.",
+        title: t('deleteCalendar.deleteErrorTitle', 'Error deleting calendar'),
+        description: t('deleteCalendar.deleteErrorDescription', 'Could not delete calendar. Please try again.'),
         variant: "destructive",
       });
       throw error;

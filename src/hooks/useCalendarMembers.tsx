@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,6 +26,7 @@ export const useCalendarMembers = (calendarId?: string) => {
   const [members, setMembers] = useState<CalendarMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchMembers = async () => {
     try {
@@ -64,8 +66,8 @@ export const useCalendarMembers = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching calendar members:', error);
       toast({
-        title: "Error loading members",
-        description: "Could not load calendar members",
+        title: t('calendarMembers.loadError.title', 'Error loading members'),
+        description: t('calendarMembers.loadError.description', 'Could not load calendar members'),
         variant: "destructive",
       });
     } finally {
@@ -149,13 +151,13 @@ export const useCalendarMembers = (calendarId?: string) => {
         // The edge function returns a 400 with a specific reason (e.g. team-member
         // limit reached). supabase-js puts the response body on error.context — read
         // it so the user sees the real reason instead of a generic failure.
-        let description = error.message || "Could not send invitation.";
+        let description = error.message || t('calendarMembers.inviteSendError.description', 'Could not send invitation.');
         try {
           const body = await (error as any).context?.json?.();
           if (body?.error) description = body.error;
-        } catch (_) { /* body not JSON — keep generic message */ }
+        } catch (_) { /* body not JSON, keep generic message */ }
         toast({
-          title: "Error",
+          title: t('calendarMembers.inviteSendError.title', 'Error'),
           description,
           variant: "destructive",
         });
@@ -166,16 +168,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       await fetchMembers();
 
       toast({
-        title: "Invitation sent! 📧",
-        description: `An invitation has been sent to ${email}. They have 48 hours to accept.`,
+        title: t('calendarMembers.inviteSent.title', 'Invitation sent! 📧'),
+        description: t('calendarMembers.inviteSent.description', 'An invitation has been sent to {{email}}. They have 48 hours to accept.', { email }),
       });
       return true;
 
     } catch (error) {
       console.error('Error inviting member:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong while sending the invitation.",
+        title: t('calendarMembers.inviteError.title', 'Error'),
+        description: t('calendarMembers.inviteError.description', 'Something went wrong while sending the invitation.'),
         variant: "destructive",
       });
       return false;
@@ -193,8 +195,8 @@ export const useCalendarMembers = (calendarId?: string) => {
   ) => {
     if (!calendarIds.length) {
       toast({
-        title: "No calendars selected",
-        description: "Please select at least one calendar",
+        title: t('calendarMembers.noCalendarsSelected.title', 'No calendars selected'),
+        description: t('calendarMembers.noCalendarsSelected.description', 'Please select at least one calendar'),
         variant: "destructive",
       });
       return;
@@ -216,8 +218,8 @@ export const useCalendarMembers = (calendarId?: string) => {
       
       if (newCalendarIds.length === 0) {
         toast({
-          title: "User is already a member",
-          description: "This user already has access to all selected calendars",
+          title: t('calendarMembers.alreadyMember.title', 'User is already a member'),
+          description: t('calendarMembers.alreadyMember.description', 'This user already has access to all selected calendars'),
           variant: "destructive",
         });
         return;
@@ -239,16 +241,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "User invited",
-        description: `${email} has been invited to ${newCalendarIds.length} calendar(s) as ${role}`,
+        title: t('calendarMembers.userInvited.title', 'User invited'),
+        description: t('calendarMembers.userInvited.description', '{{email}} has been invited to {{count}} calendar(s) as {{role}}', { email, count: newCalendarIds.length, role }),
       });
 
       fetchMembers();
     } catch (error) {
       console.error('Error inviting member:', error);
       toast({
-        title: "Error inviting user",
-        description: "Could not invite the user",
+        title: t('calendarMembers.inviteUserError.title', 'Error inviting user'),
+        description: t('calendarMembers.inviteUserError.description', 'Could not invite the user'),
         variant: "destructive",
       });
     }
@@ -264,16 +266,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Member removed",
-        description: "User no longer has access to this calendar",
+        title: t('calendarMembers.memberRemoved.title', 'Member removed'),
+        description: t('calendarMembers.memberRemoved.description', 'User no longer has access to this calendar'),
       });
 
       fetchMembers();
     } catch (error) {
       console.error('Error removing member:', error);
       toast({
-        title: "Error removing member",
-        description: "Could not remove the member",
+        title: t('calendarMembers.removeMemberError.title', 'Error removing member'),
+        description: t('calendarMembers.removeMemberError.description', 'Could not remove the member'),
         variant: "destructive",
       });
     }
@@ -289,16 +291,16 @@ export const useCalendarMembers = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Role updated",
-        description: "The member's role has been updated successfully",
+        title: t('calendarMembers.roleUpdated.title', 'Role updated'),
+        description: t('calendarMembers.roleUpdated.description', "The member's role has been updated successfully"),
       });
 
       fetchMembers();
     } catch (error) {
       console.error('Error updating member role:', error);
       toast({
-        title: "Error updating role",
-        description: "Could not update the role",
+        title: t('calendarMembers.updateRoleError.title', 'Error updating role'),
+        description: t('calendarMembers.updateRoleError.description', 'Could not update the role'),
         variant: "destructive",
       });
     }

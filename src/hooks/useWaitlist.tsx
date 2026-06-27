@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WaitlistEntry } from '@/types/waitlist';
@@ -7,6 +8,7 @@ export const useWaitlist = (calendarId?: string) => {
   const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchWaitlistEntries = async () => {
     if (!calendarId) return;
@@ -31,8 +33,8 @@ export const useWaitlist = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching waitlist entries:', error);
       toast({
-        title: "Error loading waitlist",
-        description: "Could not load waitlist",
+        title: t('waitlist.loadErrorTitle', 'Error loading waitlist'),
+        description: t('waitlist.loadErrorDescription', 'Could not load waitlist'),
         variant: "destructive",
       });
     } finally {
@@ -68,16 +70,16 @@ export const useWaitlist = (calendarId?: string) => {
 
       if (!result.success) {
         toast({
-          title: "Error adding to waitlist",
-          description: result.error || "Unknown error",
+          title: t('waitlist.addErrorTitle', 'Error adding to waitlist'),
+          description: result.error || t('waitlist.unknownError', 'Unknown error'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Added to waitlist",
-        description: "You have been successfully added to the waitlist. You'll be notified when a spot opens up.",
+        title: t('waitlist.addedTitle', 'Added to waitlist'),
+        description: t('waitlist.addedDescription', "You have been successfully added to the waitlist. You'll be notified when a spot opens up."),
       });
 
       await fetchWaitlistEntries();
@@ -85,8 +87,8 @@ export const useWaitlist = (calendarId?: string) => {
     } catch (error) {
       console.error('Error adding to waitlist:', error);
       toast({
-        title: "Error adding to waitlist",
-        description: "An unexpected error occurred",
+        title: t('waitlist.addErrorTitle', 'Error adding to waitlist'),
+        description: t('waitlist.unexpectedError', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;
@@ -103,16 +105,16 @@ export const useWaitlist = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Removed from waitlist",
-        description: "The waitlist entry has been removed",
+        title: t('waitlist.removedTitle', 'Removed from waitlist'),
+        description: t('waitlist.removedDescription', 'The waitlist entry has been removed'),
       });
 
       await fetchWaitlistEntries();
     } catch (error) {
       console.error('Error removing from waitlist:', error);
       toast({
-        title: "Error deleting",
-        description: "Could not remove from waitlist",
+        title: t('waitlist.deleteErrorTitle', 'Error deleting'),
+        description: t('waitlist.deleteErrorDescription', 'Could not remove from waitlist'),
         variant: "destructive",
       });
     }
@@ -128,16 +130,16 @@ export const useWaitlist = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Status updated",
-        description: "Waitlist status has been updated",
+        title: t('waitlist.statusUpdatedTitle', 'Status updated'),
+        description: t('waitlist.statusUpdatedDescription', 'Waitlist status has been updated'),
       });
 
       await fetchWaitlistEntries();
     } catch (error) {
       console.error('Error updating waitlist status:', error);
       toast({
-        title: "Error updating",
-        description: "Could not update status",
+        title: t('waitlist.updateErrorTitle', 'Error updating'),
+        description: t('waitlist.updateErrorDescription', 'Could not update status'),
         variant: "destructive",
       });
     }

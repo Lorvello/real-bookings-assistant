@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { BusinessOverview, BusinessOverviewFilters, CalendarOverview, Service, OpeningHours, UpcomingBooking, CalendarSettings } from '@/types/businessAvailability';
@@ -7,6 +8,7 @@ export const useBusinessOverviewFetch = () => {
   const [data, setData] = useState<BusinessOverview[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchBusinessOverview = async (filters?: BusinessOverviewFilters) => {
     setLoading(true);
@@ -104,8 +106,8 @@ export const useBusinessOverviewFetch = () => {
     } catch (error) {
       console.error('Error fetching business overview:', error);
       toast({
-        title: "Fout bij ophalen bedrijfsoverzicht",
-        description: error instanceof Error ? error.message : "Er ging iets mis",
+        title: t('businessOverviewFetch.errorTitle', 'Error loading business overview'),
+        description: error instanceof Error ? error.message : t('businessOverviewFetch.somethingWentWrong', 'Something went wrong'),
         variant: "destructive",
       });
       setLoading(false);

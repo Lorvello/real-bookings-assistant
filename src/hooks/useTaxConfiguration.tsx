@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStripeMode } from '@/utils/stripeConfig';
@@ -17,6 +18,7 @@ export const useTaxConfiguration = (calendarId?: string) => {
   const [status, setStatus] = useState<TaxConfigurationStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const checkTaxConfiguration = async () => {
     if (!calendarId) return;
@@ -88,8 +90,8 @@ export const useTaxConfiguration = (calendarId?: string) => {
     } catch (error) {
       console.error('Failed to check tax configuration:', error);
       toast({
-        title: "Error",
-        description: "Failed to check tax configuration status",
+        title: t('taxConfiguration.checkErrorTitle', "Error"),
+        description: t('taxConfiguration.checkErrorDescription', "Failed to check tax configuration status"),
         variant: "destructive",
       });
     } finally {

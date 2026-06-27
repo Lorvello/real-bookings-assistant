@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,6 +35,7 @@ interface ManualProcessResponse {
 
 export function useWebhookProcessor(calendarId?: string) {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   useEffect(() => {
     if (!calendarId) return;
@@ -78,16 +80,16 @@ export function useWebhookProcessor(calendarId?: string) {
           // Show toast for successful deliveries
           if (payload.new?.status === 'sent' && payload.old?.status === 'pending') {
             toast({
-              title: "Webhook succesvol verzonden",
-              description: `${payload.new.event_type} succesvol verzonden naar n8n`,
+              title: t('webhookProcessor.sentTitle', "Webhook succesvol verzonden"),
+              description: t('webhookProcessor.sentDescription', "{{eventType}} succesvol verzonden naar n8n", { eventType: payload.new.event_type }),
             });
           }
-          
+
           // Show toast for failures
           if (payload.new?.status === 'failed' && payload.old?.status !== 'failed') {
             toast({
-              title: "Webhook gefaald",
-              description: `${payload.new.event_type} kon niet worden verzonden (${payload.new.attempts} pogingen)`,
+              title: t('webhookProcessor.failedTitle', "Webhook gefaald"),
+              description: t('webhookProcessor.failedDescription', "{{eventType}} kon niet worden verzonden ({{attempts}} pogingen)", { eventType: payload.new.event_type, attempts: payload.new.attempts }),
               variant: "destructive",
             });
           }
@@ -101,7 +103,7 @@ export function useWebhookProcessor(calendarId?: string) {
       console.log('🔌 Cleaning up enhanced webhook processor');
       supabase.removeChannel(webhookChannel);
     };
-  }, [calendarId, toast]);
+  }, [calendarId, toast, t]);
 
   const processWebhookQueue = async () => {
     try {
@@ -124,17 +126,17 @@ export function useWebhookProcessor(calendarId?: string) {
       
       if (data?.successful > 0) {
         toast({
-          title: "Webhooks verwerkt",
-          description: `${data.successful} webhook(s) succesvol verzonden naar n8n`,
+          title: t('webhookProcessor.processedTitle', "Webhooks verwerkt"),
+          description: t('webhookProcessor.processedDescription', "{{count}} webhook(s) succesvol verzonden naar n8n", { count: data.successful }),
         });
       }
-      
+
       return data;
     } catch (error) {
       console.error('💥 Error processing enhanced webhook queue:', error);
       toast({
-        title: "Webhook fout",
-        description: "Er is een fout opgetreden bij het verwerken van webhooks",
+        title: t('webhookProcessor.errorTitle', "Webhook fout"),
+        description: t('webhookProcessor.errorDescription', "Er is een fout opgetreden bij het verwerken van webhooks"),
         variant: "destructive",
       });
       throw error;
@@ -160,16 +162,16 @@ export function useWebhookProcessor(calendarId?: string) {
       const testResult = data as unknown as TestWebhookResponse;
       
       toast({
-        title: "Webhook test gestart",
-        description: `Test webhook aangemaakt met ${testResult.active_endpoints} actieve endpoint(s)`,
+        title: t('webhookProcessor.testStartedTitle', "Webhook test gestart"),
+        description: t('webhookProcessor.testStartedDescription', "Test webhook aangemaakt met {{count}} actieve endpoint(s)", { count: testResult.active_endpoints }),
       });
-      
+
       return testResult;
     } catch (error) {
       console.error('💥 Error testing webhook system:', error);
       toast({
-        title: "Webhook test fout",
-        description: "Kon webhook systeem niet testen",
+        title: t('webhookProcessor.testErrorTitle', "Webhook test fout"),
+        description: t('webhookProcessor.testErrorDescription', "Kon webhook systeem niet testen"),
         variant: "destructive",
       });
       throw error;
@@ -191,19 +193,19 @@ export function useWebhookProcessor(calendarId?: string) {
       const processResult = data as unknown as ManualProcessResponse;
       
       toast({
-        title: "Handmatige verwerking gestart",
-        description: `${processResult.pending_webhooks} webhook(s) worden verwerkt`,
+        title: t('webhookProcessor.manualStartedTitle', "Handmatige verwerking gestart"),
+        description: t('webhookProcessor.manualStartedDescription', "{{count}} webhook(s) worden verwerkt", { count: processResult.pending_webhooks }),
       });
-      
+
       // Trigger actual processing
       setTimeout(() => processWebhookQueue(), 1000);
-      
+
       return processResult;
     } catch (error) {
       console.error('💥 Error in manual webhook processing:', error);
       toast({
-        title: "Handmatige verwerking fout",
-        description: "Kon webhooks niet handmatig verwerken",
+        title: t('webhookProcessor.manualErrorTitle', "Handmatige verwerking fout"),
+        description: t('webhookProcessor.manualErrorDescription', "Kon webhooks niet handmatig verwerken"),
         variant: "destructive",
       });
       throw error;

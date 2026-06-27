@@ -1,5 +1,6 @@
 
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 export function useRealtimeBookings(calendarIds: string[] = []) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   useEffect(() => {
     if (!calendarIds.length) return;
@@ -40,13 +42,13 @@ export function useRealtimeBookings(calendarIds: string[] = []) {
             // Show toast for new bookings
             if (payload.eventType === 'INSERT') {
               toast({
-                title: "Nieuwe afspraak",
-                description: `Afspraak voor ${payload.new.customer_name} is aangemaakt`,
+                title: t('realtimeBookings.newBookingTitle', 'Nieuwe afspraak'),
+                description: t('realtimeBookings.newBookingDescription', 'Afspraak voor {{name}} is aangemaakt', { name: payload.new.customer_name }),
               });
             } else if (payload.eventType === 'UPDATE' && payload.old.status !== payload.new.status) {
               toast({
-                title: "Status gewijzigd",
-                description: `Afspraak status is gewijzigd naar ${payload.new.status}`,
+                title: t('realtimeBookings.statusChangedTitle', 'Status gewijzigd'),
+                description: t('realtimeBookings.statusChangedDescription', 'Afspraak status is gewijzigd naar {{status}}', { status: payload.new.status }),
               });
             }
           }
@@ -86,5 +88,5 @@ export function useRealtimeBookings(calendarIds: string[] = []) {
         supabase.removeChannel(serviceTypesChannel);
       });
     };
-  }, [calendarIds.join(','), queryClient, toast]); // Use join to create stable dependency
+  }, [calendarIds.join(','), queryClient, toast, t]); // Use join to create stable dependency
 }

@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AvailabilityOverride } from '@/types/database';
@@ -8,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useAvailabilityOverrides = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [overrides, setOverrides] = useState<AvailabilityOverride[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,8 +51,8 @@ export const useAvailabilityOverrides = (calendarId?: string) => {
     // Ensure required fields are present
     if (!overrideData.date) {
       toast({
-        title: "Error",
-        description: "Date is required",
+        title: t('availabilityOverrides.dateRequired.title', 'Error'),
+        description: t('availabilityOverrides.dateRequired.description', 'Date is required'),
         variant: "destructive",
       });
       return;
@@ -70,24 +72,24 @@ export const useAvailabilityOverrides = (calendarId?: string) => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to create availability override",
+          title: t('availabilityOverrides.createError.title', 'Error'),
+          description: t('availabilityOverrides.createError.description', 'Failed to create availability override'),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Availability override created successfully",
+        title: t('availabilityOverrides.createSuccess.title', 'Success'),
+        description: t('availabilityOverrides.createSuccess.description', 'Availability override created successfully'),
       });
 
       await fetchOverrides();
     } catch (error) {
       console.error('Error creating availability override:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilityOverrides.createUnexpectedError.title', 'Error'),
+        description: t('availabilityOverrides.createUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
     }
@@ -102,24 +104,24 @@ export const useAvailabilityOverrides = (calendarId?: string) => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to update availability override",
+          title: t('availabilityOverrides.updateError.title', 'Error'),
+          description: t('availabilityOverrides.updateError.description', 'Failed to update availability override'),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Availability override updated successfully",
+        title: t('availabilityOverrides.updateSuccess.title', 'Success'),
+        description: t('availabilityOverrides.updateSuccess.description', 'Availability override updated successfully'),
       });
 
       await fetchOverrides();
     } catch (error) {
       console.error('Error updating availability override:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilityOverrides.updateUnexpectedError.title', 'Error'),
+        description: t('availabilityOverrides.updateUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
     }
@@ -134,24 +136,24 @@ export const useAvailabilityOverrides = (calendarId?: string) => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to delete availability override",
+          title: t('availabilityOverrides.deleteError.title', 'Error'),
+          description: t('availabilityOverrides.deleteError.description', 'Failed to delete availability override'),
           variant: "destructive",
         });
         return;
       }
 
       toast({
-        title: "Success",
-        description: "Availability override deleted successfully",
+        title: t('availabilityOverrides.deleteSuccess.title', 'Success'),
+        description: t('availabilityOverrides.deleteSuccess.description', 'Availability override deleted successfully'),
       });
 
       await fetchOverrides();
     } catch (error) {
       console.error('Error deleting availability override:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilityOverrides.deleteUnexpectedError.title', 'Error'),
+        description: t('availabilityOverrides.deleteUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
     }

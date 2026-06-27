@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTeamMemberServices } from '@/hooks/useTeamMemberServices';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +19,7 @@ export const TeamMemberServiceManager = ({
   teamMemberId, 
   teamMemberName 
 }: TeamMemberServiceManagerProps) => {
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const [updating, setUpdating] = useState<string | null>(null);
   
@@ -41,22 +43,22 @@ export const TeamMemberServiceManager = ({
         if (assignment) {
           await unassignService(assignment.id);
           toast({
-            title: "Service verwijderd",
-            description: `${serviceName} is verwijderd van ${teamMemberName}`,
+            title: t('teamMemberServiceManager.serviceRemovedTitle', 'Service removed'),
+            description: t('teamMemberServiceManager.serviceRemovedDescription', '{{serviceName}} has been removed from {{teamMemberName}}', { serviceName, teamMemberName }),
           });
         }
       } else {
         await assignService(teamMemberId, serviceTypeId, calendarId);
         toast({
-          title: "Service toegewezen",
-          description: `${serviceName} is toegewezen aan ${teamMemberName}`,
+          title: t('teamMemberServiceManager.serviceAssignedTitle', 'Service assigned'),
+          description: t('teamMemberServiceManager.serviceAssignedDescription', '{{serviceName}} has been assigned to {{teamMemberName}}', { serviceName, teamMemberName }),
         });
       }
     } catch (error) {
       console.error('Error toggling service:', error);
       toast({
-        title: "Fout",
-        description: "Kon service assignment niet bijwerken",
+        title: t('teamMemberServiceManager.errorTitle', 'Error'),
+        description: t('teamMemberServiceManager.errorDescription', 'Could not update service assignment'),
         variant: "destructive",
       });
     } finally {
@@ -77,15 +79,15 @@ export const TeamMemberServiceManager = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Services voor {teamMemberName}</CardTitle>
+        <CardTitle>{t('teamMemberServiceManager.cardTitle', 'Services for {{teamMemberName}}', { teamMemberName })}</CardTitle>
         <CardDescription>
-          Selecteer welke services {teamMemberName} kan uitvoeren
+          {t('teamMemberServiceManager.cardDescription', 'Select which services {{teamMemberName}} can perform', { teamMemberName })}
         </CardDescription>
       </CardHeader>
       <CardContent>
         {serviceTypes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Geen services beschikbaar voor deze kalender
+            {t('teamMemberServiceManager.noServices', 'No services available for this calendar')}
           </p>
         ) : (
           <div className="space-y-3">
@@ -107,7 +109,7 @@ export const TeamMemberServiceManager = ({
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{service.name}</span>
                     <span className="text-sm text-muted-foreground">
-                      {service.price ? `€${service.price}` : 'Gratis'} · {service.duration} min
+                      {service.price ? `€${service.price}` : t('teamMemberServiceManager.freeLabel', 'Free')} · {service.duration} min
                     </span>
                   </div>
                   {service.description && (

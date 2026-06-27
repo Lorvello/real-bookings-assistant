@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +36,7 @@ interface UseBookingFormProps {
 
 export function useBookingForm({ calendarId, onBookingCreated, onClose, prefill }: UseBookingFormProps) {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [autoUpdateEndTime, setAutoUpdateEndTime] = useState(true);
   const { createBooking, isCreating } = useOptimisticBookings(calendarId);
@@ -152,8 +154,8 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose, prefill 
       const duration = getDuration();
       if (duration <= 0) {
         toast({
-          title: "Invalid times",
-          description: "End time must be after the start time",
+          title: t('bookingForm.invalidTimesTitle', 'Invalid times'),
+          description: t('bookingForm.invalidTimesDescription', 'End time must be after the start time'),
           variant: "destructive",
         });
         return;
@@ -161,8 +163,8 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose, prefill 
 
       if (duration > 480) { // 8 hours max
         toast({
-          title: "Appointment too long",
-          description: "Appointments can be at most 8 hours",
+          title: t('bookingForm.tooLongTitle', 'Appointment too long'),
+          description: t('bookingForm.tooLongDescription', 'Appointments can be at most 8 hours'),
           variant: "destructive",
         });
         return;
@@ -207,7 +209,7 @@ export function useBookingForm({ calendarId, onBookingCreated, onClose, prefill 
       const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
 
       toast({
-        title: "Failed to create appointment",
+        title: t('bookingForm.createFailedTitle', 'Failed to create appointment'),
         description: errorMessage,
         variant: "destructive",
       });

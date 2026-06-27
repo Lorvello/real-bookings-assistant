@@ -1,5 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Booking } from '@/types/database';
@@ -22,6 +23,7 @@ interface BookingInsert {
 export const useOptimizedBookings = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { handleError, retryWithBackoff } = useErrorHandler();
   const queryClient = useQueryClient();
 
@@ -120,14 +122,16 @@ export const useOptimizedBookings = (calendarId?: string) => {
       // Show more specific error messages
       if (appError.type === 'validation') {
         toast({
-          title: "Validatie fout",
+          title: t('optimizedBookings.validationErrorTitle', 'Validatie fout'),
           description: appError.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Fout bij aanmaken booking",
-          description: appError.retryable ? "Probeer het opnieuw" : "Neem contact op met ondersteuning",
+          title: t('optimizedBookings.createErrorTitle', 'Fout bij aanmaken booking'),
+          description: appError.retryable
+            ? t('optimizedBookings.tryAgain', 'Probeer het opnieuw')
+            : t('optimizedBookings.contactSupport', 'Neem contact op met ondersteuning'),
           variant: "destructive",
         });
       }
@@ -138,8 +142,8 @@ export const useOptimizedBookings = (calendarId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['optimized-analytics', calendarId] });
       
       toast({
-        title: "Booking bevestigd",
-        description: "Booking is automatisch bevestigd",
+        title: t('optimizedBookings.confirmedTitle', 'Booking bevestigd'),
+        description: t('optimizedBookings.confirmedDescription', 'Booking is automatisch bevestigd'),
       });
     }
   });
@@ -160,8 +164,8 @@ export const useOptimizedBookings = (calendarId?: string) => {
       queryClient.invalidateQueries({ queryKey: ['bookings', calendarId] });
       
       toast({
-        title: "Bookings bijgewerkt",
-        description: `${updates.length} bookings zijn bijgewerkt`,
+        title: t('optimizedBookings.batchUpdatedTitle', 'Bookings bijgewerkt'),
+        description: t('optimizedBookings.batchUpdatedDescription', '{{amount}} bookings zijn bijgewerkt', { amount: updates.length }),
       });
     } catch (error) {
       handleError(error, 'Batch update bookings');

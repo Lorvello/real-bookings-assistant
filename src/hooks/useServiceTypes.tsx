@@ -47,6 +47,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -83,6 +84,7 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { getActiveCalendarIds } = useCalendarContext();
 
   const fetchServiceTypes = async () => {
@@ -153,8 +155,8 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
     } catch (error) {
       console.error('Error fetching service types:', error);
       toast({
-        title: "Error fetching service types",
-        description: "Could not load service types. Please try again.",
+        title: t('serviceTypes.fetchErrorTitle', 'Error fetching service types'),
+        description: t('serviceTypes.fetchErrorDescription', 'Could not load service types. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -205,8 +207,8 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
         const transformedData = transformServiceType(data.service);
         setServiceTypes(prev => [transformedData, ...prev]);
         toast({
-          title: "Service created with Stripe integration",
-          description: `Service type created successfully with Stripe price ID: ${data.stripe_price_id}`,
+          title: t('serviceTypes.createdWithStripeTitle', 'Service created with Stripe integration'),
+          description: t('serviceTypes.createdWithStripeDescription', 'Service type created successfully with Stripe price ID: {{priceId}}', { priceId: data.stripe_price_id }),
         });
         
         return transformedData;
@@ -231,17 +233,17 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
         const transformedData = transformServiceType(data);
         setServiceTypes(prev => [transformedData, ...prev]);
         toast({
-          title: "Service created",
-          description: "The service type was created successfully.",
+          title: t('serviceTypes.createdTitle', 'Service created'),
+          description: t('serviceTypes.createdDescription', 'The service type was created successfully.'),
         });
-        
+
         return transformedData;
       }
     } catch (error) {
       console.error('Error creating service type:', error);
       toast({
-        title: "Error creating service",
-        description: "Could not create the service type. Please try again.",
+        title: t('serviceTypes.createErrorTitle', 'Error creating service'),
+        description: t('serviceTypes.createErrorDescription', 'Could not create the service type. Please try again.'),
         variant: "destructive",
       });
       throw error;
@@ -293,14 +295,14 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
       ));
 
       toast({
-        title: "Service updated",
-        description: "The service type was updated successfully.",
+        title: t('serviceTypes.updatedTitle', 'Service updated'),
+        description: t('serviceTypes.updatedDescription', 'The service type was updated successfully.'),
       });
     } catch (error) {
       console.error('Error updating service type:', error);
       toast({
-        title: "Error updating service",
-        description: "Could not update the service type. Please try again.",
+        title: t('serviceTypes.updateErrorTitle', 'Error updating service'),
+        description: t('serviceTypes.updateErrorDescription', 'Could not update the service type. Please try again.'),
         variant: "destructive",
       });
     }
@@ -325,14 +327,14 @@ export const useServiceTypes = (calendarId?: string, showAllServiceTypes = false
       setServiceTypes(prev => prev.filter(service => service.id !== id));
 
       toast({
-        title: "Service deleted",
-        description: "The service type was deleted successfully.",
+        title: t('serviceTypes.deletedTitle', 'Service deleted'),
+        description: t('serviceTypes.deletedDescription', 'The service type was deleted successfully.'),
       });
     } catch (error) {
       console.error('Error deleting service type:', error);
       toast({
-        title: "Error deleting service",
-        description: "Could not delete the service type. Please try again.",
+        title: t('serviceTypes.deleteErrorTitle', 'Error deleting service'),
+        description: t('serviceTypes.deleteErrorDescription', 'Could not delete the service type. Please try again.'),
         variant: "destructive",
       });
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +21,7 @@ export const useTeamInvitations = (calendarId?: string) => {
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchInvitations = async () => {
     try {
@@ -50,8 +52,8 @@ export const useTeamInvitations = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching invitations:', error);
       toast({
-        title: "Error loading invitations",
-        description: "Could not load invitations",
+        title: t('teamInvitations.loadErrorTitle', 'Error loading invitations'),
+        description: t('teamInvitations.loadErrorDescription', 'Could not load invitations'),
         variant: "destructive",
       });
     } finally {
@@ -69,16 +71,16 @@ export const useTeamInvitations = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Invitation cancelled",
-        description: "The invitation has been successfully cancelled",
+        title: t('teamInvitations.cancelledTitle', 'Invitation cancelled'),
+        description: t('teamInvitations.cancelledDescription', 'The invitation has been successfully cancelled'),
       });
 
       fetchInvitations();
     } catch (error) {
       console.error('Error cancelling invitation:', error);
       toast({
-        title: "Error cancelling",
-        description: "Could not cancel invitation",
+        title: t('teamInvitations.cancelErrorTitle', 'Error cancelling'),
+        description: t('teamInvitations.cancelErrorDescription', 'Could not cancel invitation'),
         variant: "destructive",
       });
     }
@@ -112,16 +114,16 @@ export const useTeamInvitations = (calendarId?: string) => {
       }
 
       toast({
-        title: "Invitation resent! 📧",
-        description: `A new invitation has been sent to ${invitation.email}`,
+        title: t('teamInvitations.resentTitle', 'Invitation resent! 📧'),
+        description: t('teamInvitations.resentDescription', 'A new invitation has been sent to {{email}}', { email: invitation.email }),
       });
 
       fetchInvitations();
     } catch (error: any) {
       console.error('Error resending invitation:', error);
       toast({
-        title: "Error resending",
-        description: error.message || "Could not resend invitation",
+        title: t('teamInvitations.resendErrorTitle', 'Error resending'),
+        description: error.message || t('teamInvitations.resendErrorDescription', 'Could not resend invitation'),
         variant: "destructive",
       });
     }

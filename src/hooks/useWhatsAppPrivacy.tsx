@@ -1,10 +1,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export function useWhatsAppDataExport(calendarId: string) {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   return useMutation({
     mutationFn: async () => {
@@ -29,14 +31,14 @@ export function useWhatsAppDataExport(calendarId: string) {
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Export Voltooid",
-        description: "Uw WhatsApp data is succesvol geëxporteerd.",
+        title: t('whatsappPrivacy.exportSuccessTitle', "Export Completed"),
+        description: t('whatsappPrivacy.exportSuccessDescription', "Your WhatsApp data has been exported successfully."),
       });
     },
     onError: () => {
       toast({
-        title: "Export Gefaald", 
-        description: "Er is een fout opgetreden bij het exporteren van uw data.",
+        title: t('whatsappPrivacy.exportErrorTitle', "Export Failed"),
+        description: t('whatsappPrivacy.exportErrorDescription', "An error occurred while exporting your data."),
         variant: "destructive",
       });
     },
@@ -46,6 +48,7 @@ export function useWhatsAppDataExport(calendarId: string) {
 export function useWhatsAppDataCleanup(calendarId: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   return useMutation({
     mutationFn: async () => {
@@ -56,10 +59,10 @@ export function useWhatsAppDataCleanup(calendarId: string) {
     },
     onSuccess: () => {
       toast({
-        title: "Opschoning Voltooid",
-        description: "Oude WhatsApp data is succesvol verwijderd.",
+        title: t('whatsappPrivacy.cleanupSuccessTitle', "Cleanup Completed"),
+        description: t('whatsappPrivacy.cleanupSuccessDescription', "Old WhatsApp data has been deleted successfully."),
       });
-      
+
       // Refresh related queries
       queryClient.invalidateQueries({ queryKey: ['whatsapp-analytics'] });
       queryClient.invalidateQueries({ queryKey: ['whatsapp-conversations'] });
@@ -67,8 +70,8 @@ export function useWhatsAppDataCleanup(calendarId: string) {
     },
     onError: () => {
       toast({
-        title: "Opschoning Gefaald",
-        description: "Er is een fout opgetreden bij het opschonen van de data.",
+        title: t('whatsappPrivacy.cleanupErrorTitle', "Cleanup Failed"),
+        description: t('whatsappPrivacy.cleanupErrorDescription', "An error occurred while cleaning up the data."),
         variant: "destructive",
       });
     },

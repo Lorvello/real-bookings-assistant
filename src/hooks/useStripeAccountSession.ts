@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStripeMode, getStripePublishableKey } from '@/utils/stripeConfig';
@@ -23,6 +24,7 @@ export const useStripeAccountSession = (options: UseStripeAccountSessionOptions)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const createAccountSession = useCallback(async () => {
     setLoading(true);
@@ -59,14 +61,14 @@ export const useStripeAccountSession = (options: UseStripeAccountSessionOptions)
       console.error('Failed to create account session:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
       toast({
-        title: "Error",
-        description: "Failed to initialize Stripe components",
+        title: t('stripeAccountSession.errorTitle', "Error"),
+        description: t('stripeAccountSession.initFailed', "Failed to initialize Stripe components"),
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  }, [components, toast]);
+  }, [components, toast, t]);
 
   const refreshSession = useCallback(async () => {
     if (!sessionData) return;

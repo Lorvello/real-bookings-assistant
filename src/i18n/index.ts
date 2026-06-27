@@ -39,6 +39,7 @@ import nlApp from './locales/nl/app.json';
 import nlDashboard from './locales/nl/dashboard.json';
 import nlSettings from './locales/nl/settings.json';
 import nlAppPages from './locales/nl/appPages.json';
+import nlNotifications from './locales/nl/notifications.json';
 
 export const LANGUAGE_STORAGE_KEY = 'ba.language';
 export const SUPPORTED_LANGUAGES = ['en', 'nl'] as const;
@@ -92,12 +93,13 @@ i18n.use(initReactI18next).init({
       dashboard: nlDashboard,
       settings: nlSettings,
       appPages: nlAppPages,
+      notifications: nlNotifications,
     },
   },
   lng: initialLanguage,
   fallbackLng: 'en',
   defaultNS: 'common',
-  ns: ['common', 'home', 'howItWorks', 'whyUs', 'about', 'faq', 'contact', 'terms', 'privacy', 'blog', 'blogArticle', 'businessSearch', 'publicBooking', 'auth', 'notFound', 'payment', 'app', 'dashboard', 'settings', 'appPages'],
+  ns: ['common', 'home', 'howItWorks', 'whyUs', 'about', 'faq', 'contact', 'terms', 'privacy', 'blog', 'blogArticle', 'businessSearch', 'publicBooking', 'auth', 'notFound', 'payment', 'app', 'dashboard', 'settings', 'appPages', 'notifications'],
   returnEmptyString: false, // empty NL value -> fall back to EN, never blank
   interpolation: {
     escapeValue: false, // React already escapes

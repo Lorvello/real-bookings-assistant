@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getStripeMode, getStripeConfig } from '@/utils/stripeConfig';
@@ -10,6 +11,7 @@ export const useStripeConnect = () => {
   const [loading, setLoading] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { user } = useAuth();
   const { accountOwnerId } = useAccountRole();
 
@@ -27,8 +29,8 @@ export const useStripeConnect = () => {
     } catch (error) {
       console.error('Error creating onboarding link:', error);
       toast({
-        title: "Error",
-        description: "Failed to create Stripe onboarding link",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: t('stripeConnect.onboardingLinkFailed', "Failed to create Stripe onboarding link"),
         variant: "destructive",
       });
       return null;
@@ -102,8 +104,8 @@ export const useStripeConnect = () => {
     } catch (error) {
       console.error('[STRIPE CONNECT] Error fetching Stripe account:', error);
       toast({
-        title: "Error",
-        description: "Failed to load Stripe account information",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: t('stripeConnect.loadAccountFailed', "Failed to load Stripe account information"),
         variant: "destructive",
       });
       return null;
@@ -149,8 +151,8 @@ export const useStripeConnect = () => {
       
       console.error('Error refreshing account status:', error);
       toast({
-        title: "Error",
-        description: "Failed to refresh account status",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: t('stripeConnect.refreshStatusFailed', "Failed to refresh account status"),
         variant: "destructive",
       });
       return null;
@@ -183,8 +185,8 @@ export const useStripeConnect = () => {
     } catch (error) {
       console.error('Error creating login link:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to create Stripe dashboard link",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: error.message || t('stripeConnect.dashboardLinkFailed', "Failed to create Stripe dashboard link"),
         variant: "destructive",
       });
       return null;
@@ -207,8 +209,8 @@ export const useStripeConnect = () => {
       if (error) {
         console.error('Error creating embedded session:', error);
         toast({
-          title: "Error",
-          description: "Failed to create onboarding session",
+          title: t('stripeConnect.errorTitle', "Error"),
+          description: t('stripeConnect.onboardingSessionFailed', "Failed to create onboarding session"),
           variant: "destructive",
         });
         return null;
@@ -221,8 +223,8 @@ export const useStripeConnect = () => {
         };
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to create session",
+          title: t('stripeConnect.errorTitle', "Error"),
+          description: data.error || t('stripeConnect.sessionFailed', "Failed to create session"),
           variant: "destructive",
         });
         return null;
@@ -230,8 +232,8 @@ export const useStripeConnect = () => {
     } catch (error) {
       console.error('Error creating embedded session:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: t('stripeConnect.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
       return null;
@@ -250,8 +252,8 @@ export const useStripeConnect = () => {
       if (error) {
         console.error('Error resetting account:', error);
         toast({
-          title: "Error",
-          description: "Failed to reset Stripe account",
+          title: t('stripeConnect.errorTitle', "Error"),
+          description: t('stripeConnect.resetAccountFailed', "Failed to reset Stripe account"),
           variant: "destructive",
         });
         return false;
@@ -259,14 +261,14 @@ export const useStripeConnect = () => {
 
       if (data.success) {
         toast({
-          title: "Success",
-          description: "Stripe account reset successfully",
+          title: t('stripeConnect.successTitle', "Success"),
+          description: t('stripeConnect.resetAccountSuccess', "Stripe account reset successfully"),
         });
         return true;
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to reset account",
+          title: t('stripeConnect.errorTitle', "Error"),
+          description: data.error || t('stripeConnect.resetFailed', "Failed to reset account"),
           variant: "destructive",
         });
         return false;
@@ -274,8 +276,8 @@ export const useStripeConnect = () => {
     } catch (error) {
       console.error('Error resetting account:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: t('stripeConnect.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
       return false;
@@ -296,8 +298,8 @@ export const useStripeConnect = () => {
       if (error) {
         console.error('Error creating dashboard session:', error);
         toast({
-          title: "Error",
-          description: "Failed to create dashboard session",
+          title: t('stripeConnect.errorTitle', "Error"),
+          description: t('stripeConnect.dashboardSessionFailed', "Failed to create dashboard session"),
           variant: "destructive",
         });
         return null;
@@ -310,8 +312,8 @@ export const useStripeConnect = () => {
         };
       } else {
         toast({
-          title: "Error",
-          description: data.error || "Failed to create dashboard session",
+          title: t('stripeConnect.errorTitle', "Error"),
+          description: data.error || t('stripeConnect.dashboardSessionFailed', "Failed to create dashboard session"),
           variant: "destructive",
         });
         return null;
@@ -319,8 +321,8 @@ export const useStripeConnect = () => {
     } catch (error) {
       console.error('Error creating dashboard session:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('stripeConnect.errorTitle', "Error"),
+        description: t('stripeConnect.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
       return null;

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
@@ -26,6 +27,7 @@ interface BookingResult {
 
 export const usePublicBookingCreation = () => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [loading, setLoading] = useState(false);
 
   const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
@@ -37,8 +39,10 @@ export const usePublicBookingCreation = () => {
     if (!clientRateLimit.allowed) {
       const minutesLeft = Math.ceil((clientRateLimit.blockedUntil!.getTime() - Date.now()) / 60000);
       toast({
-        title: "Te veel aanvragen",
-        description: `Je hebt te vaak geprobeerd te boeken. Probeer het opnieuw over ${minutesLeft} ${minutesLeft === 1 ? 'minuut' : 'minuten'}.`,
+        title: t('publicBookingCreation.rateLimitTitle', 'Te veel aanvragen'),
+        description: minutesLeft === 1
+          ? t('publicBookingCreation.rateLimitDescriptionOne', 'Je hebt te vaak geprobeerd te boeken. Probeer het opnieuw over {{minutes}} minuut.', { minutes: minutesLeft })
+          : t('publicBookingCreation.rateLimitDescriptionOther', 'Je hebt te vaak geprobeerd te boeken. Probeer het opnieuw over {{minutes}} minuten.', { minutes: minutesLeft }),
         variant: "destructive",
       });
       setLoading(false);
@@ -167,10 +171,12 @@ export const usePublicBookingCreation = () => {
         const requiresCaptcha = error.context?.headers?.['x-requires-captcha'] === 'true';
 
         toast({
-          title: requiresCaptcha ? "Verificatie vereist" : "Te veel aanvragen",
-          description: requiresCaptcha 
-            ? "Voltooi de CAPTCHA om door te gaan." 
-            : `Wacht ${retryAfter} seconden voordat je het opnieuw probeert.`,
+          title: requiresCaptcha
+            ? t('publicBookingCreation.captchaRequiredTitle', 'Verificatie vereist')
+            : t('publicBookingCreation.rateLimitTitle', 'Te veel aanvragen'),
+          description: requiresCaptcha
+            ? t('publicBookingCreation.captchaRequiredDescription', 'Voltooi de CAPTCHA om door te gaan.')
+            : t('publicBookingCreation.serverRateLimitDescription', 'Wacht {{seconds}} seconden voordat je het opnieuw probeert.', { seconds: retryAfter }),
           variant: "destructive",
         });
 
@@ -214,8 +220,8 @@ export const usePublicBookingCreation = () => {
 
       if (!paymentRequired) {
         toast({
-          title: "Boeking aangemaakt",
-          description: "Je boeking is succesvol aangemaakt.",
+          title: t('publicBookingCreation.createdTitle', 'Boeking aangemaakt'),
+          description: t('publicBookingCreation.createdDescription', 'Je boeking is succesvol aangemaakt.'),
         });
       }
 
@@ -230,8 +236,8 @@ export const usePublicBookingCreation = () => {
       });
 
       toast({
-        title: "Boeking mislukt",
-        description: error.message || "Boeken mislukt. Probeer het opnieuw.",
+        title: t('publicBookingCreation.failedTitle', 'Boeking mislukt'),
+        description: error.message || t('publicBookingCreation.failedDescription', 'Boeken mislukt. Probeer het opnieuw.'),
         variant: "destructive",
       });
 

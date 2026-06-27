@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +18,7 @@ export const useWebhookStatus = (calendarId?: string) => {
   const [events, setEvents] = useState<WebhookEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   useEffect(() => {
     if (!calendarId) return;
@@ -35,8 +37,8 @@ export const useWebhookStatus = (calendarId?: string) => {
       } catch (error) {
         console.error('Error fetching webhook events:', error);
         toast({
-          title: "Fout bij laden webhook status",
-          description: "Kon webhook events niet laden",
+          title: t('webhookStatus.loadErrorTitle', "Fout bij laden webhook status"),
+          description: t('webhookStatus.loadErrorDescription', "Kon webhook events niet laden"),
           variant: "destructive",
         });
       } finally {
@@ -63,7 +65,7 @@ export const useWebhookStatus = (calendarId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [calendarId, toast]);
+  }, [calendarId, toast, t]);
 
   const retryFailedWebhooks = async () => {
     try {
@@ -71,14 +73,14 @@ export const useWebhookStatus = (calendarId?: string) => {
       if (error) throw error;
 
       toast({
-        title: "Webhook retry gestart",
-        description: "Gefaalde webhooks worden opnieuw geprobeerd",
+        title: t('webhookStatus.retryStartedTitle', "Webhook retry gestart"),
+        description: t('webhookStatus.retryStartedDescription', "Gefaalde webhooks worden opnieuw geprobeerd"),
       });
     } catch (error) {
       console.error('Error retrying webhooks:', error);
       toast({
-        title: "Fout bij webhook retry",
-        description: "Kon webhooks niet opnieuw proberen",
+        title: t('webhookStatus.retryErrorTitle', "Fout bij webhook retry"),
+        description: t('webhookStatus.retryErrorDescription', "Kon webhooks niet opnieuw proberen"),
         variant: "destructive",
       });
     }

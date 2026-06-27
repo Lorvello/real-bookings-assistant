@@ -1,5 +1,6 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,6 +26,7 @@ export interface OptimizedAnalyticsData {
 export const useOptimizedAnalytics = (calendarId?: string, period: 'week' | 'month' | 'quarter' = 'month') => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('notifications');
 
   const fetchOptimizedAnalytics = async (): Promise<OptimizedAnalyticsData> => {
     if (!calendarId) {
@@ -74,8 +76,8 @@ export const useOptimizedAnalytics = (calendarId?: string, period: 'week' | 'mon
       onError: (error: any) => {
         console.error('Analytics fetch error:', error);
         toast({
-          title: "Fout bij laden analytics",
-          description: "Kon geoptimaliseerde analytics niet laden",
+          title: t('optimizedAnalytics.loadErrorTitle', "Error loading analytics"),
+          description: t('optimizedAnalytics.loadErrorDescription', "Could not load optimized analytics"),
           variant: "destructive",
         });
       }
@@ -95,16 +97,16 @@ export const useOptimizedAnalytics = (calendarId?: string, period: 'week' | 'mon
       queryClient.invalidateQueries({ queryKey: ['optimized-analytics'] });
       
       toast({
-        title: "Analytics bijgewerkt",
-        description: "Analytics data is vernieuwd",
+        title: t('optimizedAnalytics.refreshSuccessTitle', "Analytics updated"),
+        description: t('optimizedAnalytics.refreshSuccessDescription', "Analytics data has been refreshed"),
       });
-      
+
       return true;
     } catch (error) {
       console.error('Error refreshing views:', error);
       toast({
-        title: "Fout bij bijwerken",
-        description: "Kon analytics niet vernieuwen",
+        title: t('optimizedAnalytics.refreshErrorTitle', "Error updating"),
+        description: t('optimizedAnalytics.refreshErrorDescription', "Could not refresh analytics"),
         variant: "destructive",
       });
       return false;

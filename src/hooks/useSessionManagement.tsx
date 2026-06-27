@@ -1,19 +1,21 @@
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useSessionManagement = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
 
   const handleSessionExpiration = useCallback(() => {
     toast({
-      title: "Session Expired",
-      description: "Your session has expired. Please sign in again.",
+      title: t('sessionManagement.sessionExpiredTitle', 'Session Expired'),
+      description: t('sessionManagement.sessionExpiredDescription', 'Your session has expired. Please sign in again.'),
       variant: "destructive",
     });
-    
+
     // Clear any local storage or cached data
     localStorage.removeItem('lastActiveTime');
     
@@ -24,7 +26,7 @@ export const useSessionManagement = () => {
         returnUrl: window.location.pathname 
       }
     });
-  }, [navigate, toast]);
+  }, [navigate, toast, t]);
 
   const refreshSession = useCallback(async () => {
     try {
@@ -103,14 +105,14 @@ export const useSessionManagement = () => {
 
     if (idleTime > maxIdleTime) {
       toast({
-        title: "Session Timeout",
-        description: "You've been signed out due to inactivity.",
+        title: t('sessionManagement.sessionTimeoutTitle', 'Session Timeout'),
+        description: t('sessionManagement.sessionTimeoutDescription', "You've been signed out due to inactivity."),
       });
-      
+
       await supabase.auth.signOut();
       navigate('/login');
     }
-  }, [navigate, toast]);
+  }, [navigate, toast, t]);
 
   useEffect(() => {
     // Set up session monitoring

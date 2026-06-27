@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +32,7 @@ export const useAnalytics = (calendarId?: string, period: 'week' | 'month' | 'qu
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const fetchAnalytics = async () => {
     if (!calendarId) return;
@@ -110,8 +112,8 @@ export const useAnalytics = (calendarId?: string, period: 'week' | 'month' | 'qu
     } catch (error) {
       console.error('Error fetching analytics:', error);
       toast({
-        title: "Fout bij laden analytics",
-        description: "Kon analytics gegevens niet laden",
+        title: t('analytics.loadErrorTitle', "Error loading analytics"),
+        description: t('analytics.loadErrorDescription', "Could not load analytics data"),
         variant: "destructive",
       });
     } finally {

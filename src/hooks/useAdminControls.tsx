@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { SubscriptionTier } from '@/types/database';
 
 export const useAdminControls = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
 
   const updateUserSubscription = async (
@@ -36,8 +38,8 @@ export const useAdminControls = () => {
       
       if (result.success) {
         toast({
-          title: "Success",
-          description: result.message || "User subscription updated successfully",
+          title: t('adminControls.successTitle', 'Success'),
+          description: result.message || t('adminControls.subscriptionUpdatedDescription', 'User subscription updated successfully'),
         });
         return result.user;
       } else {
@@ -45,8 +47,8 @@ export const useAdminControls = () => {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update user subscription",
+        title: t('adminControls.errorTitle', 'Error'),
+        description: error instanceof Error ? error.message : t('adminControls.subscriptionUpdateFailedDescription', 'Failed to update user subscription'),
         variant: "destructive",
       });
       throw error;
@@ -69,8 +71,8 @@ export const useAdminControls = () => {
       
       if (result.success) {
         toast({
-          title: "Success",
-          description: result.message || "Trial extended successfully",
+          title: t('adminControls.successTitle', 'Success'),
+          description: result.message || t('adminControls.trialExtendedDescription', 'Trial extended successfully'),
         });
         return result;
       } else {
@@ -78,8 +80,8 @@ export const useAdminControls = () => {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to extend trial",
+        title: t('adminControls.errorTitle', 'Error'),
+        description: error instanceof Error ? error.message : t('adminControls.trialExtendFailedDescription', 'Failed to extend trial'),
         variant: "destructive",
       });
       throw error;
@@ -106,8 +108,8 @@ export const useAdminControls = () => {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to get user details",
+        title: t('adminControls.errorTitle', 'Error'),
+        description: error instanceof Error ? error.message : t('adminControls.getUserDetailsFailedDescription', 'Failed to get user details'),
         variant: "destructive",
       });
       throw error;
@@ -129,8 +131,8 @@ export const useAdminControls = () => {
       
       if (result.success) {
         toast({
-          title: "Success",
-          description: result.message || "User reset to setup incomplete state",
+          title: t('adminControls.successTitle', 'Success'),
+          description: result.message || t('adminControls.mockUserResetDescription', 'User reset to setup incomplete state'),
         });
         return result;
       } else {
@@ -138,8 +140,8 @@ export const useAdminControls = () => {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to setup mock incomplete user",
+        title: t('adminControls.errorTitle', 'Error'),
+        description: error instanceof Error ? error.message : t('adminControls.mockUserSetupFailedDescription', 'Failed to setup mock incomplete user'),
         variant: "destructive",
       });
       throw error;
@@ -167,8 +169,10 @@ export const useAdminControls = () => {
       
       if (result.success) {
         toast({
-          title: "Success",
-          description: `Developer status applied: ${result.applied_status}${result.tier ? ` with ${result.tier} tier` : ''}`,
+          title: t('adminControls.successTitle', 'Success'),
+          description: result.tier
+            ? t('adminControls.developerStatusAppliedWithTierDescription', 'Developer status applied: {{status}} with {{tier}} tier', { status: result.applied_status, tier: result.tier })
+            : t('adminControls.developerStatusAppliedDescription', 'Developer status applied: {{status}}', { status: result.applied_status }),
         });
         return result;
       } else {
@@ -176,8 +180,8 @@ export const useAdminControls = () => {
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to apply developer status",
+        title: t('adminControls.errorTitle', 'Error'),
+        description: error instanceof Error ? error.message : t('adminControls.developerStatusFailedDescription', 'Failed to apply developer status'),
         variant: "destructive",
       });
       throw error;

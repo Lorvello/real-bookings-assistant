@@ -1,5 +1,6 @@
 
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { ProductionErrorHandler } from '@/utils/errorHandler';
 
@@ -11,6 +12,7 @@ export interface AppError {
 }
 
 export const useErrorHandler = () => {
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
 
   const parseError = useCallback((error: any): AppError => {
@@ -119,7 +121,7 @@ export const useErrorHandler = () => {
     
     // Show toast
     toast({
-      title: "Error",
+      title: t('errorHandler.title', 'Error'),
       description: result.userMessage,
       variant: "destructive",
     });
@@ -132,7 +134,7 @@ export const useErrorHandler = () => {
     }, severity);
 
     return parseError(error);
-  }, [parseError, toast]);
+  }, [parseError, toast, t]);
 
   const logError = useCallback(async (error: AppError, context?: string) => {
     // Logging is now handled by ProductionErrorHandler
@@ -150,12 +152,12 @@ export const useErrorHandler = () => {
       maxAttempts,
       onRetry: (attempt) => {
         toast({
-          title: "Retrying...",
-          description: `Attempt ${attempt}/${maxAttempts}`,
+          title: t('errorHandler.retryingTitle', 'Retrying...'),
+          description: t('errorHandler.retryingDescription', 'Attempt {{attempt}}/{{maxAttempts}}', { attempt, maxAttempts }),
         });
       }
     });
-  }, [toast]);
+  }, [toast, t]);
 
   return {
     handleError,

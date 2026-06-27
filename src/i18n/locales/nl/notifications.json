@@ -1,0 +1,712 @@
+{
+  "webhooks": {
+    "errorTitle": "Fout",
+    "successTitle": "Gelukt",
+    "createFailed": "Webhookendpoint aanmaken mislukt",
+    "createSuccess": "Webhookendpoint succesvol aangemaakt",
+    "updateFailed": "Webhookendpoint bijwerken mislukt",
+    "updateSuccess": "Webhookendpoint succesvol bijgewerkt",
+    "deleteFailed": "Webhookendpoint verwijderen mislukt",
+    "deleteSuccess": "Webhookendpoint succesvol verwijderd",
+    "retrySuccess": "Webhook opnieuw proberen gestart",
+    "retryFailed": "Webhook opnieuw proberen mislukt",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "stripeConnect": {
+    "errorTitle": "Fout",
+    "successTitle": "Gelukt",
+    "onboardingLinkFailed": "Stripe onboardinglink aanmaken mislukt",
+    "loadAccountFailed": "Stripe accountgegevens laden mislukt",
+    "refreshStatusFailed": "Accountstatus vernieuwen mislukt",
+    "dashboardLinkFailed": "Stripe dashboardlink aanmaken mislukt",
+    "onboardingSessionFailed": "Onboardingsessie aanmaken mislukt",
+    "sessionFailed": "Sessie aanmaken mislukt",
+    "resetAccountFailed": "Stripe account resetten mislukt",
+    "resetAccountSuccess": "Stripe account succesvol gereset",
+    "resetFailed": "Account resetten mislukt",
+    "dashboardSessionFailed": "Dashboardsessie aanmaken mislukt",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "publicBookings": {
+    "errorTitle": "Fout",
+    "successTitle": "Gelukt",
+    "conflictTitle": "Conflict",
+    "requiredFields": "Klantnaam, starttijd en eindtijd zijn verplicht",
+    "slotUnavailable": "Dit tijdslot is niet meer beschikbaar",
+    "createFailed": "Boeking aanmaken mislukt",
+    "createSuccessWithEmail": "Boeking succesvol aangemaakt! Controleer je e-mail voor de bevestiging.",
+    "createSuccess": "Boeking succesvol aangemaakt!",
+    "fetchFailed": "Boeking ophalen mislukt",
+    "notFound": "Boeking niet gevonden",
+    "cancelFailed": "Boeking annuleren mislukt",
+    "cancelSuccess": "Boeking succesvol geannuleerd",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "webhookProcessor": {
+    "sentTitle": "Webhook succesvol verzonden",
+    "sentDescription": "{{eventType}} succesvol verzonden naar n8n",
+    "failedTitle": "Webhook gefaald",
+    "failedDescription": "{{eventType}} kon niet worden verzonden ({{attempts}} pogingen)",
+    "processedTitle": "Webhooks verwerkt",
+    "processedDescription": "{{count}} webhook(s) succesvol verzonden naar n8n",
+    "errorTitle": "Webhookfout",
+    "errorDescription": "Er is een fout opgetreden bij het verwerken van webhooks",
+    "testStartedTitle": "Webhooktest gestart",
+    "testStartedDescription": "Testwebhook aangemaakt met {{count}} actieve endpoint(s)",
+    "testErrorTitle": "Webhooktest fout",
+    "testErrorDescription": "Kon webhooksysteem niet testen",
+    "manualStartedTitle": "Handmatige verwerking gestart",
+    "manualStartedDescription": "{{count}} webhook(s) worden verwerkt",
+    "manualErrorTitle": "Handmatige verwerking fout",
+    "manualErrorDescription": "Kon webhooks niet handmatig verwerken"
+  },
+  "webhookStatus": {
+    "loadErrorTitle": "Fout bij laden webhookstatus",
+    "loadErrorDescription": "Kon webhookevents niet laden",
+    "retryStartedTitle": "Webhook opnieuw proberen gestart",
+    "retryStartedDescription": "Gefaalde webhooks worden opnieuw geprobeerd",
+    "retryErrorTitle": "Fout bij webhook opnieuw proberen",
+    "retryErrorDescription": "Kon webhooks niet opnieuw proberen"
+  },
+  "webhookAutoProcessor": {
+    "processedTitle": "Webhooks verwerkt",
+    "processedDescription": "{{count}} webhook(s) succesvol verzonden naar n8n",
+    "issueTitle": "Probleem met webhookverwerking",
+    "issueDescription": "Er is een tijdelijk probleem met webhookverwerking"
+  },
+  "stripePayment": {
+    "paymentErrorTitle": "Betalingsfout",
+    "createErrorDescription": "Er is een fout opgetreden bij het aanmaken van de betaling",
+    "successTitle": "Betaling geslaagd",
+    "successDescription": "Je betaling is succesvol verwerkt",
+    "processErrorDescription": "Er is een fout opgetreden bij het verwerken van de betaling"
+  },
+  "stripeAccountSession": {
+    "errorTitle": "Fout",
+    "initFailed": "Stripecomponenten initialiseren mislukt"
+  },
+  "calendarMembers": {
+    "loadError": {
+      "title": "Fout bij laden van leden",
+      "description": "Kon de agendaleden niet laden"
+    },
+    "inviteSendError": {
+      "title": "Fout",
+      "description": "Kon de uitnodiging niet versturen."
+    },
+    "inviteSent": {
+      "title": "Uitnodiging verstuurd! 📧",
+      "description": "Er is een uitnodiging gestuurd naar {{email}}. Ze hebben 48 uur om te accepteren."
+    },
+    "inviteError": {
+      "title": "Fout",
+      "description": "Er ging iets mis bij het versturen van de uitnodiging."
+    },
+    "noCalendarsSelected": {
+      "title": "Geen agenda's geselecteerd",
+      "description": "Selecteer ten minste één agenda"
+    },
+    "alreadyMember": {
+      "title": "Gebruiker is al lid",
+      "description": "Deze gebruiker heeft al toegang tot alle geselecteerde agenda's"
+    },
+    "userInvited": {
+      "title": "Gebruiker uitgenodigd",
+      "description": "{{email}} is uitgenodigd voor {{count}} agenda('s) als {{role}}"
+    },
+    "inviteUserError": {
+      "title": "Fout bij uitnodigen gebruiker",
+      "description": "Kon de gebruiker niet uitnodigen"
+    },
+    "memberRemoved": {
+      "title": "Lid verwijderd",
+      "description": "Gebruiker heeft geen toegang meer tot deze agenda"
+    },
+    "removeMemberError": {
+      "title": "Fout bij verwijderen lid",
+      "description": "Kon het lid niet verwijderen"
+    },
+    "roleUpdated": {
+      "title": "Rol bijgewerkt",
+      "description": "De rol van het lid is succesvol bijgewerkt"
+    },
+    "updateRoleError": {
+      "title": "Fout bij bijwerken rol",
+      "description": "Kon de rol niet bijwerken"
+    }
+  },
+  "availabilityOverrides": {
+    "dateRequired": {
+      "title": "Fout",
+      "description": "Datum is verplicht"
+    },
+    "createError": {
+      "title": "Fout",
+      "description": "Aanmaken van beschikbaarheidsuitzondering mislukt"
+    },
+    "createSuccess": {
+      "title": "Gelukt",
+      "description": "Beschikbaarheidsuitzondering succesvol aangemaakt"
+    },
+    "createUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    },
+    "updateError": {
+      "title": "Fout",
+      "description": "Bijwerken van beschikbaarheidsuitzondering mislukt"
+    },
+    "updateSuccess": {
+      "title": "Gelukt",
+      "description": "Beschikbaarheidsuitzondering succesvol bijgewerkt"
+    },
+    "updateUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    },
+    "deleteError": {
+      "title": "Fout",
+      "description": "Verwijderen van beschikbaarheidsuitzondering mislukt"
+    },
+    "deleteSuccess": {
+      "title": "Gelukt",
+      "description": "Beschikbaarheidsuitzondering succesvol verwijderd"
+    },
+    "deleteUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    }
+  },
+  "availabilitySchedules": {
+    "createError": {
+      "title": "Fout",
+      "description": "Aanmaken van beschikbaarheidsschema mislukt"
+    },
+    "createSuccess": {
+      "title": "Gelukt",
+      "description": "Beschikbaarheidsschema succesvol aangemaakt"
+    },
+    "createUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    },
+    "updateError": {
+      "title": "Fout",
+      "description": "Bijwerken van beschikbaarheidsschema mislukt"
+    },
+    "updateSuccess": {
+      "title": "Gelukt",
+      "description": "Beschikbaarheidsschema succesvol bijgewerkt"
+    },
+    "updateUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    },
+    "deleteError": {
+      "title": "Fout",
+      "description": "Verwijderen van beschikbaarheidsschema mislukt"
+    },
+    "deleteSuccess": {
+      "title": "Gelukt",
+      "description": "Beschikbaarheidsschema succesvol verwijderd"
+    },
+    "deleteUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    }
+  },
+  "availabilityRules": {
+    "requiredFields": {
+      "title": "Fout",
+      "description": "Dag van de week, starttijd en eindtijd zijn verplicht"
+    },
+    "createError": {
+      "title": "Fout",
+      "description": "Aanmaken van beschikbaarheidsregel mislukt: {{message}}"
+    },
+    "createUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    },
+    "updateError": {
+      "title": "Fout",
+      "description": "Bijwerken van beschikbaarheidsregel mislukt: {{message}}"
+    },
+    "updateUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    },
+    "deleteError": {
+      "title": "Fout",
+      "description": "Verwijderen van beschikbaarheidsregel mislukt: {{message}}"
+    },
+    "deleteUnexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    }
+  },
+  "recurringPatterns": {
+    "loadError": {
+      "title": "Fout bij laden van patronen",
+      "description": "Kon de terugkerende patronen niet laden"
+    },
+    "created": {
+      "title": "Patroon aangemaakt",
+      "description": "Terugkerend beschikbaarheidspatroon succesvol aangemaakt"
+    },
+    "createError": {
+      "title": "Fout bij aanmaken patroon",
+      "description": "Kon het patroon niet aanmaken"
+    },
+    "updated": {
+      "title": "Patroon bijgewerkt",
+      "description": "Terugkerend patroon succesvol bijgewerkt"
+    },
+    "updateError": {
+      "title": "Fout bij bijwerken patroon",
+      "description": "Kon het patroon niet bijwerken"
+    },
+    "deleted": {
+      "title": "Patroon verwijderd",
+      "description": "Terugkerend patroon succesvol verwijderd"
+    },
+    "deleteError": {
+      "title": "Fout bij verwijderen patroon",
+      "description": "Kon het patroon niet verwijderen"
+    }
+  },
+  "calendarAvailability": {
+    "fetchError": {
+      "title": "Fout bij ophalen beschikbaarheid"
+    },
+    "notFound": {
+      "title": "Kalender niet gevonden",
+      "description": "Kalender kon niet worden gevonden"
+    },
+    "unexpectedError": {
+      "title": "Fout",
+      "description": "Er is een onverwachte fout opgetreden"
+    }
+  },
+  "serviceTypes": {
+    "fetchErrorTitle": "Servicetypes ophalen mislukt",
+    "fetchErrorDescription": "Servicetypes konden niet worden geladen. Probeer het opnieuw.",
+    "createdWithStripeTitle": "Service aangemaakt met Stripe-koppeling",
+    "createdWithStripeDescription": "Servicetype succesvol aangemaakt met Stripe-prijs-ID: {{priceId}}",
+    "createdTitle": "Service aangemaakt",
+    "createdDescription": "Het servicetype is succesvol aangemaakt.",
+    "createErrorTitle": "Service aanmaken mislukt",
+    "createErrorDescription": "Het servicetype kon niet worden aangemaakt. Probeer het opnieuw.",
+    "updatedTitle": "Service bijgewerkt",
+    "updatedDescription": "Het servicetype is succesvol bijgewerkt.",
+    "updateErrorTitle": "Service bijwerken mislukt",
+    "updateErrorDescription": "Het servicetype kon niet worden bijgewerkt. Probeer het opnieuw.",
+    "deletedTitle": "Service verwijderd",
+    "deletedDescription": "Het servicetype is succesvol verwijderd.",
+    "deleteErrorTitle": "Service verwijderen mislukt",
+    "deleteErrorDescription": "Het servicetype kon niet worden verwijderd. Probeer het opnieuw."
+  },
+  "calendarManagement": {
+    "errorTitle": "Fout",
+    "successTitle": "Gelukt",
+    "nameUpdateFailedDescription": "Kalendernaam kan niet worden bijgewerkt",
+    "nameUpdatedDescription": "Kalendernaam succesvol bijgewerkt",
+    "settingsSaveFailedDescription": "Kalenderinstellingen kunnen niet worden opgeslagen",
+    "settingsSavedDescription": "Kalenderinstellingen succesvol opgeslagen",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
+  },
+  "createCalendar": {
+    "notLoggedInTitle": "Niet ingelogd",
+    "notLoggedInDescription": "Je moet ingelogd zijn om een kalender aan te maken",
+    "creationRestrictedTitle": "Kalender aanmaken beperkt",
+    "creationRestrictedDescription": "Activeer je account opnieuw om nieuwe kalenders aan te maken",
+    "limitReachedTitle": "Kalenderlimiet bereikt",
+    "limitReachedDescriptionOne": "Je kunt op je huidige abonnement maar {{count}} kalender aanmaken. Upgrade om meer kalenders aan te maken.",
+    "limitReachedDescriptionOther": "Je kunt op je huidige abonnement maar {{count}} kalenders aanmaken. Upgrade om meer kalenders aan te maken.",
+    "partialSuccessTitle": "Gedeeltelijk gelukt",
+    "partialSuccessDescription": "Kalender aangemaakt, maar sommige servicetypes konden niet worden gekoppeld",
+    "createdTitle": "Kalender aangemaakt",
+    "createdDescription": "{{name}} is succesvol aangemaakt",
+    "createErrorDefaultDescription": "Kalender kon niet worden aangemaakt",
+    "createErrorPermissionDescription": "Je hebt geen rechten om een kalender aan te maken. Probeer opnieuw in te loggen.",
+    "createErrorDuplicateDescription": "Er bestaat al een kalender met deze naam",
+    "createErrorTitle": "Kalender aanmaken mislukt"
+  },
+  "deleteCalendar": {
+    "deletedTitle": "Kalender verwijderd",
+    "deletedDescription": "Kalender is succesvol verwijderd",
+    "deleteErrorTitle": "Kalender verwijderen mislukt",
+    "deleteErrorDescription": "Kalender kon niet worden verwijderd. Probeer het opnieuw."
+  },
+  "calendarSetup": {
+    "setupFailedTitle": "Setup gefaald",
+    "configuredTitle": "Kalender geconfigureerd!",
+    "configuredDescription": "Je kalender is ingesteld met standaard configuratie voor jouw business type.",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
+  },
+  "calendarSaveActions": {
+    "errorTitle": "Fout",
+    "successTitle": "Gelukt",
+    "settingsSaveFailedDescription": "Kalenderinstellingen kunnen niet worden opgeslagen",
+    "settingsSavedDescription": "Kalenderinstellingen succesvol opgeslagen",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
+  },
+  "calendarNameActions": {
+    "errorTitle": "Fout",
+    "successTitle": "Gelukt",
+    "nameUpdateFailedDescription": "Kalendernaam kan niet worden bijgewerkt",
+    "nameUpdatedDescription": "Kalendernaam succesvol bijgewerkt",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
+  },
+  "calendarActions": {
+    "successTitle": "Gelukt",
+    "updatedDescription": "Kalender succesvol bijgewerkt",
+    "partialUpdateTitle": "Gedeeltelijke update",
+    "partialUpdateDescription": "Kalender bijgewerkt, maar bijwerken mislukt voor: {{errors}}",
+    "errorTitle": "Fout",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden tijdens het bijwerken van de kalender"
+  },
+  "authOperations": {
+    "tooManyAttemptsTitle": "Te veel pogingen",
+    "tooManyAttemptsBlockedDescription": "Probeer het opnieuw na {{blockedUntil}}.",
+    "tooManyAttemptsResetDescription": "Wacht even voordat je een nieuwe wachtwoordreset aanvraagt.",
+    "tooManyAttemptsVerificationDescription": "Wacht even voordat je een nieuwe verificatiemail aanvraagt.",
+    "welcomeBackTitle": "Welkom terug!",
+    "welcomeBackDescription": "Je bent succesvol ingelogd.",
+    "signInError": {
+      "invalidCredentials": "Ongeldig e-mailadres of wachtwoord. Controleer je gegevens.",
+      "tooManyRequests": "Te veel inlogpogingen. Wacht 15 minuten en probeer het opnieuw.",
+      "userNotFound": "Geen account gevonden met dit e-mailadres. Controleer je e-mailadres of maak een account aan.",
+      "accountSuspended": "Je account is geschorst. Neem contact op met support.",
+      "networkRequestFailed": "Verbinding mislukt. Controleer je internet en probeer het opnieuw.",
+      "generic": "Inloggen lukt niet. Probeer het opnieuw."
+    },
+    "signInFailedTitle": "Inloggen mislukt",
+    "accountCreatedTitle": "Account succesvol aangemaakt! 🎉",
+    "accountCreatedDescription": "Rond je bedrijfsinstellingen af om je proefperiode van 30 dagen te starten.",
+    "signUpError": {
+      "alreadyRegistered": "Er bestaat al een account met dit e-mailadres. Probeer in plaats daarvan in te loggen.",
+      "invalidEmail": "Voer een geldig e-mailadres in.",
+      "weakPassword": "Wachtwoord voldoet niet aan de beveiligingseisen.",
+      "signupDisabled": "Accountregistratie is momenteel uitgeschakeld. Neem contact op met support.",
+      "rateLimitExceeded": "Te veel registratiepogingen. Wacht even en probeer het opnieuw.",
+      "emailRateLimitExceeded": "Limiet voor e-mailverificatie bereikt. Wacht even voordat je het opnieuw probeert.",
+      "alreadyRegisteredWithEmail": "Er bestaat al een account met {{email}}. Probeer in plaats daarvan in te loggen.",
+      "generic": "Account aanmaken lukt niet. Probeer het opnieuw of neem contact op met support."
+    },
+    "registrationFailedTitle": "Registratie mislukt",
+    "resetEmailSentTitle": "Reset-e-mail verzonden",
+    "resetEmailSentDescription": "Controleer je e-mail voor instructies om je wachtwoord te resetten. Zie je hem niet, kijk dan in je spammap.",
+    "alreadyVerifiedTitle": "Al geverifieerd",
+    "alreadyVerifiedDescription": "Je e-mailadres is al geverifieerd. Je kunt nu inloggen.",
+    "emailSentTitle": "E-mail verzonden",
+    "emailSentDescription": "Er is een nieuwe verificatiemail verzonden. Controleer je inbox en spammap."
+  },
+  "userRegistration": {
+    "error": {
+      "alreadyRegistered": "Dit e-mailadres is al geregistreerd",
+      "invalidEmail": "Voer een geldig e-mailadres in",
+      "weakPassword": "Wachtwoord voldoet niet aan de beveiligingseisen (minimaal 8 tekens met hoofdletters, kleine letters, cijfers en speciale tekens)",
+      "signupDisabled": "Accountregistratie is momenteel uitgeschakeld. Neem contact op met support.",
+      "rateLimit": "Te veel registratiepogingen. Wacht een paar minuten en probeer het opnieuw.",
+      "network": "Netwerkverbinding mislukt. Controleer je internetverbinding en probeer het opnieuw.",
+      "emailRateLimitExceeded": "Limiet voor e-mailverificatie bereikt. Wacht even voordat je een nieuwe verificatiemail aanvraagt.",
+      "generic": "Account aanmaken lukt niet. Probeer het opnieuw of neem contact op met support als het probleem aanhoudt."
+    },
+    "registrationFailedTitle": "Registratie mislukt",
+    "userNotCreatedDescription": "Gebruiker kon niet worden aangemaakt",
+    "registrationFailedLowerTitle": "Registratie mislukt",
+    "accountCreatedTitle": "Account succesvol aangemaakt! 🎉",
+    "accountCreatedVerifyDescription": "Controleer je inbox om je e-mailadres te verifiëren en rond daarna je bedrijfsinstellingen af.",
+    "accountCreatedTrialDescription": "Rond je bedrijfsinstellingen af om je proefperiode van 30 dagen te starten.",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
+  },
+  "teamInvitations": {
+    "loadErrorTitle": "Uitnodigingen laden mislukt",
+    "loadErrorDescription": "Uitnodigingen konden niet worden geladen",
+    "cancelledTitle": "Uitnodiging geannuleerd",
+    "cancelledDescription": "De uitnodiging is succesvol geannuleerd",
+    "cancelErrorTitle": "Annuleren mislukt",
+    "cancelErrorDescription": "Uitnodiging kon niet worden geannuleerd",
+    "resentTitle": "Uitnodiging opnieuw verzonden! 📧",
+    "resentDescription": "Er is een nieuwe uitnodiging verzonden naar {{email}}",
+    "resendErrorTitle": "Opnieuw verzenden mislukt",
+    "resendErrorDescription": "Uitnodiging kon niet opnieuw worden verzonden"
+  },
+  "profile": {
+    "errorTitle": "Fout",
+    "updateFailedDescription": "Profiel bijwerken mislukt",
+    "successTitle": "Gelukt",
+    "updateSuccessDescription": "Profiel succesvol bijgewerkt",
+    "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
+  },
+  "sessionManagement": {
+    "sessionExpiredTitle": "Sessie verlopen",
+    "sessionExpiredDescription": "Je sessie is verlopen. Log opnieuw in.",
+    "sessionTimeoutTitle": "Sessie verlopen door inactiviteit",
+    "sessionTimeoutDescription": "Je bent uitgelogd vanwege inactiviteit."
+  },
+  "loginEffects": {
+    "error": {
+      "oauthFailed": "Inloggen mislukt. Probeer het opnieuw.",
+      "sessionFailed": "Sessie kon niet worden opgezet. Probeer het opnieuw.",
+      "unexpected": "Er is een onverwachte fout opgetreden. Probeer het opnieuw.",
+      "callbackFailed": "Login-callback mislukt. Probeer het opnieuw."
+    },
+    "loginErrorTitle": "Loginfout",
+    "pleaseLogInTitle": "Log in",
+    "pleaseLogInDescription": "Log in om toegang te krijgen tot je account."
+  },
+  "adminControls": {
+    "successTitle": "Gelukt",
+    "errorTitle": "Fout",
+    "subscriptionUpdatedDescription": "Abonnement van gebruiker succesvol bijgewerkt",
+    "subscriptionUpdateFailedDescription": "Abonnement van gebruiker bijwerken mislukt",
+    "trialExtendedDescription": "Proefperiode succesvol verlengd",
+    "trialExtendFailedDescription": "Proefperiode verlengen mislukt",
+    "getUserDetailsFailedDescription": "Gebruikersgegevens ophalen mislukt",
+    "mockUserResetDescription": "Gebruiker teruggezet naar onvoltooide setup-status",
+    "mockUserSetupFailedDescription": "Onvoltooide testgebruiker instellen mislukt",
+    "developerStatusAppliedWithTierDescription": "Ontwikkelaarsstatus toegepast: {{status}} met {{tier}}-tier",
+    "developerStatusAppliedDescription": "Ontwikkelaarsstatus toegepast: {{status}}",
+    "developerStatusFailedDescription": "Ontwikkelaarsstatus toepassen mislukt"
+  },
+  "waitlist": {
+    "loadErrorTitle": "Fout bij laden wachtlijst",
+    "loadErrorDescription": "Kon de wachtlijst niet laden",
+    "addErrorTitle": "Fout bij toevoegen aan wachtlijst",
+    "unknownError": "Onbekende fout",
+    "addedTitle": "Toegevoegd aan wachtlijst",
+    "addedDescription": "Je bent succesvol toegevoegd aan de wachtlijst. Je krijgt bericht zodra er een plek vrijkomt.",
+    "unexpectedError": "Er is een onverwachte fout opgetreden",
+    "removedTitle": "Verwijderd van wachtlijst",
+    "removedDescription": "Het wachtlijstitem is verwijderd",
+    "deleteErrorTitle": "Fout bij verwijderen",
+    "deleteErrorDescription": "Kon niet van de wachtlijst verwijderen",
+    "statusUpdatedTitle": "Status bijgewerkt",
+    "statusUpdatedDescription": "De wachtlijststatus is bijgewerkt",
+    "updateErrorTitle": "Fout bij bijwerken",
+    "updateErrorDescription": "Kon de status niet bijwerken"
+  },
+  "publicWaitlist": {
+    "addErrorTitle": "Kon niet toevoegen aan wachtlijst",
+    "unknownError": "Onbekende fout",
+    "addedTitle": "Toegevoegd aan wachtlijst!",
+    "addedDescription": "Je bent succesvol toegevoegd aan de wachtlijst. Je krijgt bericht zodra er een plek vrijkomt.",
+    "errorTitle": "Fout bij toevoegen aan wachtlijst",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "optimizedBookings": {
+    "validationErrorTitle": "Validatie fout",
+    "createErrorTitle": "Fout bij aanmaken booking",
+    "tryAgain": "Probeer het opnieuw",
+    "contactSupport": "Neem contact op met ondersteuning",
+    "confirmedTitle": "Booking bevestigd",
+    "confirmedDescription": "Booking is automatisch bevestigd",
+    "batchUpdatedTitle": "Bookings bijgewerkt",
+    "batchUpdatedDescription": "{{amount}} bookings zijn bijgewerkt"
+  },
+  "bookingForm": {
+    "invalidTimesTitle": "Ongeldige tijden",
+    "invalidTimesDescription": "De eindtijd moet na de starttijd liggen",
+    "tooLongTitle": "Afspraak te lang",
+    "tooLongDescription": "Afspraken mogen maximaal 8 uur duren",
+    "createFailedTitle": "Afspraak aanmaken mislukt"
+  },
+  "publicBookingCreation": {
+    "rateLimitTitle": "Te veel aanvragen",
+    "rateLimitDescriptionOne": "Je hebt te vaak geprobeerd te boeken. Probeer het opnieuw over {{minutes}} minuut.",
+    "rateLimitDescriptionOther": "Je hebt te vaak geprobeerd te boeken. Probeer het opnieuw over {{minutes}} minuten.",
+    "captchaRequiredTitle": "Verificatie vereist",
+    "captchaRequiredDescription": "Voltooi de CAPTCHA om door te gaan.",
+    "serverRateLimitDescription": "Wacht {{seconds}} seconden voordat je het opnieuw probeert.",
+    "createdTitle": "Boeking aangemaakt",
+    "createdDescription": "Je boeking is succesvol aangemaakt.",
+    "failedTitle": "Boeking mislukt",
+    "failedDescription": "Boeken mislukt. Probeer het opnieuw."
+  },
+  "optimisticBookings": {
+    "createErrorTitle": "Fout bij aanmaken afspraak",
+    "unknownError": "Onbekende fout opgetreden",
+    "confirmedTitle": "Afspraak bevestigd!",
+    "confirmedDescription": "Afspraak voor {{name}} is direct bevestigd."
+  },
+  "realtimeBookings": {
+    "newBookingTitle": "Nieuwe afspraak",
+    "newBookingDescription": "Afspraak voor {{name}} is aangemaakt",
+    "statusChangedTitle": "Status gewijzigd",
+    "statusChangedDescription": "Afspraak status is gewijzigd naar {{status}}"
+  },
+  "businessSlots": {
+    "fetchErrorTitle": "Fout bij ophalen beschikbare tijden",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "paymentSettings": {
+    "loadErrorTitle": "Fout",
+    "loadErrorDescription": "Kan de betaalinstellingen niet laden",
+    "updateSuccessTitle": "Gelukt",
+    "updateSuccessDescription": "Betaalinstellingen succesvol bijgewerkt",
+    "updateErrorTitle": "Fout",
+    "updateErrorDescription": "Kan de betaalinstellingen niet bijwerken",
+    "payoutSyncWarningTitle": "Waarschuwing",
+    "payoutSyncWarningDescription": "Instellingen lokaal opgeslagen, maar synchroniseren met Stripe is mislukt",
+    "payoutSyncSuccessTitle": "Gelukt",
+    "payoutSyncSuccessDescription": "Uitbetalingsinstellingen bijgewerkt naar {{option}} in Stripe"
+  },
+  "installmentSettings": {
+    "loadErrorTitle": "Fout bij laden instellingen",
+    "loadErrorDescription": "Kan de termijninstellingen niet laden.",
+    "saveSuccessTitle": "Instellingen opgeslagen",
+    "saveSuccessDescription": "De termijninstellingen zijn succesvol bijgewerkt.",
+    "saveErrorTitle": "Fout bij opslaan instellingen",
+    "saveErrorDescription": "Kan de termijninstellingen niet opslaan."
+  },
+  "whatsappPaymentFlow": {
+    "linkCreatedTitle": "Betaallink aangemaakt",
+    "linkCreatedDescription": "Er is een betaallink gegenereerd voor het WhatsApp-gesprek.",
+    "errorTitle": "Betaalfout",
+    "errorDescription": "Kan de betaalsessie niet aanmaken. Probeer het opnieuw."
+  },
+  "whatsappPrivacy": {
+    "exportSuccessTitle": "Export voltooid",
+    "exportSuccessDescription": "Je WhatsApp-data is succesvol geexporteerd.",
+    "exportErrorTitle": "Export mislukt",
+    "exportErrorDescription": "Er is een fout opgetreden bij het exporteren van je data.",
+    "cleanupSuccessTitle": "Opschoning voltooid",
+    "cleanupSuccessDescription": "Oude WhatsApp-data is succesvol verwijderd.",
+    "cleanupErrorTitle": "Opschoning mislukt",
+    "cleanupErrorDescription": "Er is een fout opgetreden bij het opschonen van de data."
+  },
+  "whatsappConversationUpdates": {
+    "linkedTitle": "Gesprek gekoppeld",
+    "linkedDescription": "Een WhatsApp-gesprek is automatisch gekoppeld aan een afspraak",
+    "autoLinkTitle": "Automatisch koppelen",
+    "autoLinkDescription": "WhatsApp-gesprek gekoppeld aan nieuwe afspraak"
+  },
+  "optimizedAnalytics": {
+    "loadErrorTitle": "Fout bij laden analytics",
+    "loadErrorDescription": "Kan de geoptimaliseerde analytics niet laden",
+    "refreshSuccessTitle": "Analytics bijgewerkt",
+    "refreshSuccessDescription": "De analytics-data is vernieuwd",
+    "refreshErrorTitle": "Fout bij bijwerken",
+    "refreshErrorDescription": "Kan de analytics niet vernieuwen"
+  },
+  "analytics": {
+    "loadErrorTitle": "Fout bij laden analytics",
+    "loadErrorDescription": "Kan de analytics-gegevens niet laden"
+  },
+  "taxConfiguration": {
+    "checkErrorTitle": "Fout",
+    "checkErrorDescription": "Kan de status van de belastingconfiguratie niet controleren"
+  },
+  "businessOverviewRefresh": {
+    "errorTitle": "Fout bij verversen overzicht",
+    "successTitle": "Overzicht ververst",
+    "successDescription": "Het bedrijfsoverzicht is succesvol ververst",
+    "unexpectedError": "Er is een onverwachte fout opgetreden"
+  },
+  "businessOverviewFetch": {
+    "errorTitle": "Fout bij ophalen bedrijfsoverzicht",
+    "somethingWentWrong": "Er ging iets mis"
+  },
+  "globalBotStatus": {
+    "activatedTitle": "WhatsApp bot geactiveerd",
+    "pausedTitle": "WhatsApp bot gepauzeerd",
+    "activatedDescription": "Je bot is nu actief en reageert op berichten",
+    "pausedDescription": "Je bot is gepauzeerd",
+    "errorTitle": "Fout bij wijzigen botstatus",
+    "unknownError": "Onbekende fout"
+  },
+  "botStatus": {
+    "activatedTitle": "WhatsApp bot geactiveerd",
+    "pausedTitle": "WhatsApp bot gepauzeerd",
+    "activatedDescription": "Je bot is nu actief en reageert op berichten",
+    "pausedDescription": "Je bot is gepauzeerd",
+    "errorTitle": "Fout bij wijzigen botstatus",
+    "unknownError": "Onbekende fout"
+  },
+  "errorHandler": {
+    "title": "Fout",
+    "retryingTitle": "Opnieuw proberen...",
+    "retryingDescription": "Poging {{attempt}}/{{maxAttempts}}"
+  },
+  "addOverrideModal": {
+    "dateRequiredTitle": "Datum vereist",
+    "dateRequiredDescription": "Selecteer een datum voor de uitzondering.",
+    "invalidDateTitle": "Ongeldige datum",
+    "invalidDateDescription": "De datum kan niet in het verleden liggen.",
+    "reasonRequiredTitle": "Reden vereist",
+    "reasonRequiredDescription": "Geef een reden op waarom je niet beschikbaar bent.",
+    "invalidTimesTitle": "Ongeldige tijden",
+    "invalidTimesDescription": "De eindtijd moet na de begintijd liggen.",
+    "overrideAddedTitle": "Uitzondering toegevoegd",
+    "overrideAddedDescription": "{{overrideType}} voor {{date}} opgeslagen.",
+    "overrideTypeClosed": "Gesloten dag",
+    "overrideTypeCustom": "Aangepaste tijden",
+    "quickReasonVacation": "Vakantie",
+    "quickReasonSick": "Ziek",
+    "quickReasonDayOff": "Vrije dag",
+    "quickReasonHoliday": "Feestdag",
+    "quickReasonMeeting": "Vergadering",
+    "quickReasonMaintenance": "Onderhoud",
+    "heading": "Uitzondering toevoegen",
+    "dateLabel": "Datum",
+    "overrideTypeLabel": "Type uitzondering",
+    "closedButton": "Gesloten",
+    "customTimesButton": "Aangepaste tijden",
+    "reasonLabel": "Reden",
+    "reasonPlaceholder": "Bijv. vakantie, ziek, vrije dag...",
+    "fromLabel": "Van",
+    "toLabel": "Tot",
+    "cancelButton": "Annuleren",
+    "savingButton": "Opslaan...",
+    "saveButton": "Opslaan"
+  },
+  "whatsappPrivacySettings": {
+    "cleanupSuccessTitle": "Dataopschoning voltooid",
+    "cleanupSuccessDescription": "Oude WhatsApp-data is succesvol opgeschoond volgens je privacyinstellingen.",
+    "cleanupErrorTitle": "Dataopschoning mislukt",
+    "cleanupErrorDescription": "Er ging iets mis bij het opschonen van de data. Probeer het opnieuw.",
+    "exportSuccessTitle": "Data-export voltooid",
+    "exportSuccessDescription": "Je WhatsApp-data is geëxporteerd en gedownload.",
+    "exportErrorTitle": "Data-export mislukt",
+    "exportErrorDescription": "Er ging iets mis bij het exporteren van je data.",
+    "cardTitle": "Privacy en databeheer",
+    "yourDataHeading": "Jouw WhatsApp-data",
+    "contactsLabel": "Contacten",
+    "conversationsLabel": "Gesprekken",
+    "messagesLabel": "Berichten",
+    "dataRetentionHeading": "Databewaring",
+    "dataRetentionDescription": "WhatsApp-berichten worden na 90 dagen automatisch verwijderd. Gesprekken worden na 30 dagen inactiviteit gearchiveerd.",
+    "privacyActionsHeading": "Privacyacties",
+    "exportDataHeading": "Data exporteren",
+    "exportDataDescription": "Download al je WhatsApp-data in JSON-formaat",
+    "exportingButton": "Exporteren...",
+    "exportDataButton": "Data exporteren",
+    "cleanupDataHeading": "Oude data opschonen",
+    "cleanupDataDescription": "Verwijder handmatig oude berichten en gearchiveerde gesprekken",
+    "cleaningUpButton": "Opschonen...",
+    "cleanupDataButton": "Data opschonen",
+    "privacyInfoHeading": "Privacy-informatie",
+    "secureAccessTitle": "Veilige toegang",
+    "secureAccessDescription": "Alleen jij hebt toegang tot je WhatsApp-gesprekken",
+    "automaticDeletionTitle": "Automatische verwijdering",
+    "automaticDeletionDescription": "Oude berichten worden automatisch verwijderd volgens de GDPR-richtlijnen",
+    "dataPortabilityTitle": "Dataportabiliteit",
+    "dataPortabilityDescription": "Je kunt je data op elk moment exporteren",
+    "importantLabel": "Belangrijk:",
+    "gdprNotice": "Deze applicatie voldoet aan de GDPR-vereisten. Je WhatsApp-data wordt veilig opgeslagen en alleen gebruikt om je boekingen mogelijk te maken. Je hebt het recht om je data in te zien, te wijzigen of te verwijderen."
+  },
+  "teamMemberServiceManager": {
+    "serviceRemovedTitle": "Service verwijderd",
+    "serviceRemovedDescription": "{{serviceName}} is verwijderd van {{teamMemberName}}",
+    "serviceAssignedTitle": "Service toegewezen",
+    "serviceAssignedDescription": "{{serviceName}} is toegewezen aan {{teamMemberName}}",
+    "errorTitle": "Fout",
+    "errorDescription": "Kon de servicetoewijzing niet bijwerken",
+    "cardTitle": "Services voor {{teamMemberName}}",
+    "cardDescription": "Selecteer welke services {{teamMemberName}} kan uitvoeren",
+    "noServices": "Geen services beschikbaar voor deze kalender",
+    "freeLabel": "Gratis"
+  }
+}

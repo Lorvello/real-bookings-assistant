@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Booking } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 
 export const usePublicBookings = () => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [loading, setLoading] = useState(false);
 
   const createPublicBooking = async (
@@ -17,8 +19,8 @@ export const usePublicBookings = () => {
     if (!bookingData.customer_name || 
         !bookingData.start_time || !bookingData.end_time) {
       toast({
-        title: "Error",
-        description: "Customer name, start time, and end time are required",
+        title: t('publicBookings.errorTitle', "Error"),
+        description: t('publicBookings.requiredFields', "Customer name, start time, and end time are required"),
         variant: "destructive",
       });
       setLoading(false);
@@ -35,8 +37,8 @@ export const usePublicBookings = () => {
 
       if (hasConflicts) {
         toast({
-          title: "Conflict",
-          description: "This time slot is no longer available",
+          title: t('publicBookings.conflictTitle', "Conflict"),
+          description: t('publicBookings.slotUnavailable', "This time slot is no longer available"),
           variant: "destructive",
         });
         setLoading(false);
@@ -61,8 +63,8 @@ export const usePublicBookings = () => {
 
       if (error) {
         toast({
-          title: "Error",
-          description: "Failed to create booking",
+          title: t('publicBookings.errorTitle', "Error"),
+          description: t('publicBookings.createFailed', "Failed to create booking"),
           variant: "destructive",
         });
         setLoading(false);
@@ -70,10 +72,10 @@ export const usePublicBookings = () => {
       }
 
       toast({
-        title: "Success",
-        description: bookingData.customer_email 
-          ? "Booking created successfully! Check your email for confirmation."
-          : "Booking created successfully!",
+        title: t('publicBookings.successTitle', "Success"),
+        description: bookingData.customer_email
+          ? t('publicBookings.createSuccessWithEmail', "Booking created successfully! Check your email for confirmation.")
+          : t('publicBookings.createSuccess', "Booking created successfully!"),
       });
 
       setLoading(false);
@@ -84,8 +86,8 @@ export const usePublicBookings = () => {
     } catch (error) {
       console.error('Error creating public booking:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('publicBookings.errorTitle', "Error"),
+        description: t('publicBookings.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
       setLoading(false);
@@ -104,8 +106,8 @@ export const usePublicBookings = () => {
       if (error) {
         console.error('Error fetching booking by token:', error);
         toast({
-          title: "Error",
-          description: "Failed to fetch booking",
+          title: t('publicBookings.errorTitle', "Error"),
+          description: t('publicBookings.fetchFailed', "Failed to fetch booking"),
           variant: "destructive",
         });
         setLoading(false);
@@ -117,8 +119,8 @@ export const usePublicBookings = () => {
 
       if (!booking) {
         toast({
-          title: "Error",
-          description: "Booking not found",
+          title: t('publicBookings.errorTitle', "Error"),
+          description: t('publicBookings.notFound', "Booking not found"),
           variant: "destructive",
         });
         setLoading(false);
@@ -133,8 +135,8 @@ export const usePublicBookings = () => {
     } catch (error) {
       console.error('Error fetching booking by token:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('publicBookings.errorTitle', "Error"),
+        description: t('publicBookings.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
       setLoading(false);
@@ -156,8 +158,8 @@ export const usePublicBookings = () => {
       if (error) {
         console.error('Error cancelling booking:', error);
         toast({
-          title: "Error",
-          description: "Failed to cancel booking",
+          title: t('publicBookings.errorTitle', "Error"),
+          description: t('publicBookings.cancelFailed', "Failed to cancel booking"),
           variant: "destructive",
         });
         setLoading(false);
@@ -168,8 +170,8 @@ export const usePublicBookings = () => {
 
       if (!result.success) {
         toast({
-          title: "Error",
-          description: result.error || "Failed to cancel booking",
+          title: t('publicBookings.errorTitle', "Error"),
+          description: result.error || t('publicBookings.cancelFailed', "Failed to cancel booking"),
           variant: "destructive",
         });
         setLoading(false);
@@ -177,8 +179,8 @@ export const usePublicBookings = () => {
       }
 
       toast({
-        title: "Success",
-        description: "Booking cancelled successfully",
+        title: t('publicBookings.successTitle', "Success"),
+        description: t('publicBookings.cancelSuccess', "Booking cancelled successfully"),
       });
 
       setLoading(false);
@@ -186,8 +188,8 @@ export const usePublicBookings = () => {
     } catch (error) {
       console.error('Error cancelling public booking:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('publicBookings.errorTitle', "Error"),
+        description: t('publicBookings.unexpectedError', "An unexpected error occurred"),
         variant: "destructive",
       });
       setLoading(false);

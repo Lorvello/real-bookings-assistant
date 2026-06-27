@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +28,7 @@ interface CalendarAvailabilityResult {
 
 export const useCalendarAvailability = () => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [loading, setLoading] = useState(false);
 
   const getAvailability = async (
@@ -50,7 +52,7 @@ export const useCalendarAvailability = () => {
       if (error) {
         console.error('Availability error:', error);
         toast({
-          title: "Fout bij ophalen beschikbaarheid",
+          title: t('calendarAvailability.fetchError.title', 'Fout bij ophalen beschikbaarheid'),
           description: error.message,
           variant: "destructive",
         });
@@ -63,8 +65,8 @@ export const useCalendarAvailability = () => {
 
       if (!result?.success) {
         toast({
-          title: "Kalender niet gevonden",
-          description: result?.error || "Kalender kon niet worden gevonden",
+          title: t('calendarAvailability.notFound.title', 'Kalender niet gevonden'),
+          description: result?.error || t('calendarAvailability.notFound.description', 'Kalender kon niet worden gevonden'),
           variant: "destructive",
         });
         setLoading(false);
@@ -80,8 +82,8 @@ export const useCalendarAvailability = () => {
     } catch (error) {
       console.error('Availability fetch error:', error);
       toast({
-        title: "Fout",
-        description: "Er is een onverwachte fout opgetreden",
+        title: t('calendarAvailability.unexpectedError.title', 'Fout'),
+        description: t('calendarAvailability.unexpectedError.description', 'Er is een onverwachte fout opgetreden'),
         variant: "destructive",
       });
       setLoading(false);

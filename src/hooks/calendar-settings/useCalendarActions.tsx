@@ -1,13 +1,15 @@
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
-import { 
-  updateCalendarInfo, 
-  updateCalendarServiceTypes, 
-  updateCalendarMembers 
+import {
+  updateCalendarInfo,
+  updateCalendarServiceTypes,
+  updateCalendarMembers
 } from './calendarSettingsUtils';
 
 export const useCalendarActions = () => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { refreshCalendars } = useCalendarContext();
 
   const updateFullCalendar = async (calendarId: string, updates: {
@@ -55,17 +57,17 @@ export const useCalendarActions = () => {
 
       if (allSuccess) {
         toast({
-          title: "Success",
-          description: "Calendar updated successfully",
+          title: t('calendarActions.successTitle', 'Success'),
+          description: t('calendarActions.updatedDescription', 'Calendar updated successfully'),
         });
-        
+
         // Refresh calendars to update the context
         await refreshCalendars();
         return true;
       } else {
         toast({
-          title: "Partial Update",
-          description: `Calendar updated but failed to update: ${errors.join(', ')}`,
+          title: t('calendarActions.partialUpdateTitle', 'Partial Update'),
+          description: t('calendarActions.partialUpdateDescription', 'Calendar updated but failed to update: {{errors}}', { errors: errors.join(', ') }),
           variant: "destructive",
         });
         return false;
@@ -73,8 +75,8 @@ export const useCalendarActions = () => {
     } catch (error) {
       console.error('Error updating calendar:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred while updating the calendar",
+        title: t('calendarActions.errorTitle', 'Error'),
+        description: t('calendarActions.unexpectedErrorDescription', 'An unexpected error occurred while updating the calendar'),
         variant: "destructive",
       });
       return false;

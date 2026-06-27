@@ -43,6 +43,7 @@ import nlApp from '../locales/nl/app.json';
 import nlDashboard from '../locales/nl/dashboard.json';
 import nlSettings from '../locales/nl/settings.json';
 import nlAppPages from '../locales/nl/appPages.json';
+import nlNotifications from '../locales/nl/notifications.json';
 
 const SRC = resolve(__dirname, '../..');
 
@@ -114,6 +115,7 @@ const nlKeys = new Set<string>([
   ...flattenKeys(nlDashboard as Record<string, unknown>),
   ...flattenKeys(nlSettings as Record<string, unknown>),
   ...flattenKeys(nlAppPages as Record<string, unknown>),
+  ...flattenKeys(nlNotifications as Record<string, unknown>),
 ]);
 
 describe('i18n guard 1: EN inline-default snapshot (the EN source of truth)', () => {

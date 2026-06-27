@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +24,7 @@ interface WhatsAppPrivacySettingsProps {
 }
 
 export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsProps) {
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false);
@@ -53,15 +55,15 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
     },
     onSuccess: () => {
       toast({
-        title: "Data Opschoning Voltooid",
-        description: "Oude WhatsApp data is succesvol opgeschoond volgens uw privacy instellingen.",
+        title: t('whatsappPrivacySettings.cleanupSuccessTitle', 'Data cleanup completed'),
+        description: t('whatsappPrivacySettings.cleanupSuccessDescription', 'Old WhatsApp data has been successfully cleaned up according to your privacy settings.'),
       });
       queryClient.invalidateQueries({ queryKey: ['whatsapp-data-stats'] });
     },
     onError: (error) => {
       toast({
-        title: "Data cleanup failed",
-        description: "Something went wrong while cleaning up the data. Please try again.",
+        title: t('whatsappPrivacySettings.cleanupErrorTitle', 'Data cleanup failed'),
+        description: t('whatsappPrivacySettings.cleanupErrorDescription', 'Something went wrong while cleaning up the data. Please try again.'),
         variant: "destructive",
       });
     },
@@ -91,14 +93,14 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Data Export Voltooid",
-        description: "Uw WhatsApp data is geëxporteerd en gedownload.",
+        title: t('whatsappPrivacySettings.exportSuccessTitle', 'Data export completed'),
+        description: t('whatsappPrivacySettings.exportSuccessDescription', 'Your WhatsApp data has been exported and downloaded.'),
       });
     },
     onError: (error) => {
       toast({
-        title: "Data export failed",
-        description: "Something went wrong while exporting your data.",
+        title: t('whatsappPrivacySettings.exportErrorTitle', 'Data export failed'),
+        description: t('whatsappPrivacySettings.exportErrorDescription', 'Something went wrong while exporting your data.'),
         variant: "destructive",
       });
     },
@@ -132,29 +134,29 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            Privacy & Data Beheer
+            {t('whatsappPrivacySettings.cardTitle', 'Privacy & Data Management')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Data Overview */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Uw WhatsApp Data</h3>
+            <h3 className="text-lg font-medium mb-4">{t('whatsappPrivacySettings.yourDataHeading', 'Your WhatsApp Data')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-subtle-foreground">Contacten</span>
+                  <span className="text-sm text-subtle-foreground">{t('whatsappPrivacySettings.contactsLabel', 'Contacts')}</span>
                   <Badge variant="secondary" className="tabular-nums">{dataStats?.total_contacts || 0}</Badge>
                 </div>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-subtle-foreground">Gesprekken</span>
+                  <span className="text-sm text-subtle-foreground">{t('whatsappPrivacySettings.conversationsLabel', 'Conversations')}</span>
                   <Badge variant="secondary" className="tabular-nums">{dataStats?.total_conversations || 0}</Badge>
                 </div>
               </div>
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-subtle-foreground">Berichten</span>
+                  <span className="text-sm text-subtle-foreground">{t('whatsappPrivacySettings.messagesLabel', 'Messages')}</span>
                   <Badge variant="secondary" className="tabular-nums">{dataStats?.total_messages || 0}</Badge>
                 </div>
               </div>
@@ -165,12 +167,11 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
 
           {/* Data Retention Settings */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Data Bewaring</h3>
+            <h3 className="text-lg font-medium mb-4">{t('whatsappPrivacySettings.dataRetentionHeading', 'Data Retention')}</h3>
             <Alert>
               <Clock className="h-4 w-4" />
               <AlertDescription>
-                WhatsApp messages are automatically deleted after 90 days. 
-                Conversations are archived after 30 days of inactivity.
+                {t('whatsappPrivacySettings.dataRetentionDescription', 'WhatsApp messages are automatically deleted after 90 days. Conversations are archived after 30 days of inactivity.')}
               </AlertDescription>
             </Alert>
           </div>
@@ -179,7 +180,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
 
           {/* Privacy Actions */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Privacy Acties</h3>
+            <h3 className="text-lg font-medium mb-4">{t('whatsappPrivacySettings.privacyActionsHeading', 'Privacy Actions')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Export Data */}
               <Card>
@@ -187,16 +188,16 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                   <div className="flex items-start gap-3">
                     <Download className="h-5 w-5 text-muted-foreground mt-1" />
                     <div className="flex-1">
-                      <h4 className="font-medium">Data Exporteren</h4>
+                      <h4 className="font-medium">{t('whatsappPrivacySettings.exportDataHeading', 'Export Data')}</h4>
                       <p className="text-sm text-subtle-foreground mb-3">
-                        Download al uw WhatsApp data in JSON formaat
+                        {t('whatsappPrivacySettings.exportDataDescription', 'Download all your WhatsApp data in JSON format')}
                       </p>
-                      <Button 
+                      <Button
                         onClick={handleExportData}
                         disabled={isExporting || exportDataMutation.isPending}
                         size="sm"
                       >
-                        {isExporting ? 'Exporting...' : 'Export Data'}
+                        {isExporting ? t('whatsappPrivacySettings.exportingButton', 'Exporting...') : t('whatsappPrivacySettings.exportDataButton', 'Export Data')}
                       </Button>
                     </div>
                   </div>
@@ -209,17 +210,17 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
                   <div className="flex items-start gap-3">
                     <Trash2 className="h-5 w-5 text-warning-foreground mt-1" />
                     <div className="flex-1">
-                      <h4 className="font-medium">Clean Up Old Data</h4>
+                      <h4 className="font-medium">{t('whatsappPrivacySettings.cleanupDataHeading', 'Clean Up Old Data')}</h4>
                       <p className="text-sm text-subtle-foreground mb-3">
-                        Manually delete old messages and archived conversations
+                        {t('whatsappPrivacySettings.cleanupDataDescription', 'Manually delete old messages and archived conversations')}
                       </p>
-                      <Button 
+                      <Button
                         onClick={() => cleanupDataMutation.mutate()}
                         disabled={cleanupDataMutation.isPending}
                         variant="outline"
                         size="sm"
                       >
-                        {cleanupDataMutation.isPending ? 'Cleaning up...' : 'Clean Up Data'}
+                        {cleanupDataMutation.isPending ? t('whatsappPrivacySettings.cleaningUpButton', 'Cleaning up...') : t('whatsappPrivacySettings.cleanupDataButton', 'Clean Up Data')}
                       </Button>
                     </div>
                   </div>
@@ -232,29 +233,29 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
 
           {/* Privacy Information */}
           <div>
-            <h3 className="text-lg font-medium mb-4">Privacy Informatie</h3>
+            <h3 className="text-lg font-medium mb-4">{t('whatsappPrivacySettings.privacyInfoHeading', 'Privacy Information')}</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-success-foreground mt-0.5" />
                 <div>
-                  <p className="font-medium">Veilige Toegang</p>
-                  <p className="text-sm text-subtle-foreground">Alleen u heeft toegang tot uw WhatsApp conversaties</p>
+                  <p className="font-medium">{t('whatsappPrivacySettings.secureAccessTitle', 'Secure Access')}</p>
+                  <p className="text-sm text-subtle-foreground">{t('whatsappPrivacySettings.secureAccessDescription', 'Only you have access to your WhatsApp conversations')}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-success-foreground mt-0.5" />
                 <div>
-                  <p className="font-medium">Automatische Verwijdering</p>
-                  <p className="text-sm text-subtle-foreground">Oude messages worden automatisch verwijderd volgens GDPR richtlijnen</p>
+                  <p className="font-medium">{t('whatsappPrivacySettings.automaticDeletionTitle', 'Automatic Deletion')}</p>
+                  <p className="text-sm text-subtle-foreground">{t('whatsappPrivacySettings.automaticDeletionDescription', 'Old messages are automatically deleted according to GDPR guidelines')}</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-success-foreground mt-0.5" />
                 <div>
-                  <p className="font-medium">Data Portabiliteit</p>
-                  <p className="text-sm text-subtle-foreground">U kunt uw data op elk moment exporteren</p>
+                  <p className="font-medium">{t('whatsappPrivacySettings.dataPortabilityTitle', 'Data Portability')}</p>
+                  <p className="text-sm text-subtle-foreground">{t('whatsappPrivacySettings.dataPortabilityDescription', 'You can export your data at any time')}</p>
                 </div>
               </div>
             </div>
@@ -266,9 +267,7 @@ export function WhatsAppPrivacySettings({ calendarId }: WhatsAppPrivacySettingsP
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Important:</strong> This application complies with GDPR requirements. 
-          Your WhatsApp data is stored securely and used only to facilitate your bookings. 
-          You have the right to view, modify or delete your data.
+          <strong>{t('whatsappPrivacySettings.importantLabel', 'Important:')}</strong> {t('whatsappPrivacySettings.gdprNotice', 'This application complies with GDPR requirements. Your WhatsApp data is stored securely and used only to facilitate your bookings. You have the right to view, modify or delete your data.')}
         </AlertDescription>
       </Alert>
     </div>

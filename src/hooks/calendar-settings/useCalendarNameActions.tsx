@@ -1,10 +1,12 @@
 
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { updateCalendarName } from './calendarSettingsUtils';
 
 export const useCalendarNameActions = (calendarId?: string) => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { refreshCalendars } = useCalendarContext();
 
   const handleUpdateCalendarName = async (newName: string): Promise<boolean> => {
@@ -15,16 +17,16 @@ export const useCalendarNameActions = (calendarId?: string) => {
 
       if (!success) {
         toast({
-          title: "Error",
-          description: "Cannot update calendar name",
+          title: t('calendarNameActions.errorTitle', 'Error'),
+          description: t('calendarNameActions.nameUpdateFailedDescription', 'Cannot update calendar name'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Calendar name updated successfully",
+        title: t('calendarNameActions.successTitle', 'Success'),
+        description: t('calendarNameActions.nameUpdatedDescription', 'Calendar name updated successfully'),
       });
 
       // Refresh calendars to update the context
@@ -33,8 +35,8 @@ export const useCalendarNameActions = (calendarId?: string) => {
     } catch (error) {
       console.error('Error updating calendar name:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('calendarNameActions.errorTitle', 'Error'),
+        description: t('calendarNameActions.unexpectedErrorDescription', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;

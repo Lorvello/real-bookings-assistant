@@ -1,11 +1,13 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useLoginEffects = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
 
@@ -16,23 +18,23 @@ export const useLoginEffects = () => {
     
     if (error) {
       const errorMessages = {
-        'oauth_failed': 'Login failed. Please try again.',
-        'session_failed': 'Session could not be established. Please try again.',
-        'unexpected': 'An unexpected error occurred. Please try again.',
-        'callback_failed': 'Login callback failed. Please try again.'
+        'oauth_failed': t('loginEffects.error.oauthFailed', 'Login failed. Please try again.'),
+        'session_failed': t('loginEffects.error.sessionFailed', 'Session could not be established. Please try again.'),
+        'unexpected': t('loginEffects.error.unexpected', 'An unexpected error occurred. Please try again.'),
+        'callback_failed': t('loginEffects.error.callbackFailed', 'Login callback failed. Please try again.')
       };
-      
+
       toast({
-        title: "Login Error",
-        description: errorMessages[error as keyof typeof errorMessages] || 'Login failed. Please try again.',
+        title: t('loginEffects.loginErrorTitle', 'Login Error'),
+        description: errorMessages[error as keyof typeof errorMessages] || t('loginEffects.error.oauthFailed', 'Login failed. Please try again.'),
         variant: "destructive",
       });
     }
-    
+
     if (message === 'please_login') {
       toast({
-        title: "Please Log In",
-        description: "Please log in to access your account.",
+        title: t('loginEffects.pleaseLogInTitle', 'Please Log In'),
+        description: t('loginEffects.pleaseLogInDescription', 'Please log in to access your account.'),
       });
     }
 
@@ -46,5 +48,5 @@ export const useLoginEffects = () => {
     };
     
     checkUser();
-  }, [searchParams, toast, navigate]);
+  }, [searchParams, toast, navigate, t]);
 };

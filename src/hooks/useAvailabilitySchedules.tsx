@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { AvailabilitySchedule } from '@/types/database';
@@ -8,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useAvailabilitySchedules = (calendarId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [schedules, setSchedules] = useState<AvailabilitySchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -117,16 +119,16 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
         console.error('Error creating schedule:', error);
         setError(error.message);
         toast({
-          title: "Error",
-          description: "Failed to create availability schedule",
+          title: t('availabilitySchedules.createError.title', 'Error'),
+          description: t('availabilitySchedules.createError.description', 'Failed to create availability schedule'),
           variant: "destructive",
         });
         return null;
       }
 
       toast({
-        title: "Success",
-        description: "Availability schedule created successfully",
+        title: t('availabilitySchedules.createSuccess.title', 'Success'),
+        description: t('availabilitySchedules.createSuccess.description', 'Availability schedule created successfully'),
       });
 
       return data;
@@ -134,8 +136,8 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
       console.error('Error creating availability schedule:', error);
       setError('An unexpected error occurred');
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilitySchedules.createUnexpectedError.title', 'Error'),
+        description: t('availabilitySchedules.createUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return null;
@@ -154,16 +156,16 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
         console.error('Error updating schedule:', error);
         setError(error.message);
         toast({
-          title: "Error",
-          description: "Failed to update availability schedule",
+          title: t('availabilitySchedules.updateError.title', 'Error'),
+          description: t('availabilitySchedules.updateError.description', 'Failed to update availability schedule'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Availability schedule updated successfully",
+        title: t('availabilitySchedules.updateSuccess.title', 'Success'),
+        description: t('availabilitySchedules.updateSuccess.description', 'Availability schedule updated successfully'),
       });
 
       return true;
@@ -171,8 +173,8 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
       console.error('Error updating availability schedule:', error);
       setError('An unexpected error occurred');
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilitySchedules.updateUnexpectedError.title', 'Error'),
+        description: t('availabilitySchedules.updateUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;
@@ -191,16 +193,16 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
         console.error('Error deleting schedule:', error);
         setError(error.message);
         toast({
-          title: "Error",
-          description: "Failed to delete availability schedule",
+          title: t('availabilitySchedules.deleteError.title', 'Error'),
+          description: t('availabilitySchedules.deleteError.description', 'Failed to delete availability schedule'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Availability schedule deleted successfully",
+        title: t('availabilitySchedules.deleteSuccess.title', 'Success'),
+        description: t('availabilitySchedules.deleteSuccess.description', 'Availability schedule deleted successfully'),
       });
 
       return true;
@@ -208,8 +210,8 @@ export const useAvailabilitySchedules = (calendarId?: string) => {
       console.error('Error deleting availability schedule:', error);
       setError('An unexpected error occurred');
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('availabilitySchedules.deleteUnexpectedError.title', 'Error'),
+        description: t('availabilitySchedules.deleteUnexpectedError.description', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;

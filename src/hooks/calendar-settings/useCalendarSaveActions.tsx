@@ -1,4 +1,5 @@
 
+import { useTranslation } from 'react-i18next';
 import { useToast } from '@/hooks/use-toast';
 import { updateCalendarSettings } from './calendarSettingsUtils';
 import { CalendarSettings } from '@/types/database';
@@ -13,6 +14,7 @@ export const useCalendarSaveActions = (
   fetchSettings?: () => void
 ) => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const saveAllChanges = async (): Promise<boolean> => {
     if (!calendarId || !settings || !hasPendingChanges || !pendingChanges) {
@@ -30,16 +32,16 @@ export const useCalendarSaveActions = (
 
       if (!success) {
         toast({
-          title: "Error",
-          description: "Cannot save calendar settings",
+          title: t('calendarSaveActions.errorTitle', 'Error'),
+          description: t('calendarSaveActions.settingsSaveFailedDescription', 'Cannot save calendar settings'),
           variant: "destructive",
         });
         return false;
       }
 
       toast({
-        title: "Success",
-        description: "Calendar settings saved successfully",
+        title: t('calendarSaveActions.successTitle', 'Success'),
+        description: t('calendarSaveActions.settingsSavedDescription', 'Calendar settings saved successfully'),
       });
 
       setPendingChanges?.({});
@@ -48,8 +50,8 @@ export const useCalendarSaveActions = (
     } catch (error) {
       console.error('Error saving calendar settings:', error);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: t('calendarSaveActions.errorTitle', 'Error'),
+        description: t('calendarSaveActions.unexpectedErrorDescription', 'An unexpected error occurred'),
         variant: "destructive",
       });
       return false;

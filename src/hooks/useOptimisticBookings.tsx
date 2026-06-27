@@ -1,5 +1,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +21,7 @@ interface CreateBookingData {
 export function useOptimisticBookings(calendarId?: string) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const queryClient = useQueryClient();
 
   const createBookingMutation = useMutation({
@@ -92,8 +94,8 @@ export function useOptimisticBookings(calendarId?: string) {
       }
 
       toast({
-        title: "Fout bij aanmaken afspraak",
-        description: err instanceof Error ? err.message : 'Onbekende fout opgetreden',
+        title: t('optimisticBookings.createErrorTitle', 'Fout bij aanmaken afspraak'),
+        description: err instanceof Error ? err.message : t('optimisticBookings.unknownError', 'Onbekende fout opgetreden'),
         variant: "destructive",
       });
     },
@@ -101,8 +103,8 @@ export function useOptimisticBookings(calendarId?: string) {
       console.log('🎉 Booking successfully created and automatically confirmed:', data);
       
       toast({
-        title: "Afspraak bevestigd!",
-        description: `Afspraak voor ${data.customer_name} is direct bevestigd.`,
+        title: t('optimisticBookings.confirmedTitle', 'Afspraak bevestigd!'),
+        description: t('optimisticBookings.confirmedDescription', 'Afspraak voor {{name}} is direct bevestigd.', { name: data.customer_name }),
       });
 
       // Invalidate queries to fetch fresh data

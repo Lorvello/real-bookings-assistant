@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useErrorHandler } from '@/hooks/useErrorHandler';
@@ -33,6 +34,7 @@ interface RateLimitResult {
 
 export const useAuthOperations = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const { handleError, retryWithBackoff } = useErrorHandler();
   const [loading, setLoading] = useState(false);
@@ -97,11 +99,11 @@ export const useAuthOperations = () => {
           : 'a few minutes';
         
         toast({
-          title: "Too Many Attempts",
-          description: `Please try again after ${blockedUntil}.`,
+          title: t('authOperations.tooManyAttemptsTitle', 'Too Many Attempts'),
+          description: t('authOperations.tooManyAttemptsBlockedDescription', 'Please try again after {{blockedUntil}}.', { blockedUntil }),
           variant: "destructive",
         });
-        
+
         return { success: false, error: 'Rate limited' };
       }
 
@@ -149,8 +151,8 @@ export const useAuthOperations = () => {
       }
 
       toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
+        title: t('authOperations.welcomeBackTitle', 'Welcome back!'),
+        description: t('authOperations.welcomeBackDescription', 'You have successfully signed in.'),
       });
 
       navigate('/dashboard');
@@ -160,19 +162,19 @@ export const useAuthOperations = () => {
       console.error('[Auth] Sign in error:', error);
       
       const userFriendlyMessages: Record<string, string> = {
-        'invalid_credentials': 'Invalid email or password. Please check your credentials.',
-        'too_many_requests': 'Too many login attempts. Please wait 15 minutes and try again.',
-        'user_not_found': 'No account found with this email. Please check your email or sign up.',
-        'account_suspended': 'Your account has been suspended. Please contact support.',
-        'network_request_failed': 'Connection failed. Please check your internet and try again.'
+        'invalid_credentials': t('authOperations.signInError.invalidCredentials', 'Invalid email or password. Please check your credentials.'),
+        'too_many_requests': t('authOperations.signInError.tooManyRequests', 'Too many login attempts. Please wait 15 minutes and try again.'),
+        'user_not_found': t('authOperations.signInError.userNotFound', 'No account found with this email. Please check your email or sign up.'),
+        'account_suspended': t('authOperations.signInError.accountSuspended', 'Your account has been suspended. Please contact support.'),
+        'network_request_failed': t('authOperations.signInError.networkRequestFailed', 'Connection failed. Please check your internet and try again.')
       };
 
-      const message = userFriendlyMessages[error.message] || 
-        (error.message.includes('Please enter') ? error.message : 
-         'Unable to sign in. Please try again.');
+      const message = userFriendlyMessages[error.message] ||
+        (error.message.includes('Please enter') ? error.message :
+         t('authOperations.signInError.generic', 'Unable to sign in. Please try again.'));
 
       toast({
-        title: "Sign In Failed",
+        title: t('authOperations.signInFailedTitle', 'Sign In Failed'),
         description: message,
         variant: "destructive",
       });
@@ -214,11 +216,11 @@ export const useAuthOperations = () => {
           : 'a few minutes';
         
         toast({
-          title: "Too Many Attempts",
-          description: `Please try again after ${blockedUntil}.`,
+          title: t('authOperations.tooManyAttemptsTitle', 'Too Many Attempts'),
+          description: t('authOperations.tooManyAttemptsBlockedDescription', 'Please try again after {{blockedUntil}}.', { blockedUntil }),
           variant: "destructive",
         });
-        
+
         return { success: false, error: 'Rate limited' };
       }
 
@@ -269,8 +271,8 @@ export const useAuthOperations = () => {
       }
 
       toast({
-        title: "Account created successfully! 🎉",
-        description: "Please complete your business setup to start your 30-day trial.",
+        title: t('authOperations.accountCreatedTitle', 'Account created successfully! 🎉'),
+        description: t('authOperations.accountCreatedDescription', 'Please complete your business setup to start your 30-day trial.'),
       });
 
       navigate('/dashboard');
@@ -280,24 +282,24 @@ export const useAuthOperations = () => {
       console.error('[Auth] Sign up error:', error);
       
       const userFriendlyMessages: Record<string, string> = {
-        'already_registered': 'An account with this email already exists. Try signing in instead.',
-        'invalid_email': 'Please enter a valid email address.',
-        'weak_password': 'Password does not meet security requirements.',
-        'signup_disabled': 'Account registration is currently disabled. Please contact support.',
-        'rate_limit_exceeded': 'Too many registration attempts. Please wait and try again.',
-        'email_rate_limit_exceeded': 'Email verification limit reached. Please wait before trying again.'
+        'already_registered': t('authOperations.signUpError.alreadyRegistered', 'An account with this email already exists. Try signing in instead.'),
+        'invalid_email': t('authOperations.signUpError.invalidEmail', 'Please enter a valid email address.'),
+        'weak_password': t('authOperations.signUpError.weakPassword', 'Password does not meet security requirements.'),
+        'signup_disabled': t('authOperations.signUpError.signupDisabled', 'Account registration is currently disabled. Please contact support.'),
+        'rate_limit_exceeded': t('authOperations.signUpError.rateLimitExceeded', 'Too many registration attempts. Please wait and try again.'),
+        'email_rate_limit_exceeded': t('authOperations.signUpError.emailRateLimitExceeded', 'Email verification limit reached. Please wait before trying again.')
       };
 
       let message = userFriendlyMessages[error.message] || error.message;
-      
+
       if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-        message = `An account with ${data.email} already exists. Try signing in instead.`;
+        message = t('authOperations.signUpError.alreadyRegisteredWithEmail', 'An account with {{email}} already exists. Try signing in instead.', { email: data.email });
       } else if (!userFriendlyMessages[error.message] && !error.message.includes('Please')) {
-        message = 'Unable to create account. Please try again or contact support.';
+        message = t('authOperations.signUpError.generic', 'Unable to create account. Please try again or contact support.');
       }
 
       toast({
-        title: "Registration Failed",
+        title: t('authOperations.registrationFailedTitle', 'Registration Failed'),
         description: message,
         variant: "destructive",
       });
@@ -327,8 +329,8 @@ export const useAuthOperations = () => {
       
       if (!rateLimitResult.allowed) {
         toast({
-          title: "Too Many Attempts",
-          description: "Please wait before requesting another password reset.",
+          title: t('authOperations.tooManyAttemptsTitle', 'Too Many Attempts'),
+          description: t('authOperations.tooManyAttemptsResetDescription', 'Please wait before requesting another password reset.'),
           variant: "destructive",
         });
         return { success: false, error: 'Rate limited' };
@@ -355,8 +357,8 @@ export const useAuthOperations = () => {
       }, 2);
 
       toast({
-        title: "Reset Email Sent",
-        description: "Check your email for password reset instructions. If you don't see it, check your spam folder.",
+        title: t('authOperations.resetEmailSentTitle', 'Reset Email Sent'),
+        description: t('authOperations.resetEmailSentDescription', "Check your email for password reset instructions. If you don't see it, check your spam folder."),
       });
 
       return { success: true };
@@ -381,8 +383,8 @@ export const useAuthOperations = () => {
       
       if (!rateLimitResult.allowed) {
         toast({
-          title: "Too Many Attempts",
-          description: "Please wait before requesting another verification email.",
+          title: t('authOperations.tooManyAttemptsTitle', 'Too Many Attempts'),
+          description: t('authOperations.tooManyAttemptsVerificationDescription', 'Please wait before requesting another verification email.'),
           variant: "destructive",
         });
         return { success: false, error: 'Rate limited' };
@@ -400,8 +402,8 @@ export const useAuthOperations = () => {
         if (error) {
           if (error.message.includes('already confirmed')) {
             toast({
-              title: "Already Verified",
-              description: "Your email is already verified. You can now sign in.",
+              title: t('authOperations.alreadyVerifiedTitle', 'Already Verified'),
+              description: t('authOperations.alreadyVerifiedDescription', 'Your email is already verified. You can now sign in.'),
             });
             navigate('/login');
             return;
@@ -411,8 +413,8 @@ export const useAuthOperations = () => {
       }, 2);
 
       toast({
-        title: "Email Sent",
-        description: "A new verification email has been sent. Please check your inbox and spam folder.",
+        title: t('authOperations.emailSentTitle', 'Email Sent'),
+        description: t('authOperations.emailSentDescription', 'A new verification email has been sent. Please check your inbox and spam folder.'),
       });
 
       return { success: true };

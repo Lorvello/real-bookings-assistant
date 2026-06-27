@@ -1,11 +1,13 @@
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const usePublicWaitlist = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const joinWaitlist = async (
     calendarSlug: string,
@@ -37,8 +39,8 @@ export const usePublicWaitlist = () => {
 
       if (!result.success) {
         toast({
-          title: "Could not add to waitlist",
-          description: result.error || "Unknown error",
+          title: t('publicWaitlist.addErrorTitle', 'Could not add to waitlist'),
+          description: result.error || t('publicWaitlist.unknownError', 'Unknown error'),
           variant: "destructive",
         });
         setLoading(false);
@@ -46,8 +48,8 @@ export const usePublicWaitlist = () => {
       }
 
       toast({
-        title: "Added to waitlist!",
-        description: "You have been successfully added to the waitlist. You'll be notified when a spot opens up.",
+        title: t('publicWaitlist.addedTitle', 'Added to waitlist!'),
+        description: t('publicWaitlist.addedDescription', "You have been successfully added to the waitlist. You'll be notified when a spot opens up."),
       });
 
       setLoading(false);
@@ -55,8 +57,8 @@ export const usePublicWaitlist = () => {
     } catch (error) {
       console.error('Error joining waitlist:', error);
       toast({
-        title: "Error adding to waitlist",
-        description: "An unexpected error occurred",
+        title: t('publicWaitlist.errorTitle', 'Error adding to waitlist'),
+        description: t('publicWaitlist.unexpectedError', 'An unexpected error occurred'),
         variant: "destructive",
       });
       setLoading(false);

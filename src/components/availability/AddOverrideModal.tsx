@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAvailabilityOverrides } from '@/hooks/useAvailabilityOverrides';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -28,12 +29,13 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
   
   const { createOverride } = useAvailabilityOverrides(calendarId);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const validateForm = (): boolean => {
     if (!date) {
       toast({
-        title: "Date required",
-        description: "Please select a date for the override.",
+        title: t('addOverrideModal.dateRequiredTitle', 'Date required'),
+        description: t('addOverrideModal.dateRequiredDescription', 'Please select a date for the override.'),
         variant: "destructive",
       });
       return false;
@@ -45,8 +47,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
     
     if (selectedDate < today) {
       toast({
-        title: "Invalid date",
-        description: "Date cannot be in the past.",
+        title: t('addOverrideModal.invalidDateTitle', 'Invalid date'),
+        description: t('addOverrideModal.invalidDateDescription', 'Date cannot be in the past.'),
         variant: "destructive",
       });
       return false;
@@ -54,8 +56,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
 
     if (type === 'closed' && !reason.trim()) {
       toast({
-        title: "Reason required",
-        description: "Please provide a reason why you're unavailable.",
+        title: t('addOverrideModal.reasonRequiredTitle', 'Reason required'),
+        description: t('addOverrideModal.reasonRequiredDescription', "Please provide a reason why you're unavailable."),
         variant: "destructive",
       });
       return false;
@@ -63,8 +65,8 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
 
     if (type === 'custom' && startTime >= endTime) {
       toast({
-        title: "Invalid times",
-        description: "End time must be after start time.",
+        title: t('addOverrideModal.invalidTimesTitle', 'Invalid times'),
+        description: t('addOverrideModal.invalidTimesDescription', 'End time must be after start time.'),
         variant: "destructive",
       });
       return false;
@@ -90,8 +92,13 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
       });
 
       toast({
-        title: "Override added",
-        description: `${type === 'closed' ? 'Closed day' : 'Custom times'} for ${new Date(date).toLocaleDateString('en-US')} saved.`,
+        title: t('addOverrideModal.overrideAddedTitle', 'Override added'),
+        description: t('addOverrideModal.overrideAddedDescription', '{{overrideType}} for {{date}} saved.', {
+          overrideType: type === 'closed'
+            ? t('addOverrideModal.overrideTypeClosed', 'Closed day')
+            : t('addOverrideModal.overrideTypeCustom', 'Custom times'),
+          date: new Date(date).toLocaleDateString('en-US'),
+        }),
       });
 
       onClose();
@@ -103,12 +110,12 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
   };
 
   const quickReasons = [
-    { label: '🏖️ Vacation', value: 'Vacation' },
-    { label: '🤒 Sick', value: 'Sick' },
-    { label: '🎉 Day off', value: 'Day off' },
-    { label: '🎊 Holiday', value: 'Holiday' },
-    { label: '🏢 Meeting', value: 'Meeting' },
-    { label: '🔧 Maintenance', value: 'Maintenance' },
+    { label: `🏖️ ${t('addOverrideModal.quickReasonVacation', 'Vacation')}`, value: 'Vacation' },
+    { label: `🤒 ${t('addOverrideModal.quickReasonSick', 'Sick')}`, value: 'Sick' },
+    { label: `🎉 ${t('addOverrideModal.quickReasonDayOff', 'Day off')}`, value: 'Day off' },
+    { label: `🎊 ${t('addOverrideModal.quickReasonHoliday', 'Holiday')}`, value: 'Holiday' },
+    { label: `🏢 ${t('addOverrideModal.quickReasonMeeting', 'Meeting')}`, value: 'Meeting' },
+    { label: `🔧 ${t('addOverrideModal.quickReasonMaintenance', 'Maintenance')}`, value: 'Maintenance' },
   ];
 
   return (
@@ -118,7 +125,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           <div className="flex items-center justify-between">
             <AlertDialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Add Override
+              {t('addOverrideModal.heading', 'Add Override')}
             </AlertDialogTitle>
             <Button
               variant="ghost"
@@ -134,7 +141,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Date Selection */}
           <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">{t('addOverrideModal.dateLabel', 'Date')}</Label>
             <Input
               id="date"
               type="date"
@@ -147,7 +154,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
 
           {/* Type Selection */}
           <div className="space-y-3">
-            <Label>Override type</Label>
+            <Label>{t('addOverrideModal.overrideTypeLabel', 'Override type')}</Label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -158,7 +165,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
                     : 'border-border hover:border-primary/50'
                 }`}
               >
-                🚫 Closed
+                🚫 {t('addOverrideModal.closedButton', 'Closed')}
               </button>
               <button
                 type="button"
@@ -170,7 +177,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
                 }`}
               >
                 <Clock className="h-4 w-4 inline mr-1" />
-                Custom times
+                {t('addOverrideModal.customTimesButton', 'Custom times')}
               </button>
             </div>
           </div>
@@ -178,12 +185,12 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           {/* Closed Day - Reason */}
           {type === 'closed' && (
             <div className="space-y-2">
-              <Label htmlFor="reason">Reason</Label>
+              <Label htmlFor="reason">{t('addOverrideModal.reasonLabel', 'Reason')}</Label>
               <Input
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="E.g. Vacation, sick, day off..."
+                placeholder={t('addOverrideModal.reasonPlaceholder', 'E.g. Vacation, sick, day off...')}
                 required
               />
               
@@ -207,7 +214,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           {type === 'custom' && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="startTime">From</Label>
+                <Label htmlFor="startTime">{t('addOverrideModal.fromLabel', 'From')}</Label>
                 <Input
                   id="startTime"
                   type="time"
@@ -217,7 +224,7 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">To</Label>
+                <Label htmlFor="endTime">{t('addOverrideModal.toLabel', 'To')}</Label>
                 <Input
                   id="endTime"
                   type="time"
@@ -232,10 +239,10 @@ export function AddOverrideModal({ calendarId, onClose }: AddOverrideModalProps)
           {/* Submit Buttons */}
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Cancel
+              {t('addOverrideModal.cancelButton', 'Cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? t('addOverrideModal.savingButton', 'Saving...') : t('addOverrideModal.saveButton', 'Save')}
             </Button>
           </div>
         </form>

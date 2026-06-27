@@ -1,5 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -9,6 +10,7 @@ interface BotStatus {
 }
 
 export function useBotStatus(calendarId?: string) {
+  const { t } = useTranslation('notifications');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -51,14 +53,18 @@ export function useBotStatus(calendarId?: string) {
       queryClient.invalidateQueries({ queryKey: ['bot-status', calendarId] });
       
       toast({
-        title: isActive ? "WhatsApp bot activated" : "WhatsApp bot paused",
-        description: isActive ? "Your bot is now active and responding to messages" : "Your bot is paused",
+        title: isActive
+          ? t('botStatus.activatedTitle', 'WhatsApp bot activated')
+          : t('botStatus.pausedTitle', 'WhatsApp bot paused'),
+        description: isActive
+          ? t('botStatus.activatedDescription', 'Your bot is now active and responding to messages')
+          : t('botStatus.pausedDescription', 'Your bot is paused'),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error changing bot status",
-        description: error instanceof Error ? error.message : "Unknown error",
+        title: t('botStatus.errorTitle', 'Error changing bot status'),
+        description: error instanceof Error ? error.message : t('botStatus.unknownError', 'Unknown error'),
         variant: "destructive",
       });
     },

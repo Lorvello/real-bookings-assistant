@@ -1,10 +1,12 @@
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useCalendarSetup = () => {
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const [loading, setLoading] = useState(false);
 
   const setupCalendarDefaults = async (
@@ -22,7 +24,7 @@ export const useCalendarSetup = () => {
       if (error) {
         console.error('Calendar setup error:', error);
         toast({
-          title: "Setup gefaald",
+          title: t('calendarSetup.setupFailedTitle', 'Setup gefaald'),
           description: error.message,
           variant: "destructive",
         });
@@ -31,8 +33,8 @@ export const useCalendarSetup = () => {
       }
 
       toast({
-        title: "Kalender geconfigureerd!",
-        description: "Je kalender is ingesteld met standaard configuratie voor jouw business type.",
+        title: t('calendarSetup.configuredTitle', 'Kalender geconfigureerd!'),
+        description: t('calendarSetup.configuredDescription', 'Je kalender is ingesteld met standaard configuratie voor jouw business type.'),
       });
 
       setLoading(false);
@@ -40,8 +42,8 @@ export const useCalendarSetup = () => {
     } catch (error) {
       console.error('Calendar setup error:', error);
       toast({
-        title: "Setup gefaald",
-        description: "Er is een onverwachte fout opgetreden",
+        title: t('calendarSetup.setupFailedTitle', 'Setup gefaald'),
+        description: t('calendarSetup.unexpectedErrorDescription', 'Er is een onverwachte fout opgetreden'),
         variant: "destructive",
       });
       setLoading(false);

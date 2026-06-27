@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -42,6 +43,7 @@ interface CreateCalendarData {
 export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
   const { refreshCalendars, selectCalendar } = useCalendarContext();
   const { user } = useAuth();
   const { canCreateMore, currentCount, maxCalendars } = useCalendarLimits();
@@ -50,8 +52,8 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
   const createCalendar = async (data: CreateCalendarData) => {
     if (!user) {
       toast({
-        title: "Not logged in",
-        description: "You must be logged in to create a calendar",
+        title: t('createCalendar.notLoggedInTitle', 'Not logged in'),
+        description: t('createCalendar.notLoggedInDescription', 'You must be logged in to create a calendar'),
         variant: "destructive",
       });
       return;
@@ -60,8 +62,8 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
     // Check subscription access for creating bookings/calendars
     if (!checkAccess('canCreateBookings')) {
       toast({
-        title: "Calendar Creation Restricted",
-        description: "Reactivate your account to create new calendars",
+        title: t('createCalendar.creationRestrictedTitle', 'Calendar Creation Restricted'),
+        description: t('createCalendar.creationRestrictedDescription', 'Reactivate your account to create new calendars'),
         variant: "destructive",
       });
       return;
@@ -70,8 +72,10 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
     // Check calendar limit
     if (!canCreateMore) {
       toast({
-        title: "Calendar Limit Reached",
-        description: `You can only create ${maxCalendars} calendar${maxCalendars === 1 ? '' : 's'} on your current plan. Please upgrade to create more calendars.`,
+        title: t('createCalendar.limitReachedTitle', 'Calendar Limit Reached'),
+        description: maxCalendars === 1
+          ? t('createCalendar.limitReachedDescriptionOne', 'You can only create {{count}} calendar on your current plan. Please upgrade to create more calendars.', { count: maxCalendars })
+          : t('createCalendar.limitReachedDescriptionOther', 'You can only create {{count}} calendars on your current plan. Please upgrade to create more calendars.', { count: maxCalendars }),
         variant: "destructive",
       });
       return;
@@ -230,8 +234,8 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
         } catch (error) {
           console.error('Error processing service types:', error);
           toast({
-            title: "Partial Success",
-            description: "Calendar created but some service types couldn't be linked",
+            title: t('createCalendar.partialSuccessTitle', 'Partial Success'),
+            description: t('createCalendar.partialSuccessDescription', "Calendar created but some service types couldn't be linked"),
             variant: "destructive",
           });
         }
@@ -335,8 +339,8 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
       }
 
       toast({
-        title: "Calendar created",
-        description: `${data.name} was successfully created`,
+        title: t('createCalendar.createdTitle', 'Calendar created'),
+        description: t('createCalendar.createdDescription', '{{name}} was successfully created', { name: data.name }),
       });
 
       // Wait for calendar refresh before proceeding
@@ -358,18 +362,18 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
     } catch (error: any) {
       console.error('Error creating calendar:', error);
       
-      let errorMessage = "Could not create calendar";
-      
+      let errorMessage = t('createCalendar.createErrorDefaultDescription', 'Could not create calendar');
+
       if (error.code === '42501') {
-        errorMessage = "You don't have permission to create a calendar. Try logging in again.";
+        errorMessage = t('createCalendar.createErrorPermissionDescription', "You don't have permission to create a calendar. Try logging in again.");
       } else if (error.code === '23505') {
-        errorMessage = "A calendar with this name already exists";
+        errorMessage = t('createCalendar.createErrorDuplicateDescription', 'A calendar with this name already exists');
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast({
-        title: "Error creating calendar",
+        title: t('createCalendar.createErrorTitle', 'Error creating calendar'),
         description: errorMessage,
         variant: "destructive",
       });

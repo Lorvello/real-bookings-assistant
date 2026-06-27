@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isTestMode } from '@/utils/stripeConfig';
@@ -13,6 +14,7 @@ interface WhatsAppPaymentOptions {
 export const useWhatsAppPaymentFlow = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('notifications');
 
   const createPaymentSession = async (options: WhatsAppPaymentOptions) => {
     setLoading(true);
@@ -30,16 +32,16 @@ export const useWhatsAppPaymentFlow = () => {
       }
 
       toast({
-        title: "Payment link created",
-        description: "Payment link has been generated for WhatsApp conversation.",
+        title: t('whatsappPaymentFlow.linkCreatedTitle', "Payment link created"),
+        description: t('whatsappPaymentFlow.linkCreatedDescription', "Payment link has been generated for WhatsApp conversation."),
       });
 
       return data;
     } catch (error) {
       console.error('Error in WhatsApp payment flow:', error);
       toast({
-        title: "Payment error",
-        description: "Could not create payment session. Please try again.",
+        title: t('whatsappPaymentFlow.errorTitle', "Payment error"),
+        description: t('whatsappPaymentFlow.errorDescription', "Could not create payment session. Please try again."),
         variant: "destructive",
       });
       throw error;
