@@ -1,8 +1,10 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, Euro } from 'lucide-react';
 
 export function ChartTooltip({ active, payload, label }: any) {
+  const { t } = useTranslation('dashboard');
   if (active && payload && payload.length) {
     const data = payload[0]?.payload;
     
@@ -16,7 +18,7 @@ export function ChartTooltip({ active, payload, label }: any) {
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">{label}</p>
-              <p className="text-xs text-muted-foreground">Service Performance</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.bi.perf.title', 'Service Performance')}</p>
             </div>
           </div>
 
@@ -32,7 +34,7 @@ export function ChartTooltip({ active, payload, label }: any) {
                       <Euro className="h-4 w-4 text-gold" />
                     )}
                     <span className="text-sm text-foreground">
-                      {entry.dataKey === 'booking_count' ? 'Bookings' : 'Revenue'}
+                      {entry.dataKey === 'booking_count' ? t('dashboard.bi.tooltip.bookings', 'Bookings') : t('dashboard.bi.tooltip.revenue', 'Revenue')}
                     </span>
                   </div>
                 </div>
@@ -44,9 +46,9 @@ export function ChartTooltip({ active, payload, label }: any) {
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {entry.dataKey === 'booking_count' && data?.booking_percentage
-                      ? `${data.booking_percentage.toFixed(1)}% van totaal`
+                      ? t('dashboard.bi.tooltip.pctOfTotal', '{{pct}}% of total', { pct: data.booking_percentage.toFixed(1) })
                       : entry.dataKey === 'revenue' && data?.revenue_percentage
-                      ? `${data.revenue_percentage.toFixed(1)}% van totaal`
+                      ? t('dashboard.bi.tooltip.pctOfTotal', '{{pct}}% of total', { pct: data.revenue_percentage.toFixed(1) })
                       : ''}
                   </div>
                 </div>
@@ -58,7 +60,7 @@ export function ChartTooltip({ active, payload, label }: any) {
           {data?.avg_price && (
             <div className="border-t border-white/[0.08] pt-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Average price</span>
+                <span className="text-xs text-muted-foreground">{t('dashboard.bi.tooltip.avgPrice', 'Average price')}</span>
                 <span className="text-sm font-semibold text-foreground">
                   €{Number(data.avg_price).toFixed(2)}
                 </span>

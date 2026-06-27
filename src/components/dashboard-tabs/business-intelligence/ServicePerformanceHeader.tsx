@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -10,6 +11,7 @@ interface ServicePerformanceHeaderProps {
 }
 
 export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: ServicePerformanceHeaderProps) {
+  const { t } = useTranslation('dashboard');
   return (
     <div className="p-8 border-b border-white/[0.08]">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -19,7 +21,7 @@ export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: S
           </div>
           <div>
             <div className="flex items-center gap-3">
-              <h3 className="text-2xl font-semibold text-foreground">Service Performance</h3>
+              <h3 className="text-2xl font-semibold text-foreground">{t('dashboard.bi.perf.title', 'Service Performance')}</h3>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="cursor-help p-1 rounded-full bg-white/[0.04] hover:bg-white/[0.06] transition-colors">
@@ -32,23 +34,23 @@ export function ServicePerformanceHeader({ hasData, data, selectedTimeRange }: S
                   align="center"
                   sideOffset={8}
                 >
-                  <p className="text-sm">Compares booking volume (blue) and revenue (green) for each service. Helps identify most profitable services and optimize your service portfolio.</p>
+                  <p className="text-sm">{t('dashboard.bi.perf.tip', 'Compares booking volume (blue) and revenue (green) for each service. Helps identify most profitable services and optimize your service portfolio.')}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
-            <p className="text-muted-foreground mt-1">{selectedTimeRange} revenue and bookings per service</p>
+            <p className="text-muted-foreground mt-1">{t('dashboard.bi.perf.subtitle', '{{range}} revenue and bookings per service', { range: selectedTimeRange })}</p>
           </div>
         </div>
         
         {hasData && data && (
           <div className="grid grid-cols-2 gap-6">
             <div className="bg-muted/40 border border-white/[0.08] rounded-xl p-4 min-h-[80px] flex flex-col justify-center">
-              <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Total Services</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">{t('dashboard.bi.perf.totalServices', 'Total Services')}</p>
               <p className="text-2xl font-semibold text-foreground leading-tight">{data.length}</p>
             </div>
 
             <div className="bg-muted/40 border border-white/[0.08] rounded-xl p-4 min-h-[80px] flex flex-col justify-center">
-              <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">Total Revenue</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">{t('dashboard.bi.perf.totalRevenue', 'Total Revenue')}</p>
               <p className="text-2xl font-semibold text-foreground leading-tight">
                 €{data.reduce((sum, item) => sum + item.revenue, 0).toFixed(2)}
               </p>

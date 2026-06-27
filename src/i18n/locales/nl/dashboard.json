@@ -69,6 +69,60 @@
       "approaching": "{{n}} bijna aan limiet",
       "details": "Details"
     },
+    "bi": {
+      "period": {
+        "selected": "in de geselecteerde periode",
+        "last7": "in de afgelopen 7 dagen",
+        "last30": "in de afgelopen 30 dagen",
+        "last3months": "in de afgelopen 3 maanden",
+        "lastyear": "in het afgelopen jaar"
+      },
+      "err": {
+        "title": "Fout bij het laden van business intelligence-gegevens",
+        "desc": "Vernieuw de pagina om het opnieuw te proberen"
+      },
+      "metric": {
+        "revenue": "Omzet",
+        "revenuePerDay": "Omzet per dag",
+        "avgValue": "Gemiddelde waarde"
+      },
+      "tip": {
+        "revenue": "Totale geboekte omzet over alle afspraken {{period}}, inclusief aankomende en bevestigde boekingen (niet alleen afgeronde). Dit omvat alle diensten en vormt je bruto-bedrijfsinkomen via het boekingssysteem.",
+        "revenuePerDay": "Gemiddelde dagomzet in de geselecteerde periode {{period}}. Helpt om een constante inkomstenstroom te volgen en je dagelijkse bedrijfsvoering te plannen.",
+        "avgValue": "Gemiddelde omzet per afspraak over alle diensten {{period}}. Hogere waarden duiden op premiumprijzen of succesvolle upselling."
+      },
+      "chart": {
+        "config": "Grafiekinstellingen",
+        "service": "Dienst:",
+        "allServices": "Alle diensten",
+        "bookingsScale": "Boekingen-schaal:",
+        "revenueScale": "Omzet-schaal:",
+        "autoScale": "Automatisch",
+        "axisBookings": "Aantal boekingen",
+        "axisRevenue": "Omzet (€)"
+      },
+      "perf": {
+        "title": "Dienstprestaties",
+        "tip": "Vergelijkt het boekingsvolume (blauw) en de omzet (groen) per dienst. Helpt de meest winstgevende diensten te herkennen en je dienstenaanbod te optimaliseren.",
+        "subtitle": "{{range}} omzet en boekingen per dienst",
+        "totalServices": "Totaal diensten",
+        "totalRevenue": "Totale omzet"
+      },
+      "legend": {
+        "bookingsTip": "Totaal aantal boekingen per dienst. Hogere balken duiden op populairdere diensten.",
+        "revenueTip": "Totale omzet per dienst. Hogere balken duiden op winstgevendere diensten."
+      },
+      "empty": {
+        "title": "Nog geen dienstgegevens beschikbaar",
+        "desc": "Dienstprestaties verschijnen zodra er boekingen voor verschillende diensten zijn."
+      },
+      "tooltip": {
+        "bookings": "Boekingen",
+        "revenue": "Omzet",
+        "pctOfTotal": "{{pct}}% van totaal",
+        "avgPrice": "Gemiddelde prijs"
+      }
+    },
     "liveOps": {
       "status": {
         "online": "Online",

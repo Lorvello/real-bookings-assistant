@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartTooltip } from './ChartTooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,9 +35,15 @@ const scaleOptions: { value: ScaleOption; label: string }[] = [
 type FilterOption = 'all' | string;
 
 export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) {
+  const { t } = useTranslation('dashboard');
   const [bookingScale, setBookingScale] = useState<ScaleOption>('auto');
   const [revenueScale, setRevenueScale] = useState<ScaleOption>('auto');
   const [selectedService, setSelectedService] = useState<FilterOption>('all');
+
+  // Display label for a scale option: only the 'auto' sentinel is translated; the
+  // numeric ranges ('0 - 50' etc.) are language-neutral.
+  const scaleLabel = (o: { value: ScaleOption; label: string }) =>
+    o.value === 'auto' ? t('dashboard.bi.chart.autoScale', 'Auto Scale') : o.label;
 
   // Filter data based on selected service
   const filteredData = useMemo(() => {
@@ -74,18 +81,18 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-muted/40 rounded-xl border border-white/[0.08]">
         <div className="flex items-center gap-2">
           <Settings2 className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-foreground">Chart Configuration</span>
+          <span className="text-sm font-medium text-foreground">{t('dashboard.bi.chart.config', 'Chart Configuration')}</span>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">Service:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">{t('dashboard.bi.chart.service', 'Service:')}</span>
             <Select value={selectedService} onValueChange={(value: FilterOption) => setSelectedService(value)}>
               <SelectTrigger className="w-40 h-8 bg-muted/50 border-white/[0.08] text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-card border-white/[0.08]">
-                <SelectItem value="all" className="text-foreground focus:bg-white/[0.06]">All Services</SelectItem>
+                <SelectItem value="all" className="text-foreground focus:bg-white/[0.06]">{t('dashboard.bi.chart.allServices', 'All Services')}</SelectItem>
                 {data.map(service => (
                   <SelectItem key={service.service_name} value={service.service_name} className="text-foreground focus:bg-white/[0.06]">
                     {service.service_name}
@@ -96,7 +103,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">Bookings Scale:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">{t('dashboard.bi.chart.bookingsScale', 'Bookings Scale:')}</span>
             <Select value={bookingScale} onValueChange={(value: ScaleOption) => setBookingScale(value)}>
               <SelectTrigger className="w-32 h-8 bg-muted/50 border-white/[0.08] text-foreground">
                 <SelectValue />
@@ -104,7 +111,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               <SelectContent className="bg-card border-white/[0.08]">
                 {scaleOptions.slice(0, 6).map(option => (
                   <SelectItem key={option.value} value={option.value} className="text-foreground focus:bg-white/[0.06]">
-                    {option.label}
+                    {scaleLabel(option)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -112,7 +119,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground whitespace-nowrap">Revenue Scale:</span>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">{t('dashboard.bi.chart.revenueScale', 'Revenue Scale:')}</span>
             <Select value={revenueScale} onValueChange={(value: ScaleOption) => setRevenueScale(value)}>
               <SelectTrigger className="w-32 h-8 bg-muted/50 border-white/[0.08] text-foreground">
                 <SelectValue />
@@ -120,7 +127,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               <SelectContent className="bg-card border-white/[0.08]">
                 {scaleOptions.map(option => (
                   <SelectItem key={option.value} value={option.value} className="text-foreground focus:bg-white/[0.06]">
-                    {option.label}
+                    {scaleLabel(option)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -172,9 +179,9 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               tick={{ fill: 'hsl(var(--primary))', fontSize: 12, fontWeight: 500 }}
               axisLine={{ stroke: 'hsl(var(--primary))', strokeWidth: 2, opacity: 0.8 }}
               tickLine={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, opacity: 0.6 }}
-              label={{ 
-                value: 'Number of Bookings', 
-                angle: -90, 
+              label={{
+                value: t('dashboard.bi.chart.axisBookings', 'Number of Bookings'),
+                angle: -90,
                 position: 'insideLeft',
                 style: { textAnchor: 'middle', fill: 'hsl(var(--primary))', fontSize: 12, fontWeight: 600 }
               }}
@@ -187,9 +194,9 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               tick={{ fill: 'hsl(var(--gold))', fontSize: 12, fontWeight: 500 }}
               axisLine={{ stroke: 'hsl(var(--gold))', strokeWidth: 2, opacity: 0.8 }}
               tickLine={{ stroke: 'hsl(var(--gold))', strokeWidth: 1, opacity: 0.6 }}
-              label={{ 
-                value: 'Revenue (€)', 
-                angle: 90, 
+              label={{
+                value: t('dashboard.bi.chart.axisRevenue', 'Revenue (€)'),
+                angle: 90,
                 position: 'insideRight',
                 style: { textAnchor: 'middle', fill: 'hsl(var(--gold))', fontSize: 12, fontWeight: 600 }
               }}
@@ -210,7 +217,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               dataKey="booking_count" 
               fill="url(#enhancedBookingGradient)"
               radius={[6, 6, 0, 0]}
-              name="Number of Bookings"
+              name={t('dashboard.bi.chart.axisBookings', 'Number of Bookings')}
               strokeWidth={1}
               stroke="hsl(var(--primary) / 0.3)"
             />
@@ -220,7 +227,7 @@ export function ServiceChart({ data, onFilteredDataChange }: ServiceChartProps) 
               dataKey="revenue" 
               fill="url(#enhancedRevenueGradient)"
               radius={[6, 6, 0, 0]}
-              name="Revenue (€)"
+              name={t('dashboard.bi.chart.axisRevenue', 'Revenue (€)')}
               strokeWidth={1}
               stroke="hsl(var(--gold) / 0.3)"
             />

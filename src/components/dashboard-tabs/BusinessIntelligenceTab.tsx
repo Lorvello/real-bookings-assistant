@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { TrendingUp, Euro, BarChart3, Calendar, PiggyBank, Info } from 'lucide-react';
@@ -15,27 +16,29 @@ interface BusinessIntelligenceTabProps {
   dateRange: DateRange;
 }
 
-// Helper function to generate dynamic period text for tooltips
-const getDynamicPeriodText = (dateRange: DateRange): string => {
-  if (!dateRange) return "in the selected period";
-  
+// Helper function to generate dynamic period text for tooltips. Takes `t` so the
+// returned phrase is localized; the `preset` switch stays on the stable sentinel.
+const getDynamicPeriodText = (dateRange: DateRange, t: (k: string, d: string) => string): string => {
+  if (!dateRange) return t('dashboard.bi.period.selected', 'in the selected period');
+
   switch (dateRange.preset) {
     case 'last7days':
-      return "in the last 7 days";
+      return t('dashboard.bi.period.last7', 'in the last 7 days');
     case 'last30days':
-      return "in the last 30 days";
+      return t('dashboard.bi.period.last30', 'in the last 30 days');
     case 'last3months':
-      return "in the last 3 months";
+      return t('dashboard.bi.period.last3months', 'in the last 3 months');
     case 'lastyear':
-      return "in the last year";
+      return t('dashboard.bi.period.lastyear', 'in the last year');
     case 'custom':
-      return "in the selected period";
+      return t('dashboard.bi.period.selected', 'in the selected period');
     default:
-      return "in the selected period";
+      return t('dashboard.bi.period.selected', 'in the selected period');
   }
 };
 
 export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessIntelligenceTabProps) {
+  const { t } = useTranslation('dashboard');
   const { data: businessIntel, isLoading, error } = useOptimizedBusinessIntelligence(
     calendarIds,
     dateRange?.startDate,
@@ -59,8 +62,8 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-destructive-foreground mb-2">Error loading business intelligence data</p>
-        <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
+        <p className="text-destructive-foreground mb-2">{t('dashboard.bi.err.title', 'Error loading business intelligence data')}</p>
+        <p className="text-sm text-muted-foreground">{t('dashboard.bi.err.desc', 'Please try refreshing the page')}</p>
       </div>
     );
   }
@@ -80,7 +83,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
   };
 
   // Get dynamic period text for tooltips
-  const periodText = getDynamicPeriodText(dateRange);
+  const periodText = getDynamicPeriodText(dateRange, t);
 
   return (
     <TooltipProvider>
@@ -96,7 +99,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Revenue"
+                  title={t('dashboard.bi.metric.revenue', 'Revenue')}
                   value={`€${businessIntel?.current_period_revenue?.toFixed(2) || '0.00'}`}
                   subtitle={getMetricSubtitle('revenue')}
                   icon={Euro}
@@ -119,7 +122,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Total booked revenue across all appointments {periodText}, including upcoming and confirmed bookings (not only completed ones). This includes all services and represents your gross business income through the booking system.</p>
+              <p className="text-sm">{t('dashboard.bi.tip.revenue', 'Total booked revenue across all appointments {{period}}, including upcoming and confirmed bookings (not only completed ones). This includes all services and represents your gross business income through the booking system.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -132,7 +135,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Revenue per Day"
+                  title={t('dashboard.bi.metric.revenuePerDay', 'Revenue per Day')}
                   value={`€${businessIntel?.revenue_per_day?.toFixed(2) || '0.00'}`}
                   subtitle={getMetricSubtitle('daily average')}
                   icon={Calendar}
@@ -150,7 +153,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Average daily revenue during the selected period {periodText}. Helps track consistent income flow and plan daily business operations.</p>
+              <p className="text-sm">{t('dashboard.bi.tip.revenuePerDay', 'Average daily revenue during the selected period {{period}}. Helps track consistent income flow and plan daily business operations.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -163,7 +166,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
                 className="relative"
               >
                 <MetricCard
-                  title="Average Value"
+                  title={t('dashboard.bi.metric.avgValue', 'Average Value')}
                   value={`€${businessIntel?.avg_booking_value?.toFixed(2) || '0.00'}`}
                   subtitle={getMetricSubtitle('per appointment')}
                   icon={PiggyBank}
@@ -181,7 +184,7 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Average revenue per appointment across all services {periodText}. Higher values indicate premium pricing or successful upselling strategies.</p>
+              <p className="text-sm">{t('dashboard.bi.tip.avgValue', 'Average revenue per appointment across all services {{period}}. Higher values indicate premium pricing or successful upselling strategies.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
         </div>
