@@ -7,7 +7,14 @@
       "unsavedChanges": "Niet-opgeslagen wijzigingen",
       "saveChanges": "Wijzigingen opslaan",
       "saved": "Opgeslagen",
-      "discard": "Verwerpen"
+      "discard": "Verwerpen",
+      "selectCountry": "Selecteer land",
+      "searchCountries": "Zoek landen...",
+      "countryCallingCode": "Landnummer",
+      "phoneNumber": "Telefoonnummer",
+      "selectOption": "Selecteer optie...",
+      "search": "Zoeken...",
+      "noOptions": "Geen opties gevonden."
     },
     "pageTitle": "Instellingen",
     "railLabel": "Instellingen",

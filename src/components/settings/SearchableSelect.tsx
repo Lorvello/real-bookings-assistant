@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -38,12 +39,15 @@ export function SearchableSelect({
   value,
   onValueChange,
   options,
-  placeholder = "Select option...",
-  searchPlaceholder = "Search...",
+  placeholder,
+  searchPlaceholder,
   className,
   disabled,
   ariaLabel
 }: SearchableSelectProps) {
+  const { t } = useTranslation('settings');
+  const resolvedPlaceholder = placeholder ?? t('settings.common.selectOption', 'Select option...');
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t('settings.common.search', 'Search...');
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -73,7 +77,7 @@ export function SearchableSelect({
           )}
           disabled={disabled}
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption ? selectedOption.label : resolvedPlaceholder}
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -81,7 +85,7 @@ export function SearchableSelect({
         <div className="flex items-center border-b border-white/[0.08] px-3">
           <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-subtle-foreground" />
           <Input
-            placeholder={searchPlaceholder}
+            placeholder={resolvedSearchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-subtle-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 focus-visible:ring-0"
@@ -90,7 +94,7 @@ export function SearchableSelect({
         <div className="max-h-60 overflow-auto">
           {filteredOptions.length === 0 ? (
             <div className="py-6 text-center text-sm text-subtle-foreground">
-              No options found.
+              {t('settings.common.noOptions', 'No options found.')}
             </div>
           ) : (
             filteredOptions.map((option) => (

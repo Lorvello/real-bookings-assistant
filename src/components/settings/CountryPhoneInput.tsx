@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SearchableSelect } from './SearchableSelect';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -95,6 +96,15 @@ interface CountryPhoneInputProps {
 }
 
 export function CountryPhoneInput({ value = '', onChange, className, disabled, inputId }: CountryPhoneInputProps) {
+  const { t, i18n } = useTranslation('settings');
+  // Localize country NAMES from their ISO code via Intl. EN keeps the hardcoded
+  // English names (byte-identical); only NL is auto-localized ("Nederland" etc.),
+  // so we never hand-maintain 84 translations.
+  const regionNames = useMemo(() => {
+    try { return new Intl.DisplayNames([i18n.language], { type: 'region' }); } catch { return null; }
+  }, [i18n.language]);
+  const countryName = (c: { code: string; name: string }) =>
+    i18n.language === 'nl' && regionNames ? (regionNames.of(c.code) ?? c.name) : c.name;
   // Local state for immediate UI updates
   const [localSelectedCountry, setLocalSelectedCountry] = useState<string>('NL');
   const [localNumber, setLocalNumber] = useState<string>('');
@@ -119,11 +129,13 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled, i
     }
   }, [value]);
 
-  const countryOptions = COUNTRIES.map(country => ({
-    value: country.code,
-    label: `${country.flag} ${country.name} ${country.callingCode}`,
-    searchText: `${country.name} ${country.callingCode} ${country.code}`
-  }));
+  const countryOptions = COUNTRIES
+    .map(country => ({
+      value: country.code,
+      label: `${country.flag} ${countryName(country)} ${country.callingCode}`,
+      searchText: `${countryName(country)} ${country.name} ${country.callingCode} ${country.code}`
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, i18n.language));
 
   const handleCountryChange = (countryCode: string) => {
     const country = COUNTRIES.find(c => c.code === countryCode);
@@ -155,10 +167,10 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled, i
           value={localSelectedCountry}
           onValueChange={handleCountryChange}
           options={countryOptions}
-          placeholder="Select country"
-          searchPlaceholder="Search countries..."
+          placeholder={t('settings.common.selectCountry', 'Select country')}
+          searchPlaceholder={t('settings.common.searchCountries', 'Search countries...')}
           disabled={disabled}
-          ariaLabel="Country calling code"
+          ariaLabel={t('settings.common.countryCallingCode', 'Country calling code')}
         />
       </div>
       <div className="flex-1 relative">
@@ -167,7 +179,7 @@ export function CountryPhoneInput({ value = '', onChange, className, disabled, i
         </div>
         <Input
           id={inputId}
-          aria-label="Phone number"
+          aria-label={t('settings.common.phoneNumber', 'Phone number')}
           type="tel"
           value={localNumber}
           onChange={handleNumberChange}
