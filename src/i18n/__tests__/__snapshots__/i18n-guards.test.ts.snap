@@ -3168,6 +3168,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "waPage.notAvailable.title.canceled": "Your WhatsApp Booking Agent is Not Active",
   "waPage.notAvailable.title.default": "WhatsApp Booking Agent Unavailable",
   "waPage.notAvailable.title.expired": "Your WhatsApp Booking Agent is Not Active",
+  "waPage.notLoggedIn": "Not logged in",
   "waPage.number.copiedAriaLabel": "Number copied",
   "waPage.number.copiedToast": "Number copied",
   "waPage.number.copyAriaLabel": "Copy WhatsApp number",

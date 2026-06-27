@@ -365,7 +365,8 @@
     "settings": {
       "loadFailed": "Kan WhatsApp-instellingen niet laden"
     },
-    "userIdRequired": "Gebruikers-ID is vereist"
+    "userIdRequired": "Gebruikers-ID is vereist",
+    "notLoggedIn": "Niet ingelogd"
   },
   "profilePage": {
     "header": {

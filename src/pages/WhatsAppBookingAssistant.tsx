@@ -42,7 +42,7 @@ export default function WhatsAppBookingAssistantPage() {
       <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <p className="text-muted-foreground">Not logged in</p>
+            <p className="text-muted-foreground">{t('waPage.notLoggedIn', 'Not logged in')}</p>
           </div>
         </div>
       </div>
