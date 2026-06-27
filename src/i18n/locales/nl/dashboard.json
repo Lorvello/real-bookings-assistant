@@ -42,6 +42,33 @@
       "trackingSoon": "Bijhouden begint binnenkort",
       "trackingSoonDesc": "Week-op-week-trends na je eerste boekingen."
     },
+    "calMgmt": {
+      "title": "Je agenda's",
+      "subtitle": "Beheer je boekingsagenda's en instellingen.",
+      "newCalendar": "Nieuwe agenda",
+      "bookingUrl": "Boekings-URL:",
+      "timezone": "Tijdzone:",
+      "active": "Actief",
+      "inactive": "Inactief",
+      "settings": "Instellingen",
+      "emptyTitle": "Nog geen agenda's",
+      "emptyDesc": "Maak je eerste agenda om boekingen te kunnen ontvangen.",
+      "createCalendar": "Agenda maken"
+    },
+    "subOverview": {
+      "pillCalendars": "Agenda's",
+      "pillContacts": "Contacten",
+      "pillTeam": "Team",
+      "noSubTitle": "Geen actief abonnement",
+      "noSubDesc": "Abonneer je om je premiumfuncties te ontgrendelen.",
+      "upgrade": "Upgraden",
+      "hideDetails": "Abonnementsdetails verbergen",
+      "usageTitle": "Abonnementsgebruik",
+      "usageDesc": "Je abonnementslimieten in één oogopslag.",
+      "limitReached": "Limiet bereikt",
+      "approaching": "{{n}} bijna aan limiet",
+      "details": "Details"
+    },
     "liveOps": {
       "status": {
         "online": "Online",

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ interface CalendarManagementProps {
 }
 
 export function CalendarManagement({ calendars }: CalendarManagementProps) {
+  const { t } = useTranslation('dashboard');
   const [selectedCalendarId, setSelectedCalendarId] = useState<string | null>(null);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
@@ -48,9 +50,9 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
     <div className="surface-raised rounded-xl md:rounded-2xl">
       <div className="flex flex-col gap-3 p-5 md:p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-base font-semibold tracking-[-0.01em] text-foreground">Your calendars</h3>
+          <h3 className="text-base font-semibold tracking-[-0.01em] text-foreground">{t('dashboard.calMgmt.title', 'Your calendars')}</h3>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Manage your booking calendars and settings.
+            {t('dashboard.calMgmt.subtitle', 'Manage your booking calendars and settings.')}
           </p>
         </div>
         <Button
@@ -62,7 +64,7 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
           }
         >
           <Plus className="h-4 w-4 mr-2" />
-          New Calendar
+          {t('dashboard.calMgmt.newCalendar', 'New Calendar')}
         </Button>
       </div>
       <div className="px-5 pb-5 md:px-6 md:pb-6">
@@ -79,16 +81,16 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-medium text-foreground">{calendar.name}</h3>
                     <p className="text-sm text-muted-foreground truncate">
-                      Booking URL: /{calendar.slug}
+                      {t('dashboard.calMgmt.bookingUrl', 'Booking URL:')} /{calendar.slug}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Timezone: {calendar.timezone}
+                      {t('dashboard.calMgmt.timezone', 'Timezone:')} {calendar.timezone}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end space-x-3 w-full sm:w-auto">
                   <Badge variant={calendar.is_active ? "default" : "secondary"} className="flex-shrink-0">
-                    {calendar.is_active ? "Active" : "Inactive"}
+                    {calendar.is_active ? t('dashboard.calMgmt.active', 'Active') : t('dashboard.calMgmt.inactive', 'Inactive')}
                   </Badge>
                   <Button 
                     variant="outline" 
@@ -97,7 +99,7 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
                     className="flex-shrink-0"
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                    {t('dashboard.calMgmt.settings', 'Settings')}
                   </Button>
                 </div>
               </div>
@@ -108,9 +110,9 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
             <div className="glow-accent relative mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
               <Calendar className="h-6 w-6 text-accent-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-1">No calendars yet</h3>
+            <h3 className="text-lg font-medium text-foreground mb-1">{t('dashboard.calMgmt.emptyTitle', 'No calendars yet')}</h3>
             <p className="text-sm text-muted-foreground mb-5 max-w-xs">
-              Create your first calendar to start accepting bookings.
+              {t('dashboard.calMgmt.emptyDesc', 'Create your first calendar to start accepting bookings.')}
             </p>
             <Button
               onClick={handleNewCalendarClick}
@@ -118,7 +120,7 @@ export function CalendarManagement({ calendars }: CalendarManagementProps) {
               className={canCreateCalendars ? "" : "bg-muted text-muted-foreground cursor-not-allowed shadow-none"}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Calendar
+              {t('dashboard.calMgmt.createCalendar', 'Create Calendar')}
             </Button>
           </div>
         )}

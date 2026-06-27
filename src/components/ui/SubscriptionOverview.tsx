@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Crown, ChevronUp, Lock } from 'lucide-react';
 import { useCalendarLimits, useWhatsAppLimits, useTeamMemberLimits } from '@/hooks/useSubscriptionLimits';
@@ -50,6 +51,7 @@ function UsagePill({ label, current, max }: UsagePillProps) {
 }
 
 export function SubscriptionOverview({ className = '' }: SubscriptionOverviewProps) {
+  const { t } = useTranslation('dashboard');
   const { selectedCalendar } = useCalendarContext();
   const { userStatus } = useUserStatus();
   const [showFullDetails, setShowFullDetails] = useState(false);
@@ -78,10 +80,11 @@ export function SubscriptionOverview({ className = '' }: SubscriptionOverviewPro
   };
 
   // Build the visible usage pills (only metrics that have a configured limit or count).
+  // Labels translated at build site (rebuilt every render, so they refresh on toggle).
   const pills: UsagePillProps[] = [
-    { label: 'Calendars', current: calendarLimits.currentCount, max: calendarLimits.maxCalendars },
-    { label: 'Contacts', current: whatsappLimits.currentCount, max: whatsappLimits.maxContacts },
-    { label: 'Team', current: teamLimits.currentCount, max: teamLimits.maxTeamMembers },
+    { label: t('dashboard.subOverview.pillCalendars', 'Calendars'), current: calendarLimits.currentCount, max: calendarLimits.maxCalendars },
+    { label: t('dashboard.subOverview.pillContacts', 'Contacts'), current: whatsappLimits.currentCount, max: whatsappLimits.maxContacts },
+    { label: t('dashboard.subOverview.pillTeam', 'Team'), current: teamLimits.currentCount, max: teamLimits.maxTeamMembers },
   ];
 
   if (hasNoSubscription) {
@@ -94,12 +97,12 @@ export function SubscriptionOverview({ className = '' }: SubscriptionOverviewPro
                 <Lock className="h-5 w-5 text-subtle-foreground" aria-hidden />
               </div>
               <div>
-                <div className="text-sm font-semibold text-foreground">No active subscription</div>
-                <div className="text-xs text-muted-foreground">Subscribe to unlock your premium features.</div>
+                <div className="text-sm font-semibold text-foreground">{t('dashboard.subOverview.noSubTitle', 'No active subscription')}</div>
+                <div className="text-xs text-muted-foreground">{t('dashboard.subOverview.noSubDesc', 'Subscribe to unlock your premium features.')}</div>
               </div>
             </div>
             <Button onClick={() => setShowSubscriptionModal(true)} className="shrink-0">
-              Upgrade
+              {t('dashboard.subOverview.upgrade', 'Upgrade')}
             </Button>
           </div>
         </div>
@@ -123,7 +126,7 @@ export function SubscriptionOverview({ className = '' }: SubscriptionOverviewPro
           className="mb-3 flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <ChevronUp className="h-4 w-4" aria-hidden />
-          Hide subscription details
+          {t('dashboard.subOverview.hideDetails', 'Hide subscription details')}
         </Button>
         <UsageSummary />
       </div>
@@ -138,19 +141,19 @@ export function SubscriptionOverview({ className = '' }: SubscriptionOverviewPro
             <Crown className="h-5 w-5 text-gold-foreground" aria-hidden />
           </div>
           <div>
-            <div className="text-sm font-semibold text-foreground">Subscription usage</div>
-            <div className="text-xs text-muted-foreground">Your plan limits at a glance.</div>
+            <div className="text-sm font-semibold text-foreground">{t('dashboard.subOverview.usageTitle', 'Subscription usage')}</div>
+            <div className="text-xs text-muted-foreground">{t('dashboard.subOverview.usageDesc', 'Your plan limits at a glance.')}</div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {hasLimitReached() ? (
             <span className="rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive-foreground">
-              Limit reached
+              {t('dashboard.subOverview.limitReached', 'Limit reached')}
             </span>
           ) : getLimitWarningCount() > 0 ? (
             <span className="rounded-md bg-gold/10 px-2 py-1 text-xs font-medium text-gold-foreground">
-              {getLimitWarningCount()} approaching limit
+              {t('dashboard.subOverview.approaching', '{{n}} approaching limit', { n: getLimitWarningCount() })}
             </span>
           ) : null}
           <Button
@@ -159,7 +162,7 @@ export function SubscriptionOverview({ className = '' }: SubscriptionOverviewPro
             onClick={() => setShowFullDetails(true)}
             className="text-xs text-muted-foreground hover:text-foreground"
           >
-            Details
+            {t('dashboard.subOverview.details', 'Details')}
           </Button>
         </div>
       </div>
