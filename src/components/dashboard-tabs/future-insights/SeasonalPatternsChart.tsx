@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface SeasonalPatternsChartProps {
@@ -9,18 +10,19 @@ interface SeasonalPatternsChartProps {
 }
 
 export function SeasonalPatternsChart({ data }: SeasonalPatternsChartProps) {
+  const { t } = useTranslation('dashboard');
   if (!data || data.length === 0) {
     return (
       <div className="p-8 text-center">
-        <h3 className="text-lg font-semibold text-foreground mb-2">Seasonal Patterns</h3>
-        <p className="text-muted-foreground">No seasonal data available</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">{t('dashboard.futureInsights.seasonal.title', 'Seasonal Patterns')}</h3>
+        <p className="text-muted-foreground">{t('dashboard.futureInsights.seasonal.empty', 'No seasonal data available')}</p>
       </div>
     );
   }
 
   return (
     <div className="p-8">
-      <h3 className="text-lg font-semibold text-foreground mb-6">Seasonal Patterns</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-6">{t('dashboard.futureInsights.seasonal.title', 'Seasonal Patterns')}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

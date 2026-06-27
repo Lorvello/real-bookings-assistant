@@ -123,6 +123,91 @@
         "avgPrice": "Gemiddelde prijs"
       }
     },
+    "futureInsights": {
+      "errTitle": "Fout bij het laden van toekomstinzichten",
+      "errDesc": "Vernieuw de pagina om het opnieuw te proberen",
+      "metric": {
+        "growthTitle": "Klantgroei",
+        "growthNew": "Nieuw",
+        "growthSubNew": "eerste maand, nog geen basislijn",
+        "growthSub": "maand op maand",
+        "capacityTitle": "Capaciteitsbenutting",
+        "capacitySub": "huidige week",
+        "upcomingTitle": "Aankomende boekingen",
+        "upcomingSub": "geboekt voor volgende week"
+      },
+      "tip": {
+        "growth": "Het klantgroeipercentage meet de procentuele toename van nieuwe klanten maand op maand. Dit geeft bedrijfsgroei en de effectiviteit van je marketing via de WhatsApp-boekingsassistent weer.",
+        "capacity": "Capaciteitsbenutting toont het percentage beschikbare afspraakplekken dat deze week is geboekt. Hogere percentages duiden op efficiënte planning en sterke vraag.",
+        "upcoming": "De vraagvoorspelling toont het aantal boekingen dat al in je agenda staat voor de komende week, zodat je capaciteit en personeel vooruit kunt plannen.",
+        "demandChart": "Boekingen die al in je agenda staan voor de komende 4 weken, zodat je capaciteit vooruit kunt plannen.",
+        "seasonalChart": "Maandelijkse trends in boekingsvolume door het jaar heen, om piekperiodes te herkennen en capaciteit te plannen"
+      },
+      "smartTips": "Slimme tips",
+      "smartTipsTip": "Slimme inzichten en concrete aanbevelingen op basis van je bedrijfsgegevens",
+      "demand": {
+        "empty": "Nog geen aankomende boekingen",
+        "week": "Week {{n}}"
+      },
+      "seasonal": {
+        "title": "Seizoenspatronen",
+        "empty": "Geen seizoensgegevens beschikbaar"
+      },
+      "rec": {
+        "actionsLabel": "Aanbevolen acties:",
+        "emptyTitle": "Alles ziet er goed uit!",
+        "emptyDesc": "Je prestaties zijn sterk. We blijven de cijfers volgen voor nieuwe kansen.",
+        "growth": {
+          "title": "Uitstekende klantgroei!",
+          "msg": "Je groeipercentage van {{rate}}% wijst op sterke marktvraag. Overweeg je diensten of capaciteit uit te breiden om meer klanten te bedienen.",
+          "a1": "Voeg meer diensten toe",
+          "a2": "Verleng je openingstijden",
+          "a3": "Overweeg extra personeel aan te nemen"
+        },
+        "lowCap": {
+          "title": "Optimaliseer je planning!",
+          "msg": "Je capaciteit wordt onderbenut op {{rate}}%. Overweeg je beschikbare uren aan te passen of te adverteren tijdens rustige periodes om meer boekingen te krijgen.",
+          "a1": "Bekijk en pas je beschikbare uren aan",
+          "a2": "Voer gerichte marketingcampagnes",
+          "a3": "Bied actieprijzen tijdens rustige periodes"
+        },
+        "highCap": {
+          "title": "Hoge vraag gedetecteerd!",
+          "msg": "Je agenda is bijna vol op {{rate}}%. Overweeg meer tijdsloten toe te voegen, je uren te verlengen of je prijzen te verhogen om de vraag te beheersen.",
+          "a1": "Voeg meer afspraakplekken toe",
+          "a2": "Overweeg premiumprijzen",
+          "a3": "Verleng je openingstijden"
+        },
+        "singleSvc": {
+          "title": "Breid je diensten uit!",
+          "msg": "Je biedt op dit moment één dienst aan. Overweeg aanvullende diensten toe te voegen om de omzet per klant te verhogen.",
+          "a1": "Onderzoek aanvullende diensten",
+          "a2": "Vraag klanten naar ideeën voor diensten",
+          "a3": "Test nieuwe diensten bij bestaande klanten"
+        },
+        "peak": {
+          "title": "Spreid je planning!",
+          "msg": "De meeste boekingen vinden plaats om {{time}}. Overweeg afspraken buiten piekuren te stimuleren met kortingen.",
+          "a1": "Bied kortingen buiten piekuren",
+          "a2": "Promoot rustigere tijdsloten",
+          "a3": "Stel tijdgebonden prijzen in"
+        },
+        "pricing": {
+          "title": "Overweeg een prijsverhoging!",
+          "msg": "Je bevestigingspercentage van {{rate}}% wijst op sterke vraag. Test hogere prijzen om je omzet te optimaliseren.",
+          "a1": "Test een prijsverhoging van 10-15%",
+          "a2": "Maak premium-dienstniveaus",
+          "a3": "Volg de boekingsvraag na wijzigingen"
+        },
+        "steady": {
+          "title": "Strategie voor gestage groei",
+          "msg": "Met {{rate}}% groei lig je op koers. Richt je op klantbehoud en verwijzingsprogramma's om de groei te versnellen.",
+          "a1": "Voer een verwijzingsbeloning in",
+          "a2": "Volg tevreden klanten op",
+          "a3": "Verzamel klantgetuigenissen"
+        }
+      }
+    },
     "perfEff": {
       "errTitle": "Fout bij het laden van prestatiegegevens",
       "errDesc": "Vernieuw de pagina om het opnieuw te proberen",

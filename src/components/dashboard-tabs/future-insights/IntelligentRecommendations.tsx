@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { 
-  TrendingUp, Users, Calendar, Target, Lightbulb, Heart, Zap, UserPlus, 
-  Clock, Euro, BarChart3, ArrowUp, AlertTriangle, CheckCircle 
+import { useTranslation } from 'react-i18next';
+import {
+  TrendingUp, Users, Calendar, Target, Lightbulb, Heart, Zap, UserPlus,
+  Clock, Euro, BarChart3, ArrowUp, AlertTriangle, CheckCircle
 } from 'lucide-react';
 import { useOptimizedBusinessIntelligence } from '@/hooks/dashboard/useOptimizedBusinessIntelligence';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
@@ -29,7 +30,8 @@ export function IntelligentRecommendations({
   demandForecast,
   seasonalPatterns
 }: IntelligentRecommendationsProps) {
-  
+  const { t } = useTranslation('dashboard');
+
   // Get additional data for comprehensive recommendations
   const currentDate = new Date();
   const thirtyDaysAgo = new Date(currentDate.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -53,14 +55,14 @@ export function IntelligentRecommendations({
     if (customerGrowthRate !== undefined && customerGrowthRate > 50) {
       recommendations.push({
         icon: TrendingUp,
-        title: "Excellent Customer Growth!",
-        message: `Your ${customerGrowthRate.toFixed(1)}% growth rate shows strong market demand. Consider expanding your services or capacity to accommodate more customers.`,
+        title: t('dashboard.futureInsights.rec.growth.title', 'Excellent Customer Growth!'),
+        message: t('dashboard.futureInsights.rec.growth.msg', 'Your {{rate}}% growth rate shows strong market demand. Consider expanding your services or capacity to accommodate more customers.', { rate: customerGrowthRate.toFixed(1) }),
         variant: "purple" as const,
         priority: 1,
         actionItems: [
-          "Add more service offerings",
-          "Extend operating hours",
-          "Consider hiring additional staff"
+          t('dashboard.futureInsights.rec.growth.a1', 'Add more service offerings'),
+          t('dashboard.futureInsights.rec.growth.a2', 'Extend operating hours'),
+          t('dashboard.futureInsights.rec.growth.a3', 'Consider hiring additional staff')
         ]
       });
     }
@@ -69,14 +71,14 @@ export function IntelligentRecommendations({
     if (capacityUtilization !== undefined && capacityUtilization < 30) {
       recommendations.push({
         icon: Target,
-        title: "Optimize Your Schedule!",
-        message: `Your capacity is underutilized at ${capacityUtilization.toFixed(1)}%. Consider adjusting availability hours or marketing during quiet periods to increase bookings.`,
+        title: t('dashboard.futureInsights.rec.lowCap.title', 'Optimize Your Schedule!'),
+        message: t('dashboard.futureInsights.rec.lowCap.msg', 'Your capacity is underutilized at {{rate}}%. Consider adjusting availability hours or marketing during quiet periods to increase bookings.', { rate: capacityUtilization.toFixed(1) }),
         variant: "purple" as const,
         priority: 1,
         actionItems: [
-          "Review and adjust availability hours",
-          "Run targeted marketing campaigns",
-          "Offer promotional pricing during quiet periods"
+          t('dashboard.futureInsights.rec.lowCap.a1', 'Review and adjust availability hours'),
+          t('dashboard.futureInsights.rec.lowCap.a2', 'Run targeted marketing campaigns'),
+          t('dashboard.futureInsights.rec.lowCap.a3', 'Offer promotional pricing during quiet periods')
         ]
       });
     }
@@ -85,14 +87,14 @@ export function IntelligentRecommendations({
     if (capacityUtilization !== undefined && capacityUtilization > 80) {
       recommendations.push({
         icon: AlertTriangle,
-        title: "High Demand Detected!",
-        message: `Your calendar is nearly full at ${capacityUtilization.toFixed(1)}%. Consider adding more time slots, extending hours, or raising prices to manage demand.`,
+        title: t('dashboard.futureInsights.rec.highCap.title', 'High Demand Detected!'),
+        message: t('dashboard.futureInsights.rec.highCap.msg', 'Your calendar is nearly full at {{rate}}%. Consider adding more time slots, extending hours, or raising prices to manage demand.', { rate: capacityUtilization.toFixed(1) }),
         variant: "purple" as const,
         priority: 1,
         actionItems: [
-          "Add more appointment slots",
-          "Consider premium pricing",
-          "Extend business hours"
+          t('dashboard.futureInsights.rec.highCap.a1', 'Add more appointment slots'),
+          t('dashboard.futureInsights.rec.highCap.a2', 'Consider premium pricing'),
+          t('dashboard.futureInsights.rec.highCap.a3', 'Extend business hours')
         ]
       });
     }
@@ -101,14 +103,14 @@ export function IntelligentRecommendations({
     if (businessIntel?.service_performance && businessIntel.service_performance.length === 1) {
       recommendations.push({
         icon: BarChart3,
-        title: "Expand Your Services!",
-        message: "You're currently offering one service. Consider adding complementary services to increase revenue per customer.",
+        title: t('dashboard.futureInsights.rec.singleSvc.title', 'Expand Your Services!'),
+        message: t('dashboard.futureInsights.rec.singleSvc.msg', "You're currently offering one service. Consider adding complementary services to increase revenue per customer."),
         variant: "purple" as const,
         priority: 2,
         actionItems: [
-          "Research complementary services",
-          "Survey customers for service ideas",
-          "Test new services with existing customers"
+          t('dashboard.futureInsights.rec.singleSvc.a1', 'Research complementary services'),
+          t('dashboard.futureInsights.rec.singleSvc.a2', 'Survey customers for service ideas'),
+          t('dashboard.futureInsights.rec.singleSvc.a3', 'Test new services with existing customers')
         ]
       });
     }
@@ -122,14 +124,14 @@ export function IntelligentRecommendations({
       if (peakPercentage > 40) {
         recommendations.push({
           icon: Clock,
-          title: "Distribute Your Schedule!",
-          message: `Most bookings happen at ${topHour.hour_label}. Consider incentivizing off-peak appointments with discounts.`,
+          title: t('dashboard.futureInsights.rec.peak.title', 'Distribute Your Schedule!'),
+          message: t('dashboard.futureInsights.rec.peak.msg', 'Most bookings happen at {{time}}. Consider incentivizing off-peak appointments with discounts.', { time: topHour.hour_label }),
           variant: "purple" as const,
           priority: 2,
           actionItems: [
-            "Offer off-peak discounts",
-            "Promote less busy time slots",
-            "Create time-based pricing"
+            t('dashboard.futureInsights.rec.peak.a1', 'Offer off-peak discounts'),
+            t('dashboard.futureInsights.rec.peak.a2', 'Promote less busy time slots'),
+            t('dashboard.futureInsights.rec.peak.a3', 'Create time-based pricing')
           ]
         });
       }
@@ -144,14 +146,14 @@ export function IntelligentRecommendations({
     if (performance?.booking_completion_rate !== undefined && performance.booking_completion_rate > 90) {
       recommendations.push({
         icon: Euro,
-        title: "Consider Price Increase!",
-        message: `Your ${performance.booking_completion_rate.toFixed(1)}% booking completion rate suggests strong demand. Test higher prices to optimize revenue.`,
+        title: t('dashboard.futureInsights.rec.pricing.title', 'Consider Price Increase!'),
+        message: t('dashboard.futureInsights.rec.pricing.msg', 'Your {{rate}}% booking completion rate suggests strong demand. Test higher prices to optimize revenue.', { rate: performance.booking_completion_rate.toFixed(1) }),
         variant: "purple" as const,
         priority: 2,
         actionItems: [
-          "Test a 10-15% price increase",
-          "Create premium service tiers",
-          "Monitor booking demand after changes"
+          t('dashboard.futureInsights.rec.pricing.a1', 'Test a 10-15% price increase'),
+          t('dashboard.futureInsights.rec.pricing.a2', 'Create premium service tiers'),
+          t('dashboard.futureInsights.rec.pricing.a3', 'Monitor booking demand after changes')
         ]
       });
     }
@@ -160,14 +162,14 @@ export function IntelligentRecommendations({
     if (customerGrowthRate !== undefined && customerGrowthRate > 0 && customerGrowthRate <= 50) {
       recommendations.push({
         icon: UserPlus,
-        title: "Steady Growth Strategy",
-        message: `With ${customerGrowthRate.toFixed(1)}% growth, you're on track. Focus on customer retention and referral programs to accelerate growth.`,
+        title: t('dashboard.futureInsights.rec.steady.title', 'Steady Growth Strategy'),
+        message: t('dashboard.futureInsights.rec.steady.msg', "With {{rate}}% growth, you're on track. Focus on customer retention and referral programs to accelerate growth.", { rate: customerGrowthRate.toFixed(1) }),
         variant: "purple" as const,
         priority: 3,
         actionItems: [
-          "Implement referral rewards",
-          "Follow up with happy customers",
-          "Create customer testimonials"
+          t('dashboard.futureInsights.rec.steady.a1', 'Implement referral rewards'),
+          t('dashboard.futureInsights.rec.steady.a2', 'Follow up with happy customers'),
+          t('dashboard.futureInsights.rec.steady.a3', 'Create customer testimonials')
         ]
       });
     }
@@ -186,8 +188,8 @@ export function IntelligentRecommendations({
         <div className="w-16 h-16 mx-auto mb-4 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
           <Target className="h-8 w-8 text-accent-foreground" />
         </div>
-        <p className="text-foreground font-medium mb-2">Everything looks great!</p>
-        <p className="text-sm text-muted-foreground">Your performance is strong. We'll keep monitoring the metrics for new opportunities.</p>
+        <p className="text-foreground font-medium mb-2">{t('dashboard.futureInsights.rec.emptyTitle', 'Everything looks great!')}</p>
+        <p className="text-sm text-muted-foreground">{t('dashboard.futureInsights.rec.emptyDesc', "Your performance is strong. We'll keep monitoring the metrics for new opportunities.")}</p>
       </div>
     );
   }
@@ -216,7 +218,7 @@ export function IntelligentRecommendations({
               {rec.actionItems && (
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-accent-foreground uppercase tracking-wider">
-                    Recommended Actions:
+                    {t('dashboard.futureInsights.rec.actionsLabel', 'Recommended Actions:')}
                   </p>
                   <ul className="space-y-1">
                     {rec.actionItems.map((action, actionIndex) => (

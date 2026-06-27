@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useOptimizedFutureInsights } from '@/hooks/dashboard/useOptimizedFutureInsights';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
@@ -15,6 +16,7 @@ interface FutureInsightsTabProps {
 }
 
 export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
+  const { t } = useTranslation('dashboard');
   const calendarId = calendarIds[0]; // Use first calendar for single-calendar features
   const { data: futureInsights, isLoading, error } = useOptimizedFutureInsights(calendarIds);
   useRealtimeSubscription(calendarId);
@@ -38,8 +40,8 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-destructive-foreground mb-2">Error loading future insights data</p>
-        <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
+        <p className="text-destructive-foreground mb-2">{t('dashboard.futureInsights.errTitle', 'Error loading future insights data')}</p>
+        <p className="text-sm text-muted-foreground">{t('dashboard.futureInsights.errDesc', 'Please try refreshing the page')}</p>
       </div>
     );
   }
@@ -58,9 +60,9 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="Customer Growth"
-                  value={futureInsights?.customer_growth_is_new ? 'New' : `${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
-                  subtitle={futureInsights?.customer_growth_is_new ? 'first month, no baseline yet' : 'month over month'}
+                  title={t('dashboard.futureInsights.metric.growthTitle', 'Customer Growth')}
+                  value={futureInsights?.customer_growth_is_new ? t('dashboard.futureInsights.metric.growthNew', 'New') : `${futureInsights?.customer_growth_rate?.toFixed(1) || '0.0'}%`}
+                  subtitle={futureInsights?.customer_growth_is_new ? t('dashboard.futureInsights.metric.growthSubNew', 'first month, no baseline yet') : t('dashboard.futureInsights.metric.growthSub', 'month over month')}
                   icon={TrendingUp}
                   variant="purple"
                   delay={0.1}
@@ -76,7 +78,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Customer Growth Rate measures the percentage increase in new customers month-over-month. This indicates business expansion and marketing effectiveness through your WhatsApp booking assistant.</p>
+              <p className="text-sm">{t('dashboard.futureInsights.tip.growth', 'Customer Growth Rate measures the percentage increase in new customers month-over-month. This indicates business expansion and marketing effectiveness through your WhatsApp booking assistant.')}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -89,9 +91,9 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="Capacity Utilization"
+                  title={t('dashboard.futureInsights.metric.capacityTitle', 'Capacity Utilization')}
                   value={`${futureInsights?.capacity_utilization?.toFixed(1) || '0.0'}%`}
-                  subtitle="current week"
+                  subtitle={t('dashboard.futureInsights.metric.capacitySub', 'current week')}
                   icon={Target}
                   variant="purple"
                   delay={0.2}
@@ -107,7 +109,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Capacity Utilization shows the percentage of available appointment slots that are currently booked this week. Higher percentages indicate efficient scheduling and strong demand.</p>
+              <p className="text-sm">{t('dashboard.futureInsights.tip.capacity', 'Capacity Utilization shows the percentage of available appointment slots that are currently booked this week. Higher percentages indicate efficient scheduling and strong demand.')}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -120,9 +122,9 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                 className="relative"
               >
                 <MetricCard
-                  title="Upcoming Bookings"
+                  title={t('dashboard.futureInsights.metric.upcomingTitle', 'Upcoming Bookings')}
                   value={`${futureInsights?.demand_forecast?.[0]?.bookings ?? 0}`}
-                  subtitle="booked for next week"
+                  subtitle={t('dashboard.futureInsights.metric.upcomingSub', 'booked for next week')}
                   icon={Calendar}
                   variant="purple"
                   delay={0.3}
@@ -138,7 +140,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Demand Forecast shows the number of bookings already on your calendar for the coming week, so you can plan capacity and staffing ahead of time.</p>
+              <p className="text-sm">{t('dashboard.futureInsights.tip.upcoming', 'Demand Forecast shows the number of bookings already on your calendar for the coming week, so you can plan capacity and staffing ahead of time.')}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -163,7 +165,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Bookings already on your calendar for the next 4 weeks, so you can plan capacity ahead.</p>
+              <p className="text-sm">{t('dashboard.futureInsights.tip.demandChart', 'Bookings already on your calendar for the next 4 weeks, so you can plan capacity ahead.')}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -185,7 +187,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Monthly booking volume trends throughout the year, helping identify peak periods and plan capacity</p>
+              <p className="text-sm">{t('dashboard.futureInsights.tip.seasonalChart', 'Monthly booking volume trends throughout the year, helping identify peak periods and plan capacity')}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -200,7 +202,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
                     <div className="p-2 bg-muted/40 rounded-xl">
                       <Lightbulb className="h-6 w-6 text-accent-foreground" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">Smart Tips</h3>
+                    <h3 className="text-xl font-semibold text-foreground">{t('dashboard.futureInsights.smartTips', 'Smart Tips')}</h3>
                   </div>
                   
                   <IntelligentRecommendations
@@ -223,7 +225,7 @@ export function FutureInsightsTab({ calendarIds }: FutureInsightsTabProps) {
             align="center"
             sideOffset={8}
           >
-            <p className="text-sm">Smart insights and actionable recommendations generated from your business data</p>
+            <p className="text-sm">{t('dashboard.futureInsights.smartTipsTip', 'Smart insights and actionable recommendations generated from your business data')}</p>
           </TooltipContent>
         </Tooltip>
       </div>

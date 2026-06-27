@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface DemandForecastChartProps {
@@ -10,18 +11,19 @@ interface DemandForecastChartProps {
 }
 
 export function DemandForecastChart({ data }: DemandForecastChartProps) {
+  const { t } = useTranslation('dashboard');
   if (!data || data.length === 0) {
     return (
       <div className="p-8 text-center">
-        <h3 className="text-lg font-semibold text-foreground mb-2">Upcoming Bookings</h3>
-        <p className="text-muted-foreground">No upcoming bookings yet</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">{t('dashboard.futureInsights.metric.upcomingTitle', 'Upcoming Bookings')}</h3>
+        <p className="text-muted-foreground">{t('dashboard.futureInsights.demand.empty', 'No upcoming bookings yet')}</p>
       </div>
     );
   }
 
   return (
     <div className="p-8">
-      <h3 className="text-lg font-semibold text-foreground mb-6">Upcoming Bookings</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-6">{t('dashboard.futureInsights.metric.upcomingTitle', 'Upcoming Bookings')}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -29,7 +31,7 @@ export function DemandForecastChart({ data }: DemandForecastChartProps) {
             dataKey="week_number" 
             stroke="hsl(var(--muted-foreground))"
             fontSize={12}
-            tickFormatter={(value) => `Week ${value}`}
+            tickFormatter={(value) => t('dashboard.futureInsights.demand.week', 'Week {{n}}', { n: value })}
           />
           <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
           <Tooltip 
