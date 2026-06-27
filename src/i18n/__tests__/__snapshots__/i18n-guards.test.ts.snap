@@ -1085,6 +1085,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "convPage.emailPlaceholder": "name@example.com",
   "convPage.endTimeLabel": "End time *",
   "convPage.farFutureDateError": "Date too far in the future",
+  "convPage.header": "WhatsApp",
   "convPage.invalidDateError": "Invalid date",
   "convPage.locationLabel": "Location (optional)",
   "convPage.locationPlaceholder": "For example: 123 Main Street, Amsterdam",

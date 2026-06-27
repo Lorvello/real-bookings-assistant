@@ -93,7 +93,7 @@ const ConversationsContent = () => {
       <DashboardLayout>
         <div className="bg-background min-h-full p-2 md:p-8">
           <div className="space-y-3 md:space-y-6">
-            <SimplePageHeader title="WhatsApp" />
+            <SimplePageHeader title={t('convPage.header', 'WhatsApp')} />
             
             {calendars.length > 0 ? (
               <Card>
@@ -158,7 +158,7 @@ const ConversationsContent = () => {
       <div className="bg-background h-full flex flex-col p-3 md:p-8">
         {/* Header - fixed height */}
         <div className="shrink-0 mb-4 md:mb-6">
-          <SimplePageHeader title="WhatsApp" />
+          <SimplePageHeader title={t('convPage.header', 'WhatsApp')} />
         </div>
 
         {/* Dashboard - takes remaining space */}

@@ -264,7 +264,8 @@
     "reminderTimingPlaceholder": "Selecteer timing",
     "cancelButton": "Annuleren",
     "saveButton": "Opslaan",
-    "savingLoadingState": "Opslaan..."
+    "savingLoadingState": "Opslaan...",
+    "header": "WhatsApp"
   },
   "waPage": {
     "header": {
