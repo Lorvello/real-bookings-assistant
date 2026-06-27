@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "pageTitle": "Instellingen",
+    "railLabel": "Instellingen",
+    "group": {
+      "workspace": "Werkruimte",
+      "account": "Account"
+    },
+    "nav": {
+      "knowledge": { "label": "AI-kennis", "hint": "Wat je assistent weet" },
+      "operations": { "label": "Bedrijfsvoering", "hint": "Agenda's & beschikbaarheid" },
+      "services": { "label": "Diensten", "hint": "Behandelingen & prijzen" },
+      "payments": { "label": "Betalen & boeken", "hint": "Online betalingen" },
+      "users": { "label": "Gebruikers", "hint": "Profiel & team" },
+      "billing": { "label": "Facturering", "hint": "Abonnement & facturen" }
+    },
+    "loadError": {
+      "title": "We konden je instellingen niet laden",
+      "retry": "Opnieuw proberen",
+      "retrying": "Bezig met opnieuw proberen…"
+    },
+    "toast": {
+      "setupTitle": "Voltooi eerst de installatie",
+      "setupDesc": "Voltooi eerst je profielinstellingen voordat je de betaalinstellingen opent."
+    }
+  }
+}

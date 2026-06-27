@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Calendar, CreditCard, Brain, Wrench, Shield, Lock, AlertCircle, type LucideIcon } from 'lucide-react';
@@ -48,11 +49,41 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   },
 ];
 
+type TFn = (key: string, defaultValue: string) => string;
+
+// Display-only localizers for the module-level NAV_GROUPS structure. The `value`
+// stays the stable tab sentinel (URL param + logic); only the shown text is localized.
+const navLabel = (value: SettingsTabValue, fallback: string, t: TFn): string => {
+  switch (value) {
+    case 'knowledge': return t('settings.nav.knowledge.label', 'AI Knowledge');
+    case 'operations': return t('settings.nav.operations.label', 'Operations');
+    case 'services': return t('settings.nav.services.label', 'Services');
+    case 'payments': return t('settings.nav.payments.label', 'Pay & Book');
+    case 'users': return t('settings.nav.users.label', 'Users');
+    case 'billing': return t('settings.nav.billing.label', 'Billing');
+    default: return fallback;
+  }
+};
+const navHint = (value: SettingsTabValue, fallback: string, t: TFn): string => {
+  switch (value) {
+    case 'knowledge': return t('settings.nav.knowledge.hint', 'What your assistant knows');
+    case 'operations': return t('settings.nav.operations.hint', 'Calendars & availability');
+    case 'services': return t('settings.nav.services.hint', 'Treatments & pricing');
+    case 'payments': return t('settings.nav.payments.hint', 'Online payments');
+    case 'users': return t('settings.nav.users.hint', 'Profile & team');
+    case 'billing': return t('settings.nav.billing.hint', 'Plan & invoices');
+    default: return fallback;
+  }
+};
+const groupLabel = (label: string, t: TFn): string =>
+  label === 'Workspace' ? t('settings.group.workspace', 'Workspace') : t('settings.group.account', 'Account');
+
 // Inner component: lives INSIDE SettingsProvider so it can read the settings data
 // and show a cold-load skeleton until the real profile has loaded.
 // Exported (named) so the no-auth visual harness can mount the real shell + tabs
 // with a mock SettingsContext (launch-ready-loop §7).
 export const SettingsTabs = () => {
+  const { t } = useTranslation('settings');
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<SettingsTabValue>('knowledge');
   const { userStatus } = useUserStatus();
@@ -71,8 +102,8 @@ export const SettingsTabs = () => {
     // Block the payments tab until profile setup is complete.
     if (value === 'payments' && userStatus.isSetupIncomplete) {
       toast({
-        title: 'Complete setup first',
-        description: 'Please complete your profile setup before accessing payment settings.',
+        title: t('settings.toast.setupTitle', 'Complete setup first'),
+        description: t('settings.toast.setupDesc', 'Please complete your profile setup before accessing payment settings.'),
         variant: 'destructive',
       });
       return;
@@ -88,11 +119,11 @@ export const SettingsTabs = () => {
       <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-destructive/40 bg-destructive/10 px-6 py-16 text-center">
         <AlertCircle className="h-8 w-8 text-destructive-foreground" />
         <div>
-          <p className="text-base font-medium text-foreground">We couldn't load your settings</p>
+          <p className="text-base font-medium text-foreground">{t('settings.loadError.title', "We couldn't load your settings")}</p>
           <p className="mt-1 text-sm text-muted-foreground">{loadError}</p>
         </div>
         <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
-          {isLoading ? 'Retrying…' : 'Try again'}
+          {isLoading ? t('settings.loadError.retrying', 'Retrying…') : t('settings.loadError.retry', 'Try again')}
         </Button>
       </div>
     );
@@ -124,7 +155,7 @@ export const SettingsTabs = () => {
         <aside className="md:w-60 md:shrink-0">
           <div className="md:sticky md:top-6">
             <p className="mb-3 hidden px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-subtle-foreground md:block">
-              Settings
+              {t('settings.railLabel', 'Settings')}
             </p>
             <TabsList className="-mx-1 flex h-auto w-[calc(100%+0.5rem)] items-stretch justify-start gap-1 overflow-x-auto rounded-none border-b-0 bg-transparent p-1 md:mx-0 md:w-full md:flex-col md:gap-1 md:overflow-visible">
               {NAV_GROUPS.map((group, gi) => (
@@ -136,7 +167,7 @@ export const SettingsTabs = () => {
                       gi > 0 && 'pt-4',
                     )}
                   >
-                    {group.label}
+                    {groupLabel(group.label, t)}
                   </p>
                   {group.items.map((item) => {
                     const locked = item.value === 'payments' && userStatus.isSetupIncomplete;
@@ -149,9 +180,9 @@ export const SettingsTabs = () => {
                         />
                         <Icon className="h-4 w-4 shrink-0 text-subtle-foreground transition-colors group-hover:text-muted-foreground group-data-[state=active]:text-accent-foreground" />
                         <span className="flex min-w-0 flex-col">
-                          <span className="truncate font-medium leading-5">{item.label}</span>
+                          <span className="truncate font-medium leading-5">{navLabel(item.value, item.label, t)}</span>
                           <span className="hidden truncate text-xs leading-4 text-subtle-foreground md:block">
-                            {item.hint}
+                            {navHint(item.value, item.hint, t)}
                           </span>
                         </span>
                         {locked && <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-subtle-foreground" />}
@@ -195,6 +226,7 @@ export const SettingsTabs = () => {
 };
 
 export const SettingsLayout = () => {
+  const { t } = useTranslation('settings');
   return (
     <SettingsProvider>
       {/* Activate dark design tokens for the whole settings subtree. The app never
@@ -204,7 +236,7 @@ export const SettingsLayout = () => {
           on any page outside Settings. */}
       <div className="dark min-h-full bg-background p-3 sm:p-4 md:p-8">
         <div className="w-full">
-          <SimplePageHeader title="Settings" />
+          <SimplePageHeader title={t('settings.pageTitle', 'Settings')} />
           <div className="mt-6 md:mt-8">
             <SettingsTabs />
           </div>
