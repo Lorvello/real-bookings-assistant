@@ -333,6 +333,7 @@ export default function PublicBooking() {
                 </h2>
                 <Calendar
                   mode="single"
+                  locale={dateLocale}
                   selected={date}
                   onSelect={setDate}
                   disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
