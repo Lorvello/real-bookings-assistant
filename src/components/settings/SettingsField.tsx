@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface SettingsFieldProps {
@@ -39,6 +40,7 @@ export function SettingsField({
   className,
   children,
 }: SettingsFieldProps) {
+  const { t } = useTranslation('settings');
   return (
     <div className={cn('space-y-2', className)}>
       {(label || description) && (
@@ -51,7 +53,7 @@ export function SettingsField({
               <span>{label}</span>
               {required && <span className="text-primary" aria-hidden="true">*</span>}
               {optional && (
-                <span className="text-xs font-normal text-subtle-foreground">Optional</span>
+                <span className="text-xs font-normal text-subtle-foreground">{t('settings.common.optional', 'Optional')}</span>
               )}
             </label>
           )}

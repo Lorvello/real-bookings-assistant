@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
@@ -39,6 +40,7 @@ function ToggleRow({
 }
 
 export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySettingsProps) {
+  const { t } = useTranslation('settings');
   // State for reminder unit types and custom mode tracking
   const [firstReminderUnit, setFirstReminderUnit] = useState<'hours' | 'days'>('hours');
   const [secondReminderUnit, setSecondReminderUnit] = useState<'minutes' | 'hours'>('minutes');
@@ -88,9 +90,9 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
       {/* Time & slots */}
       <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2">
         <SettingsField
-          label="Default slot duration"
+          label={t('settings.operations.fields.slotDuration.label', 'Default slot duration')}
           htmlFor="slot_duration"
-          description="The standard appointment length. Individual services can override this."
+          description={t('settings.operations.fields.slotDuration.description', 'The standard appointment length. Individual services can override this.')}
         >
           {!isSlotDurationCustom && [15, 30, 45, 60, 90, 120].includes(settings.slot_duration ?? 30) ? (
             <Select
@@ -146,11 +148,11 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                     }
                   }}
                   className="pr-20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                  placeholder="Enter minutes"
+                  placeholder={t('settings.operations.fields.slotDuration.customPlaceholder', 'Enter minutes')}
                   autoComplete="off"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  minutes
+                  {t('settings.operations.suffix.minutes', 'minutes')}
                 </span>
               </div>
               <button
@@ -161,16 +163,16 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 }}
                 className={backToPresetClass}
               >
-                Back to preset options
+                {t('settings.operations.buttons.backToPresets', 'Back to preset options')}
               </button>
             </div>
           )}
         </SettingsField>
 
         <SettingsField
-          label="Buffer time"
+          label={t('settings.operations.fields.bufferTime.label', 'Buffer time')}
           htmlFor="buffer_time"
-          description="Extra minutes kept free between appointments for cleanup or travel. Prevents back-to-back bookings."
+          description={t('settings.operations.fields.bufferTime.description', 'Extra minutes kept free between appointments for cleanup or travel. Prevents back-to-back bookings.')}
         >
           <div className="relative">
             <Input
@@ -187,15 +189,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               className="pr-20"
             />
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-              minutes
+              {t('settings.operations.suffix.minutes', 'minutes')}
             </span>
           </div>
         </SettingsField>
 
         <SettingsField
-          label="Minimum notice"
+          label={t('settings.operations.fields.minimumNotice.label', 'Minimum notice')}
           htmlFor="minimum_notice_hours"
-          description="How far ahead customers must book. Blocks inconvenient last-minute requests."
+          description={t('settings.operations.fields.minimumNotice.description', 'How far ahead customers must book. Blocks inconvenient last-minute requests.')}
         >
           <div className="relative">
             <Input
@@ -212,15 +214,15 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               className="pr-16"
             />
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-              hours
+              {t('settings.operations.suffix.hours', 'hours')}
             </span>
           </div>
         </SettingsField>
 
         <SettingsField
-          label="Booking window"
+          label={t('settings.operations.fields.bookingWindow.label', 'Booking window')}
           htmlFor="booking_window_days"
-          description="How far into the future customers can book. Keeps your calendar plannable."
+          description={t('settings.operations.fields.bookingWindow.description', 'How far into the future customers can book. Keeps your calendar plannable.')}
         >
           <div className="relative">
             <Input
@@ -237,16 +239,16 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
               className="pr-14"
             />
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-              days
+              {t('settings.operations.suffix.days', 'days')}
             </span>
           </div>
         </SettingsField>
       </div>
 
       <SettingsField
-        label="Maximum bookings per day"
+        label={t('settings.operations.fields.maxBookingsPerDay.label', 'Maximum bookings per day')}
         htmlFor="max_bookings_per_day"
-        description="Caps total appointments per day to protect your workload. Leave empty for no limit."
+        description={t('settings.operations.fields.maxBookingsPerDay.description', 'Caps total appointments per day to protect your workload. Leave empty for no limit.')}
         className="md:max-w-[calc(50%-0.75rem)]"
       >
         <Input
@@ -259,25 +261,25 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
             const numValue = value === '' ? null : Math.min(parseInt(value), 50);
             onUpdate({ max_bookings_per_day: numValue });
           }}
-          placeholder="No limit"
+          placeholder={t('settings.operations.fields.maxBookingsPerDay.placeholder', 'No limit')}
         />
       </SettingsField>
 
       {/* Cancellation policy */}
       <div className="space-y-5 border-t border-white/[0.05] pt-7">
-        <h4 className="text-sm font-semibold tracking-[-0.01em] text-foreground">Cancellation policy</h4>
+        <h4 className="text-sm font-semibold tracking-[-0.01em] text-foreground">{t('settings.operations.sections.cancellation.title', 'Cancellation policy')}</h4>
         <ToggleRow
-          label="Allow cancellations"
-          description="Let customers cancel through the assistant. Turn off to require they contact you directly."
+          label={t('settings.operations.fields.allowCancellations.label', 'Allow cancellations')}
+          description={t('settings.operations.fields.allowCancellations.description', 'Let customers cancel through the assistant. Turn off to require they contact you directly.')}
           checked={settings.allow_cancellations ?? true}
           onChange={(checked) => onUpdate({ allow_cancellations: checked })}
         />
 
         {settings.allow_cancellations !== false && (
           <SettingsField
-            label="Cancellation deadline"
+            label={t('settings.operations.fields.cancellationDeadline.label', 'Cancellation deadline')}
             htmlFor="cancellation_deadline"
-            description="How far in advance a customer must cancel to avoid a penalty."
+            description={t('settings.operations.fields.cancellationDeadline.description', 'How far in advance a customer must cancel to avoid a penalty.')}
             className="md:max-w-[calc(50%-0.75rem)]"
           >
             {!isCancellationCustom && [0.5, 1, 2, 6, 24].includes(settings.cancellation_deadline_hours ?? 24) ? (
@@ -341,7 +343,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                         }
                       }}
                       className="[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      placeholder={`Enter ${cancellationUnit}`}
+                      placeholder={t('settings.operations.fields.cancellationDeadline.customPlaceholder', 'Enter {{unit}}', { unit: cancellationUnit })}
                       autoComplete="off"
                     />
                   </div>
@@ -356,7 +358,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       setCancellationUnit(value);
                     }}
                   >
-                    <SelectTrigger aria-label="Cancellation deadline unit" className={`w-28 ${triggerClass}`}>
+                    <SelectTrigger aria-label={t('settings.operations.fields.cancellationDeadline.unitAriaLabel', 'Cancellation deadline unit')} className={`w-28 ${triggerClass}`}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -375,7 +377,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                   }}
                   className={backToPresetClass}
                 >
-                  Back to preset options
+                  {t('settings.operations.buttons.backToPresets', 'Back to preset options')}
                 </button>
               </div>
             )}
@@ -386,23 +388,23 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
       {/* Reminders */}
       <div className="space-y-5 border-t border-white/[0.05] pt-7">
         <div className="space-y-1">
-          <h4 className="text-sm font-semibold tracking-[-0.01em] text-foreground">Reminders</h4>
+          <h4 className="text-sm font-semibold tracking-[-0.01em] text-foreground">{t('settings.operations.sections.reminders.title', 'Reminders')}</h4>
           <p className="text-xs leading-5 text-muted-foreground">
-            Automatic reminders before the appointment cut no-shows significantly.
+            {t('settings.operations.sections.reminders.description', 'Automatic reminders before the appointment cut no-shows significantly.')}
           </p>
         </div>
 
         <div className="space-y-7">
           <div className="space-y-4">
             <ToggleRow
-              label="First reminder"
-              description="An early heads-up well before the appointment, so customers can plan."
+              label={t('settings.operations.fields.firstReminder.label', 'First reminder')}
+              description={t('settings.operations.fields.firstReminder.description', 'An early heads-up well before the appointment, so customers can plan.')}
               checked={settings.first_reminder_enabled ?? false}
               onChange={(checked) => onUpdate({ first_reminder_enabled: checked })}
             />
 
             {settings.first_reminder_enabled && (
-              <SettingsField label="Timing" htmlFor="first_reminder_timing" className="md:max-w-[calc(50%-0.75rem)]">
+              <SettingsField label={t('settings.operations.fields.firstReminder.timingLabel', 'Timing')} htmlFor="first_reminder_timing" className="md:max-w-[calc(50%-0.75rem)]">
                 {!isFirstReminderCustom && [24, 48, 72, 168].includes(settings.first_reminder_timing_hours ?? 24) ? (
                   <Select
                     value={settings.first_reminder_timing_hours?.toString() ?? '24'}
@@ -463,7 +465,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                             }
                           }}
                           className="[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                          placeholder={`Enter ${firstReminderUnit}`}
+                          placeholder={t('settings.operations.fields.cancellationDeadline.customPlaceholder', 'Enter {{unit}}', { unit: firstReminderUnit })}
                           autoComplete="off"
                         />
                       </div>
@@ -478,7 +480,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                           setFirstReminderUnit(value);
                         }}
                       >
-                        <SelectTrigger aria-label="First reminder timing unit" className={`w-28 ${triggerClass}`}>
+                        <SelectTrigger aria-label={t('settings.operations.fields.firstReminder.unitAriaLabel', 'First reminder timing unit')} className={`w-28 ${triggerClass}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -496,7 +498,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       }}
                       className={backToPresetClass}
                     >
-                      Back to preset options
+                      {t('settings.operations.buttons.backToPresets', 'Back to preset options')}
                     </button>
                   </div>
                 )}
@@ -506,14 +508,14 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
 
           <div className="space-y-4">
             <ToggleRow
-              label="Second reminder"
-              description="A final nudge close to the appointment time."
+              label={t('settings.operations.fields.secondReminder.label', 'Second reminder')}
+              description={t('settings.operations.fields.secondReminder.description', 'A final nudge close to the appointment time.')}
               checked={settings.second_reminder_enabled ?? false}
               onChange={(checked) => onUpdate({ second_reminder_enabled: checked })}
             />
 
             {settings.second_reminder_enabled && (
-              <SettingsField label="Timing" htmlFor="second_reminder_timing" className="md:max-w-[calc(50%-0.75rem)]">
+              <SettingsField label={t('settings.operations.fields.firstReminder.timingLabel', 'Timing')} htmlFor="second_reminder_timing" className="md:max-w-[calc(50%-0.75rem)]">
                 {!isSecondReminderCustom && [30, 60, 120, 180].includes(settings.second_reminder_timing_minutes ?? 60) ? (
                   <Select
                     value={settings.second_reminder_timing_minutes?.toString() ?? '60'}
@@ -574,7 +576,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                             }
                           }}
                           className="[&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                          placeholder={`Enter ${secondReminderUnit}`}
+                          placeholder={t('settings.operations.fields.cancellationDeadline.customPlaceholder', 'Enter {{unit}}', { unit: secondReminderUnit })}
                           autoComplete="off"
                         />
                       </div>
@@ -589,7 +591,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                           setSecondReminderUnit(value);
                         }}
                       >
-                        <SelectTrigger aria-label="Second reminder timing unit" className={`w-28 ${triggerClass}`}>
+                        <SelectTrigger aria-label={t('settings.operations.fields.secondReminder.unitAriaLabel', 'Second reminder timing unit')} className={`w-28 ${triggerClass}`}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -607,7 +609,7 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       }}
                       className={backToPresetClass}
                     >
-                      Back to preset options
+                      {t('settings.operations.buttons.backToPresets', 'Back to preset options')}
                     </button>
                   </div>
                 )}

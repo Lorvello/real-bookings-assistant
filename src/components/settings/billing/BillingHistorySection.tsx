@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,8 +40,9 @@ function statusBadgeClass(status: string) {
 }
 
 function InvoiceDownload({ invoice }: { invoice: BillingInvoice }) {
+  const { t } = useTranslation('settings');
   if (!invoice.invoiceUrl) {
-    return <span className="text-xs text-subtle-foreground">Not available</span>;
+    return <span className="text-xs text-subtle-foreground">{t('settings.billing.invoiceDownload.notAvailable', 'Not available')}</span>;
   }
   return (
     <Button
@@ -51,7 +53,7 @@ function InvoiceDownload({ invoice }: { invoice: BillingInvoice }) {
       // sm-button width on desktop. Width-only, so it cannot introduce horizontal overflow.
       className="min-w-11 md:min-w-0"
       onClick={() => window.open(invoice.invoiceUrl!, '_blank')}
-      aria-label={`Download invoice from ${invoice.date}`}
+      aria-label={t('settings.billing.invoiceDownload.ariaLabel', 'Download invoice from {{date}}', { date: invoice.date })}
     >
       <Download className="h-3.5 w-3.5" />
     </Button>
@@ -73,17 +75,18 @@ export function BillingHistorySection({
   showPlansCta,
   onViewPlans,
 }: BillingHistorySectionProps) {
+  const { t } = useTranslation('settings');
   const visible = showAll ? invoices : invoices.slice(0, 3);
 
   return (
     <SettingsSection
       icon={CreditCard}
-      title="Billing history"
-      description="Your past invoices and payment receipts."
+      title={t('settings.billing.billingHistory.title', 'Billing history')}
+      description={t('settings.billing.billingHistory.description', 'Your past invoices and payment receipts.')}
       action={
         hasMore ? (
           <Button onClick={onToggleShowAll} variant="outline" size="sm">
-            {showAll ? 'Show less' : 'View all'}
+            {showAll ? t('settings.billing.billingHistory.showLess', 'Show less') : t('settings.billing.billingHistory.viewAll', 'View all')}
           </Button>
         ) : undefined
       }
@@ -92,18 +95,18 @@ export function BillingHistorySection({
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-10">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-          <p className="text-sm text-muted-foreground">Loading billing history…</p>
+          <p className="text-sm text-muted-foreground">{t('settings.billing.billingHistory.loading', 'Loading billing history…')}</p>
         </div>
       ) : invoices.length === 0 ? (
         <div className="flex flex-col items-center px-2 py-10 text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/[0.10] text-accent-foreground">
             <Receipt className="h-5 w-5" />
           </div>
-          <h4 className="mb-1.5 text-base font-semibold text-foreground">No billing history yet</h4>
+          <h4 className="mb-1.5 text-base font-semibold text-foreground">{t('settings.billing.billingHistory.empty', 'No billing history yet')}</h4>
           <p className="mb-6 max-w-sm text-sm leading-6 text-muted-foreground">{emptyMessage}</p>
           {showPlansCta && (
             <Button variant="outline" size="sm" onClick={onViewPlans}>
-              View available plans
+              {t('settings.billing.billingHistory.viewPlans', 'View available plans')}
             </Button>
           )}
         </div>
@@ -131,11 +134,11 @@ export function BillingHistorySection({
             <Table>
               <TableHeader>
                 <TableRow className="border-white/[0.05] hover:bg-transparent">
-                  <TableHead className="text-subtle-foreground">Date</TableHead>
-                  <TableHead className="text-subtle-foreground">Amount</TableHead>
-                  <TableHead className="text-subtle-foreground">Description</TableHead>
-                  <TableHead className="text-subtle-foreground">Status</TableHead>
-                  <TableHead className="text-right text-subtle-foreground">Invoice</TableHead>
+                  <TableHead className="text-subtle-foreground">{t('settings.billing.invoiceTable.date', 'Date')}</TableHead>
+                  <TableHead className="text-subtle-foreground">{t('settings.billing.invoiceTable.amount', 'Amount')}</TableHead>
+                  <TableHead className="text-subtle-foreground">{t('settings.billing.invoiceTable.description', 'Description')}</TableHead>
+                  <TableHead className="text-subtle-foreground">{t('settings.billing.invoiceTable.status', 'Status')}</TableHead>
+                  <TableHead className="text-right text-subtle-foreground">{t('settings.billing.invoiceTable.invoice', 'Invoice')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

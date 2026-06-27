@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { useGlobalBotStatus } from '@/hooks/useGlobalBotStatus';
 import { useAccessControl } from '@/hooks/useAccessControl';
 import { WhatsAppUpgradeModal } from './WhatsAppUpgradeModal';
 
 export function GlobalSettings() {
+  const { t } = useTranslation('settings');
   const { data: botStatus, isLoading, toggleBot, isToggling } = useGlobalBotStatus();
   const { accessControl, userStatus } = useAccessControl();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -27,17 +29,16 @@ export function GlobalSettings() {
           explain inline rather than hide the explanation behind an icon. */}
       <div className="flex items-start justify-between gap-5">
         <div className="min-w-0 space-y-1">
-          <p className="text-[13px] font-medium leading-[18px] text-foreground">WhatsApp bot active</p>
+          <p className="text-[13px] font-medium leading-[18px] text-foreground">{t('settings.operations.fields.whatsappBotActive.label', 'WhatsApp bot active')}</p>
           <p className="text-xs leading-5 text-muted-foreground">
-            When on, the assistant replies to WhatsApp messages and books appointments for customers
-            automatically. When off, it stays silent and no one receives a reply.
+            {t('settings.operations.fields.whatsappBotActive.description', 'When on, the assistant replies to WhatsApp messages and books appointments for customers automatically. When off, it stays silent and no one receives a reply.')}
           </p>
         </div>
         <Switch
           checked={isActive}
           onCheckedChange={handleWhatsAppBotToggle}
           disabled={isLoading || isToggling || !hasWhatsAppAccess}
-          aria-label="WhatsApp bot active"
+          aria-label={t('settings.operations.fields.whatsappBotActive.ariaLabel', 'WhatsApp bot active')}
           className={!hasWhatsAppAccess ? 'opacity-50' : ''}
         />
       </div>

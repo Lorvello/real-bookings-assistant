@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -31,12 +32,13 @@ interface UsageMetersProps {
  * the hook-bound `UsageSummary` (components/ui) computes the meters and renders this.
  */
 export function UsageMeters({ hasNoSubscription, emptyMessage, meters = [], onViewPlans, className }: UsageMetersProps) {
+  const { t } = useTranslation('settings');
   if (hasNoSubscription) {
     return (
       <SettingsSection
         icon={Lock}
-        title="Subscription usage"
-        description="Subscribe to track your usage limits."
+        title={t('settings.billing.usageMeters.title', 'Subscription usage')}
+        description={t('settings.billing.usageMeters.descriptionLocked', 'Subscribe to track your usage limits.')}
         className={className}
       >
         <div className="flex flex-col items-center px-2 py-6 text-center">
@@ -44,10 +46,10 @@ export function UsageMeters({ hasNoSubscription, emptyMessage, meters = [], onVi
             <Lock className="h-5 w-5" />
           </div>
           <p className="mb-5 max-w-sm text-sm leading-6 text-muted-foreground">
-            {emptyMessage ?? 'Your subscription is inactive. Reactivate to access usage tracking and premium features.'}
+            {emptyMessage ?? t('settings.billing.usageSummary.inactiveMessage', 'Your subscription is inactive. Reactivate to access usage tracking and premium features.')}
           </p>
           <Button variant="outline" size="sm" onClick={onViewPlans}>
-            View plans
+            {t('settings.billing.usageMeters.viewPlans', 'View plans')}
           </Button>
         </div>
       </SettingsSection>
@@ -57,8 +59,8 @@ export function UsageMeters({ hasNoSubscription, emptyMessage, meters = [], onVi
   return (
     <SettingsSection
       icon={Gauge}
-      title="Subscription usage"
-      description="Current usage across your plan limits."
+      title={t('settings.billing.usageMeters.title', 'Subscription usage')}
+      description={t('settings.billing.usageMeters.description', 'Current usage across your plan limits.')}
       className={className}
     >
       <div className="space-y-5">
@@ -85,11 +87,11 @@ export function UsageMeters({ hasNoSubscription, emptyMessage, meters = [], onVi
               {showProgress && <Progress value={meter.percentage || 0} variant={meter.variant} className="h-1.5" />}
               {atLimit && (meter.max ?? 0) > 0 && (
                 <p className="text-xs text-destructive-foreground">
-                  Limit reached — upgrade to add more {meter.label.toLowerCase()}.
+                  {t('settings.billing.usageMeter.limitReached', 'Limit reached — upgrade to add more {{label}}.', { label: meter.label.toLowerCase() })}
                 </p>
               )}
               {isUnlimited && (
-                <p className="text-xs text-muted-foreground">Unlimited {meter.label.toLowerCase()} available.</p>
+                <p className="text-xs text-muted-foreground">{t('settings.billing.usageMeter.unlimited', 'Unlimited {{label}} available.', { label: meter.label.toLowerCase() })}</p>
               )}
             </div>
           );

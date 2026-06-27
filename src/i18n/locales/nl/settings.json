@@ -1,5 +1,14 @@
 {
   "settings": {
+    "common": {
+      "optional": "Optioneel",
+      "moreInfo": "Meer informatie",
+      "usedByAgent": "Gebruikt door je AI-agent",
+      "unsavedChanges": "Niet-opgeslagen wijzigingen",
+      "saveChanges": "Wijzigingen opslaan",
+      "saved": "Opgeslagen",
+      "discard": "Verwerpen"
+    },
     "pageTitle": "Instellingen",
     "railLabel": "Instellingen",
     "group": {
@@ -7,12 +16,30 @@
       "account": "Account"
     },
     "nav": {
-      "knowledge": { "label": "AI-kennis", "hint": "Wat je assistent weet" },
-      "operations": { "label": "Bedrijfsvoering", "hint": "Agenda's & beschikbaarheid" },
-      "services": { "label": "Diensten", "hint": "Behandelingen & prijzen" },
-      "payments": { "label": "Betalen & boeken", "hint": "Online betalingen" },
-      "users": { "label": "Gebruikers", "hint": "Profiel & team" },
-      "billing": { "label": "Facturering", "hint": "Abonnement & facturen" }
+      "knowledge": {
+        "label": "AI-kennis",
+        "hint": "Wat je assistent weet"
+      },
+      "operations": {
+        "label": "Bedrijfsvoering",
+        "hint": "Agenda's & beschikbaarheid"
+      },
+      "services": {
+        "label": "Diensten",
+        "hint": "Behandelingen & prijzen"
+      },
+      "payments": {
+        "label": "Betalen & boeken",
+        "hint": "Online betalingen"
+      },
+      "users": {
+        "label": "Gebruikers",
+        "hint": "Profiel & team"
+      },
+      "billing": {
+        "label": "Facturering",
+        "hint": "Abonnement & facturen"
+      }
     },
     "loadError": {
       "title": "We konden je instellingen niet laden",
@@ -22,6 +49,482 @@
     "toast": {
       "setupTitle": "Voltooi eerst de installatie",
       "setupDesc": "Voltooi eerst je profielinstellingen voordat je de betaalinstellingen opent."
+    },
+    "knowledge": {
+      "introTitle": "Hoe je assistent deze pagina gebruikt",
+      "introDescription": "Alles wat je hier invult, kan je WhatsApp-assistent aan klanten vertellen, namens jou. Het deelt je contactgegevens, adres, website en openingstijden op verzoek, en beantwoordt vragen uit je kennisbank. Laat een veld leeg en de agent zal het niet claimen te kennen.",
+      "businessInfoTitle": "Bedrijfsgegevens",
+      "businessInfoDescription": "Gebruikt om zichzelf voor te stellen en vragen als 'waar ben je', 'hoe bereik ik je' en 'wanneer ben je open' te beantwoorden. Lege velden worden nooit genoemd.",
+      "businessInfoTooltip": "Gedeeld met klanten door je WhatsApp-assistent",
+      "requiredWarningLabel": "Vereist om de instellingen af te ronden:",
+      "requiredWarningNote": "Al het andere op deze pagina is optioneel.",
+      "requiredCompleteMessage": "Vereiste bedrijfsgegevens voltooid, de overige velden hieronder zijn optioneel.",
+      "contactDetailsHeading": "Contactgegevens",
+      "contactDetailsDescription": "Gedeeld wanneer een klant vraagt hoe ze je kunnen bereiken. Laat een veld leeg en de agent vermeldt het niet.",
+      "addressHeading": "Adres",
+      "addressDescription": "Gedeeld wanneer een klant vraagt waar je bent. Laat het leeg en de agent geeft geen locatie.",
+      "openingHoursHeading": "Openingstijden",
+      "openingHoursDescription": "De assistent vertelt klanten wanneer je open bent. Deze komen uit je beschikbaarheidsschema, stel ze daar in en ze blijven overal gesynchroniseerd.",
+      "websiteTitle": "Website",
+      "websiteDescription": "Gedeeld wanneer een klant erom vraagt.",
+      "knowledgeBaseTitle": "Kennisbank boekingsassistent",
+      "knowledgeBaseDescription": "Hoe meer je invult, hoe beter de assistent klantenvragen op WhatsApp beantwoordt zonder jou. Laat een veld leeg en het zal niet claimen het te kennen.",
+      "knowledgeBaseTooltip": "De AI-assistent kan deze informatie in zijn berichten gebruiken",
+      "fields": {
+        "businessName": "Bedrijfsnaam",
+        "businessNamePlaceholder": "Voer je bedrijfsnaam in",
+        "businessType": "Soort bedrijf",
+        "businessTypePlaceholder": "Zoek en selecteer soort bedrijf…",
+        "businessTypeOtherPlaceholder": "Geef soort bedrijf op…",
+        "businessDescription": "Bedrijfsbeschrijving",
+        "businessDescriptionPlaceholder": "Vertel klanten over je bedrijf…",
+        "businessDescriptionHintLong": "{{n}} / 600, korter houdt antwoorden snel",
+        "businessDescriptionHint": "{{n}} / 600",
+        "businessEmail": "Bedrijfse-mail",
+        "businessEmailPlaceholder": "naam@jouwebedrijf.com",
+        "businessPhone": "Bedrijfstelefoon",
+        "businessPhonePlaceholder": "+31 6 12345678",
+        "whatsappDescription": "Het WhatsApp-nummer dat je klanten kunnen sturen. Deel het, of toon de QR-code op de WhatsApp Bookings Assistant-pagina.",
+        "platformNumberTag": "Platformnummer",
+        "businessStreet": "Straatnaam",
+        "businessStreetPlaceholder": "Voer straatnaam in",
+        "businessNumber": "Huisnummer",
+        "businessNumberPlaceholder": "Voer huisnummer in",
+        "businessPostal": "Postcode",
+        "businessPostalPlaceholder": "Voer postcode in",
+        "businessCity": "Plaats",
+        "businessCityPlaceholder": "Voer plaats in",
+        "businessCountry": "Land",
+        "businessCountryPlaceholder": "Voer land in",
+        "websitePlaceholder": "www.voorbeeld.nl",
+        "cancellationPolicy": "Annulerings- en verplaatsingsbeleid",
+        "cancellationPolicyPlaceholder": "Bijv. Gratis annulering tot 24u vooraf, latere annuleringen of no-shows worden doorgerekend. Verplaatsing is altijd gratis.",
+        "paymentInfo": "Betaling en aanbetaling",
+        "paymentInfoPlaceholder": "Bijv. Betaal in de salon met kaart of contant, 20% aanbetaling nodig voor afspraken boven €100.",
+        "preparationInfo": "Hoe je je voorbereidt / wat je meebrengt",
+        "preparationInfoPlaceholder": "Bijv. Kom met schoon, droog haar. Breng referentiefoto's mee. Kom 5 minuten eerder.",
+        "parkingInfo": "Parkeren",
+        "parkingInfoPlaceholder": "Bijv. Gratis parkeren bij de deur, betaald parkeren in de garage om de hoek…",
+        "publicTransportInfo": "Openbaar vervoer",
+        "publicTransportInfoPlaceholder": "Bijv. 5 minuten lopen van het station, bus 12 stopt bij de deur…",
+        "accessibilityInfo": "Toegankelijkheid",
+        "accessibilityInfoPlaceholder": "Bijv. Toegankelijk voor rolstoelgebruikers, lift aanwezig, geen drempels…",
+        "otherInfo": "Veelgestelde vragen en meer",
+        "otherInfoPlaceholder": "Veelgestelde vragen en antwoorden, of iets anders wat de assistent moet weten. Bijv. \"Verkopen jullie cadeaucheques? Ja, vraag ernaar in de salon.\" \"Kan ik mijn kind meenemen? Natuurlijk.\""
+      },
+      "toast": {
+        "checkLinksTitle": "Controleer je links",
+        "checkLinksDescription": "Herstel de gemarkeerde website- of sociale-mediavelden en sla op.",
+        "savedPartialTitle": "Opgeslagen (enkele links overgeslagen)",
+        "savedPartialDescription": "Je wijzigingen zijn opgeslagen. De gemarkeerde linkvelden niet, herstel ze en sla opnieuw op.",
+        "savedTitle": "Wijzigingen opgeslagen",
+        "savedDescription": "Al je instellingen zijn succesvol opgeslagen.",
+        "errorTitle": "Fout",
+        "errorDescription": "Wijzigingen opslaan mislukt. Probeer het opnieuw."
+      }
+    },
+    "operations": {
+      "sections": {
+        "whatsappAssistant": {
+          "title": "WhatsApp-assistent",
+          "description": "Schakel de geautomatiseerde boekingsassistent in of uit voor alle agenda's."
+        },
+        "availability": {
+          "title": "Beschikbaarheid en openingstijden",
+          "description": "Stel je wekelijkse openingstijden en datumspecifieke afwijkingen in. De assistent biedt klanten alleen beschikbare tijdsloten.",
+          "hint": "Gesloten dagen en feestdagen worden automatisch gerespecteerd. Klanten krijgen nooit een moment aangeboden waarop je niet beschikbaar bent."
+        },
+        "calendar": {
+          "title": "Agenda",
+          "description": "Kies op welke agenda deze beschikbaarheid en boekingsregels van toepassing zijn."
+        },
+        "policies": {
+          "title": "Boekingsregels",
+          "description": "Selecteer hierboven een agenda om de boekingsregels ervan te beheren.",
+          "descriptionFull": "Hoe klanten {{calendarName}} kunnen boeken. Slotlengte, vooraankondiging, dagelijks limiet, annulering en herinneringen."
+        },
+        "cancellation": {
+          "title": "Annuleringsbeleid"
+        },
+        "reminders": {
+          "title": "Herinneringen",
+          "description": "Automatische herinneringen voor de afspraak verminderen no-shows aanzienlijk."
+        }
+      },
+      "buttons": {
+        "manageAvailability": "Beheren",
+        "backToPresets": "Terug naar voorinstellingen"
+      },
+      "emptyState": {
+        "title": "Geen agenda gevonden",
+        "description": "Je hebt nog geen agenda's. Maak er een aan om je operationele instellingen te beheren.",
+        "noPoliciesDescription": "Nog geen agenda geselecteerd.",
+        "noPolicies": "Nog geen regels voor deze agenda.",
+        "policiesAutoCreated": "Instellingen worden automatisch aangemaakt zodra je je eerste wijziging aanbrengt."
+      },
+      "loading": {
+        "policies": "Regels laden…"
+      },
+      "fields": {
+        "whatsappBotActive": {
+          "label": "WhatsApp bot actief",
+          "description": "Wanneer ingeschakeld, reageert de assistent op WhatsApp-berichten en boekt automatisch afspraken voor klanten. Wanneer uitgeschakeld, blijft het stil en krijgt niemand een antwoord.",
+          "ariaLabel": "WhatsApp bot actief"
+        },
+        "slotDuration": {
+          "label": "Standaard slotduur",
+          "description": "De standaard afsprakenduur. Individuele diensten kunnen dit overschrijven.",
+          "customPlaceholder": "Voer minuten in"
+        },
+        "bufferTime": {
+          "label": "Buffertijd",
+          "description": "Extra minuten vrij gehouden tussen afspraken voor opschoning of reizen. Voorkomt opeenvolgende boekingen."
+        },
+        "minimumNotice": {
+          "label": "Minimale aankondiging",
+          "description": "Hoeveel eerder klanten moeten boeken. Blokkeert ongemakkelijke last-minute aanvragen."
+        },
+        "bookingWindow": {
+          "label": "Boekingsvenster",
+          "description": "Hoever in de toekomst klanten kunnen boeken. Houdt je agenda planbaar."
+        },
+        "maxBookingsPerDay": {
+          "label": "Maximale boekingen per dag",
+          "description": "Beperkt het totale aantal afspraken per dag ter bescherming van je werkbelasting. Laat leeg voor geen limiet.",
+          "placeholder": "Geen limiet"
+        },
+        "allowCancellations": {
+          "label": "Annuleringen toestaan",
+          "description": "Laat klanten annuleren via de assistent. Zet uit om te vereisen dat ze rechtstreeks contact met je opnemen."
+        },
+        "cancellationDeadline": {
+          "label": "Annuleringstermijn",
+          "description": "Hoeveel van tevoren moet een klant annuleren om een boete te voorkomen.",
+          "customPlaceholder": "Voer {{unit}} in",
+          "unitAriaLabel": "Eenheid van annuleringstermijn"
+        },
+        "firstReminder": {
+          "label": "Eerste herinnering",
+          "description": "Een vroege waarschuwing lang voordat de afspraak plaatsvindt, zodat klanten kunnen plannen.",
+          "timingLabel": "Timing",
+          "unitAriaLabel": "Timing-eenheid eerste herinnering"
+        },
+        "secondReminder": {
+          "label": "Tweede herinnering",
+          "description": "Een laatste aanmoediging dicht bij het moment van de afspraak.",
+          "unitAriaLabel": "Timing-eenheid tweede herinnering"
+        }
+      },
+      "suffix": {
+        "minutes": "minuten",
+        "hours": "uren",
+        "days": "dagen"
+      },
+      "modal": {
+        "whatsappUpgrade": {
+          "title": {
+            "restricted": "WhatsApp-bot-toegang beperkt"
+          },
+          "description": {
+            "expiredTrial": "Je proefperiode is verlopen. Upgrade om toegang te krijgen tot je WhatsApp-boekingsassistent en je boekingen te automatiseren.",
+            "canceled": "Reactiveer je abonnement om je WhatsApp-boekingsassistent te gebruiken en je klantinteracties te automatiseren."
+          },
+          "button": {
+            "upgrade": "Nu upgraden",
+            "reactivate": "Abonnement reactiveren",
+            "cancel": "Annuleren"
+          }
+        }
+      }
+    },
+    "services": {
+      "title": "Diensten",
+      "noCalendarDescription": "Diensten worden aan een agenda toegevoegd. Maak je eerste agenda aan om diensten toe te voegen.",
+      "noCalendarHeading": "Nog geen agenda",
+      "noCalendarEmptyStateMessage": "Je hebt nog geen agenda's. Maak eerst een agenda aan en voeg dan diensten toe die klanten kunnen boeken.",
+      "addCalendarButton": "Agenda toevoegen",
+      "sectionTitle": "Diensten",
+      "sectionDescription": "De diensten die klanten kunnen boeken, inclusief duur, prijs en wie ze uitvoert.",
+      "addServiceButton": "Dienst toevoegen",
+      "editServiceDialogTitle": "Dienst bewerken",
+      "createServiceDialogTitle": "Dienst toevoegen",
+      "editServiceDialogDescription": "Werk de details, prijs en wie deze dienst kan uitvoeren bij.",
+      "createServiceDialogDescription": "Stel de details, prijs en wie deze dienst kan uitvoeren in.",
+      "noCalendarAvailableError": "Geen agenda beschikbaar",
+      "noCalendarAvailableErrorDesc": "Selecteer of maak eerst een agenda aan.",
+      "serviceUpdatedToastTitle": "Dienst bijgewerkt",
+      "serviceUpdatedToastDesc": "Dienst is succesvol bijgewerkt.",
+      "serviceCreatedToastTitle": "Dienst aangemaakt",
+      "serviceCreatedToastDesc": "Dienst is succesvol aangemaakt.",
+      "errorToastTitle": "Fout",
+      "failedToSaveError": "Kan dienst niet opslaan. Probeer het opnieuw.",
+      "serviceDeletedToastTitle": "Dienst verwijderd",
+      "serviceDeletedToastDesc": "Dienst is succesvol verwijderd.",
+      "failedToDeleteError": "Kan dienst niet verwijderen. Probeer het opnieuw.",
+      "deleteConfirmTitle": "Deze dienst verwijderen?",
+      "deleteConfirmDescription": "Wil je \"{{serviceName}}\" echt verwijderen? Dit kan niet ongedaan gemaakt worden.",
+      "deleteDialogCancel": "Annuleren",
+      "deleteDialogConfirm": "Verwijderen",
+      "fields": {
+        "serviceName": "Dienstnaam",
+        "serviceNameRequired": "Dienstnaam is verplicht.",
+        "serviceNamePlaceholder": "bijv. Knippen",
+        "duration": "Duur",
+        "durationDescription": "In minuten.",
+        "price": "Prijs",
+        "priceDescription": "Laat op 0 voor een gratis dienst.",
+        "color": "Kleur",
+        "colorDescription": "Weergegeven in de agenda- en boekingsweergaven.",
+        "prepTime": "Voorbereiding",
+        "prepTimeDescription": "Gereserveerd vóór de afspraak (minuten).",
+        "cleanupTime": "Opschonen",
+        "cleanupTimeDescription": "Gereserveerd na de afspraak (minuten).",
+        "description": "Beschrijving",
+        "descriptionPlaceholder": "Optionele beschrijving van de dienst"
+      },
+      "savingButton": "Bezig met opslaan…",
+      "updateButton": "Bijwerken",
+      "createButton": "Aanmaken",
+      "card": {
+        "editAriaLabel": "{{serviceName}} bewerken",
+        "deleteAriaLabel": "{{serviceName}} verwijderen",
+        "freePrice": "Gratis"
+      },
+      "emptyState": {
+        "heading": "Nog geen diensten",
+        "description": "Voeg je eerste dienst toe zodat klanten iets kunnen boeken via WhatsApp.",
+        "button": "Voeg je eerste dienst toe"
+      },
+      "calendarSelector": {
+        "label": "Welke agenda gebruiken",
+        "description": "Voeg deze dienst toe aan een bestaande agenda of maak een nieuwe aan.",
+        "ariaLabel": "Agenda voor deze dienst",
+        "createButton": "Nieuwe agenda aanmaken",
+        "createButtonDescription": "Stel een nieuwe agenda in met beschikbaarheid."
+      },
+      "inlineCalendar": {
+        "backButton": "Terug naar agendakeuze",
+        "heading": "Nieuwe agenda aanmaken",
+        "nameLabel": "Agendanaam",
+        "namePlaceholder": "bijv. Mijn Salon",
+        "colorLabel": "Kleur",
+        "colorAriaLabel": "Agendakleur",
+        "availabilityLabel": "Openingstijden",
+        "dayToggleAriaLabel": "{{dayName}} open",
+        "dayStartTimeAriaLabel": "{{dayName}} openingstijd",
+        "dayEndTimeAriaLabel": "{{dayName}} sluitingstijd",
+        "closedLabel": "Gesloten",
+        "nameRequiredError": "Agendanaam is verplicht",
+        "nameRequiredErrorDesc": "Voer een naam in voor je agenda.",
+        "notAuthError": "Niet ingelogd",
+        "notAuthErrorDesc": "Log in om een agenda aan te maken.",
+        "createdSuccess": "Agenda aangemaakt",
+        "createdSuccessDesc": "\"{{calendarName}}\" is aangemaakt met instellingen voor beschikbaarheid.",
+        "creationError": "Fout bij het aanmaken van de agenda",
+        "savingButton": "Bezig met aanmaken…",
+        "saveButton": "Agenda opslaan"
+      },
+      "colorPicker": {
+        "swatchAriaLabel": "Kleur {{color}}"
+      },
+      "teamMembers": {
+        "label": "Teamleden",
+        "loading": "Bezig met laden van teamleden…",
+        "emptyHeading": "Nog geen teamleden",
+        "emptyDescription": "Nodig teamleden uit in Instellingen om ze aan diensten toe te wijzen.",
+        "fieldLabel": "Teamleden {{optionalLabel}}",
+        "description": "Selecteer welke teamleden deze dienst kunnen uitvoeren. Laat leeg om deze beschikbaar voor iedereen te maken. Alleen relevant voor Professional of Enterprise abonnementen.",
+        "selectAllButton": "Alles selecteren",
+        "deselectAllButton": "Alles deselecteren",
+        "countSelected": "{{count}} teamlid{{plural}} geselecteerd"
+      },
+      "stripe": {
+        "paymentReady": "Klaar voor betaling",
+        "paymentReadyTooltip": "Deze dienst is gekoppeld aan Stripe en klaar om betalingen te accepteren",
+        "notLinked": "Niet gekoppeld aan Stripe",
+        "notLinkedTooltip": "Verbind Stripe om betalingen voor deze dienst in te schakelen"
+      },
+      "tax": {
+        "off": "Btw: Uit",
+        "inclusive": "Btw: Inclusief",
+        "exclusive": "Btw: Exclusief",
+        "codes": {
+          "codeSet": "Belastingcode ingesteld"
+        }
+      }
+    },
+    "billing": {
+      "availablePlans": {
+        "description": "Kies het abonnement dat het beste bij je behoeften past.",
+        "title": "Beschikbare abonnementen"
+      },
+      "badge": {
+        "active": "Actief",
+        "canceled": "Geannuleerd",
+        "expired": "Verlopen",
+        "paymentFailed": "Betaling mislukt"
+      },
+      "billingCycleToggle": {
+        "ariaLabel": "Jaarlijkse facturering in- of uitschakelen",
+        "monthly": "Maandelijks",
+        "savings": "Bespaar 20%",
+        "yearly": "Jaarlijks"
+      },
+      "billingHistory": {
+        "description": "Je eerdere facturen en betalingsbewijzen.",
+        "empty": "Nog geen factureringsgeschiedenis",
+        "loading": "Factureringsgeschiedenis laden...",
+        "showLess": "Minder weergeven",
+        "title": "Factureringsgeschiedenis",
+        "viewAll": "Alles weergeven",
+        "viewPlans": "Beschikbare abonnementen weergeven"
+      },
+      "billingStatus": {
+        "billedAnnually": "Jaarlijks gefactureerd",
+        "billedMonthly": "Maandelijks gefactureerd",
+        "canceledUntil": "Geannuleerd. Toegang tot {{date}}",
+        "trialFree": "Gratis tijdens proefperiode"
+      },
+      "billingTimeline": {
+        "accessUntil": "Toegang tot",
+        "billingCycle": "Facturingscyclus",
+        "lastPayment": "Laatste betaling",
+        "nextBilling": "Volgende facturering",
+        "paymentStatus": "Betalingsstatus",
+        "title": "Factureringstijdlijn"
+      },
+      "currentPlan": {
+        "action": "Abonnement beheren",
+        "description": "Je abonnement en factureringstijdlijn.",
+        "loading": "Laden...",
+        "noPlan": "Geen abonnement",
+        "noSubscription": "Geen actief abonnement",
+        "noSubscriptionDesc": "Neem een abonnement om alle functies te gebruiken.",
+        "title": "Huidig abonnement",
+        "planNameFormat": "{{name}}-abonnement"
+      },
+      "errors": {
+        "checkoutError": "Kan afrekenen niet starten. Probeer opnieuw.",
+        "planNotFound": "Geselecteerd abonnement niet gevonden. Probeer opnieuw.",
+        "portalError": "Kan de factureringsportal niet openen. Probeer opnieuw.",
+        "portalSetupError": "Abonnementbeheer is momenteel in opzet. Neem contact op met ondersteuning voor hulp."
+      },
+      "historyEmpty": {
+        "noActiveSubscription": "Je hebt nog geen actief abonnement.",
+        "noBillingRecords": "Geen factureringsgegevens gevonden. Dit kan komen door een recent abonnement of een betaling die nog wordt verwerkt.",
+        "noSubscription": "Geen factureringsgeschiedenis gevonden voor je account.",
+        "trialOrSetup": "Je factureringsgeschiedenis verschijnt hier na je eerste betaling."
+      },
+      "invoiceDownload": {
+        "ariaLabel": "Factuur van {{date}} downloaden",
+        "notAvailable": "Niet beschikbaar"
+      },
+      "invoiceStatus": {
+        "draft": "Concept",
+        "paid": "Betaald",
+        "pending": "In afwachting",
+        "unknown": "Onbekend"
+      },
+      "invoiceTable": {
+        "amount": "Bedrag",
+        "date": "Datum",
+        "description": "Omschrijving",
+        "invoice": "Factuur",
+        "status": "Status"
+      },
+      "paymentStatus": {
+        "active": "Actief",
+        "canceled": "Geannuleerd",
+        "failed": "Betaling mislukt",
+        "inactive": "Inactief",
+        "methodRequired": "Betaalmethode vereist",
+        "pending": "Betaling in afwachting",
+        "unknown": "Status onbekend"
+      },
+      "planCard": {
+        "contactSales": "Neem contact op met verkoop",
+        "currentPlan": "Huidig abonnement",
+        "loading": "Laden...",
+        "switchTo": "Overschakelen naar {{displayName}}"
+      },
+      "pricing": {
+        "free": "Gratis",
+        "perMonth": "/maand"
+      },
+      "timeline": {
+        "cycleUnavailable": "Cyclus niet beschikbaar",
+        "nextBillingUnavailable": "Volgende facturingsdatum niet beschikbaar",
+        "noActiveSubscription": "Geen actief abonnement",
+        "noBillingHistory": "Geen factureringsgeschiedenis",
+        "noPaymentHistory": "Geen betalingsgeschiedenis",
+        "noSubscription": "Geen abonnement"
+      },
+      "toast": {
+        "error": "Fout",
+        "notice": "Opmerking"
+      },
+      "trialNote": "{{daysRemaining}} dagen resterend in proef",
+      "usageMeter": {
+        "limitReached": "Limiet bereikt. Voer een upgrade uit om meer {{label}} toe te voegen.",
+        "unlimited": "Onbeperkt {{label}} beschikbaar."
+      },
+      "usageMeters": {
+        "calendars": "Agenda's",
+        "description": "Huidig gebruik binnen je abonnementslimieten.",
+        "descriptionLocked": "Neem een abonnement om je gebruikslimieten bij te houden.",
+        "teamMembers": "Teamleden",
+        "title": "Abonnementgebruik",
+        "viewPlans": "Abonnementen weergeven",
+        "whatsappContacts": "WhatsApp-contacten"
+      },
+      "usageSummary": {
+        "inactiveMessage": "Je abonnement is inactief. Reactiveer het om gebruiksregistratie en premiumfuncties te openen.",
+        "trialExpiredMessage": "Je proefperiode is verlopen. Neem een abonnement om gebruiksregistratie en premiumfuncties te openen."
+      },
+      "planFeatures": {
+        "starter": {
+          "0": "Onbeperkt WhatsApp-contactbeheer",
+          "1": "Dubbel-agenda orkestratiesysteem",
+          "2": "Individueel gebruikersbeheer",
+          "3": "AI-gestuurde slimme herinneringsreeksen",
+          "4": "Essentieel dashboardoverzicht en live operationele monitoring",
+          "5": "Wereldwijde meertalige lokalisatie",
+          "6": "Gestroomlijnde betalingsverwerking en -inning"
+        },
+        "professional": {
+          "0": "Alle premiumfuncties van Starter inbegrepen",
+          "1": "Geautomatiseerde belastingadministratie (binnenkort)",
+          "2": "Flexibele betaling in termijnen",
+          "3": "Onbeperkt agenda-orkestratieplatform",
+          "4": "Geavanceerde teamsamenwerkingssuite (2 tot 10 gebruikers)",
+          "5": "Coördinatie van meerdere vestigingen",
+          "6": "Complete analysesuite: Business Intelligence, prestatietracking en toekomstinzichten",
+          "7": "Toegewijde prioritaire klantenondersteuning"
+        },
+        "enterprise": {
+          "0": "Complete professionele suite inbegrepen",
+          "1": "Onbeperkt gebruikersbeheer voor enterprises",
+          "2": "Eigen WhatsApp Business API met eigen branding",
+          "3": "Slimme routering en verdeling van inkomende gesprekken",
+          "4": "Omnichannel-beheer van social media-berichten",
+          "5": "Geavanceerd reputatiebeheer en reviewanalyse",
+          "6": "Enterprise-SLA met toegewijd succesmanagement",
+          "7": "Persoonlijke onboarding en strategisch integratieadvies"
+        }
+      },
+      "planTile": {
+        "startingAt": "Vanaf €300",
+        "perMonth": "/maand",
+        "customPricing": "Aangepaste prijs voor grote organisaties",
+        "billedAnnually": "Jaarlijks gefactureerd (€{{amount}}/jaar)"
+      },
+      "planDesc": {
+        "starter": "Perfect voor starters met basis WhatsApp-automatisering en agendabeheer",
+        "professional": "Geavanceerde functies voor teams met uitgebreid contactbeheer en samenwerkingstools"
+      },
+      "invoice": {
+        "noDescription": "Geen omschrijving"
+      }
     }
   }
 }

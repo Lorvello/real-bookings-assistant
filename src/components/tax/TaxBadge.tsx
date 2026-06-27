@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -19,16 +20,17 @@ const TAX_CODE_LABELS: Record<string, string> = {
 };
 
 export function TaxBadge({ taxEnabled, taxBehavior, taxCode, className }: TaxBadgeProps) {
+  const { t } = useTranslation('settings');
   if (!taxEnabled) {
     return (
       <Badge variant="secondary" className={cn("text-xs", className)}>
-        Tax: Off
+        {t('settings.services.tax.off', 'Tax: Off')}
       </Badge>
     );
   }
 
-  const taxLabel = taxBehavior === 'inclusive' ? 'VAT: Inclusive' : 'VAT: Exclusive';
-  const codeLabel = taxCode ? TAX_CODE_LABELS[taxCode] || 'Tax Code Set' : '';
+  const taxLabel = taxBehavior === 'inclusive' ? t('settings.services.tax.inclusive', 'VAT: Inclusive') : t('settings.services.tax.exclusive', 'VAT: Exclusive');
+  const codeLabel = taxCode ? TAX_CODE_LABELS[taxCode] || t('settings.services.tax.codes.codeSet', 'Tax Code Set') : '';
 
   return (
     <div className="flex flex-wrap gap-1">

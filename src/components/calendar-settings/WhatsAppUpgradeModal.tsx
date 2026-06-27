@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ interface WhatsAppUpgradeModalProps {
 }
 
 export function WhatsAppUpgradeModal({ isOpen, onClose, userType }: WhatsAppUpgradeModalProps) {
+  const { t } = useTranslation('settings');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const handleUpgrade = () => {
@@ -30,11 +32,11 @@ export function WhatsAppUpgradeModal({ isOpen, onClose, userType }: WhatsAppUpgr
     const isCanceledInactive = userType === 'canceled_and_inactive';
 
     return {
-      title: "WhatsApp Bot Access Restricted",
-      description: isExpiredTrial 
-        ? "Your trial has expired. Upgrade to access your WhatsApp booking assistant and start automating your bookings."
-        : "Reactivate your subscription to use your WhatsApp booking assistant and automate your customer interactions.",
-      buttonText: isExpiredTrial ? "Upgrade Now" : "Reactivate Subscription",
+      title: t('settings.operations.modal.whatsappUpgrade.title.restricted', 'WhatsApp Bot Access Restricted'),
+      description: isExpiredTrial
+        ? t('settings.operations.modal.whatsappUpgrade.description.expiredTrial', 'Your trial has expired. Upgrade to access your WhatsApp booking assistant and start automating your bookings.')
+        : t('settings.operations.modal.whatsappUpgrade.description.canceled', 'Reactivate your subscription to use your WhatsApp booking assistant and automate your customer interactions.'),
+      buttonText: isExpiredTrial ? t('settings.operations.modal.whatsappUpgrade.button.upgrade', 'Upgrade Now') : t('settings.operations.modal.whatsappUpgrade.button.reactivate', 'Reactivate Subscription'),
       buttonColor: isExpiredTrial ? "bg-red-600 hover:bg-red-700" : "bg-yellow-600 hover:bg-yellow-700"
     };
   };
@@ -73,7 +75,7 @@ export function WhatsAppUpgradeModal({ isOpen, onClose, userType }: WhatsAppUpgr
               onClick={onClose}
               className="w-full"
             >
-              Cancel
+              {t('settings.operations.modal.whatsappUpgrade.button.cancel', 'Cancel')}
             </Button>
           </div>
         </DialogContent>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -44,6 +45,7 @@ const DEFAULT_FORM_DATA: ServiceTypeFormData = {
   cleanup_time: '0'
 };
 export function ServiceTypesManager() {
+  const { t } = useTranslation('settings');
   const {
     selectedCalendar,
     calendars,
@@ -119,8 +121,8 @@ export function ServiceTypesManager() {
     
     if (!calendarIdToUse) {
       toast({
-        title: "No calendar available",
-        description: "Please select or create a calendar first.",
+        title: t('settings.services.noCalendarAvailableError', 'No calendar available'),
+        description: t('settings.services.noCalendarAvailableErrorDesc', 'Please select or create a calendar first.'),
         variant: "destructive"
       });
       return;
@@ -157,8 +159,8 @@ export function ServiceTypesManager() {
           }
         }
         toast({
-          title: "Service updated",
-          description: "Service type has been updated successfully"
+          title: t('settings.services.serviceUpdatedToastTitle', 'Service updated'),
+          description: t('settings.services.serviceUpdatedToastDesc', 'Service type has been updated successfully')
         });
       } else {
         const serviceData = {
@@ -182,8 +184,8 @@ export function ServiceTypesManager() {
           await assignMultipleMembers(newService.id, selectedTeamMembers, calendarIdToUse);
         }
         toast({
-          title: "Service created",
-          description: "Service type has been created successfully"
+          title: t('settings.services.serviceCreatedToastTitle', 'Service created'),
+          description: t('settings.services.serviceCreatedToastDesc', 'Service type has been created successfully')
         });
       }
       await refetch();
@@ -191,8 +193,8 @@ export function ServiceTypesManager() {
     } catch (error) {
       console.error('Error saving service type:', error);
       toast({
-        title: "Error",
-        description: "Failed to save service type. Please try again.",
+        title: t('settings.services.errorToastTitle', 'Error'),
+        description: t('settings.services.failedToSaveError', 'Failed to save service type. Please try again.'),
         variant: "destructive"
       });
     } finally {
@@ -223,15 +225,15 @@ export function ServiceTypesManager() {
     try {
       await deleteServiceType(deletingService.id);
       toast({
-        title: "Service deleted",
-        description: "Service type has been deleted successfully"
+        title: t('settings.services.serviceDeletedToastTitle', 'Service deleted'),
+        description: t('settings.services.serviceDeletedToastDesc', 'Service type has been deleted successfully')
       });
       await refetch();
     } catch (error) {
       console.error('Error deleting service type:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete service type. Please try again.",
+        title: t('settings.services.errorToastTitle', 'Error'),
+        description: t('settings.services.failedToDeleteError', 'Failed to delete service type. Please try again.'),
         variant: "destructive"
       });
     } finally {
@@ -249,14 +251,14 @@ export function ServiceTypesManager() {
   return <div className="space-y-6">
       <SettingsSection
         icon={Tag}
-        title="Services"
-        description="The services customers can book — duration, price and who performs them."
+        title={t('settings.services.sectionTitle', 'Services')}
+        description={t('settings.services.sectionDescription', 'The services customers can book — duration, price and who performs them.')}
         usedByAgent
         action={
           serviceTypes.length > 0 ? (
             <Button onClick={handleCreate}>
               <Plus className="mr-2 h-4 w-4" />
-              Add service
+              {t('settings.services.addServiceButton', 'Add service')}
             </Button>
           ) : undefined
         }
@@ -288,12 +290,12 @@ export function ServiceTypesManager() {
               </span>
               <div className="space-y-1">
                 <DialogTitle className="text-xl font-semibold tracking-[-0.015em]">
-                  {editingService ? 'Edit service' : 'Add a service'}
+                  {editingService ? t('settings.services.editServiceDialogTitle', 'Edit service') : t('settings.services.createServiceDialogTitle', 'Add a service')}
                 </DialogTitle>
                 <DialogDescription>
                   {editingService
-                    ? 'Update the details, price and who can perform this service.'
-                    : 'Set the details, price and who can perform this service.'}
+                    ? t('settings.services.editServiceDialogDescription', 'Update the details, price and who can perform this service.')
+                    : t('settings.services.createServiceDialogDescription', 'Set the details, price and who can perform this service.')}
                 </DialogDescription>
               </div>
             </div>
@@ -307,15 +309,15 @@ export function ServiceTypesManager() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this service?</AlertDialogTitle>
+            <AlertDialogTitle>{t('settings.services.deleteConfirmTitle', 'Delete this service?')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingService?.name}"? This can't be undone.
+              {t('settings.services.deleteConfirmDescription', 'Are you sure you want to delete "{{serviceName}}"? This can\'t be undone.', { serviceName: deletingService?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelDelete}>{t('settings.services.deleteDialogCancel', 'Cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+              {t('settings.services.deleteDialogConfirm', 'Delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ export function ColorPicker({
   ariaLabel = 'Color',
   colors = SERVICE_COLORS,
 }: ColorPickerProps) {
+  const { t } = useTranslation('settings');
   return (
     <div className="flex flex-wrap gap-2 pt-0.5" role="radiogroup" aria-label={ariaLabel}>
       {colors.map((color) => {
@@ -39,7 +41,7 @@ export function ColorPicker({
             type="button"
             role="radio"
             aria-checked={selected}
-            aria-label={`Color ${color}`}
+            aria-label={t('settings.services.colorPicker.swatchAriaLabel', 'Color {{color}}', { color })}
             onClick={() => onChange(color)}
             disabled={disabled}
             className={cn(

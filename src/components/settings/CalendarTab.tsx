@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { CalendarSettings } from '@/components/CalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -10,6 +11,7 @@ import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmpt
 import { SettingsSection } from './SettingsSection';
 
 export function CalendarTab() {
+  const { t } = useTranslation('settings');
   const navigate = useNavigate();
   const { selectedCalendar, calendars } = useCalendarContext();
 
@@ -17,8 +19,8 @@ export function CalendarTab() {
   const assistant = (
     <SettingsSection
       icon={MessageSquare}
-      title="WhatsApp assistant"
-      description="Turn the automated booking assistant on or off across every calendar."
+      title={t('settings.operations.sections.whatsappAssistant.title', 'WhatsApp assistant')}
+      description={t('settings.operations.sections.whatsappAssistant.description', 'Turn the automated booking assistant on or off across every calendar.')}
       usedByAgent
     >
       <GlobalSettings />
@@ -29,18 +31,17 @@ export function CalendarTab() {
   const availability = (
     <SettingsSection
       icon={CalendarClock}
-      title="Availability & opening hours"
-      description="Set your weekly opening hours and date-specific overrides. The assistant only offers customers the slots you're actually open."
+      title={t('settings.operations.sections.availability.title', 'Availability & opening hours')}
+      description={t('settings.operations.sections.availability.description', "Set your weekly opening hours and date-specific overrides. The assistant only offers customers the slots you're actually open.")}
       usedByAgent
       action={
         <Button variant="outline" onClick={() => navigate('/availability')} className="shrink-0">
-          Manage
+          {t('settings.operations.buttons.manageAvailability', 'Manage')}
         </Button>
       }
     >
       <p className="text-sm leading-6 text-muted-foreground">
-        Closed days and holidays are respected automatically — customers are never offered a time
-        you're not available.
+        {t('settings.operations.sections.availability.hint', "Closed days and holidays are respected automatically — customers are never offered a time you're not available.")}
       </p>
     </SettingsSection>
   );
@@ -51,8 +52,8 @@ export function CalendarTab() {
         {assistant}
         {availability}
         <CalendarRequiredEmptyState
-          title="No calendar found"
-          description="You don't have any calendars yet. Create one to start managing your operations settings."
+          title={t('settings.operations.emptyState.title', 'No calendar found')}
+          description={t('settings.operations.emptyState.description', "You don't have any calendars yet. Create one to start managing your operations settings.")}
         />
       </div>
     );
@@ -64,8 +65,8 @@ export function CalendarTab() {
 
       <SettingsSection
         icon={CalendarDays}
-        title="Calendar"
-        description="Choose which calendar these availability and booking policies apply to."
+        title={t('settings.operations.sections.calendar.title', 'Calendar')}
+        description={t('settings.operations.sections.calendar.description', 'Choose which calendar these availability and booking policies apply to.')}
       >
         <CalendarSwitcher hideAllCalendarsOption={true} />
       </SettingsSection>
@@ -77,10 +78,10 @@ export function CalendarTab() {
       ) : (
         <SettingsSection
           icon={SlidersHorizontal}
-          title="Booking policies"
-          description="Select a calendar above to manage its booking policies."
+          title={t('settings.operations.sections.policies.title', 'Booking policies')}
+          description={t('settings.operations.sections.policies.description', 'Select a calendar above to manage its booking policies.')}
         >
-          <p className="text-sm text-muted-foreground">No calendar selected yet.</p>
+          <p className="text-sm text-muted-foreground">{t('settings.operations.emptyState.noPoliciesDescription', 'No calendar selected yet.')}</p>
         </SettingsSection>
       )}
     </div>

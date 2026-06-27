@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 import { useUserStatus } from '@/contexts/UserStatusContext';
@@ -14,39 +15,41 @@ import { BillingHistorySection, type BillingInvoice } from '@/components/setting
 import { AvailablePlansSection, type PlanTile } from '@/components/settings/billing/AvailablePlansSection';
 
 // Feature lists kept in sync with the public homepage pricing.
-const PLAN_FEATURES: Record<string, string[]> = {
+type TFn = ReturnType<typeof useTranslation<'settings'>>['t'];
+const getPlanFeatures = (t: TFn): Record<string, string[]> => ({
   starter: [
-    'Unlimited WhatsApp contact management',
-    'Dual-calendar orchestration system',
-    'Individual user access management',
-    'AI-powered intelligent reminder sequences',
-    'Essential dashboard overview & live operations monitoring',
-    'Global multi-language localization',
-    'Streamlined payment processing & collection',
+    t('settings.billing.planFeatures.starter.0', 'Unlimited WhatsApp contact management'),
+    t('settings.billing.planFeatures.starter.1', 'Dual-calendar orchestration system'),
+    t('settings.billing.planFeatures.starter.2', 'Individual user access management'),
+    t('settings.billing.planFeatures.starter.3', 'AI-powered intelligent reminder sequences'),
+    t('settings.billing.planFeatures.starter.4', 'Essential dashboard overview & live operations monitoring'),
+    t('settings.billing.planFeatures.starter.5', 'Global multi-language localization'),
+    t('settings.billing.planFeatures.starter.6', 'Streamlined payment processing & collection'),
   ],
   professional: [
-    'All Starter premium features included',
-    'Automated tax compliance & administration (Coming Soon)',
-    'Flexible installment payment options',
-    'Unlimited calendar orchestration platform',
-    'Advanced team collaboration suite (2-10 users)',
-    'Multi-location business coordination',
-    'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights',
-    'Dedicated priority customer success',
+    t('settings.billing.planFeatures.professional.0', 'All Starter premium features included'),
+    t('settings.billing.planFeatures.professional.1', 'Automated tax compliance & administration (Coming Soon)'),
+    t('settings.billing.planFeatures.professional.2', 'Flexible installment payment options'),
+    t('settings.billing.planFeatures.professional.3', 'Unlimited calendar orchestration platform'),
+    t('settings.billing.planFeatures.professional.4', 'Advanced team collaboration suite (2-10 users)'),
+    t('settings.billing.planFeatures.professional.5', 'Multi-location business coordination'),
+    t('settings.billing.planFeatures.professional.6', 'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights'),
+    t('settings.billing.planFeatures.professional.7', 'Dedicated priority customer success'),
   ],
   enterprise: [
-    'Complete professional suite included',
-    'Unlimited enterprise user access management',
-    'Dedicated WhatsApp Business API with custom branding',
-    'Intelligent voice call routing & distribution',
-    'Omnichannel social media DM orchestration',
-    'Advanced reputation management & review analytics',
-    'Enterprise SLA with dedicated success management',
-    'White-glove onboarding & strategic integration consulting',
+    t('settings.billing.planFeatures.enterprise.0', 'Complete professional suite included'),
+    t('settings.billing.planFeatures.enterprise.1', 'Unlimited enterprise user access management'),
+    t('settings.billing.planFeatures.enterprise.2', 'Dedicated WhatsApp Business API with custom branding'),
+    t('settings.billing.planFeatures.enterprise.3', 'Intelligent voice call routing & distribution'),
+    t('settings.billing.planFeatures.enterprise.4', 'Omnichannel social media DM orchestration'),
+    t('settings.billing.planFeatures.enterprise.5', 'Advanced reputation management & review analytics'),
+    t('settings.billing.planFeatures.enterprise.6', 'Enterprise SLA with dedicated success management'),
+    t('settings.billing.planFeatures.enterprise.7', 'White-glove onboarding & strategic integration consulting'),
   ],
-};
+});
 
 export const BillingTab: React.FC = () => {
+  const { t } = useTranslation('settings');
   const { userStatus } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
   const { billingData, isLoading: billingLoading, refetch } = useBillingData();
@@ -87,10 +90,10 @@ export const BillingTab: React.FC = () => {
       console.error('Error opening billing portal:', error);
       const errorMessage =
         error?.message?.includes('portal') || error?.message?.includes('Portal')
-          ? 'Subscription management is currently being set up. Please contact support for assistance.'
-          : 'Failed to open billing portal. Please try again.';
+          ? t('settings.billing.errors.portalSetupError', 'Subscription management is currently being set up. Please contact support for assistance.')
+          : t('settings.billing.errors.portalError', 'Failed to open billing portal. Please try again.');
       toast({
-        title: 'Notice',
+        title: t('settings.billing.toast.notice', 'Notice'),
         description: errorMessage,
         variant: error?.message?.includes('portal') ? 'default' : 'destructive',
       });
@@ -103,7 +106,7 @@ export const BillingTab: React.FC = () => {
     if (!tiers) return;
     const selectedTier = tiers.find((tier) => tier.tier_name === tierName);
     if (!selectedTier) {
-      toast({ title: 'Error', description: 'Selected plan not found. Please try again.', variant: 'destructive' });
+      toast({ title: t('settings.billing.toast.error', 'Error'), description: t('settings.billing.errors.planNotFound', 'Selected plan not found. Please try again.'), variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -132,7 +135,7 @@ export const BillingTab: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
-      toast({ title: 'Error', description: 'Failed to start checkout. Please try again.', variant: 'destructive' });
+      toast({ title: t('settings.billing.toast.error', 'Error'), description: t('settings.billing.errors.checkoutError', 'Failed to start checkout. Please try again.'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -149,23 +152,23 @@ export const BillingTab: React.FC = () => {
   const currentPlan = getCurrentPlan();
 
   const getCurrentPrice = () => {
-    if (!currentPlan) return { amount: 0, displayText: 'Free' };
+    if (!currentPlan) return { amount: 0, displayText: t('settings.billing.pricing.free', 'Free') };
     const actualBillingCycle = billingData?.billing_cycle || 'monthly';
     const price = actualBillingCycle === 'yearly' ? currentPlan.price_yearly : currentPlan.price_monthly;
-    if (!price || price === 0) return { amount: 0, displayText: 'Free' };
+    if (!price || price === 0) return { amount: 0, displayText: t('settings.billing.pricing.free', 'Free') };
     const monthlyPrice = actualBillingCycle === 'yearly' ? price / 12 : price;
     return { amount: Math.round(monthlyPrice), displayText: `€${Math.round(monthlyPrice)}/month` };
   };
   const currentPrice = getCurrentPrice();
 
   const getBillingStatus = () => {
-    if (userStatus.userType === 'trial' && userStatus.daysRemaining > 0) return 'Free during trial period';
+    if (userStatus.userType === 'trial' && userStatus.daysRemaining > 0) return t('settings.billing.billingStatus.trialFree', 'Free during trial period');
     if (userStatus.userType === 'canceled_subscriber') {
-      return `Canceled — access until ${
-        userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date'
-      }`;
+      return t('settings.billing.billingStatus.canceledUntil', 'Canceled — access until {{date}}', {
+        date: userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date',
+      });
     }
-    return billingCycle === 'yearly' ? 'Billed annually' : 'Billed monthly';
+    return billingCycle === 'yearly' ? t('settings.billing.billingStatus.billedAnnually', 'Billed annually') : t('settings.billing.billingStatus.billedMonthly', 'Billed monthly');
   };
 
   const priceText: React.ReactNode =
@@ -174,35 +177,37 @@ export const BillingTab: React.FC = () => {
     ) : (
       <>
         €{currentPrice.amount}
-        <span className="text-sm font-normal text-muted-foreground">/month</span>
+        <span className="text-sm font-normal text-muted-foreground">{t('settings.billing.pricing.perMonth', '/month')}</span>
       </>
     );
 
   const getTimeline = (): BillingTimeline => {
     if (hasNoSubscription || !billingData) {
       return {
-        nextBilling: 'No active subscription',
-        lastPayment: 'No billing history',
-        billingCycle: 'No subscription',
+        nextBilling: t('settings.billing.timeline.noActiveSubscription', 'No active subscription'),
+        lastPayment: t('settings.billing.timeline.noBillingHistory', 'No billing history'),
+        billingCycle: t('settings.billing.timeline.noSubscription', 'No subscription'),
+        // SENTINEL: this English literal feeds PaymentStatusValue's === checks +
+        // its display map; it is translated for display there, not here.
         paymentStatus: 'Inactive',
       };
     }
     const nextBilling = billingData.next_billing_date
       ? format(new Date(billingData.next_billing_date), 'MMM d, yyyy')
       : billingData.subscribed
-        ? 'Next billing date unavailable'
-        : 'No active subscription';
+        ? t('settings.billing.timeline.nextBillingUnavailable', 'Next billing date unavailable')
+        : t('settings.billing.timeline.noActiveSubscription', 'No active subscription');
     const lastPayment =
       billingData.last_payment_date && billingData.last_payment_amount
         ? `${format(new Date(billingData.last_payment_date), 'MMM d, yyyy')} — €${(billingData.last_payment_amount / 100).toFixed(2)}`
         : billingData.subscribed
-          ? 'No payment history'
-          : 'No billing history';
+          ? t('settings.billing.timeline.noPaymentHistory', 'No payment history')
+          : t('settings.billing.timeline.noBillingHistory', 'No billing history');
     const cycle = billingData.billing_cycle
       ? billingData.billing_cycle.charAt(0).toUpperCase() + billingData.billing_cycle.slice(1) + 'ly'
       : billingData.subscribed
-        ? 'Cycle unavailable'
-        : 'No subscription';
+        ? t('settings.billing.timeline.cycleUnavailable', 'Cycle unavailable')
+        : t('settings.billing.timeline.noSubscription', 'No subscription');
     const paymentStatus = (() => {
       if (!billingData.subscribed) return 'Inactive';
       if (billingData.payment_status === 'paid') return 'Active';
@@ -232,26 +237,26 @@ export const BillingTab: React.FC = () => {
             inv.amount && typeof inv.amount === 'number'
               ? `${inv.currency || '€'}${(inv.amount / 100).toFixed(2)}`
               : 'Amount unavailable',
-          description: inv.description || 'No description',
+          description: inv.description || t('settings.billing.invoice.noDescription', 'No description'),
           status: inv.status,
           statusLabel:
             inv.status === 'paid'
-              ? 'Paid'
+              ? t('settings.billing.invoiceStatus.paid', 'Paid')
               : inv.status === 'open'
-                ? 'Pending'
+                ? t('settings.billing.invoiceStatus.pending', 'Pending')
                 : inv.status === 'draft'
-                  ? 'Draft'
-                  : inv.status || 'Unknown',
+                  ? t('settings.billing.invoiceStatus.draft', 'Draft')
+                  : inv.status || t('settings.billing.invoiceStatus.unknown', 'Unknown'),
           invoiceUrl: inv.invoice_url,
         }))
     : [];
 
   const historyEmptyMessage = (() => {
-    if (hasNoSubscription) return 'No billing history found for your account.';
+    if (hasNoSubscription) return t('settings.billing.historyEmpty.noSubscription', 'No billing history found for your account.');
     if (userStatus.userType === 'trial' || userStatus.userType === 'setup_incomplete')
-      return 'Your billing history will appear here after your first payment.';
-    if (billingData && !billingData.subscribed) return "You don't have an active subscription yet.";
-    return 'No billing records found. This may be due to a recent subscription or pending payment processing.';
+      return t('settings.billing.historyEmpty.trialOrSetup', 'Your billing history will appear here after your first payment.');
+    if (billingData && !billingData.subscribed) return t('settings.billing.historyEmpty.noActiveSubscription', "You don't have an active subscription yet.");
+    return t('settings.billing.historyEmpty.noBillingRecords', 'No billing records found. This may be due to a recent subscription or pending payment processing.');
   })();
 
   const onViewPlans = () =>
@@ -263,24 +268,24 @@ export const BillingTab: React.FC = () => {
     .map((tier) => {
       const isEnterprise = tier.tier_name === 'enterprise';
       let displayPrice: string;
-      let billingText = '/month';
+      let billingText = t('settings.billing.planTile.perMonth', '/month');
       let savingsText: string | undefined;
 
       if (isEnterprise) {
-        displayPrice = 'Starting at €300';
-        savingsText = 'Custom pricing for large organizations';
+        displayPrice = t('settings.billing.planTile.startingAt', 'Starting at €300');
+        savingsText = t('settings.billing.planTile.customPricing', 'Custom pricing for large organizations');
       } else if (billingCycle === 'monthly') {
         displayPrice = `€${tier.price_monthly}`;
-        savingsText = tier.description;
+        savingsText = t('settings.billing.planDesc.' + tier.tier_name, tier.description);
       } else if (tier.tier_name === 'starter') {
         displayPrice = '€24';
-        savingsText = 'Billed annually (€288/year)';
+        savingsText = t('settings.billing.planTile.billedAnnually', 'Billed annually (€{{amount}}/year)', { amount: 288 });
       } else if (tier.tier_name === 'professional') {
         displayPrice = '€48';
-        savingsText = 'Billed annually (€576/year)';
+        savingsText = t('settings.billing.planTile.billedAnnually', 'Billed annually (€{{amount}}/year)', { amount: 576 });
       } else {
         displayPrice = `€${Math.round(tier.price_yearly / 12)}`;
-        savingsText = `Billed annually (€${tier.price_yearly}/year)`;
+        savingsText = t('settings.billing.planTile.billedAnnually', 'Billed annually (€{{amount}}/year)', { amount: tier.price_yearly });
       }
 
       return {
@@ -290,7 +295,7 @@ export const BillingTab: React.FC = () => {
         displayPrice,
         billingText,
         savingsText,
-        features: PLAN_FEATURES[tier.tier_name] ?? PLAN_FEATURES.starter,
+        features: getPlanFeatures(t)[tier.tier_name] ?? getPlanFeatures(t).starter,
         isCurrent: tier.tier_name === currentPlan?.tier_name,
         isEnterprise,
         highlightPrice: billingCycle === 'yearly' && !isEnterprise,
@@ -312,12 +317,12 @@ export const BillingTab: React.FC = () => {
           userType={userStatus.userType}
           hasNoSubscription={hasNoSubscription}
           planName={currentPlan?.display_name || currentPlan?.tier_name || 'Free'}
-          planDescription={currentPlan?.description}
+          planDescription={currentPlan ? t('settings.billing.planDesc.' + currentPlan.tier_name, currentPlan.description ?? '') : undefined}
           priceText={priceText}
           priceSubline={currentPlan && currentPrice.amount > 0 ? getBillingStatus() : undefined}
           trialNote={
             userStatus.userType === 'trial' && userStatus.daysRemaining > 0
-              ? `${userStatus.daysRemaining} days remaining in trial`
+              ? t('settings.billing.trialNote', '{{daysRemaining}} days remaining in trial', { daysRemaining: userStatus.daysRemaining })
               : undefined
           }
           timeline={getTimeline()}

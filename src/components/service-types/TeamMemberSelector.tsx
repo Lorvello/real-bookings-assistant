@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -19,13 +20,14 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   onSelectionChange,
   disabled = false
 }) => {
+  const { t } = useTranslation('settings');
   const { members, loading } = useCalendarMembers(calendarId);
 
   if (loading) {
     return (
       <div className="space-y-2">
-        <span className="text-[13px] font-medium leading-[18px] text-foreground">Team members</span>
-        <p className="text-xs leading-5 text-muted-foreground">Loading team members…</p>
+        <span className="text-[13px] font-medium leading-[18px] text-foreground">{t('settings.services.teamMembers.label', 'Team members')}</span>
+        <p className="text-xs leading-5 text-muted-foreground">{t('settings.services.teamMembers.loading', 'Loading team members…')}</p>
       </div>
     );
   }
@@ -33,12 +35,12 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   if (members.length === 0) {
     return (
       <div className="space-y-2">
-        <span className="text-[13px] font-medium leading-[18px] text-foreground">Team members</span>
+        <span className="text-[13px] font-medium leading-[18px] text-foreground">{t('settings.services.teamMembers.label', 'Team members')}</span>
         <div className="rounded-lg border border-dashed border-white/[0.12] bg-muted/30 p-4 text-center">
           <Users className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
-          <p className="text-sm text-foreground">No team members yet</p>
+          <p className="text-sm text-foreground">{t('settings.services.teamMembers.emptyHeading', 'No team members yet')}</p>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Invite team members in Settings to assign them to services.
+            {t('settings.services.teamMembers.emptyDescription', 'Invite team members in Settings to assign them to services.')}
           </p>
         </div>
       </div>
@@ -69,12 +71,11 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <span className="text-[13px] font-medium leading-[18px] text-foreground">
-            Team members{' '}
+            {t('settings.services.teamMembers.fieldLabel', 'Team members {{optionalLabel}}', { optionalLabel: '' })}
             <span className="text-xs font-normal text-subtle-foreground">Optional</span>
           </span>
           <p className="text-xs leading-5 text-muted-foreground">
-            Select which team members can perform this service. Leave empty to make it available to
-            everyone. Only relevant on Professional or Enterprise plans.
+            {t('settings.services.teamMembers.description', 'Select which team members can perform this service. Leave empty to make it available to everyone. Only relevant on Professional or Enterprise plans.')}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2 pt-0.5">
@@ -84,7 +85,7 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
             disabled={disabled || allSelected}
             className="rounded text-xs text-accent-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
           >
-            Select all
+            {t('settings.services.teamMembers.selectAllButton', 'Select all')}
           </button>
           <span className="text-xs text-subtle-foreground">|</span>
           <button
@@ -93,7 +94,7 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
             disabled={disabled || selectedMemberIds.length === 0}
             className="rounded text-xs text-accent-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
           >
-            Deselect all
+            {t('settings.services.teamMembers.deselectAllButton', 'Deselect all')}
           </button>
         </div>
       </div>
@@ -143,7 +144,7 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
 
       {selectedMemberIds.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          {selectedMemberIds.length} member{selectedMemberIds.length !== 1 ? 's' : ''} selected
+          {t('settings.services.teamMembers.countSelected', '{{count}} member{{plural}} selected', { count: selectedMemberIds.length, plural: selectedMemberIds.length !== 1 ? 's' : '' })}
         </p>
       )}
     </div>

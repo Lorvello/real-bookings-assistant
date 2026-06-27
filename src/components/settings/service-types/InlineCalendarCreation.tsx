@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,7 @@ const DEFAULT_AVAILABILITY: WeekAvailability = {
 };
 
 export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCalendarCreationProps) {
+  const { t } = useTranslation('settings');
   const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -82,8 +84,8 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
   const handleSave = async () => {
     if (!calendarName.trim()) {
       toast({
-        title: "Calendar name required",
-        description: "Please enter a name for your calendar.",
+        title: t('settings.services.inlineCalendar.nameRequiredError', 'Calendar name required'),
+        description: t('settings.services.inlineCalendar.nameRequiredErrorDesc', 'Please enter a name for your calendar.'),
         variant: "destructive"
       });
       return;
@@ -91,8 +93,8 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
 
     if (!user?.id) {
       toast({
-        title: "Not authenticated",
-        description: "Please log in to create a calendar.",
+        title: t('settings.services.inlineCalendar.notAuthError', 'Not authenticated'),
+        description: t('settings.services.inlineCalendar.notAuthErrorDesc', 'Please log in to create a calendar.'),
         variant: "destructive"
       });
       return;
@@ -150,15 +152,15 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
       }
 
       toast({
-        title: "Calendar created",
-        description: `"${calendarName}" has been created with availability settings.`
+        title: t('settings.services.inlineCalendar.createdSuccess', 'Calendar created'),
+        description: t('settings.services.inlineCalendar.createdSuccessDesc', '"{{calendarName}}" has been created with availability settings.', { calendarName })
       });
 
       onCalendarCreated(calendar);
     } catch (error: any) {
       console.error('Error creating calendar:', error);
       toast({
-        title: "Error creating calendar",
+        title: t('settings.services.inlineCalendar.creationError', 'Error creating calendar'),
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive"
       });
@@ -175,32 +177,32 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
           size="sm"
           onClick={onCancel}
           className="h-8 w-8 p-1"
-          aria-label="Back to calendar selection"
+          aria-label={t('settings.services.inlineCalendar.backButton', 'Back to calendar selection')}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h3 className="text-base font-semibold text-foreground">Create new calendar</h3>
+        <h3 className="text-base font-semibold text-foreground">{t('settings.services.inlineCalendar.heading', 'Create new calendar')}</h3>
       </div>
 
       <div className="space-y-5 rounded-lg border border-white/[0.08] bg-muted/30 p-4 md:p-5">
         {/* Calendar Name */}
-        <SettingsField label="Calendar name" htmlFor="calendar-name" required>
+        <SettingsField label={t('settings.services.inlineCalendar.nameLabel', 'Calendar name')} htmlFor="calendar-name" required>
           <Input
             id="calendar-name"
             value={calendarName}
             onChange={(e) => setCalendarName(e.target.value)}
-            placeholder="e.g. My Salon"
+            placeholder={t('settings.services.inlineCalendar.namePlaceholder', 'e.g. My Salon')}
             disabled={saving}
           />
         </SettingsField>
 
         {/* Color Selection */}
-        <SettingsField label="Color">
+        <SettingsField label={t('settings.services.inlineCalendar.colorLabel', 'Color')}>
           <ColorPicker
             value={selectedColor}
             onChange={setSelectedColor}
             disabled={saving}
-            ariaLabel="Calendar color"
+            ariaLabel={t('settings.services.inlineCalendar.colorAriaLabel', 'Calendar color')}
           />
         </SettingsField>
 
@@ -208,7 +210,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-[13px] font-medium leading-[18px] text-foreground">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            Availability hours
+            {t('settings.services.inlineCalendar.availabilityLabel', 'Availability hours')}
           </div>
 
           <div className="divide-y divide-white/[0.05] rounded-lg border border-white/[0.06]">
@@ -220,7 +222,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
                     checked={enabled}
                     onCheckedChange={(checked) => updateDayAvailability(day.key, { enabled: checked })}
                     disabled={saving}
-                    aria-label={`${day.label} open`}
+                    aria-label={t('settings.services.inlineCalendar.dayToggleAriaLabel', '{{dayName}} open', { dayName: day.label })}
                   />
                   <span className={`w-24 text-sm ${enabled ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {day.label}
@@ -233,7 +235,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
                         onValueChange={(value) => updateDayAvailability(day.key, { startTime: value })}
                         disabled={saving}
                       >
-                        <SelectTrigger className="h-8 w-24 border-white/[0.08] bg-muted" aria-label={`${day.label} opening time`}>
+                        <SelectTrigger className="h-8 w-24 border-white/[0.08] bg-muted" aria-label={t('settings.services.inlineCalendar.dayStartTimeAriaLabel', '{{dayName}} opening time', { dayName: day.label })}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -248,7 +250,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
                         onValueChange={(value) => updateDayAvailability(day.key, { endTime: value })}
                         disabled={saving}
                       >
-                        <SelectTrigger className="h-8 w-24 border-white/[0.08] bg-muted" aria-label={`${day.label} closing time`}>
+                        <SelectTrigger className="h-8 w-24 border-white/[0.08] bg-muted" aria-label={t('settings.services.inlineCalendar.dayEndTimeAriaLabel', '{{dayName}} closing time', { dayName: day.label })}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -259,7 +261,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
                       </Select>
                     </div>
                   ) : (
-                    <span className="text-sm text-muted-foreground">Closed</span>
+                    <span className="text-sm text-muted-foreground">{t('settings.services.inlineCalendar.closedLabel', 'Closed')}</span>
                   )}
                 </div>
               );
@@ -273,7 +275,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving || !calendarName.trim()}>
-            {saving ? 'Creating…' : 'Save calendar'}
+            {saving ? t('settings.services.inlineCalendar.savingButton', 'Creating…') : t('settings.services.inlineCalendar.saveButton', 'Save calendar')}
           </Button>
         </div>
       </div>

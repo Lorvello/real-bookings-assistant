@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import Select from 'react-select';
 import { Info, AlertCircle, CheckCircle, Building2, Globe, BookOpen } from 'lucide-react';
@@ -17,6 +18,7 @@ import { SettingsSaveBar } from './SettingsSaveBar';
 import { makeSettingsSelectStyles } from './settingsSelectStyles';
 
 export const AIKnowledgeTab: React.FC = () => {
+  const { t } = useTranslation('settings');
   const {
     profileData,
     businessData,
@@ -153,8 +155,8 @@ export const AIKnowledgeTab: React.FC = () => {
     if (Object.keys(changes).length === 0) {
       if (skippedInvalid > 0) {
         toast({
-          title: 'Check your links',
-          description: 'Fix the highlighted website or social fields, then save.',
+          title: t('settings.knowledge.toast.checkLinksTitle', 'Check your links'),
+          description: t('settings.knowledge.toast.checkLinksDescription', 'Fix the highlighted website or social fields, then save.'),
           variant: 'destructive',
         });
       }
@@ -170,18 +172,18 @@ export const AIKnowledgeTab: React.FC = () => {
         clearTimeout(savedTimer.current);
         savedTimer.current = setTimeout(() => setJustSaved(false), 2200);
         toast({
-          title: skippedInvalid > 0 ? 'Saved (some links skipped)' : 'Changes saved',
+          title: skippedInvalid > 0 ? t('settings.knowledge.toast.savedPartialTitle', 'Saved (some links skipped)') : t('settings.knowledge.toast.savedTitle', 'Changes saved'),
           description: skippedInvalid > 0
-            ? 'Your changes were saved. The highlighted link fields were not, fix and save them again.'
-            : 'All your settings have been saved successfully.',
+            ? t('settings.knowledge.toast.savedPartialDescription', 'Your changes were saved. The highlighted link fields were not, fix and save them again.')
+            : t('settings.knowledge.toast.savedDescription', 'All your settings have been saved successfully.'),
           variant: skippedInvalid > 0 ? 'default' : undefined,
         });
       }
     } catch (error) {
       console.error('Failed to save changes:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to save changes. Please try again.',
+        title: t('settings.knowledge.toast.errorTitle', 'Error'),
+        description: t('settings.knowledge.toast.errorDescription', 'Failed to save changes. Please try again.'),
         variant: 'destructive',
       });
     } finally {
@@ -278,9 +280,9 @@ export const AIKnowledgeTab: React.FC = () => {
         <div className="flex items-start gap-3 rounded-xl border border-primary/15 bg-primary/[0.05] px-4 py-3.5">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent-foreground" />
           <div className="space-y-1">
-            <p className="text-sm font-medium text-foreground">How your assistant uses this page</p>
+            <p className="text-sm font-medium text-foreground">{t('settings.knowledge.introTitle', 'How your assistant uses this page')}</p>
             <p className="text-sm leading-6 text-muted-foreground">
-              Everything you fill in here is what your WhatsApp assistant can tell customers, in your name. It shares your contact details, address, website and opening hours on request, and answers questions from your knowledge base. Leave a field blank and the agent simply won't claim to know it.
+              {t('settings.knowledge.introDescription', "Everything you fill in here is what your WhatsApp assistant can tell customers, in your name. It shares your contact details, address, website and opening hours on request, and answers questions from your knowledge base. Leave a field blank and the agent simply won't claim to know it.")}
             </p>
           </div>
         </div>
@@ -288,9 +290,9 @@ export const AIKnowledgeTab: React.FC = () => {
         {/* Identity + Contact + Address */}
         <SettingsSection
           icon={Building2}
-          title="Business Information"
-          description="Used to introduce itself and to answer 'where are you', 'how do I reach you' and 'when are you open'. Blank fields are never mentioned."
-          tooltip="Shared with customers by your WhatsApp assistant"
+          title={t('settings.knowledge.businessInfoTitle', 'Business Information')}
+          description={t('settings.knowledge.businessInfoDescription', "Used to introduce itself and to answer 'where are you', 'how do I reach you' and 'when are you open'. Blank fields are never mentioned.")}
+          tooltip={t('settings.knowledge.businessInfoTooltip', 'Shared with customers by your WhatsApp assistant')}
           usedByAgent
         >
           {/* Setup requirement: only name + type are needed to finish onboarding. */}
@@ -298,29 +300,29 @@ export const AIKnowledgeTab: React.FC = () => {
             <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/[0.08] px-4 py-3">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
               <p className="text-sm text-warning-foreground">
-                <span className="font-medium">Required to finish setup:</span> {requiredMissing.join(' + ')}. Everything else on this page is optional.
+                <span className="font-medium">{t('settings.knowledge.requiredWarningLabel', 'Required to finish setup:')}</span> {requiredMissing.join(' + ')}. {t('settings.knowledge.requiredWarningNote', 'Everything else on this page is optional.')}
               </p>
             </div>
           ) : (
             <div className="mb-6 flex items-center gap-2.5 rounded-lg border border-success/25 bg-success/[0.08] px-4 py-3">
               <CheckCircle className="h-4 w-4 shrink-0 text-success-foreground" />
-              <p className="text-sm text-success-foreground">Required business info complete — the other fields below are optional.</p>
+              <p className="text-sm text-success-foreground">{t('settings.knowledge.requiredCompleteMessage', 'Required business info complete — the other fields below are optional.')}</p>
             </div>
           )}
 
           <div className="space-y-5">
-            {businessField('business_name', 'Business name', {
+            {businessField('business_name', t('settings.knowledge.fields.businessName', 'Business name'), {
               required: true,
-              placeholder: 'Enter your business name',
+              placeholder: t('settings.knowledge.fields.businessNamePlaceholder', 'Enter your business name'),
             })}
 
-            <SettingsField label="Business type" htmlFor="business_type" required>
+            <SettingsField label={t('settings.knowledge.fields.businessType', 'Business type')} htmlFor="business_type" required>
               <Select
                 inputId="business_type"
                 value={businessTypes.find((type) => type.value === (localBusinessData as any)?.business_type) || null}
                 onChange={(option: any) => updateBusinessField('business_type', option?.value || '')}
                 options={businessTypes}
-                placeholder="Search and select business type…"
+                placeholder={t('settings.knowledge.fields.businessTypePlaceholder', 'Search and select business type…')}
                 isSearchable
                 menuPlacement="auto"
                 styles={selectStyles}
@@ -330,18 +332,20 @@ export const AIKnowledgeTab: React.FC = () => {
                   className="mt-2"
                   value={(localBusinessData as any)?.business_type_other || ''}
                   onChange={(e) => updateBusinessField('business_type_other', e.target.value)}
-                  placeholder="Specify business type…"
+                  placeholder={t('settings.knowledge.fields.businessTypeOtherPlaceholder', 'Specify business type…')}
                 />
               )}
             </SettingsField>
 
-            {businessField('business_description', 'Business description', {
+            {businessField('business_description', t('settings.knowledge.fields.businessDescription', 'Business description'), {
               textarea: true,
               rows: 4,
-              placeholder: 'Tell customers about your business…',
+              placeholder: t('settings.knowledge.fields.businessDescriptionPlaceholder', 'Tell customers about your business…'),
               hint: (
                 <span className={descLen > 600 ? 'text-gold' : undefined}>
-                  {descLen} / 600{descLen > 600 ? ' — shorter keeps replies snappy' : ''}
+                  {descLen > 600
+                    ? t('settings.knowledge.fields.businessDescriptionHintLong', '{{n}} / 600 — shorter keeps replies snappy', { n: descLen })
+                    : t('settings.knowledge.fields.businessDescriptionHint', '{{n}} / 600', { n: descLen })}
                 </span>
               ),
             })}
@@ -350,22 +354,22 @@ export const AIKnowledgeTab: React.FC = () => {
           {/* Contact Details */}
           <div className="mt-6 space-y-5 border-t border-white/[0.06] pt-6">
             <div className="space-y-1">
-              <h4 className="text-sm font-semibold text-foreground">Contact details</h4>
+              <h4 className="text-sm font-semibold text-foreground">{t('settings.knowledge.contactDetailsHeading', 'Contact details')}</h4>
               <p className="text-xs leading-5 text-muted-foreground">
-                Shared when a customer asks how to reach you. Leave a field blank and the agent won't mention it.
+                {t('settings.knowledge.contactDetailsDescription', "Shared when a customer asks how to reach you. Leave a field blank and the agent won't mention it.")}
               </p>
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {businessField('business_email', 'Business email', { placeholder: 'name@yourbusiness.com', optional: true, validate: validateEmail })}
-              {businessField('business_phone', 'Business phone', { placeholder: '+31 6 12345678', optional: true, validate: validatePhone })}
+              {businessField('business_email', t('settings.knowledge.fields.businessEmail', 'Business email'), { placeholder: t('settings.knowledge.fields.businessEmailPlaceholder', 'name@yourbusiness.com'), optional: true, validate: validateEmail })}
+              {businessField('business_phone', t('settings.knowledge.fields.businessPhone', 'Business phone'), { placeholder: t('settings.knowledge.fields.businessPhonePlaceholder', '+31 6 12345678'), optional: true, validate: validatePhone })}
               <div className="md:col-span-2">
                 <SettingsField
                   label={PLATFORM_WHATSAPP_LABEL}
-                  description="The WhatsApp number your customers message. Share it, or show the QR code on the WhatsApp Bookingsassistant page."
+                  description={t('settings.knowledge.fields.whatsappDescription', 'The WhatsApp number your customers message. Share it, or show the QR code on the WhatsApp Bookingsassistant page.')}
                 >
                   <div className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-muted px-4 py-2.5">
                     <span className="font-medium text-foreground tabular-nums">{PLATFORM_WHATSAPP_DISPLAY}</span>
-                    <span className="rounded-full border border-white/[0.06] px-2 py-0.5 text-xs text-subtle-foreground">Platform number</span>
+                    <span className="rounded-full border border-white/[0.06] px-2 py-0.5 text-xs text-subtle-foreground">{t('settings.knowledge.fields.platformNumberTag', 'Platform number')}</span>
                   </div>
                 </SettingsField>
               </div>
@@ -375,18 +379,18 @@ export const AIKnowledgeTab: React.FC = () => {
           {/* Address */}
           <div className="mt-6 space-y-5 border-t border-white/[0.06] pt-6">
             <div className="space-y-1">
-              <h4 className="text-sm font-semibold text-foreground">Address</h4>
+              <h4 className="text-sm font-semibold text-foreground">{t('settings.knowledge.addressHeading', 'Address')}</h4>
               <p className="text-xs leading-5 text-muted-foreground">
-                Shared when a customer asks where you are. Leave it blank and the agent won't give out a location.
+                {t('settings.knowledge.addressDescription', "Shared when a customer asks where you are. Leave it blank and the agent won't give out a location.")}
               </p>
             </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-              {businessField('business_street', 'Street name', { placeholder: 'Enter street name', optional: true })}
-              {businessField('business_number', 'House number', { placeholder: 'Enter house number', optional: true })}
-              {businessField('business_postal', 'Postal code', { placeholder: 'Enter postal code', optional: true })}
-              {businessField('business_city', 'City', { placeholder: 'Enter city', optional: true })}
+              {businessField('business_street', t('settings.knowledge.fields.businessStreet', 'Street name'), { placeholder: t('settings.knowledge.fields.businessStreetPlaceholder', 'Enter street name'), optional: true })}
+              {businessField('business_number', t('settings.knowledge.fields.businessNumber', 'House number'), { placeholder: t('settings.knowledge.fields.businessNumberPlaceholder', 'Enter house number'), optional: true })}
+              {businessField('business_postal', t('settings.knowledge.fields.businessPostal', 'Postal code'), { placeholder: t('settings.knowledge.fields.businessPostalPlaceholder', 'Enter postal code'), optional: true })}
+              {businessField('business_city', t('settings.knowledge.fields.businessCity', 'City'), { placeholder: t('settings.knowledge.fields.businessCityPlaceholder', 'Enter city'), optional: true })}
               <div className="md:col-span-2">
-                {businessField('business_country', 'Country', { placeholder: 'Enter country', optional: true })}
+                {businessField('business_country', t('settings.knowledge.fields.businessCountry', 'Country'), { placeholder: t('settings.knowledge.fields.businessCountryPlaceholder', 'Enter country'), optional: true })}
               </div>
             </div>
           </div>
@@ -394,9 +398,9 @@ export const AIKnowledgeTab: React.FC = () => {
           {/* Opening hours — read-only, sourced from Availability */}
           <div className="mt-6 border-t border-white/[0.06] pt-6">
             <div className="space-y-1">
-              <h4 className="text-sm font-semibold text-foreground">Opening hours</h4>
+              <h4 className="text-sm font-semibold text-foreground">{t('settings.knowledge.openingHoursHeading', 'Opening hours')}</h4>
               <p className="text-xs leading-5 text-muted-foreground">
-                The assistant tells customers when you're open. These come from your Availability schedule — set them there and they stay in sync everywhere.
+                {t('settings.knowledge.openingHoursDescription', "The assistant tells customers when you're open. These come from your Availability schedule — set them there and they stay in sync everywhere.")}
               </p>
             </div>
           </div>
@@ -405,13 +409,13 @@ export const AIKnowledgeTab: React.FC = () => {
         {/* Website */}
         <SettingsSection
           icon={Globe}
-          title="Website"
-          description="Shared when a customer asks for it."
-          tooltip="Shared with customers by your WhatsApp assistant"
+          title={t('settings.knowledge.websiteTitle', 'Website')}
+          description={t('settings.knowledge.websiteDescription', 'Shared when a customer asks for it.')}
+          tooltip={t('settings.knowledge.businessInfoTooltip', 'Shared with customers by your WhatsApp assistant')}
           usedByAgent
         >
           <div className="max-w-md">
-            <SettingsField label="Website" htmlFor="website" optional error={socialErrors.website}>
+            <SettingsField label={t('settings.knowledge.websiteTitle', 'Website')} htmlFor="website" optional error={socialErrors.website}>
               <Input
                 id="website"
                 value={(localProfileData as any)?.website || ''}
@@ -423,7 +427,7 @@ export const AIKnowledgeTab: React.FC = () => {
                   const r = validateWebsite(e.target.value);
                   setSocialErrors((prev) => ({ ...prev, website: r.ok ? undefined : r.error }));
                 }}
-                placeholder="www.example.com"
+                placeholder={t('settings.knowledge.fields.websitePlaceholder', 'www.example.com')}
                 aria-invalid={!!socialErrors.website}
               />
             </SettingsField>
@@ -433,46 +437,46 @@ export const AIKnowledgeTab: React.FC = () => {
         {/* Knowledge base */}
         <SettingsSection
           icon={BookOpen}
-          title="Booking agent knowledge base"
-          description="The more you fill in, the better the agent answers customer questions on WhatsApp without you. Leave a field blank and it won't claim to know it."
-          tooltip="The AI agent can use this information in its messages"
+          title={t('settings.knowledge.knowledgeBaseTitle', 'Booking agent knowledge base')}
+          description={t('settings.knowledge.knowledgeBaseDescription', "The more you fill in, the better the agent answers customer questions on WhatsApp without you. Leave a field blank and it won't claim to know it.")}
+          tooltip={t('settings.knowledge.knowledgeBaseTooltip', 'The AI agent can use this information in its messages')}
           usedByAgent
         >
           <div className="space-y-5">
-            {businessField('cancellation_policy', 'Cancellation & reschedule policy', {
+            {businessField('cancellation_policy', t('settings.knowledge.fields.cancellationPolicy', 'Cancellation & reschedule policy'), {
               textarea: true,
               optional: true,
-              placeholder: 'e.g. Free cancellation up to 24h before; later cancellations or no-shows are charged 50%. Rescheduling is free anytime.',
+              placeholder: t('settings.knowledge.fields.cancellationPolicyPlaceholder', 'e.g. Free cancellation up to 24h before; later cancellations or no-shows are charged 50%. Rescheduling is free anytime.'),
             })}
-            {businessField('payment_info', 'Payment & deposit', {
+            {businessField('payment_info', t('settings.knowledge.fields.paymentInfo', 'Payment & deposit'), {
               textarea: true,
               optional: true,
-              placeholder: 'e.g. Pay in the salon by card or cash; a 20% deposit is required to confirm appointments over €100.',
+              placeholder: t('settings.knowledge.fields.paymentInfoPlaceholder', 'e.g. Pay in the salon by card or cash; a 20% deposit is required to confirm appointments over €100.'),
             })}
-            {businessField('preparation_info', 'How to prepare / what to bring', {
+            {businessField('preparation_info', t('settings.knowledge.fields.preparationInfo', 'How to prepare / what to bring'), {
               textarea: true,
               optional: true,
-              placeholder: 'e.g. Come with clean, dry hair. Bring any reference photos. Arrive 5 minutes early.',
+              placeholder: t('settings.knowledge.fields.preparationInfoPlaceholder', 'e.g. Come with clean, dry hair. Bring any reference photos. Arrive 5 minutes early.'),
             })}
-            {businessField('parking_info', 'Parking', {
+            {businessField('parking_info', t('settings.knowledge.fields.parkingInfo', 'Parking'), {
               textarea: true,
               optional: true,
-              placeholder: 'e.g. Free parking at the door, paid parking in the garage around the corner…',
+              placeholder: t('settings.knowledge.fields.parkingInfoPlaceholder', 'e.g. Free parking at the door, paid parking in the garage around the corner…'),
             })}
-            {businessField('public_transport_info', 'Public transport', {
+            {businessField('public_transport_info', t('settings.knowledge.fields.publicTransportInfo', 'Public transport'), {
               textarea: true,
               optional: true,
-              placeholder: 'e.g. 5 minutes walk from the station, bus 12 stops at the door…',
+              placeholder: t('settings.knowledge.fields.publicTransportInfoPlaceholder', 'e.g. 5 minutes walk from the station, bus 12 stops at the door…'),
             })}
-            {businessField('accessibility_info', 'Accessibility', {
+            {businessField('accessibility_info', t('settings.knowledge.fields.accessibilityInfo', 'Accessibility'), {
               textarea: true,
               optional: true,
-              placeholder: 'e.g. Wheelchair accessible, elevator available, no thresholds…',
+              placeholder: t('settings.knowledge.fields.accessibilityInfoPlaceholder', 'e.g. Wheelchair accessible, elevator available, no thresholds…'),
             })}
-            {businessField('other_info', 'FAQ & anything else', {
+            {businessField('other_info', t('settings.knowledge.fields.otherInfo', 'FAQ & anything else'), {
               textarea: true,
               optional: true,
-              placeholder: 'Common questions + answers, or anything else the assistant should know. e.g. "Do you sell gift vouchers? Yes, just ask in the salon." "Can I bring my child? Of course."',
+              placeholder: t('settings.knowledge.fields.otherInfoPlaceholder', 'Common questions + answers, or anything else the assistant should know. e.g. "Do you sell gift vouchers? Yes, just ask in the salon." "Can I bring my child? Of course."'),
             })}
           </div>
         </SettingsSection>

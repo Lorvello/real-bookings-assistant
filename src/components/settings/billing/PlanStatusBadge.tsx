@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 
 /** The subscription lifecycle states that carry a visible billing badge. */
@@ -23,17 +24,18 @@ interface PlanStatusBadgeProps {
  * surfaced. Mirrors the old inline getStatusBadge() logic, now token-driven.
  */
 export function PlanStatusBadge({ userType }: PlanStatusBadgeProps) {
+  const { t } = useTranslation('settings');
   switch (userType) {
     case 'subscriber':
-      return <Badge className="border-success/20 bg-success/10 text-success-foreground">Active</Badge>;
+      return <Badge className="border-success/20 bg-success/10 text-success-foreground">{t('settings.billing.badge.active', 'Active')}</Badge>;
     case 'canceled_subscriber':
-      return <Badge className="border-warning/20 bg-warning/10 text-warning-foreground">Canceled</Badge>;
+      return <Badge className="border-warning/20 bg-warning/10 text-warning-foreground">{t('settings.billing.badge.canceled', 'Canceled')}</Badge>;
     case 'canceled_and_inactive':
-      return <Badge className="border-border bg-muted text-muted-foreground">Canceled</Badge>;
+      return <Badge className="border-border bg-muted text-muted-foreground">{t('settings.billing.badge.canceled', 'Canceled')}</Badge>;
     case 'expired_trial':
-      return <Badge className="border-destructive/20 bg-destructive/10 text-destructive-foreground">Expired</Badge>;
+      return <Badge className="border-destructive/20 bg-destructive/10 text-destructive-foreground">{t('settings.billing.badge.expired', 'Expired')}</Badge>;
     case 'missed_payment':
-      return <Badge className="border-destructive/20 bg-destructive/10 text-destructive-foreground">Payment failed</Badge>;
+      return <Badge className="border-destructive/20 bg-destructive/10 text-destructive-foreground">{t('settings.billing.badge.paymentFailed', 'Payment failed')}</Badge>;
     default:
       return null;
   }

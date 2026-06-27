@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,27 +44,28 @@ export function AvailablePlansSection({
   onContactSales,
   loading,
 }: AvailablePlansSectionProps) {
+  const { t } = useTranslation('settings');
   return (
     <div id="available-plans" className="scroll-mt-8">
       <SettingsSection
         icon={Sparkles}
-        title="Available plans"
-        description="Choose the plan that best fits your needs."
+        title={t('settings.billing.availablePlans.title', 'Available plans')}
+        description={t('settings.billing.availablePlans.description', 'Choose the plan that best fits your needs.')}
         action={
           <div className="flex items-center gap-3">
             <span className={`text-sm ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Monthly
+              {t('settings.billing.billingCycleToggle.monthly', 'Monthly')}
             </span>
             <Switch
               checked={billingCycle === 'yearly'}
               onCheckedChange={(checked) => onCycleChange(checked ? 'yearly' : 'monthly')}
-              aria-label="Toggle yearly billing"
+              aria-label={t('settings.billing.billingCycleToggle.ariaLabel', 'Toggle yearly billing')}
             />
             <span className={`text-sm ${billingCycle === 'yearly' ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Yearly
+              {t('settings.billing.billingCycleToggle.yearly', 'Yearly')}
             </span>
             {billingCycle === 'yearly' && (
-              <Badge className="border-success/20 bg-success/10 text-success-foreground">Save 20%</Badge>
+              <Badge className="border-success/20 bg-success/10 text-success-foreground">{t('settings.billing.billingCycleToggle.savings', 'Save 20%')}</Badge>
             )}
           </div>
         }
@@ -79,7 +81,7 @@ export function AvailablePlansSection({
               }`}
             >
               {tier.isCurrent && (
-                <Badge className="absolute -top-2.5 left-6 bg-primary text-primary-foreground">Current plan</Badge>
+                <Badge className="absolute -top-2.5 left-6 bg-primary text-primary-foreground">{t('settings.billing.planCard.currentPlan', 'Current plan')}</Badge>
               )}
 
               <div className="mb-5 text-center">
@@ -106,7 +108,7 @@ export function AvailablePlansSection({
 
               {tier.isEnterprise ? (
                 <Button className="w-full" variant="outline" onClick={onContactSales} disabled={loading}>
-                  Contact sales
+                  {t('settings.billing.planCard.contactSales', 'Contact sales')}
                 </Button>
               ) : (
                 <Button
@@ -115,7 +117,7 @@ export function AvailablePlansSection({
                   disabled={tier.isCurrent || loading}
                   onClick={() => onUpgrade(tier.tierName)}
                 >
-                  {loading ? 'Loading…' : tier.isCurrent ? 'Current plan' : `Switch to ${tier.displayName}`}
+                  {loading ? t('settings.billing.planCard.loading', 'Loading…') : tier.isCurrent ? t('settings.billing.planCard.currentPlan', 'Current plan') : t('settings.billing.planCard.switchTo', 'Switch to {{displayName}}', { displayName: tier.displayName })}
                 </Button>
               )}
             </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info, Bot, type LucideIcon } from 'lucide-react';
@@ -42,6 +43,7 @@ export function SettingsSection({
   flush,
   children,
 }: SettingsSectionProps) {
+  const { t } = useTranslation('settings');
   return (
     <Card className={cn('overflow-hidden', className)}>
       <CardHeader className="gap-1 border-b border-white/[0.05] bg-white/[0.012] p-5 md:p-6">
@@ -62,7 +64,7 @@ export function SettingsSection({
                     <TooltipTrigger asChild>
                       <button
                         type="button"
-                        aria-label="More information"
+                        aria-label={t('settings.common.moreInfo', 'More information')}
                         // h-11 w-11 -m-2.5 → a 44px mobile tap target (touch-target, DoD §2)
                         // while the Info glyph stays visually 16px; the negative margin absorbs
                         // the extra size so the header row layout is unchanged. Desktop is
@@ -81,7 +83,7 @@ export function SettingsSection({
                 {usedByAgent && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/[0.10] px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
                     <Bot className="h-3 w-3" />
-                    Used by your AI agent
+                    {t('settings.common.usedByAgent', 'Used by your AI agent')}
                   </span>
                 )}
               </div>

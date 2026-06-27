@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { Button } from '@/components/ui/button';
 import { Crown, Settings, Calendar, CalendarClock, CheckCircle, AlertCircle, Clock } from 'lucide-react';
@@ -34,16 +35,29 @@ interface CurrentPlanSectionProps {
 }
 
 function PaymentStatusValue({ status }: { status: string }) {
+  const { t } = useTranslation('settings');
   const isActive = status === 'Active';
   const isFailed = status === 'Payment Failed' || status === 'Failed' || status === 'Payment Method Required';
   // Active = settled (check), failed/method-required = needs attention (alert),
   // everything else (pending / inactive / canceled) = a calm waiting clock.
   const Icon = isActive ? CheckCircle : isFailed ? AlertCircle : Clock;
   const tone = isActive ? 'text-success-foreground' : isFailed ? 'text-destructive-foreground' : 'text-muted-foreground';
+  // SENTINEL decouple: the English `status` stays the logic key (the comparisons
+  // above and the upstream switch in BillingTab); only the DISPLAY is translated
+  // via a stable English-value -> t() map so program logic never sees NL text.
+  const display: string = {
+    Active: t('settings.billing.paymentStatus.active', 'Active'),
+    Inactive: t('settings.billing.paymentStatus.inactive', 'Inactive'),
+    'Payment Failed': t('settings.billing.paymentStatus.failed', 'Payment Failed'),
+    'Payment Pending': t('settings.billing.paymentStatus.pending', 'Payment Pending'),
+    'Payment Method Required': t('settings.billing.paymentStatus.methodRequired', 'Payment Method Required'),
+    Canceled: t('settings.billing.paymentStatus.canceled', 'Canceled'),
+    'Status Unknown': t('settings.billing.paymentStatus.unknown', 'Status Unknown'),
+  }[status] ?? status;
   return (
     <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${tone}`}>
       <Icon className="h-3.5 w-3.5" />
-      {status}
+      {display}
     </span>
   );
 }
@@ -74,20 +88,21 @@ export function CurrentPlanSection({
   manageDisabled,
   loading,
 }: CurrentPlanSectionProps) {
+  const { t } = useTranslation('settings');
   return (
     <SettingsSection
       icon={Crown}
       title={
         <span className="flex items-center gap-2.5">
-          Current plan
+          {t('settings.billing.currentPlan.title', 'Current plan')}
           <PlanStatusBadge userType={userType} />
         </span>
       }
-      description="Your subscription and billing timeline."
+      description={t('settings.billing.currentPlan.description', 'Your subscription and billing timeline.')}
       action={
         <Button onClick={onManage} disabled={manageDisabled} variant="outline" size="sm">
           <Settings className="mr-2 h-4 w-4" />
-          {loading ? 'Loading…' : 'Manage subscription'}
+          {loading ? t('settings.billing.currentPlan.loading', 'Loading…') : t('settings.billing.currentPlan.action', 'Manage subscription')}
         </Button>
       }
     >
@@ -96,16 +111,16 @@ export function CurrentPlanSection({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h4 className="text-xl font-semibold capitalize tracking-[-0.015em] text-foreground">
-              {hasNoSubscription ? 'No active subscription' : `${planName} plan`}
+              {hasNoSubscription ? t('settings.billing.currentPlan.noSubscription', 'No active subscription') : t('settings.billing.currentPlan.planNameFormat', '{{name}} plan', { name: planName })}
             </h4>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              {hasNoSubscription ? 'Start your subscription to access all features.' : planDescription}
+              {hasNoSubscription ? t('settings.billing.currentPlan.noSubscriptionDesc', 'Start your subscription to access all features.') : planDescription}
             </p>
             {trialNote && <p className="mt-1.5 text-sm font-medium text-warning-foreground">{trialNote}</p>}
           </div>
           <div className="sm:text-right">
             {hasNoSubscription ? (
-              <div className="text-2xl font-bold text-muted-foreground">No plan</div>
+              <div className="text-2xl font-bold text-muted-foreground">{t('settings.billing.currentPlan.noPlan', 'No plan')}</div>
             ) : (
               <>
                 <div className="text-2xl font-bold tracking-[-0.02em] text-foreground">{priceText}</div>
@@ -122,18 +137,18 @@ export function CurrentPlanSection({
           <div className="rounded-xl border border-white/[0.05] bg-white/[0.012] p-5">
             <h5 className="mb-4 flex items-center gap-2 text-[13px] font-semibold text-foreground">
               <CalendarClock className="h-4 w-4 text-accent-foreground" />
-              Billing timeline
+              {t('settings.billing.billingTimeline.title', 'Billing timeline')}
             </h5>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-              <Metric label={timeline.accessUntil ? 'Access until' : 'Next billing'}>
+              <Metric label={timeline.accessUntil ? t('settings.billing.billingTimeline.accessUntil', 'Access until') : t('settings.billing.billingTimeline.nextBilling', 'Next billing')}>
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-accent-foreground" />
                   {timeline.nextBilling}
                 </span>
               </Metric>
-              <Metric label="Last payment">{timeline.lastPayment}</Metric>
-              <Metric label="Billing cycle">{timeline.billingCycle}</Metric>
-              <Metric label="Payment status">
+              <Metric label={t('settings.billing.billingTimeline.lastPayment', 'Last payment')}>{timeline.lastPayment}</Metric>
+              <Metric label={t('settings.billing.billingTimeline.billingCycle', 'Billing cycle')}>{timeline.billingCycle}</Metric>
+              <Metric label={t('settings.billing.billingTimeline.paymentStatus', 'Payment status')}>
                 <PaymentStatusValue status={timeline.paymentStatus} />
               </Metric>
             </div>

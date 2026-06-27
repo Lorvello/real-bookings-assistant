@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, MessageCircle, Calendar } from 'lucide-react';
 import { useCalendarLimits, useWhatsAppLimits, useTeamMemberLimits } from '@/hooks/useSubscriptionLimits';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -27,6 +28,7 @@ const getProgressVariant = (percentage: number): 'default' | 'warning' | 'destru
  * (settings/billing) — which the no-auth harness mounts directly with mock meters.
  */
 export function UsageSummary({ className = '' }: UsageSummaryProps) {
+  const { t } = useTranslation('settings');
   const { selectedCalendar } = useCalendarContext();
   const { userStatus } = useUserStatus();
   const calendarLimits = useCalendarLimits();
@@ -46,8 +48,8 @@ export function UsageSummary({ className = '' }: UsageSummaryProps) {
         hasNoSubscription
         emptyMessage={
           userStatus.userType === 'expired_trial'
-            ? 'Your trial has expired. Subscribe to access usage tracking and premium features.'
-            : 'Your subscription is inactive. Reactivate to access usage tracking and premium features.'
+            ? t('settings.billing.usageSummary.trialExpiredMessage', 'Your trial has expired. Subscribe to access usage tracking and premium features.')
+            : t('settings.billing.usageSummary.inactiveMessage', 'Your subscription is inactive. Reactivate to access usage tracking and premium features.')
         }
         onViewPlans={onViewPlans}
       />
@@ -57,7 +59,7 @@ export function UsageSummary({ className = '' }: UsageSummaryProps) {
   const meters: UsageMeter[] = [
     {
       icon: Calendar,
-      label: 'Calendars',
+      label: t('settings.billing.usageMeters.calendars', 'Calendars'),
       current: calendarLimits.currentCount,
       max: calendarLimits.maxCalendars,
       canAddMore: calendarLimits.canCreateMore,
@@ -66,7 +68,7 @@ export function UsageSummary({ className = '' }: UsageSummaryProps) {
     },
     {
       icon: MessageCircle,
-      label: 'WhatsApp Contacts',
+      label: t('settings.billing.usageMeters.whatsappContacts', 'WhatsApp Contacts'),
       current: whatsappLimits.currentCount,
       max: whatsappLimits.maxContacts,
       canAddMore: whatsappLimits.canAddMore,
@@ -75,7 +77,7 @@ export function UsageSummary({ className = '' }: UsageSummaryProps) {
     },
     {
       icon: Users,
-      label: 'Team Members',
+      label: t('settings.billing.usageMeters.teamMembers', 'Team Members'),
       current: teamLimits.currentCount,
       max: teamLimits.maxTeamMembers,
       canAddMore: teamLimits.canAddMore,

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, SlidersHorizontal } from 'lucide-react';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -14,6 +15,7 @@ interface CalendarSettingsProps {
 }
 
 export function CalendarSettings({ calendarId, showGlobalSettings = true }: CalendarSettingsProps) {
+  const { t } = useTranslation('settings');
   const { settings, loading, saving, hasPendingChanges, updatePendingSettings, saveAllChanges, discardChanges } = useCalendarSettings(calendarId);
   const { selectedCalendar } = useCalendarContext();
   const [justSaved, setJustSaved] = useState(false);
@@ -35,10 +37,10 @@ export function CalendarSettings({ calendarId, showGlobalSettings = true }: Cale
 
   if (loading) {
     return (
-      <SettingsSection icon={SlidersHorizontal} title="Booking policies">
+      <SettingsSection icon={SlidersHorizontal} title={t('settings.operations.sections.policies.title', 'Booking policies')}>
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading policies…
+          {t('settings.operations.loading.policies', 'Loading policies…')}
         </div>
       </SettingsSection>
     );
@@ -48,10 +50,10 @@ export function CalendarSettings({ calendarId, showGlobalSettings = true }: Cale
     return (
       <SettingsSection
         icon={SlidersHorizontal}
-        title="Booking policies"
-        description="Settings will be created automatically as soon as you make your first change."
+        title={t('settings.operations.sections.policies.title', 'Booking policies')}
+        description={t('settings.operations.emptyState.policiesAutoCreated', 'Settings will be created automatically as soon as you make your first change.')}
       >
-        <p className="text-sm text-muted-foreground">No policies yet for this calendar.</p>
+        <p className="text-sm text-muted-foreground">{t('settings.operations.emptyState.noPolicies', 'No policies yet for this calendar.')}</p>
       </SettingsSection>
     );
   }
@@ -60,8 +62,8 @@ export function CalendarSettings({ calendarId, showGlobalSettings = true }: Cale
     <div className="space-y-6">
       {showGlobalSettings && (
         <SettingsSection
-          title="WhatsApp assistant"
-          description="Turn the automated booking assistant on or off across every calendar."
+          title={t('settings.operations.sections.whatsappAssistant.title', 'WhatsApp assistant')}
+          description={t('settings.operations.sections.whatsappAssistant.description', 'Turn the automated booking assistant on or off across every calendar.')}
           usedByAgent
         >
           <GlobalSettings />
@@ -70,8 +72,8 @@ export function CalendarSettings({ calendarId, showGlobalSettings = true }: Cale
 
       <SettingsSection
         icon={SlidersHorizontal}
-        title="Booking policies"
-        description={`How customers can book ${selectedCalendar?.name || 'this calendar'} — slot length, notice, daily limits, cancellation and reminders.`}
+        title={t('settings.operations.sections.policies.title', 'Booking policies')}
+        description={t('settings.operations.sections.policies.descriptionFull', 'How customers can book {{calendarName}} — slot length, notice, daily limits, cancellation and reminders.', { calendarName: selectedCalendar?.name || 'this calendar' })}
         usedByAgent
       >
         <CalendarPolicySettings settings={settings} onUpdate={updatePendingSettings} />

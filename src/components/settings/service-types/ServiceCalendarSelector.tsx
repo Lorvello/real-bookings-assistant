@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Plus, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarType } from '@/types/database';
@@ -20,6 +21,7 @@ export function ServiceCalendarSelector({
   onCalendarCreated,
   disabled = false
 }: ServiceCalendarSelectorProps) {
+  const { t } = useTranslation('settings');
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   const handleCalendarCreated = (calendar: CalendarType) => {
@@ -42,14 +44,14 @@ export function ServiceCalendarSelector({
       <div className="space-y-1">
         <div className="flex items-center gap-2 text-[13px] font-medium leading-[18px] text-foreground">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          Which calendar to use
+          {t('settings.services.calendarSelector.label', 'Which calendar to use')}
         </div>
         <p className="text-xs leading-5 text-muted-foreground">
-          Add this service to an existing calendar, or create a new one.
+          {t('settings.services.calendarSelector.description', 'Add this service to an existing calendar, or create a new one.')}
         </p>
       </div>
 
-      <div className="grid gap-2" role="radiogroup" aria-label="Calendar for this service">
+      <div className="grid gap-2" role="radiogroup" aria-label={t('settings.services.calendarSelector.ariaLabel', 'Calendar for this service')}>
         {calendars.map((calendar) => {
           const selected = selectedCalendarId === calendar.id;
           return (
@@ -100,8 +102,8 @@ export function ServiceCalendarSelector({
             <Plus className="h-4 w-4 text-muted-foreground" />
           </span>
           <span>
-            <span className="block font-medium text-foreground">Create new calendar</span>
-            <span className="block text-xs text-muted-foreground">Set up a new calendar with availability</span>
+            <span className="block font-medium text-foreground">{t('settings.services.calendarSelector.createButton', 'Create new calendar')}</span>
+            <span className="block text-xs text-muted-foreground">{t('settings.services.calendarSelector.createButtonDescription', 'Set up a new calendar with availability')}</span>
           </span>
         </button>
       </div>

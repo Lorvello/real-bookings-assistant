@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -32,9 +33,14 @@ export function SettingsSaveBar({
   justSaved,
   onSave,
   onDiscard,
-  label = 'Unsaved changes',
-  saveLabel = 'Save changes',
+  label,
+  saveLabel,
 }: SettingsSaveBarProps) {
+  const { t } = useTranslation('settings');
+  // Translate the resting/save labels when the caller relies on the defaults;
+  // a caller that passes its own label provides an already-display-ready string.
+  const resolvedLabel = label ?? t('settings.common.unsavedChanges', 'Unsaved changes');
+  const resolvedSaveLabel = saveLabel ?? t('settings.common.saveChanges', 'Save changes');
   const showSaved = !!justSaved && !dirty;
   const show = dirty || showSaved;
 
@@ -57,7 +63,7 @@ export function SettingsSaveBar({
         {showSaved ? (
           <span className="flex items-center gap-2 px-1 py-1 text-sm font-medium text-success-foreground">
             <Check className="h-4 w-4" aria-hidden="true" />
-            Saved
+            {t('settings.common.saved', 'Saved')}
           </span>
         ) : (
           <>
@@ -65,8 +71,8 @@ export function SettingsSaveBar({
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
               {/* On a phone show just the first word ("Unsaved") so the pill fits;
                   the full label ("Unsaved changes") returns at md+. */}
-              <span className="md:hidden">{label.split(' ')[0]}</span>
-              <span className="hidden md:inline">{label}</span>
+              <span className="md:hidden">{resolvedLabel.split(' ')[0]}</span>
+              <span className="hidden md:inline">{resolvedLabel}</span>
             </span>
             <div className="flex items-center gap-1.5">
               <Button
@@ -75,14 +81,14 @@ export function SettingsSaveBar({
                 disabled={saving}
                 className="text-muted-foreground hover:text-foreground"
               >
-                Discard
+                {t('settings.common.discard', 'Discard')}
               </Button>
               <Button
                 onClick={onSave}
                 loading={saving}
                 className="rounded-full px-4 md:px-5"
               >
-                {saveLabel}
+                {resolvedSaveLabel}
               </Button>
             </div>
           </>

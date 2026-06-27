@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Clock, Edit2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,8 +15,9 @@ interface ServiceTypeCardProps {
 }
 
 export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardProps) {
+  const { t } = useTranslation('settings');
   const formatPrice = (price?: number) => {
-    if (!price) return 'Free';
+    if (!price) return t('settings.services.card.freePrice', 'Free');
     return `€${price.toFixed(2)}`;
   };
 
@@ -48,7 +50,7 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
               size="sm"
               className="h-8 w-8 min-w-11 p-0 text-muted-foreground hover:text-foreground md:min-w-0"
               onClick={() => onEdit(service)}
-              aria-label={`Edit ${service.name}`}
+              aria-label={t('settings.services.card.editAriaLabel', 'Edit {{serviceName}}', { serviceName: service.name })}
             >
               <Edit2 className="h-4 w-4" />
             </Button>
@@ -57,7 +59,7 @@ export function ServiceTypeCard({ service, onEdit, onDelete }: ServiceTypeCardPr
               size="sm"
               className="h-8 w-8 min-w-11 p-0 text-muted-foreground hover:text-destructive-foreground md:min-w-0"
               onClick={() => onDelete(service.id)}
-              aria-label={`Delete ${service.name}`}
+              aria-label={t('settings.services.card.deleteAriaLabel', 'Delete {{serviceName}}', { serviceName: service.name })}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

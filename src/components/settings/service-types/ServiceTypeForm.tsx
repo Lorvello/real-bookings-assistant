@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,6 +58,7 @@ export function ServiceTypeForm({
   onCalendarSelect,
   onCalendarCreated
 }: ServiceTypeFormProps) {
+  const { t } = useTranslation('settings');
   // Surface WHY Save is disabled instead of a silently-greyed button.
   const [nameTouched, setNameTouched] = useState(false);
 
@@ -73,23 +75,23 @@ export function ServiceTypeForm({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <SettingsField
-          label="Service name"
+          label={t('settings.services.fields.serviceName', 'Service name')}
           htmlFor="svc-name"
           required
-          error={nameInvalid ? 'Service name is required.' : null}
+          error={nameInvalid ? t('settings.services.fields.serviceNameRequired', 'Service name is required.') : null}
         >
           <Input
             id="svc-name"
             value={formData.name}
             onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             onBlur={() => setNameTouched(true)}
-            placeholder="e.g. Haircut"
+            placeholder={t('settings.services.fields.serviceNamePlaceholder', 'e.g. Haircut')}
             aria-invalid={nameInvalid}
             className={nameInvalid ? 'border-destructive/70 focus-visible:border-destructive/70 focus-visible:ring-destructive/25' : undefined}
           />
         </SettingsField>
 
-        <SettingsField label="Duration" htmlFor="svc-duration" description="In minutes." required>
+        <SettingsField label={t('settings.services.fields.duration', 'Duration')} htmlFor="svc-duration" description={t('settings.services.fields.durationDescription', 'In minutes.')} required>
           <Input
             id="svc-duration"
             type="number"
@@ -100,7 +102,7 @@ export function ServiceTypeForm({
           />
         </SettingsField>
 
-        <SettingsField label="Price" htmlFor="svc-price" description="Leave at 0 for a free service.">
+        <SettingsField label={t('settings.services.fields.price', 'Price')} htmlFor="svc-price" description={t('settings.services.fields.priceDescription', 'Leave at 0 for a free service.')}>
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
             <Input
@@ -116,7 +118,7 @@ export function ServiceTypeForm({
           </div>
         </SettingsField>
 
-        <SettingsField label="Color" description="Shown on the calendar and booking views.">
+        <SettingsField label={t('settings.services.fields.color', 'Color')} description={t('settings.services.fields.colorDescription', 'Shown on the calendar and booking views.')}>
           <ColorPicker
             value={formData.color}
             onChange={(color) => setFormData((prev) => ({ ...prev, color }))}
@@ -129,9 +131,9 @@ export function ServiceTypeForm({
           appointment in its conflict check. */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <SettingsField
-          label="Prep time"
+          label={t('settings.services.fields.prepTime', 'Prep time')}
           htmlFor="svc-prep"
-          description="Reserved before the appointment (minutes)."
+          description={t('settings.services.fields.prepTimeDescription', 'Reserved before the appointment (minutes).')}
           optional
         >
           <Input
@@ -145,9 +147,9 @@ export function ServiceTypeForm({
         </SettingsField>
 
         <SettingsField
-          label="Cleanup time"
+          label={t('settings.services.fields.cleanupTime', 'Cleanup time')}
           htmlFor="svc-cleanup"
-          description="Reserved after the appointment (minutes)."
+          description={t('settings.services.fields.cleanupTimeDescription', 'Reserved after the appointment (minutes).')}
           optional
         >
           <Input
@@ -161,13 +163,13 @@ export function ServiceTypeForm({
         </SettingsField>
       </div>
 
-      <SettingsField label="Description" htmlFor="svc-description" optional>
+      <SettingsField label={t('settings.services.fields.description', 'Description')} htmlFor="svc-description" optional>
         <Textarea
           id="svc-description"
           value={formData.description}
           onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
           rows={3}
-          placeholder="Optional description of the service"
+          placeholder={t('settings.services.fields.descriptionPlaceholder', 'Optional description of the service')}
         />
       </SettingsField>
 
@@ -203,7 +205,7 @@ export function ServiceTypeForm({
           Cancel
         </Button>
         <Button onClick={onSave} disabled={saving || !isValidForm()}>
-          {saving ? 'Saving…' : isEditing ? 'Update' : 'Create'}
+          {saving ? t('settings.services.savingButton', 'Saving…') : isEditing ? t('settings.services.updateButton', 'Update') : t('settings.services.createButton', 'Create')}
         </Button>
       </div>
     </div>
