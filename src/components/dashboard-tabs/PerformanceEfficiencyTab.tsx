@@ -5,7 +5,7 @@ import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscripti
 import { AlertTriangle, XCircle, CheckCircle, Activity, Info, Users, UserCheck, User } from 'lucide-react';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { PeakHoursChart } from './performance/PeakHoursChart';
-import { DateRange } from '@/components/dashboard/DateRangeFilter';
+import { DateRange, rangeLabel } from '@/components/dashboard/DateRangeFilter';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
 
@@ -94,12 +94,10 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
     );
   }
 
-  // Create dynamic labels based on date range
+  // Create dynamic labels based on date range (localized; preset stays the stable sentinel)
   const getMetricSubtitle = (baseText: string) => {
-    if (dateRange.preset === 'custom') {
-      return `${dateRange.label}`;
-    }
-    return `${dateRange.label.toLowerCase()}`;
+    const label = rangeLabel(dateRange, t);
+    return dateRange.preset === 'custom' ? label : label.toLowerCase();
   };
 
   // Get dynamic period text for tooltips
@@ -331,7 +329,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                       </TooltipContent>
                     </Tooltip>
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">{dateRange.label}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{rangeLabel(dateRange, t)}</p>
                 </div>
               </div>
               

@@ -1,8 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth, isAfter, isBefore } from 'date-fns';
+import { enUS, nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface DateRange {
@@ -19,6 +21,14 @@ interface CustomRangeCalendarProps {
 }
 
 export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCancel }: CustomRangeCalendarProps) {
+  const { t, i18n } = useTranslation('dashboard');
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const dow = [
+    t('dashboard.dateRange.dow.mo', 'Mo'), t('dashboard.dateRange.dow.tu', 'Tu'),
+    t('dashboard.dateRange.dow.we', 'We'), t('dashboard.dateRange.dow.th', 'Th'),
+    t('dashboard.dateRange.dow.fr', 'Fr'), t('dashboard.dateRange.dow.sa', 'Sa'),
+    t('dashboard.dateRange.dow.su', 'Su'),
+  ];
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const monthStart = startOfMonth(currentMonth);
@@ -129,7 +139,7 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
         </Button>
         
         <h3 className="text-lg font-semibold text-foreground">
-          {format(currentMonth, 'MMMM yyyy')}
+          {format(currentMonth, 'MMMM yyyy', { locale: dateLocale })}
         </h3>
         
         <Button
@@ -144,8 +154,8 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
 
       {/* Days of week header */}
       <div className="grid grid-cols-7 mb-2">
-        {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((day) => (
-          <div key={day} className="h-10 flex items-center justify-center text-sm font-medium text-muted-foreground">
+        {dow.map((day, i) => (
+          <div key={i} className="h-10 flex items-center justify-center text-sm font-medium text-muted-foreground">
             {day}
           </div>
         ))}
@@ -194,12 +204,12 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
       {/* Selected range display */}
       {(value.startDate || value.endDate) && (
         <div className="mt-6 p-3 bg-muted/50 rounded-lg border">
-          <div className="text-sm text-muted-foreground mb-1">Selected Range</div>
+          <div className="text-sm text-muted-foreground mb-1">{t('dashboard.dateRange.selectedRange', 'Selected Range')}</div>
           <div className="text-sm font-medium">
-            {value.startDate ? format(value.startDate, 'MMM d, yyyy') : 'Select start date'}
-            {value.startDate && !value.endDate && ' - Select end date'}
-            {value.startDate && value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy')}`}
-            {!value.startDate && value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy')}`}
+            {value.startDate ? format(value.startDate, 'MMM d, yyyy', { locale: dateLocale }) : t('dashboard.dateRange.selectStart', 'Select start date')}
+            {value.startDate && !value.endDate && ` - ${t('dashboard.dateRange.selectEnd', 'Select end date')}`}
+            {value.startDate && value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy', { locale: dateLocale })}`}
+            {!value.startDate && value.endDate && ` - ${format(value.endDate, 'MMM d, yyyy', { locale: dateLocale })}`}
           </div>
         </div>
       )}
@@ -211,7 +221,7 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
           onClick={handleClear}
           size="sm"
         >
-          Clear
+          {t('dashboard.dateRange.clear', 'Clear')}
         </Button>
         
         <div className="flex gap-2">
@@ -220,14 +230,14 @@ export function CustomRangeCalendar({ value, onChange, onApply, onClear, onCance
             onClick={onCancel}
             size="sm"
           >
-            Cancel
+            {t('dashboard.dateRange.cancel', 'Cancel')}
           </Button>
           <Button
             onClick={onApply}
             disabled={!value.startDate || !value.endDate}
             size="sm"
           >
-            Apply
+            {t('dashboard.dateRange.apply', 'Apply')}
           </Button>
         </div>
       </div>

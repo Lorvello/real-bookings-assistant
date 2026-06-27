@@ -123,6 +123,34 @@
         "avgPrice": "Gemiddelde prijs"
       }
     },
+    "dateRange": {
+      "preset": {
+        "upcoming": "Aankomend",
+        "next30days": "Komende 30 dagen",
+        "last7days": "Laatste 7 dagen",
+        "last30days": "Laatste 30 dagen",
+        "last3months": "Laatste 3 maanden",
+        "lastyear": "Laatste jaar",
+        "alltime": "Alle tijd"
+      },
+      "customRange": "Aangepast bereik...",
+      "selectTitle": "Datumbereik selecteren",
+      "selectedRange": "Geselecteerde periode",
+      "selectStart": "Selecteer startdatum",
+      "selectEnd": "Selecteer einddatum",
+      "clear": "Wissen",
+      "cancel": "Annuleren",
+      "apply": "Toepassen",
+      "dow": {
+        "mo": "ma",
+        "tu": "di",
+        "we": "wo",
+        "th": "do",
+        "fr": "vr",
+        "sa": "za",
+        "su": "zo"
+      }
+    },
     "futureInsights": {
       "errTitle": "Fout bij het laden van toekomstinzichten",
       "errDesc": "Vernieuw de pagina om het opnieuw te proberen",

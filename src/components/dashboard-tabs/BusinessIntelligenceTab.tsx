@@ -7,7 +7,7 @@ import { TrendingUp, Euro, BarChart3, Calendar, PiggyBank, Info } from 'lucide-r
 import { BusinessIntelligenceLoading } from './business-intelligence/BusinessIntelligenceLoading';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ServicePerformanceChart } from './business-intelligence/ServicePerformanceChart';
-import { DateRange } from '@/components/dashboard/DateRangeFilter';
+import { DateRange, rangeLabel } from '@/components/dashboard/DateRangeFilter';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
 
@@ -74,12 +74,10 @@ export function BusinessIntelligenceTab({ calendarIds, dateRange }: BusinessInte
 
   const isRevenueUp = revenueChange > 0;
 
-  // Create dynamic labels based on date range
+  // Create dynamic labels based on date range (localized; preset stays the stable sentinel)
   const getMetricSubtitle = (baseText: string) => {
-    if (dateRange.preset === 'custom') {
-      return `${dateRange.label}`;
-    }
-    return `${dateRange.label.toLowerCase()}`;
+    const label = rangeLabel(dateRange, t);
+    return dateRange.preset === 'custom' ? label : label.toLowerCase();
   };
 
   // Get dynamic period text for tooltips
