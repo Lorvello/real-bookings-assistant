@@ -14,7 +14,7 @@ export default function TestAIAgent() {
   const pageContent = (
     <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
       <div className="space-y-3 md:space-y-6">
-        <SimplePageHeader title="Test AI Agent" />
+        <SimplePageHeader title={t('testAgentPage.header', 'Test AI Agent')} />
 
         <div className="surface-raised rounded-xl h-[600px] md:h-[700px] overflow-hidden">
           {/* framed={false}: the surface-raised wrapper is the single app-standard frame; the chat fills it

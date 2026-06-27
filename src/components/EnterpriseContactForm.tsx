@@ -207,7 +207,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="John Doe"
+                          placeholder={t('enterpriseForm.fullNamePlaceholder', 'John Doe')}
                           className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
                         />
                       </FormControl>
@@ -229,7 +229,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                         <Input
                           {...field}
                           type="email"
-                          placeholder="john@company.com"
+                          placeholder={t('enterpriseForm.emailPlaceholder', 'john@company.com')}
                           className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
                         />
                       </FormControl>
@@ -247,7 +247,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="ACME Corporation"
+                          placeholder={t('enterpriseForm.companyNamePlaceholder', 'ACME Corporation')}
                           className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
                         />
                       </FormControl>
@@ -268,7 +268,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="https://www.company.com"
+                          placeholder={t('enterpriseForm.companyWebsitePlaceholder', 'https://www.company.com')}
                           className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
                         />
                       </FormControl>
@@ -289,7 +289,7 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="+31 6 12345678"
+                          placeholder={t('enterpriseForm.phoneNumberPlaceholder', '+31 6 12345678')}
                           className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-400"
                         />
                       </FormControl>

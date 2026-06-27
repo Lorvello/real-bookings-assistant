@@ -83,7 +83,12 @@
       "successDesc": "Bedankt voor je interesse! Ons enterprise-team neemt binnen 24 uur contact met je op.",
       "failTitle": "Verzenden mislukt",
       "failDesc": "Er ging iets mis bij het verzenden van je aanvraag. Probeer het opnieuw of neem rechtstreeks contact met ons op."
-    }
+    },
+    "fullNamePlaceholder": "Jan Jansen",
+    "emailPlaceholder": "jan@bedrijf.nl",
+    "companyNamePlaceholder": "Voorbeeld BV",
+    "companyWebsitePlaceholder": "https://www.bedrijf.nl",
+    "phoneNumberPlaceholder": "+31 6 12345678"
   },
   "dayModal": {
     "ariaAppointmentsOn": "Afspraken op {{date}}",
