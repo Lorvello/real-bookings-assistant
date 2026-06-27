@@ -137,6 +137,7 @@
     "pleaseWait": "Even geduld. Je kunt dit venster sluiten zodra Stripe opent.",
     "blockedTitle": "Directe doorgifte geblokkeerd",
     "openNow": "Open Stripe nu",
-    "couldNotRedirect": "Kon niet doorsturen naar Stripe"
+    "couldNotRedirect": "Kon niet doorsturen naar Stripe",
+    "docTitle": "Doorsturen naar Stripe"
   }
 }

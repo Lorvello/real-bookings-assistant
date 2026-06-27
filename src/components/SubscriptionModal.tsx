@@ -612,7 +612,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                       <button
                         onClick={prevSlide}
                         className="p-3 rounded-full bg-slate-800/95 text-white hover:bg-slate-700/95 transition-colors duration-200 shadow-lg backdrop-blur-sm border border-slate-700/50"
-                        aria-label="Previous slide"
+                        aria-label={t('carousel.prevSlide', 'Previous slide')}
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
@@ -623,7 +623,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                       <button
                         onClick={nextSlide}
                         className="p-3 rounded-full bg-slate-800/95 text-white hover:bg-slate-700/95 transition-colors duration-200 shadow-lg backdrop-blur-sm border border-slate-700/50"
-                        aria-label="Next slide"
+                        aria-label={t('carousel.nextSlide', 'Next slide')}
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -640,7 +640,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                             ? 'bg-emerald-400 w-8 shadow-md shadow-emerald-400/30' 
                             : 'bg-slate-600 hover:bg-slate-500 w-2'
                         }`}
-                        aria-label={`Go to slide ${index + 1}`}
+                        aria-label={t('carousel.goToSlide', 'Go to slide {{n}}', { n: index + 1 })}
                       />
                     ))}
                   </div>

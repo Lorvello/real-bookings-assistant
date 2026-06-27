@@ -48,7 +48,7 @@ const StripeGo: React.FC = () => {
       }
     };
 
-    document.title = 'Stripe Dashboard Redirect';
+    document.title = t('stripeRedirect.docTitle', 'Stripe Dashboard Redirect');
     run();
     return () => { cancelled = true; };
   }, []);

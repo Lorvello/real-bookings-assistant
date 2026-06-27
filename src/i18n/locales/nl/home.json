@@ -135,6 +135,11 @@
       "independent": { "sector": "Zelfstandige professionals", "text": "Eén WhatsApp-lijn runt rustig je hele agenda terwijl jij aan het werk bent." }
     }
   },
+  "carousel": {
+    "prevSlide": "Vorige dia",
+    "nextSlide": "Volgende dia",
+    "goToSlide": "Ga naar dia {{n}}"
+  },
   "pricing": {
     "badge": "Eenvoudige prijzen",
     "titlePre": "Kies je",
