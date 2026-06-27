@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ export function EditCalendarDialog({
   onCalendarUpdated
 }: EditCalendarDialogProps) {
   const { toast } = useToast();
+  const { t } = useTranslation('appPages');
   const { serviceTypes, loading: serviceTypesLoading, refetch: refetchServiceTypes } = useServiceTypes(undefined, true);
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
   const { updateCalendarName } = useCalendarSettings(calendar?.id);
@@ -132,8 +134,8 @@ export function EditCalendarDialog({
     } catch (error) {
       console.error('Error updating calendar:', error);
       toast({
-        title: "Error updating calendar",
-        description: "Could not update calendar. Please try again.",
+        title: t('calPage.editCalendar.updateError.title', 'Error updating calendar'),
+        description: t('calPage.editCalendar.updateError.description', 'Could not update calendar. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -149,8 +151,8 @@ export function EditCalendarDialog({
       await deleteCalendar(calendar.id);
       
       toast({
-        title: "Calendar deleted",
-        description: "Calendar has been deleted successfully",
+        title: t('calPage.editCalendar.deleteSuccess.title', 'Calendar deleted'),
+        description: t('calPage.editCalendar.deleteSuccess.description', 'Calendar has been deleted successfully'),
       });
       
       onCalendarUpdated?.();
@@ -158,8 +160,8 @@ export function EditCalendarDialog({
     } catch (error) {
       console.error('Error deleting calendar:', error);
       toast({
-        title: "Error deleting calendar",
-        description: "Could not delete calendar. Please try again.",
+        title: t('calPage.editCalendar.deleteError.title', 'Error deleting calendar'),
+        description: t('calPage.editCalendar.deleteError.description', 'Could not delete calendar. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -234,33 +236,33 @@ export function EditCalendarDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit calendar</DialogTitle>
+          <DialogTitle>{t('calPage.editCalendar.title', 'Edit calendar')}</DialogTitle>
           <DialogDescription>
-            Update your calendar settings and manage team members and service types.
+            {t('calPage.editCalendar.description', 'Update your calendar settings and manage team members and service types.')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
           {/* Calendar Name */}
           <div>
-            <Label htmlFor="calendar-name">Calendar name *</Label>
+            <Label htmlFor="calendar-name">{t('calPage.editCalendar.nameLabel', 'Calendar name *')}</Label>
             <Input
               id="calendar-name"
-              placeholder="e.g. Main Calendar"
+              placeholder={t('calPage.editCalendar.namePlaceholder', 'e.g. Main Calendar')}
               value={editCalendar.name}
               onChange={(e) => setEditCalendar(prev => ({ ...prev, name: e.target.value }))}
             />
             <p className="text-sm text-muted-foreground mt-1">
-              A clear name for this calendar, such as a person, location, or room.
+              {t('calPage.editCalendar.nameHint', 'A clear name for this calendar, such as a person, location, or room.')}
             </p>
           </div>
 
           {/* Description */}
           <div>
-            <Label htmlFor="calendar-description">Description</Label>
+            <Label htmlFor="calendar-description">{t('calPage.editCalendar.descriptionLabel', 'Description')}</Label>
             <Textarea
               id="calendar-description"
-              placeholder="For which team member, location, or service is this calendar?"
+              placeholder={t('calPage.editCalendar.descriptionPlaceholder', 'For which team member, location, or service is this calendar?')}
               value={editCalendar.description}
               onChange={(e) => setEditCalendar(prev => ({ ...prev, description: e.target.value }))}
             />
@@ -271,14 +273,14 @@ export function EditCalendarDialog({
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Settings className="h-4 w-4" />
-              <h4 className="font-medium text-foreground">Service Types *</h4>
+              <h4 className="font-medium text-foreground">{t('calPage.editCalendar.serviceTypesLabel', 'Service Types *')}</h4>
             </div>
-            
+
             <SimpleMultiSelect
               options={getServiceTypeOptions()}
               selected={selectedServiceTypes}
               onChange={handleServiceTypeChange}
-              placeholder="Select service types..."
+              placeholder={t('calPage.editCalendar.serviceTypesPlaceholder', 'Select service types...')}
             />
 
             {/* Create New Service Type Button */}
@@ -290,11 +292,11 @@ export function EditCalendarDialog({
               className="w-full"
             >
               <Settings className="h-4 w-4 mr-2" />
-              Create New Service Type
+              {t('calPage.editCalendar.createServiceButton', 'Create New Service Type')}
             </Button>
-            
+
             <p className="text-sm text-muted-foreground">
-              Select the service types this calendar will offer
+              {t('calPage.editCalendar.serviceTypesHint', 'Select the service types this calendar will offer')}
             </p>
           </div>
 
@@ -302,24 +304,24 @@ export function EditCalendarDialog({
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
-              <h4 className="font-medium text-foreground">Team Members *</h4>
+              <h4 className="font-medium text-foreground">{t('calPage.editCalendar.membersLabel', 'Team Members *')}</h4>
             </div>
-            
+
             <SimpleMultiSelect
               options={getTeamMemberOptions()}
               selected={selectedTeamMembers}
               onChange={handleTeamMemberChange}
-              placeholder="Select team members..."
+              placeholder={t('calPage.editCalendar.membersPlaceholder', 'Select team members...')}
             />
-            
+
             <p className="text-sm text-muted-foreground">
-              Select team members who will have access to this calendar. Multiple members can be selected.
+              {t('calPage.editCalendar.membersHint', 'Select team members who will have access to this calendar. Multiple members can be selected.')}
             </p>
           </div>
 
           {/* Color */}
           <div>
-            <Label>Color</Label>
+            <Label>{t('calPage.editCalendar.colorLabel', 'Color')}</Label>
             <div className="flex flex-wrap gap-2 mt-2">
               {colorOptions.map((color) => (
                 <button
@@ -334,7 +336,7 @@ export function EditCalendarDialog({
               ))}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Choose a color to distinguish the calendar
+              {t('calPage.editCalendar.colorHint', 'Choose a color to distinguish the calendar')}
             </p>
           </div>
         </div>
@@ -344,20 +346,20 @@ export function EditCalendarDialog({
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete Calendar
+                {t('calPage.editCalendar.deleteButton', 'Delete Calendar')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>{t('calPage.editCalendar.deleteConfirm.title', 'Are you sure?')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the calendar and all its data.
+                  {t('calPage.editCalendar.deleteConfirm.description', 'This action cannot be undone. This will permanently delete the calendar and all its data.')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('calPage.editCalendar.deleteConfirm.cancel', 'Cancel')}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteCalendar} disabled={loading}>
-                  {loading ? 'Deleting...' : 'Delete Calendar'}
+                  {loading ? t('calPage.editCalendar.deletingButton', 'Deleting...') : t('calPage.editCalendar.deleteButton', 'Delete Calendar')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -365,13 +367,13 @@ export function EditCalendarDialog({
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('calPage.editCalendar.cancelButton', 'Cancel')}
             </Button>
-            <Button 
+            <Button
               onClick={handleUpdateCalendar}
               disabled={!editCalendar.name.trim() || loading}
             >
-              {loading ? 'Updating...' : 'Update calendar'}
+              {loading ? t('calPage.editCalendar.submittingButton', 'Updating...') : t('calPage.editCalendar.submitButton', 'Update calendar')}
             </Button>
           </div>
         </DialogFooter>

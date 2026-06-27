@@ -32,10 +32,10 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
       {!canAddMore && accessControl.canAccessWhatsApp && (
         <div className="mb-4 shrink-0">
           <UpgradePrompt 
-            feature="WhatsApp Contacts"
+            feature={t('upgradePrompt.featureWhatsappContacts', 'WhatsApp Contacts')}
             currentUsage={`${currentCount}/${maxContacts}`}
-            limit={`${maxContacts} contact${maxContacts === 1 ? '' : 's'}`}
-            description="You've reached your WhatsApp contact limit. Upgrade to Professional to manage unlimited contacts."
+            limit={String(maxContacts)}
+            description={t('upgradePrompt.descWhatsappContacts', "You've reached your WhatsApp contact limit. Upgrade to Professional to manage unlimited contacts.")}
           />
         </div>
       )}

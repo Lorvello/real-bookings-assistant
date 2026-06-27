@@ -280,10 +280,10 @@ export function CreateCalendarDialog({
               {/* Calendar Limit Check */}
               {!canCreateMore && (
                 <UpgradePrompt 
-                  feature="Calendars"
+                  feature={t('upgradePrompt.featureCalendars', 'Calendars')}
                   currentUsage={`${currentCount}/${maxCalendars}`}
-                  limit={`${maxCalendars} calendar${maxCalendars === 1 ? '' : 's'}`}
-                  description="Upgrade to Professional to create unlimited calendars and access more features."
+                  limit={String(maxCalendars)}
+                  description={t('upgradePrompt.descCalendars', 'Upgrade to Professional to create unlimited calendars and access more features.')}
                   className="mb-6"
                 />
               )}

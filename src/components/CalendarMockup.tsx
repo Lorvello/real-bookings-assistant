@@ -211,7 +211,7 @@ const CalendarMockup = () => {
                 </div>
               </div>
             );
-          }), [days, currentDate])}
+          }), [days, currentDate, t])}
         </div>
       </div>
 

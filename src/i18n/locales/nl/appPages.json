@@ -1,4 +1,16 @@
 {
+  "upgradePrompt": {
+    "title": "Upgrade vereist",
+    "reachedLimit": "Je hebt de limiet voor {{feature}} op je huidige abonnement bereikt.",
+    "currentUsage": "Huidig gebruik:",
+    "planLimit": "Abonnementslimiet:",
+    "upgradeButton": "Upgraden naar Professional",
+    "unlimited": "Krijg onbeperkt {{feature}} en meer met het Professional-abonnement",
+    "featureWhatsappContacts": "WhatsApp-contacten",
+    "descWhatsappContacts": "Je hebt je WhatsApp-contactlimiet bereikt. Upgrade naar Professional om onbeperkt contacten te beheren.",
+    "featureCalendars": "agenda's",
+    "descCalendars": "Upgrade naar Professional om onbeperkt agenda's aan te maken en meer functies te gebruiken."
+  },
   "availPage": {
     "header": "Beschikbaarheid",
     "tab": {
@@ -171,6 +183,12 @@
   "convPage": {
     "noCalendarTitle": "Selecteer een agenda",
     "selectCalendarPlaceholder": "Selecteer agenda",
+    "status": {
+      "active": "Actief",
+      "pending": "In afwachting",
+      "closed": "Gesloten",
+      "unknown": "Onbekend"
+    },
     "noCalendarDescription": "Kies een agenda om je WhatsApp-gesprekken te bekijken",
     "noCalendarsTitle": "Maak je eerste agenda aan",
     "noCalendarsDescription": "WhatsApp-gesprekken zijn gekoppeld aan een agenda. Maak er een aan om hier boekingen te ontvangen en te beheren.",
@@ -403,7 +421,7 @@
       "button": "Agenda aanmaken"
     },
     "viewTitle": {
-      "all": "Alle agendas"
+      "all": "Alle agenda's"
     },
     "readOnlyAlert": {
       "message": "Alleen-lezen modus - Je {{status}}. {{action}} om boekingen en beschikbaarheid te bewerken.",
@@ -543,13 +561,66 @@
       },
       "closeButton": "Sluiten"
     },
+    "editCalendar": {
+      "title": "Agenda bewerken",
+      "description": "Werk je agenda-instellingen bij en beheer teamleden en diensten.",
+      "nameLabel": "Agendanaam *",
+      "namePlaceholder": "Bijvoorbeeld: Hoofdagenda",
+      "nameHint": "Een duidelijke naam voor deze agenda, zoals een persoon, locatie of ruimte.",
+      "descriptionLabel": "Omschrijving",
+      "descriptionPlaceholder": "Voor welk teamlid, welke locatie of welke dienst is deze agenda?",
+      "serviceTypesLabel": "Diensten *",
+      "serviceTypesPlaceholder": "Selecteer diensten...",
+      "createServiceButton": "Nieuwe dienst aanmaken",
+      "serviceTypesHint": "Selecteer de diensten die deze agenda aanbiedt",
+      "membersLabel": "Teamleden *",
+      "membersPlaceholder": "Selecteer teamleden...",
+      "membersHint": "Selecteer teamleden die toegang krijgen tot deze agenda. Je kunt meerdere teamleden kiezen.",
+      "colorLabel": "Kleur",
+      "colorHint": "Kies een kleur om de agenda te onderscheiden",
+      "deleteButton": "Agenda verwijderen",
+      "deletingButton": "Verwijderen...",
+      "cancelButton": "Annuleren",
+      "submitButton": "Agenda bijwerken",
+      "submittingButton": "Bijwerken...",
+      "deleteConfirm": {
+        "title": "Weet je het zeker?",
+        "description": "Deze actie kan niet ongedaan worden gemaakt. Dit verwijdert de agenda en alle bijbehorende gegevens permanent.",
+        "cancel": "Annuleren"
+      },
+      "updateError": {
+        "title": "Fout bij bijwerken agenda",
+        "description": "We konden de agenda niet bijwerken. Probeer het opnieuw."
+      },
+      "deleteSuccess": {
+        "title": "Agenda verwijderd",
+        "description": "De agenda is verwijderd."
+      },
+      "deleteError": {
+        "title": "Fout bij verwijderen agenda",
+        "description": "We konden de agenda niet verwijderen. Probeer het opnieuw."
+      }
+    },
+    "quickService": {
+      "title": "Nieuwe dienst toevoegen",
+      "nameLabel": "Dienstnaam *",
+      "namePlaceholder": "Bijvoorbeeld: Knipbeurt",
+      "durationLabel": "Duur (minuten) *",
+      "priceLabel": "Prijs (€)",
+      "colorLabel": "Kleur",
+      "descriptionLabel": "Omschrijving",
+      "descriptionPlaceholder": "Optionele omschrijving van de dienst",
+      "cancelButton": "Annuleren",
+      "creatingButton": "Aanmaken...",
+      "createButton": "Dienst aanmaken"
+    },
     "createCalendar": {
       "title": "Nieuwe agenda aanmaken",
       "description": "Geef je agenda een naam en selecteer minstens een teamlid. Je kunt diensten nu toevoegen of later in de Diensten-stap.",
       "restricted": {
         "title": "Agenda aanmaken is beperkt",
-        "expiredTrial": "Je proefperiode is verlopen. Upgrade nu om nieuwe agendas aan te maken en afspraken te blijven inplannen.",
-        "inactive": "Activeer je account opnieuw om nieuwe agendas aan te maken en alle boekingsfuncties te gebruiken."
+        "expiredTrial": "Je proefperiode is verlopen. Upgrade nu om nieuwe agenda's aan te maken en afspraken te blijven inplannen.",
+        "inactive": "Activeer je account opnieuw om nieuwe agenda's aan te maken en alle boekingsfuncties te gebruiken."
       },
       "form": {
         "nameLabel": "Agendanaam *",
@@ -581,16 +652,16 @@
     "upgradeModal": {
       "restricted": {
         "title": "Agenda aanmaken is beperkt",
-        "expiredTrial": "Je proefperiode is verlopen. Upgrade nu om nieuwe agendas aan te maken en afspraken te blijven inplannen."
+        "expiredTrial": "Je proefperiode is verlopen. Upgrade nu om nieuwe agenda's aan te maken en afspraken te blijven inplannen."
       },
       "reactivate": {
-        "title": "Activeer opnieuw om agendas aan te maken",
-        "description": "Activeer je account opnieuw om nieuwe agendas aan te maken en alle boekingsfuncties te gebruiken.",
+        "title": "Activeer opnieuw om agenda's aan te maken",
+        "description": "Activeer je account opnieuw om nieuwe agenda's aan te maken en alle boekingsfuncties te gebruiken.",
         "button": "Abonnement opnieuw activeren"
       },
       "default": {
         "title": "Upgrade vereist",
-        "description": "Upgrade je abonnement om nieuwe agendas aan te maken.",
+        "description": "Upgrade je abonnement om nieuwe agenda's aan te maken.",
         "button": "Upgraden"
       },
       "upgrade": {

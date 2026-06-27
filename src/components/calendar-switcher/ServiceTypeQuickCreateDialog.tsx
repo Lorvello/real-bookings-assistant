@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ export function ServiceTypeQuickCreateDialog({
   open,
   onOpenChange
 }: ServiceTypeQuickCreateDialogProps) {
+  const { t } = useTranslation('appPages');
   const [isOpen, setIsOpen] = useState(open || false);
   const [formData, setFormData] = useState({
     name: '',
@@ -167,19 +169,19 @@ export function ServiceTypeQuickCreateDialog({
       )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add New Service</DialogTitle>
+          <DialogTitle>{t('calPage.quickService.title', 'Add New Service')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleCreateService} className="space-y-6 pt-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="serviceName" className="block text-sm font-medium text-foreground mb-1">
-                Service Name *
+                {t('calPage.quickService.nameLabel', 'Service Name *')}
               </Label>
               <Input
                 id="serviceName"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g. Haircut"
+                placeholder={t('calPage.quickService.namePlaceholder', 'e.g. Haircut')}
                 className="w-full"
                 required
               />
@@ -187,7 +189,7 @@ export function ServiceTypeQuickCreateDialog({
             
             <div>
               <Label htmlFor="serviceDuration" className="block text-sm font-medium text-foreground mb-1">
-                Duration (minutes) *
+                {t('calPage.quickService.durationLabel', 'Duration (minutes) *')}
               </Label>
               <Input
                 id="serviceDuration"
@@ -202,7 +204,7 @@ export function ServiceTypeQuickCreateDialog({
             
             <div>
               <Label htmlFor="servicePrice" className="block text-sm font-medium text-foreground mb-1">
-                Price (€)
+                {t('calPage.quickService.priceLabel', 'Price (€)')}
               </Label>
               <Input
                 id="servicePrice"
@@ -218,7 +220,7 @@ export function ServiceTypeQuickCreateDialog({
             
             <div>
               <Label className="block text-sm font-medium text-foreground mb-1">
-                Color
+                {t('calPage.quickService.colorLabel', 'Color')}
               </Label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {colorOptions.map((color) => (
@@ -237,13 +239,13 @@ export function ServiceTypeQuickCreateDialog({
             
             <div className="md:col-span-2">
               <Label htmlFor="serviceDescription" className="block text-sm font-medium text-foreground mb-1">
-                Description
+                {t('calPage.quickService.descriptionLabel', 'Description')}
               </Label>
               <Textarea
                 id="serviceDescription"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Optional description of the service"
+                placeholder={t('calPage.quickService.descriptionPlaceholder', 'Optional description of the service')}
                 rows={3}
                 className="w-full"
               />
@@ -270,13 +272,13 @@ export function ServiceTypeQuickCreateDialog({
               onClick={() => setIsOpen(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {t('calPage.quickService.cancelButton', 'Cancel')}
             </Button>
-            <Button 
+            <Button
               type="submit"
               disabled={isSubmitting || !formData.name.trim()}
             >
-              {isSubmitting ? 'Creating...' : 'Create Service'}
+              {isSubmitting ? t('calPage.quickService.creatingButton', 'Creating...') : t('calPage.quickService.createButton', 'Create Service')}
             </Button>
           </div>
         </form>

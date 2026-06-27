@@ -37,10 +37,10 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
 
   const getStatusLabel = (status: string | undefined) => {
     switch (status) {
-      case 'active': return 'Active';
-      case 'pending': return 'Pending';
-      case 'closed': return 'Closed';
-      default: return 'Unknown';
+      case 'active': return t('convPage.status.active', 'Active');
+      case 'pending': return t('convPage.status.pending', 'Pending');
+      case 'closed': return t('convPage.status.closed', 'Closed');
+      default: return t('convPage.status.unknown', 'Unknown');
     }
   };
 
