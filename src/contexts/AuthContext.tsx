@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [deviceFingerprint, setDeviceFingerprint] = useState<DeviceFingerprint | null>(null);
+  const { t } = useTranslation('auth');
   const { toast } = useToast();
 
   // Initialize device fingerprinting on mount
@@ -58,8 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       timeoutId = setTimeout(async () => {
         toast({
-          title: "Session Expired",
-          description: "Your session has expired due to inactivity. Please sign in again.",
+          title: t('auth.provider.sessionExpiredTitle', 'Session Expired'),
+          description: t('auth.provider.sessionExpiredDesc', 'Your session has expired due to inactivity. Please sign in again.'),
           variant: "destructive",
         });
         await supabase.auth.signOut();
@@ -89,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         window.removeEventListener(event, handleActivity);
       });
     };
-  }, [session, toast]);
+  }, [session, toast, t]);
 
   useEffect(() => {
     let mounted = true;
@@ -158,8 +160,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           component: 'AuthProvider'
         });
         toast({
-          title: "Error",
-          description: "Failed to sign out. Please try again.",
+          title: t('auth.provider.errorTitle', 'Error'),
+          description: t('auth.provider.signOutFailed', 'Failed to sign out. Please try again.'),
           variant: "destructive",
         });
       }
@@ -168,23 +170,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         component: 'AuthProvider'
       });
       toast({
-        title: "Error",
-        description: "An unexpected error occurred during sign out.",
+        title: t('auth.provider.errorTitle', 'Error'),
+        description: t('auth.provider.signOutUnexpected', 'An unexpected error occurred during sign out.'),
         variant: "destructive",
       });
     }
-  }, [user?.id, toast]);
+  }, [user?.id, toast, t]);
 
   const signIn = useCallback(async (email: string, password: string, rememberDevice: boolean = false) => {
     // Check rate limiting for authentication attempts
     const rateLimitCheck = checkAuthRateLimit(email);
     if (!rateLimitCheck.allowed) {
       const message = rateLimitCheck.blockedUntil
-        ? `Too many login attempts. Try again after ${rateLimitCheck.blockedUntil.toLocaleTimeString()}`
-        : 'Too many login attempts. Please wait before trying again.';
+        ? t('auth.provider.rateLimitWithTime', 'Too many login attempts. Try again after {{time}}', { time: rateLimitCheck.blockedUntil.toLocaleTimeString() })
+        : t('auth.provider.rateLimitWait', 'Too many login attempts. Please wait before trying again.');
 
       toast({
-        title: "Too Many Attempts",
+        title: t('auth.provider.tooManyTitle', 'Too Many Attempts'),
         description: message,
         variant: "destructive",
       });
@@ -261,8 +263,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await supabase.auth.signOut();
 
         toast({
-          title: "Login Blocked",
-          description: "Suspicious activity detected. Please verify your identity or contact support.",
+          title: t('auth.provider.loginBlockedTitle', 'Login Blocked'),
+          description: t('auth.provider.loginBlockedDesc', 'Suspicious activity detected. Please verify your identity or contact support.'),
           variant: "destructive",
         });
 
@@ -271,8 +273,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (riskAssessment.is_suspicious) {
         toast({
-          title: "Unusual Login Detected",
-          description: "We noticed unusual activity. Please verify your identity.",
+          title: t('auth.provider.unusualTitle', 'Unusual Login Detected'),
+          description: t('auth.provider.unusualDesc', 'We noticed unusual activity. Please verify your identity.'),
           variant: "default",
         });
       }
@@ -289,16 +291,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const passwordCheck = await checkPasswordExpiry(userId);
       if (passwordCheck.isExpired) {
         toast({
-          title: "Password Expired",
-          description: "Your password has expired. Please change it now.",
+          title: t('auth.provider.pwExpiredTitle', 'Password Expired'),
+          description: t('auth.provider.pwExpiredDesc', 'Your password has expired. Please change it now.'),
           variant: "destructive",
         });
         // Return expiry info so caller can handle navigation
         return { data, error, passwordExpired: true };
       } else if (passwordCheck.daysUntilExpiry <= 7) {
         toast({
-          title: "Password Expiring Soon",
-          description: `Your password will expire in ${passwordCheck.daysUntilExpiry} days.`,
+          title: t('auth.provider.pwExpiringTitle', 'Password Expiring Soon'),
+          description: passwordCheck.daysUntilExpiry === 1
+            ? t('auth.provider.pwExpiringDescOne', 'Your password will expire in {{count}} day.', { count: passwordCheck.daysUntilExpiry })
+            : t('auth.provider.pwExpiringDescOther', 'Your password will expire in {{count}} days.', { count: passwordCheck.daysUntilExpiry }),
           variant: "default",
         });
       }
@@ -316,7 +320,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       return { error: { message: 'An unexpected error occurred' } };
     }
-  }, [toast, deviceFingerprint]);
+  }, [toast, deviceFingerprint, t]);
 
   const value = useMemo(() => ({
     user,
