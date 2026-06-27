@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -36,8 +37,9 @@ interface ServiceTypeInstallmentCardProps {
 export function ServiceTypeInstallmentCard({ 
   serviceType, 
   plan, 
-  onPlanChange 
+  onPlanChange
 }: ServiceTypeInstallmentCardProps) {
+  const { t } = useTranslation('settings');
   const [planType, setPlanType] = useState<'preset' | 'custom'>(plan.type || 'preset');
   const [presetSelection, setPresetSelection] = useState(plan.preset || '100_at_booking');
   const [fixedDepositAmount, setFixedDepositAmount] = useState(plan.fixed_deposit_amount || 50);
@@ -48,32 +50,32 @@ export function ServiceTypeInstallmentCard({
 
   const presetPlans = {
     '100_at_booking': {
-      name: '100% at Booking',
-      description: 'Full payment upfront at time of booking',
+      name: t('settings.payments.installments.presets.fullAtBooking.name', '100% at Booking'),
+      description: t('settings.payments.installments.presets.fullAtBooking.description', 'Full payment upfront at time of booking'),
       deposits: [
         { percentage: 100, timing: 'now' as const }
       ]
     },
-    '50_50': { 
-      name: '50/50 Split', 
-      description: '50% at booking, 50% on location',
+    '50_50': {
+      name: t('settings.payments.installments.presets.split5050.name', '50/50 Split'),
+      description: t('settings.payments.installments.presets.split5050.description', '50% at booking, 50% on location'),
       deposits: [
         { percentage: 50, timing: 'now' as const },
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
-    '25_25_50': { 
-      name: '25/25/50 Split', 
-      description: '25% at booking, 25% 1 week later, 50% on location',
+    '25_25_50': {
+      name: t('settings.payments.installments.presets.split252550.name', '25/25/50 Split'),
+      description: t('settings.payments.installments.presets.split252550.description', '25% at booking, 25% 1 week later, 50% on location'),
       deposits: [
         { percentage: 25, timing: 'now' as const },
         { percentage: 25, timing: 'hours_after' as const, hours: 168 },
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
-    'fixed_deposit': { 
-      name: 'Fixed Deposit Plus Remaining', 
-      description: 'Fixed amount at booking, rest on location',
+    'fixed_deposit': {
+      name: t('settings.payments.installments.presets.fixedDeposit.name', 'Fixed Deposit Plus Remaining'),
+      description: t('settings.payments.installments.presets.fixedDeposit.description', 'Fixed amount at booking, rest on location'),
       deposits: [] as DepositInfo[]
     }
   };
@@ -166,17 +168,17 @@ export function ServiceTypeInstallmentCard({
     return [
       {
         value: 'now',
-        label: 'At Booking',
+        label: t('settings.payments.installments.timing.atBooking', 'At Booking'),
         disabled: hasAtBooking && currentTiming !== 'now'
       },
       {
         value: 'appointment',
-        label: 'On Location',
+        label: t('settings.payments.installments.timing.onLocation', 'On Location'),
         disabled: hasOnLocation && currentTiming !== 'appointment'
       },
       {
         value: 'hours_after',
-        label: 'Hours After Booking',
+        label: t('settings.payments.installments.timing.hoursAfter', 'Hours After Booking'),
         disabled: false
       }
     ];
@@ -199,13 +201,13 @@ export function ServiceTypeInstallmentCard({
         <div>
           <h4 className="text-sm font-medium text-foreground">{serviceType.name}</h4>
           <p className="text-xs text-muted-foreground">
-            {serviceType.price ? `€${serviceType.price}` : 'Free'}
+            {serviceType.price ? `€${serviceType.price}` : t('settings.payments.installments.free', 'Free')}
           </p>
         </div>
       </div>
 
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-foreground">Payment Structure</Label>
+        <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.paymentStructure', 'Payment Structure')}</Label>
         <RadioGroup
           value={planType}
           onValueChange={handlePlanTypeChange}
@@ -213,18 +215,18 @@ export function ServiceTypeInstallmentCard({
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="preset" id={`preset-${serviceType.id}`} />
-            <Label htmlFor={`preset-${serviceType.id}`} className="text-sm font-medium text-foreground">Quick Setup Options</Label>
+            <Label htmlFor={`preset-${serviceType.id}`} className="text-sm font-medium text-foreground">{t('settings.payments.installments.quickSetup', 'Quick Setup Options')}</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="custom" id={`custom-${serviceType.id}`} />
-            <Label htmlFor={`custom-${serviceType.id}`} className="text-sm font-medium text-foreground">Advanced Custom Configuration</Label>
+            <Label htmlFor={`custom-${serviceType.id}`} className="text-sm font-medium text-foreground">{t('settings.payments.installments.advancedCustom', 'Advanced Custom Configuration')}</Label>
           </div>
         </RadioGroup>
       </div>
 
       {planType === 'preset' && (
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-foreground">Choose Payment Plan</Label>
+          <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.choosePlan', 'Choose Payment Plan')}</Label>
           <RadioGroup
             value={presetSelection}
             onValueChange={handlePresetChange}
@@ -254,7 +256,7 @@ export function ServiceTypeInstallmentCard({
 
           {presetSelection === 'fixed_deposit' && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">Fixed Deposit Amount (€)</Label>
+              <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.fixedDepositAmount', 'Fixed Deposit Amount (€)')}</Label>
               <Input
                 type="number"
                 min="1"
@@ -270,7 +272,7 @@ export function ServiceTypeInstallmentCard({
       {planType === 'custom' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-sm font-medium text-foreground">Custom Payment Schedule</Label>
+            <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.customSchedule', 'Custom Payment Schedule')}</Label>
             <Button
               type="button"
               variant="outline"
@@ -278,7 +280,7 @@ export function ServiceTypeInstallmentCard({
               onClick={addCustomDeposit}
             >
               <Plus className="h-3 w-3 mr-1" />
-              Add Payment
+              {t('settings.payments.installments.addPayment', 'Add Payment')}
             </Button>
           </div>
 
@@ -288,7 +290,7 @@ export function ServiceTypeInstallmentCard({
                 <div className="flex-1 space-y-2">
                   <div className="flex gap-2">
                     <div className="flex-1">
-                      <Label className="text-xs text-muted-foreground">Percentage</Label>
+                      <Label className="text-xs text-muted-foreground">{t('settings.payments.installments.percentage', 'Percentage')}</Label>
                       <Input
                         type="number"
                         min="1"
@@ -299,7 +301,7 @@ export function ServiceTypeInstallmentCard({
                       />
                     </div>
                     <div className="flex-1">
-                      <Label className="text-xs text-muted-foreground">When</Label>
+                      <Label className="text-xs text-muted-foreground">{t('settings.payments.installments.when', 'When')}</Label>
                       <Select
                         value={deposit.timing}
                         onValueChange={(value) => updateCustomDeposit(index, 'timing', value)}
@@ -323,7 +325,7 @@ export function ServiceTypeInstallmentCard({
                   </div>
                   {deposit.timing === 'hours_after' && (
                     <div>
-                      <Label className="text-xs text-muted-foreground">Hours After Booking</Label>
+                      <Label className="text-xs text-muted-foreground">{t('settings.payments.installments.hoursAfterBooking', 'Hours After Booking')}</Label>
                       <Input
                         type="number"
                         min="1"
@@ -348,7 +350,7 @@ export function ServiceTypeInstallmentCard({
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Total:</span>
+            <span className="text-muted-foreground">{t('settings.payments.installments.total', 'Total:')}</span>
             <Badge variant={getTotalPercentage() === 100 ? "default" : "destructive"}>
               {getTotalPercentage()}%
             </Badge>

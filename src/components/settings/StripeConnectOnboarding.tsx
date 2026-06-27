@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -31,15 +32,16 @@ export function StripeConnectOnboarding({
   const { invalidateCache } = useUserStatus();
   const { refetch: refetchProfile } = useProfile();
   const { toast } = useToast();
+  const { t } = useTranslation('settings');
   const [step, setStep] = useState<'intro' | 'onboarding' | 'complete'>('intro');
   const testMode = getStripeMode() === 'test';
 
   const requirements = [
-    'Business bank account details',
-    'Business registration or tax ID', 
-    'Valid ID of representative (passport or ID card)',
-    'Date of birth and address of representative',
-    'Beneficial ownership details (if applicable)'
+    t('settings.payments.onboarding.requirements.bankAccount', 'Business bank account details'),
+    t('settings.payments.onboarding.requirements.registration', 'Business registration or tax ID'),
+    t('settings.payments.onboarding.requirements.id', 'Valid ID of representative (passport or ID card)'),
+    t('settings.payments.onboarding.requirements.dobAddress', 'Date of birth and address of representative'),
+    t('settings.payments.onboarding.requirements.ownership', 'Beneficial ownership details (if applicable)'),
   ];
 
   const handleStartOnboarding = async () => {
@@ -77,8 +79,11 @@ export function StripeConnectOnboarding({
                 const syncedCount = syncData?.results?.filter((r: any) => r.success)?.length || 0;
                 if (syncedCount > 0) {
                   toast({
-                    title: "Services Connected",
-                    description: `${syncedCount} service(s) are now ready to accept payments.`,
+                    title: t('settings.payments.onboarding.toast.servicesConnected.title', 'Services Connected'),
+                    description:
+                      syncedCount === 1
+                        ? t('settings.payments.onboarding.toast.servicesConnected.descriptionOne', '{{n}} service is now ready to accept payments.', { n: syncedCount })
+                        : t('settings.payments.onboarding.toast.servicesConnected.descriptionOther', '{{n}} services are now ready to accept payments.', { n: syncedCount }),
                   });
                 }
               }
@@ -118,10 +123,10 @@ export function StripeConnectOnboarding({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Shield className="h-5 w-5 text-success-foreground" />
-            <span>Connect Stripe Account</span>
+            <span>{t('settings.payments.onboarding.title', 'Connect Stripe Account')}</span>
           </DialogTitle>
           <DialogDescription>
-            Enable Pay & Book for secure upfront payments.
+            {t('settings.payments.onboarding.description', 'Enable Pay & Book for secure upfront payments.')}
           </DialogDescription>
         </DialogHeader>
 
@@ -132,45 +137,45 @@ export function StripeConnectOnboarding({
               <div className="bg-muted/50 p-4 rounded-lg">
                 <h4 className="font-medium mb-3 text-foreground flex items-center space-x-2">
                   <Shield className="h-4 w-4 text-success-foreground" />
-                  <span>Why we recommend this</span>
+                  <span>{t('settings.payments.onboarding.whyRecommend', 'Why we recommend this')}</span>
                 </h4>
                 <TooltipProvider>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Upfront payments help your business run more smoothly. They{' '}
+                    {t('settings.payments.onboarding.intro.lead', 'Upfront payments help your business run more smoothly. They')}{' '}
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="underline cursor-help">reduce no-shows</span>
+                        <span className="underline cursor-help">{t('settings.payments.onboarding.intro.reduceNoShows', 'reduce no-shows')}</span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-xs">Studies show upfront payments lower missed appointments by 35–50% (National Library of Medicine, JMIR).</p>
+                        <p className="max-w-xs">{t('settings.payments.onboarding.intro.reduceNoShowsTooltip', 'Studies show upfront payments lower missed appointments by 35–50% (National Library of Medicine, JMIR).')}</p>
                       </TooltipContent>
                     </Tooltip>
-                    , create{' '}
+                    {t('settings.payments.onboarding.intro.create', ', create')}{' '}
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="underline cursor-help">faster cashflow</span>
+                        <span className="underline cursor-help">{t('settings.payments.onboarding.intro.fasterCashflow', 'faster cashflow')}</span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-xs">Businesses receive funds 2–3x quicker with upfront payments (Stripe/Square merchant reports).</p>
+                        <p className="max-w-xs">{t('settings.payments.onboarding.intro.fasterCashflowTooltip', 'Businesses receive funds 2–3x quicker with upfront payments (Stripe/Square merchant reports).')}</p>
                       </TooltipContent>
                     </Tooltip>
-                    , and keep everything{' '}
+                    {t('settings.payments.onboarding.intro.keepEverything', ', and keep everything')}{' '}
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <span className="underline cursor-help">secure & compliant</span>
+                        <span className="underline cursor-help">{t('settings.payments.onboarding.intro.secureCompliant', 'secure & compliant')}</span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p className="max-w-xs">Stripe is PCI DSS Level 1, PSD2, and EU KYC/AML compliant, ensuring safe and legal transactions.</p>
+                        <p className="max-w-xs">{t('settings.payments.onboarding.intro.secureCompliantTooltip', 'Stripe is PCI DSS Level 1, PSD2, and EU KYC/AML compliant, ensuring safe and legal transactions.')}</p>
                       </TooltipContent>
                     </Tooltip>
-                    .
+                    {t('settings.payments.onboarding.intro.period', '.')}
                   </p>
                 </TooltipProvider>
               </div>
 
               {/* Requirements */}
               <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 text-foreground">What you'll need</h4>
+                <h4 className="font-medium mb-3 text-foreground">{t('settings.payments.onboarding.whatYouNeed', "What you'll need")}</h4>
                 <ul className="space-y-2">
                   {requirements.map((requirement, index) => (
                     <li key={index} className="flex items-start space-x-2 text-sm text-muted-foreground">
@@ -183,10 +188,10 @@ export function StripeConnectOnboarding({
 
               <div className="flex space-x-2">
                 <Button variant="outline" onClick={onClose} className="flex-1">
-                  Cancel
+                  {t('settings.payments.onboarding.cancel', 'Cancel')}
                 </Button>
-                <Button 
-                  onClick={handleStartOnboarding} 
+                <Button
+                  onClick={handleStartOnboarding}
                   disabled={onboarding}
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
@@ -195,7 +200,7 @@ export function StripeConnectOnboarding({
                   ) : (
                     <ExternalLink className="h-4 w-4 mr-2" />
                   )}
-                  Start Setup
+                  {t('settings.payments.onboarding.startSetup', 'Start Setup')}
                 </Button>
               </div>
             </>
@@ -206,13 +211,12 @@ export function StripeConnectOnboarding({
               <div className="mb-4">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
               </div>
-              <h3 className="font-medium mb-2">Complete Setup in Stripe</h3>
+              <h3 className="font-medium mb-2">{t('settings.payments.onboarding.completeInStripe.title', 'Complete Setup in Stripe')}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Follow the steps in the Stripe window to complete your account setup.
-                This window will close when you're done.
+                {t('settings.payments.onboarding.completeInStripe.body', "Follow the steps in the Stripe window to complete your account setup. This window will close when you're done.")}
               </p>
               <Button variant="outline" onClick={onClose}>
-                Cancel
+                {t('settings.payments.onboarding.cancel', 'Cancel')}
               </Button>
             </div>
           )}
@@ -222,12 +226,12 @@ export function StripeConnectOnboarding({
               <div className="mb-4">
                 <CheckCircle className="h-8 w-8 text-success-foreground mx-auto" />
               </div>
-              <h3 className="font-medium mb-2">Setup Complete!</h3>
+              <h3 className="font-medium mb-2">{t('settings.payments.onboarding.complete.title', 'Setup Complete!')}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Your Stripe account is connected and ready to accept payments.
+                {t('settings.payments.onboarding.complete.body', 'Your Stripe account is connected and ready to accept payments.')}
               </p>
               <Button onClick={handleContinue} className="w-full">
-                Continue
+                {t('settings.payments.onboarding.complete.continue', 'Continue')}
               </Button>
             </div>
           )}

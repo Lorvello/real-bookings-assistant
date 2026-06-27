@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,6 +57,7 @@ export function InstallmentSettings({
   const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, ServiceTypeInstallmentSettings>>({});
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('settings');
   const { selectedCalendar } = useCalendarContext();
   const { serviceTypes } = useServiceTypes(undefined, true); // Load all service types
 
@@ -63,32 +65,32 @@ export function InstallmentSettings({
 
   const presetPlans = {
     '100_at_booking': {
-      name: '100% at Booking',
-      description: 'Full payment upfront at time of booking',
+      name: t('settings.payments.installments.presets.fullAtBooking.name', '100% at Booking'),
+      description: t('settings.payments.installments.presets.fullAtBooking.description', 'Full payment upfront at time of booking'),
       deposits: [
         { percentage: 100, timing: 'now' as const }
       ]
     },
-    '50_50': { 
-      name: '50/50 Split', 
-      description: '50% at booking, 50% on location',
+    '50_50': {
+      name: t('settings.payments.installments.presets.split5050.name', '50/50 Split'),
+      description: t('settings.payments.installments.presets.split5050.description', '50% at booking, 50% on location'),
       deposits: [
         { percentage: 50, timing: 'now' as const },
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
-    '25_25_50': { 
-      name: '25/25/50 Split', 
-      description: '25% at booking, 25% 1 week later, 50% on location',
+    '25_25_50': {
+      name: t('settings.payments.installments.presets.split252550.name', '25/25/50 Split'),
+      description: t('settings.payments.installments.presets.split252550.description', '25% at booking, 25% 1 week later, 50% on location'),
       deposits: [
         { percentage: 25, timing: 'now' as const },
         { percentage: 25, timing: 'hours_after' as const, hours: 168 }, // 1 week = 168 hours
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
-    'fixed_deposit': { 
-      name: 'Fixed Deposit Plus Remaining', 
-      description: 'Fixed amount at booking, rest on location',
+    'fixed_deposit': {
+      name: t('settings.payments.installments.presets.fixedDeposit.name', 'Fixed Deposit Plus Remaining'),
+      description: t('settings.payments.installments.presets.fixedDeposit.description', 'Fixed amount at booking, rest on location'),
       deposits: [] as DepositInfo[]
     }
   };
@@ -132,17 +134,17 @@ export function InstallmentSettings({
     return [
       {
         value: 'now',
-        label: 'At Booking',
+        label: t('settings.payments.installments.timing.atBooking', 'At Booking'),
         disabled: hasAtBooking && currentTiming !== 'now'
       },
       {
         value: 'appointment',
-        label: 'On Location',
+        label: t('settings.payments.installments.timing.onLocation', 'On Location'),
         disabled: hasOnLocation && currentTiming !== 'appointment'
       },
       {
         value: 'hours_after',
-        label: 'Hours After Booking',
+        label: t('settings.payments.installments.timing.hoursAfter', 'Hours After Booking'),
         disabled: false
       }
     ];
@@ -220,7 +222,7 @@ export function InstallmentSettings({
               <div className="space-y-6">
                 {/* Apply to Services Section */}
                 <div className="space-y-3">
-                  <Label className="text-base font-medium text-foreground">Apply to Services</Label>
+                  <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.applyToServices', 'Apply to Services')}</Label>
                   <RadioGroup
                     value={applyToServices}
                     onValueChange={(value: 'all' | 'selected') => setApplyToServices(value)}
@@ -228,17 +230,17 @@ export function InstallmentSettings({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="all" id="all-services" />
-                      <Label htmlFor="all-services" className="text-sm font-medium text-foreground">Enable for All Service Types</Label>
+                      <Label htmlFor="all-services" className="text-sm font-medium text-foreground">{t('settings.payments.installments.enableAllServices', 'Enable for All Service Types')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="selected" id="selected-services" />
-                      <Label htmlFor="selected-services" className="text-sm font-medium text-foreground">Choose per Service Type</Label>
+                      <Label htmlFor="selected-services" className="text-sm font-medium text-foreground">{t('settings.payments.installments.choosePerService', 'Choose per Service Type')}</Label>
                     </div>
                   </RadioGroup>
 
                   {applyToServices === 'selected' && (
                     <div className="mt-4 space-y-3">
-                      <Label className="text-sm font-medium text-foreground">Select Service Types</Label>
+                      <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.selectServiceTypes', 'Select Service Types')}</Label>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {serviceTypes.map((service) => (
                           <div key={service.id} className="flex items-center space-x-3 p-3 border rounded-lg">
@@ -279,14 +281,14 @@ export function InstallmentSettings({
                               {service.name}
                             </Label>
                             <Badge variant="outline" className="text-xs">
-                              {service.price ? `€${service.price}` : 'Free'}
+                              {service.price ? `€${service.price}` : t('settings.payments.installments.free', 'Free')}
                             </Badge>
                           </div>
                         ))}
                       </div>
                       {serviceTypes.length === 0 && (
                         <p className="text-sm text-muted-foreground">
-                          No service types found. Create service types first to configure installments.
+                          {t('settings.payments.installments.noServiceTypes', 'No service types found. Create service types first to configure installments.')}
                         </p>
                       )}
                     </div>
@@ -296,7 +298,7 @@ export function InstallmentSettings({
                 {/* Service Type Configuration - Only show when per-service is selected and services are chosen */}
                 {applyToServices === 'selected' && selectedServices.length > 0 && (
                   <div className="space-y-4">
-                    <Label className="text-base font-medium text-foreground">Configure Selected Service Types</Label>
+                    <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.configureSelected', 'Configure Selected Service Types')}</Label>
                     <div className="space-y-4">
                       {selectedServices.map((serviceId) => {
                         const service = serviceTypes.find(s => s.id === serviceId);
@@ -333,7 +335,7 @@ export function InstallmentSettings({
                 {applyToServices === 'all' && (
                   <div className="ml-6 border-l-2 border-muted pl-4 space-y-4">
                     <div className="space-y-3">
-                      <Label className="text-base font-medium text-foreground">Payment Structure</Label>
+                      <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.paymentStructure', 'Payment Structure')}</Label>
                       <RadioGroup
                         value={planType}
                         onValueChange={(value: 'preset' | 'custom') => setPlanType(value)}
@@ -341,18 +343,18 @@ export function InstallmentSettings({
                       >
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="preset" id="preset" />
-                          <Label htmlFor="preset" className="text-sm font-medium text-foreground">Quick Setup Options</Label>
+                          <Label htmlFor="preset" className="text-sm font-medium text-foreground">{t('settings.payments.installments.quickSetup', 'Quick Setup Options')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="custom" id="custom" />
-                          <Label htmlFor="custom" className="text-sm font-medium text-foreground">Advanced Custom Configuration</Label>
+                          <Label htmlFor="custom" className="text-sm font-medium text-foreground">{t('settings.payments.installments.advancedCustom', 'Advanced Custom Configuration')}</Label>
                         </div>
                       </RadioGroup>
                     </div>
 
                     {planType === 'preset' && (
                       <div className="space-y-4">
-                        <Label className="text-base font-medium text-foreground">Choose Payment Plan</Label>
+                        <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.choosePlan', 'Choose Payment Plan')}</Label>
                         <RadioGroup
                           value={presetSelection}
                           onValueChange={(value: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit') => setPresetSelection(value)}
@@ -406,7 +408,7 @@ export function InstallmentSettings({
 
                         {presetSelection === 'fixed_deposit' && (
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-foreground">Fixed Deposit Amount (€)</Label>
+                            <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.fixedDepositAmount', 'Fixed Deposit Amount (€)')}</Label>
                             <Input
                               type="number"
                               min="1"
@@ -422,7 +424,7 @@ export function InstallmentSettings({
                     {planType === 'custom' && (
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <Label className="text-base font-medium text-foreground">Custom Payment Schedule</Label>
+                          <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.customSchedule', 'Custom Payment Schedule')}</Label>
                           <Button
                             type="button"
                             variant="outline"
@@ -430,7 +432,7 @@ export function InstallmentSettings({
                             onClick={addCustomDeposit}
                           >
                             <Plus className="h-4 w-4 mr-2" />
-                            Add Payment
+                            {t('settings.payments.installments.addPayment', 'Add Payment')}
                           </Button>
                         </div>
 
@@ -440,7 +442,7 @@ export function InstallmentSettings({
                               <div className="flex-1 space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
                                   <div>
-                                    <Label className="text-sm font-medium text-foreground">Percentage</Label>
+                                    <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.percentage', 'Percentage')}</Label>
                                     <Input
                                       type="number"
                                       min="1"
@@ -451,7 +453,7 @@ export function InstallmentSettings({
                                     />
                                   </div>
                                   <div>
-                                    <Label className="text-sm font-medium text-foreground">When</Label>
+                                    <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.when', 'When')}</Label>
                                     <Select
                                       value={deposit.timing}
                                       onValueChange={(value) => updateCustomDeposit(index, 'timing', value)}
@@ -475,7 +477,7 @@ export function InstallmentSettings({
                                 </div>
                                 {deposit.timing === 'hours_after' && (
                                   <div>
-                                    <Label className="text-sm font-medium text-foreground">Hours After Booking</Label>
+                                    <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.hoursAfterBooking', 'Hours After Booking')}</Label>
                                     <Input
                                       type="number"
                                       min="1"
@@ -500,7 +502,7 @@ export function InstallmentSettings({
                         </div>
 
                         <div className="flex items-center justify-between pt-4 border-t">
-                          <span className="text-sm font-medium">Total:</span>
+                          <span className="text-sm font-medium">{t('settings.payments.installments.total', 'Total:')}</span>
                           <Badge variant={getTotalPercentage() === 100 ? 'default' : 'destructive'}>
                             {getTotalPercentage()}%
                           </Badge>
@@ -512,7 +514,7 @@ export function InstallmentSettings({
                 )}
 
                 <Button onClick={handleSave} disabled={saving || !isValidPlan()} className="w-full">
-                  {saving ? 'Saving...' : 'Save Installment Settings'}
+                  {saving ? t('settings.payments.installments.savingInstallments', 'Saving...') : t('settings.payments.installments.saveInstallments', 'Save Installment Settings')}
                 </Button>
               </div>
       </div>

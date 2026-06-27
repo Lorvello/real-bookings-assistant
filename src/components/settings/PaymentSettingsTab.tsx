@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -53,6 +54,7 @@ const PAYMENT_METHOD_FEES: PaymentMethodFee[] = [
  * Stripe handlers, and feeds pure presentational sections (settings/payments/*).
  */
 export function PaymentSettingsTab() {
+  const { t } = useTranslation('settings');
   // Total-fee example for the payout cards (platform + Stripe + method).
   const calculateTotalFee = (payoutType: PayoutType, paymentMethod: string) => {
     const method = PAYMENT_METHOD_FEES.find((m) => m.id === paymentMethod);
@@ -259,7 +261,10 @@ export function PaymentSettingsTab() {
     const account = await refreshAccountStatus();
     if (account) {
       setStripeAccount(account);
-      toast({ title: 'Account status refreshed', description: 'Your Stripe account status has been updated.' });
+      toast({
+        title: t('settings.payments.toast.statusRefreshed.title', 'Account status refreshed'),
+        description: t('settings.payments.toast.statusRefreshed.description', 'Your Stripe account status has been updated.'),
+      });
     }
   };
 
@@ -270,35 +275,46 @@ export function PaymentSettingsTab() {
       const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
       if (!newWindow) {
         toast({
-          title: 'Pop-up blocked',
-          description: 'Your browser blocked the pop-up. Use the buttons to open the dashboard manually.',
+          title: t('settings.payments.toast.popupBlocked.title', 'Pop-up blocked'),
+          description: t('settings.payments.toast.popupBlocked.dashboardDescription', 'Your browser blocked the pop-up. Use the buttons to open the dashboard manually.'),
           action: (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => window.open(url, '_blank')}>
-                Try again
+                {t('settings.payments.toast.popupBlocked.tryAgain', 'Try again')}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   navigator.clipboard.writeText(url);
-                  toast({ title: 'Link copied to clipboard' });
+                  toast({ title: t('settings.payments.toast.linkCopied', 'Link copied to clipboard') });
                 }}
               >
-                Copy link
+                {t('settings.payments.toast.popupBlocked.copyLink', 'Copy link')}
               </Button>
             </div>
           ),
         });
         return;
       }
-      toast({ title: 'Success', description: 'Stripe dashboard opened in a new tab.' });
+      toast({
+        title: t('settings.payments.toast.success', 'Success'),
+        description: t('settings.payments.toast.dashboardOpened', 'Stripe dashboard opened in a new tab.'),
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to open dashboard';
       if (errorMessage === 'NO_CONNECTED_ACCOUNT') {
-        toast({ title: 'No Stripe account', description: 'Please complete Stripe onboarding first.', variant: 'destructive' });
+        toast({
+          title: t('settings.payments.toast.noAccount.title', 'No Stripe account'),
+          description: t('settings.payments.toast.noAccount.description', 'Please complete Stripe onboarding first.'),
+          variant: 'destructive',
+        });
       } else {
-        toast({ title: 'Error', description: 'Failed to open Stripe dashboard.', variant: 'destructive' });
+        toast({
+          title: t('settings.payments.toast.error', 'Error'),
+          description: t('settings.payments.toast.dashboardFailed', 'Failed to open Stripe dashboard.'),
+          variant: 'destructive',
+        });
       }
     }
   };
@@ -310,32 +326,39 @@ export function PaymentSettingsTab() {
         const newWindow = window.open(onboardingLink.url, '_blank', 'noopener,noreferrer');
         if (!newWindow) {
           toast({
-            title: 'Pop-up blocked',
-            description: 'Your browser blocked the pop-up. Use the buttons to start onboarding.',
+            title: t('settings.payments.toast.popupBlocked.title', 'Pop-up blocked'),
+            description: t('settings.payments.toast.popupBlocked.onboardingDescription', 'Your browser blocked the pop-up. Use the buttons to start onboarding.'),
             action: (
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => window.open(onboardingLink.url, '_blank')}>
-                  Open onboarding
+                  {t('settings.payments.toast.popupBlocked.openOnboarding', 'Open onboarding')}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     navigator.clipboard.writeText(onboardingLink.url);
-                    toast({ title: 'Link copied to clipboard' });
+                    toast({ title: t('settings.payments.toast.linkCopied', 'Link copied to clipboard') });
                   }}
                 >
-                  Copy link
+                  {t('settings.payments.toast.popupBlocked.copyLink', 'Copy link')}
                 </Button>
               </div>
             ),
           });
         } else {
-          toast({ title: 'Onboarding started', description: 'Complete the setup in the new tab, then return here.' });
+          toast({
+            title: t('settings.payments.toast.onboardingStarted.title', 'Onboarding started'),
+            description: t('settings.payments.toast.onboardingStarted.description', 'Complete the setup in the new tab, then return here.'),
+          });
         }
       }
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to start onboarding.', variant: 'destructive' });
+      toast({
+        title: t('settings.payments.toast.error', 'Error'),
+        description: t('settings.payments.toast.onboardingFailed', 'Failed to start onboarding.'),
+        variant: 'destructive',
+      });
     }
   };
 
@@ -343,7 +366,10 @@ export function PaymentSettingsTab() {
     const success = await resetStripeAccount();
     if (success) {
       setStripeAccount(null);
-      toast({ title: 'Stripe account reset', description: 'Your Stripe connection has been reset. You can connect a new account.' });
+      toast({
+        title: t('settings.payments.toast.accountReset.title', 'Stripe account reset'),
+        description: t('settings.payments.toast.accountReset.description', 'Your Stripe connection has been reset. You can connect a new account.'),
+      });
       await loadStripeAccount();
     }
   };
@@ -356,7 +382,11 @@ export function PaymentSettingsTab() {
 
   const handleSavePaymentMethods = async () => {
     if (!selectedMethods.length) {
-      toast({ title: 'Error', description: 'Please select at least one payment method.', variant: 'destructive' });
+      toast({
+        title: t('settings.payments.toast.error', 'Error'),
+        description: t('settings.payments.toast.selectAtLeastOne', 'Please select at least one payment method.'),
+        variant: 'destructive',
+      });
       return;
     }
     setSavingMethods(true);
@@ -374,10 +404,17 @@ export function PaymentSettingsTab() {
         }
       }
       setHasUnsavedChanges(false);
-      toast({ title: 'Success', description: 'Payment methods saved successfully.' });
+      toast({
+        title: t('settings.payments.toast.success', 'Success'),
+        description: t('settings.payments.toast.methodsSaved', 'Payment methods saved successfully.'),
+      });
     } catch (error) {
       console.error('Error saving payment methods:', error);
-      toast({ title: 'Error', description: 'Failed to save payment methods.', variant: 'destructive' });
+      toast({
+        title: t('settings.payments.toast.error', 'Error'),
+        description: t('settings.payments.toast.methodsFailed', 'Failed to save payment methods.'),
+        variant: 'destructive',
+      });
     } finally {
       setSavingMethods(false);
     }
@@ -389,11 +426,18 @@ export function PaymentSettingsTab() {
       const success = await updatePayoutOption(option);
       if (success) {
         setHasUnsavedPayoutChanges(false);
-        toast({ title: 'Success', description: 'Payout option saved successfully.' });
+        toast({
+          title: t('settings.payments.toast.success', 'Success'),
+          description: t('settings.payments.toast.payoutSaved', 'Payout option saved successfully.'),
+        });
       }
     } catch (error) {
       console.error('Error saving payout option:', error);
-      toast({ title: 'Error', description: 'Failed to save payout option.', variant: 'destructive' });
+      toast({
+        title: t('settings.payments.toast.error', 'Error'),
+        description: t('settings.payments.toast.payoutFailed', 'Failed to save payout option.'),
+        variant: 'destructive',
+      });
     } finally {
       setSavingMethods(false);
     }
@@ -426,8 +470,7 @@ export function PaymentSettingsTab() {
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Only account owners can manage payment settings. Contact your account owner to configure Stripe Connect and
-          payment options.
+          {t('settings.payments.ownerOnly', 'Only account owners can manage payment settings. Contact your account owner to configure Stripe Connect and payment options.')}
         </AlertDescription>
       </Alert>
     );
@@ -474,8 +517,8 @@ export function PaymentSettingsTab() {
           <div id="payment-methods-section" className="scroll-mt-8">
             <SettingsSection
               icon={CreditCard}
-              title="Payment methods"
-              description="Choose which methods customers can pay with."
+              title={t('settings.payments.methods.sectionTitle', 'Payment methods')}
+              description={t('settings.payments.methods.sectionDescription', 'Choose which methods customers can pay with.')}
             >
               <PaymentOptions
                 selectedMethods={selectedMethods}
@@ -542,7 +585,7 @@ export function PaymentSettingsTab() {
             />
           </div>
 
-          <SettingsSection icon={Info} title="How payments work" flush>
+          <SettingsSection icon={Info} title={t('settings.payments.howPaymentsWork', 'How payments work')} flush>
             <div className="divide-y divide-white/[0.05]">
               <FundFlowSection open={fundFlowOpen} onOpenChange={setFundFlowOpen} onLearnMoreFees={handleLearnMoreFees} />
               <HowItWorksSection

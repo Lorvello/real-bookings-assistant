@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CreditCard,
   Loader2,
@@ -21,18 +22,20 @@ import type { BusinessStripeAccount } from '@/types/payments';
 // salon owner needs front-and-centre — tuck it behind a collapsed "Technical details"
 // disclosure (D4: hide dev-internals). Keeps it reachable for support without clutter.
 function AccountTechnicalDetails({ accountId, isTestMode }: { accountId: string; isTestMode: boolean }) {
+  const { t } = useTranslation('settings');
   return (
     <details className="group mt-4">
       <summary className="inline-flex min-h-11 cursor-pointer select-none list-none items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-muted-foreground md:min-h-0 [&::-webkit-details-marker]:hidden">
         <ChevronRight aria-hidden="true" className="h-3 w-3 transition-transform group-open:rotate-90 motion-reduce:transition-none" />
-        Technical details
+        {t('settings.payments.account.technicalDetails', 'Technical details')}
       </summary>
       <p className="mt-2 pl-4 text-xs text-subtle-foreground">
-        Account <span className="font-mono break-all">{accountId}</span>
+        {t('settings.payments.account.accountLabel', 'Account')}{' '}
+        <span className="font-mono break-all">{accountId}</span>
         {isTestMode && (
           <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/[0.10] px-1.5 py-0.5 text-warning-foreground">
             <TestTube className="h-3 w-3" />
-            Test mode
+            {t('settings.payments.account.testModeBadge', 'Test mode')}
           </span>
         )}
       </p>
@@ -55,33 +58,36 @@ interface StripeAccountSectionProps {
   onResearch: (topic: ResearchTopic) => void;
 }
 
-const BENEFITS: { topic: ResearchTopic; label: string }[] = [
-  { topic: 'no-shows', label: 'Reduce no-shows dramatically' },
-  { topic: 'cashflow', label: 'Faster access to your cash' },
-  { topic: 'compliance', label: 'Secure & compliant payments' },
-  { topic: 'professionalism', label: 'Present a professional business' },
+// `topic` is the stable logic value passed to onResearch; `labelKey`/`labelDefault`
+// drive the translated display only (R41 decouple).
+const BENEFITS: { topic: ResearchTopic; labelKey: string; labelDefault: string }[] = [
+  { topic: 'no-shows', labelKey: 'settings.payments.account.benefits.noShows', labelDefault: 'Reduce no-shows dramatically' },
+  { topic: 'cashflow', labelKey: 'settings.payments.account.benefits.cashflow', labelDefault: 'Faster access to your cash' },
+  { topic: 'compliance', labelKey: 'settings.payments.account.benefits.compliance', labelDefault: 'Secure & compliant payments' },
+  { topic: 'professionalism', labelKey: 'settings.payments.account.benefits.professionalism', labelDefault: 'Present a professional business' },
 ];
 
-const REQUIREMENTS = [
-  'Business bank account details',
-  'Business registration or tax ID',
-  'Valid ID of the representative (passport or ID card)',
-  'Date of birth and address of the representative',
-  'Beneficial ownership details (if applicable)',
+const REQUIREMENTS: { key: string; default: string }[] = [
+  { key: 'settings.payments.account.requirements.bankAccount', default: 'Business bank account details' },
+  { key: 'settings.payments.account.requirements.registration', default: 'Business registration or tax ID' },
+  { key: 'settings.payments.account.requirements.id', default: 'Valid ID of the representative (passport or ID card)' },
+  { key: 'settings.payments.account.requirements.dobAddress', default: 'Date of birth and address of the representative' },
+  { key: 'settings.payments.account.requirements.ownership', default: 'Beneficial ownership details (if applicable)' },
 ];
 
 function BenefitsList({ onResearch }: { onResearch: (t: ResearchTopic) => void }) {
+  const { t } = useTranslation('settings');
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
       <h4 className="mb-1 flex items-center gap-2 text-sm font-semibold text-foreground">
         <Shield className="h-4 w-4 text-primary" />
-        Why we recommend this
+        {t('settings.payments.account.whyRecommend', 'Why we recommend this')}
       </h4>
       <p className="mb-3 text-sm text-muted-foreground">
-        Upfront payments change how a booking business runs:
+        {t('settings.payments.account.whyRecommendBody', 'Upfront payments change how a booking business runs:')}
       </p>
       <ul className="space-y-1.5">
-        {BENEFITS.map(({ topic, label }) => (
+        {BENEFITS.map(({ topic, labelKey, labelDefault }) => (
           <li key={topic}>
             <button
               type="button"
@@ -89,21 +95,22 @@ function BenefitsList({ onResearch }: { onResearch: (t: ResearchTopic) => void }
               className="group flex w-full min-h-11 items-center gap-2.5 rounded-lg py-1 text-left text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:min-h-0"
             >
               <ArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
-              <span>{label}</span>
+              <span>{t(labelKey, labelDefault)}</span>
             </button>
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-subtle-foreground">Tap any benefit to learn more.</p>
+      <p className="mt-3 text-xs text-subtle-foreground">{t('settings.payments.account.tapBenefit', 'Tap any benefit to learn more.')}</p>
     </div>
   );
 }
 
 function TestModeNote() {
+  const { t } = useTranslation('settings');
   return (
     <p className="flex items-center gap-1.5 text-xs text-warning-foreground">
       <TestTube className="h-3 w-3" />
-      Test mode — no real money is processed.
+      {t('settings.payments.account.testModeNote', 'Test mode, no real money is processed.')}
     </p>
   );
 }
@@ -124,12 +131,13 @@ export function StripeAccountSection({
   onStartOnboarding,
   onResearch,
 }: StripeAccountSectionProps) {
+  const { t } = useTranslation('settings');
   if (state === 'loading') {
     return (
-      <SettingsSection icon={CreditCard} title="Stripe account">
+      <SettingsSection icon={CreditCard} title={t('settings.payments.account.title', 'Stripe account')}>
         <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
-          Loading account status…
+          {t('settings.payments.account.loadingStatus', 'Loading account status…')}
         </div>
       </SettingsSection>
     );
@@ -140,12 +148,12 @@ export function StripeAccountSection({
     return (
       <SettingsSection
         icon={CreditCard}
-        title="Stripe account"
-        description="Connected. Payments are paid out directly to your business account."
+        title={t('settings.payments.account.title', 'Stripe account')}
+        description={t('settings.payments.account.connectedDescription', 'Connected. Payments are paid out directly to your business account.')}
         action={
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.10] px-2.5 py-1 text-xs font-medium text-accent-foreground">
             <CheckCircle className="h-3.5 w-3.5" />
-            Active
+            {t('settings.payments.account.statusActive', 'Active')}
           </span>
         }
       >
@@ -153,11 +161,11 @@ export function StripeAccountSection({
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex items-center gap-2 text-sm text-foreground">
               <CheckCircle className="h-4 w-4 text-success-foreground" />
-              Charges enabled
+              {t('settings.payments.account.chargesEnabled', 'Charges enabled')}
             </div>
             <div className="flex items-center gap-2 text-sm text-foreground">
               <CheckCircle className="h-4 w-4 text-success-foreground" />
-              Payouts enabled
+              {t('settings.payments.account.payoutsEnabled', 'Payouts enabled')}
             </div>
           </div>
           {account.stripe_account_id && (
@@ -169,16 +177,16 @@ export function StripeAccountSection({
           <Button onClick={onOpenDashboard} disabled={stripeLoading}>
             {stripeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <ExternalLink className="mr-2 h-4 w-4" />
-            Go to dashboard
+            {t('settings.payments.account.goToDashboard', 'Go to dashboard')}
           </Button>
           <Button variant="outline" onClick={onRefresh} disabled={stripeLoading}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh status
+            {t('settings.payments.account.refreshStatus', 'Refresh status')}
           </Button>
           {isTestMode && (
             <Button variant="outline" onClick={onReset} disabled={stripeLoading}>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Reset
+              {t('settings.payments.account.reset', 'Reset')}
             </Button>
           )}
         </div>
@@ -192,12 +200,12 @@ export function StripeAccountSection({
     return (
       <SettingsSection
         icon={CreditCard}
-        title="Stripe account"
-        description="Connected — a few steps left before you can accept payments."
+        title={t('settings.payments.account.title', 'Stripe account')}
+        description={t('settings.payments.account.incompleteDescription', 'Connected, a few steps left before you can accept payments.')}
         action={
           <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning/[0.10] px-2.5 py-1 text-xs font-medium text-warning-foreground">
             <AlertCircle className="h-3.5 w-3.5" />
-            Setup required
+            {t('settings.payments.account.setupRequired', 'Setup required')}
           </span>
         }
       >
@@ -209,7 +217,9 @@ export function StripeAccountSection({
               ) : (
                 <AlertCircle className="h-4 w-4 text-warning-foreground" />
               )}
-              Charges {account.charges_enabled ? 'enabled' : 'disabled'}
+              {account.charges_enabled
+                ? t('settings.payments.account.chargesEnabled', 'Charges enabled')
+                : t('settings.payments.account.chargesDisabled', 'Charges disabled')}
             </div>
             <div className="flex items-center gap-2 text-sm text-foreground">
               {account.payouts_enabled ? (
@@ -217,7 +227,9 @@ export function StripeAccountSection({
               ) : (
                 <AlertCircle className="h-4 w-4 text-warning-foreground" />
               )}
-              Payouts {account.payouts_enabled ? 'enabled' : 'disabled'}
+              {account.payouts_enabled
+                ? t('settings.payments.account.payoutsEnabled', 'Payouts enabled')
+                : t('settings.payments.account.payoutsDisabled', 'Payouts disabled')}
             </div>
           </div>
           {account.stripe_account_id && (
@@ -228,16 +240,16 @@ export function StripeAccountSection({
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button onClick={onStartOnboarding} disabled={stripeLoading}>
             {stripeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Complete setup
+            {t('settings.payments.account.completeSetup', 'Complete setup')}
           </Button>
           <Button variant="outline" onClick={onRefresh} disabled={stripeLoading}>
             <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh status
+            {t('settings.payments.account.refreshStatus', 'Refresh status')}
           </Button>
           {isTestMode && (
             <Button variant="outline" onClick={onReset} disabled={stripeLoading}>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Reset
+              {t('settings.payments.account.reset', 'Reset')}
             </Button>
           )}
         </div>
@@ -249,19 +261,19 @@ export function StripeAccountSection({
   return (
     <SettingsSection
       icon={CreditCard}
-      title="Stripe account"
-      description="Connect Stripe to receive payments directly to your business account."
+      title={t('settings.payments.account.title', 'Stripe account')}
+      description={t('settings.payments.account.notConnectedDescription', 'Connect Stripe to receive payments directly to your business account.')}
     >
       <div className="space-y-4">
         <BenefitsList onResearch={onResearch} />
 
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <h4 className="mb-3 text-sm font-semibold text-foreground">What you'll need</h4>
+          <h4 className="mb-3 text-sm font-semibold text-foreground">{t('settings.payments.account.whatYouNeed', "What you'll need")}</h4>
           <ul className="space-y-2">
             {REQUIREMENTS.map((req) => (
-              <li key={req} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+              <li key={req.key} className="flex items-start gap-2.5 text-sm text-muted-foreground">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-success-foreground" />
-                <span>{req}</span>
+                <span>{t(req.key, req.default)}</span>
               </li>
             ))}
           </ul>
@@ -271,7 +283,7 @@ export function StripeAccountSection({
           <Button size="lg" onClick={onStartOnboarding} disabled={stripeLoading}>
             {stripeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             <CreditCard className="mr-2 h-4 w-4" />
-            Start Stripe setup
+            {t('settings.payments.account.startSetup', 'Start Stripe setup')}
           </Button>
           {isTestMode && <TestModeNote />}
         </div>

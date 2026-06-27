@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ export const StripeDashboardModal: React.FC<StripeDashboardModalProps> = ({
   onClose,
   dashboardUrl,
 }) => {
+  const { t } = useTranslation('settings');
   const handleManualRedirect = () => {
     // Try to open the dashboard URL
     const newWindow = window.open(dashboardUrl, '_blank');
@@ -50,10 +52,10 @@ export const StripeDashboardModal: React.FC<StripeDashboardModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-accent-foreground" />
-            Stripe Dashboard Access
+            {t('settings.payments.dashboardModal.title', 'Stripe Dashboard Access')}
           </DialogTitle>
           <DialogDescription>
-            We're taking you to your Stripe dashboard. If the page doesn't open, it might be blocked by your browser or ad blocker.
+            {t('settings.payments.dashboardModal.description', "We're taking you to your Stripe dashboard. If the page doesn't open, it might be blocked by your browser or ad blocker.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -61,16 +63,16 @@ export const StripeDashboardModal: React.FC<StripeDashboardModalProps> = ({
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              If the dashboard doesn't open automatically, try disabling your ad blocker temporarily or allowing pop-ups for this site.
+              {t('settings.payments.dashboardModal.alert', "If the dashboard doesn't open automatically, try disabling your ad blocker temporarily or allowing pop-ups for this site.")}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Alternative options:</p>
+            <p className="text-sm font-medium">{t('settings.payments.dashboardModal.alternativesLabel', 'Alternative options:')}</p>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Manually go to <span className="font-mono">dashboard.stripe.com</span></li>
-              <li>• Copy the dashboard link below</li>
-              <li>• Allow pop-ups in your browser settings</li>
+              <li>{t('settings.payments.dashboardModal.manualGoTo', '• Manually go to')} <span className="font-mono">dashboard.stripe.com</span></li>
+              <li>{t('settings.payments.dashboardModal.copyLink', '• Copy the dashboard link below')}</li>
+              <li>{t('settings.payments.dashboardModal.allowPopups', '• Allow pop-ups in your browser settings')}</li>
             </ul>
           </div>
         </div>
@@ -81,14 +83,14 @@ export const StripeDashboardModal: React.FC<StripeDashboardModalProps> = ({
             onClick={handleCopyUrl}
             className="w-full sm:w-auto"
           >
-            Copy Dashboard Link
+            {t('settings.payments.dashboardModal.copyButton', 'Copy Dashboard Link')}
           </Button>
           <Button
             onClick={handleManualRedirect}
             className="w-full sm:w-auto"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
-            Open Dashboard
+            {t('settings.payments.dashboardModal.openButton', 'Open Dashboard')}
           </Button>
         </DialogFooter>
       </DialogContent>

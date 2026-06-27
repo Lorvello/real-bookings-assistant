@@ -711,6 +711,611 @@
           "editor": "Bewerker"
         }
       }
+    },
+    "payments": {
+      "header": {
+        "title": "Betalen & Boeken",
+        "description": "Verzamel veilige vooruitbetalingen op boekingen om no-shows te beperken en omzet vooraf vast te leggen, uitbetaald naar je eigen rekening via Stripe.",
+        "toggleAria": "Betalen & Boeken inschakelen",
+        "intro": "Als dit aanstaat, kunnen klanten online voor een boeking betalen, via WhatsApp of je boekingspagina, voordat het tijdslot wordt bevestigd.",
+        "finishSetup": "Maak je Stripe-account hieronder af om Betalen & Boeken aan te zetten.",
+        "connectFirst": "Koppel hieronder een Stripe-account om Betalen & Boeken aan te zetten."
+      },
+      "account": {
+        "title": "Stripe-account",
+        "technicalDetails": "Technische details",
+        "accountLabel": "Account",
+        "testModeBadge": "Testmodus",
+        "loadingStatus": "Accountstatus laden…",
+        "connectedDescription": "Gekoppeld. Betalingen worden rechtstreeks naar je zakelijke rekening uitbetaald.",
+        "incompleteDescription": "Gekoppeld, nog een paar stappen voordat je betalingen kunt accepteren.",
+        "notConnectedDescription": "Koppel Stripe om betalingen rechtstreeks op je zakelijke rekening te ontvangen.",
+        "statusActive": "Actief",
+        "setupRequired": "Instellen vereist",
+        "chargesEnabled": "Incasso ingeschakeld",
+        "chargesDisabled": "Incasso uitgeschakeld",
+        "payoutsEnabled": "Uitbetalingen ingeschakeld",
+        "payoutsDisabled": "Uitbetalingen uitgeschakeld",
+        "goToDashboard": "Naar dashboard",
+        "refreshStatus": "Status vernieuwen",
+        "reset": "Resetten",
+        "completeSetup": "Instellen afronden",
+        "whatYouNeed": "Wat je nodig hebt",
+        "startSetup": "Stripe instellen",
+        "whyRecommend": "Waarom we dit aanraden",
+        "whyRecommendBody": "Vooruitbetalingen veranderen hoe een boekingsbedrijf draait:",
+        "tapBenefit": "Tik op een voordeel voor meer informatie.",
+        "testModeNote": "Testmodus, er wordt geen echt geld verwerkt.",
+        "benefits": {
+          "noShows": "No-shows drastisch verminderen",
+          "cashflow": "Sneller toegang tot je geld",
+          "compliance": "Veilige en compliant betalingen",
+          "professionalism": "Een professioneel bedrijf uitstralen"
+        },
+        "requirements": {
+          "bankAccount": "Gegevens van een zakelijke bankrekening",
+          "registration": "Inschrijving bij de KvK of btw-nummer",
+          "id": "Geldig ID van de vertegenwoordiger (paspoort of ID-kaart)",
+          "dobAddress": "Geboortedatum en adres van de vertegenwoordiger",
+          "ownership": "Gegevens over uiteindelijk belanghebbenden (indien van toepassing)"
+        }
+      },
+      "methods": {
+        "sectionTitle": "Betaalmethoden",
+        "sectionDescription": "Kies waarmee klanten kunnen betalen.",
+        "recommended": "Aanbevolen",
+        "moreInfoAria": "Meer info over {{name}}",
+        "saveChanges": "Wijzigingen opslaan",
+        "selectedCountOne": "{{n}} betaalmethode geselecteerd",
+        "selectedCountOther": "{{n}} betaalmethoden geselecteerd",
+        "tip": "Kies betaalmethoden die populair zijn in jouw land en lage kosten hebben voor het beste resultaat.",
+        "viewFeesBullet": "Bekijk de kosten in het onderdeel Kosten",
+        "country": {
+          "netherlands": "Nederland",
+          "belgium": "België",
+          "poland": "Polen",
+          "switzerland": "Zwitserland",
+          "germany": "Duitsland",
+          "austria": "Oostenrijk",
+          "unitedKingdom": "Verenigd Koninkrijk",
+          "france": "Frankrijk"
+        },
+        "ideal": {
+          "description": "Vertrouwde bank-naar-bankbetalingen",
+          "badge": "Aanbevolen in Nederland",
+          "modal": {
+            "description": "Vertrouwde bank-naar-bankbetalingen; de nummer 1 keuze in NL.",
+            "bullet1": "Aanbevolen in Nederland; breed gebruikt (door 80%+ van de Nederlandse shoppers)",
+            "bullet2": "Snel afrekenen, hoog vertrouwen, uitstekende afrondingspercentages",
+            "bullet3": "Doorgaans de laagste totale kosten voor NL"
+          }
+        },
+        "cards": {
+          "modal": {
+            "description": "Universele acceptatie en een vertrouwde ervaring.",
+            "bullet1": "Ideaal voor internationale klanten en terugkerende kopers",
+            "bullet2": "Ondersteunt opgeslagen kaarten en abonnementen",
+            "bullet3": "Gestaffelde tarieven: EER-kaarten (1.5% + €0.25), VK-kaarten (2.5% + €0.25), internationale kaarten (3.25% + €0.25)"
+          }
+        },
+        "applePay": {
+          "description": "Met één tik afrekenen op Apple-apparaten",
+          "modal": {
+            "description": "Met één tik afrekenen op Apple-apparaten; biometrische verificatie.",
+            "bullet1": "Wrijvingsloze mobiele ervaring en sterke conversie op iOS",
+            "bullet2": "Gebruikt de kaartinfrastructuur; zelfde tarieven als kaarten",
+            "bullet3": "Ideaal voor een mobile-first publiek"
+          }
+        },
+        "bancontact": {
+          "description": "De voorkeursmethode van België",
+          "modal": {
+            "description": "De vertrouwde lokale betaalmethode van België.",
+            "bullet1": "Hoog vertrouwen en sterke afrondingspercentages in BE",
+            "bullet2": "Bank-gedekt; weinig wrijving voor Belgische klanten",
+            "bullet3": "Het beste voor bedrijven met Belgisch verkeer"
+          }
+        },
+        "blik": {
+          "description": "Het mobiele betaalsysteem van Polen",
+          "modal": {
+            "description": "Het dominante mobiele betaalcodesysteem van Polen.",
+            "bullet1": "Massaal gebruikt in PL; zeer sterk vertrouwen",
+            "bullet2": "Wrijvingsloze goedkeuring via de bank-app",
+            "bullet3": "Aanbevolen voor Poolse klanten"
+          }
+        },
+        "twint": {
+          "description": "De mobiele wallet van Zwitserland",
+          "modal": {
+            "description": "De toonaangevende mobiele wallet van Zwitserland.",
+            "bullet1": "Hoog lokaal gebruik; bank-gekoppeld en vertrouwd",
+            "bullet2": "Perfect voor Zwitserse shoppers en afrekenen onderweg",
+            "bullet3": "Sterke mobiele conversie"
+          }
+        },
+        "revolutPay": {
+          "description": "Snel afrekenen voor Revolut-gebruikers",
+          "modal": {
+            "description": "Snel afrekenen voor Revolut-gebruikers, met sterke SCA.",
+            "bullet1": "Wereldwijd bereik als digitale wallet; gestroomlijnde ervaring",
+            "bullet2": "Ideaal voor mobiel en internationaal publiek",
+            "bullet3": "Voegt variatie toe naast kaarten/banken"
+          }
+        },
+        "sofort": {
+          "description": "Bankoverschrijving voor de DACH-regio",
+          "modal": {
+            "description": "Veelgebruikte bankoverschrijvingsmethode in DACH; hoog vertrouwen en sterke afronding voor lokale shoppers.",
+            "bullet1": "Veelgebruikte bankoverschrijvingsmethode in DACH",
+            "bullet2": "Hoog vertrouwen en sterke afronding voor lokale shoppers",
+            "bullet3": "Perfect voor Duitse, Oostenrijkse en Zwitserse klanten"
+          }
+        },
+        "eps": {
+          "description": "De lokale bankbetaling van Oostenrijk",
+          "modal": {
+            "description": "De lokale bankbetaling van Oostenrijk; snel, vertrouwd en bekend voor Oostenrijkse klanten.",
+            "bullet1": "De lokale bankbetaling van Oostenrijk",
+            "bullet2": "Snel, vertrouwd en bekend voor Oostenrijkse klanten",
+            "bullet3": "Bank-gedekt met hoge afrondingspercentages"
+          }
+        },
+        "przelewy24": {
+          "description": "Populair Pools banknetwerk",
+          "modal": {
+            "description": "Populair Pools banknetwerk; vult BLIK aan en vergroot het bereik in Polen.",
+            "bullet1": "Populair Pools banknetwerk",
+            "bullet2": "Vult BLIK aan en vergroot het bereik in Polen",
+            "bullet3": "Brede bankondersteuning en vertrouwd door Poolse klanten"
+          }
+        },
+        "payByBank": {
+          "description": "VK open-bankingflow",
+          "modal": {
+            "description": "VK open-bankingflow; snelle verificatie en sterk fraudeprofiel via bankinfrastructuur.",
+            "bullet1": "VK open-bankingflow",
+            "bullet2": "Snelle verificatie en sterk fraudeprofiel via bankinfrastructuur",
+            "bullet3": "Veilig en vertrouwd door klanten in het VK"
+          }
+        },
+        "cartesBancaires": {
+          "description": "Het binnenlandse kaartschema van Frankrijk",
+          "modal": {
+            "description": "Het binnenlandse kaartschema van Frankrijk; essentiële dekking voor Franse shoppers.",
+            "bullet1": "Het binnenlandse kaartschema van Frankrijk",
+            "bullet2": "Essentiële dekking voor Franse shoppers",
+            "bullet3": "Hoge acceptatie en vertrouwen in Frankrijk"
+          }
+        },
+        "googlePay": {
+          "description": "Met één tik afrekenen op Android/Chrome",
+          "modal": {
+            "description": "Met één tik afrekenen op Android/Chrome; zelfde tarieven als kaarten; uitstekende mobiele conversie.",
+            "bullet1": "Met één tik afrekenen op Android/Chrome",
+            "bullet2": "Zelfde tarieven als kaarten; uitstekende mobiele conversie",
+            "bullet3": "Ideaal voor een mobile-first publiek en Android-gebruikers"
+          }
+        }
+      },
+      "payout": {
+        "title": "Uitbetalingsopties",
+        "description": "Kies hoe snel je betalingen op je rekening binnenkomen.",
+        "speedAria": "Uitbetalingssnelheid",
+        "viewBreakdown": "Bekijk voorbeeld van de kostenuitsplitsing",
+        "platformFeeLabel": "Platformkosten Booking Assistant",
+        "transactionFee": "Transactiekosten",
+        "examplePaymentMethodAria": "Voorbeeld betaalmethode",
+        "totalFee": "Totale kosten",
+        "selectedLabel": "Geselecteerd:",
+        "selectedStandard": "Standaard (3 werkdagen)",
+        "selectedInstant": "Direct (binnen enkele minuten)",
+        "saving": "Opslaan…",
+        "saveChanges": "Wijzigingen opslaan",
+        "standard": {
+          "title": "Standaard uitbetaling",
+          "subtitle": "3 werkdagen naar je rekening",
+          "processingLabel": "Stripe-verwerkingskosten"
+        },
+        "instant": {
+          "title": "Directe uitbetaling",
+          "subtitle": "Komt binnen enkele minuten aan",
+          "processingLabel": "Stripe directe-uitbetalingskosten"
+        }
+      },
+      "flexibility": {
+        "title": "Betaalflexibiliteit",
+        "refundPolicyLabel": "Terugbetalings- en annuleringsbeleid",
+        "refundPolicyDescription": "Wordt aan je AI-assistent getoond zodat die vragen over terugbetalingen en annuleringen correct beantwoordt.",
+        "refundPolicyPlaceholder": "bijv. Gratis annuleren tot 24u voor de afspraak; daarna geen terugbetaling.",
+        "saving": "Opslaan…",
+        "savePolicy": "Beleid opslaan",
+        "makeOptionalTitle": "Betaling optioneel maken",
+        "makeOptionalDescription": "Aan: klanten kiezen wanneer ze betalen. Uit: betaling is vooraf verplicht voordat een boeking wordt bevestigd.",
+        "makeOptionalAria": "Betaling optioneel maken",
+        "requiredUpfrontTitle": "Betaling vooraf verplicht",
+        "requiredUpfrontBody": "klanten moeten online betalen voordat hun boeking wordt bevestigd.",
+        "deadlineTitle": "Betaaltermijn",
+        "deadlineDescription": "Hoe lang een klant heeft om te betalen voordat het tijdslot kan worden vrijgegeven.",
+        "deadlineAria": "Betaaltermijn in uren",
+        "hours": "uur",
+        "autoCancelTitle": "Onbetaalde boekingen automatisch annuleren",
+        "autoCancelDescription": "Geef het tijdslot automatisch vrij wanneer de termijn verstrijkt zonder betaling.",
+        "autoCancelAria": "Onbetaalde boekingen automatisch annuleren",
+        "chooseOptions": "Kies uit welke betaalopties klanten kunnen kiezen:",
+        "payNowTitle": "Nu betalen",
+        "payNowDescription": "Direct online betalen",
+        "alwaysOn": "Altijd aan",
+        "payOnSiteTitle": "Ter plaatse betalen",
+        "payOnSiteDescription": "Betalen wanneer de dienst wordt geleverd",
+        "payOnSiteAria": "Ter plaatse betalen toestaan",
+        "installmentsTitle": "In termijnen betalen",
+        "installmentsDescription": "Opsplitsen in meerdere betalingen",
+        "proBadge": "Pro",
+        "configure": "Configureren",
+        "installmentsAria": "Termijnbetalingen toestaan"
+      },
+      "fundFlow": {
+        "title": "Geldstroom (hoe geld beweegt)",
+        "subtitle": "Begrijp de betaalreis van je boekingen",
+        "learnMoreInFees": "Meer informatie onder Kosten",
+        "nodes": {
+          "customer": {
+            "label": "Klant",
+            "caption": "Betaling gestart in lokale valuta"
+          },
+          "connected": {
+            "label": "Gekoppeld account",
+            "caption": "Bruto bedrag ontvangen in accountvaluta"
+          },
+          "bank": {
+            "label": "Bankrekening",
+            "caption": "Bedrag overgemaakt (standaard of directe uitbetaling)"
+          }
+        },
+        "bullets": {
+          "startCurrency": "Betalingen beginnen altijd in de valuta van de klant.",
+          "conversionFee": "Als die afwijkt van je accountvaluta, rekent Stripe 2% conversiekosten.",
+          "feesDeducted": "Betaalmethodekosten, Stripe-kosten en platformkosten worden allemaal automatisch ingehouden vóór uitbetaling.",
+          "finalPayout": "Definitieve uitbetaling = nettosaldo overgemaakt naar je bank (standaard of direct)."
+        },
+        "processing": {
+          "title": "Betalingsverwerking",
+          "conversion": {
+            "label": "Valutaconversie",
+            "description": "+2% kosten als de betaalvaluta afwijkt van je accountvaluta"
+          },
+          "methodFee": {
+            "label": "Betaalmethodekosten",
+            "description": "Op basis van de gekozen methode (iDEAL: €0.29, kaarten: 1.5–2.5% + €0.25)"
+          },
+          "platformFee": {
+            "label": "Platformkosten",
+            "description": "1.9% + €0.25/€0.35 ingehouden door Booking Assistant"
+          }
+        },
+        "stripeProcessing": {
+          "title": "Stripe-verwerking",
+          "fee": {
+            "label": "Stripe-verwerkingskosten",
+            "description": "0.25% + €0.10 standaard uitbetaling, 1% directe uitbetaling"
+          }
+        }
+      },
+      "howItWorks": {
+        "title": "Hoe het werkt (betaalstroom)",
+        "subtitle": "Stap voor stap: hoe klanten voor een boeking betalen",
+        "paymentLinkRequired": "De klant krijgt een veilige betaallink en moet betalen om de boeking te bevestigen.",
+        "paymentLinkOptional": "De klant kan kiezen om nu of ter plaatse te betalen.",
+        "paymentLinkOptionalLink": "Afhankelijk van de instellingen die je hierboven kiest.",
+        "steps": {
+          "books": {
+            "title": "Klant boekt via WhatsApp",
+            "body": "De klant chat met je WhatsApp-boekingsassistent, kiest een dienst en een tijdslot."
+          },
+          "paymentLink": {
+            "title": "Betaallink wordt gegenereerd"
+          },
+          "completes": {
+            "title": "Klant rondt de betaling af",
+            "body": "De klant kiest een ingeschakelde betaalmethode en betaalt veilig via Stripe."
+          },
+          "confirmation": {
+            "title": "Bevestiging verstuurd",
+            "body": "Jij en de klant krijgen allebei een bevestiging en de boeking wordt in je agenda als bevestigd gemarkeerd."
+          },
+          "funds": {
+            "title": "Geld komt op je rekening",
+            "body": "Na verwerking wordt het geld naar je bank overgemaakt, afhankelijk van de uitbetalingssnelheid die je hebt gekozen."
+          }
+        }
+      },
+      "fees": {
+        "title": "Kosten",
+        "subtitle": "Overzicht van de betalingsverwerkingskosten",
+        "methodFeesHeading": "Betaalmethodekosten",
+        "sameAsCards": "Zelfde als kaarten",
+        "currencyConversionHeading": "Valutaconversiekosten",
+        "currencyConversionAria": "Over de valutaconversiekosten",
+        "currencyConversionBody": "Er gelden 2% extra kosten wanneer de betaalvaluta van de klant afwijkt van je accountvaluta (waarschijnlijker bij de hierboven gemarkeerde kaartmethoden).",
+        "structureHeading": "Kostenstructuur",
+        "exampleHeading": "Voorbeeld kostenimpact",
+        "deductedNote": "Alle kosten worden vóór uitbetaling van het boekingsbedrag afgetrokken.",
+        "structure": {
+          "stripe": {
+            "term": "Stripe-verwerkingskosten",
+            "standard": "• Standaard uitbetaling: 0.25% + €0.10 per transactie",
+            "instant": "• Directe uitbetaling: 1% per transactie"
+          },
+          "platform": {
+            "term": "Platformkosten",
+            "standard": "• Standaard uitbetaling: 1.9% + €0.25 per boeking",
+            "instant": "• Directe uitbetaling: 1.9% + €0.35 per boeking"
+          },
+          "method": {
+            "term": "Betaalmethodekosten",
+            "body": "Verschillen per methode (bijv. iDEAL €0.29, kaartkosten variëren)"
+          }
+        },
+        "example": {
+          "bookingAmount": "Boekingsbedrag",
+          "methodFee": "Betaalmethodekosten (iDEAL)",
+          "platformFee": "Platformkosten (1.9% + €0.25)",
+          "stripeProcessing": "Stripe-verwerking (0.25% + €0.10)",
+          "netPayout": "Netto-uitbetaling"
+        }
+      },
+      "currencyDialog": {
+        "title": "Valutaconversiekosten",
+        "tip": "Tip: vermijd deze kosten door te factureren in dezelfde valuta als je Stripe-account.",
+        "points": {
+          "extraFee": "Stripe rekent 2% extra kosten als de betaalvaluta afwijkt van je accountvaluta.",
+          "example": "Voorbeeld: een klant in het VK betaalt £100 in GBP, het bedrag wordt omgezet naar EUR met een opslag van 2% op de wisselkoers.",
+          "onTop": "Deze kosten komen boven op de normale betalingsverwerkingskosten.",
+          "ownCurrency": "Klanten zien de afschrijving altijd in hun eigen valuta; de conversie gebeurt aan jouw kant als verkoper.",
+          "sameCurrency": "Als de klant in dezelfde valuta als je account betaalt (bijv. EUR), gelden deze kosten niet."
+        }
+      },
+      "installments": {
+        "free": "Gratis",
+        "applyToServices": "Toepassen op diensten",
+        "enableAllServices": "Inschakelen voor alle dienstsoorten",
+        "choosePerService": "Per dienstsoort kiezen",
+        "selectServiceTypes": "Dienstsoorten selecteren",
+        "noServiceTypes": "Geen dienstsoorten gevonden. Maak eerst dienstsoorten aan om termijnbetalingen te configureren.",
+        "configureSelected": "Geselecteerde dienstsoorten configureren",
+        "paymentStructure": "Betaalstructuur",
+        "quickSetup": "Snelle instelopties",
+        "advancedCustom": "Geavanceerde aangepaste configuratie",
+        "choosePlan": "Kies een betaalplan",
+        "fixedDepositAmount": "Vast aanbetalingsbedrag (€)",
+        "customSchedule": "Aangepast betaalschema",
+        "addPayment": "Betaling toevoegen",
+        "percentage": "Percentage",
+        "when": "Wanneer",
+        "hoursAfterBooking": "Uren na boeking",
+        "total": "Totaal:",
+        "savingInstallments": "Opslaan...",
+        "saveInstallments": "Termijninstellingen opslaan",
+        "timing": {
+          "atBooking": "Bij boeking",
+          "onLocation": "Op locatie",
+          "hoursAfter": "Uren na boeking"
+        },
+        "presets": {
+          "fullAtBooking": {
+            "name": "100% bij boeking",
+            "description": "Volledige betaling vooraf bij het boeken"
+          },
+          "split5050": {
+            "name": "50/50-verdeling",
+            "description": "50% bij boeking, 50% op locatie"
+          },
+          "split252550": {
+            "name": "25/25/50-verdeling",
+            "description": "25% bij boeking, 25% een week later, 50% op locatie"
+          },
+          "fixedDeposit": {
+            "name": "Vaste aanbetaling plus restant",
+            "description": "Vast bedrag bij boeking, rest op locatie"
+          }
+        }
+      },
+      "onboarding": {
+        "title": "Stripe-account koppelen",
+        "description": "Schakel Betalen & Boeken in voor veilige vooruitbetalingen.",
+        "whyRecommend": "Waarom we dit aanraden",
+        "whatYouNeed": "Wat je nodig hebt",
+        "cancel": "Annuleren",
+        "startSetup": "Instellen starten",
+        "intro": {
+          "lead": "Vooruitbetalingen helpen je bedrijf soepeler te draaien. Ze",
+          "reduceNoShows": "verminderen no-shows",
+          "reduceNoShowsTooltip": "Onderzoek laat zien dat vooruitbetalingen gemiste afspraken met 35–50% verlagen (National Library of Medicine, JMIR).",
+          "create": ", zorgen voor",
+          "fasterCashflow": "snellere cashflow",
+          "fasterCashflowTooltip": "Bedrijven ontvangen geld 2–3x sneller met vooruitbetalingen (Stripe/Square merchant reports).",
+          "keepEverything": ", en houden alles",
+          "secureCompliant": "veilig en compliant",
+          "secureCompliantTooltip": "Stripe voldoet aan PCI DSS Level 1, PSD2 en EU KYC/AML, voor veilige en wettelijke transacties.",
+          "period": "."
+        },
+        "requirements": {
+          "bankAccount": "Gegevens van een zakelijke bankrekening",
+          "registration": "Inschrijving bij de KvK of btw-nummer",
+          "id": "Geldig ID van vertegenwoordiger (paspoort of ID-kaart)",
+          "dobAddress": "Geboortedatum en adres van vertegenwoordiger",
+          "ownership": "Gegevens over uiteindelijk belanghebbenden (indien van toepassing)"
+        },
+        "completeInStripe": {
+          "title": "Rond het instellen af in Stripe",
+          "body": "Volg de stappen in het Stripe-venster om je account in te stellen. Dit venster sluit zodra je klaar bent."
+        },
+        "complete": {
+          "title": "Instellen voltooid!",
+          "body": "Je Stripe-account is gekoppeld en klaar om betalingen te accepteren.",
+          "continue": "Doorgaan"
+        },
+        "toast": {
+          "servicesConnected": {
+            "title": "Diensten gekoppeld",
+            "descriptionOne": "{{n}} dienst is nu klaar om betalingen te accepteren.",
+            "descriptionOther": "{{n}} diensten zijn nu klaar om betalingen te accepteren."
+          }
+        }
+      },
+      "dashboardModal": {
+        "title": "Toegang tot Stripe-dashboard",
+        "description": "We brengen je naar je Stripe-dashboard. Als de pagina niet opent, wordt die mogelijk geblokkeerd door je browser of adblocker.",
+        "alert": "Als het dashboard niet automatisch opent, schakel je adblocker dan tijdelijk uit of sta pop-ups toe voor deze site.",
+        "alternativesLabel": "Andere opties:",
+        "manualGoTo": "• Ga handmatig naar",
+        "copyLink": "• Kopieer de dashboardlink hieronder",
+        "allowPopups": "• Sta pop-ups toe in je browserinstellingen",
+        "copyButton": "Dashboardlink kopiëren",
+        "openButton": "Dashboard openen"
+      },
+      "research": {
+        "common": {
+          "keyFinding": "Belangrijkste onderzoeksbevinding",
+          "whyItWorks": "Waarom het werkt",
+          "realWorld": "Praktijkvoorbeelden",
+          "sources": "Onderzoeksbronnen"
+        },
+        "noShows": {
+          "title": "No-shows verminderen",
+          "findingPre": "Bedrijven die vooruitbetaling vereisen, verminderen gemiste afspraken met",
+          "findingPost": "vergeleken met traditionele boekingsmethoden.",
+          "why1": "Financiële toezegging creëert psychologisch eigenaarschap",
+          "why2": "Klanten hechten waarde aan afspraken die ze al hebben betaald",
+          "why3": "Vermindert vrijblijvende \"voor de zekerheid\"-boekingen",
+          "why4": "Creëert verantwoordelijkheid voor beide partijen",
+          "example1Label": "Zorgpraktijken:",
+          "example1Body": "Vooruitbetalingsprogramma's verminderden no-shows in klinieken met meer dan 40%",
+          "example2Label": "Schoonheidssalons:",
+          "example2Body": "Stylisten melden minder last-minute annuleringen en een stabielere agenda",
+          "source1Pre": "1. Smith, J. et al. (2023). \"Patient commitment and appointment adherence.\"",
+          "source1Journal": "Journal of Medical Internet Research",
+          "source1Post": ", 25(4), e12345.",
+          "source2Pre": "2. Johnson, K. (2022). \"Financial incentives in healthcare scheduling.\"",
+          "source2Journal": "Healthcare Management Research",
+          "source2Post": ", 18(2), 45-62.",
+          "source3Pre": "3. Brown, M. & Davis, L. (2023). \"Psychology of financial commitment in service industries.\"",
+          "source3Journal": "Behavioral Economics Quarterly",
+          "source3Post": ", 12(3), 78-89."
+        },
+        "cashflow": {
+          "title": "Snellere cashflow",
+          "findingPre": "Bedrijven ontvangen geld",
+          "findingHighlight": "2–3x sneller",
+          "findingPost": "met vooruitbetalingen vergeleken met factureren na de dienst.",
+          "whyItMatters": "Waarom het uitmaakt",
+          "why1": "Directe omzeterkenning",
+          "why2": "Elimineert incassovertragingen",
+          "why3": "Vermindert de overhead van debiteuren",
+          "why4": "Verbetert het werkkapitaal en de voorspelbaarheid van de cashflow",
+          "example1Label": "Kleine bedrijven in Nederland:",
+          "example1Body": "Kappers en coaches gaven aan van wekenlang wachten naar uitbetaling op dezelfde dag te gaan",
+          "example2Label": "Autogarages:",
+          "example2Body": "Gegarandeerde tijdsloten met vooruitbetaling elimineren no-shows voor bandenwissels en reparaties",
+          "source1Pre": "1. Stripe Inc. (2023). \"Global payment analytics and merchant behavior report.\"",
+          "source1Journal": "Stripe Merchant Reports",
+          "source1Post": ", Q4 2023.",
+          "source2Pre": "2. Square Inc. (2022). \"Small business cash flow analysis.\"",
+          "source2Journal": "Square Business Intelligence",
+          "source2Post": ", Annual Report 2022.",
+          "source3Pre": "3. Wilson, R. et al. (2023). \"Payment timing impact on small business operations.\"",
+          "source3Journal": "Financial Services Research",
+          "source3Post": ", 15(3), 112-128."
+        },
+        "compliance": {
+          "title": "Veilig & compliant",
+          "securityHeading": "Beveiliging & compliance",
+          "findingPre": "Stripe biedt",
+          "findingHighlight": "toonaangevende financiële beveiliging en compliance",
+          "findingPost": "die wereldwijd wordt erkend.",
+          "certificationsHeading": "Beveiligingscertificeringen",
+          "cert1": "- Hoogste niveau van kaartbeveiliging",
+          "cert2": "- Internationale norm voor beveiligingsbeheer",
+          "cert3": "- Operationele compliance",
+          "regulatoryHeading": "Wettelijke compliance & bescherming",
+          "reg1": "PSD2- & AVG-compliant (EU-regelgeving)",
+          "reg2": "KYC/AML-controles (witwasbestrijding)",
+          "reg3": "47+ landen (lokale bankregelgeving)",
+          "reg4": "End-to-end-encryptie (transactiebeveiliging)",
+          "reg5": "Fraudedetectie (geavanceerde preventie)",
+          "reg6": "24/7-monitoring (dreigingsdetectie)",
+          "source1Pre": "1. Stripe Inc. (2024). \"Security Center: Official security documentation.\"",
+          "source1Journal": "Stripe Security Documentation",
+          "source1Post": ".",
+          "source2Pre": "2. European Union. (2018). \"Payment Services Directive 2 (PSD2) and General Data Protection Regulation (GDPR).\"",
+          "source2Journal": "EU Compliance Standards",
+          "source2Post": "."
+        },
+        "professionalism": {
+          "title": "Bouw klantvertrouwen & professionaliteit op",
+          "findingPre": "Vooruitbetalingen stroomlijnen niet alleen de bedrijfsvoering, ze",
+          "findingHighlight": "vergroten ook het klantvertrouwen en versterken langetermijnrelaties",
+          "findingPost": ".",
+          "why1": "Klanten zien vooruitbetaling als een teken van professionaliteit",
+          "why2": "Een hogere ervaren betrouwbaarheid vergroot het aantal herhaalboekingen",
+          "why3": "Transparant beleid bouwt merkvertrouwen en loyaliteit op",
+          "example1Label": "Coaches & consultants:",
+          "example1Body": "Klanten ervaren vooruitbetaalde sessies als gestructureerder en professioneler",
+          "example2Label": "Schoonheidssalons:",
+          "example2Body": "Klanten nemen afspraken serieuzer, wat verspilde tijd vermindert",
+          "example3Label": "Autogarages:",
+          "example3Body": "Vooruitbetalingen voor reparatieslots verminderen annuleringen en geven vertrouwen",
+          "source1Pre": "1. Anderson, P. et al. (2023). \"Customer trust in prepayment systems.\"",
+          "source1Journal": "Service Marketing Review",
+          "source1Post": ", 19(4), 234-251.",
+          "source2Pre": "2. Thompson, S. & Lee, C. (2022). \"Professional perception and customer loyalty in service industries.\"",
+          "source2Journal": "Business Psychology Quarterly",
+          "source2Post": ", 8(2), 67-82.",
+          "source3Pre": "3. Miller, R. (2023). \"Trust building through transparent payment policies.\"",
+          "source3Journal": "Customer Relations Research",
+          "source3Post": ", 11(1), 45-60."
+        }
+      },
+      "toast": {
+        "success": "Gelukt",
+        "error": "Fout",
+        "linkCopied": "Link gekopieerd naar klembord",
+        "statusRefreshed": {
+          "title": "Accountstatus vernieuwd",
+          "description": "Je Stripe-accountstatus is bijgewerkt."
+        },
+        "popupBlocked": {
+          "title": "Pop-up geblokkeerd",
+          "dashboardDescription": "Je browser blokkeerde de pop-up. Gebruik de knoppen om het dashboard handmatig te openen.",
+          "onboardingDescription": "Je browser blokkeerde de pop-up. Gebruik de knoppen om het instellen te starten.",
+          "tryAgain": "Opnieuw proberen",
+          "copyLink": "Link kopiëren",
+          "openOnboarding": "Onboarding openen"
+        },
+        "dashboardOpened": "Stripe-dashboard geopend in een nieuw tabblad.",
+        "noAccount": {
+          "title": "Geen Stripe-account",
+          "description": "Rond eerst de Stripe-onboarding af."
+        },
+        "dashboardFailed": "Kon het Stripe-dashboard niet openen.",
+        "onboardingStarted": {
+          "title": "Onboarding gestart",
+          "description": "Rond het instellen af in het nieuwe tabblad en kom dan hier terug."
+        },
+        "onboardingFailed": "Kon het instellen niet starten.",
+        "accountReset": {
+          "title": "Stripe-account gereset",
+          "description": "Je Stripe-koppeling is gereset. Je kunt een nieuw account koppelen."
+        },
+        "selectAtLeastOne": "Selecteer minstens één betaalmethode.",
+        "methodsSaved": "Betaalmethoden opgeslagen.",
+        "methodsFailed": "Kon de betaalmethoden niet opslaan.",
+        "payoutSaved": "Uitbetalingsoptie opgeslagen.",
+        "payoutFailed": "Kon de uitbetalingsoptie niet opslaan."
+      },
+      "howPaymentsWork": "Hoe betalingen werken",
+      "ownerOnly": "Alleen accounteigenaren kunnen betaalinstellingen beheren. Neem contact op met je accounteigenaar om Stripe Connect en betaalopties in te stellen."
     }
   }
 }

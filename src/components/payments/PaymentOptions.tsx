@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Check, Info, CreditCard, Smartphone, Globe, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -38,23 +40,25 @@ interface PaymentMethod {
   priority: number;
 }
 
-const paymentMethods: PaymentMethod[] = [
+// Brand `name`/`logo`/`icon` and the logic `id`/`priority` stay verbatim; the display
+// copy (description/badge/country/modalContent) is translated via t() per method.
+const getPaymentMethods = (t: TFunction): PaymentMethod[] => [
   {
     id: 'ideal',
     name: 'iDEAL',
-    description: 'Trusted bank-to-bank payments',
+    description: t('settings.payments.methods.ideal.description', 'Trusted bank-to-bank payments'),
     icon: Building2,
     logo: idealLogo,
-    badge: 'Recommended in the Netherlands',
-    country: 'Netherlands',
+    badge: t('settings.payments.methods.ideal.badge', 'Recommended in the Netherlands'),
+    country: t('settings.payments.methods.country.netherlands', 'Netherlands'),
     modalContent: {
       title: 'iDEAL',
-      description: 'Trusted bank-to-bank payments; the #1 choice in NL.',
+      description: t('settings.payments.methods.ideal.modal.description', 'Trusted bank-to-bank payments; the #1 choice in NL.'),
       bullets: [
-        'Recommended in the Netherlands; widely adopted (used by 80%+ of Dutch shoppers)',
-        'Fast checkout, high trust, excellent completion rates',
-        'Typically lowest total cost for NL',
-        'View fees in the Fees section',
+        t('settings.payments.methods.ideal.modal.bullet1', 'Recommended in the Netherlands; widely adopted (used by 80%+ of Dutch shoppers)'),
+        t('settings.payments.methods.ideal.modal.bullet2', 'Fast checkout, high trust, excellent completion rates'),
+        t('settings.payments.methods.ideal.modal.bullet3', 'Typically lowest total cost for NL'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 1,
@@ -67,12 +71,12 @@ const paymentMethods: PaymentMethod[] = [
     logo: visaLogo,
     modalContent: {
       title: 'Cards (Visa/Mastercard)',
-      description: 'Universal acceptance and familiar experience.',
+      description: t('settings.payments.methods.cards.modal.description', 'Universal acceptance and familiar experience.'),
       bullets: [
-        'Great for international customers and repeat buyers',
-        'Supports saved cards and subscriptions',
-        'Tiered pricing: EEA cards (1.5% + €0.25), UK cards (2.5% + €0.25), International cards (3.25% + €0.25)',
-        'View fees in the Fees section',
+        t('settings.payments.methods.cards.modal.bullet1', 'Great for international customers and repeat buyers'),
+        t('settings.payments.methods.cards.modal.bullet2', 'Supports saved cards and subscriptions'),
+        t('settings.payments.methods.cards.modal.bullet3', 'Tiered pricing: EEA cards (1.5% + €0.25), UK cards (2.5% + €0.25), International cards (3.25% + €0.25)'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 2,
@@ -80,17 +84,17 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'apple-pay',
     name: 'Apple Pay',
-    description: 'One-tap checkout on Apple devices',
+    description: t('settings.payments.methods.applePay.description', 'One-tap checkout on Apple devices'),
     icon: Smartphone,
     logo: applePayLogo,
     modalContent: {
       title: 'Apple Pay',
-      description: 'One-tap checkout on Apple devices; biometric authentication.',
+      description: t('settings.payments.methods.applePay.modal.description', 'One-tap checkout on Apple devices; biometric authentication.'),
       bullets: [
-        'Frictionless mobile UX and strong conversion on iOS',
-        'Uses card rails; same pricing as cards',
-        'Ideal for mobile-first audiences',
-        'View fees in the Fees section',
+        t('settings.payments.methods.applePay.modal.bullet1', 'Frictionless mobile UX and strong conversion on iOS'),
+        t('settings.payments.methods.applePay.modal.bullet2', 'Uses card rails; same pricing as cards'),
+        t('settings.payments.methods.applePay.modal.bullet3', 'Ideal for mobile-first audiences'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 3,
@@ -98,18 +102,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'bancontact',
     name: 'Bancontact',
-    description: "Belgium's preferred payment method",
+    description: t('settings.payments.methods.bancontact.description', "Belgium's preferred payment method"),
     icon: Building2,
     logo: bancontactLogo,
-    country: 'Belgium',
+    country: t('settings.payments.methods.country.belgium', 'Belgium'),
     modalContent: {
       title: 'Bancontact',
-      description: "Belgium's go-to local payment method.",
+      description: t('settings.payments.methods.bancontact.modal.description', "Belgium's go-to local payment method."),
       bullets: [
-        'High trust and strong completion rates in BE',
-        'Bank-backed; low friction for Belgian customers',
-        'Best for businesses serving Belgian traffic',
-        'View fees in the Fees section',
+        t('settings.payments.methods.bancontact.modal.bullet1', 'High trust and strong completion rates in BE'),
+        t('settings.payments.methods.bancontact.modal.bullet2', 'Bank-backed; low friction for Belgian customers'),
+        t('settings.payments.methods.bancontact.modal.bullet3', 'Best for businesses serving Belgian traffic'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 4,
@@ -117,18 +121,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'blik',
     name: 'BLIK',
-    description: "Poland's mobile payment system",
+    description: t('settings.payments.methods.blik.description', "Poland's mobile payment system"),
     icon: Smartphone,
     logo: blikLogo,
-    country: 'Poland',
+    country: t('settings.payments.methods.country.poland', 'Poland'),
     modalContent: {
       title: 'BLIK',
-      description: "Poland's dominant mobile payment code system.",
+      description: t('settings.payments.methods.blik.modal.description', "Poland's dominant mobile payment code system."),
       bullets: [
-        'Mass adoption in PL; very strong trust',
-        'Friction-light approval via banking app',
-        'Recommended for Polish customers',
-        'View fees in the Fees section',
+        t('settings.payments.methods.blik.modal.bullet1', 'Mass adoption in PL; very strong trust'),
+        t('settings.payments.methods.blik.modal.bullet2', 'Friction-light approval via banking app'),
+        t('settings.payments.methods.blik.modal.bullet3', 'Recommended for Polish customers'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 5,
@@ -136,18 +140,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'twint',
     name: 'TWINT',
-    description: "Switzerland's mobile wallet",
+    description: t('settings.payments.methods.twint.description', "Switzerland's mobile wallet"),
     icon: Smartphone,
     logo: twintLogo,
-    country: 'Switzerland',
+    country: t('settings.payments.methods.country.switzerland', 'Switzerland'),
     modalContent: {
       title: 'TWINT',
-      description: "Switzerland's leading mobile wallet.",
+      description: t('settings.payments.methods.twint.modal.description', "Switzerland's leading mobile wallet."),
       bullets: [
-        'High local adoption; bank-linked and trusted',
-        'Perfect for Swiss shoppers and on-the-go checkout',
-        'Strong mobile conversion',
-        'View fees in the Fees section',
+        t('settings.payments.methods.twint.modal.bullet1', 'High local adoption; bank-linked and trusted'),
+        t('settings.payments.methods.twint.modal.bullet2', 'Perfect for Swiss shoppers and on-the-go checkout'),
+        t('settings.payments.methods.twint.modal.bullet3', 'Strong mobile conversion'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 6,
@@ -155,17 +159,17 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'revolut-pay',
     name: 'Revolut Pay',
-    description: 'Fast checkout for Revolut users',
+    description: t('settings.payments.methods.revolutPay.description', 'Fast checkout for Revolut users'),
     icon: Globe,
     logo: revolutLogo,
     modalContent: {
       title: 'Revolut Pay',
-      description: 'Fast checkout for Revolut users, with strong SCA.',
+      description: t('settings.payments.methods.revolutPay.modal.description', 'Fast checkout for Revolut users, with strong SCA.'),
       bullets: [
-        'Global digital wallet reach; streamlined experience',
-        'Great for mobile and international audiences',
-        'Adds diversity beyond cards/banks',
-        'View fees in the Fees section',
+        t('settings.payments.methods.revolutPay.modal.bullet1', 'Global digital wallet reach; streamlined experience'),
+        t('settings.payments.methods.revolutPay.modal.bullet2', 'Great for mobile and international audiences'),
+        t('settings.payments.methods.revolutPay.modal.bullet3', 'Adds diversity beyond cards/banks'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 7,
@@ -173,18 +177,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'sofort',
     name: 'Sofort',
-    description: 'Bank transfer for DACH region',
+    description: t('settings.payments.methods.sofort.description', 'Bank transfer for DACH region'),
     icon: Building2,
     logo: sofortLogo,
-    country: 'Germany',
+    country: t('settings.payments.methods.country.germany', 'Germany'),
     modalContent: {
       title: 'Sofort',
-      description: 'Widely used bank transfer method across DACH; high trust and strong completion for local shoppers.',
+      description: t('settings.payments.methods.sofort.modal.description', 'Widely used bank transfer method across DACH; high trust and strong completion for local shoppers.'),
       bullets: [
-        'Widely used bank transfer method across DACH',
-        'High trust and strong completion for local shoppers',
-        'Perfect for German, Austrian, and Swiss customers',
-        'View fees in the Fees section',
+        t('settings.payments.methods.sofort.modal.bullet1', 'Widely used bank transfer method across DACH'),
+        t('settings.payments.methods.sofort.modal.bullet2', 'High trust and strong completion for local shoppers'),
+        t('settings.payments.methods.sofort.modal.bullet3', 'Perfect for German, Austrian, and Swiss customers'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 8,
@@ -192,18 +196,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'eps',
     name: 'EPS',
-    description: "Austria's local bank payment",
+    description: t('settings.payments.methods.eps.description', "Austria's local bank payment"),
     icon: Building2,
     logo: epsLogo,
-    country: 'Austria',
+    country: t('settings.payments.methods.country.austria', 'Austria'),
     modalContent: {
       title: 'EPS',
-      description: "Austria's local bank payment; fast, trusted, and familiar for Austrian customers.",
+      description: t('settings.payments.methods.eps.modal.description', "Austria's local bank payment; fast, trusted, and familiar for Austrian customers."),
       bullets: [
-        "Austria's local bank payment",
-        'Fast, trusted, and familiar for Austrian customers',
-        'Bank-backed with high completion rates',
-        'View fees in the Fees section',
+        t('settings.payments.methods.eps.modal.bullet1', "Austria's local bank payment"),
+        t('settings.payments.methods.eps.modal.bullet2', 'Fast, trusted, and familiar for Austrian customers'),
+        t('settings.payments.methods.eps.modal.bullet3', 'Bank-backed with high completion rates'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 9,
@@ -211,18 +215,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'przelewy24',
     name: 'Przelewy24',
-    description: 'Popular Polish bank network',
+    description: t('settings.payments.methods.przelewy24.description', 'Popular Polish bank network'),
     icon: Building2,
     logo: przelewy24Logo,
-    country: 'Poland',
+    country: t('settings.payments.methods.country.poland', 'Poland'),
     modalContent: {
       title: 'Przelewy24 (P24)',
-      description: 'Popular Polish bank network; complements BLIK and increases coverage in Poland.',
+      description: t('settings.payments.methods.przelewy24.modal.description', 'Popular Polish bank network; complements BLIK and increases coverage in Poland.'),
       bullets: [
-        'Popular Polish bank network',
-        'Complements BLIK and increases coverage in Poland',
-        'Wide bank support and trusted by Polish customers',
-        'View fees in the Fees section',
+        t('settings.payments.methods.przelewy24.modal.bullet1', 'Popular Polish bank network'),
+        t('settings.payments.methods.przelewy24.modal.bullet2', 'Complements BLIK and increases coverage in Poland'),
+        t('settings.payments.methods.przelewy24.modal.bullet3', 'Wide bank support and trusted by Polish customers'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 10,
@@ -230,18 +234,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'pay-by-bank',
     name: 'Pay by Bank',
-    description: 'UK open-banking flow',
+    description: t('settings.payments.methods.payByBank.description', 'UK open-banking flow'),
     icon: Building2,
     logo: payByBankLogo,
-    country: 'United Kingdom',
+    country: t('settings.payments.methods.country.unitedKingdom', 'United Kingdom'),
     modalContent: {
       title: 'Pay by Bank',
-      description: 'UK open-banking flow; fast authentication and strong fraud profile via bank rails.',
+      description: t('settings.payments.methods.payByBank.modal.description', 'UK open-banking flow; fast authentication and strong fraud profile via bank rails.'),
       bullets: [
-        'UK open-banking flow',
-        'Fast authentication and strong fraud profile via bank rails',
-        'Secure and trusted by UK customers',
-        'View fees in the Fees section',
+        t('settings.payments.methods.payByBank.modal.bullet1', 'UK open-banking flow'),
+        t('settings.payments.methods.payByBank.modal.bullet2', 'Fast authentication and strong fraud profile via bank rails'),
+        t('settings.payments.methods.payByBank.modal.bullet3', 'Secure and trusted by UK customers'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 11,
@@ -249,18 +253,18 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'cartes-bancaires',
     name: 'Cartes Bancaires',
-    description: "France's domestic card scheme",
+    description: t('settings.payments.methods.cartesBancaires.description', "France's domestic card scheme"),
     icon: CreditCard,
     logo: cartesBancairesLogo,
-    country: 'France',
+    country: t('settings.payments.methods.country.france', 'France'),
     modalContent: {
       title: 'Cartes Bancaires (CB)',
-      description: "France's domestic card scheme; essential coverage for French shoppers.",
+      description: t('settings.payments.methods.cartesBancaires.modal.description', "France's domestic card scheme; essential coverage for French shoppers."),
       bullets: [
-        "France's domestic card scheme",
-        'Essential coverage for French shoppers',
-        'High acceptance and trust in France',
-        'View fees in the Fees section',
+        t('settings.payments.methods.cartesBancaires.modal.bullet1', "France's domestic card scheme"),
+        t('settings.payments.methods.cartesBancaires.modal.bullet2', 'Essential coverage for French shoppers'),
+        t('settings.payments.methods.cartesBancaires.modal.bullet3', 'High acceptance and trust in France'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 12,
@@ -268,27 +272,22 @@ const paymentMethods: PaymentMethod[] = [
   {
     id: 'google-pay',
     name: 'Google Pay',
-    description: 'One-tap checkout on Android/Chrome',
+    description: t('settings.payments.methods.googlePay.description', 'One-tap checkout on Android/Chrome'),
     icon: Smartphone,
     logo: googlePayLogo,
     modalContent: {
       title: 'Google Pay',
-      description: 'One-tap checkout on Android/Chrome; same pricing as cards; excellent mobile conversion.',
+      description: t('settings.payments.methods.googlePay.modal.description', 'One-tap checkout on Android/Chrome; same pricing as cards; excellent mobile conversion.'),
       bullets: [
-        'One-tap checkout on Android/Chrome',
-        'Same pricing as cards; excellent mobile conversion',
-        'Great for mobile-first audiences and Android users',
-        'View fees in the Fees section',
+        t('settings.payments.methods.googlePay.modal.bullet1', 'One-tap checkout on Android/Chrome'),
+        t('settings.payments.methods.googlePay.modal.bullet2', 'Same pricing as cards; excellent mobile conversion'),
+        t('settings.payments.methods.googlePay.modal.bullet3', 'Great for mobile-first audiences and Android users'),
+        t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section'),
       ],
     },
     priority: 13,
   },
 ];
-
-// Stable display order, computed once (never mutate the module-level array).
-const SORTED_METHODS = [...paymentMethods].sort((a, b) => a.priority - b.priority);
-const LEFT_COLUMN = SORTED_METHODS.filter((m) => m.priority <= 7);
-const RIGHT_COLUMN = SORTED_METHODS.filter((m) => m.priority > 7);
 
 interface PaymentOptionsProps {
   selectedMethods?: string[];
@@ -313,6 +312,12 @@ export function PaymentOptions({
   className,
   hasUnsavedChanges = false,
 }: PaymentOptionsProps) {
+  const { t } = useTranslation('settings');
+  const paymentMethods = React.useMemo(() => getPaymentMethods(t), [t]);
+  // Stable display order (never mutate the source array).
+  const sortedMethods = React.useMemo(() => [...paymentMethods].sort((a, b) => a.priority - b.priority), [paymentMethods]);
+  const leftColumn = sortedMethods.filter((m) => m.priority <= 7);
+  const rightColumn = sortedMethods.filter((m) => m.priority > 7);
   const [selected, setSelected] = useState<string[]>(selectedMethods);
   const [openModalId, setOpenModalId] = useState<string | null>(null);
 
@@ -338,7 +343,7 @@ export function PaymentOptions({
         key={method.id}
         role="checkbox"
         aria-checked={isSelected}
-        aria-label={`${method.name} — ${method.description}`}
+        aria-label={`${method.name}, ${method.description}`}
         tabIndex={0}
         onClick={() => handleMethodToggle(method.id)}
         onKeyDown={(e) => {
@@ -392,7 +397,7 @@ export function PaymentOptions({
                 <h4 className="font-medium text-foreground">{method.name}</h4>
                 {method.badge && (
                   <span className="rounded-full border border-primary/20 bg-primary/[0.10] px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
-                    Recommended
+                    {t('settings.payments.methods.recommended', 'Recommended')}
                   </span>
                 )}
                 {method.country && (
@@ -415,7 +420,7 @@ export function PaymentOptions({
             // Mobile 44px tap target via the negative-margin idiom (absorbs into the card's
             // p-4 padding so layout/row-height is unchanged); resets to 32px on desktop.
             className="-m-1.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-subtle-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:-m-1 md:h-8 md:w-8"
-            aria-label={`More info about ${method.name}`}
+            aria-label={t('settings.payments.methods.moreInfoAria', 'More info about {{name}}', { name: method.name })}
           >
             <Info className="h-4 w-4" />
           </button>
@@ -427,15 +432,17 @@ export function PaymentOptions({
   return (
     <div className={cn('space-y-4', className)}>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
-        <div className="space-y-3">{LEFT_COLUMN.map(renderMethodCard)}</div>
-        <div className="space-y-3">{RIGHT_COLUMN.map(renderMethodCard)}</div>
+        <div className="space-y-3">{leftColumn.map(renderMethodCard)}</div>
+        <div className="space-y-3">{rightColumn.map(renderMethodCard)}</div>
       </div>
 
       {/* Summary + save */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
         <div className="min-w-0 text-sm">
           <span className="font-medium text-foreground">
-            {selected.length} payment method{selected.length !== 1 ? 's' : ''} selected
+            {selected.length === 1
+              ? t('settings.payments.methods.selectedCountOne', '{{n}} payment method selected', { n: selected.length })
+              : t('settings.payments.methods.selectedCountOther', '{{n}} payment methods selected', { n: selected.length })}
           </span>
           {selected.length > 0 && (
             <span className="ml-2 text-muted-foreground">
@@ -444,11 +451,11 @@ export function PaymentOptions({
           )}
         </div>
         <Button size="sm" onClick={() => onSave?.(selected)} disabled={!hasUnsavedChanges || !onSave}>
-          Save changes
+          {t('settings.payments.methods.saveChanges', 'Save changes')}
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Choose payment methods that are popular in your country and have low fees for the best results.
+        {t('settings.payments.methods.tip', 'Choose payment methods that are popular in your country and have low fees for the best results.')}
       </p>
 
       {/* Per-method explainer — shared Dialog primitive (focus trap, Esc, labelled title). */}
@@ -487,7 +494,7 @@ export function PaymentOptions({
                     }, 100);
                   }}
                 >
-                  View fees in the Fees section
+                  {t('settings.payments.methods.viewFeesBullet', 'View fees in the Fees section')}
                 </button>
               </div>
             </>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Wallet, Lock, Settings as SettingsIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -132,43 +133,44 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
     installmentSlot,
     saving,
   } = props;
+  const { t } = useTranslation('settings');
 
   return (
-    <SettingsSection icon={Wallet} title="Payment flexibility" usedByAgent>
+    <SettingsSection icon={Wallet} title={t('settings.payments.flexibility.title', 'Payment flexibility')} usedByAgent>
       <div className="space-y-6">
         {/* Refund & cancellation policy */}
         <div className="border-b border-white/[0.05] pb-6">
           <SettingsField
-            label="Refund & cancellation policy"
+            label={t('settings.payments.flexibility.refundPolicyLabel', 'Refund & cancellation policy')}
             htmlFor="refund-policy"
-            description="Shown to your AI assistant so it answers refund and cancellation questions correctly."
+            description={t('settings.payments.flexibility.refundPolicyDescription', 'Shown to your AI assistant so it answers refund and cancellation questions correctly.')}
           >
             <Textarea
               id="refund-policy"
               value={refundPolicy}
               onChange={(e) => onRefundPolicyChange(e.target.value)}
-              placeholder="e.g. Free cancellation up to 24h before the appointment; no refund afterwards."
+              placeholder={t('settings.payments.flexibility.refundPolicyPlaceholder', 'e.g. Free cancellation up to 24h before the appointment; no refund afterwards.')}
               rows={3}
             />
           </SettingsField>
           <div className="mt-3">
             <Button size="sm" onClick={onSaveRefundPolicy} disabled={savingRefundPolicy}>
               {savingRefundPolicy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {savingRefundPolicy ? 'Saving…' : 'Save policy'}
+              {savingRefundPolicy ? t('settings.payments.flexibility.saving', 'Saving…') : t('settings.payments.flexibility.savePolicy', 'Save policy')}
             </Button>
           </div>
         </div>
 
         {/* Require vs optional master toggle */}
         <FlexRow
-          title="Make payment optional"
-          description="On: customers choose when to pay. Off: payment is required upfront before a booking is confirmed."
+          title={t('settings.payments.flexibility.makeOptionalTitle', 'Make payment optional')}
+          description={t('settings.payments.flexibility.makeOptionalDescription', 'On: customers choose when to pay. Off: payment is required upfront before a booking is confirmed.')}
           control={
             <Switch
               checked={!paymentRequired}
               onCheckedChange={onToggleOptional}
               disabled={saving}
-              aria-label="Make payment optional"
+              aria-label={t('settings.payments.flexibility.makeOptionalAria', 'Make payment optional')}
             />
           }
         />
@@ -178,15 +180,15 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
             <div className="flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/[0.05] p-4">
               <Lock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Payment required upfront</span> — customers must
-                pay online before their booking is confirmed.
+                <span className="font-medium text-foreground">{t('settings.payments.flexibility.requiredUpfrontTitle', 'Payment required upfront')}</span>{' '}
+                {t('settings.payments.flexibility.requiredUpfrontBody', 'customers must pay online before their booking is confirmed.')}
               </p>
             </div>
 
             <div className="space-y-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
               <FlexRow
-                title="Payment deadline"
-                description="How long a customer has to pay before the slot can be released."
+                title={t('settings.payments.flexibility.deadlineTitle', 'Payment deadline')}
+                description={t('settings.payments.flexibility.deadlineDescription', 'How long a customer has to pay before the slot can be released.')}
                 htmlFor="payment-deadline"
                 control={
                   <>
@@ -199,22 +201,22 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
                       onBlur={onDeadlineBlur}
                       disabled={saving}
                       className="w-20"
-                      aria-label="Payment deadline in hours"
+                      aria-label={t('settings.payments.flexibility.deadlineAria', 'Payment deadline in hours')}
                     />
-                    <span className="text-sm text-muted-foreground">hours</span>
+                    <span className="text-sm text-muted-foreground">{t('settings.payments.flexibility.hours', 'hours')}</span>
                   </>
                 }
               />
               <FlexRow
                 className="border-t border-white/[0.05] pt-5"
-                title="Auto-cancel unpaid bookings"
-                description="Release the slot automatically when the deadline passes without payment."
+                title={t('settings.payments.flexibility.autoCancelTitle', 'Auto-cancel unpaid bookings')}
+                description={t('settings.payments.flexibility.autoCancelDescription', 'Release the slot automatically when the deadline passes without payment.')}
                 control={
                   <Switch
                     checked={autoCancel}
                     onCheckedChange={onToggleAutoCancel}
                     disabled={saving}
-                    aria-label="Auto-cancel unpaid bookings"
+                    aria-label={t('settings.payments.flexibility.autoCancelAria', 'Auto-cancel unpaid bookings')}
                   />
                 }
               />
@@ -222,16 +224,16 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">Choose which payment options customers can pick from:</p>
+            <p className="text-sm text-muted-foreground">{t('settings.payments.flexibility.chooseOptions', 'Choose which payment options customers can pick from:')}</p>
 
             <TimingRow
               active
               activeColor="bg-success"
-              title="Pay now"
-              description="Pay online immediately"
+              title={t('settings.payments.flexibility.payNowTitle', 'Pay now')}
+              description={t('settings.payments.flexibility.payNowDescription', 'Pay online immediately')}
               control={
                 <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-xs text-subtle-foreground">
-                  Always on
+                  {t('settings.payments.flexibility.alwaysOn', 'Always on')}
                 </span>
               }
             />
@@ -239,14 +241,14 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
             <TimingRow
               active={payOnSiteEnabled}
               activeColor="bg-warning"
-              title="Pay on-site"
-              description="Pay when the service is provided"
+              title={t('settings.payments.flexibility.payOnSiteTitle', 'Pay on-site')}
+              description={t('settings.payments.flexibility.payOnSiteDescription', 'Pay when the service is provided')}
               control={
                 <Switch
                   checked={payOnSiteEnabled}
                   onCheckedChange={onTogglePayOnSite}
                   disabled={saving}
-                  aria-label="Allow pay on-site"
+                  aria-label={t('settings.payments.flexibility.payOnSiteAria', 'Allow pay on-site')}
                 />
               }
             />
@@ -254,12 +256,12 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
             <TimingRow
               active={installmentsEnabled}
               activeColor="bg-primary"
-              title="Pay in installments"
-              description="Split into multiple payments"
+              title={t('settings.payments.flexibility.installmentsTitle', 'Pay in installments')}
+              description={t('settings.payments.flexibility.installmentsDescription', 'Split into multiple payments')}
               badge={
                 !hasFullAccess ? (
                   <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold-foreground">
-                    Pro
+                    {t('settings.payments.flexibility.proBadge', 'Pro')}
                   </span>
                 ) : undefined
               }
@@ -268,14 +270,14 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
                   {installmentsEnabled && hasFullAccess && (
                     <Button variant="ghost" size="sm" onClick={onToggleInstallmentConfig} className="text-xs">
                       <SettingsIcon className="mr-1 h-3 w-3" />
-                      Configure
+                      {t('settings.payments.flexibility.configure', 'Configure')}
                     </Button>
                   )}
                   <Switch
                     checked={installmentsEnabled}
                     onCheckedChange={onToggleInstallments}
                     disabled={saving || !hasFullAccess}
-                    aria-label="Allow installment payments"
+                    aria-label={t('settings.payments.flexibility.installmentsAria', 'Allow installment payments')}
                   />
                 </>
               }

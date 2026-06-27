@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Wallet, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -21,28 +22,37 @@ interface PayoutOptionsSectionProps {
 
 interface PayoutOption {
   value: PayoutType;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  titleDefault: string;
+  subtitleKey: string;
+  subtitleDefault: string;
   platformFee: string;
-  processingLabel: string;
+  processingLabelKey: string;
+  processingLabelDefault: string;
   processingFee: string;
 }
 
 const OPTIONS: PayoutOption[] = [
   {
     value: 'standard',
-    title: 'Standard payout',
-    subtitle: '3 business days to your account',
+    titleKey: 'settings.payments.payout.standard.title',
+    titleDefault: 'Standard payout',
+    subtitleKey: 'settings.payments.payout.standard.subtitle',
+    subtitleDefault: '3 business days to your account',
     platformFee: '1.9% + €0.25',
-    processingLabel: 'Stripe processing fee',
+    processingLabelKey: 'settings.payments.payout.standard.processingLabel',
+    processingLabelDefault: 'Stripe processing fee',
     processingFee: '0.25% + €0.10',
   },
   {
     value: 'instant',
-    title: 'Instant payout',
-    subtitle: 'Arrives within minutes',
+    titleKey: 'settings.payments.payout.instant.title',
+    titleDefault: 'Instant payout',
+    subtitleKey: 'settings.payments.payout.instant.subtitle',
+    subtitleDefault: 'Arrives within minutes',
     platformFee: '1.9% + €0.35',
-    processingLabel: 'Stripe instant payout fee',
+    processingLabelKey: 'settings.payments.payout.instant.processingLabel',
+    processingLabelDefault: 'Stripe instant payout fee',
     processingFee: '1%',
   },
 ];
@@ -60,6 +70,7 @@ function FeeBreakdown({
   paymentMethodsFees: PaymentMethodFee[];
   calculateTotalFee: (payout: PayoutType, method: string) => string;
 }) {
+  const { t } = useTranslation('settings');
   const methodFee = paymentMethodsFees.find((m) => m.id === selectedPaymentMethod)?.fee;
   return (
     <Collapsible>
@@ -68,27 +79,27 @@ function FeeBreakdown({
           type="button"
           className="group mt-3 flex min-h-11 items-center gap-1 text-xs text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background md:min-h-0"
         >
-          <span>View fee breakdown example</span>
+          <span>{t('settings.payments.payout.viewBreakdown', 'View fee breakdown example')}</span>
           <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent className="mt-3 border-t border-white/[0.06] pt-3">
         <dl className="space-y-1.5 text-xs text-muted-foreground">
           <div className="flex justify-between">
-            <dt>Booking Assistant platform fee</dt>
+            <dt>{t('settings.payments.payout.platformFeeLabel', 'Booking Assistant platform fee')}</dt>
             <dd className="tabular-nums">{option.platformFee}</dd>
           </div>
           <div className="flex justify-between">
-            <dt>{option.processingLabel}</dt>
+            <dt>{t(option.processingLabelKey, option.processingLabelDefault)}</dt>
             <dd className="tabular-nums">{option.processingFee}</dd>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <dt>Transaction fee</dt>
+            <dt>{t('settings.payments.payout.transactionFee', 'Transaction fee')}</dt>
             <dd className="flex items-center gap-2">
               {/* Stop the click bubbling so picking a method doesn't toggle the radio card. */}
               <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                 <Select value={selectedPaymentMethod} onValueChange={onSelectPaymentMethod}>
-                  <SelectTrigger className="h-7 w-36 text-xs" aria-label="Example payment method">
+                  <SelectTrigger className="h-7 w-36 text-xs" aria-label={t('settings.payments.payout.examplePaymentMethodAria', 'Example payment method')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -104,7 +115,7 @@ function FeeBreakdown({
             </dd>
           </div>
           <div className="mt-1 flex justify-between border-t border-white/[0.06] pt-1.5">
-            <dt className="font-medium text-foreground">Total fee</dt>
+            <dt className="font-medium text-foreground">{t('settings.payments.payout.totalFee', 'Total fee')}</dt>
             <dd className="font-medium tabular-nums text-accent-foreground">
               {calculateTotalFee(option.value, selectedPaymentMethod)}
             </dd>
@@ -132,14 +143,15 @@ export function PayoutOptionsSection({
   saving,
   onSave,
 }: PayoutOptionsSectionProps) {
+  const { t } = useTranslation('settings');
   const cardRefs = React.useRef<(HTMLDivElement | null)[]>([]);
   return (
     <SettingsSection
       icon={Wallet}
-      title="Payout options"
-      description="Choose how quickly your payments land in your account."
+      title={t('settings.payments.payout.title', 'Payout options')}
+      description={t('settings.payments.payout.description', 'Choose how quickly your payments land in your account.')}
     >
-      <div role="radiogroup" aria-label="Payout speed" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div role="radiogroup" aria-label={t('settings.payments.payout.speedAria', 'Payout speed')} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {OPTIONS.map((option, index) => {
           const isSelected = selected === option.value;
           return (
@@ -148,7 +160,7 @@ export function PayoutOptionsSection({
               ref={(el) => (cardRefs.current[index] = el)}
               role="radio"
               aria-checked={isSelected}
-              aria-label={`${option.title} — ${option.subtitle}`}
+              aria-label={`${t(option.titleKey, option.titleDefault)}, ${t(option.subtitleKey, option.subtitleDefault)}`}
               // Roving tabindex: only the selected card is a tab stop; arrows move within the group.
               tabIndex={isSelected ? 0 : -1}
               onClick={() => onSelect(option.value)}
@@ -173,8 +185,8 @@ export function PayoutOptionsSection({
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="font-semibold text-foreground">{option.title}</div>
-                  <div className="mt-0.5 text-sm text-muted-foreground">{option.subtitle}</div>
+                  <div className="font-semibold text-foreground">{t(option.titleKey, option.titleDefault)}</div>
+                  <div className="mt-0.5 text-sm text-muted-foreground">{t(option.subtitleKey, option.subtitleDefault)}</div>
                 </div>
                 <span
                   className={cn(
@@ -200,14 +212,16 @@ export function PayoutOptionsSection({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
         <p className="text-sm text-muted-foreground">
-          Selected:{' '}
+          {t('settings.payments.payout.selectedLabel', 'Selected:')}{' '}
           <span className="font-medium text-foreground">
-            {selected === 'standard' ? 'Standard (3 business days)' : 'Instant (within minutes)'}
+            {selected === 'standard'
+              ? t('settings.payments.payout.selectedStandard', 'Standard (3 business days)')
+              : t('settings.payments.payout.selectedInstant', 'Instant (within minutes)')}
           </span>
         </p>
         <Button size="sm" onClick={onSave} disabled={!hasUnsavedChanges || saving}>
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {saving ? 'Saving…' : 'Save changes'}
+          {saving ? t('settings.payments.payout.saving', 'Saving…') : t('settings.payments.payout.saveChanges', 'Save changes')}
         </Button>
       </div>
     </SettingsSection>
