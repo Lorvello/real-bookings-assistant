@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,6 +15,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
   currentTimezone,
   onTimezoneChange
 }) => {
+  const { t } = useTranslation('appPages');
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState(currentTimezone);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,7 +91,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center space-x-2">
             <Clock className="h-5 w-5 text-primary" />
-            <span>Timezone</span>
+            <span>{t('availPage.card.timezone', 'Timezone')}</span>
           </CardTitle>
           {!isEditing && (
             <Button
@@ -109,14 +111,14 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
         {!isEditing ? (
           <>
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Current timezone</div>
+              <div className="text-sm text-muted-foreground">{t('availPage.timezone.label.current', 'Current timezone')}</div>
               <div className="font-medium text-foreground">
                 {currentTimezoneLabel}
               </div>
             </div>
             
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Local time</div>
+              <div className="text-sm text-muted-foreground">{t('availPage.timezone.label.localTime', 'Local time')}</div>
               <div className="font-mono text-lg font-semibold text-primary">
                 {currentTime}
               </div>
@@ -124,14 +126,14 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
             
             <div className="pt-2 border-t border-border/60">
               <div className="text-xs text-muted-foreground">
-                All availability times are shown in this timezone
+                {t('availPage.timezone.info', 'All availability times are shown in this timezone')}
               </div>
             </div>
           </>
         ) : (
           <>
             <div className="space-y-3">
-              <div className="text-sm text-muted-foreground">Select timezone</div>
+              <div className="text-sm text-muted-foreground">{t('availPage.timezone.label.select', 'Select timezone')}</div>
               <Select value={selectedTimezone} onValueChange={setSelectedTimezone}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -158,7 +160,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
                 ) : (
                   <Check className="h-4 w-4" />
                 )}
-                <span className="ml-2">Save</span>
+                <span className="ml-2">{t('availPage.button.save', 'Save')}</span>
               </Button>
               <Button
                 variant="outline"
@@ -168,7 +170,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
                 className="flex-1"
               >
                 <X className="h-4 w-4 mr-2" />
-                Cancel
+                {t('availPage.button.cancel', 'Cancel')}
               </Button>
             </div>
           </>

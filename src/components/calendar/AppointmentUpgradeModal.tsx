@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, CreditCard, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,7 @@ interface AppointmentUpgradeModalProps {
 }
 
 export function AppointmentUpgradeModal({ isOpen, onClose }: AppointmentUpgradeModalProps) {
+  const { t } = useTranslation('appPages');
   const { userStatus } = useAccessControl();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
@@ -31,26 +33,26 @@ export function AppointmentUpgradeModal({ isOpen, onClose }: AppointmentUpgradeM
   const getModalContent = () => {
     if (isExpiredTrial) {
       return {
-        title: "Trial Expired - Upgrade Required",
-        description: "Your free trial has ended. Upgrade to continue creating appointments and managing your bookings.",
-        buttonText: "Upgrade Now",
+        title: t('calPage.appointmentUpgrade.expiredTrial.title', 'Trial Expired - Upgrade Required'),
+        description: t('calPage.appointmentUpgrade.expiredTrial.description', 'Your free trial has ended. Upgrade to continue creating appointments and managing your bookings.'),
+        buttonText: t('calPage.appointmentUpgrade.expiredTrial.button', 'Upgrade Now'),
         icon: <CreditCard className="h-6 w-6" />
       };
     }
-    
+
     if (isCanceledInactive) {
       return {
-        title: "Reactivate Your Account",
-        description: "Your subscription has been canceled. Reactivate your account to continue creating appointments.",
-        buttonText: "Reactivate Account",
+        title: t('calPage.appointmentUpgrade.canceled.title', 'Reactivate Your Account'),
+        description: t('calPage.appointmentUpgrade.canceled.description', 'Your subscription has been canceled. Reactivate your account to continue creating appointments.'),
+        buttonText: t('calPage.appointmentUpgrade.canceled.button', 'Reactivate Account'),
         icon: <RefreshCw className="h-6 w-6" />
       };
     }
 
     return {
-      title: "Subscription Required",
-      description: "An active subscription is required to create new appointments.",
-      buttonText: "View Plans",
+      title: t('calPage.appointmentUpgrade.default.title', 'Subscription Required'),
+      description: t('calPage.appointmentUpgrade.default.description', 'An active subscription is required to create new appointments.'),
+      buttonText: t('calPage.appointmentUpgrade.default.button', 'View Plans'),
       icon: <Calendar className="h-6 w-6" />
     };
   };
@@ -88,7 +90,7 @@ export function AppointmentUpgradeModal({ isOpen, onClose }: AppointmentUpgradeM
               onClick={onClose}
               className="w-full h-11"
             >
-              Close
+              {t('calPage.appointmentUpgrade.closeButton', 'Close')}
             </Button>
           </div>
         </DialogContent>

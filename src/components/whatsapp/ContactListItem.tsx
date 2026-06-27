@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { WhatsAppContactOverview } from '@/types/whatsappOverview';
@@ -13,7 +14,8 @@ interface ContactListItemProps {
 }
 
 export function ContactListItem({ contact, isSelected, onClick }: ContactListItemProps) {
-  const displayName = contact.display_name || 
+  const { t } = useTranslation('appPages');
+  const displayName = contact.display_name ||
     [contact.first_name, contact.last_name].filter(Boolean).join(' ') || 
     contact.phone_number;
 
@@ -46,7 +48,7 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
     <div
       role="button"
       tabIndex={0}
-      aria-label={`Open conversation with ${displayName}`}
+      aria-label={t('convPage.openConversationAriaLabel', 'Open conversation with {{displayName}}', { displayName })}
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

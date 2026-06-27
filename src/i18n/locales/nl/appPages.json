@@ -1,0 +1,651 @@
+{
+  "availPage": {
+    "header": "Beschikbaarheid",
+    "tab": {
+      "schedule": "Schema",
+      "overrides": "Datumafwijkingen"
+    },
+    "emptyState": {
+      "setup": {
+        "title": "Stel je beschikbaarheid in",
+        "description": "Maak eerst een agenda aan om je beschikbaarheid en schema in te stellen."
+      },
+      "select": {
+        "title": "Selecteer een agenda",
+        "description": "Kies een agenda om de beschikbaarheidsinstellingen te beheren."
+      },
+      "create": {
+        "title": "Maak je agenda aan",
+        "description": "Maak een agenda aan om je beschikbaarheidsschema te beheren."
+      }
+    },
+    "accessBlocked": {
+      "description": "Een actief abonnement is vereist om je beschikbaarheidsinstellingen aan te passen. Je huidige instellingen zijn hieronder zichtbaar in de modus Alleen-lezen."
+    },
+    "toast": {
+      "setupComplete": {
+        "title": "Beschikbaarheid geconfigureerd!",
+        "description": "Je beschikbaarheidsschema is met succes ingesteld."
+      },
+      "error": {
+        "title": "Fout",
+        "setupFailed": "Er is een fout opgetreden bij het voltooien van je instellingen. Probeer het opnieuw.",
+        "noCalendar": "Geen agenda geselecteerd. Vernieuw de pagina."
+      },
+      "timezoneUpdated": {
+        "title": "Tijdzone met succes bijgewerkt",
+        "description": "Agenda-tijdzone gewijzigd in {{timezone}}"
+      },
+      "timezoneSaveFailed": {
+        "title": "Kan tijdzone niet opslaan"
+      },
+      "saved": {
+        "title": "Opgeslagen",
+        "description": "Je beschikbaarheid is bijgewerkt."
+      },
+      "saveFailed": {
+        "description": "Kan beschikbaarheid niet opslaan. Probeer het opnieuw.",
+        "title": "Opslaan mislukt"
+      },
+      "configSaved": {
+        "title": "Configuratie opgeslagen",
+        "description": "Je beschikbaarheid en tijdzone zijn met succes opgeslagen."
+      },
+      "setupError": {
+        "title": "Setup-fout",
+        "description": "Geen agenda geselecteerd. Probeer het opnieuw."
+      }
+    },
+    "button": {
+      "createCalendar": "Agenda aanmaken",
+      "editAll": "Alles bewerken",
+      "cancel": "Annuleren",
+      "addException": "Uitzondering toevoegen",
+      "addScheduleException": "Schema-uitzondering toevoegen",
+      "save": "Opslaan",
+      "saving": "Bezig met opslaan...",
+      "addTimeBlock": "Tijdblok toevoegen",
+      "remove": "Verwijderen",
+      "previous": "Vorige",
+      "nextDay": "Volgende dag",
+      "selectTimezone": "Selecteer tijdzone",
+      "savingConfig": "Configuratie opslaan...",
+      "completeSetup": "Instellingen voltooien",
+      "hours": "Uren",
+      "minutes": "Minuten",
+      "done": "Klaar",
+      "createCalendarEmptyState": "Agenda aanmaken"
+    },
+    "card": {
+      "weeklyHours": "Wekelijkse uren",
+      "timezone": "Tijdzone"
+    },
+    "loading": {
+      "settingUp": "Beschikbaarheid instellen...",
+      "loading": "Beschikbaarheid laden...",
+      "general": "Laden..."
+    },
+    "overrides": {
+      "heading": "Schema-uitzonderingen",
+      "description": "Voeg datums toe wanneer je beschikbaarheid afwijkt van je normale werktijden.",
+      "newException": {
+        "title": "Nieuwe uitzondering"
+      },
+      "field": {
+        "date": "Datum",
+        "workingHours": "Werktijden",
+        "startTime": "Begintijd",
+        "endTime": "Eindtijd",
+        "reason": "Reden (optioneel)"
+      },
+      "button": {
+        "pickDate": "Kies een datum"
+      },
+      "toggle": {
+        "availableLabel": "Beschikbaar op deze dag"
+      },
+      "badge": {
+        "available": "Beschikbaar",
+        "notAvailable": "Niet beschikbaar"
+      },
+      "placeholder": {
+        "reason": "Bv. vakantie, feestdag, speciale uren..."
+      },
+      "empty": "Nog geen schema-uitzonderingen.",
+      "noCalendar": "Selecteer een agenda om datumafwijkingen te beheren."
+    },
+    "timezone": {
+      "label": {
+        "current": "Huidige tijdzone",
+        "localTime": "Lokale tijd",
+        "select": "Selecteer tijdzone"
+      },
+      "info": "Alle beschikbaarheidstijden worden in deze tijdzone weergegeven"
+    },
+    "status": {
+      "unavailable": "Niet beschikbaar"
+    },
+    "modal": {
+      "title": {
+        "configure": "Configureer je beschikbaarheid",
+        "edit": "Bewerk je beschikbaarheid",
+        "timezone": "Selecteer tijdzone",
+        "selectTime": "Selecteer tijd"
+      },
+      "progress": {
+        "step": "Stap {{step}} van {{total}}",
+        "percent": "{{percent}}% voltooid"
+      },
+      "dayConfig": {
+        "instruction": "Configureer je beschikbaarheid voor {{day}}"
+      },
+      "toggle": {
+        "available": "Beschikbaar",
+        "unavailable": "Niet beschikbaar"
+      },
+      "timeBlock": {
+        "label": "Tijdblok {{num}}"
+      },
+      "timezone": {
+        "instruction": "Kies je tijdzone voor nauwkeurig plannen"
+      }
+    },
+    "timepicker": {
+      "instruction": {
+        "hours": "Selecteer uren (24-uurs notatie)",
+        "minutes": "Selecteer minuten"
+      },
+      "hint": "Of typ een willekeurig moment"
+    },
+    "allCals": {
+      "empty": {
+        "title": "Geen agenda's",
+        "description": "Maak een agenda aan om beschikbaarheid in te stellen."
+      },
+      "instruction": "Klik op een agenda om de beschikbaarheidsinstellingen te bekijken en bewerken.",
+      "status": {
+        "closed": "Gesloten"
+      }
+    }
+  },
+  "convPage": {
+    "noCalendarTitle": "Selecteer een agenda",
+    "noCalendarDescription": "Kies een agenda om je WhatsApp-gesprekken te bekijken",
+    "noCalendarsTitle": "Maak je eerste agenda aan",
+    "noCalendarsDescription": "WhatsApp-gesprekken zijn gekoppeld aan een agenda. Maak er een aan om hier boekingen te ontvangen en te beheren.",
+    "createCalendarButton": "Agenda aanmaken",
+    "whatsappContactsLabel": "WhatsApp-contacten",
+    "selectContactTitle": "Selecteer een contact",
+    "selectContactDescription": "Kies een contact links om het gesprek te bekijken.",
+    "backToListButton": "Terug naar lijst",
+    "contactsHeader": "Contacten",
+    "searchContactsPlaceholder": "Contacten zoeken...",
+    "searchContactsAriaLabel": "Contacten zoeken",
+    "noContactsTitle": "Nog geen contacten",
+    "noContactsDescription": "Gesprekken verschijnen hier wanneer een klant je bereikt op WhatsApp.",
+    "openConversationAriaLabel": "Gesprek openen met {{displayName}}",
+    "scheduleButton": "Afspraak inplannen",
+    "closeConversationButton": "Gesprek sluiten",
+    "closingLoadingState": "Sluiten...",
+    "closeButton": "Sluiten",
+    "contactInfoHeader": "Contactgegevens",
+    "contactSince": "Contact sinds {{date}}",
+    "bookingsHeader": "Boekingen ({{count}})",
+    "moreBookings": "+{{count}} meer boekingen",
+    "conversationHeader": "Gesprek",
+    "messageCount": "{{count}} berichten",
+    "noMessagesTitle": "Nog geen berichten",
+    "noMessagesDescription": "Het gesprek verschijnt hier.",
+    "conversationMessagesAriaLabel": "Gespreksberichten",
+    "conversationClosedToast": "Gesprek gesloten",
+    "closeConversationErrorTitle": "Kon gesprek niet sluiten",
+    "serviceInactiveTitle": "WhatsApp-service inactief",
+    "serviceInactiveTrialExpired": "Je proefperiode is verlopen. Upgrade om de WhatsApp-boekingsassistent opnieuw in te schakelen.",
+    "serviceInactiveNoSubscription": "WhatsApp-boekingsassistent vereist een actief abonnement.",
+    "serviceBadgeInactive": "Inactief",
+    "whatAffectedHeading": "Wat is beïnvloed:",
+    "newBookingsDisabled": "Nieuwe WhatsApp-boekingen zijn uitgeschakeld",
+    "automatedResponsesPaused": "Geautomatiseerde WhatsApp-reacties zijn onderbroken",
+    "aiAssistantInactive": "AI-boekingsassistent is inactief",
+    "whatStillWorksHeading": "Wat werkt nog steeds:",
+    "canViewConversations": "Je kunt bestaande gesprekken en contactgeschiedenis hieronder bekijken.",
+    "upgradeToReactivateButton": "Upgrade om service opnieuw in te schakelen",
+    "newAppointmentTitle": "Nieuwe afspraak",
+    "titleLabel": "Titel *",
+    "titlePlaceholder": "Bijvoorbeeld: Knippen voor Jan",
+    "titleDescription": "Een duidelijke titel helpt je afspraken georganiseerd te houden",
+    "customerNameLabel": "Klantnaam *",
+    "customerNamePlaceholder": "Bijvoorbeeld: Jan Jansen",
+    "customerNameDescription": "Voor wie is deze afspraak?",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "naam@voorbeeld.com",
+    "emailDescription": "Voor bevestiging en herinneringen (optioneel)",
+    "phoneLabel": "Telefoonnummer",
+    "phonePlaceholder": "06 12345678",
+    "phoneDescription": "Voor WhatsApp-meldingen (optioneel)",
+    "serviceTypeLabel": "Diensttype",
+    "serviceTypePlaceholder": "Selecteer diensttype",
+    "locationLabel": "Locatie (optioneel)",
+    "locationPlaceholder": "Bijvoorbeeld: 123 Hoofdstraat, Amsterdam",
+    "descriptionLabel": "Beschrijving",
+    "descriptionPlaceholder": "Extra informatie over de afspraak",
+    "descriptionDescription": "Optionele details over de afspraak (max 2000 tekens)",
+    "invalidDateError": "Ongeldige datum",
+    "pastDateError": "Je kunt geen afspraak in het verleden inplannen.",
+    "farFutureDateError": "Datum ligt te ver in de toekomst",
+    "maxDateError": "Boekingen kunnen tot 1 jaar vooruit worden gemaakt.",
+    "dateLabel": "Datum *",
+    "selectDateButton": "Selecteer een datum",
+    "startTimeLabel": "Starttijd *",
+    "endTimeLabel": "Eindtijd *",
+    "durationDisplay": "Duur: {{duration}} minuten ({{hours}} uur)",
+    "autoUpdateCheckbox": "Eindtijd automatisch berekenen op basis van diensttype",
+    "setReminderCheckbox": "Stel een herinnering in",
+    "reminderTimingLabel": "Herinneringstijdstip",
+    "reminderTimingPlaceholder": "Selecteer timing",
+    "cancelButton": "Annuleren",
+    "saveButton": "Opslaan",
+    "savingLoadingState": "Opslaan..."
+  },
+  "waPage": {
+    "header": {
+      "title": "WhatsApp Boekingsassistent"
+    },
+    "loading": "Laden...",
+    "qr": {
+      "placeholder": "QR-code verschijnt hier",
+      "download": "QR-code downloaden",
+      "regenerate": "QR-code opnieuw genereren",
+      "regenerating": "Opnieuw genereren...",
+      "generate": "QR-code genereren",
+      "generating": "Genereren...",
+      "downloadedToast": "QR-code gedownload",
+      "migratedToast": "QR-code gemigreerd naar nieuw formaat",
+      "migrateFailed": "Kan QR-code niet migreren",
+      "repairedToast": "QR-code met succes gerepareerd",
+      "existsToast": "QR-code bestaat al",
+      "generatedToast": "QR-code met succes gegenereerd",
+      "generateFailed": "Kan QR-code niet genereren"
+    },
+    "link": {
+      "copy": "WhatsApp-link kopiëren",
+      "copied": "Link gekopieerd!",
+      "copiedToast": "WhatsApp-link gekopieerd",
+      "copyFailed": "Kan link niet kopiëren"
+    },
+    "number": {
+      "label": "Je WhatsApp-lijn",
+      "copiedToast": "Nummer gekopieerd",
+      "copyFailed": "Kan nummer niet kopiëren",
+      "copyAriaLabel": "WhatsApp-nummer kopiëren",
+      "copiedAriaLabel": "Nummer gekopieerd"
+    },
+    "preview": {
+      "label": "Klantbericht",
+      "message": "Hallo {{businessName}}!\n(Verstuur dit bericht om de chat op te slaan, dan kun je altijd via WhatsApp een afspraak maken.)"
+    },
+    "howItWorks": {
+      "title": "Hoe het werkt",
+      "step1": "1. Een klant scant je QR-code (of tikt op je link).",
+      "step2": "2. WhatsApp opent met een vooraf ingevuld bericht dat discreet je bedrijfscode bevat, zodat we weten dat de chat van jou is.",
+      "step3": "3. Ze versturen het eenmaal om de chat op te slaan. De assistent antwoordt met een kort welkomstbericht.",
+      "step4": "4. Daarna beantwoordt de assistent hun vragen en maakt, verplaatst of annuleert afspraken voor hen.",
+      "testTitle": "Wil je het zelf testen?",
+      "testDesc": "Scan je eigen QR en verstuur het vooraf ingevulde bericht. Het eerste antwoord is altijd het welkomstbericht. Verstuur dan je echte vraag (bijvoorbeeld \"kan ik morgen om 14:00 een afspraak maken?\") en de assistent helpt je, net als een klant. Tip: je kunt je vraag ook meteen na het opgeslagen bericht stellen, de assistent begroet en helpt in één keer."
+    },
+    "shareQr": {
+      "title": "Waar je QR-code delen",
+      "item1": "• Op visitekaartjes en folders",
+      "item2": "• Bij receptie of kassa",
+      "item3": "• In bevestigingsmails",
+      "item4": "• Op je website",
+      "item5": "• Op social media-profielen",
+      "item6": "• In etalages"
+    },
+    "welcome": {
+      "title": "Welkomstbericht",
+      "desc": "Het eerste bericht dat de assistent verstuurt wanneer een klant de chat opent. Leeg laten om het standaardbericht te gebruiken.",
+      "label": "Je begroeting",
+      "tip": "Tip: gebruik {{placeholder}} om je bedrijfsnaam automatisch in te vullen.",
+      "save": "Opslaan",
+      "reset": "Naar standaard resetten",
+      "loadError": "Welkomstbericht kon niet geladen worden",
+      "noCalendarError": "Geen agenda gevonden om naar op te slaan",
+      "savedToast": "Welkomstbericht opgeslagen",
+      "saveError": "Opslaan mislukt"
+    },
+    "notAvailable": {
+      "title": {
+        "expired": "Je WhatsApp-boekingsagent is niet actief",
+        "canceled": "Je WhatsApp-boekingsagent is niet actief",
+        "default": "WhatsApp-boekingsagent niet beschikbaar"
+      },
+      "subtitle": "Upgrade om je WhatsApp-boekingsassistent te activeren",
+      "desc": {
+        "expired": "Je proefperiode is verlopen. Upgrade nu om je WhatsApp-boekingsassistent opnieuw te activeren en door te gaan met het ontvangen van boekingen via WhatsApp.",
+        "canceled": "Je abonnement is geannuleerd en verlopen. Abonneer je opnieuw om je WhatsApp-boekingsassistent opnieuw te activeren.",
+        "default": "De WhatsApp-boekingsagent is momenteel niet beschikbaar voor je account."
+      },
+      "action": {
+        "upgrade": "Nu upgraden",
+        "resubscribe": "Opnieuw abonneren",
+        "learnMore": "Meer informatie"
+      },
+      "mainTitle": "Je WhatsApp-boekingsagent opnieuw activeren",
+      "features": {
+        "title": "Functies van WhatsApp-boekingsagent",
+        "item1": "24/7 geautomatiseerde boekingsantwoorden",
+        "item2": "Intelligente afspraakplanning",
+        "item3": "Real-time beschikbaarheidscontrole",
+        "item4": "Communicatiebeheer met klanten",
+        "item5": "Naadloze agenda-integratie"
+      },
+      "contactSupport": "Contact ondersteuning",
+      "supportHint": "Hulp nodig? Neem contact op met ons ondersteuningsteam voor hulp met je abonnement."
+    },
+    "settings": {
+      "loadFailed": "Kan WhatsApp-instellingen niet laden"
+    },
+    "userIdRequired": "Gebruikers-ID is vereist"
+  },
+  "profilePage": {
+    "header": {
+      "title": "Profiel",
+      "subtitle": "Beheer je accountinstellingen en voorkeuren"
+    },
+    "loading": "Profiel laden...",
+    "section": {
+      "accountInfo": {
+        "title": "Accountgegevens"
+      },
+      "qrCode": {
+        "title": "Jouw QR-code"
+      }
+    },
+    "field": {
+      "email": {
+        "label": "E-mail"
+      },
+      "userId": {
+        "label": "Gebruikers-ID"
+      },
+      "accountCreated": {
+        "label": "Account aangemaakt",
+        "notAvailable": "Niet beschikbaar"
+      }
+    },
+    "copyButton": {
+      "toast": "{{label}} gekopieerd",
+      "error": "Kon niet naar klembord kopiëren",
+      "ariaLabel": "Kopieer {{label}}",
+      "ariaLabelCopied": "{{label}} gekopieerd"
+    },
+    "qrCode": {
+      "ariaLabel": "QR-code",
+      "downloadButton": "Download QR (SVG)",
+      "hint": "Scan deze code om je profiel te koppelen. Houd het privé, deel het niet openbaar."
+    }
+  },
+  "testAgentPage": {
+    "title": "Je AI-agent",
+    "greeting": "Hallo, ik ben je AI boekingsassistent. Stel me een vraag die je klanten zouden kunnen stellen.",
+    "hint": "Druk op Enter om te versturen"
+  },
+  "calPage": {
+    "loading": {
+      "title": "Agenda wordt geladen..."
+    },
+    "title": "Agenda",
+    "empty": {
+      "heading": "Maak je eerste agenda aan",
+      "description": "Maak een agenda aan om je afspraken en beschikbaarheid te organiseren.",
+      "button": "Agenda aanmaken"
+    },
+    "viewTitle": {
+      "all": "Alle agendas"
+    },
+    "readOnlyAlert": {
+      "message": "Alleen-lezen modus - Je {{status}}. {{action}} om boekingen en beschikbaarheid te bewerken.",
+      "expiredTrial": "proefperiode is verlopen",
+      "inactiveSubscription": "abonnement is inactief",
+      "upgrade": "Nu upgraden"
+    },
+    "viewTab": {
+      "month": "Maand",
+      "week": "Week",
+      "year": "Jaar"
+    },
+    "viewTablist": {
+      "ariaLabel": "Agendaweergave"
+    },
+    "nav": {
+      "previous": "Vorige periode",
+      "next": "Volgende periode",
+      "today": "Vandaag"
+    },
+    "newBooking": {
+      "button": "Nieuwe afspraak"
+    },
+    "loadingState": {
+      "title": "Boekingen worden geladen...",
+      "subtitle": "Even geduld alsjeblieft"
+    },
+    "errorState": {
+      "title": "Kon je boekingen niet laden",
+      "retryButton": "Opnieuw proberen"
+    },
+    "timeRange": {
+      "startAriaLabel": "Begin van zichtbaar bereik",
+      "endAriaLabel": "Einde van zichtbaar bereik",
+      "label": "Toon tijden:",
+      "separator": "tot"
+    },
+    "weekView": {
+      "timeColumnLabel": "Tijd",
+      "bookingAriaLabel": "{{name}}, {{service}}, {{start}} tot {{end}}",
+      "tooltip": {
+        "calendar": "Agenda:",
+        "person": "Persoon:",
+        "service": "Dienst:"
+      }
+    },
+    "yearView": {
+      "miniMonth": {
+        "appointmentCount": "{{n}} afspraken"
+      },
+      "summary": {
+        "heading": "Jaaroverzicht {{year}}",
+        "subtitle": "Volledige statistieken en prestaties"
+      },
+      "stats": {
+        "totalAppointments": {
+          "label": "Totale afspraken"
+        },
+        "confirmed": {
+          "label": "Bevestigd"
+        },
+        "completed": {
+          "label": "Voltooid"
+        },
+        "successRate": {
+          "label": "Succespercentage"
+        }
+      }
+    },
+    "bookingDetail": {
+      "title": "Afspraakdetails",
+      "status": {
+        "confirmed": "Bevestigd",
+        "pending": "In afwachting",
+        "cancelled": "Geannuleerd",
+        "completed": "Voltooid",
+        "noShow": "No-show"
+      },
+      "calendarSection": {
+        "label": "Agenda"
+      },
+      "dateTimeSection": {
+        "label": "Datum en tijd"
+      },
+      "durationSection": {
+        "label": "Duur"
+      },
+      "duration": {
+        "value": "{{duration}} minuten"
+      },
+      "customerSection": {
+        "label": "Klantinformatie"
+      },
+      "notesSection": {
+        "label": "Notities"
+      },
+      "notes": {
+        "customer": "Klantnotes:",
+        "internal": "Interne notities:"
+      }
+    },
+    "dayModal": {
+      "empty": "Geen afspraken",
+      "closeButton": "Sluiten",
+      "backButton": "Terug naar lijst",
+      "detailTitle": "Boekingsdetails",
+      "appointmentFallback": "Afspraak",
+      "calendarLabel": "Agenda:",
+      "statusLabel": "Status",
+      "priceLabel": "Prijs",
+      "notesLabel": "Notities",
+      "internalNotesLabel": "Interne notities",
+      "durationLabel": "Duur: {{minutes}} minuten",
+      "statusConfirmed": "Bevestigd",
+      "statusPending": "In afwachting",
+      "statusCancelled": "Geannuleerd",
+      "statusUnknown": "Onbekend",
+      "ariaAppointmentsOn": "Afspraken op {{date}}"
+    },
+    "appointmentUpgrade": {
+      "expiredTrial": {
+        "title": "Proefperiode verlopen - Upgrade vereist",
+        "description": "Je gratis proefperiode is afgelopen. Upgrade om afspraken te blijven maken en je boekingen te beheren.",
+        "button": "Nu upgraden"
+      },
+      "canceled": {
+        "title": "Activeer je account opnieuw",
+        "description": "Je abonnement is geannuleerd. Activeer je account opnieuw om afspraken te blijven maken.",
+        "button": "Account opnieuw activeren"
+      },
+      "default": {
+        "title": "Abonnement vereist",
+        "description": "Een actief abonnement is vereist om nieuwe afspraken te maken.",
+        "button": "Bekijk plannen"
+      },
+      "closeButton": "Sluiten"
+    },
+    "createCalendar": {
+      "title": "Nieuwe agenda aanmaken",
+      "description": "Geef je agenda een naam en selecteer minstens een teamlid. Je kunt diensten nu toevoegen of later in de Diensten-stap.",
+      "restricted": {
+        "title": "Agenda aanmaken is beperkt",
+        "expiredTrial": "Je proefperiode is verlopen. Upgrade nu om nieuwe agendas aan te maken en afspraken te blijven inplannen.",
+        "inactive": "Activeer je account opnieuw om nieuwe agendas aan te maken en alle boekingsfuncties te gebruiken."
+      },
+      "form": {
+        "nameLabel": "Agendanaam *",
+        "nameHint": "Bijvoorbeeld: {{name}}, 'Jan Jansen', 'Behandelkamer 2'",
+        "additionalSection": "Aanvullende informatie",
+        "locationLabel": "Locatie (optioneel)",
+        "locationPlaceholder": "Kantoor, Kamer 1, etc.",
+        "serviceTypesLabel": "Diensten (optioneel)",
+        "serviceTypesPlaceholder": "Selecteer diensten...",
+        "pendingServicesLabel": "Nieuwe diensten (worden met de agenda aangemaakt):",
+        "createServiceButton": "Nieuwe dienst aanmaken",
+        "serviceTypesHint": "Selecteer de diensten die deze agenda aanbiedt",
+        "membersLabel": "Teamleden *",
+        "membersPlaceholder": "Selecteer teamleden...",
+        "membersHint": "Selecteer teamleden die toegang hebben tot deze agenda. Je kunt meerdere leden selecteren.",
+        "colorLabel": "Kleur",
+        "colorHint": "Kies een kleur om de agenda te onderscheiden",
+        "cancelButton": "Annuleren",
+        "submitButton": "Agenda aanmaken",
+        "submittingButton": "Wordt aangemaakt..."
+      },
+      "validation": {
+        "noName": "Voer een agendanaam in.",
+        "noMembers": "Selecteer minstens een teamlid."
+      },
+      "error": "Kon agenda niet aanmaken. Probeer opnieuw.",
+      "usage": "Agendagebruik: {{current}}/{{max}}"
+    },
+    "upgradeModal": {
+      "restricted": {
+        "title": "Agenda aanmaken is beperkt",
+        "expiredTrial": "Je proefperiode is verlopen. Upgrade nu om nieuwe agendas aan te maken en afspraken te blijven inplannen."
+      },
+      "reactivate": {
+        "title": "Activeer opnieuw om agendas aan te maken",
+        "description": "Activeer je account opnieuw om nieuwe agendas aan te maken en alle boekingsfuncties te gebruiken.",
+        "button": "Abonnement opnieuw activeren"
+      },
+      "default": {
+        "title": "Upgrade vereist",
+        "description": "Upgrade je abonnement om nieuwe agendas aan te maken.",
+        "button": "Upgraden"
+      },
+      "upgrade": {
+        "button": "Nu upgraden"
+      },
+      "cancelButton": "Annuleren"
+    },
+    "availability": {
+      "heading": "Openingstijden",
+      "hint": "Stel de standaardopeningstijden voor deze agenda in. Je kunt dit later aanpassen.",
+      "monday": "ma",
+      "tuesday": "di",
+      "wednesday": "wo",
+      "thursday": "do",
+      "friday": "vr",
+      "saturday": "za",
+      "sunday": "zo",
+      "closed": "Gesloten"
+    },
+    "dayCell": {
+      "empty": "Geen afspraken",
+      "appointmentCount": "{{n}} afspraken",
+      "clickHint": "Klik voor details"
+    }
+  },
+  "bookPage": {
+    "pageTitle": "Boekingen",
+    "noCalendarHeading": "Maak je eerste agenda aan",
+    "noCalendarDescription": "Je hebt een agenda nodig voordat je boekingen kunt beheren. Maak er eentje aan om te beginnen.",
+    "createCalendarButton": "Agenda aanmaken",
+    "searchPlaceholderFull": "Zoeken op klantnaam, e-mail of telefoonnummer...",
+    "searchPlaceholderMobile": "Naam, e-mail of telefoon...",
+    "searchAriaLabel": "Zoeken in boekingen",
+    "sortNewest": "Nieuwste eerst",
+    "sortOldest": "Oudste eerst",
+    "sortAlphabetical": "Alfabetisch A-Z",
+    "sortAriaLabel": "Sorteren op boekingen",
+    "statusConfirmed": "Bevestigd",
+    "statusPending": "In afwachting",
+    "statusCancelled": "Geannuleerd",
+    "statusCompleted": "Voltooid",
+    "statusNoShow": "No-show",
+    "cardServiceLabel": "Dienst: ",
+    "cardNotesLabel": "Notities: ",
+    "cardPriceLabel": "Prijs: ",
+    "emptyStateFiltered": "Geen boekingen gevonden",
+    "emptyStateHeading": "Nog niets geboekt",
+    "emptyStateFilteredDesc": "Probeer je zoekopdracht of filters aan te passen.",
+    "emptyStateDesc": "Je eerste boeking verschijnt hier zodra een klant via WhatsApp een afspraak maakt.",
+    "modalTitle": "Afspraakdetails",
+    "modalFallbackService": "Afspraak",
+    "calendarLabel": "Agenda",
+    "dateTimeLabel": "Datum en tijd",
+    "durationLabel": "Duur",
+    "durationValue": "{{duration}} minuten",
+    "customerInfoLabel": "Klantgegevens",
+    "customerNotesLabel": "Opmerkingen klant:",
+    "internalNotesLabel": "Interne notities:",
+    "notesHeading": "Notities"
+  }
+}

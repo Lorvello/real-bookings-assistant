@@ -1,5 +1,6 @@
 
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TimeRangeSelector } from './TimeRangeSelector';
@@ -21,12 +22,6 @@ interface CalendarHeaderProps {
   onTimeRangeChange?: (startTime: string, endTime: string) => void;
 }
 
-const VIEW_LABELS: Record<CalendarView, string> = {
-  month: 'Month',
-  week: 'Week',
-  year: 'Year',
-};
-
 export function CalendarHeader({
   currentView,
   currentDate,
@@ -38,8 +33,15 @@ export function CalendarHeader({
   timeRange,
   onTimeRangeChange,
 }: CalendarHeaderProps) {
+  const { t } = useTranslation('appPages');
   const { userStatus } = useAccessControl();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const VIEW_LABELS: Record<CalendarView, string> = {
+    month: t('calPage.viewTab.month', 'Month'),
+    week: t('calPage.viewTab.week', 'Week'),
+    year: t('calPage.viewTab.year', 'Year'),
+  };
 
   const canCreateAppointments = userStatus.userType !== 'expired_trial' && userStatus.userType !== 'canceled_and_inactive';
 
@@ -78,7 +80,7 @@ export function CalendarHeader({
               onClick={() => onNavigate('prev')}
               className="h-8 w-8 min-w-11 md:min-w-0 rounded-md text-muted-foreground hover:text-foreground"
               disabled={loading}
-              aria-label="Previous period"
+              aria-label={t('calPage.nav.previous', 'Previous period')}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -90,7 +92,7 @@ export function CalendarHeader({
               className="h-8 px-3 font-medium"
               disabled={loading}
             >
-              Today
+              {t('calPage.nav.today', 'Today')}
             </Button>
 
             <Button
@@ -99,7 +101,7 @@ export function CalendarHeader({
               onClick={() => onNavigate('next')}
               className="h-8 w-8 min-w-11 md:min-w-0 rounded-md text-muted-foreground hover:text-foreground"
               disabled={loading}
-              aria-label="Next period"
+              aria-label={t('calPage.nav.next', 'Next period')}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -121,7 +123,7 @@ export function CalendarHeader({
             {/* Segmented view switcher — fills width on mobile */}
             <div
               role="tablist"
-              aria-label="Calendar view"
+              aria-label={t('calPage.viewTablist.ariaLabel', 'Calendar view')}
               className="flex flex-1 items-center gap-1 rounded-lg border border-white/[0.06] bg-muted/40 p-1 sm:flex-initial"
             >
               {(['month', 'week', 'year'] as const).map((view) => (
@@ -150,7 +152,7 @@ export function CalendarHeader({
               }`}
             >
               <Plus className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">New Appointment</span>
+              <span className="hidden sm:inline">{t('calPage.newBooking.button', 'New Appointment')}</span>
               <span className="sr-only sm:hidden">New appointment</span>
             </Button>
           </div>

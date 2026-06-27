@@ -1,6 +1,7 @@
 
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { Clock, User, Phone, Mail, Calendar, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { resolveBookingColor } from './utils/bookingColor';
@@ -42,6 +43,7 @@ interface BookingDetailModalProps {
 }
 
 export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars = false }: BookingDetailModalProps) {
+  const { t } = useTranslation('appPages');
   if (!booking) return null;
 
   const startTime = new Date(booking.start_time);
@@ -68,15 +70,15 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'Confirmed';
+        return t('calPage.bookingDetail.status.confirmed', 'Confirmed');
       case 'pending':
-        return 'Pending';
+        return t('calPage.bookingDetail.status.pending', 'Pending');
       case 'cancelled':
-        return 'Cancelled';
+        return t('calPage.bookingDetail.status.cancelled', 'Cancelled');
       case 'completed':
-        return 'Completed';
+        return t('calPage.bookingDetail.status.completed', 'Completed');
       case 'no-show':
-        return 'No Show';
+        return t('calPage.bookingDetail.status.noShow', 'No Show');
       default:
         return status;
     }
@@ -91,7 +93,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
               className="w-3 h-3 sm:w-4 sm:h-4 rounded-full"
               style={{ backgroundColor: resolveBookingColor(booking.service_types?.color) }}
             />
-            Appointment Details
+            {t('calPage.bookingDetail.title', 'Appointment Details')}
           </DialogTitle>
         </DialogHeader>
 
@@ -123,7 +125,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             <div className="bg-card/50 rounded-lg p-2 sm:p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-1 sm:mb-2">
                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="font-medium text-xs sm:text-sm">Calendar</span>
+                <span className="font-medium text-xs sm:text-sm">{t('calPage.bookingDetail.calendarSection.label', 'Calendar')}</span>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -152,7 +154,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             <div className="bg-card/50 rounded-lg p-2 sm:p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-1 sm:mb-2">
                 <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="font-medium text-xs sm:text-sm">Date & Time</span>
+                <span className="font-medium text-xs sm:text-sm">{t('calPage.bookingDetail.dateTimeSection.label', 'Date & Time')}</span>
               </div>
               <div className="space-y-0.5 sm:space-y-1">
                 <div className="font-semibold text-foreground text-xs sm:text-sm tabular-nums">
@@ -167,10 +169,10 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             <div className="bg-card/50 rounded-lg p-2 sm:p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-1 sm:mb-2">
                 <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="font-medium text-xs sm:text-sm">Duration</span>
+                <span className="font-medium text-xs sm:text-sm">{t('calPage.bookingDetail.durationSection.label', 'Duration')}</span>
               </div>
               <div className="font-semibold text-foreground text-xs sm:text-sm tabular-nums">
-                {duration} minutes
+                {t('calPage.bookingDetail.duration.value', '{{duration}} minutes', { duration })}
               </div>
             </div>
           </div>
@@ -179,7 +181,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
           <div className="bg-card/50 rounded-lg p-2 sm:p-4 border">
             <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3">
               <User className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="font-medium text-xs sm:text-sm">Customer Information</span>
+              <span className="font-medium text-xs sm:text-sm">{t('calPage.bookingDetail.customerSection.label', 'Customer Information')}</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
               <div>
@@ -209,13 +211,13 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             <div className="bg-card/50 rounded-lg p-2 sm:p-4 border">
               <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3">
                 <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="font-medium text-xs sm:text-sm">Notes</span>
+                <span className="font-medium text-xs sm:text-sm">{t('calPage.bookingDetail.notesSection.label', 'Notes')}</span>
               </div>
               <div className="space-y-2 sm:space-y-3">
                 {booking.notes && (
                   <div>
                     <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
-                      Customer notes:
+                      {t('calPage.bookingDetail.notes.customer', 'Customer notes:')}
                     </div>
                     <div className="text-xs sm:text-sm text-foreground bg-background/50 rounded p-2">
                       {booking.notes}
@@ -225,7 +227,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 {booking.internal_notes && (
                   <div>
                     <div className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">
-                      Internal notes:
+                      {t('calPage.bookingDetail.notes.internal', 'Internal notes:')}
                     </div>
                     <div className="text-xs sm:text-sm text-foreground bg-background/50 rounded p-2">
                       {booking.internal_notes}

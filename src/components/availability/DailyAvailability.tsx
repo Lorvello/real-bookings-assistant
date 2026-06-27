@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ interface DailyAvailabilityProps {
 }
 
 export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }) => {
+  const { t } = useTranslation('appPages');
   const {
     DAYS,
     availability,
@@ -172,16 +174,16 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
       setChangedDays(new Set());
       
       toast({
-        title: "Saved",
-        description: "Your availability has been updated.",
+        title: t('availPage.toast.saved.title', 'Saved'),
+        description: t('availPage.toast.saved.description', 'Your availability has been updated.'),
       });
-      
+
       onChange();
     } catch (error) {
       console.error('Error saving availability:', error);
       toast({
-        title: "Error",
-        description: "Failed to save availability. Please try again.",
+        title: t('availPage.toast.error.title', 'Error'),
+        description: t('availPage.toast.saveFailed.description', 'Failed to save availability. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -224,7 +226,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   if (!defaultCalendar) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">{t('availPage.loading.general', 'Loading...')}</div>
       </div>
     );
   }
@@ -277,7 +279,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
           ) : (
             <Save className="w-4 h-4 mr-2" />
           )}
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? t('availPage.button.saving', 'Saving...') : t('availPage.button.save', 'Save')}
         </Button>
       </div>
     </div>

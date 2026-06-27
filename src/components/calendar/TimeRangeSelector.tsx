@@ -1,5 +1,6 @@
 
 import { Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TimeRangeSelectorProps {
@@ -22,6 +23,7 @@ const generateTimeOptions = () => {
 };
 
 export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: TimeRangeSelectorProps) {
+  const { t } = useTranslation('appPages');
   const timeOptions = generateTimeOptions();
 
   const handleStartTimeChange = (newStartTime: string) => {
@@ -36,11 +38,11 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
     <div className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-muted/40 p-1">
       <div className="flex items-center gap-1.5 pl-2 pr-1">
         <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="hidden text-xs font-medium text-muted-foreground sm:inline">Show times:</span>
+        <span className="hidden text-xs font-medium text-muted-foreground sm:inline">{t('calPage.timeRange.label', 'Show times:')}</span>
       </div>
 
       <Select value={startTime} onValueChange={handleStartTimeChange}>
-        <SelectTrigger aria-label="Start of visible time range" className="h-7 w-[4.75rem] border-0 bg-background/50 px-2 text-xs tabular-nums hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
+        <SelectTrigger aria-label={t('calPage.timeRange.startAriaLabel', 'Start of visible time range')} className="h-7 w-[4.75rem] border-0 bg-background/50 px-2 text-xs tabular-nums hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -52,10 +54,10 @@ export function TimeRangeSelector({ startTime, endTime, onTimeRangeChange }: Tim
         </SelectContent>
       </Select>
 
-      <span className="text-xs text-muted-foreground">to</span>
+      <span className="text-xs text-muted-foreground">{t('calPage.timeRange.separator', 'to')}</span>
 
       <Select value={endTime} onValueChange={handleEndTimeChange}>
-        <SelectTrigger aria-label="End of visible time range" className="h-7 w-[4.75rem] border-0 bg-background/50 px-2 text-xs tabular-nums hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
+        <SelectTrigger aria-label={t('calPage.timeRange.endAriaLabel', 'End of visible time range')} className="h-7 w-[4.75rem] border-0 bg-background/50 px-2 text-xs tabular-nums hover:bg-background/80 focus:ring-1 focus:ring-primary/50">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

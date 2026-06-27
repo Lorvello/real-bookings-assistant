@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -49,6 +50,7 @@ export const CompactTimePicker: React.FC<CompactTimePickerProps> = ({
   onToggle,
   onClose
 }) => {
+  const { t } = useTranslation('appPages');
   const [inputValue, setInputValue] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -137,7 +139,7 @@ export const CompactTimePicker: React.FC<CompactTimePickerProps> = ({
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 z-50 glass rounded-lg overflow-hidden w-32">
           <p className="px-3 py-1.5 text-[11px] leading-tight text-muted-foreground border-b border-border/40">
-            Or type any time
+            {t('availPage.timepicker.hint', 'Or type any time')}
           </p>
           <ScrollArea className="h-44 w-full">
             <div className="p-1">

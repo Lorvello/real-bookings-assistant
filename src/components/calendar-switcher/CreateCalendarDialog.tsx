@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ export function CreateCalendarDialog({
   trigger = 'dropdown',
   onCalendarCreated
 }: CreateCalendarDialogProps) {
+  const { t } = useTranslation('appPages');
   const { profile } = useProfile();
   const { serviceTypes, loading: serviceTypesLoading, refetch: refetchServiceTypes } = useServiceTypes(undefined, true);
   const { members: availableMembers, loading: membersLoading } = useCalendarMembers();
@@ -110,7 +112,7 @@ export function CreateCalendarDialog({
 
   const handleCreateCalendar = async () => {
     if (!newCalendar.name.trim()) {
-      toast.error('Please enter a calendar name.');
+      toast.error(t('calPage.createCalendar.validation.noName', 'Please enter a calendar name.'));
       return;
     }
     // Service types are OPTIONAL in this dialog. The onboarding wizard has a
@@ -119,7 +121,7 @@ export function CreateCalendarDialog({
     // skipped. Forcing a service here duplicated that step and blocked users with
     // a confusing "do it here or there?" requirement (website-audit, UX).
     if (selectedTeamMembers.length === 0) {
-      toast.error('Please select at least one team member.');
+      toast.error(t('calPage.createCalendar.validation.noMembers', 'Please select at least one team member.'));
       return;
     }
 
@@ -159,7 +161,7 @@ export function CreateCalendarDialog({
       onOpenChange(false);
     } catch (error) {
       console.error('Error creating calendar:', error);
-      toast.error('Could not create calendar. Please try again.');
+      toast.error(t('calPage.createCalendar.error', 'Could not create calendar. Please try again.'));
     }
   };
 
@@ -249,9 +251,9 @@ export function CreateCalendarDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>      
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create new calendar</DialogTitle>
+            <DialogTitle>{t('calPage.createCalendar.title', 'Create new calendar')}</DialogTitle>
             <DialogDescription>
-              Name your calendar and pick at least one team member. You can add services now or later from the Services step.
+              {t('calPage.createCalendar.description', 'Name your calendar and pick at least one team member. You can add services now or later from the Services step.')}
             </DialogDescription>
           </DialogHeader>
           
@@ -259,15 +261,17 @@ export function CreateCalendarDialog({
           {!checkAccess('canCreateBookings') ? (
             <div className="space-y-4">
               <div className="p-4 border border-destructive/20 bg-destructive/10 rounded-lg">
-                <h4 className="font-medium text-destructive mb-2">Calendar Creation Restricted</h4>
+                <h4 className="font-medium text-destructive mb-2">{t('calPage.createCalendar.restricted.title', 'Calendar Creation Restricted')}</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {userStatus.userType === 'expired_trial' 
-                    ? 'Your trial has expired. Upgrade now to create new calendars and continue booking appointments.'
-                    : 'Reactivate your account to create new calendars and access all booking features.'
+                  {userStatus.userType === 'expired_trial'
+                    ? t('calPage.createCalendar.restricted.expiredTrial', 'Your trial has expired. Upgrade now to create new calendars and continue booking appointments.')
+                    : t('calPage.createCalendar.restricted.inactive', 'Reactivate your account to create new calendars and access all booking features.')
                   }
                 </p>
                 <Button onClick={() => setShowUpgradeModal(true)} className="w-full">
-                  {userStatus.userType === 'expired_trial' ? 'Upgrade Now' : 'Reactivate Subscription'}
+                  {userStatus.userType === 'expired_trial'
+                    ? t('calPage.upgradeModal.upgrade.button', 'Upgrade Now')
+                    : t('calPage.upgradeModal.reactivate.button', 'Reactivate Subscription')}
                 </Button>
               </div>
             </div>
@@ -286,7 +290,7 @@ export function CreateCalendarDialog({
           
               {canCreateMore && (
                 <div className="text-sm text-muted-foreground mb-4">
-                  Calendar usage: {currentCount}/{maxCalendars === null ? '∞' : maxCalendars}
+                  {t('calPage.createCalendar.usage', 'Calendar usage: {{current}}/{{max}}', { current: currentCount, max: maxCalendars === null ? '∞' : maxCalendars })}
                 </div>
               )}
               
@@ -294,7 +298,7 @@ export function CreateCalendarDialog({
             {/* Basic Information */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="calendar-name">Calendar name *</Label>
+                <Label htmlFor="calendar-name">{t('calPage.createCalendar.form.nameLabel', 'Calendar name *')}</Label>
                 <Input
                   id="calendar-name"
                   placeholder={generateCalendarName()}
@@ -302,7 +306,7 @@ export function CreateCalendarDialog({
                   onChange={(e) => setNewCalendar(prev => ({ ...prev, name: e.target.value }))}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  E.g: {generateCalendarName()}, "John Smith", "Treatment Room 2"
+                  {t('calPage.createCalendar.form.nameHint', 'E.g: {{name}}, "John Smith", "Treatment Room 2"', { name: generateCalendarName() })}
                 </p>
               </div>
               
@@ -310,13 +314,13 @@ export function CreateCalendarDialog({
 
             {/* Additional Information */}
             <div className="space-y-4">
-              <h4 className="font-medium text-foreground">Additional Information</h4>
-              
+              <h4 className="font-medium text-foreground">{t('calPage.createCalendar.form.additionalSection', 'Additional Information')}</h4>
+
               <div>
-                <Label htmlFor="location">Location (optional)</Label>
+                <Label htmlFor="location">{t('calPage.createCalendar.form.locationLabel', 'Location (optional)')}</Label>
                 <Input
                   id="location"
-                  placeholder="Office, Room 1, etc."
+                  placeholder={t('calPage.createCalendar.form.locationPlaceholder', 'Office, Room 1, etc.')}
                   value={newCalendar.location}
                   onChange={(e) => setNewCalendar(prev => ({ ...prev, location: e.target.value }))}
                 />
@@ -327,7 +331,7 @@ export function CreateCalendarDialog({
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Settings className="h-4 w-4" />
-                <h4 className="font-medium text-foreground">Service Types <span className="text-muted-foreground font-normal">(optional)</span></h4>
+                <h4 className="font-medium text-foreground">{t('calPage.createCalendar.form.serviceTypesLabel', 'Service Types (optional)')}</h4>
               </div>
               
               <div className="space-y-3">
@@ -335,14 +339,14 @@ export function CreateCalendarDialog({
                   options={getServiceTypeOptions()}
                   selected={selectedServiceTypes}
                   onChange={handleServiceTypeChange}
-                  placeholder="Select service types..."
+                  placeholder={t('calPage.createCalendar.form.serviceTypesPlaceholder', 'Select service types...')}
                   disabled={serviceTypesLoading}
                 />
                 
                 {/* Show pending service types */}
                 {pendingServiceTypes.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">New services (will be created with calendar):</p>
+                    <p className="text-xs text-muted-foreground">{t('calPage.createCalendar.form.pendingServicesLabel', 'New services (will be created with calendar):')}</p>
                     <div className="flex flex-wrap gap-2">
                       {pendingServiceTypes.map((pending) => (
                         <Badge 
@@ -375,12 +379,12 @@ export function CreateCalendarDialog({
                     className="flex items-center space-x-2"
                   >
                     <Plus className="h-4 w-4" />
-                    <span>Create New Service Type</span>
+                    <span>{t('calPage.createCalendar.form.createServiceButton', 'Create New Service Type')}</span>
                   </Button>
                 </div>
                 
                 <p className="text-xs text-muted-foreground">
-                  Select the service types this calendar will offer
+                  {t('calPage.createCalendar.form.serviceTypesHint', 'Select the service types this calendar will offer')}
                 </p>
               </div>
             </div>
@@ -389,7 +393,7 @@ export function CreateCalendarDialog({
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4" />
-                <h4 className="font-medium text-foreground">Team Members *</h4>
+                <h4 className="font-medium text-foreground">{t('calPage.createCalendar.form.membersLabel', 'Team Members *')}</h4>
               </div>
               
               <div className="space-y-3">
@@ -397,12 +401,12 @@ export function CreateCalendarDialog({
                   options={getTeamMemberOptions()}
                   selected={selectedTeamMembers}
                   onChange={handleTeamMemberChange}
-                  placeholder="Select team members..."
+                  placeholder={t('calPage.createCalendar.form.membersPlaceholder', 'Select team members...')}
                   disabled={membersLoading}
                 />
                 
                 <p className="text-xs text-muted-foreground">
-                  Select team members who will have access to this calendar. Multiple members can be selected.
+                  {t('calPage.createCalendar.form.membersHint', 'Select team members who will have access to this calendar. Multiple members can be selected.')}
                 </p>
               </div>
             </div>
@@ -415,7 +419,7 @@ export function CreateCalendarDialog({
 
             {/* Color */}
             <div>
-              <Label htmlFor="calendar-color">Color</Label>
+              <Label htmlFor="calendar-color">{t('calPage.createCalendar.form.colorLabel', 'Color')}</Label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {colorOptions.map((color) => (
                   <button
@@ -429,7 +433,7 @@ export function CreateCalendarDialog({
                   />
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Choose a color to distinguish the calendar</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('calPage.createCalendar.form.colorHint', 'Choose a color to distinguish the calendar')}</p>
             </div>
           </div>
             </>
@@ -437,7 +441,7 @@ export function CreateCalendarDialog({
           
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('calPage.createCalendar.form.cancelButton', 'Cancel')}
             </Button>
             {checkAccess('canCreateBookings') && (
               <Button 
@@ -449,7 +453,7 @@ export function CreateCalendarDialog({
                   creating
                 }
               >
-                {creating ? 'Creating...' : 'Create calendar'}
+                {creating ? t('calPage.createCalendar.form.submittingButton', 'Creating...') : t('calPage.createCalendar.form.submitButton', 'Create calendar')}
               </Button>
             )}
           </DialogFooter>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { Clock } from 'lucide-react';
 
@@ -41,6 +42,18 @@ export const getDefaultAvailability = (): Record<string, DayAvailability> => ({
 });
 
 export function AvailabilityQuickSetup({ availability, onChange }: AvailabilityQuickSetupProps) {
+  const { t } = useTranslation('appPages');
+
+  const dayLabels: Record<string, string> = {
+    monday: t('calPage.availability.monday', 'Mon'),
+    tuesday: t('calPage.availability.tuesday', 'Tue'),
+    wednesday: t('calPage.availability.wednesday', 'Wed'),
+    thursday: t('calPage.availability.thursday', 'Thu'),
+    friday: t('calPage.availability.friday', 'Fri'),
+    saturday: t('calPage.availability.saturday', 'Sat'),
+    sunday: t('calPage.availability.sunday', 'Sun'),
+  };
+
   const toggleDay = (dayKey: string) => {
     onChange({
       ...availability,
@@ -65,11 +78,11 @@ export function AvailabilityQuickSetup({ availability, onChange }: AvailabilityQ
     <div className="space-y-3">
       <div className="flex items-center space-x-2 mb-2">
         <Clock className="h-4 w-4" />
-        <h4 className="font-medium text-foreground">Working Hours</h4>
+        <h4 className="font-medium text-foreground">{t('calPage.availability.heading', 'Working Hours')}</h4>
       </div>
-      
+
       <p className="text-xs text-muted-foreground mb-3">
-        Set the default working hours for this calendar. You can adjust this later.
+        {t('calPage.availability.hint', 'Set the default working hours for this calendar. You can adjust this later.')}
       </p>
 
       <div className="space-y-2 border border-border/50 rounded-lg p-3 bg-muted/20">
@@ -81,7 +94,7 @@ export function AvailabilityQuickSetup({ availability, onChange }: AvailabilityQ
               className="data-[state=checked]:bg-primary"
             />
             <span className="w-10 text-sm font-medium text-foreground">
-              {day.label}
+              {dayLabels[day.key] ?? day.label}
             </span>
             
             {availability[day.key]?.enabled ? (
@@ -107,7 +120,7 @@ export function AvailabilityQuickSetup({ availability, onChange }: AvailabilityQ
                 </select>
               </div>
             ) : (
-              <span className="text-sm text-muted-foreground">Closed</span>
+              <span className="text-sm text-muted-foreground">{t('calPage.availability.closed', 'Closed')}</span>
             )}
           </div>
         ))}

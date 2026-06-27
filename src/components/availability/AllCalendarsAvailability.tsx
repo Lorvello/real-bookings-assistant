@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar as CalendarIcon, ChevronRight } from 'lucide-react';
 import { useCalendarAvailabilitySummary } from '@/hooks/useCalendarAvailabilitySummary';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -9,6 +10,7 @@ interface AllCalendarsAvailabilityProps {
 }
 
 export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> = ({ calendars }) => {
+  const { t } = useTranslation('appPages');
   const { selectCalendar } = useCalendarContext();
   const { summaries, isLoading } = useCalendarAvailabilitySummary(calendars);
 
@@ -29,8 +31,8 @@ export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> =
     return (
       <div className="surface-raised rounded-lg p-8">
         <div className="text-center space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">No Calendars</h2>
-          <p className="text-muted-foreground">Create a calendar to set up availability.</p>
+          <h2 className="text-xl font-semibold text-foreground">{t('availPage.allCals.empty.title', 'No Calendars')}</h2>
+          <p className="text-muted-foreground">{t('availPage.allCals.empty.description', 'Create a calendar to set up availability.')}</p>
         </div>
       </div>
     );
@@ -39,7 +41,7 @@ export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> =
   return (
     <div className="space-y-4">
       <div className="text-sm text-muted-foreground">
-        Click on a calendar to view and edit its availability settings.
+        {t('availPage.allCals.instruction', 'Click on a calendar to view and edit its availability settings.')}
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,7 +85,7 @@ export const AllCalendarsAvailability: React.FC<AllCalendarsAvailabilityProps> =
                         {formatTime(day.startTime)} - {formatTime(day.endTime)}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground/50 italic">Closed</span>
+                      <span className="text-muted-foreground/50 italic">{t('availPage.allCals.status.closed', 'Closed')}</span>
                     )}
                   </div>
                 ))}

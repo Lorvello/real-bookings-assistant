@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import AIAgentTestChat from '@/components/ui/AIAgentTestChat';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
@@ -7,6 +8,7 @@ import { ExpiredTrialOverlay } from '@/components/user-status/ExpiredTrialOverla
 import { useUserStatus } from '@/contexts/UserStatusContext';
 
 export default function TestAIAgent() {
+  const { t } = useTranslation('appPages');
   const { userStatus } = useUserStatus();
 
   const pageContent = (
@@ -20,9 +22,9 @@ export default function TestAIAgent() {
               Owner-facing copy (this is the tenant testing THEIR configured agent, not a marketing demo). */}
           <AIAgentTestChat
             framed={false}
-            title="Your AI Agent"
-            greeting="Hi, I'm your AI booking assistant. Ask me anything a customer might."
-            hint="Press Enter to send"
+            title={t('testAgentPage.title', 'Your AI Agent')}
+            greeting={t('testAgentPage.greeting', "Hi, I'm your AI booking assistant. Ask me anything a customer might.")}
+            hint={t('testAgentPage.hint', 'Press Enter to send')}
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -30,6 +31,7 @@ interface ConversationDetailPanelProps {
 }
 
 export function ConversationDetailPanel({ contact, calendarId }: ConversationDetailPanelProps) {
+  const { t } = useTranslation('appPages');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -42,10 +44,10 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
     closeConversation.mutate(contact.contact_id, {
       onSuccess: () => {
         setIsLocallyClosed(true);
-        toast({ title: 'Conversation closed' });
+        toast({ title: t('convPage.conversationClosedToast', 'Conversation closed') });
       },
       onError: (e) => toast({
-        title: 'Could not close conversation',
+        title: t('convPage.closeConversationErrorTitle', 'Could not close conversation'),
         description: e instanceof Error ? e.message : 'Please try again',
         variant: 'destructive',
       }),
@@ -159,21 +161,21 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="gap-2 min-w-11 md:min-w-0" aria-label="Schedule appointment" onClick={() => setBookingModalOpen(true)}>
+            <Button variant="outline" size="sm" className="gap-2 min-w-11 md:min-w-0" aria-label={t('convPage.scheduleButton', 'Schedule appointment')} onClick={() => setBookingModalOpen(true)}>
               <Calendar aria-hidden="true" className="h-4 w-4" />
-              <span className="hidden sm:inline">Schedule appointment</span>
+              <span className="hidden sm:inline">{t('convPage.scheduleButton', 'Schedule appointment')}</span>
             </Button>
             {!isClosed && (
               <Button
                 variant="outline"
                 size="sm"
                 className="gap-2 min-w-11 md:min-w-0"
-                aria-label="Close conversation"
+                aria-label={t('convPage.closeConversationButton', 'Close conversation')}
                 disabled={closeConversation.isPending}
                 onClick={handleCloseConversation}
               >
                 <CheckCircle2 aria-hidden="true" className="h-4 w-4" />
-                <span className="hidden sm:inline">{closeConversation.isPending ? 'Closing...' : 'Close'}</span>
+                <span className="hidden sm:inline">{closeConversation.isPending ? t('convPage.closingLoadingState', 'Closing...') : t('convPage.closeButton', 'Close')}</span>
               </Button>
             )}
           </div>
@@ -186,7 +188,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
         <div className="lg:col-span-1 space-y-4 overflow-y-auto">
           <Card>
             <CardHeader className="pb-3">
-              <h3 className="font-medium text-sm text-foreground">Contact Information</h3>
+              <h3 className="font-medium text-sm text-foreground">{t('convPage.contactInfoHeader', 'Contact Information')}</h3>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
@@ -207,7 +209,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                 <div className="flex items-center gap-2 text-sm">
                   <Clock aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground tabular-nums">
-                    Contact since {format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: enUS })}
+                    {t('convPage.contactSince', 'Contact since {{date}}', { date: format(new Date(contact.conversation_created_at), 'd MMM yyyy', { locale: enUS }) })}
                   </span>
                 </div>
               )}
@@ -219,7 +221,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
             <Card>
               <CardHeader className="pb-3">
                 <h3 className="font-medium text-sm text-foreground tabular-nums">
-                  Bookings ({contact.all_bookings.length})
+                  {t('convPage.bookingsHeader', 'Bookings ({{count}})', { count: contact.all_bookings.length })}
                 </h3>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -244,7 +246,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                 ))}
                 {contact.all_bookings.length > 5 && (
                   <p className="text-xs text-muted-foreground text-center">
-                    +{contact.all_bookings.length - 5} more bookings
+                    {t('convPage.moreBookings', '+{{count}} more bookings', { count: contact.all_bookings.length - 5 })}
                   </p>
                 )}
               </CardContent>
@@ -258,10 +260,10 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
             <CardHeader className="pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <MessageSquare aria-hidden="true" className="h-4 w-4 text-primary" />
-                <h3 className="font-medium text-sm text-foreground">Conversation</h3>
+                <h3 className="font-medium text-sm text-foreground">{t('convPage.conversationHeader', 'Conversation')}</h3>
                 {messages && (
                   <span className="text-xs text-muted-foreground ml-auto tabular-nums">
-                    {messages.length} messages
+                    {t('convPage.messageCount', '{{count}} messages', { count: messages.length })}
                   </span>
                 )}
               </div>
@@ -286,11 +288,11 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
                     <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
                       <MessageSquare aria-hidden="true" className="h-5 w-5 text-accent-foreground" />
                     </div>
-                    <p className="text-sm font-medium text-foreground">No messages yet</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">The conversation will appear here.</p>
+                    <p className="text-sm font-medium text-foreground">{t('convPage.noMessagesTitle', 'No messages yet')}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{t('convPage.noMessagesDescription', 'The conversation will appear here.')}</p>
                   </div>
                 ) : (
-                  <div ref={contentRef} role="log" aria-live="polite" aria-label="Conversation messages" className="space-y-4 py-4">
+                  <div ref={contentRef} role="log" aria-live="polite" aria-label={t('convPage.conversationMessagesAriaLabel', 'Conversation messages')} className="space-y-4 py-4">
                     {messages.map((msg) => (
                       <div
                         key={msg.id}

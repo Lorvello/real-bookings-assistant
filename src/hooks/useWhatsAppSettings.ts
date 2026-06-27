@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { PLATFORM_WHATSAPP_NUMBER } from '@/constants/platform';
 
 export function useWhatsAppSettings(userId: string) {
+  const { t } = useTranslation('appPages');
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [whatsappLink, setWhatsappLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,17 +83,17 @@ export function useWhatsAppSettings(userId: string) {
                 setQrUrl(migrateData.qrUrl);
                 setQrExists(true);
                 setNeedsMigration(false);
-                toast.success('QR code migrated to new format');
+                toast.success(t('waPage.qr.migratedToast', 'QR code migrated to new format'));
               }
             } catch (error) {
               console.error('Error migrating QR code:', error);
-              toast.error('Failed to migrate QR code');
+              toast.error(t('waPage.qr.migrateFailed', 'Failed to migrate QR code'));
             }
           }
         }
       } catch (error) {
         console.error('Error loading WhatsApp settings:', error);
-        toast.error('Failed to load WhatsApp settings');
+        toast.error(t('waPage.settings.loadFailed', 'Failed to load WhatsApp settings'));
       } finally {
         setLoading(false);
       }
@@ -103,7 +105,7 @@ export function useWhatsAppSettings(userId: string) {
   // Generate QR code via edge function (only once, or repair if broken)
   const generateQR = async (options?: { repair?: boolean }) => {
     if (!userId) {
-      toast.error('User ID is required');
+      toast.error(t('waPage.userIdRequired', 'User ID is required'));
       return false;
     }
 
@@ -121,14 +123,14 @@ export function useWhatsAppSettings(userId: string) {
         setQrUrl(data.qrUrl);
         setQrExists(true);
         setNeedsMigration(false);
-        toast.success(options?.repair ? 'QR code repaired successfully' : data.alreadyExists ? 'QR code already exists' : 'QR code generated successfully');
+        toast.success(options?.repair ? t('waPage.qr.repairedToast', 'QR code repaired successfully') : data.alreadyExists ? t('waPage.qr.existsToast', 'QR code already exists') : t('waPage.qr.generatedToast', 'QR code generated successfully'));
         return true;
       } else {
         throw new Error('No QR URL returned');
       }
     } catch (error) {
       console.error('Error generating QR code:', error);
-      toast.error('Failed to generate QR code');
+      toast.error(t('waPage.qr.generateFailed', 'Failed to generate QR code'));
       return false;
     } finally {
       setGenerating(false);

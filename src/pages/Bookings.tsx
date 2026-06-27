@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -17,6 +18,7 @@ import { Plus, Calendar as CalendarIcon } from 'lucide-react';
 import { DashboardLoadingScreen } from '@/components/dashboard/DashboardLoadingScreen';
 
 const Bookings = () => {
+  const { t } = useTranslation('appPages');
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendar, calendars, getActiveCalendarIds, loading: calendarsLoading } = useCalendarContext();
@@ -76,7 +78,7 @@ const Bookings = () => {
       <DashboardLayout>
         <div className="bg-background min-h-full p-1 md:p-8">
           <div className="space-y-1 md:space-y-6">
-            <SimplePageHeader title="Bookings" />
+            <SimplePageHeader title={t('bookPage.pageTitle', 'Bookings')} />
 
             {/* Create Calendar Section */}
             <div className="surface-raised rounded-xl p-8">
@@ -85,14 +87,14 @@ const Bookings = () => {
                   <CalendarIcon aria-hidden="true" className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-foreground">Create your first calendar</h2>
+                  <h2 className="text-xl font-semibold text-foreground">{t('bookPage.noCalendarHeading', 'Create your first calendar')}</h2>
                   <p className="text-muted-foreground max-w-md mx-auto">
-                    You need a calendar before you can manage bookings. Create one to get started.
+                    {t('bookPage.noCalendarDescription', 'You need a calendar before you can manage bookings. Create one to get started.')}
                   </p>
                 </div>
                 <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
                   <Plus aria-hidden="true" className="h-4 w-4" />
-                  Create calendar
+                  {t('bookPage.createCalendarButton', 'Create calendar')}
                 </Button>
               </div>
             </div>
@@ -111,8 +113,8 @@ const Bookings = () => {
     <DashboardLayout>
       <div className="bg-background min-h-full p-4 sm:p-6 md:p-8">
         <div className="space-y-4 md:space-y-6">
-          <SimplePageHeader title="Bookings" />
-          
+          <SimplePageHeader title={t('bookPage.pageTitle', 'Bookings')} />
+
           {/* Calendar Switcher */}
           <div className="mb-4 md:mb-6">
             <CalendarSwitcher />

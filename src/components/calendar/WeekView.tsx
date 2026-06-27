@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { BookingDetailModal } from './BookingDetailModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
@@ -107,6 +108,7 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
 
 // Booking block — contrast-safe accent chip
 function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking; timeSlot: string; onBookingClick: (booking: Booking) => void }) {
+  const { t } = useTranslation('appPages');
   const { topOffset, height } = calculateBookingPosition(booking, timeSlot);
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
@@ -119,7 +121,12 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
           <div
             role="button"
             tabIndex={0}
-            aria-label={`${booking.customer_name}, ${booking.service_types?.name || 'Appointment'}, ${format(startTime, 'HH:mm')} to ${format(endTime, 'HH:mm')}`}
+            aria-label={t('calPage.weekView.bookingAriaLabel', '{{name}}, {{service}}, {{start}} to {{end}}', {
+              name: booking.customer_name,
+              service: booking.service_types?.name || 'Appointment',
+              start: format(startTime, 'HH:mm'),
+              end: format(endTime, 'HH:mm'),
+            })}
             className="group absolute inset-x-0 z-10 mx-0.5 cursor-pointer overflow-hidden rounded-md border-l-2 p-1 outline-none transition-colors duration-150 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:mx-1 sm:p-2"
             style={{
               ...bookingChipStyle(booking.service_types?.color),
@@ -158,15 +165,15 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
             </div>
             <div className="space-y-0.5 text-[10px]">
               <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">Calendar:</span>
+                <span className="text-muted-foreground">{t('calPage.weekView.tooltip.calendar', 'Calendar:')}</span>
                 <span className="font-medium text-foreground">{booking.calendar?.name || 'Unknown'}</span>
               </div>
               <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">Person:</span>
+                <span className="text-muted-foreground">{t('calPage.weekView.tooltip.person', 'Person:')}</span>
                 <span className="font-medium text-foreground">{booking.calendar?.users?.full_name || 'Unknown'}</span>
               </div>
               <div className="flex justify-between gap-3">
-                <span className="text-muted-foreground">Service:</span>
+                <span className="text-muted-foreground">{t('calPage.weekView.tooltip.service', 'Service:')}</span>
                 <span className="font-medium text-foreground">{booking.service_types?.name || booking.service_name || 'Appointment'}</span>
               </div>
             </div>
@@ -178,6 +185,7 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
 }
 
 export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars = false }: WeekViewProps) {
+  const { t } = useTranslation('appPages');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
 
@@ -206,7 +214,7 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
         <div className="sticky top-0 z-20 border-b border-white/[0.06] bg-card/95 backdrop-blur-sm">
           <div className="grid grid-cols-8">
             <div className="sticky left-0 z-30 w-14 border-r border-white/[0.06] bg-card/95 p-2 sm:w-16">
-              <div className="text-[10px] font-semibold uppercase tracking-wide text-subtle-foreground sm:text-xs">Time</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-subtle-foreground sm:text-xs">{t('calPage.weekView.timeColumnLabel', 'Time')}</div>
             </div>
             {weekDays.map((day, idx) => (
               <div

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernMonthView } from './ModernMonthView';
@@ -43,6 +44,8 @@ export const CalendarContent = React.memo(function CalendarContent({
   timeRange,
   viewingAllCalendars = false
 }: CalendarContentProps) {
+  const { t } = useTranslation('appPages');
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[400px]">
@@ -51,8 +54,8 @@ export const CalendarContent = React.memo(function CalendarContent({
             <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
             <div className="absolute inset-0 w-12 h-12 border-4 border-primary/10 rounded-full mx-auto"></div>
           </div>
-          <p className="text-muted-foreground font-medium">Loading bookings...</p>
-          <p className="text-xs text-muted-foreground/70 mt-1">Please wait</p>
+          <p className="text-muted-foreground font-medium">{t('calPage.loadingState.title', 'Loading bookings...')}</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">{t('calPage.loadingState.subtitle', 'Please wait')}</p>
         </div>
       </div>
     );
@@ -65,11 +68,11 @@ export const CalendarContent = React.memo(function CalendarContent({
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10">
             <AlertCircle className="h-5 w-5 text-destructive-foreground" />
           </div>
-          <p className="text-sm font-medium text-foreground">Couldn't load your bookings</p>
+          <p className="text-sm font-medium text-foreground">{t('calPage.errorState.title', "Couldn't load your bookings")}</p>
           <p className="max-w-xs text-xs text-subtle-foreground">{error}</p>
           {onRetry && (
             <Button variant="secondary" size="sm" onClick={onRetry} className="mt-1 gap-1.5">
-              <RefreshCw className="h-3.5 w-3.5" /> Retry
+              <RefreshCw className="h-3.5 w-3.5" /> {t('calPage.errorState.retryButton', 'Retry')}
             </Button>
           )}
         </div>

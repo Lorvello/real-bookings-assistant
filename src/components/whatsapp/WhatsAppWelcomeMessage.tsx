@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 
 interface WhatsAppWelcomeMessageProps {
   userId: string;
@@ -18,6 +19,7 @@ const defaultWelcome = (businessName: string) =>
   `Hoi! 👋 Welkom bij ${businessName}. Ik ben je boekingsassistent: je kunt hier direct een afspraak maken, verzetten of annuleren. Waarmee kan ik je helpen?`;
 
 export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) {
+  const { t } = useTranslation('appPages');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [calendarId, setCalendarId] = useState<string | null>(null);
@@ -67,7 +69,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
         setSavedValue(resolved);
       } catch (err) {
         console.error('Error loading welcome message:', err);
-        toast.error('Could not load the welcome message');
+        toast.error(t('waPage.welcome.loadError', 'Could not load the welcome message'));
       } finally {
         setLoading(false);
       }
@@ -77,7 +79,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
 
   const handleSave = async () => {
     if (!calendarId) {
-      toast.error('No calendar found to save to');
+      toast.error(t('waPage.welcome.noCalendarError', 'No calendar found to save to'));
       return;
     }
     setSaving(true);
@@ -91,10 +93,10 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
       if (error) throw error;
       // New baseline so the editor returns to a clean (not-dirty) state.
       setSavedValue(trimmed);
-      toast.success('Welcome message saved');
+      toast.success(t('waPage.welcome.savedToast', 'Welcome message saved'));
     } catch (err) {
       console.error('Error saving welcome message:', err);
-      toast.error('Save failed');
+      toast.error(t('waPage.welcome.saveError', 'Save failed'));
     } finally {
       setSaving(false);
     }
@@ -106,15 +108,15 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
     <Card className="bg-card rounded-lg border border-white/[0.08] mt-6">
       <CardContent className="p-6 space-y-4">
         <div>
-          <h3 className="text-base text-foreground font-medium">Welcome message</h3>
+          <h3 className="text-base text-foreground font-medium">{t('waPage.welcome.title', 'Welcome message')}</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            The first message the assistant sends when a customer opens the chat. Leave empty to use the default message.
+            {t('waPage.welcome.desc', 'The first message the assistant sends when a customer opens the chat. Leave empty to use the default message.')}
           </p>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="welcome-message" className="text-sm text-muted-foreground">
-            Your greeting
+            {t('waPage.welcome.label', 'Your greeting')}
           </Label>
           <Textarea
             id="welcome-message"
@@ -128,7 +130,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
           />
           <div className="flex items-start justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              Tip: use <code className="px-1 rounded bg-white/[0.06]">{'{bedrijf}'}</code> to fill in your business name automatically.
+              {t('waPage.welcome.tip', 'Tip: use {{placeholder}} to fill in your business name automatically.', { placeholder: '{bedrijf}' })}
             </p>
             <span
               className="shrink-0 text-xs tabular-nums text-subtle-foreground"
@@ -146,7 +148,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
             disabled={loading || saving || !calendarId || !isDirty}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Save
+            {t('waPage.welcome.save', 'Save')}
           </Button>
           <Button
             onClick={handleReset}
@@ -154,7 +156,7 @@ export function WhatsAppWelcomeMessage({ userId }: WhatsAppWelcomeMessageProps) 
             variant="ghost"
             className="text-muted-foreground hover:text-foreground hover:bg-white/[0.06]"
           >
-            Reset to default
+            {t('waPage.welcome.reset', 'Reset to default')}
           </Button>
         </div>
       </CardContent>

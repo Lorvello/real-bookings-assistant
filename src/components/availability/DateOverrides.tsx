@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,7 @@ interface DateOverridesProps {
 }
 
 export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
+  const { t } = useTranslation('appPages');
   const { selectedCalendar } = useCalendarContext();
   const { overrides, createOverride, deleteOverride, loading } = useAvailabilityOverrides(selectedCalendar?.id);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -78,7 +80,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
   if (!selectedCalendar) {
     return (
       <div className="text-center py-8">
-        <p className="text-muted-foreground">Please select a calendar to manage date overrides.</p>
+        <p className="text-muted-foreground">{t('availPage.overrides.noCalendar', 'Please select a calendar to manage date overrides.')}</p>
       </div>
     );
   }
@@ -95,9 +97,9 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
           <Info className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Schedule exceptions</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('availPage.overrides.heading', 'Schedule exceptions')}</h2>
           <p className="text-sm text-muted-foreground">
-            Add dates when your availability differs from your standard working hours.
+            {t('availPage.overrides.description', 'Add dates when your availability differs from your standard working hours.')}
           </p>
         </div>
       </div>
@@ -110,12 +112,12 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
               <div className="p-2 bg-primary/20 rounded-2xl">
                 <CalendarIcon className="h-4 w-4 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">New Exception</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t('availPage.overrides.newException.title', 'New Exception')}</h3>
             </div>
 
             {/* Date Picker */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Date</label>
+              <label className="text-sm font-medium text-foreground">{t('availPage.overrides.field.date', 'Date')}</label>
               
               <Popover>
                 <PopoverTrigger asChild>
@@ -127,7 +129,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "LLL dd, y") : <span>Pick a date</span>}
+                    {selectedDate ? format(selectedDate, "LLL dd, y") : <span>{t('availPage.overrides.button.pickDate', 'Pick a date')}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-popover border-border rounded-2xl" align="start">
@@ -145,15 +147,15 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
             {/* Availability Toggle */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-foreground">Available on this day</label>
+              <label className="text-sm font-medium text-foreground">{t('availPage.overrides.toggle.availableLabel', 'Available on this day')}</label>
               <div className="flex items-center space-x-4 p-4 bg-muted/30 rounded-2xl">
                 <span className="text-sm font-medium text-foreground">
-                  {newOverride.is_available ? 'Available' : 'Not available'}
+                  {newOverride.is_available ? t('availPage.overrides.badge.available', 'Available') : t('availPage.overrides.badge.notAvailable', 'Not available')}
                 </span>
                 <Switch
                   checked={newOverride.is_available}
                   onCheckedChange={(is_available) => setNewOverride(prev => ({ ...prev, is_available }))}
-                  aria-label="Available on this day"
+                  aria-label={t('availPage.overrides.toggle.availableLabel', 'Available on this day')}
                   className="data-[state=checked]:bg-primary"
                 />
               </div>
@@ -162,11 +164,11 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
             {/* Time Selection */}
             {newOverride.is_available && (
               <div className="space-y-4">
-                <h4 className="text-sm font-medium text-foreground">Working Hours</h4>
+                <h4 className="text-sm font-medium text-foreground">{t('availPage.overrides.field.workingHours', 'Working Hours')}</h4>
                 <div className="bg-card/50 border border-border/40 rounded-2xl p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">Start Time</label>
+                      <label className="text-xs font-medium text-muted-foreground">{t('availPage.overrides.field.startTime', 'Start Time')}</label>
                       <ProfessionalTimePicker
                         value={newOverride.start_time}
                         onChange={(value) => setNewOverride(prev => ({ ...prev, start_time: value }))}
@@ -179,7 +181,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                     </div>
                     
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground">End Time</label>
+                      <label className="text-xs font-medium text-muted-foreground">{t('availPage.overrides.field.endTime', 'End Time')}</label>
                       <ProfessionalTimePicker
                         value={newOverride.end_time}
                         onChange={(value) => setNewOverride(prev => ({ ...prev, end_time: value }))}
@@ -197,10 +199,10 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
 
             {/* Reason */}
             <div className="space-y-3">
-              <label htmlFor="override-reason" className="text-sm font-medium text-foreground">Reason (optional)</label>
+              <label htmlFor="override-reason" className="text-sm font-medium text-foreground">{t('availPage.overrides.field.reason', 'Reason (optional)')}</label>
               <Textarea
                 id="override-reason"
-                placeholder="E.g. vacation, holiday, special hours..."
+                placeholder={t('availPage.overrides.placeholder.reason', 'E.g. vacation, holiday, special hours...')}
                 value={newOverride.reason}
                 onChange={(e) => setNewOverride(prev => ({ ...prev, reason: e.target.value }))}
                 className="bg-background/80 border-border/60 rounded-2xl focus:border-primary/40 resize-none"
@@ -215,14 +217,14 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                 onClick={resetForm}
                 className="bg-background/80 border-border/60 hover:bg-muted/50 rounded-2xl"
               >
-                Cancel
+                {t('availPage.button.cancel', 'Cancel')}
               </Button>
               <Button
                 onClick={addOverride}
                 disabled={!selectedDate}
                 className=" rounded-2xl"
               >
-                Add Exception
+                {t('availPage.button.addException', 'Add Exception')}
               </Button>
             </div>
           </div>
@@ -258,7 +260,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                               : "bg-muted text-muted-foreground ring-white/[0.08]"
                           )}
                         >
-                          {override.is_available ? 'Available' : 'Not available'}
+                          {override.is_available ? t('availPage.overrides.badge.available', 'Available') : t('availPage.overrides.badge.notAvailable', 'Not available')}
                         </Badge>
                       </div>
                     </div>
@@ -296,7 +298,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
           <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
             <CalendarIcon className="h-5 w-5 text-accent-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground">No schedule exceptions yet.</p>
+          <p className="text-sm text-muted-foreground">{t('availPage.overrides.empty', 'No schedule exceptions yet.')}</p>
         </div>
       )}
 
@@ -308,7 +310,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
           variant="outline"
         >
           <Plus className="h-5 w-5 mr-2" />
-          Add Schedule Exception
+          {t('availPage.button.addScheduleException', 'Add Schedule Exception')}
         </Button>
       )}
     </div>

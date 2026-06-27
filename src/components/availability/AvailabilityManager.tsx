@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -15,6 +16,7 @@ import { SubscriptionModal } from '@/components/SubscriptionModal';
 import type { Calendar } from '@/types/database';
 
 export const AvailabilityManager = () => {
+  const { t } = useTranslation('appPages');
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -72,8 +74,8 @@ export const AvailabilityManager = () => {
   if (calendars.length === 0) {
     return (
       <CalendarRequiredEmptyState
-        title="Set Up Your Availability"
-        description="Create a calendar first to configure your booking availability and schedule."
+        title={t('availPage.emptyState.setup.title', 'Set Up Your Availability')}
+        description={t('availPage.emptyState.setup.description', 'Create a calendar first to configure your booking availability and schedule.')}
       />
     );
   }
@@ -82,8 +84,8 @@ export const AvailabilityManager = () => {
   if (!selectedCalendar) {
     return (
       <CalendarRequiredEmptyState
-        title="Select a Calendar"
-        description="Choose a calendar to manage its availability settings."
+        title={t('availPage.emptyState.select.title', 'Select a Calendar')}
+        description={t('availPage.emptyState.select.description', 'Choose a calendar to manage its availability settings.')}
         showCreateButton={false}
       />
     );
@@ -97,7 +99,7 @@ export const AvailabilityManager = () => {
           <AccessBlockedOverlay
             userStatus={userStatus}
             feature="Availability Settings"
-            description="An active subscription is required to modify your availability settings. Your current settings remain visible below in read-only mode."
+            description={t('availPage.accessBlocked.description', 'An active subscription is required to modify your availability settings. Your current settings remain visible below in read-only mode.')}
             onUpgrade={() => setShowSubscriptionModal(true)}
           />
         </div>

@@ -5,7 +5,9 @@ import { WhatsAppNotAvailable } from '@/components/whatsapp/WhatsAppNotAvailable
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 export default function WhatsAppBookingAssistantPage() {
+  const { t } = useTranslation('appPages');
   const {
     user
   } = useAuth();
@@ -59,7 +61,7 @@ export default function WhatsAppBookingAssistantPage() {
     <div className="bg-background min-h-full p-3 sm:p-4 md:p-8">
       <div className="space-y-3 md:space-y-6">
         <div className="space-y-2">
-          <SimplePageHeader title="WhatsApp Booking Assistant" />
+          <SimplePageHeader title={t('waPage.header.title', 'WhatsApp Booking Assistant')} />
         </div>
         <WhatsAppBookingAssistant userId={user.id} />
       </div>

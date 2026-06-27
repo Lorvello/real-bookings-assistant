@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
   selectedCalendar,
   refreshCalendars
 }) => {
+  const { t } = useTranslation('appPages');
   // Production: Debug logging removed for performance
   // Get DAYS first from the hook
   const { DAYS, syncToDatabase, createDefaultSchedule, defaultSchedule, availability: existingAvailability, setAvailability } = useDailyAvailabilityManager(() => {});
@@ -244,8 +246,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
     
     if (!selectedCalendar) {
       toast({
-        title: "Setup Error",
-        description: "No calendar selected. Please try again.",
+        title: t('availPage.toast.setupError.title', 'Setup Error'),
+        description: t('availPage.toast.setupError.description', 'No calendar selected. Please try again.'),
         variant: "destructive",
       });
       return;
@@ -302,8 +304,8 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       }
       
       toast({
-        title: "Configuration Saved",
-        description: "Your availability and timezone have been saved successfully.",
+        title: t('availPage.toast.configSaved.title', 'Configuration Saved'),
+        description: t('availPage.toast.configSaved.description', 'Your availability and timezone have been saved successfully.'),
       });
       
       // Call onComplete ONLY after refresh is done
@@ -319,7 +321,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       let errorMessage = error.message || "There was an error saving your configuration.";
       
       toast({
-        title: "Save Failed",
+        title: t('availPage.toast.saveFailed.title', 'Save Failed'),
         description: errorMessage,
         variant: "destructive",
       });
@@ -345,14 +347,14 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
             <h3 className="text-2xl font-bold text-foreground">{currentDay.label}</h3>
           </div>
           <p className="text-sm text-muted-foreground">
-            Configure your availability for {currentDay.label.toLowerCase()}
+            {t('availPage.modal.dayConfig.instruction', 'Configure your availability for {{day}}', { day: currentDay.label.toLowerCase() })}
           </p>
         </div>
 
         {/* Day Toggle */}
         <div className="flex items-center justify-center space-x-4 p-4 bg-muted/30 rounded-2xl">
           <span className="text-sm font-medium text-foreground">
-            {dayData.enabled ? 'Available' : 'Unavailable'}
+            {dayData.enabled ? t('availPage.modal.toggle.available', 'Available') : t('availPage.modal.toggle.unavailable', 'Unavailable')}
           </span>
           <Switch
             checked={dayData.enabled}
@@ -365,7 +367,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         {dayData.enabled && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium text-foreground">Working Hours</h4>
+              <h4 className="text-sm font-medium text-foreground">{t('availPage.overrides.field.workingHours', 'Working Hours')}</h4>
               {dayData.timeBlocks.length < 3 && (
                 <Button
                   variant="outline"
@@ -373,7 +375,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
                   onClick={() => addTimeBlock(currentDay.key)}
                   className="text-primary border-primary/20 hover:bg-primary/10"
                 >
-                  Add Time Block
+                  {t('availPage.button.addTimeBlock', 'Add Time Block')}
                 </Button>
               )}
             </div>
@@ -382,7 +384,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
               <div key={block.id} className="bg-card/50 border border-border/40 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-foreground">
-                    Time Block {index + 1}
+                    {t('availPage.modal.timeBlock.label', 'Time Block {{num}}', { num: index + 1 })}
                   </span>
                   {dayData.timeBlocks.length > 1 && (
                     <Button
@@ -391,14 +393,14 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
                       onClick={() => removeTimeBlock(currentDay.key, block.id)}
                       className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                     >
-                      Remove
+                      {t('availPage.button.remove', 'Remove')}
                     </Button>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Start Time</label>
+                    <label className="text-xs font-medium text-muted-foreground">{t('availPage.overrides.field.startTime', 'Start Time')}</label>
                     <ProfessionalTimePicker
                       value={block.startTime}
                       onChange={(value) => handleTimeBlockUpdate(currentDay.key, block.id, 'startTime', value)}
@@ -413,7 +415,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">End Time</label>
+                    <label className="text-xs font-medium text-muted-foreground">{t('availPage.overrides.field.endTime', 'End Time')}</label>
                     <ProfessionalTimePicker
                       value={block.endTime}
                       onChange={(value) => handleTimeBlockUpdate(currentDay.key, block.id, 'endTime', value)}
@@ -443,10 +445,10 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center space-x-2">
             <Globe className="h-5 w-5 text-primary" />
-            <h3 className="text-2xl font-bold text-foreground">Select Timezone</h3>
+            <h3 className="text-2xl font-bold text-foreground">{t('availPage.modal.title.timezone', 'Select Timezone')}</h3>
           </div>
           <p className="text-sm text-muted-foreground">
-            Choose your timezone for accurate scheduling
+            {t('availPage.modal.timezone.instruction', 'Choose your timezone for accurate scheduling')}
           </p>
         </div>
 
@@ -476,14 +478,14 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
       >
         <DialogHeader className="space-y-4">
           <DialogTitle className="text-center text-xl font-bold text-foreground">
-            {editMode ? 'Edit Your Availability' : 'Configure Your Availability'}
+            {editMode ? t('availPage.modal.title.edit', 'Edit Your Availability') : t('availPage.modal.title.configure', 'Configure Your Availability')}
           </DialogTitle>
           
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Step {currentStep + 1} of {totalSteps}</span>
-              <span>{Math.round(progress)}% Complete</span>
+              <span>{t('availPage.modal.progress.step', 'Step {{step}} of {{total}}', { step: currentStep + 1, total: totalSteps })}</span>
+              <span>{t('availPage.modal.progress.percent', '{{percent}}% Complete', { percent: Math.round(progress) })}</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
@@ -519,7 +521,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
             className="flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Previous</span>
+            <span>{t('availPage.button.previous', 'Previous')}</span>
           </Button>
 
           <div className="flex items-center space-x-2">
@@ -529,7 +531,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
                 disabled={!isCurrentDayComplete()}
                 className="flex items-center space-x-2 bg-primary hover:bg-primary/90"
               >
-                <span>Next Day</span>
+                <span>{t('availPage.button.nextDay', 'Next Day')}</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             )}
@@ -540,7 +542,7 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
                 disabled={!isCurrentDayComplete()}
                 className="flex items-center space-x-2 bg-primary hover:bg-primary/90"
               >
-                <span>Select Timezone</span>
+                <span>{t('availPage.button.selectTimezone', 'Select Timezone')}</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             )}
@@ -554,12 +556,12 @@ export const GuidedAvailabilityModal: React.FC<GuidedAvailabilityModalProps> = (
                 {isCompleting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Saving configuration...</span>
+                    <span>{t('availPage.button.savingConfig', 'Saving configuration...')}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4" />
-                    <span>Complete Setup</span>
+                    <span>{t('availPage.button.completeSetup', 'Complete Setup')}</span>
                   </>
                 )}
               </Button>

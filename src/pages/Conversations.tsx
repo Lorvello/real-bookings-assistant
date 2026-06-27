@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +23,7 @@ import { SimplePageHeader } from '@/components/ui/SimplePageHeader';
 import { ConversationsSkeleton } from '@/components/loading/ConversationsSkeleton';
 
 const ConversationsContent = () => {
+  const { t } = useTranslation('appPages');
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { selectedCalendarId, calendars, setSelectedCalendarId } = useConversationCalendar();
@@ -99,9 +101,9 @@ const ConversationsContent = () => {
                   <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
                     <CalendarIcon className="h-6 w-6 text-accent-foreground" />
                   </div>
-                  <CardTitle className="text-foreground">Select a calendar</CardTitle>
+                  <CardTitle className="text-foreground">{t('convPage.noCalendarTitle', 'Select a calendar')}</CardTitle>
                   <CardDescription className="text-muted-foreground">
-                    Choose a calendar to view your WhatsApp conversations
+                    {t('convPage.noCalendarDescription', 'Choose a calendar to view your WhatsApp conversations')}
                   </CardDescription>
                   <div className="mt-6">
                     <Select onValueChange={setSelectedCalendarId}>
@@ -125,14 +127,14 @@ const ConversationsContent = () => {
                   <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
                     <CalendarIcon className="h-6 w-6 text-accent-foreground" />
                   </div>
-                  <CardTitle className="text-foreground">Create your first calendar</CardTitle>
+                  <CardTitle className="text-foreground">{t('convPage.noCalendarsTitle', 'Create your first calendar')}</CardTitle>
                   <CardDescription className="text-muted-foreground mx-auto max-w-sm">
-                    WhatsApp conversations are tied to a calendar. Create one to start receiving and managing bookings here.
+                    {t('convPage.noCalendarsDescription', 'WhatsApp conversations are tied to a calendar. Create one to start receiving and managing bookings here.')}
                   </CardDescription>
                   <div className="mt-6">
                     <Button className="gap-2" onClick={() => setCreateCalendarOpen(true)}>
                       <Plus aria-hidden="true" className="h-4 w-4" />
-                      Create calendar
+                      {t('convPage.createCalendarButton', 'Create calendar')}
                     </Button>
                   </div>
                 </CardHeader>

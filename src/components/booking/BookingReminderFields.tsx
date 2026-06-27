@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { BookingFormData } from './bookingSchema';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -20,6 +21,7 @@ const reminderOptions = [
 ];
 
 export function BookingReminderFields({ form, hasReminder }: BookingReminderFieldsProps) {
+  const { t } = useTranslation('appPages');
   return (
     <div className="space-y-4">
       <FormField
@@ -30,7 +32,7 @@ export function BookingReminderFields({ form, hasReminder }: BookingReminderFiel
             <FormControl>
               <Checkbox checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
-            <FormLabel className="text-sm font-normal">Set a reminder</FormLabel>
+            <FormLabel className="text-sm font-normal">{t('convPage.setReminderCheckbox', 'Set a reminder')}</FormLabel>
           </FormItem>
         )}
       />
@@ -41,11 +43,11 @@ export function BookingReminderFields({ form, hasReminder }: BookingReminderFiel
           name="reminderTiming"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Reminder timing</FormLabel>
+              <FormLabel>{t('convPage.reminderTimingLabel', 'Reminder timing')}</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Select timing" />
+                    <SelectValue placeholder={t('convPage.reminderTimingPlaceholder', 'Select timing')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

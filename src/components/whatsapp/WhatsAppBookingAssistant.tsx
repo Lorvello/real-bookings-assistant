@@ -7,12 +7,14 @@ import { WhatsAppWelcomeMessage } from '@/components/whatsapp/WhatsAppWelcomeMes
 import { supabase } from '@/integrations/supabase/client';
 import QRCodeSVG from 'react-qr-code';
 import { Download, Copy, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WhatsAppBookingAssistantProps {
   userId: string;
 }
 
 export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantProps) {
+  const { t } = useTranslation('appPages');
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [imgBroken, setImgBroken] = useState(false);
@@ -60,10 +62,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     try {
       await navigator.clipboard.writeText(platformNumber);
       setCopied(true);
-      toast.success('Number copied');
+      toast.success(t('waPage.number.copiedToast', 'Number copied'));
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error('Failed to copy number');
+      toast.error(t('waPage.number.copyFailed', 'Failed to copy number'));
     }
   };
 
@@ -73,10 +75,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     try {
       await navigator.clipboard.writeText(whatsappLink);
       setLinkCopied(true);
-      toast.success('WhatsApp link copied');
+      toast.success(t('waPage.link.copiedToast', 'WhatsApp link copied'));
       setTimeout(() => setLinkCopied(false), 2000);
     } catch (err) {
-      toast.error('Failed to copy link');
+      toast.error(t('waPage.link.copyFailed', 'Failed to copy link'));
     }
   };
 
@@ -90,7 +92,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('QR code downloaded');
+    toast.success(t('waPage.qr.downloadedToast', 'QR code downloaded'));
   };
 
   if (loading) {
@@ -99,7 +101,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         <Card className="bg-card rounded-xl">
           <CardContent className="p-6 sm:p-12">
             <div className="flex items-center justify-center min-h-[400px]">
-              <div className="text-sm text-muted-foreground">Loading...</div>
+              <div className="text-sm text-muted-foreground">{t('waPage.loading', 'Loading...')}</div>
             </div>
           </CardContent>
         </Card>
@@ -130,7 +132,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 <QRCodeSVG value={whatsappLink} size={400} className="w-full h-auto max-w-[400px]" />
               ) : (
                 <div className="w-full max-w-[400px] aspect-square bg-muted rounded-lg flex items-center justify-center">
-                  <span className="text-muted-foreground text-sm">QR code will appear here</span>
+                  <span className="text-muted-foreground text-sm">{t('waPage.qr.placeholder', 'QR code will appear here')}</span>
                 </div>
               )}
             </div>
@@ -146,7 +148,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     size="lg"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Download QR Code
+                    {t('waPage.qr.download', 'Download QR Code')}
                   </Button>
                   <Button
                     onClick={() => generateQR()}
@@ -155,7 +157,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                     className="w-full border-white/[0.08] text-foreground hover:bg-white/[0.06]"
                     size="lg"
                   >
-                    {generating ? 'Regenerating...' : 'Regenerate QR Code'}
+                    {generating ? t('waPage.qr.regenerating', 'Regenerating...') : t('waPage.qr.regenerate', 'Regenerate QR Code')}
                   </Button>
                 </>
               ) : (
@@ -165,7 +167,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   size="lg"
                 >
-                  {generating ? 'Generating...' : 'Generate QR Code'}
+                  {generating ? t('waPage.qr.generating', 'Generating...') : t('waPage.qr.generate', 'Generate QR Code')}
                 </Button>
               )}
             </div>
@@ -176,7 +178,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                 onClick={handleCopyLink}
                 className="rounded px-2 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
               >
-                {linkCopied ? 'Link copied!' : 'Copy WhatsApp Link'}
+                {linkCopied ? t('waPage.link.copied', 'Link copied!') : t('waPage.link.copy', 'Copy WhatsApp Link')}
               </button>
             )}
           </CardContent>
@@ -188,7 +190,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           {/* Quick Info Card */}
           <Card className="bg-card rounded-xl border border-white/[0.08]">
             <CardContent className="p-6 space-y-4">
-              <p className="text-sm text-muted-foreground">Your WhatsApp Line</p>
+              <p className="text-sm text-muted-foreground">{t('waPage.number.label', 'Your WhatsApp Line')}</p>
 
               <div className="flex items-center justify-between">
                 <div className="font-mono text-2xl text-foreground tabular-nums">
@@ -198,7 +200,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
                   onClick={handleCopyNumber}
                   variant="ghost"
                   size="icon"
-                  aria-label={copied ? 'Number copied' : 'Copy WhatsApp number'}
+                  aria-label={copied ? t('waPage.number.copiedAriaLabel', 'Number copied') : t('waPage.number.copyAriaLabel', 'Copy WhatsApp number')}
                   className="shrink-0 min-w-11 md:min-w-0 hover:bg-white/[0.06]"
                 >
                   {copied ? (
@@ -215,12 +217,11 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
           {/* Message Preview Card */}
           <Card className="bg-card rounded-xl border border-white/[0.08]">
             <CardContent className="p-6 space-y-4">
-              <p className="text-sm text-muted-foreground">Customer Message</p>
+              <p className="text-sm text-muted-foreground">{t('waPage.preview.label', 'Customer Message')}</p>
 
               <div className="bg-background p-4 rounded-lg border border-white/[0.08]">
                 <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
-                  Hello {businessName}!{'\n'}
-                  (Send this message to save the chat, then you can always book via WhatsApp.)
+                  {t('waPage.preview.message', 'Hello {{businessName}}!\n(Send this message to save the chat, then you can always book via WhatsApp.)', { businessName })}
                 </p>
               </div>
             </CardContent>
@@ -236,19 +237,19 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
             the assistant as a customer would. */}
         <Card className="bg-card rounded-lg border border-white/[0.08]">
           <CardContent className="p-6">
-            <h3 className="text-base text-foreground font-medium mb-4">How It Works</h3>
+            <h3 className="text-base text-foreground font-medium mb-4">{t('waPage.howItWorks.title', 'How It Works')}</h3>
 
             <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-              <p>1. A customer scans your QR code (or taps your link).</p>
-              <p>2. WhatsApp opens with a pre-filled message that quietly carries your business code, so we know the chat belongs to you.</p>
-              <p>3. They send it once to save the chat. The assistant replies with a short welcome.</p>
-              <p>4. From then on, the assistant answers their questions and books, reschedules or cancels for them.</p>
+              <p>{t('waPage.howItWorks.step1', '1. A customer scans your QR code (or taps your link).')}</p>
+              <p>{t('waPage.howItWorks.step2', '2. WhatsApp opens with a pre-filled message that quietly carries your business code, so we know the chat belongs to you.')}</p>
+              <p>{t('waPage.howItWorks.step3', '3. They send it once to save the chat. The assistant replies with a short welcome.')}</p>
+              <p>{t('waPage.howItWorks.step4', '4. From then on, the assistant answers their questions and books, reschedules or cancels for them.')}</p>
             </div>
 
             <div className="mt-4 rounded-lg border border-primary/20 bg-primary/[0.06] px-4 py-3">
-              <p className="text-sm font-medium text-foreground">Want to test it yourself?</p>
+              <p className="text-sm font-medium text-foreground">{t('waPage.howItWorks.testTitle', 'Want to test it yourself?')}</p>
               <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-                Scan your own QR and send the pre-filled message. The first reply is always the welcome. Then send your real question (for example "can I book tomorrow at 2pm?") and the assistant will help you, exactly like a customer. Tip: you can also put your question straight after the saved message, the assistant greets and helps in one go.
+                {t('waPage.howItWorks.testDesc', 'Scan your own QR and send the pre-filled message. The first reply is always the welcome. Then send your real question (for example "can I book tomorrow at 2pm?") and the assistant will help you, exactly like a customer. Tip: you can also put your question straight after the saved message, the assistant greets and helps in one go.')}
               </p>
             </div>
           </CardContent>
@@ -257,15 +258,15 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
         {/* Where To Share */}
         <Card className="bg-card rounded-lg border border-white/[0.08]">
           <CardContent className="p-6">
-            <h3 className="text-base text-foreground font-medium mb-4">Where To Share Your QR Code</h3>
+            <h3 className="text-base text-foreground font-medium mb-4">{t('waPage.shareQr.title', 'Where To Share Your QR Code')}</h3>
 
             <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed">
-              <li>• On business cards and flyers</li>
-              <li>• At reception or checkout desk</li>
-              <li>• In confirmation emails</li>
-              <li>• On your website</li>
-              <li>• On social media profiles</li>
-              <li>• In window displays</li>
+              <li>{t('waPage.shareQr.item1', '• On business cards and flyers')}</li>
+              <li>{t('waPage.shareQr.item2', '• At reception or checkout desk')}</li>
+              <li>{t('waPage.shareQr.item3', '• In confirmation emails')}</li>
+              <li>{t('waPage.shareQr.item4', '• On your website')}</li>
+              <li>{t('waPage.shareQr.item5', '• On social media profiles')}</li>
+              <li>{t('waPage.shareQr.item6', '• In window displays')}</li>
             </ul>
           </CardContent>
         </Card>

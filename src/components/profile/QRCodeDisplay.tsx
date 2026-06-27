@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import QRCode from 'react-qr-code';
+import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ interface QRCodeDisplayProps {
 }
 
 export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 160 }) => {
+  const { t } = useTranslation('appPages');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleDownload = () => {
@@ -34,7 +36,7 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 160 }
   if (!data) return null;
 
   return (
-    <section aria-label="QR code" className="flex flex-col md:flex-row items-center gap-4">
+    <section aria-label={t('profilePage.qrCode.ariaLabel', 'QR code')} className="flex flex-col md:flex-row items-center gap-4">
       {/* Single white QR tile sitting directly on the section card (no redundant
           surface-raised frame around it, since the section already provides the card).
           The white padding doubles as the QR quiet-zone for reliable scanning. */}
@@ -44,10 +46,10 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 160 }
       <div className="flex flex-col gap-2 w-full md:w-auto">
         <Button type="button" variant="secondary" onClick={handleDownload}>
           <Download aria-hidden="true" className="mr-2 h-4 w-4" />
-          Download QR (SVG)
+          {t('profilePage.qrCode.downloadButton', 'Download QR (SVG)')}
         </Button>
         <p className="text-muted-foreground text-xs md:text-sm max-w-xs">
-          Scan this code to link your profile. Keep it private, do not share it publicly.
+          {t('profilePage.qrCode.hint', 'Scan this code to link your profile. Keep it private, do not share it publicly.')}
         </p>
       </div>
     </section>

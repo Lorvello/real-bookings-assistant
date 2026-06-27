@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, Phone, Mail, FileText } from 'lucide-react';
 import { format } from 'date-fns';
@@ -19,18 +20,19 @@ const initials = (name: string) =>
     .join('') || '?';
 
 export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
+  const { t } = useTranslation('appPages');
   const getStatusBadge = (status: string) => {
     // PLAYBOOK §6 booking status, tinted-on-tinted: confirmed = emerald (the one place
     // green is used, freed by the blue accent), pending = amber, cancelled/no-show =
     // neutral, completed = a subtle accent tint. A dot in the matching tone.
     const statusConfig: Record<string, { label: string; cls: string }> = {
-      confirmed: { label: 'Confirmed', cls: 'bg-success/10 text-success-foreground ring-success/20' },
-      pending: { label: 'Pending', cls: 'bg-warning/10 text-warning-foreground ring-warning/20' },
-      cancelled: { label: 'Cancelled', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' },
+      confirmed: { label: t('bookPage.statusConfirmed', 'Confirmed'), cls: 'bg-success/10 text-success-foreground ring-success/20' },
+      pending: { label: t('bookPage.statusPending', 'Pending'), cls: 'bg-warning/10 text-warning-foreground ring-warning/20' },
+      cancelled: { label: t('bookPage.statusCancelled', 'Cancelled'), cls: 'bg-muted text-muted-foreground ring-white/[0.08]' },
       // completed = a settled/past state → calm muted (the vivid green is reserved for
       // upcoming "Confirmed" so a glance separates live bookings from done ones).
-      completed: { label: 'Completed', cls: 'bg-muted text-subtle-foreground ring-white/[0.08]' },
-      'no-show': { label: 'No Show', cls: 'bg-muted text-muted-foreground ring-white/[0.08]' }
+      completed: { label: t('bookPage.statusCompleted', 'Completed'), cls: 'bg-muted text-subtle-foreground ring-white/[0.08]' },
+      'no-show': { label: t('bookPage.statusNoShow', 'No Show'), cls: 'bg-muted text-muted-foreground ring-white/[0.08]' }
     };
 
     const config = statusConfig[status] || statusConfig.pending;
@@ -107,7 +109,7 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
           <div className="space-y-2">
             {booking.service_name && (
               <div className="text-sm">
-                <span className="text-muted-foreground">Service: </span>
+                <span className="text-muted-foreground">{t('bookPage.cardServiceLabel', 'Service: ')}</span>
                 <span className="text-foreground font-medium">{booking.service_name}</span>
               </div>
             )}
@@ -115,14 +117,14 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
               <div className="flex items-start gap-2 text-sm">
                 <FileText aria-hidden="true" className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-muted-foreground">Notes: </span>
+                  <span className="text-muted-foreground">{t('bookPage.cardNotesLabel', 'Notes: ')}</span>
                   <span className="text-foreground">{booking.notes}</span>
                 </div>
               </div>
             )}
             {booking.total_price && (
               <div className="text-sm">
-                <span className="text-muted-foreground">Price: </span>
+                <span className="text-muted-foreground">{t('bookPage.cardPriceLabel', 'Price: ')}</span>
                 <span className="text-foreground font-medium tabular-nums">€{booking.total_price}</span>
               </div>
             )}

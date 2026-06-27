@@ -46,7 +46,7 @@ interface DayBookingsModalProps {
 }
 
 export function DayBookingsModal({ open, onClose, date, bookings, position, viewingAllCalendars = false }: DayBookingsModalProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('appPages');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -120,13 +120,13 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
   const getStatusLabel = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
-        return t('dayModal.statusConfirmed', 'Confirmed');
+        return t('calPage.dayModal.statusConfirmed', 'Confirmed');
       case 'pending':
-        return t('dayModal.statusPending', 'Pending');
+        return t('calPage.dayModal.statusPending', 'Pending');
       case 'cancelled':
-        return t('dayModal.statusCancelled', 'Cancelled');
+        return t('calPage.dayModal.statusCancelled', 'Cancelled');
       default:
-        return t('dayModal.statusUnknown', 'Unknown');
+        return t('calPage.dayModal.statusUnknown', 'Unknown');
     }
   };
 
@@ -135,7 +135,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
       ref={popupRef}
       data-popup="true"
       role="dialog"
-      aria-label={t('dayModal.ariaAppointmentsOn', 'Appointments on {{date}}', { date: format(date, 'EEEE d MMMM', { locale: enUS }) })}
+      aria-label={t('calPage.dayModal.ariaAppointmentsOn', 'Appointments on {{date}}', { date: format(date, 'EEEE d MMMM', { locale: enUS }) })}
       tabIndex={-1}
       className="glass fixed z-[9999] min-w-[180px] max-w-[200px] rounded-lg shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] outline-none pointer-events-auto sm:min-w-[280px] sm:max-w-[320px]"
       style={{
@@ -155,7 +155,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               </h3>
               <button
                 onClick={onClose}
-                aria-label={t('dayModal.close', 'Close')}
+                aria-label={t('calPage.dayModal.closeButton', 'Close')}
                 className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
               >
                 <X aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
@@ -167,7 +167,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
           <div className="p-2 sm:p-3 max-h-48 sm:max-h-64 overflow-y-auto">
             {sortedBookings.length === 0 ? (
               <div className="text-center py-3 sm:py-4 text-muted-foreground text-xs">
-                {t('dayModal.noAppointments', 'No appointments')}
+                {t('calPage.dayModal.empty', 'No appointments')}
               </div>
             ) : (
               <div className="space-y-1.5 sm:space-y-2">
@@ -184,7 +184,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-[10px] sm:text-xs font-medium text-foreground truncate">
-                          {booking.service_types?.name || booking.service_name || t('dayModal.appointmentFallback', 'Appointment')}
+                          {booking.service_types?.name || booking.service_name || t('calPage.dayModal.appointmentFallback', 'Appointment')}
                         </div>
                         {viewingAllCalendars && booking.calendar && (
                           <div className="flex items-center gap-1 mt-0.5">
@@ -227,18 +227,18 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={handleBackToList}
-                    aria-label={t('dayModal.backToList', 'Back to list')}
+                    aria-label={t('calPage.dayModal.backButton', 'Back to list')}
                     className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
                   >
                     <ArrowLeft aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
                   </button>
                   <h3 className="text-xs sm:text-sm font-semibold text-foreground">
-                    {t('dayModal.bookingDetails', 'Booking Details')}
+                    {t('calPage.dayModal.detailTitle', 'Booking Details')}
                   </h3>
                 </div>
                 <button
                   onClick={onClose}
-                  aria-label={t('dayModal.close', 'Close')}
+                  aria-label={t('calPage.dayModal.closeButton', 'Close')}
                   className="p-1 hover:bg-white/[0.06] rounded-sm transition-colors"
                 >
                   <X aria-hidden="true" className="w-3 h-3 text-muted-foreground" />
@@ -257,7 +257,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                   />
                   <div>
                     <h4 className="text-xs sm:text-sm font-medium text-foreground">
-                      {selectedBooking.service_types?.name || selectedBooking.service_name || t('dayModal.appointmentFallback', 'Appointment')}
+                      {selectedBooking.service_types?.name || selectedBooking.service_name || t('calPage.dayModal.appointmentFallback', 'Appointment')}
                     </h4>
                     {selectedBooking.service_types?.description && (
                       <p className="text-[10px] sm:text-xs text-muted-foreground">
@@ -278,7 +278,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                     />
                     <div>
                       <div className="text-xs sm:text-sm text-foreground">
-                        {t('dayModal.calendarLabel', 'Calendar:')} {selectedBooking.calendar.name}
+                        {t('calPage.dayModal.calendarLabel', 'Calendar:')} {selectedBooking.calendar.name}
                       </div>
                     </div>
                   </div>
@@ -298,7 +298,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
                     </div>
                     {selectedBooking.service_types?.duration && (
                       <div className="text-[10px] sm:text-xs text-muted-foreground tabular-nums">
-                        {t('dayModal.duration', 'Duration: {{minutes}} minutes', { minutes: selectedBooking.service_types.duration })}
+                        {t('calPage.dayModal.durationLabel', 'Duration: {{minutes}} minutes', { minutes: selectedBooking.service_types.duration })}
                       </div>
                     )}
                   </div>
@@ -335,7 +335,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
 
               {/* Status */}
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm text-muted-foreground">{t('dayModal.status', 'Status')}</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">{t('calPage.dayModal.statusLabel', 'Status')}</span>
                 <span className={`text-xs sm:text-sm font-medium ${getStatusColor(selectedBooking.status)}`}>
                   {getStatusLabel(selectedBooking.status)}
                 </span>
@@ -344,7 +344,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Price */}
               {selectedBooking.total_price && (
                 <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm text-muted-foreground">{t('dayModal.price', 'Price')}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">{t('calPage.dayModal.priceLabel', 'Price')}</span>
                   <span className="text-xs sm:text-sm font-medium text-foreground tabular-nums">
                     €{selectedBooking.total_price}
                   </span>
@@ -354,7 +354,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Notes */}
               {selectedBooking.notes && (
                 <div className="space-y-1">
-                  <h5 className="text-xs sm:text-sm font-medium text-foreground">{t('dayModal.notes', 'Notes')}</h5>
+                  <h5 className="text-xs sm:text-sm font-medium text-foreground">{t('calPage.dayModal.notesLabel', 'Notes')}</h5>
                   <p className="text-[10px] sm:text-xs text-foreground bg-card/50 p-1.5 sm:p-2 rounded">
                     {selectedBooking.notes}
                   </p>
@@ -364,7 +364,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
               {/* Internal Notes */}
               {selectedBooking.internal_notes && (
                 <div className="space-y-1">
-                  <h5 className="text-xs sm:text-sm font-medium text-foreground">{t('dayModal.internalNotes', 'Internal Notes')}</h5>
+                  <h5 className="text-xs sm:text-sm font-medium text-foreground">{t('calPage.dayModal.internalNotesLabel', 'Internal Notes')}</h5>
                   <p className="text-[10px] sm:text-xs text-foreground bg-card/50 p-1.5 sm:p-2 rounded">
                     {selectedBooking.internal_notes}
                   </p>

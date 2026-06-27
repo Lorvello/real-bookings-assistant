@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { User, QrCode, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,16 +21,17 @@ import { cn } from '@/lib/utils';
  * inherently reduced-motion-safe); the ghost Button carries the focus-visible ring.
  */
 const CopyButton: React.FC<{ value: string; label: string }> = ({ value, label }) => {
+  const { t } = useTranslation('appPages');
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast.success(`${label} copied`);
+      toast.success(t('profilePage.copyButton.toast', '{{label}} copied', { label }));
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Could not copy to clipboard');
+      toast.error(t('profilePage.copyButton.error', 'Could not copy to clipboard'));
     }
   };
 
@@ -39,7 +41,11 @@ const CopyButton: React.FC<{ value: string; label: string }> = ({ value, label }
       onClick={handleCopy}
       variant="ghost"
       size="icon"
-      aria-label={copied ? `${label} copied` : `Copy ${label.toLowerCase()}`}
+      aria-label={
+        copied
+          ? t('profilePage.copyButton.ariaLabelCopied', '{{label}} copied', { label })
+          : t('profilePage.copyButton.ariaLabel', 'Copy {{label}}', { label: label.toLowerCase() })
+      }
       className="shrink-0 min-w-11 md:min-w-0 hover:bg-white/[0.06]"
     >
       {copied ? (
@@ -75,6 +81,7 @@ const ReadOnlyField: React.FC<{
 );
 
 const Profile = () => {
+  const { t } = useTranslation('appPages');
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -99,7 +106,7 @@ const Profile = () => {
         <div className="flex items-center justify-center h-full bg-background">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin mx-auto mb-4"></div>
-            <div className="text-lg text-foreground">Loading Profile...</div>
+            <div className="text-lg text-foreground">{t('profilePage.loading', 'Loading Profile...')}</div>
           </div>
         </div>
       </DashboardLayout>
@@ -112,7 +119,7 @@ const Profile = () => {
 
   const createdAt = new Date(user.created_at);
   const accountCreated = Number.isNaN(createdAt.getTime())
-    ? 'Not available'
+    ? t('profilePage.field.accountCreated.notAvailable', 'Not available')
     : createdAt.toLocaleDateString('en-GB', {
         year: 'numeric',
         month: 'long',
@@ -127,24 +134,24 @@ const Profile = () => {
         <div className="mb-4 md:mb-8">
           <div className="surface-raised rounded-2xl p-3 md:p-6">
             <h1 className="text-lg md:text-3xl font-semibold tracking-[-0.02em] text-foreground mb-1 md:mb-2">
-              Profile
+              {t('profilePage.header.title', 'Profile')}
             </h1>
             <p className="text-muted-foreground text-xs md:text-base">
-              Manage your account settings and preferences
+              {t('profilePage.header.subtitle', 'Manage your account settings and preferences')}
             </p>
           </div>
         </div>
 
         <div className="space-y-4 md:space-y-6">
-          <SettingsSection title="Account Information" icon={User}>
+          <SettingsSection title={t('profilePage.section.accountInfo.title', 'Account Information')} icon={User}>
             <div className="space-y-3 md:space-y-4">
-              <ReadOnlyField label="Email" value={user.email ?? ''} copyable />
-              <ReadOnlyField label="User ID" value={user.id} mono copyable />
-              <ReadOnlyField label="Account Created" value={accountCreated} />
+              <ReadOnlyField label={t('profilePage.field.email.label', 'Email')} value={user.email ?? ''} copyable />
+              <ReadOnlyField label={t('profilePage.field.userId.label', 'User ID')} value={user.id} mono copyable />
+              <ReadOnlyField label={t('profilePage.field.accountCreated.label', 'Account Created')} value={accountCreated} />
             </div>
           </SettingsSection>
 
-          <SettingsSection title="Your QR code" icon={QrCode}>
+          <SettingsSection title={t('profilePage.section.qrCode.title', 'Your QR code')} icon={QrCode}>
             {profileLoading ? (
               <div className="h-40 bg-background/60 border border-white/[0.08] rounded-lg animate-pulse" />
             ) : (

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { WhatsAppUnifiedView } from './WhatsAppUnifiedView';
 import { WhatsAppServiceStatus } from './WhatsAppServiceStatus';
 import { useWebhookProcessor } from '@/hooks/useWebhookProcessor';
@@ -13,6 +14,7 @@ interface WhatsAppDashboardProps {
 }
 
 export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
+  const { t } = useTranslation('appPages');
   const { currentCount, maxContacts, canAddMore } = useWhatsAppLimits(calendarId);
   const { accessControl } = useAccessControl();
   
@@ -44,7 +46,7 @@ export function WhatsAppDashboard({ calendarId }: WhatsAppDashboardProps) {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MessageCircle aria-hidden="true" className="h-4 w-4 text-primary" />
-              <span>WhatsApp contacts</span>
+              <span>{t('convPage.whatsappContactsLabel', 'WhatsApp contacts')}</span>
             </div>
             <span className="text-sm font-medium text-foreground tabular-nums">
               {currentCount}<span className="text-muted-foreground">/{maxContacts}</span>

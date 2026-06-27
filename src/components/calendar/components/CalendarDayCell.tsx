@@ -1,5 +1,6 @@
 
 import { format, isSameMonth, isSameDay } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
@@ -49,6 +50,7 @@ export function CalendarDayCell({
   onDayClick,
   onSingleBookingClick
 }: CalendarDayCellProps) {
+  const { t } = useTranslation('appPages');
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isToday = isSameDay(day, new Date());
   const hasMultipleBookings = dayBookings.length > 1;
@@ -121,7 +123,7 @@ export function CalendarDayCell({
           <div className="text-center py-0.5 sm:py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 motion-reduce:transition-none">
             {/* honest hover reveal: empty days have no click action, so this stays
                 informational (no fake "add" affordance — R3 gate). */}
-            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">No appointments</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">{t('calPage.dayCell.empty', 'No appointments')}</div>
             <div className="w-2 sm:w-3 h-px bg-border mx-auto"></div>
           </div>
         )}
@@ -191,10 +193,10 @@ export function CalendarDayCell({
             onClick={handleMultipleBookingsClick}
           >
             <div className="text-accent-foreground font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
-              {dayBookings.length} appointments
+              {t('calPage.dayCell.appointmentCount', '{{n}} appointment{{plural}}', { n: dayBookings.length, plural: dayBookings.length === 1 ? '' : 's' })}
             </div>
             <div className="text-[8px] sm:text-xs text-accent-foreground">
-              Click for details
+              {t('calPage.dayCell.clickHint', 'Click for details')}
             </div>
           </div>
         )}

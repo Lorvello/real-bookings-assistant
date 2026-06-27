@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,6 +23,7 @@ interface NewBookingModalProps {
 }
 
 export function NewBookingModal({ open, onClose, calendarId, onBookingCreated, prefill }: NewBookingModalProps) {
+  const { t } = useTranslation('appPages');
   const handleBookingSuccess = () => {
     // Booking success callback executed
     onBookingCreated?.();
@@ -52,7 +54,7 @@ export function NewBookingModal({ open, onClose, calendarId, onBookingCreated, p
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] bg-card border-border h-[90vh] max-h-[700px] flex flex-col p-0">
         <DialogHeader className="flex-shrink-0 p-6 pb-0">
-          <DialogTitle className="text-foreground">New Appointment</DialogTitle>
+          <DialogTitle className="text-foreground">{t('convPage.newAppointmentTitle', 'New Appointment')}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden">

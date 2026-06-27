@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Switch } from '@/components/ui/switch';
 import { TimeBlockRow } from './TimeBlockRow';
 
@@ -50,6 +51,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
   onToggleDropdown,
   onCloseDropdown,
 }) => {
+  const { t } = useTranslation('appPages');
   return (
     <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 py-4">
       {/* Toggle + Day name - fixed width */}
@@ -92,7 +94,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
           ))}
         </div>
       ) : (
-        <span className="text-sm text-muted-foreground">Unavailable</span>
+        <span className="text-sm text-muted-foreground">{t('availPage.status.unavailable', 'Unavailable')}</span>
       )}
     </div>
   );

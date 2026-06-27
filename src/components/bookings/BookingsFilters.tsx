@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
@@ -23,13 +24,14 @@ export function BookingsFilters({
   sortBy,
   setSortBy
 }: BookingsFiltersProps) {
+  const { t } = useTranslation('appPages');
   // The full descriptive placeholder overflows the search field at phone widths
   // (clipped "...or phone"). Use a concise placeholder on mobile; the full
   // accessible name is preserved on the aria-label regardless.
   const isMobile = useIsMobile();
   const searchPlaceholder = isMobile
-    ? 'Name, email or phone…'
-    : 'Search by customer name, email or phone...';
+    ? t('bookPage.searchPlaceholderMobile', 'Name, email or phone...')
+    : t('bookPage.searchPlaceholderFull', 'Search by customer name, email or phone...');
   return (
     <div className="surface-raised rounded-xl p-4 sm:p-6 mb-6">
       <div className="flex flex-col md:flex-row gap-4">
@@ -37,7 +39,7 @@ export function BookingsFilters({
         <div className="flex-1 relative">
           <Search aria-hidden="true" className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            aria-label="Search bookings"
+            aria-label={t('bookPage.searchAriaLabel', 'Search bookings')}
             placeholder={searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -55,13 +57,13 @@ export function BookingsFilters({
 
         {/* Sort */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger aria-label="Sort bookings" className="w-full md:w-48">
+          <SelectTrigger aria-label={t('bookPage.sortAriaLabel', 'Sort bookings')} className="w-full md:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="glass z-50">
-            <SelectItem value="newest">Latest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
-            <SelectItem value="alphabetical">Alphabetically A-Z</SelectItem>
+            <SelectItem value="newest">{t('bookPage.sortNewest', 'Latest First')}</SelectItem>
+            <SelectItem value="oldest">{t('bookPage.sortOldest', 'Oldest First')}</SelectItem>
+            <SelectItem value="alphabetical">{t('bookPage.sortAlphabetical', 'Alphabetically A-Z')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

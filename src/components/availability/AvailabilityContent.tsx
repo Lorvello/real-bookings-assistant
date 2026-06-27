@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
@@ -18,6 +19,7 @@ interface AvailabilityContentProps {
 }
 
 export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ activeTab }) => {
+  const { t } = useTranslation('appPages');
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
   const { selectedCalendar, refreshCalendars } = useCalendarContext();
@@ -81,14 +83,14 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
       availabilityState.forceCheck();
       
       toast({
-        title: "Availability configured!",
-        description: "Your availability schedule has been set up successfully.",
+        title: t('availPage.toast.setupComplete.title', 'Availability configured!'),
+        description: t('availPage.toast.setupComplete.description', 'Your availability schedule has been set up successfully.'),
       });
     } catch (error) {
       console.error('Error completing setup:', error);
       toast({
-        title: "Error", 
-        description: "There was an error completing your setup. Please try again.",
+        title: t('availPage.toast.error.title', 'Error'),
+        description: t('availPage.toast.error.setupFailed', 'There was an error completing your setup. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -100,8 +102,8 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     if (!selectedCalendar) {
       console.error('❌ CRITICAL: No calendar selected for timezone change');
       toast({
-        title: "Error",
-        description: "No calendar selected. Please refresh the page.",
+        title: t('availPage.toast.error.title', 'Error'),
+        description: t('availPage.toast.error.noCalendar', 'No calendar selected. Please refresh the page.'),
         variant: "destructive",
       });
       return;
@@ -153,16 +155,16 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
       setLocalTimezone(newTimezone);
       
       toast({
-        title: "Timezone updated successfully",
-        description: `Calendar timezone changed to ${newTimezone}`,
+        title: t('availPage.toast.timezoneUpdated.title', 'Timezone updated successfully'),
+        description: t('availPage.toast.timezoneUpdated.description', 'Calendar timezone changed to {{timezone}}', { timezone: newTimezone }),
       });
-      
+
     } catch (error) {
       // Restore previous timezone on error
       setLocalTimezone(previousTimezone);
-      
+
       toast({
-        title: "Failed to save timezone",
+        title: t('availPage.toast.timezoneSaveFailed.title', 'Failed to save timezone'),
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
@@ -189,9 +191,9 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
             </div>
 
             <div className="space-y-3">
-              <h2 className="text-2xl font-semibold tracking-[-0.015em] text-foreground">Create Your Calendar</h2>
+              <h2 className="text-2xl font-semibold tracking-[-0.015em] text-foreground">{t('availPage.emptyState.create.title', 'Create Your Calendar')}</h2>
               <p className="text-muted-foreground text-lg">
-                Create a calendar to start managing your availability schedule.
+                {t('availPage.emptyState.create.description', 'Create a calendar to start managing your availability schedule.')}
               </p>
             </div>
 
@@ -201,7 +203,7 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
               className=" font-medium px-8"
             >
               <Settings className="w-5 h-5 mr-2" />
-              Create Calendar
+              {t('availPage.button.createCalendar', 'Create Calendar')}
             </Button>
           </div>
 

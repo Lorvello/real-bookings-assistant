@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ContactListSidebar } from './ContactListSidebar';
 import { ConversationDetailPanel } from './ConversationDetailPanel';
 import { useWhatsAppContactOverview } from '@/hooks/useWhatsAppContactOverview';
@@ -11,6 +12,7 @@ interface WhatsAppUnifiedViewProps {
 }
 
 export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
+  const { t } = useTranslation('appPages');
   const [selectedContact, setSelectedContact] = useState<WhatsAppContactOverview | null>(null);
   const { data: contacts, isLoading } = useWhatsAppContactOverview(calendarId);
   const [mobileShowDetail, setMobileShowDetail] = useState(false);
@@ -46,8 +48,8 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
                 <div className="glow-accent relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
                   <MessageSquare aria-hidden="true" className="h-6 w-6 text-accent-foreground" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-1">Select a contact</h3>
-                <p className="text-sm text-muted-foreground">Choose a contact on the left to view the conversation.</p>
+                <h3 className="text-lg font-medium text-foreground mb-1">{t('convPage.selectContactTitle', 'Select a contact')}</h3>
+                <p className="text-sm text-muted-foreground">{t('convPage.selectContactDescription', 'Choose a contact on the left to view the conversation.')}</p>
               </div>
             </div>
           )}
@@ -60,7 +62,7 @@ export function WhatsAppUnifiedView({ calendarId }: WhatsAppUnifiedViewProps) {
           <div className="h-full flex flex-col">
             <Button variant="ghost" size="sm" onClick={handleBackToList} className="self-start mb-3 gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to list
+              {t('convPage.backToListButton', 'Back to list')}
             </Button>
             <div className="flex-1 min-h-0">
               <ConversationDetailPanel key={selectedContact.contact_id} contact={selectedContact} calendarId={calendarId} />

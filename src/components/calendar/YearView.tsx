@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { format, startOfYear, endOfYear, eachMonthOfInterval, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { Calendar, TrendingUp, CheckCircle, Clock, Info } from 'lucide-react';
 import { DayBookingsModal } from './DayBookingsModal';
 import { BookingDetailModal } from './BookingDetailModal';
@@ -43,6 +44,7 @@ interface YearViewProps {
 }
 
 export function YearView({ bookings, currentDate, viewingAllCalendars = false }: YearViewProps) {
+  const { t } = useTranslation('appPages');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [dayModalOpen, setDayModalOpen] = useState(false);
@@ -116,7 +118,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
           <div className="flex items-center justify-center gap-1 sm:gap-2">
             <Calendar className="h-2 w-2 sm:h-3 sm:w-3 text-primary" />
             <span className="text-xs sm:text-sm text-muted-foreground font-medium">
-              {monthBookings} appointments
+              {t('calPage.yearView.miniMonth.appointmentCount', '{{n}} appointments', { n: monthBookings })}
             </span>
           </div>
         </div>
@@ -259,9 +261,9 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
           </div>
           <div>
             <h3 className="text-lg sm:text-2xl font-semibold text-foreground tabular-nums">
-              Year Overview {format(currentDate, 'yyyy')}
+              {t('calPage.yearView.summary.heading', 'Year Overview {{year}}', { year: format(currentDate, 'yyyy') })}
             </h3>
-            <p className="text-xs sm:text-base text-muted-foreground">Complete statistics and performance</p>
+            <p className="text-xs sm:text-base text-muted-foreground">{t('calPage.yearView.summary.subtitle', 'Complete statistics and performance')}</p>
           </div>
         </div>
         
@@ -271,7 +273,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
               <Calendar className="h-3 w-3 sm:h-5 sm:w-5 text-subtle-foreground mr-1 sm:mr-2" />
             </div>
             <div className="text-lg sm:text-3xl font-semibold text-foreground mb-0.5 sm:mb-1 tabular-nums">{bookings.length}</div>
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium">Total appointments</div>
+            <div className="text-xs sm:text-sm text-muted-foreground font-medium">{t('calPage.yearView.stats.totalAppointments.label', 'Total appointments')}</div>
           </div>
           
           <div className="text-center p-2 sm:p-4 bg-muted/40 rounded-xl border border-white/[0.06]">
@@ -281,7 +283,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="text-lg sm:text-3xl font-semibold text-success-foreground mb-0.5 sm:mb-1 tabular-nums">
               {bookings.filter(b => b.status === 'confirmed').length}
             </div>
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium">Confirmed</div>
+            <div className="text-xs sm:text-sm text-muted-foreground font-medium">{t('calPage.yearView.stats.confirmed.label', 'Confirmed')}</div>
           </div>
           
           <div className="text-center p-2 sm:p-4 bg-muted/40 rounded-xl border border-white/[0.06]">
@@ -291,7 +293,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="text-lg sm:text-3xl font-semibold text-foreground mb-0.5 sm:mb-1 tabular-nums">
               {bookings.filter(b => b.status === 'completed').length}
             </div>
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium">Completed</div>
+            <div className="text-xs sm:text-sm text-muted-foreground font-medium">{t('calPage.yearView.stats.completed.label', 'Completed')}</div>
           </div>
           
           <div className="text-center p-2 sm:p-4 bg-muted/40 rounded-xl border border-white/[0.06]">
@@ -301,7 +303,7 @@ export function YearView({ bookings, currentDate, viewingAllCalendars = false }:
             <div className="text-lg sm:text-3xl font-semibold text-foreground mb-0.5 sm:mb-1 tabular-nums">
               {Math.round((bookings.filter(b => b.status === 'completed').length / bookings.length) * 100) || 0}%
             </div>
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium">Success rate</div>
+            <div className="text-xs sm:text-sm text-muted-foreground font-medium">{t('calPage.yearView.stats.successRate.label', 'Success rate')}</div>
           </div>
         </div>
       </div>

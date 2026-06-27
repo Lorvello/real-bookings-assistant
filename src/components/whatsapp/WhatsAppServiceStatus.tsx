@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertCircle, Lock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,7 @@ interface WhatsAppServiceStatusProps {
 }
 
 export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps) {
+  const { t } = useTranslation('appPages');
   const { userStatus, accessControl } = useUserStatus();
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
@@ -25,32 +27,32 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
             </div>
             <div className="flex-1 min-w-0">
               <CardTitle className="text-foreground text-lg">
-                WhatsApp Service Inactive
+                {t('convPage.serviceInactiveTitle', 'WhatsApp Service Inactive')}
               </CardTitle>
               <CardDescription className="text-muted-foreground mt-1.5">
                 {userStatus.isExpired
-                  ? "Your trial has expired. Upgrade to reactivate the WhatsApp booking assistant."
-                  : "WhatsApp booking assistant requires an active subscription."}
+                  ? t('convPage.serviceInactiveTrialExpired', 'Your trial has expired. Upgrade to reactivate the WhatsApp booking assistant.')
+                  : t('convPage.serviceInactiveNoSubscription', 'WhatsApp booking assistant requires an active subscription.')}
               </CardDescription>
             </div>
             <Badge variant="destructive" className="shrink-0 bg-destructive/10 text-destructive border-destructive/20">
               <Lock className="h-3 w-3 mr-1" />
-              Inactive
+              {t('convPage.serviceBadgeInactive', 'Inactive')}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="bg-muted/50 rounded-lg p-4 mb-4 border border-border/50">
             <p className="text-sm font-medium text-foreground mb-3">
-              What's affected:
+              {t('convPage.whatAffectedHeading', "What's affected:")}
             </p>
             <ul className="text-sm text-muted-foreground space-y-1 mb-4">
-              <li>• New WhatsApp bookings are disabled</li>
-              <li>• Automated WhatsApp responses are paused</li>
-              <li>• AI booking assistant is inactive</li>
+              <li>• {t('convPage.newBookingsDisabled', 'New WhatsApp bookings are disabled')}</li>
+              <li>• {t('convPage.automatedResponsesPaused', 'Automated WhatsApp responses are paused')}</li>
+              <li>• {t('convPage.aiAssistantInactive', 'AI booking assistant is inactive')}</li>
             </ul>
             <p className="text-sm text-muted-foreground">
-              <strong className="text-foreground">What still works:</strong> You can view existing conversations and contact history below.
+              <strong className="text-foreground">{t('convPage.whatStillWorksHeading', 'What still works:')}</strong> {t('convPage.canViewConversations', 'You can view existing conversations and contact history below.')}
             </p>
           </div>
           <Button 
@@ -58,7 +60,7 @@ export function WhatsAppServiceStatus({ calendarId }: WhatsAppServiceStatusProps
             variant="default"
             className="w-full sm:w-auto"
           >
-            Upgrade to Reactivate Service
+            {t('convPage.upgradeToReactivateButton', 'Upgrade to Reactivate Service')}
           </Button>
         </CardContent>
         <SubscriptionModal

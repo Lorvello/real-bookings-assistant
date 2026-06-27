@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { format, isAfter, isBefore, startOfDay, addYears } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -31,8 +32,9 @@ export function BookingDateTimeFields({
   autoUpdateEndTime, 
   onAutoUpdateChange, 
   onTimeChange, 
-  calculateDuration 
+  calculateDuration
 }: BookingDateTimeFieldsProps) {
+  const { t } = useTranslation('appPages');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isStartTimePickerOpen, setIsStartTimePickerOpen] = useState(false);
   const [isEndTimePickerOpen, setIsEndTimePickerOpen] = useState(false);
@@ -44,8 +46,8 @@ export function BookingDateTimeFields({
     // Validate future date
     if (isBefore(date, startOfDay(new Date()))) {
       toast({
-        title: "Invalid date",
-        description: "You can't book an appointment in the past.",
+        title: t('convPage.invalidDateError', 'Invalid date'),
+        description: t('convPage.pastDateError', "You can't book an appointment in the past."),
         variant: "destructive"
       });
       secureLogger.security('Past date booking attempt', { 
@@ -59,8 +61,8 @@ export function BookingDateTimeFields({
     const oneYearFromNow = addYears(new Date(), 1);
     if (isAfter(date, oneYearFromNow)) {
       toast({
-        title: "Date too far in the future",
-        description: "Bookings can be made up to 1 year ahead.",
+        title: t('convPage.farFutureDateError', 'Date too far in the future'),
+        description: t('convPage.maxDateError', 'Bookings can be made up to 1 year ahead.'),
         variant: "destructive"
       });
       secureLogger.security('Far future date booking attempt', { 
@@ -98,7 +100,7 @@ export function BookingDateTimeFields({
         name="date"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Date *</FormLabel>
+            <FormLabel>{t('convPage.dateLabel', 'Date *')}</FormLabel>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -114,7 +116,7 @@ export function BookingDateTimeFields({
                     {field.value ? (
                       format(field.value, "PPP")
                     ) : (
-                      <span>Select a date</span>
+                      <span>{t('convPage.selectDateButton', 'Select a date')}</span>
                     )}
                     <CalendarIcon className={cn(
                       "ml-auto h-4 w-4 opacity-50 transition-transform duration-200",
@@ -150,7 +152,7 @@ export function BookingDateTimeFields({
             name="startTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start time *</FormLabel>
+                <FormLabel>{t('convPage.startTimeLabel', 'Start time *')}</FormLabel>
                 <FormControl>
                   <ProfessionalTimePicker
                     value={field.value || ''}
@@ -173,7 +175,7 @@ export function BookingDateTimeFields({
             name="endTime"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>End time *</FormLabel>
+                <FormLabel>{t('convPage.endTimeLabel', 'End time *')}</FormLabel>
                 <FormControl>
                   <div className={cn(autoUpdateEndTime && "opacity-50 pointer-events-none")}>
                     <ProfessionalTimePicker
@@ -199,7 +201,7 @@ export function BookingDateTimeFields({
         {/* Duration indicator */}
         {startTime && endTime && (
           <div className="text-sm text-muted-foreground animate-in fade-in duration-500">
-            Duration: {calculateDuration()} minutes ({(calculateDuration() / 60).toFixed(1)} hours)
+            {t('convPage.durationDisplay', 'Duration: {{duration}} minutes ({{hours}} hours)', { duration: calculateDuration(), hours: (calculateDuration() / 60).toFixed(1) })}
           </div>
         )}
 
@@ -211,7 +213,7 @@ export function BookingDateTimeFields({
             onCheckedChange={(checked) => onAutoUpdateChange(checked === true)} 
           />
           <label htmlFor="auto-update" className="text-sm text-muted-foreground">
-            Automatically calculate end time based on service type
+            {t('convPage.autoUpdateCheckbox', 'Automatically calculate end time based on service type')}
           </label>
         </div>
       </div>

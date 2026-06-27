@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Clock, Type } from 'lucide-react';
@@ -66,6 +67,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
   onToggle,
   onClose
 }) => {
+  const { t } = useTranslation('appPages');
   const [inputValue, setInputValue] = useState('');
   const [isSelectingMinutes, setIsSelectingMinutes] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -353,7 +355,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Select Time</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t('availPage.modal.title.selectTime', 'Select Time')}</h2>
             </div>
 
             {/* Modal Content */}
@@ -421,7 +423,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                        placeholder="00:00"
                      />
                      <div className="text-sm text-muted-foreground font-medium mt-2">
-                       {isSelectingMinutes ? 'Select minutes' : 'Select hours (24-hour format)'}
+                       {isSelectingMinutes ? t('availPage.timepicker.instruction.minutes', 'Select minutes') : t('availPage.timepicker.instruction.hours', 'Select hours (24-hour format)')}
                      </div>
                    </div>
                 </div>
@@ -434,7 +436,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                      onClick={() => setIsSelectingMinutes(false)}
                      className="min-w-[80px] transition-colors duration-150"
                    >
-                     Hours
+                     {t('availPage.button.hours', 'Hours')}
                    </Button>
                    <Button
                      variant={isSelectingMinutes ? "default" : "outline"}
@@ -442,7 +444,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                      onClick={() => setIsSelectingMinutes(true)}
                      className="min-w-[80px] transition-colors duration-150"
                    >
-                     Minutes
+                     {t('availPage.button.minutes', 'Minutes')}
                    </Button>
                  </div>
               </div>
@@ -455,7 +457,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 onClick={onClose}
                 className="bg-background hover:bg-muted transition-colors duration-150 min-w-[80px]"
               >
-                Cancel
+                {t('availPage.button.cancel', 'Cancel')}
               </Button>
               <Button
                 onClick={() => {
@@ -464,7 +466,7 @@ export const ProfessionalTimePicker: React.FC<ProfessionalTimePickerProps> = ({
                 }}
                 className=" transition-colors duration-150 min-w-[80px]"
               >
-                Done
+                {t('availPage.button.done', 'Done')}
               </Button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UseFormReturn } from 'react-hook-form';
 import { BookingFormData } from './bookingSchema';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/components/ui/form';
@@ -23,6 +24,7 @@ interface BookingBasicFieldsProps {
 }
 
 export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: BookingBasicFieldsProps) {
+  const { t } = useTranslation('appPages');
   const [titleValidation, setTitleValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
   const [nameValidation, setNameValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
   const [emailValidation, setEmailValidation] = useState<'valid' | 'warning' | 'error' | 'idle'>('idle');
@@ -116,13 +118,13 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="title"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Title *</FormLabel>
+            <FormLabel>{t('convPage.titleLabel', 'Title *')}</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 onChange={(e) => handleTitleChange(e.target.value, field.onChange)}
                 onBlur={field.onBlur}
-                placeholder="For example: Haircut for John"
+                placeholder={t('convPage.titlePlaceholder', 'For example: Haircut for John')}
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -131,7 +133,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              A clear title helps you keep your appointments organized
+              {t('convPage.titleDescription', 'A clear title helps you keep your appointments organized')}
             </FormDescription>
             {!fieldState.error && titleValidation !== 'idle' && (
               <ValidationFeedback status={titleValidation} />
@@ -147,13 +149,13 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="customerName"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Customer name *</FormLabel>
+            <FormLabel>{t('convPage.customerNameLabel', 'Customer name *')}</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 onChange={(e) => handleNameChange(e.target.value, field.onChange)}
                 onBlur={field.onBlur}
-                placeholder="For example: John Smith"
+                placeholder={t('convPage.customerNamePlaceholder', 'For example: John Smith')}
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -162,7 +164,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              Who is this appointment for?
+              {t('convPage.customerNameDescription', 'Who is this appointment for?')}
             </FormDescription>
             {!fieldState.error && nameValidation !== 'idle' && (
               <ValidationFeedback status={nameValidation} />
@@ -178,16 +180,16 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="customerEmail"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel>{t('convPage.emailLabel', 'Email')}</FormLabel>
             <FormControl>
-              <Input 
-                {...field} 
+              <Input
+                {...field}
                 type="email"
                 onBlur={(e) => {
                   field.onBlur();
                   handleEmailBlur(e.target.value);
                 }}
-                placeholder="name@example.com"
+                placeholder={t('convPage.emailPlaceholder', 'name@example.com')}
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -196,7 +198,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              For confirmation and reminders (optional)
+              {t('convPage.emailDescription', 'For confirmation and reminders (optional)')}
             </FormDescription>
             {!fieldState.error && emailValidation !== 'idle' && (
               <ValidationFeedback status={emailValidation} />
@@ -212,14 +214,14 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="customerPhone"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Phone number</FormLabel>
+            <FormLabel>{t('convPage.phoneLabel', 'Phone number')}</FormLabel>
             <FormControl>
-              <Input 
-                {...field} 
+              <Input
+                {...field}
                 type="tel"
                 onChange={(e) => handlePhoneChange(e.target.value, field.onChange)}
                 onBlur={field.onBlur}
-                placeholder="06 12345678"
+                placeholder={t('convPage.phonePlaceholder', '06 12345678')}
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -228,7 +230,7 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
               />
             </FormControl>
             <FormDescription>
-              For WhatsApp notifications (optional)
+              {t('convPage.phoneDescription', 'For WhatsApp notifications (optional)')}
             </FormDescription>
             {!fieldState.error && phoneValidation !== 'idle' && (
               <ValidationFeedback status={phoneValidation} />
@@ -245,11 +247,11 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
           name="serviceTypeId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Service Type</FormLabel>
+              <FormLabel>{t('convPage.serviceTypeLabel', 'Service Type')}</FormLabel>
               <Select onValueChange={onServiceTypeChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Select service type" />
+                    <SelectValue placeholder={t('convPage.serviceTypePlaceholder', 'Select service type')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -272,12 +274,12 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="location"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Location (optional)</FormLabel>
+            <FormLabel>{t('convPage.locationLabel', 'Location (optional)')}</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 onChange={(e) => handleLocationChange(e.target.value, field.onChange)}
-                placeholder="For example: 123 Main Street, Amsterdam"
+                placeholder={t('convPage.locationPlaceholder', 'For example: 123 Main Street, Amsterdam')}
                 className={cn(
                   "bg-background transition-colors",
                   fieldState.error && "border-destructive",
@@ -300,22 +302,22 @@ export function BookingBasicFields({ form, serviceTypes, onServiceTypeChange }: 
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t('convPage.descriptionLabel', 'Description')}</FormLabel>
             <FormControl>
-              <Textarea 
+              <Textarea
                 value={field.value || ''}
                 onChange={(e) => {
                   // Basic sanitization without trim (allow spaces while typing)
                   const sanitized = e.target.value.replace(/[<>]/g, '');
                   field.onChange(sanitized);
                 }}
-                placeholder="Extra information about the appointment"
+                placeholder={t('convPage.descriptionPlaceholder', 'Extra information about the appointment')}
                 className="bg-background"
                 rows={3}
               />
             </FormControl>
             <FormDescription>
-              Optional details about the appointment (max 2000 characters)
+              {t('convPage.descriptionDescription', 'Optional details about the appointment (max 2000 characters)')}
             </FormDescription>
             <FormMessage />
           </FormItem>

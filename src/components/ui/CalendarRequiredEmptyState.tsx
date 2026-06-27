@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
@@ -14,8 +15,9 @@ export function CalendarRequiredEmptyState({
   icon,
   title, 
   description,
-  showCreateButton = true 
+  showCreateButton = true
 }: CalendarRequiredEmptyStateProps) {
+  const { t } = useTranslation('appPages');
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
 
   return (
@@ -41,7 +43,7 @@ export function CalendarRequiredEmptyState({
               className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Create Calendar
+              {t('availPage.button.createCalendarEmptyState', 'Create Calendar')}
             </Button>
 
             <CreateCalendarDialog
