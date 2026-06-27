@@ -23,10 +23,6 @@ export const PasswordResetConfirmForm: React.FC = () => {
 
   // Parse both tokens and errors from URL
   const parseUrlParams = () => {
-    console.log("🔍 Current URL:", window.location.href);
-    console.log("🔍 URL hash:", window.location.hash);
-    console.log("🔍 URL search:", window.location.search);
-    
     // Try hash fragments first (standard for Supabase auth)
     const hash = window.location.hash.substring(1);
     let params = new URLSearchParams(hash);
@@ -34,7 +30,6 @@ export const PasswordResetConfirmForm: React.FC = () => {
     
     // Fallback to search params if no auth-related tokens in hash
     if (!params.get('access_token') && !params.get('error') && !params.get('type') && window.location.search) {
-      console.log("🔍 No auth tokens in hash, checking search params");
       params = new URLSearchParams(window.location.search);
       source = 'search';
     }
@@ -52,19 +47,6 @@ export const PasswordResetConfirmForm: React.FC = () => {
       error_description: params.get('error_description')
     };
     
-    console.log("🔍 Extracted tokens:", {
-      hasAccessToken: !!tokens.access_token,
-      hasRefreshToken: !!tokens.refresh_token,
-      hasToken: !!tokens.token,
-      type: tokens.type,
-      accessTokenLength: tokens.access_token?.length || 0,
-      refreshTokenLength: tokens.refresh_token?.length || 0,
-      tokenLength: tokens.token?.length || 0,
-      source
-    });
-    
-    console.log("🔍 Extracted errors:", errors);
-    
     return { tokens, errors };
   };
 
@@ -73,17 +55,8 @@ export const PasswordResetConfirmForm: React.FC = () => {
     const { tokens, errors } = parseUrlParams();
     const { access_token, refresh_token, type, token } = tokens;
     
-    console.log("🔍 Token validation:", {
-      hasAccessRefreshTokens: !!(access_token && refresh_token),
-      hasToken: !!token,
-      isRecoveryType: type === 'recovery',
-      currentPath: window.location.pathname,
-      hasErrors: !!(errors.error)
-    });
-    
     // Check for URL-based errors first (like expired links)
     if (errors.error) {
-      console.log("❌ Error in URL:", errors);
       setHasValidTokens(false);
       
       let errorMessage = t('auth.confirm.problemTitle', 'Problem with Reset Link');
@@ -114,13 +87,11 @@ export const PasswordResetConfirmForm: React.FC = () => {
       (token && type === 'recovery');     // Alternative pattern with token + type
     
     if (!hasValidTokenPattern) {
-      console.log("❌ No valid tokens found - showing manual mode (type alone is not sufficient)");
       setHasValidTokens(false);
       return;
     }
 
     // We have valid tokens - proceed with token mode
-    console.log("✅ Valid tokens found - setting session");
     setHasValidTokens(true);
     
     // If we have access/refresh tokens, set the session
@@ -130,15 +101,12 @@ export const PasswordResetConfirmForm: React.FC = () => {
         refresh_token
       }).then(({ data, error }) => {
         if (error) {
-          console.error("❌ Session setting error:", error);
           setHasValidTokens(false);
           toast({
             title: t('auth.confirm.sessionErrTitle', 'Session Error'),
             description: t('auth.confirm.sessionErrDesc', 'Failed to establish reset session. The reset link may be invalid or expired.'),
             variant: "destructive",
           });
-        } else {
-          console.log("✅ Session set successfully:", data.session?.user?.email);
         }
       });
     }

@@ -19,6 +19,7 @@ interface BentoCardProps {
   href: string;
   cta: string;
   hideCta?: boolean;
+  isPrimary?: boolean;
 }
 
 const BentoGrid = ({ children, className }: BentoGridProps) => {
@@ -46,6 +47,7 @@ const BentoCard = ({
   href,
   cta,
   hideCta = false,
+  isPrimary = false,
 }: BentoCardProps) => (
   <div
     key={name}
@@ -57,7 +59,7 @@ const BentoCard = ({
         "hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20",
         "transition-all duration-300 ease-out",
         // Mobile: handle special layout for first card and others
-        name === "100% Automatic Bookings" ? "col-span-2 sm:col-span-2 lg:col-span-1" : "",
+        isPrimary ? "col-span-2 sm:col-span-2 lg:col-span-1" : "",
         // Override specific desktop grid positions on mobile
         "lg:col-span-1", // Reset for desktop
         className,
@@ -78,7 +80,7 @@ const BentoCard = ({
         "font-semibold text-white group-hover:text-primary transition-colors duration-300",
         // Mobile: smaller text, desktop: original
         "text-xs sm:text-sm lg:text-xl lg:mb-2",
-        name === "100% Automatic Bookings" ? "leading-tight" : ""
+        isPrimary ? "leading-tight" : ""
       )}>
         {name}
       </h3>
@@ -87,7 +89,7 @@ const BentoCard = ({
         // Mobile: much smaller text and compact spacing
         "text-xs sm:text-sm lg:text-lg lg:max-w-lg",
         "leading-tight sm:leading-snug lg:leading-relaxed",
-        name === "100% Automatic Bookings" ? "" : ""
+        ""
       )}>{description}</p>
     </div>
 

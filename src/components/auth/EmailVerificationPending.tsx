@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +16,7 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
   email,
   onBackToLogin
 }) => {
+  const { t } = useTranslation('auth');
   const { toast } = useToast();
   const { handleError } = useErrorHandler();
   const [resending, setResending] = useState(false);
@@ -30,8 +32,8 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
   const handleResendVerification = async () => {
     if (!canResend()) {
       toast({
-        title: "Please Wait",
-        description: "Please wait at least 1 minute before requesting another verification email.",
+        title: t('auth.verify.toastWaitTitle', 'Please Wait'),
+        description: t('auth.verify.toastWaitDesc', 'Please wait at least 1 minute before requesting another verification email.'),
         variant: "destructive",
       });
       return;
@@ -41,7 +43,7 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
 
     try {
       console.log('[EmailVerification] Resending verification email to:', email);
-      
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
@@ -52,16 +54,16 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
 
       if (error) {
         console.error('[EmailVerification] Resend error:', error);
-        
+
         if (error.message.includes('already confirmed')) {
           toast({
-            title: "Already Verified",
-            description: "Your email is already verified. You can now sign in.",
+            title: t('auth.verify.toastVerifiedTitle', 'Already Verified'),
+            description: t('auth.verify.toastVerifiedDesc', 'Your email is already verified. You can now sign in.'),
           });
           onBackToLogin();
           return;
         }
-        
+
         handleError(error, 'Email verification resend');
         return;
       }
@@ -69,10 +71,10 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
       console.log('[EmailVerification] Verification email resent successfully');
       setResendCount(prev => prev + 1);
       setLastResendTime(new Date());
-      
+
       toast({
-        title: "Email Sent",
-        description: "A new verification email has been sent. Please check your inbox and spam folder.",
+        title: t('auth.verify.toastSentTitle', 'Email Sent'),
+        description: t('auth.verify.toastSentDesc', 'A new verification email has been sent. Please check your inbox and spam folder.'),
       });
 
     } catch (error) {
@@ -99,43 +101,43 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
           <Mail className="w-6 h-6 text-primary" />
         </div>
         <CardTitle className="text-2xl font-bold text-foreground">
-          Verify Your Email
+          {t('auth.verify.title', 'Verify Your Email')}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          We've sent a verification link to {email}
+          {t('auth.verify.subtitle', "We've sent a verification link to {{email}}", { email })}
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="text-sm text-muted-foreground space-y-3">
           <div className="p-3 rounded-lg bg-primary/[0.06] border border-primary/20">
             <div className="flex items-center space-x-2 mb-2">
               <CheckCircle className="w-4 h-4 text-primary" />
-              <span className="font-medium text-foreground">Next Steps:</span>
+              <span className="font-medium text-foreground">{t('auth.verify.nextSteps', 'Next Steps:')}</span>
             </div>
             <ol className="list-decimal list-inside space-y-1 text-foreground/70">
-              <li>Check your email inbox</li>
-              <li>Click the verification link</li>
-              <li>Return here to sign in</li>
+              <li>{t('auth.verify.step1', 'Check your email inbox')}</li>
+              <li>{t('auth.verify.step2', 'Click the verification link')}</li>
+              <li>{t('auth.verify.step3', 'Return here to sign in')}</li>
             </ol>
           </div>
 
           <div className="p-3 rounded-lg bg-amber-500/[0.06] border border-amber-500/20">
             <div className="flex items-center space-x-2 mb-2">
               <AlertCircle className="w-4 h-4 text-amber-400" />
-              <span className="font-medium text-amber-200">Can't find the email?</span>
+              <span className="font-medium text-amber-200">{t('auth.verify.cantFind', "Can't find the email?")}</span>
             </div>
             <ul className="list-disc list-inside space-y-1 text-amber-100/70">
-              <li>Check your spam or junk folder</li>
-              <li>Make sure {email} is correct</li>
-              <li>Wait a few minutes for delivery</li>
-              <li>Add our domain to your safe senders list</li>
+              <li>{t('auth.verify.tip1', 'Check your spam or junk folder')}</li>
+              <li>{t('auth.verify.tip2', 'Make sure {{email}} is correct', { email })}</li>
+              <li>{t('auth.verify.tip3', 'Wait a few minutes for delivery')}</li>
+              <li>{t('auth.verify.tip4', 'Add our domain to your safe senders list')}</li>
             </ul>
           </div>
 
           {resendCount > 0 && (
             <div className="text-center text-sm text-emerald-400">
-              ✓ Verification email sent {resendCount} time{resendCount > 1 ? 's' : ''}
+              {t('auth.verify.sentConfirm', '✓ Verification email sent {{count}} time{{plural}}', { count: resendCount, plural: resendCount > 1 ? 's' : '' })}
             </div>
           )}
         </div>
@@ -150,24 +152,24 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
             {resending ? (
               <>
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                {t('auth.verify.sending', 'Sending...')}
               </>
             ) : nextResendTime > 0 ? (
-              `Resend in ${nextResendTime}s`
+              t('auth.verify.resendIn', 'Resend in {{seconds}}s', { seconds: nextResendTime })
             ) : (
               <>
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Resend Verification Email
+                {t('auth.verify.resend', 'Resend Verification Email')}
               </>
             )}
           </Button>
-          
+
           <Button
             onClick={onBackToLogin}
             variant="ghost"
             className="w-full"
           >
-            Back to Login
+            {t('auth.verify.backToLogin', 'Back to Login')}
           </Button>
         </div>
       </CardContent>

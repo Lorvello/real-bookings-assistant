@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -8,11 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
  * the layout doesn't jump and the wait feels premium.
  */
 export function ServiceTypesLoadingState() {
+  const { t } = useTranslation('settings');
   return (
     <div
       className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
-      aria-label="Loading services"
+      aria-label={t('settings.common.loadingServices', 'Loading services')}
     >
       {Array.from({ length: 3 }).map((_, i) => (
         // Mirror ServiceTypeCard's structure exactly (border, color dot + name,

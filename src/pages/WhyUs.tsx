@@ -37,11 +37,9 @@ const WhyUs = () => {
   const openCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(true);
   const closeCaseStudiesMethodologyModal = () => setIsCaseStudiesMethodologyModalOpen(false);
   const openMobileFirstMethodologyModal = () => {
-    console.log('openMobileFirstMethodologyModal called');
     setIsMobileFirstMethodologyModalOpen(true);
   };
   const closeMobileFirstMethodologyModal = () => {
-    console.log('closeMobileFirstMethodologyModal called');
     setIsMobileFirstMethodologyModalOpen(false);
   };
 

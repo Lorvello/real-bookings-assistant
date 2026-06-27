@@ -72,7 +72,7 @@ export const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
         <div className="space-y-1">
           <span className="text-[13px] font-medium leading-[18px] text-foreground">
             {t('settings.services.teamMembers.fieldLabel', 'Team members {{optionalLabel}}', { optionalLabel: '' })}
-            <span className="text-xs font-normal text-subtle-foreground">Optional</span>
+            <span className="text-xs font-normal text-subtle-foreground">{t('settings.common.optional', 'Optional')}</span>
           </span>
           <p className="text-xs leading-5 text-muted-foreground">
             {t('settings.services.teamMembers.description', 'Select which team members can perform this service. Leave empty to make it available to everyone. Only relevant on Professional or Enterprise plans.')}

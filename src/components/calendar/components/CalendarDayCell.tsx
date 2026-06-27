@@ -156,7 +156,7 @@ export function CalendarDayCell({
                     {dayBookings[0].customer_name}
                   </div>
                   <div className="truncate text-[8px] text-muted-foreground sm:text-xs">
-                    {dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}
+                    {dayBookings[0].service_types?.name || dayBookings[0].service_name || t('calPage.weekView.tooltip.apptValue', 'Appointment')}
                   </div>
                 </div>
               </TooltipTrigger>
@@ -172,16 +172,16 @@ export function CalendarDayCell({
                   </div>
                   <div className="space-y-0.5 text-[10px]">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Calendar:</span>
-                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || 'Unknown'}</span>
+                      <span className="text-muted-foreground">{t('calPage.weekView.tooltip.calendar', 'Calendar:')}</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.name || t('calPage.weekView.tooltip.unknownValue', 'Unknown')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Person:</span>
-                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.users?.full_name || 'Unknown'}</span>
+                      <span className="text-muted-foreground">{t('calPage.weekView.tooltip.person', 'Person:')}</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].calendar?.users?.full_name || t('calPage.weekView.tooltip.unknownValue', 'Unknown')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Service:</span>
-                      <span className="text-foreground font-medium">{dayBookings[0].service_types?.name || dayBookings[0].service_name || 'Appointment'}</span>
+                      <span className="text-muted-foreground">{t('calPage.weekView.tooltip.service', 'Service:')}</span>
+                      <span className="text-foreground font-medium">{dayBookings[0].service_types?.name || dayBookings[0].service_name || t('calPage.weekView.tooltip.apptValue', 'Appointment')}</span>
                     </div>
                   </div>
                 </div>

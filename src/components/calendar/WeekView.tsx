@@ -167,15 +167,15 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
             <div className="space-y-0.5 text-[10px]">
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">{t('calPage.weekView.tooltip.calendar', 'Calendar:')}</span>
-                <span className="font-medium text-foreground">{booking.calendar?.name || 'Unknown'}</span>
+                <span className="font-medium text-foreground">{booking.calendar?.name || t('calPage.weekView.tooltip.unknownValue', 'Unknown')}</span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">{t('calPage.weekView.tooltip.person', 'Person:')}</span>
-                <span className="font-medium text-foreground">{booking.calendar?.users?.full_name || 'Unknown'}</span>
+                <span className="font-medium text-foreground">{booking.calendar?.users?.full_name || t('calPage.weekView.tooltip.unknownValue', 'Unknown')}</span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">{t('calPage.weekView.tooltip.service', 'Service:')}</span>
-                <span className="font-medium text-foreground">{booking.service_types?.name || booking.service_name || 'Appointment'}</span>
+                <span className="font-medium text-foreground">{booking.service_types?.name || booking.service_name || t('calPage.weekView.tooltip.apptValue', 'Appointment')}</span>
               </div>
             </div>
           </div>

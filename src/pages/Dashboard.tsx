@@ -33,7 +33,6 @@ const Dashboard = () => {
     const fromPayment = urlParams.get('from');
     
     if (fromPayment === 'payment-success') {
-      console.log('Detected payment success, refreshing page in 500ms to sync subscription benefits...');
       setTimeout(() => {
         // Clean up URL and refresh
         window.history.replaceState({}, '', window.location.pathname);

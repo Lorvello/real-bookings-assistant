@@ -69,9 +69,9 @@ export function SettingsSaveBar({
           <>
             <span className="flex items-center gap-2 whitespace-nowrap pr-1 text-sm text-muted-foreground">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-              {/* On a phone show just the first word ("Unsaved") so the pill fits;
-                  the full label ("Unsaved changes") returns at md+. */}
-              <span className="md:hidden">{resolvedLabel.split(' ')[0]}</span>
+              {/* The full label shows from md+; on a phone the dot plus the Save/Discard
+                  buttons carry the meaning, so the (much longer in NL) label text is
+                  hidden to guarantee the pill fits a 375px viewport in every language. */}
               <span className="hidden md:inline">{resolvedLabel}</span>
             </span>
             <div className="flex items-center gap-1.5">
@@ -88,7 +88,8 @@ export function SettingsSaveBar({
                 loading={saving}
                 className="rounded-full px-4 md:px-5"
               >
-                {resolvedSaveLabel}
+                <span className="md:hidden">{t('settings.common.saveShort', 'Save')}</span>
+                <span className="hidden md:inline">{resolvedSaveLabel}</span>
               </Button>
             </div>
           </>

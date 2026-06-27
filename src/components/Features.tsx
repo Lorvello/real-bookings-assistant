@@ -56,6 +56,7 @@ const Features = () => {
                     name={id ? t(`features.cards.${id}.name`, feature.name) : feature.name}
                     description={id ? t(`features.cards.${id}.description`, feature.description) : feature.description}
                     cta={t('features.cta', feature.cta)}
+                    isPrimary={id === 'automation'}
                   />
                 );
               })}

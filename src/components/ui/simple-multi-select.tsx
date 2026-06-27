@@ -35,7 +35,6 @@ export function SimpleMultiSelect({
   const safeSelected = Array.isArray(selected) ? selected : [];
 
   const handleSelect = (optionValue: string) => {
-    console.log('SimpleMultiSelect: handleSelect called with:', optionValue);
     if (safeSelected.includes(optionValue)) {
       // Remove if already selected
       onChange(safeSelected.filter(item => item !== optionValue));
@@ -133,13 +132,11 @@ export function SimpleMultiSelect({
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Option clicked:', option.value);
                     handleSelect(option.value);
                   }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Option clicked:', option.value);
                     handleSelect(option.value);
                   }}
                 >

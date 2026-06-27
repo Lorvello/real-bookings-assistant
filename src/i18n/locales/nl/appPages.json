@@ -170,6 +170,7 @@
   },
   "convPage": {
     "noCalendarTitle": "Selecteer een agenda",
+    "selectCalendarPlaceholder": "Selecteer agenda",
     "noCalendarDescription": "Kies een agenda om je WhatsApp-gesprekken te bekijken",
     "noCalendarsTitle": "Maak je eerste agenda aan",
     "noCalendarsDescription": "WhatsApp-gesprekken zijn gekoppeld aan een agenda. Maak er een aan om hier boekingen te ontvangen en te beheren.",
@@ -446,7 +447,9 @@
       "tooltip": {
         "calendar": "Agenda:",
         "person": "Persoon:",
-        "service": "Dienst:"
+        "service": "Dienst:",
+        "unknownValue": "Onbekend",
+        "apptValue": "Afspraak"
       }
     },
     "yearView": {
@@ -618,6 +621,10 @@
   },
   "bookPage": {
     "pageTitle": "Boekingen",
+    "loadingScreen": {
+      "title": "Dashboard laden",
+      "subtext": "Een moment, we maken alles klaar..."
+    },
     "noCalendarHeading": "Maak je eerste agenda aan",
     "noCalendarDescription": "Je hebt een agenda nodig voordat je boekingen kunt beheren. Maak er eentje aan om te beginnen.",
     "createCalendarButton": "Agenda aanmaken",

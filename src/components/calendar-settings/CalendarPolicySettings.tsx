@@ -111,13 +111,13 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="45">45 minutes</SelectItem>
-                <SelectItem value="60">60 minutes</SelectItem>
-                <SelectItem value="90">90 minutes</SelectItem>
-                <SelectItem value="120">120 minutes</SelectItem>
-                <SelectItem value="other">Custom duration</SelectItem>
+                <SelectItem value="15">{t('settings.operations.options.min15', '15 minutes')}</SelectItem>
+                <SelectItem value="30">{t('settings.operations.options.min30', '30 minutes')}</SelectItem>
+                <SelectItem value="45">{t('settings.operations.options.min45', '45 minutes')}</SelectItem>
+                <SelectItem value="60">{t('settings.operations.options.min60', '60 minutes')}</SelectItem>
+                <SelectItem value="90">{t('settings.operations.options.min90', '90 minutes')}</SelectItem>
+                <SelectItem value="120">{t('settings.operations.options.min120', '120 minutes')}</SelectItem>
+                <SelectItem value="other">{t('settings.operations.options.customDuration', 'Custom duration')}</SelectItem>
               </SelectContent>
             </Select>
           ) : (
@@ -299,12 +299,12 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0.5">30 minutes before</SelectItem>
-                  <SelectItem value="1">1 hour before</SelectItem>
-                  <SelectItem value="2">2 hours before</SelectItem>
-                  <SelectItem value="6">6 hours before</SelectItem>
-                  <SelectItem value="24">24 hours before</SelectItem>
-                  <SelectItem value="other">Custom deadline</SelectItem>
+                  <SelectItem value="0.5">{t('settings.operations.options.before30min', '30 minutes before')}</SelectItem>
+                  <SelectItem value="1">{t('settings.operations.options.before1h', '1 hour before')}</SelectItem>
+                  <SelectItem value="2">{t('settings.operations.options.before2h', '2 hours before')}</SelectItem>
+                  <SelectItem value="6">{t('settings.operations.options.before6h', '6 hours before')}</SelectItem>
+                  <SelectItem value="24">{t('settings.operations.options.before24h', '24 hours before')}</SelectItem>
+                  <SelectItem value="other">{t('settings.operations.options.customDeadline', 'Custom deadline')}</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
@@ -362,9 +362,9 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="minutes">minutes</SelectItem>
-                      <SelectItem value="hours">hours</SelectItem>
-                      <SelectItem value="days">days</SelectItem>
+                      <SelectItem value="minutes">{t('settings.operations.suffix.minutes', 'minutes')}</SelectItem>
+                      <SelectItem value="hours">{t('settings.operations.suffix.hours', 'hours')}</SelectItem>
+                      <SelectItem value="days">{t('settings.operations.suffix.days', 'days')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -422,11 +422,11 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="24">1 day before</SelectItem>
-                      <SelectItem value="48">2 days before</SelectItem>
-                      <SelectItem value="72">3 days before</SelectItem>
-                      <SelectItem value="168">1 week before</SelectItem>
-                      <SelectItem value="other">Custom timing</SelectItem>
+                      <SelectItem value="24">{t('settings.operations.options.before1day', '1 day before')}</SelectItem>
+                      <SelectItem value="48">{t('settings.operations.options.before2days', '2 days before')}</SelectItem>
+                      <SelectItem value="72">{t('settings.operations.options.before3days', '3 days before')}</SelectItem>
+                      <SelectItem value="168">{t('settings.operations.options.before1week', '1 week before')}</SelectItem>
+                      <SelectItem value="other">{t('settings.operations.options.customTiming', 'Custom timing')}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -484,8 +484,8 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="hours">hours</SelectItem>
-                          <SelectItem value="days">days</SelectItem>
+                          <SelectItem value="hours">{t('settings.operations.suffix.hours', 'hours')}</SelectItem>
+                          <SelectItem value="days">{t('settings.operations.suffix.days', 'days')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -533,11 +533,11 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="30">30 minutes before</SelectItem>
-                      <SelectItem value="60">1 hour before</SelectItem>
-                      <SelectItem value="120">2 hours before</SelectItem>
-                      <SelectItem value="180">3 hours before</SelectItem>
-                      <SelectItem value="other">Custom timing</SelectItem>
+                      <SelectItem value="30">{t('settings.operations.options.before30min', '30 minutes before')}</SelectItem>
+                      <SelectItem value="60">{t('settings.operations.options.before1h', '1 hour before')}</SelectItem>
+                      <SelectItem value="120">{t('settings.operations.options.before2h', '2 hours before')}</SelectItem>
+                      <SelectItem value="180">{t('settings.operations.options.before3h', '3 hours before')}</SelectItem>
+                      <SelectItem value="other">{t('settings.operations.options.customTiming', 'Custom timing')}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -595,8 +595,8 @@ export function CalendarPolicySettings({ settings, onUpdate }: CalendarPolicySet
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="minutes">minutes</SelectItem>
-                          <SelectItem value="hours">hours</SelectItem>
+                          <SelectItem value="minutes">{t('settings.operations.suffix.minutes', 'minutes')}</SelectItem>
+                          <SelectItem value="hours">{t('settings.operations.suffix.hours', 'hours')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

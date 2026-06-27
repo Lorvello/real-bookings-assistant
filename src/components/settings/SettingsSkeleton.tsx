@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
@@ -9,8 +10,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
  * `dark` scope, so it renders with the dark design tokens like everything else.
  */
 export function SettingsSkeleton() {
+  const { t } = useTranslation('settings');
   return (
-    <div className="space-y-3 md:space-y-6" aria-busy="true" aria-label="Loading settings">
+    <div className="space-y-3 md:space-y-6" aria-busy="true" aria-label={t('settings.common.loadingSettings', 'Loading settings')}>
       {/* Tab bar */}
       <div className="grid w-full grid-cols-6 gap-1 rounded-md bg-muted/50 p-1 md:p-2 h-12 md:h-14">
         {Array.from({ length: 6 }).map((_, i) => (

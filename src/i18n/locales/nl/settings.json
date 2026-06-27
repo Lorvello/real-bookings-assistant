@@ -8,6 +8,9 @@
       "saveChanges": "Wijzigingen opslaan",
       "saved": "Opgeslagen",
       "discard": "Verwerpen",
+      "saveShort": "Opslaan",
+      "loadingSettings": "Instellingen laden",
+      "loadingServices": "Diensten laden",
       "selectCountry": "Selecteer land",
       "searchCountries": "Zoek landen...",
       "countryCallingCode": "Landnummer",
@@ -226,6 +229,27 @@
         "minutes": "minuten",
         "hours": "uren",
         "days": "dagen"
+      },
+      "options": {
+        "min15": "15 minuten",
+        "min30": "30 minuten",
+        "min45": "45 minuten",
+        "min60": "60 minuten",
+        "min90": "90 minuten",
+        "min120": "120 minuten",
+        "customDuration": "Aangepaste duur",
+        "before30min": "30 minuten van tevoren",
+        "before1h": "1 uur van tevoren",
+        "before2h": "2 uur van tevoren",
+        "before3h": "3 uur van tevoren",
+        "before6h": "6 uur van tevoren",
+        "before24h": "24 uur van tevoren",
+        "customDeadline": "Aangepaste deadline",
+        "before1day": "1 dag van tevoren",
+        "before2days": "2 dagen van tevoren",
+        "before3days": "3 dagen van tevoren",
+        "before1week": "1 week van tevoren",
+        "customTiming": "Aangepaste timing"
       },
       "modal": {
         "whatsappUpgrade": {
@@ -903,7 +927,7 @@
         "description": "Kies hoe snel je betalingen op je rekening binnenkomen.",
         "speedAria": "Uitbetalingssnelheid",
         "viewBreakdown": "Bekijk voorbeeld van de kostenuitsplitsing",
-        "platformFeeLabel": "Platformkosten Booking Assistant",
+        "platformFeeLabel": "Platformkosten Bookings Assistant",
         "transactionFee": "Transactiekosten",
         "examplePaymentMethodAria": "Voorbeeld betaalmethode",
         "totalFee": "Totale kosten",
@@ -991,7 +1015,7 @@
           },
           "platformFee": {
             "label": "Platformkosten",
-            "description": "1.9% + €0.25/€0.35 ingehouden door Booking Assistant"
+            "description": "1.9% + €0.25/€0.35 ingehouden door Bookings Assistant"
           }
         },
         "stripeProcessing": {

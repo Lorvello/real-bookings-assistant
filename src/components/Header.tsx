@@ -70,7 +70,7 @@ const Header = () => {
   // keyboard focus). Used identically on desktop + mobile so every nav item reads
   // the same. `size` only varies the vertical padding (desktop tighter, mobile tappable).
   const navLinkClass = (isActive: boolean, size: 'desktop' | 'mobile') =>
-    `relative rounded-xl px-4 ${size === 'desktop' ? 'py-2 text-sm' : 'py-3 text-base'} font-medium ` +
+    `relative whitespace-nowrap rounded-xl px-4 ${size === 'desktop' ? 'py-2 text-sm' : 'py-3 text-base'} font-medium ` +
     'transition-colors duration-200 outline-none ' +
     'focus-visible:ring-2 focus-visible:ring-emerald-400/60 focus-visible:ring-offset-0 ' +
     (isActive

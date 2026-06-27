@@ -108,7 +108,7 @@ const ConversationsContent = () => {
                   <div className="mt-6">
                     <Select onValueChange={setSelectedCalendarId}>
                       <SelectTrigger className="w-64 mx-auto bg-muted border-white/[0.08] text-foreground">
-                        <SelectValue placeholder="Select calendar" />
+                        <SelectValue placeholder={t('convPage.selectCalendarPlaceholder', 'Select calendar')} />
                       </SelectTrigger>
                       <SelectContent className="bg-muted border-white/[0.08]">
                         {calendars.map((calendar) => (
