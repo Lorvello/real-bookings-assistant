@@ -223,7 +223,7 @@ export default function PublicBooking() {
   if (confirmed) {
     return (
       <Shell>
-        <div className="mt-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
+        <div role="status" aria-live="polite" className="mt-10 w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
           <div className="flex flex-col items-center px-8 pt-10 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/30">
               <CheckCircle2 aria-hidden="true" className="h-9 w-9 text-primary" />
@@ -273,11 +273,11 @@ export default function PublicBooking() {
         <p className="mt-1 text-sm text-white/45">{t('publicBooking.pb.bookOnline', 'Book an appointment online')}</p>
       </header>
 
-      <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
+      <main aria-label={t('publicBooking.pb.bookOnline', 'Book an appointment online')} className="w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
         {/* Step 1 — service */}
         {!service && (
           <div className="p-6 sm:p-8">
-            <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/55">
               {t('publicBooking.pb.chooseService', 'Choose a service')}
             </h2>
             {services.length === 0 ? (
@@ -338,7 +338,7 @@ export default function PublicBooking() {
             <div className="grid gap-6 p-6 sm:p-8 md:grid-cols-[auto,1fr]">
               {/* Date */}
               <div>
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/40">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/55">
                   {t('publicBooking.pb.chooseDate', 'Choose a date')}
                 </h2>
                 <Calendar
@@ -353,7 +353,7 @@ export default function PublicBooking() {
 
               {/* Time */}
               <div className="md:border-l md:border-white/10 md:pl-6">
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/40">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/55">
                   {date
                     ? format(date, 'EEEE d MMMM', { locale: dateLocale })
                     : t('publicBooking.pb.chooseTime', 'Choose a time')}
@@ -369,13 +369,18 @@ export default function PublicBooking() {
                     {t('publicBooking.pb.noTimes', 'No open times on this day. Try another date.')}
                   </p>
                 ) : (
-                  <div className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
+                  <div
+                    role="group"
+                    aria-label={t('publicBooking.pb.availableTimes', 'Available times')}
+                    className="grid max-h-72 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4"
+                  >
                     {slots.map((s) => {
                       const active = slot?.slot_start === s.slot_start;
                       return (
                         <button
                           key={s.slot_start}
                           onClick={() => setSlot(s)}
+                          aria-pressed={active}
                           className={`rounded-lg border py-2.5 text-sm font-medium transition ${
                             active
                               ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20'
@@ -394,7 +399,7 @@ export default function PublicBooking() {
             {/* Details */}
             {slot && (
               <div className="border-t border-white/10 p-6 sm:p-8">
-                <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">
+                <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/55">
                   {t('publicBooking.pb.yourDetails', 'Your details')}
                 </h2>
 
@@ -470,7 +475,7 @@ export default function PublicBooking() {
             )}
           </div>
         )}
-      </div>
+      </main>
 
       {/* Back to service from any later step (mobile-friendly) */}
       {service && (

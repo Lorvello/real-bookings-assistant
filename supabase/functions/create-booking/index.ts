@@ -12,7 +12,16 @@ const validateBookingEmail = (email: string): boolean => {
 };
 
 const sanitizeBookingText = (text: string): string => {
-  return text.trim().replace(/[<>]/g, '').substring(0, 500);
+  return text
+    .trim()
+    // Strip <> (XSS), then strip C0/C1 control characters incl. the NUL byte.
+    // Postgres text columns reject NUL, so an unsanitized control char in a pasted
+    // name/phone/notes threw on insert and surfaced as a raw 500 instead of a clean
+    // result. Stripping them keeps the insert valid and the response graceful.
+    .replace(/[<>]/g, '')
+    // deno-lint-ignore no-control-regex
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    .substring(0, 500);
 };
 
 Deno.serve(async (req) => {
@@ -90,11 +99,21 @@ Deno.serve(async (req) => {
       customerName: sanitizeBookingText(bookingData.customerName),
       customerEmail: bookingData.customerEmail.toLowerCase().trim(),
       // customer_phone came straight from ...bookingData (raw, uncapped) while
-      // name/notes were sanitized — sanitize it too for consistency: strips <>
-      // and caps length (defense-in-depth + prevents oversized-string DB bloat).
+      // name/notes were sanitized, so sanitize it too for consistency: strips <>,
+      // strips control chars, and caps length (defense-in-depth + prevents bloat).
       customerPhone: bookingData.customerPhone ? sanitizeBookingText(bookingData.customerPhone) : null,
       notes: bookingData.notes ? sanitizeBookingText(bookingData.notes) : null
     };
+
+    // After sanitizing, the name could be reduced to empty (e.g. a paste of only
+    // control characters or angle brackets). Reject it cleanly rather than insert an
+    // empty-name booking.
+    if (!sanitized.customerName) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid customer name' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get calendar ID
     const { data: calendar, error: calendarError } = await supabaseClient
@@ -134,7 +153,7 @@ Deno.serve(async (req) => {
     // bevestigd-ogende boeking opleveren: de boeking wordt als ONBETAALD (pending)
     // vastgehouden en de bevestigingsmail volgt pas NA betaling, niet hier. Anders
     // verliest de ondernemer de vooruitbetaling + de platform-fee, en wekt de
-    // boeking valselijk de indruk bevestigd te zijn (audit CRITICAL — Pay & Book).
+    // boeking valselijk de indruk bevestigd te zijn (audit CRITICAL, Pay & Book).
     const { data: paymentSettings } = await supabaseClient
       .from('payment_settings')
       .select('secure_payments_enabled, payment_required_for_booking, payment_optional')
@@ -184,7 +203,7 @@ Deno.serve(async (req) => {
     // LR-R57: stuur de klant een bevestigingsmail. Web-klanten hebben geen
     // WhatsApp-chat waarin de agent bevestigt, dus zonder dit krijgen ze niets.
     // Fire-and-forget: een mailfout mag de geslaagde boeking nooit breken.
-    // PAY & BOOK: bij een verplichte betaling is de boeking nog NIET definitief —
+    // PAY & BOOK: bij een verplichte betaling is de boeking nog NIET definitief,
     // de bevestiging volgt pas na een geslaagde betaling, dus hier NIET mailen.
     if (!paymentRequired) {
       try {
@@ -197,7 +216,7 @@ Deno.serve(async (req) => {
     }
 
     // payment_required vertelt de frontend dat de boeking nog betaald moet worden
-    // (→ betaal-flow) i.p.v. 'Boeking aangemaakt' te tonen. De boeking bestaat al
+    // (betaal-flow) i.p.v. 'Boeking aangemaakt' te tonen. De boeking bestaat al
     // (pending) zodat create-booking-payment er via id + confirmation_token op kan haken.
     return new Response(
       JSON.stringify({ success: true, payment_required: paymentRequired, booking }),

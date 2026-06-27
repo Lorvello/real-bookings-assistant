@@ -2020,6 +2020,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "publicBooking.pay.paying": "Paying…",
   "publicBooking.pay.securedBy": "Secured by Stripe. Your card details never touch our servers.",
   "publicBooking.pay.title": "Pay to confirm",
+  "publicBooking.pb.availableTimes": "Available times",
   "publicBooking.pb.bookOnline": "Book an appointment online",
   "publicBooking.pb.booking": "Booking…",
   "publicBooking.pb.change": "Change",
