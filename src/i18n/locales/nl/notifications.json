@@ -45,7 +45,7 @@
   "webhookProcessor": {
     "sentTitle": "Webhook succesvol verzonden",
     "sentDescription": "{{eventType}} succesvol verzonden naar n8n",
-    "failedTitle": "Webhook gefaald",
+    "failedTitle": "Webhook mislukt",
     "failedDescription": "{{eventType}} kon niet worden verzonden ({{attempts}} pogingen)",
     "processedTitle": "Webhooks verwerkt",
     "processedDescription": "{{count}} webhook(s) succesvol verzonden naar n8n",
@@ -64,7 +64,7 @@
     "loadErrorTitle": "Fout bij laden webhookstatus",
     "loadErrorDescription": "Kon webhookevents niet laden",
     "retryStartedTitle": "Webhook opnieuw proberen gestart",
-    "retryStartedDescription": "Gefaalde webhooks worden opnieuw geprobeerd",
+    "retryStartedDescription": "Mislukte webhooks worden opnieuw geprobeerd",
     "retryErrorTitle": "Fout bij webhook opnieuw proberen",
     "retryErrorDescription": "Kon webhooks niet opnieuw proberen"
   },
@@ -339,7 +339,7 @@
     "deleteErrorDescription": "Kalender kon niet worden verwijderd. Probeer het opnieuw."
   },
   "calendarSetup": {
-    "setupFailedTitle": "Setup gefaald",
+    "setupFailedTitle": "Setup mislukt",
     "configuredTitle": "Kalender geconfigureerd!",
     "configuredDescription": "Je kalender is ingesteld met standaard configuratie voor jouw business type.",
     "unexpectedErrorDescription": "Er is een onverwachte fout opgetreden"
