@@ -165,7 +165,7 @@ export const BillingTab: React.FC = () => {
     if (userStatus.userType === 'trial' && userStatus.daysRemaining > 0) return t('settings.billing.billingStatus.trialFree', 'Free during trial period');
     if (userStatus.userType === 'canceled_subscriber') {
       return t('settings.billing.billingStatus.canceledUntil', 'Canceled — access until {{date}}', {
-        date: userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : 'end date',
+        date: userStatus.subscriptionEndDate ? new Date(userStatus.subscriptionEndDate).toLocaleDateString() : t('settings.billing.billingStatus.endDateFallback', 'end date'),
       });
     }
     return billingCycle === 'yearly' ? t('settings.billing.billingStatus.billedAnnually', 'Billed annually') : t('settings.billing.billingStatus.billedMonthly', 'Billed monthly');

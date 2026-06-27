@@ -382,7 +382,8 @@
         "codes": {
           "codeSet": "Belastingcode ingesteld"
         }
-      }
+      },
+      "cancel": "Annuleren"
     },
     "billing": {
       "availablePlans": {
@@ -414,7 +415,8 @@
         "billedAnnually": "Jaarlijks gefactureerd",
         "billedMonthly": "Maandelijks gefactureerd",
         "canceledUntil": "Geannuleerd. Toegang tot {{date}}",
-        "trialFree": "Gratis tijdens proefperiode"
+        "trialFree": "Gratis tijdens proefperiode",
+        "endDateFallback": "einddatum"
       },
       "billingTimeline": {
         "accessUntil": "Toegang tot",
@@ -734,6 +736,9 @@
           "viewer": "Bekijker",
           "editor": "Bewerker"
         }
+      },
+      "team": {
+        "expires": "Verloopt op {{date}}"
       }
     },
     "payments": {

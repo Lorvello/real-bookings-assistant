@@ -263,7 +263,7 @@ function MemberCard({ user, t, ...handlers }: { user: TeamUser; t: TFunction } &
         <p className="truncate text-sm text-muted-foreground">{user.user?.email}</p>
         {user.type === 'invitation' && user.status === 'pending' && user.expires_at && (
           <p className="mt-1 text-xs text-subtle-foreground">
-            Expires {new Date(user.expires_at).toLocaleDateString()}
+            {t('settings.users.team.expires', 'Expires {{date}}', { date: new Date(user.expires_at).toLocaleDateString() })}
           </p>
         )}
       </div>
@@ -339,7 +339,7 @@ export function TeamMembersSection({
                     <p className="text-sm text-muted-foreground">{user.user?.email}</p>
                     {user.type === 'invitation' && user.status === 'pending' && user.expires_at && (
                       <p className="mt-1 text-xs text-subtle-foreground">
-                        Expires {new Date(user.expires_at).toLocaleDateString()}
+                        {t('settings.users.team.expires', 'Expires {{date}}', { date: new Date(user.expires_at).toLocaleDateString() })}
                       </p>
                     )}
                   </TableCell>

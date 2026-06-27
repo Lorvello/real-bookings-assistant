@@ -202,7 +202,7 @@ export function ServiceTypeForm({
 
       <div className="flex justify-end gap-3 border-t border-white/[0.06] pt-5">
         <Button variant="outline" onClick={onCancel} disabled={saving}>
-          Cancel
+          {t('settings.services.cancel', 'Cancel')}
         </Button>
         <Button onClick={onSave} disabled={saving || !isValidForm()}>
           {saving ? t('settings.services.savingButton', 'Saving…') : isEditing ? t('settings.services.updateButton', 'Update') : t('settings.services.createButton', 'Create')}

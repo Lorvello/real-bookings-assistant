@@ -272,7 +272,7 @@ export function InlineCalendarCreation({ onCalendarCreated, onCancel }: InlineCa
         {/* Actions */}
         <div className="flex justify-end gap-2 pt-1">
           <Button variant="outline" onClick={onCancel} disabled={saving}>
-            Cancel
+            {t('settings.services.cancel', 'Cancel')}
           </Button>
           <Button onClick={handleSave} disabled={saving || !calendarName.trim()}>
             {saving ? t('settings.services.inlineCalendar.savingButton', 'Creating…') : t('settings.services.inlineCalendar.saveButton', 'Save calendar')}
