@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useOptimizedPerformanceEfficiency } from '@/hooks/dashboard/useOptimizedPerformanceEfficiency';
 import { useRealtimeSubscription } from '@/hooks/dashboard/useRealtimeSubscription';
 import { AlertTriangle, XCircle, CheckCircle, Activity, Info, Users, UserCheck, User } from 'lucide-react';
@@ -13,27 +14,29 @@ interface PerformanceEfficiencyTabProps {
   dateRange: DateRange;
 }
 
-// Helper function to generate dynamic period text for tooltips
-const getDynamicPeriodText = (dateRange: DateRange): string => {
-  if (!dateRange) return "in the selected period";
-  
+// Helper function to generate dynamic period text for tooltips. Takes `t` so the
+// returned phrase is localized; reuses the BI period keys (identical phrases).
+const getDynamicPeriodText = (dateRange: DateRange, t: (k: string, d: string) => string): string => {
+  if (!dateRange) return t('dashboard.bi.period.selected', 'in the selected period');
+
   switch (dateRange.preset) {
     case 'last7days':
-      return "in the last 7 days";
+      return t('dashboard.bi.period.last7', 'in the last 7 days');
     case 'last30days':
-      return "in the last 30 days";
+      return t('dashboard.bi.period.last30', 'in the last 30 days');
     case 'last3months':
-      return "in the last 3 months";
+      return t('dashboard.bi.period.last3months', 'in the last 3 months');
     case 'lastyear':
-      return "in the last year";
+      return t('dashboard.bi.period.lastyear', 'in the last year');
     case 'custom':
-      return "in the selected period";
+      return t('dashboard.bi.period.selected', 'in the selected period');
     default:
-      return "in the selected period";
+      return t('dashboard.bi.period.selected', 'in the selected period');
   }
 };
 
 export function PerformanceEfficiencyTab({ calendarIds, dateRange }: PerformanceEfficiencyTabProps) {
+  const { t } = useTranslation('dashboard');
 
   const { data: performance, isLoading: performanceLoading, error: performanceError } = useOptimizedPerformanceEfficiency(
     calendarIds,
@@ -85,8 +88,8 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
   if (error) {
     return (
       <div className="text-center py-16">
-        <p className="text-destructive-foreground mb-2">Error loading performance data</p>
-        <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
+        <p className="text-destructive-foreground mb-2">{t('dashboard.perfEff.errTitle', 'Error loading performance data')}</p>
+        <p className="text-sm text-muted-foreground">{t('dashboard.perfEff.errDesc', 'Please try refreshing the page')}</p>
       </div>
     );
   }
@@ -100,7 +103,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
   };
 
   // Get dynamic period text for tooltips
-  const periodText = getDynamicPeriodText(dateRange);
+  const periodText = getDynamicPeriodText(dateRange, t);
 
   return (
     <TooltipProvider>
@@ -116,7 +119,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="No-Show Rate"
+                  title={t('dashboard.perfEff.metric.noShowRate', 'No-Show Rate')}
                   value={`${performance?.no_show_rate?.toFixed(1) || '0.0'}%`}
                   subtitle={getMetricSubtitle('operational efficiency')}
                   icon={AlertTriangle}
@@ -134,7 +137,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Percentage of confirmed appointments where customers didn't show up {periodText}. Lower rates indicate better customer commitment and booking policies.</p>
+              <p className="text-sm">{t('dashboard.perfEff.tip.noShow', "Percentage of confirmed appointments where customers didn't show up {{period}}. Lower rates indicate better customer commitment and booking policies.", { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -147,7 +150,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Cancellation Rate"
+                  title={t('dashboard.perfEff.metric.cancellationRate', 'Cancellation Rate')}
                   value={`${performance?.cancellation_rate?.toFixed(1) || '0.0'}%`}
                   subtitle={getMetricSubtitle('booking reliability')}
                   icon={XCircle}
@@ -165,7 +168,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Percentage of appointments that were cancelled by customers {periodText}. Tracks booking reliability and customer behavior patterns.</p>
+              <p className="text-sm">{t('dashboard.perfEff.tip.cancellation', 'Percentage of appointments that were cancelled by customers {{period}}. Tracks booking reliability and customer behavior patterns.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -182,7 +185,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Confirmed Share"
+                  title={t('dashboard.perfEff.metric.confirmedShare', 'Confirmed Share')}
                   value={`${performance?.booking_completion_rate?.toFixed(1) || '0.0'}%`}
                   subtitle={getMetricSubtitle('of all bookings')}
                   icon={CheckCircle}
@@ -200,7 +203,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Share of all bookings {periodText} that are confirmed (versus cancelled or no-show).</p>
+              <p className="text-sm">{t('dashboard.perfEff.tip.confirmed', 'Share of all bookings {{period}} that are confirmed (versus cancelled or no-show).', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -216,7 +219,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="New Customers"
+                  title={t('dashboard.perfEff.metric.newCustomers', 'New Customers')}
                   value={String(performance?.unique_customers || 0)}
                   subtitle={getMetricSubtitle('customers')}
                   icon={Users}
@@ -234,7 +237,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Number of new customers who made their first booking {periodText}. Tracks customer acquisition and business reach.</p>
+              <p className="text-sm">{t('dashboard.perfEff.tip.newCustomers', 'Number of new customers who made their first booking {{period}}. Tracks customer acquisition and business reach.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -247,7 +250,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Returning Customers"
+                  title={t('dashboard.perfEff.metric.returningCustomers', 'Returning Customers')}
                   value={String(performance?.returning_customers || 0)}
                   subtitle={getMetricSubtitle('returning')}
                   icon={UserCheck}
@@ -265,7 +268,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Number of customers who made multiple appointments {periodText}. Indicates customer retention and satisfaction with your services.</p>
+              <p className="text-sm">{t('dashboard.perfEff.tip.returning', 'Number of customers who made multiple appointments {{period}}. Indicates customer retention and satisfaction with your services.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -278,7 +281,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 className="relative"
               >
                 <MetricCard
-                  title="Total Customers"
+                  title={t('dashboard.perfEff.metric.totalCustomers', 'Total Customers')}
                   value={String(performance?.total_customers || 0)}
                   subtitle={getMetricSubtitle('customers')}
                   icon={User}
@@ -296,7 +299,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
               align="center"
               sideOffset={8}
             >
-              <p className="text-sm">Total number of unique customers who made appointments {periodText}. Shows your customer base size for the selected period.</p>
+              <p className="text-sm">{t('dashboard.perfEff.tip.totalCustomers', 'Total number of unique customers who made appointments {{period}}. Shows your customer base size for the selected period.', { period: periodText })}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -311,7 +314,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-semibold text-foreground flex items-center gap-2">
-                    Peak Hours Analysis
+                    {t('dashboard.perfEff.peakTitle', 'Peak Hours Analysis')}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="cursor-help p-1 rounded-full bg-card/50">
@@ -324,7 +327,7 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
                         align="center"
                         sideOffset={8}
                       >
-                        <p className="text-sm">Visual breakdown of appointment volume throughout the day {periodText}, showing busy periods and quiet times. Helps optimize scheduling.</p>
+                        <p className="text-sm">{t('dashboard.perfEff.peakTip', 'Visual breakdown of appointment volume throughout the day {{period}}, showing busy periods and quiet times. Helps optimize scheduling.', { period: periodText })}</p>
                       </TooltipContent>
                     </Tooltip>
                   </h3>

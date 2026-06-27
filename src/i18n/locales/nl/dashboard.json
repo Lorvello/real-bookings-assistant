@@ -123,6 +123,47 @@
         "avgPrice": "Gemiddelde prijs"
       }
     },
+    "perfEff": {
+      "errTitle": "Fout bij het laden van prestatiegegevens",
+      "errDesc": "Vernieuw de pagina om het opnieuw te proberen",
+      "metric": {
+        "noShowRate": "No-showpercentage",
+        "cancellationRate": "Annuleringspercentage",
+        "confirmedShare": "Bevestigd aandeel",
+        "newCustomers": "Nieuwe klanten",
+        "returningCustomers": "Terugkerende klanten",
+        "totalCustomers": "Totaal klanten"
+      },
+      "tip": {
+        "noShow": "Percentage bevestigde afspraken waarbij klanten niet kwamen opdagen {{period}}. Lagere percentages duiden op betere klantbetrouwbaarheid en boekingsbeleid.",
+        "cancellation": "Percentage afspraken dat door klanten is geannuleerd {{period}}. Volgt de boekingsbetrouwbaarheid en het klantgedrag.",
+        "confirmed": "Aandeel van alle boekingen {{period}} dat bevestigd is (versus geannuleerd of no-show).",
+        "newCustomers": "Aantal nieuwe klanten dat voor het eerst boekte {{period}}. Volgt klantenwerving en bereik.",
+        "returning": "Aantal klanten dat meerdere afspraken maakte {{period}}. Geeft klantbehoud en tevredenheid met je diensten weer.",
+        "totalCustomers": "Totaal aantal unieke klanten dat afspraken maakte {{period}}. Toont de omvang van je klantenbestand voor de geselecteerde periode."
+      },
+      "peakTitle": "Piekuuranalyse",
+      "peakTip": "Visueel overzicht van het afsprakenvolume door de dag heen {{period}}, met drukke en rustige periodes. Helpt je planning te optimaliseren.",
+      "peak": {
+        "emptyTitle": "Nog geen piekuurgegevens beschikbaar",
+        "emptyDesc": "Meer historische gegevens nodig voor analyse",
+        "activityNone": "Geen boekingen",
+        "busy": "Druk",
+        "moderate": "Gemiddeld",
+        "quiet": "Rustig",
+        "nAppointments": "{{n}} afspraken",
+        "axisAppointments": "Aantal afspraken",
+        "busiestTime": "Drukste tijd",
+        "busiestTip": "Het uur van de dag met de meeste afspraken. Toont je piekvraagperiode voor optimale personeelsbezetting.",
+        "quietTimes": "Rustige tijden",
+        "quietTip": "Aantal uren per dag zonder geplande afspraken. Geeft beschikbare capaciteit en groeikansen aan.",
+        "nHours": "{{n}} uur",
+        "withoutAppointments": "Zonder afspraken",
+        "avgPerHour": "Gemiddeld per uur",
+        "avgTip": "Gemiddeld aantal afspraken per werkuur. Meet de algehele agenda-efficiëntie en -benutting.",
+        "appointmentsLabel": "afspraken"
+      }
+    },
     "liveOps": {
       "status": {
         "online": "Online",

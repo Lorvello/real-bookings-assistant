@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { Activity, Clock, Users, Info } from 'lucide-react';
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -17,6 +18,7 @@ interface PeakHoursChartProps {
 }
 
 export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartProps) {
+  const { t } = useTranslation('dashboard');
   if (isLoading) {
     return (
       <div className="h-80 surface-raised shimmer rounded-xl"></div>
@@ -29,8 +31,8 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
         <div className="w-20 h-20 mx-auto mb-6 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
           <Activity className="h-10 w-10 text-muted-foreground" />
         </div>
-        <p className="text-foreground font-medium mb-2">No peak hours data available</p>
-        <p className="text-sm text-muted-foreground">More historical data needed for analysis</p>
+        <p className="text-foreground font-medium mb-2">{t('dashboard.perfEff.peak.emptyTitle', 'No peak hours data available')}</p>
+        <p className="text-sm text-muted-foreground">{t('dashboard.perfEff.peak.emptyDesc', 'More historical data needed for analysis')}</p>
       </div>
     );
   }
@@ -67,10 +69,10 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
       const bookings = data.bookings;
       
       let activityLevel = '';
-      if (bookings === 0) activityLevel = 'No bookings';
-      else if (bookings / maxBookings >= 0.7) activityLevel = 'Busy';
-      else if (bookings / maxBookings >= 0.4) activityLevel = 'Moderate';
-      else activityLevel = 'Quiet';
+      if (bookings === 0) activityLevel = t('dashboard.perfEff.peak.activityNone', 'No bookings');
+      else if (bookings / maxBookings >= 0.7) activityLevel = t('dashboard.perfEff.peak.busy', 'Busy');
+      else if (bookings / maxBookings >= 0.4) activityLevel = t('dashboard.perfEff.peak.moderate', 'Moderate');
+      else activityLevel = t('dashboard.perfEff.peak.quiet', 'Quiet');
 
       return (
         <div className="bg-popover border border-white/[0.12] rounded-xl p-4 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]">
@@ -80,7 +82,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
           </div>
           <div className="flex items-center gap-2 mb-1">
             <Users className="h-4 w-4 text-accent-foreground" />
-            <span className="text-foreground">{bookings} appointments</span>
+            <span className="text-foreground">{t('dashboard.perfEff.peak.nAppointments', '{{n}} appointments', { n: bookings })}</span>
           </div>
           <div className="text-sm text-foreground mt-2 px-2 py-1 bg-card/50 rounded">
             {activityLevel}
@@ -98,15 +100,15 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
         <div className="flex items-center justify-center gap-8">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[hsl(var(--primary)/0.34)]"></div>
-            <span className="text-sm font-medium text-foreground">Quiet</span>
+            <span className="text-sm font-medium text-foreground">{t('dashboard.perfEff.peak.quiet', 'Quiet')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-[hsl(var(--primary)/0.62)]"></div>
-            <span className="text-sm font-medium text-foreground">Moderate</span>
+            <span className="text-sm font-medium text-foreground">{t('dashboard.perfEff.peak.moderate', 'Moderate')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <span className="text-sm font-medium text-foreground">Busy</span>
+            <span className="text-sm font-medium text-foreground">{t('dashboard.perfEff.peak.busy', 'Busy')}</span>
           </div>
         </div>
 
@@ -128,7 +130,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                 stroke="hsl(var(--muted-foreground))" 
                 fontSize={12}
                 tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                label={{ value: 'Number of appointments', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
+                label={{ value: t('dashboard.perfEff.peak.axisAppointments', 'Number of appointments'), angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'hsl(var(--muted-foreground))' } }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="bookings" radius={[4, 4, 0, 0]}>
@@ -154,7 +156,7 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-gold rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
-                      Busiest time
+                      {t('dashboard.perfEff.peak.busiestTime', 'Busiest time')}
                       <UITooltip>
                         <TooltipTrigger asChild>
                           <div className="cursor-help p-1 rounded-full bg-white/[0.04]">
@@ -167,20 +169,20 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                           align="center"
                           sideOffset={8}
                         >
-                          <p className="text-sm">The hour of the day with the highest number of appointments. Shows your peak demand period for optimal staffing.</p>
+                          <p className="text-sm">{t('dashboard.perfEff.peak.busiestTip', 'The hour of the day with the highest number of appointments. Shows your peak demand period for optimal staffing.')}</p>
                         </TooltipContent>
                       </UITooltip>
                     </span>
                   </div>
                   <p className="text-lg font-semibold text-foreground">{busiestHour.display_label}</p>
-                  <p className="text-sm text-foreground">{busiestHour.bookings} appointments</p>
+                  <p className="text-sm text-foreground">{t('dashboard.perfEff.peak.nAppointments', '{{n}} appointments', { n: busiestHour.bookings })}</p>
                 </div>
 
                 <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
-                      Quiet times
+                      {t('dashboard.perfEff.peak.quietTimes', 'Quiet times')}
                       <UITooltip>
                         <TooltipTrigger asChild>
                           <div className="cursor-help p-1 rounded-full bg-white/[0.04]">
@@ -193,20 +195,20 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                           align="center"
                           sideOffset={8}
                         >
-                          <p className="text-sm">Number of hours per day with no scheduled appointments. Indicates available capacity and potential growth opportunities.</p>
+                          <p className="text-sm">{t('dashboard.perfEff.peak.quietTip', 'Number of hours per day with no scheduled appointments. Indicates available capacity and potential growth opportunities.')}</p>
                         </TooltipContent>
                       </UITooltip>
                     </span>
                   </div>
-                  <p className="text-lg font-semibold text-foreground">{quietestHours.length} hours</p>
-                  <p className="text-sm text-foreground">Without appointments</p>
+                  <p className="text-lg font-semibold text-foreground">{t('dashboard.perfEff.peak.nHours', '{{n}} hours', { n: quietestHours.length })}</p>
+                  <p className="text-sm text-foreground">{t('dashboard.perfEff.peak.withoutAppointments', 'Without appointments')}</p>
                 </div>
 
                 <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span className="text-sm font-medium text-foreground flex items-center gap-1">
-                      Average per hour
+                      {t('dashboard.perfEff.peak.avgPerHour', 'Average per hour')}
                       <UITooltip>
                         <TooltipTrigger asChild>
                           <div className="cursor-help p-1 rounded-full bg-white/[0.04]">
@@ -219,13 +221,13 @@ export function PeakHoursChart({ data, isLoading, periodLabel }: PeakHoursChartP
                           align="center"
                           sideOffset={8}
                         >
-                          <p className="text-sm">Average number of appointments per operating hour. Measures overall calendar efficiency and utilization.</p>
+                          <p className="text-sm">{t('dashboard.perfEff.peak.avgTip', 'Average number of appointments per operating hour. Measures overall calendar efficiency and utilization.')}</p>
                         </TooltipContent>
                       </UITooltip>
                     </span>
                   </div>
                   <p className="text-lg font-semibold text-foreground">{averageBookings.toFixed(1)}</p>
-                  <p className="text-sm text-foreground">appointments</p>
+                  <p className="text-sm text-foreground">{t('dashboard.perfEff.peak.appointmentsLabel', 'appointments')}</p>
                 </div>
               </>
             );
