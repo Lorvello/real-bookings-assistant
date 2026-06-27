@@ -1,6 +1,9 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import { format, setDay } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { Settings } from 'lucide-react';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { DayAvailability } from './DayAvailability';
 
 interface WeeklyScheduleTabProps {
@@ -10,14 +13,24 @@ interface WeeklyScheduleTabProps {
   loading: boolean;
 }
 
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-export function WeeklyScheduleTab({ 
-  calendarId, 
-  scheduleId, 
-  rules, 
-  loading 
+export function WeeklyScheduleTab({
+  calendarId,
+  scheduleId,
+  rules,
+  loading
 }: WeeklyScheduleTabProps) {
+  const { i18n } = useTranslation('appPages');
+
+  // Sunday-first weekday names (index = day_of_week, 0 = Sunday) localized via the
+  // active date-fns locale. EN stays 'Sunday'..'Saturday'; NL becomes
+  // 'zondag'..'zaterdag'. The index is the data (day_of_week); only the label
+  // text is localized.
+  const dayNames = useMemo(() => {
+    const locale = dateFnsLocale(i18n.language);
+    const reference = new Date(2024, 0, 7); // a Sunday
+    return Array.from({ length: 7 }, (_, i) => format(setDay(reference, i), 'EEEE', { locale }));
+  }, [i18n.language]);
+
   if (loading) {
     return (
       <div className="p-4 space-y-4">

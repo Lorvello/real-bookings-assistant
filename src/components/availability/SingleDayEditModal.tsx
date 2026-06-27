@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format, setDay } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Calendar, Clock, Plus, Trash2, Save } from 'lucide-react';
 import { ProfessionalTimePicker } from './ProfessionalTimePicker';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 
 interface TimeBlock {
@@ -29,14 +32,17 @@ interface SingleDayEditModalProps {
 
 // PHASE 1: Remove auto-save system - implement single save on close only
 
-const DAYS = [
-  { key: 'monday', label: 'Monday', isWeekend: false, dayOfWeek: 1 },
-  { key: 'tuesday', label: 'Tuesday', isWeekend: false, dayOfWeek: 2 },
-  { key: 'wednesday', label: 'Wednesday', isWeekend: false, dayOfWeek: 3 },
-  { key: 'thursday', label: 'Thursday', isWeekend: false, dayOfWeek: 4 },
-  { key: 'friday', label: 'Friday', isWeekend: false, dayOfWeek: 5 },
-  { key: 'saturday', label: 'Saturday', isWeekend: true, dayOfWeek: 6 },
-  { key: 'sunday', label: 'Sunday', isWeekend: true, dayOfWeek: 7 }
+// key/isWeekend/dayOfWeek are data (logic depends on them); the visible `label`
+// is localized at render time via the active date-fns locale, so EN stays
+// 'Monday'..'Sunday' and NL becomes 'maandag'..'zondag'.
+const DAY_DATA = [
+  { key: 'monday', isWeekend: false, dayOfWeek: 1 },
+  { key: 'tuesday', isWeekend: false, dayOfWeek: 2 },
+  { key: 'wednesday', isWeekend: false, dayOfWeek: 3 },
+  { key: 'thursday', isWeekend: false, dayOfWeek: 4 },
+  { key: 'friday', isWeekend: false, dayOfWeek: 5 },
+  { key: 'saturday', isWeekend: true, dayOfWeek: 6 },
+  { key: 'sunday', isWeekend: true, dayOfWeek: 7 }
 ];
 
 export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
@@ -55,7 +61,17 @@ export const SingleDayEditModal: React.FC<SingleDayEditModalProps> = ({
 
   const { syncToDatabase } = useDailyAvailabilityManager(() => {});
   const navigate = useNavigate();
-  
+  const { i18n } = useTranslation('appPages');
+
+  const DAYS = useMemo(() => {
+    const locale = dateFnsLocale(i18n.language);
+    const reference = new Date(2024, 0, 7); // a Sunday, so setDay maps cleanly
+    return DAY_DATA.map((day) => ({
+      ...day,
+      label: format(setDay(reference, day.dayOfWeek % 7), 'EEEE', { locale }),
+    }));
+  }, [i18n.language]);
+
   // Get current day info
   const currentDay = DAYS[dayIndex];
 

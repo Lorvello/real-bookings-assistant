@@ -1,6 +1,7 @@
 
 import { format, isSameMonth, isSameDay } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
@@ -50,7 +51,8 @@ export function CalendarDayCell({
   onDayClick,
   onSingleBookingClick
 }: CalendarDayCellProps) {
-  const { t } = useTranslation('appPages');
+  const { t, i18n } = useTranslation('appPages');
+  const locale = dateFnsLocale(i18n.language);
   const isCurrentMonth = isSameMonth(day, currentDate);
   const isToday = isSameDay(day, new Date());
   const hasMultipleBookings = dayBookings.length > 1;
@@ -82,7 +84,9 @@ export function CalendarDayCell({
         ? {
             role: 'button',
             tabIndex: 0,
-            'aria-label': `${dayBookings.length} appointment${dayBookings.length === 1 ? '' : 's'} on ${format(day, 'EEEE d MMMM')}`,
+            'aria-label': dayBookings.length === 1
+              ? t('calPage.dayCell.ariaOne', '{{count}} appointment on {{date}}', { count: dayBookings.length, date: format(day, 'EEEE d MMMM', { locale }) })
+              : t('calPage.dayCell.ariaOther', '{{count}} appointments on {{date}}', { count: dayBookings.length, date: format(day, 'EEEE d MMMM', { locale }) }),
             onKeyDown: (e: React.KeyboardEvent) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();

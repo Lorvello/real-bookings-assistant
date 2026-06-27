@@ -1,6 +1,7 @@
 
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TimeRangeSelector } from './TimeRangeSelector';
@@ -33,7 +34,8 @@ export function CalendarHeader({
   timeRange,
   onTimeRangeChange,
 }: CalendarHeaderProps) {
-  const { t } = useTranslation('appPages');
+  const { t, i18n } = useTranslation('appPages');
+  const locale = dateFnsLocale(i18n.language);
   const { userStatus } = useAccessControl();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
@@ -56,11 +58,11 @@ export function CalendarHeader({
   const formatTitle = () => {
     switch (currentView) {
       case 'week':
-        return format(currentDate, "'Week of' MMM d, yyyy");
+        return `${t('calPage.weekOf', 'Week of')} ${format(currentDate, 'MMM d, yyyy', { locale })}`;
       case 'year':
-        return format(currentDate, 'yyyy');
+        return format(currentDate, 'yyyy', { locale });
       default:
-        return format(currentDate, 'MMMM yyyy');
+        return format(currentDate, 'MMMM yyyy', { locale });
     }
   };
 
@@ -153,7 +155,7 @@ export function CalendarHeader({
             >
               <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">{t('calPage.newBooking.button', 'New Appointment')}</span>
-              <span className="sr-only sm:hidden">New appointment</span>
+              <span className="sr-only sm:hidden">{t('calPage.newBooking.button', 'New Appointment')}</span>
             </Button>
           </div>
         </div>

@@ -610,8 +610,11 @@
     "dayCell": {
       "empty": "Geen afspraken",
       "appointmentCount": "{{n}} afspraken",
-      "clickHint": "Klik voor details"
-    }
+      "clickHint": "Klik voor details",
+      "ariaOne": "{{count}} afspraak op {{date}}",
+      "ariaOther": "{{count}} afspraken op {{date}}"
+    },
+    "weekOf": "Week van"
   },
   "bookPage": {
     "pageTitle": "Boekingen",

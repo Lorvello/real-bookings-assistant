@@ -1,8 +1,11 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { format, setDay } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { useAvailabilitySchedules } from '@/hooks/useAvailabilitySchedules';
 import { useAvailabilityRules } from '@/hooks/useAvailabilityRules';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { supabase } from '@/integrations/supabase/client';
 
 interface TimeBlock {
@@ -45,7 +48,22 @@ const validateAndCleanTimeBlocks = (timeBlocks: TimeBlock[]): TimeBlock[] => {
 };
 
 export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: string) => {
+  const { i18n } = useTranslation();
   const { calendars, selectedCalendar } = useCalendarContext();
+
+  // Localized day labels for display. Derived from each day's dayOfWeek via the
+  // active date-fns locale so the visible weekday name follows the EN<->NL toggle.
+  // `key`, `dayOfWeek` and `isWeekend` stay untouched (logic depends on them);
+  // only `label` is localized. EN output is byte-identical to the old hardcoded
+  // 'Monday'..'Sunday' strings.
+  const localizedDays = useMemo(() => {
+    const locale = dateFnsLocale(i18n.language);
+    const reference = new Date(2024, 0, 7); // a Sunday, so setDay maps 0..6 cleanly
+    return DAYS.map((day) => ({
+      ...day,
+      label: format(setDay(reference, day.dayOfWeek % 7), 'EEEE', { locale }),
+    }));
+  }, [i18n.language]);
   
   // Use provided calendarId or fall back to context selection
   const targetCalendarId = calendarId || selectedCalendar?.id;
@@ -352,7 +370,7 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
   };
 
   return {
-    DAYS,
+    DAYS: localizedDays,
     availability,
     setAvailability,
     pendingUpdates,

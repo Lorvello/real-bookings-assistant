@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { Clock, User, Phone, Mail, X, ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -46,7 +46,8 @@ interface DayBookingsModalProps {
 }
 
 export function DayBookingsModal({ open, onClose, date, bookings, position, viewingAllCalendars = false }: DayBookingsModalProps) {
-  const { t } = useTranslation('appPages');
+  const { t, i18n } = useTranslation('appPages');
+  const locale = dateFnsLocale(i18n.language);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -135,7 +136,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
       ref={popupRef}
       data-popup="true"
       role="dialog"
-      aria-label={t('calPage.dayModal.ariaAppointmentsOn', 'Appointments on {{date}}', { date: format(date, 'EEEE d MMMM', { locale: enUS }) })}
+      aria-label={t('calPage.dayModal.ariaAppointmentsOn', 'Appointments on {{date}}', { date: format(date, 'EEEE d MMMM', { locale }) })}
       tabIndex={-1}
       className="glass fixed z-[9999] min-w-[180px] max-w-[200px] rounded-lg shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)] outline-none pointer-events-auto sm:min-w-[280px] sm:max-w-[320px]"
       style={{
@@ -151,7 +152,7 @@ export function DayBookingsModal({ open, onClose, date, bookings, position, view
           <div className="p-2 sm:p-3 border-b border-white/[0.08]">
             <div className="flex items-center justify-between">
               <h3 className="text-xs sm:text-sm font-semibold text-foreground tabular-nums">
-                {format(date, 'EEE d MMM', { locale: enUS })}
+                {format(date, 'EEE d MMM', { locale })}
               </h3>
               <button
                 onClick={onClose}

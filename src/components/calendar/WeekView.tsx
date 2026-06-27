@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { BookingDetailModal } from './BookingDetailModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
@@ -185,7 +186,8 @@ function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking;
 }
 
 export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars = false }: WeekViewProps) {
-  const { t } = useTranslation('appPages');
+  const { t, i18n } = useTranslation('appPages');
+  const locale = dateFnsLocale(i18n.language);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
 
@@ -223,11 +225,11 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
                   idx < weekDays.length - 1 ? 'border-r border-white/[0.06]' : ''
                 } ${isToday(day) ? 'bg-primary/10' : ''}`}
               >
-                <div className="text-[9px] font-medium text-muted-foreground sm:text-xs">{format(day, 'EEE')}</div>
+                <div className="text-[9px] font-medium text-muted-foreground sm:text-xs">{format(day, 'EEE', { locale })}</div>
                 <div className={`mt-0.5 text-sm font-semibold tabular-nums sm:text-lg ${isToday(day) ? 'text-primary' : 'text-foreground'}`}>
                   {format(day, 'd')}
                 </div>
-                <div className="text-[9px] text-muted-foreground sm:text-xs">{format(day, 'MMM')}</div>
+                <div className="text-[9px] text-muted-foreground sm:text-xs">{format(day, 'MMM', { locale })}</div>
               </div>
             ))}
           </div>
