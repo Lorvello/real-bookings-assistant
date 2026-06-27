@@ -40,8 +40,18 @@ interface Slot {
 export default function PublicBooking() {
   const { t, i18n } = useTranslation('publicBooking');
   const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  // Localized currency: NL renders "€ 50,00" (comma decimal, space), EN "€50.00".
+  // Hardcoding the dot decimal read as English-in-Dutch on the conversion path (F-003).
+  const priceFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(i18n.language === 'nl' ? 'nl-NL' : 'en-IE', {
+        style: 'currency',
+        currency: 'EUR',
+      }),
+    [i18n.language]
+  );
   const priceLabel = (p: number | null) =>
-    p == null ? null : p === 0 ? t('publicBooking.pb.free', 'Free') : `€${Number(p).toFixed(2)}`;
+    p == null ? null : p === 0 ? t('publicBooking.pb.free', 'Free') : priceFormatter.format(Number(p));
   const { slug = '' } = useParams();
   const { getAvailableSlots } = useAvailableSlots();
   const { createBooking, loading: booking } = usePublicBookingCreation();
