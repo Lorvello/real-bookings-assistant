@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { SettingsSection } from './SettingsSection';
 import { SettingsField } from './SettingsField';
 
 export const SetPasswordSection: React.FC = () => {
+  const { t } = useTranslation('settings');
   const { user } = useAuth();
   const { profile, refetch } = useProfile();
   const { toast } = useToast();
@@ -37,19 +39,19 @@ export const SetPasswordSection: React.FC = () => {
 
   const validatePassword = (): string | null => {
     if (password.length < 8) {
-      return 'Password must be at least 8 characters long';
+      return t('settings.users.validation.passwordMinLength', 'Password must be at least 8 characters long');
     }
     if (!/[A-Z]/.test(password)) {
-      return 'Password must contain at least one uppercase letter';
+      return t('settings.users.validation.passwordUppercase', 'Password must contain at least one uppercase letter');
     }
     if (!/[a-z]/.test(password)) {
-      return 'Password must contain at least one lowercase letter';
+      return t('settings.users.validation.passwordLowercase', 'Password must contain at least one lowercase letter');
     }
     if (!/[0-9]/.test(password)) {
-      return 'Password must contain at least one number';
+      return t('settings.users.validation.passwordNumber', 'Password must contain at least one number');
     }
     if (password !== confirmPassword) {
-      return 'Passwords do not match';
+      return t('settings.users.validation.passwordMismatch', 'Passwords do not match');
     }
     return null;
   };
@@ -58,7 +60,7 @@ export const SetPasswordSection: React.FC = () => {
     const validationError = validatePassword();
     if (validationError) {
       toast({
-        title: "Validation Error",
+        title: t('settings.users.toast.validationError.title', 'Validation Error'),
         description: validationError,
         variant: "destructive",
       });
@@ -94,14 +96,14 @@ export const SetPasswordSection: React.FC = () => {
       await refetch();
       
       toast({
-        title: "Password Set Successfully",
-        description: "You can now sign in with your email and password.",
+        title: t('settings.users.toast.passwordSet.title', 'Password Set Successfully'),
+        description: t('settings.users.toast.passwordSet.description', 'You can now sign in with your email and password.'),
       });
     } catch (error: any) {
       console.error('Error setting password:', error);
       toast({
-        title: "Error Setting Password",
-        description: error.message || "Failed to set password. Please try again.",
+        title: t('settings.users.toast.passwordError.title', 'Error Setting Password'),
+        description: error.message || t('settings.users.toast.passwordError.description', 'Failed to set password. Please try again.'),
         variant: "destructive",
       });
     } finally {
@@ -120,20 +122,20 @@ export const SetPasswordSection: React.FC = () => {
   return (
     <SettingsSection
       icon={Lock}
-      title="Add email/password login"
-      description="Your account was created with Google. Add a password to also sign in with your email address."
+      title={t('settings.users.section.passwordSection.title', 'Add email/password login')}
+      description={t('settings.users.section.passwordSection.description', 'Your account was created with Google. Add a password to also sign in with your email address.')}
     >
       <div className="space-y-5">
         <div className="flex items-start gap-2.5 rounded-lg border border-primary/20 bg-primary/[0.08] px-3.5 py-2.5 text-sm text-accent-foreground">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>After setting a password, you can sign in with either Google or your email and password.</p>
+          <p>{t('settings.users.section.passwordSection.info', 'After setting a password, you can sign in with either Google or your email and password.')}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           <SettingsField
-            label="New password"
+            label={t('settings.users.fields.password.label', 'New password')}
             htmlFor="new-password"
-            description="At least 8 characters, with an uppercase, a lowercase and a number."
+            description={t('settings.users.fields.password.description', 'At least 8 characters, with an uppercase, a lowercase and a number.')}
           >
             <div className="relative">
               <Input
@@ -142,13 +144,13 @@ export const SetPasswordSection: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pr-10"
-                placeholder="Enter a strong password"
+                placeholder={t('settings.users.fields.password.placeholder', 'Enter a strong password')}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('settings.users.aria.hidePassword', 'Hide password') : t('settings.users.aria.showPassword', 'Show password')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -156,7 +158,7 @@ export const SetPasswordSection: React.FC = () => {
             </div>
           </SettingsField>
 
-          <SettingsField label="Confirm password" htmlFor="confirm-password">
+          <SettingsField label={t('settings.users.fields.confirmPassword.label', 'Confirm password')} htmlFor="confirm-password">
             <div className="relative">
               <Input
                 id="confirm-password"
@@ -164,13 +166,13 @@ export const SetPasswordSection: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pr-10"
-                placeholder="Confirm your password"
+                placeholder={t('settings.users.fields.confirmPassword.placeholder', 'Confirm your password')}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                aria-label={showConfirmPassword ? t('settings.users.aria.hidePassword', 'Hide password') : t('settings.users.aria.showPassword', 'Show password')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded text-subtle-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -186,7 +188,7 @@ export const SetPasswordSection: React.FC = () => {
           className="w-full sm:w-auto"
         >
           <Lock className="mr-2 h-4 w-4" />
-          Set password
+          {t('settings.users.buttons.setPassword', 'Set password')}
         </Button>
       </div>
     </SettingsSection>

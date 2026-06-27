@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SettingsSection } from '../SettingsSection';
@@ -21,19 +22,20 @@ interface ProfileSectionProps {
  * field rhythm so Profile sits flush with every other Settings tab.
  */
 export function ProfileSection({ fullName, email, phone, onChange }: ProfileSectionProps) {
+  const { t } = useTranslation('settings');
   return (
     <SettingsSection
       icon={User}
-      title="Your profile"
-      description="Your personal details for this workspace. Only you can see these."
+      title={t('settings.users.section.profile.title', 'Your profile')}
+      description={t('settings.users.section.profile.description', 'Your personal details for this workspace. Only you can see these.')}
     >
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <SettingsField label="Full name" htmlFor="profile-full-name">
+        <SettingsField label={t('settings.users.fields.fullName.label', 'Full name')} htmlFor="profile-full-name">
           <Input
             id="profile-full-name"
             value={fullName}
             onChange={(e) => onChange('full_name', e.target.value)}
-            placeholder="Enter your full name"
+            placeholder={t('settings.users.fields.fullName.placeholder', 'Enter your full name')}
             autoComplete="name"
           />
         </SettingsField>
@@ -44,9 +46,9 @@ export function ProfileSection({ fullName, email, phone, onChange }: ProfileSect
             diverge. Until a verified email-change flow exists, show the real login
             email read-only so it can never lie. */}
         <SettingsField
-          label="Email"
+          label={t('settings.users.fields.email.label', 'Email')}
           htmlFor="profile-email"
-          description="Your login email. To change it, contact support."
+          description={t('settings.users.fields.email.description', 'Your login email. To change it, contact support.')}
         >
           <Input
             id="profile-email"
@@ -54,12 +56,12 @@ export function ProfileSection({ fullName, email, phone, onChange }: ProfileSect
             value={email}
             readOnly
             disabled
-            aria-label="Login email (read-only)"
+            aria-label={t('settings.users.aria.emailReadOnly', 'Login email (read-only)')}
             className="cursor-not-allowed text-muted-foreground"
           />
         </SettingsField>
 
-        <SettingsField label="Phone number" htmlFor="profile-phone" className="md:col-span-2">
+        <SettingsField label={t('settings.users.fields.phone.label', 'Phone number')} htmlFor="profile-phone" className="md:col-span-2">
           <CountryPhoneInput
             inputId="profile-phone"
             value={phone}

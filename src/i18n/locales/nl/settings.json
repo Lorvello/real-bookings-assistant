@@ -525,6 +525,185 @@
       "invoice": {
         "noDescription": "Geen omschrijving"
       }
+    },
+    "users": {
+      "validation": {
+        "passwordMinLength": "Wachtwoord moet minimaal 8 tekens lang zijn",
+        "passwordUppercase": "Wachtwoord moet minimaal één hoofdletter bevatten",
+        "passwordLowercase": "Wachtwoord moet minimaal één kleine letter bevatten",
+        "passwordNumber": "Wachtwoord moet minimaal één getal bevatten",
+        "passwordMismatch": "Wachtwoorden komen niet overeen"
+      },
+      "toast": {
+        "validationError": {
+          "title": "Validatiefout"
+        },
+        "passwordSet": {
+          "title": "Wachtwoord ingesteld",
+          "description": "Je kunt je nu aanmelden met je e-mailadres en wachtwoord."
+        },
+        "passwordError": {
+          "title": "Fout bij instellen wachtwoord",
+          "description": "Kon wachtwoord niet instellen. Probeer het opnieuw."
+        },
+        "saveSuccess": {
+          "title": "Wijzigingen opgeslagen",
+          "description": "Je profiel is bijgewerkt."
+        },
+        "saveError": {
+          "title": "Fout",
+          "description": "Kon wijzigingen niet opslaan. Probeer het opnieuw."
+        },
+        "emailRequired": {
+          "title": "E-mail verplicht",
+          "description": "Voer een e-mailadres in"
+        },
+        "noCalendar": {
+          "title": "Geen agenda beschikbaar",
+          "description": "Je hebt minstens één agenda nodig om leden toe te voegen"
+        },
+        "roleError": {
+          "title": "Fout bij bijwerken rol",
+          "description": "Kon de gebruikersrol niet bijwerken"
+        },
+        "removeMemberError": {
+          "title": "Fout bij verwijderen lid",
+          "description": "Kon het lid niet verwijderen"
+        },
+        "cancelInviteError": {
+          "title": "Fout bij annuleren uitnodiging",
+          "description": "Kon de uitnodiging niet annuleren"
+        },
+        "resendInviteError": {
+          "title": "Fout bij opnieuw verzenden uitnodiging",
+          "description": "Kon de uitnodiging niet opnieuw verzenden"
+        }
+      },
+      "section": {
+        "passwordSection": {
+          "title": "E-maillogin met wachtwoord toevoegen",
+          "description": "Je account is aangemaakt met Google. Voeg een wachtwoord toe om je ook met je e-mailadres in te loggen.",
+          "info": "Na het instellen van een wachtwoord kun je je aanmelden met Google of met je e-mailadres en wachtwoord."
+        },
+        "profile": {
+          "title": "Je profiel",
+          "description": "Je persoonlijke gegevens voor deze werkruimte. Alleen jij kunt deze zien."
+        },
+        "lockedPanel": {
+          "title": "Teamleden",
+          "description": "Nodig collega's uit en geef hun eigen toegang tot je agenda's. Beschikbaar op het Pro-abonnement."
+        },
+        "emptyPanel": {
+          "title": "Nog geen teamleden",
+          "withCalendar": "Nodig je eerste collega uit om toegang tot je agenda's te delen.",
+          "noCalendar": "Maak eerst een agenda aan, dan kun je er collega's voor uitnodigen."
+        },
+        "teamMembers": {
+          "title": "Teamleden",
+          "description": "Personen die toegang hebben tot je agenda's en de uitnodigingen die je hebt verzonden."
+        }
+      },
+      "fields": {
+        "password": {
+          "label": "Nieuw wachtwoord",
+          "description": "Minimaal 8 tekens, met een hoofdletter, kleine letter en getal.",
+          "placeholder": "Voer een sterk wachtwoord in"
+        },
+        "confirmPassword": {
+          "label": "Wachtwoord bevestigen",
+          "placeholder": "Bevestig je wachtwoord"
+        },
+        "fullName": {
+          "label": "Volledige naam",
+          "placeholder": "Voer je volledige naam in"
+        },
+        "email": {
+          "label": "E-mail",
+          "description": "Je inloggen-e-mailadres. Neem contact op met support om het te wijzigen."
+        },
+        "phone": {
+          "label": "Telefoonnummer"
+        },
+        "inviteName": {
+          "label": "Volledige naam"
+        },
+        "inviteEmail": {
+          "label": "E-mailadres"
+        },
+        "inviteCalendar": {
+          "label": "Agenda",
+          "description": "De agenda waar dit lid toegang tot heeft.",
+          "placeholder": "Selecteer een agenda"
+        },
+        "inviteRole": {
+          "label": "Rol",
+          "descriptionEditor": "Bewerkers kunnen boekingen en instellingen beheren.",
+          "descriptionViewer": "Bekijkers kunnen boekingen alleen bekijken."
+        }
+      },
+      "aria": {
+        "showPassword": "Wachtwoord weergeven",
+        "hidePassword": "Wachtwoord verbergen",
+        "emailReadOnly": "Inloggen-e-mailadres (alleen-lezen)",
+        "roleSelect": "Rol voor {{member}}",
+        "removeMember": "{{member}} verwijderen"
+      },
+      "buttons": {
+        "setPassword": "Wachtwoord instellen",
+        "resendInvitation": "Uitnodiging opnieuw verzenden",
+        "cancelInvitation": "Uitnodiging annuleren",
+        "resend": "Opnieuw verzenden",
+        "removeMember": "Lid verwijderen",
+        "upgradeToPro": "Naar Pro upgraden",
+        "inviteTeamMember": "Teamlid uitnodigen",
+        "addMember": "Lid toevoegen",
+        "cancel": "Annuleren",
+        "sendInvite": "Uitnodiging verzenden"
+      },
+      "roles": {
+        "owner": "Eigenaar",
+        "editor": "Bewerker",
+        "viewer": "Bekijker",
+        "unknown": "Onbekend"
+      },
+      "status": {
+        "invited": "Uitgenodigd",
+        "expired": "Verlopen",
+        "cancelled": "Geannuleerd",
+        "active": "Actief"
+      },
+      "badge": {
+        "pro": "Pro"
+      },
+      "table": {
+        "header": {
+          "member": "Lid",
+          "role": "Rol",
+          "status": "Status",
+          "calendar": "Agenda",
+          "actions": "Acties"
+        }
+      },
+      "calendar": {
+        "all": "Alle agenda's",
+        "unknown": "Onbekend"
+      },
+      "user": {
+        "unknown": "Onbekende gebruiker"
+      },
+      "dialog": {
+        "confirmRemove": "Weet je zeker dat je dit lid wilt verwijderen?",
+        "addMember": {
+          "title": "Teamlid uitnodigen",
+          "description": "Ze ontvangen een e-mailuitnodiging om deel te nemen aan de gekozen agenda."
+        }
+      },
+      "select": {
+        "option": {
+          "viewer": "Bekijker",
+          "editor": "Bewerker"
+        }
+      }
     }
   }
 }

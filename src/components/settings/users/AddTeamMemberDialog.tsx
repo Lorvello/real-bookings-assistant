@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserPlus } from 'lucide-react';
 import {
   Dialog,
@@ -62,6 +63,7 @@ export function AddTeamMemberDialog({
   onCalendarChange,
   onSubmit,
 }: AddTeamMemberDialogProps) {
+  const { t } = useTranslation('settings');
   const resolvedCalendarId =
     calendarId || (calendars.find((c) => c.is_default) || calendars[0])?.id || '';
 
@@ -75,10 +77,10 @@ export function AddTeamMemberDialog({
             </span>
             <div className="space-y-1">
               <DialogTitle className="text-xl font-semibold tracking-[-0.015em]">
-                Invite a team member
+                {t('settings.users.dialog.addMember.title', 'Invite a team member')}
               </DialogTitle>
               <DialogDescription>
-                They get an email invite to join the calendar you choose.
+                {t('settings.users.dialog.addMember.description', 'They get an email invite to join the calendar you choose.')}
               </DialogDescription>
             </div>
           </div>
@@ -86,7 +88,7 @@ export function AddTeamMemberDialog({
 
         <div className="space-y-5 pt-1">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <SettingsField label="Full name" htmlFor="invite-name">
+            <SettingsField label={t('settings.users.fields.inviteName.label', 'Full name')} htmlFor="invite-name">
               <Input
                 id="invite-name"
                 value={name}
@@ -97,7 +99,7 @@ export function AddTeamMemberDialog({
               />
             </SettingsField>
 
-            <SettingsField label="Email address" htmlFor="invite-email">
+            <SettingsField label={t('settings.users.fields.inviteEmail.label', 'Email address')} htmlFor="invite-email">
               <Input
                 id="invite-email"
                 type="email"
@@ -111,13 +113,13 @@ export function AddTeamMemberDialog({
           </div>
 
           <SettingsField
-            label="Calendar"
+            label={t('settings.users.fields.inviteCalendar.label', 'Calendar')}
             htmlFor="invite-calendar"
-            description="The calendar this member can access."
+            description={t('settings.users.fields.inviteCalendar.description', 'The calendar this member can access.')}
           >
             <Select value={resolvedCalendarId} onValueChange={onCalendarChange}>
               <SelectTrigger id="invite-calendar">
-                <SelectValue placeholder="Select a calendar" />
+                <SelectValue placeholder={t('settings.users.fields.inviteCalendar.placeholder', 'Select a calendar')} />
               </SelectTrigger>
               <SelectContent className="glass">
                 {calendars.map((cal) => (
@@ -130,12 +132,12 @@ export function AddTeamMemberDialog({
           </SettingsField>
 
           <SettingsField
-            label="Role"
+            label={t('settings.users.fields.inviteRole.label', 'Role')}
             htmlFor="invite-role"
             description={
               role === 'editor'
-                ? 'Editors can manage bookings and settings.'
-                : 'Viewers can only view bookings.'
+                ? t('settings.users.fields.inviteRole.descriptionEditor', 'Editors can manage bookings and settings.')
+                : t('settings.users.fields.inviteRole.descriptionViewer', 'Viewers can only view bookings.')
             }
           >
             <Select value={role} onValueChange={(v: 'editor' | 'viewer') => onRoleChange(v)}>
@@ -143,18 +145,18 @@ export function AddTeamMemberDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="glass">
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
+                <SelectItem value="viewer">{t('settings.users.select.option.viewer', 'Viewer')}</SelectItem>
+                <SelectItem value="editor">{t('settings.users.select.option.editor', 'Editor')}</SelectItem>
               </SelectContent>
             </Select>
           </SettingsField>
 
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
-              Cancel
+              {t('settings.users.buttons.cancel', 'Cancel')}
             </Button>
             <Button onClick={onSubmit} loading={submitting} disabled={submitting || !name.trim() || !email.trim()}>
-              Send invite
+              {t('settings.users.buttons.sendInvite', 'Send invite')}
             </Button>
           </div>
         </div>

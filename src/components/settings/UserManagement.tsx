@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendarMembers } from '@/hooks/useCalendarMembers';
@@ -29,6 +30,7 @@ export const UserManagement = ({
   externalProfileData,
   externalLoading,
 }: UserManagementProps = {}) => {
+  const { t } = useTranslation('settings');
   const { calendars } = useCalendarContext();
   const { members, loading, inviteMember, removeMember, updateMemberRole, refetch } = useCalendarMembers();
   const {
@@ -102,12 +104,12 @@ export const UserManagement = ({
         setJustSaved(true);
         if (savedTimer.current) clearTimeout(savedTimer.current);
         savedTimer.current = setTimeout(() => setJustSaved(false), 2500);
-        toast({ title: 'Changes saved', description: 'Your profile has been updated.' });
+        toast({ title: t('settings.users.toast.saveSuccess.title', 'Changes saved'), description: t('settings.users.toast.saveSuccess.description', 'Your profile has been updated.') });
       }
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to save changes. Please try again.',
+        title: t('settings.users.toast.saveError.title', 'Error'),
+        description: t('settings.users.toast.saveError.description', 'Failed to save changes. Please try again.'),
         variant: 'destructive',
       });
     } finally {
@@ -131,14 +133,14 @@ export const UserManagement = ({
 
   const handleAddUser = useCallback(async () => {
     if (!newUserEmail.trim()) {
-      toast({ title: 'Email required', description: 'Please enter an email address', variant: 'destructive' });
+      toast({ title: t('settings.users.toast.emailRequired.title', 'Email required'), description: t('settings.users.toast.emailRequired.description', 'Please enter an email address'), variant: 'destructive' });
       return;
     }
     const defaultCalendar = calendars.find((cal) => cal.is_default) || calendars[0];
     if (!defaultCalendar) {
       toast({
-        title: 'No calendar available',
-        description: 'You need at least one calendar to add members',
+        title: t('settings.users.toast.noCalendar.title', 'No calendar available'),
+        description: t('settings.users.toast.noCalendar.description', 'You need at least one calendar to add members'),
         variant: 'destructive',
       });
       return;
@@ -161,45 +163,45 @@ export const UserManagement = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [newUserEmail, newUserName, newUserRole, newUserCalendarId, calendars, inviteMember, stableRefetch, toast]);
+  }, [newUserEmail, newUserName, newUserRole, newUserCalendarId, calendars, inviteMember, stableRefetch, toast, t]);
 
   const handleRoleChange = useCallback(async (memberId: string, newRole: 'editor' | 'viewer') => {
     try {
       await updateMemberRole(memberId, newRole);
       stableRefetch();
     } catch {
-      toast({ title: 'Error updating role', description: 'Could not update the user role', variant: 'destructive' });
+      toast({ title: t('settings.users.toast.roleError.title', 'Error updating role'), description: t('settings.users.toast.roleError.description', 'Could not update the user role'), variant: 'destructive' });
     }
-  }, [updateMemberRole, stableRefetch, toast]);
+  }, [updateMemberRole, stableRefetch, toast, t]);
 
   const handleRemoveUser = useCallback(async (memberId: string) => {
-    if (confirm('Are you sure you want to remove this member?')) {
+    if (confirm(t('settings.users.dialog.confirmRemove', 'Are you sure you want to remove this member?'))) {
       try {
         await removeMember(memberId);
         stableRefetch();
       } catch {
-        toast({ title: 'Error removing member', description: 'Could not remove the member', variant: 'destructive' });
+        toast({ title: t('settings.users.toast.removeMemberError.title', 'Error removing member'), description: t('settings.users.toast.removeMemberError.description', 'Could not remove the member'), variant: 'destructive' });
       }
     }
-  }, [removeMember, stableRefetch, toast]);
+  }, [removeMember, stableRefetch, toast, t]);
 
   const handleCancelInvitation = useCallback(async (invitationId: string) => {
     try {
       await cancelInvitation(invitationId);
       stableRefetch();
     } catch {
-      toast({ title: 'Error cancelling invitation', description: 'Could not cancel the invitation', variant: 'destructive' });
+      toast({ title: t('settings.users.toast.cancelInviteError.title', 'Error cancelling invitation'), description: t('settings.users.toast.cancelInviteError.description', 'Could not cancel the invitation'), variant: 'destructive' });
     }
-  }, [cancelInvitation, stableRefetch, toast]);
+  }, [cancelInvitation, stableRefetch, toast, t]);
 
   const handleResendInvitation = useCallback(async (invitationId: string) => {
     try {
       await resendInvitation(invitationId);
       stableRefetch();
     } catch {
-      toast({ title: 'Error resending invitation', description: 'Could not resend the invitation', variant: 'destructive' });
+      toast({ title: t('settings.users.toast.resendInviteError.title', 'Error resending invitation'), description: t('settings.users.toast.resendInviteError.description', 'Could not resend the invitation'), variant: 'destructive' });
     }
-  }, [resendInvitation, stableRefetch, toast]);
+  }, [resendInvitation, stableRefetch, toast, t]);
 
   // Owner row + team members (de-duped against owner email) + pending invitations.
   const allUsers = useMemo<TeamUser[]>(() => {

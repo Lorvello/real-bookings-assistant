@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Users,
   UserPlus,
@@ -59,13 +61,13 @@ interface TeamMembersSectionProps extends MemberActionHandlers {
   onUnlock: () => void;
 }
 
-function RoleBadge({ role }: { role: string }) {
+function RoleBadge({ role, t }: { role: string; t: TFunction }) {
   const map: Record<string, { icon: React.ReactNode; label: string }> = {
-    owner: { icon: <Crown className="h-3.5 w-3.5 text-gold-foreground" />, label: 'Owner' },
-    editor: { icon: <User className="h-3.5 w-3.5 text-accent-foreground" />, label: 'Editor' },
-    viewer: { icon: <Eye className="h-3.5 w-3.5 text-muted-foreground" />, label: 'Viewer' },
+    owner: { icon: <Crown className="h-3.5 w-3.5 text-gold-foreground" />, label: t('settings.users.roles.owner', 'Owner') },
+    editor: { icon: <User className="h-3.5 w-3.5 text-accent-foreground" />, label: t('settings.users.roles.editor', 'Editor') },
+    viewer: { icon: <Eye className="h-3.5 w-3.5 text-muted-foreground" />, label: t('settings.users.roles.viewer', 'Viewer') },
   };
-  const r = map[role] ?? { icon: <User className="h-3.5 w-3.5 text-muted-foreground" />, label: 'Unknown' };
+  const r = map[role] ?? { icon: <User className="h-3.5 w-3.5 text-muted-foreground" />, label: t('settings.users.roles.unknown', 'Unknown') };
   return (
     <span className="inline-flex items-center gap-2 text-sm text-foreground">
       {r.icon}
@@ -74,28 +76,28 @@ function RoleBadge({ role }: { role: string }) {
   );
 }
 
-function StatusBadge({ user }: { user: TeamUser }) {
+function StatusBadge({ user, t }: { user: TeamUser; t: TFunction }) {
   if (user.type === 'invitation') {
     switch (user.status) {
       case 'pending':
         return (
           <Badge variant="outline" className="border-warning/40 bg-warning/10 text-warning-foreground">
             <Clock className="mr-1 h-3 w-3" />
-            Invited
+            {t('settings.users.status.invited', 'Invited')}
           </Badge>
         );
       case 'expired':
         return (
           <Badge variant="outline" className="border-destructive/40 bg-destructive/10 text-destructive-foreground">
             <X className="mr-1 h-3 w-3" />
-            Expired
+            {t('settings.users.status.expired', 'Expired')}
           </Badge>
         );
       case 'cancelled':
         return (
           <Badge variant="outline" className="border-border bg-background/20 text-muted-foreground">
             <X className="mr-1 h-3 w-3" />
-            Cancelled
+            {t('settings.users.status.cancelled', 'Cancelled')}
           </Badge>
         );
       default:
@@ -105,7 +107,7 @@ function StatusBadge({ user }: { user: TeamUser }) {
   return (
     <Badge variant="outline" className="border-success/40 bg-success/10 text-success-foreground">
       <Check className="mr-1 h-3 w-3" />
-      Active
+      {t('settings.users.status.active', 'Active')}
     </Badge>
   );
 }
@@ -115,11 +117,12 @@ function StatusBadge({ user }: { user: TeamUser }) {
 function MemberActions({
   user,
   align,
+  t,
   onRoleChange,
   onRemove,
   onResend,
   onCancelInvite,
-}: { user: TeamUser; align?: 'end' } & MemberActionHandlers) {
+}: { user: TeamUser; align?: 'end'; t: TFunction } & MemberActionHandlers) {
   const who = user.user?.full_name || user.user?.email || 'member';
   const justify = align === 'end' ? 'justify-end' : '';
 
@@ -136,8 +139,8 @@ function MemberActions({
               variant="ghost"
               size="icon"
               onClick={() => onResend(user.id)}
-              aria-label="Resend invitation"
-              title="Resend invitation"
+              aria-label={t('settings.users.buttons.resendInvitation', 'Resend invitation')}
+              title={t('settings.users.buttons.resendInvitation', 'Resend invitation')}
               className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-foreground"
             >
               <RotateCcw className="h-4 w-4" />
@@ -146,8 +149,8 @@ function MemberActions({
               variant="ghost"
               size="icon"
               onClick={() => onCancelInvite(user.id)}
-              aria-label="Cancel invitation"
-              title="Cancel invitation"
+              aria-label={t('settings.users.buttons.cancelInvitation', 'Cancel invitation')}
+              title={t('settings.users.buttons.cancelInvitation', 'Cancel invitation')}
               className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-destructive-foreground"
             >
               <X className="h-4 w-4" />
@@ -157,7 +160,7 @@ function MemberActions({
         {user.status === 'expired' && (
           <Button variant="outline" size="sm" onClick={() => onResend(user.id)} className="h-8">
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-            Resend
+            {t('settings.users.buttons.resend', 'Resend')}
           </Button>
         )}
       </div>
@@ -167,20 +170,20 @@ function MemberActions({
   return (
     <div className={`flex items-center gap-2 ${justify}`}>
       <Select value={user.role} onValueChange={(v: 'editor' | 'viewer') => onRoleChange(user.id, v)}>
-        <SelectTrigger aria-label={`Role for ${who}`} className="h-8 w-[104px]">
+        <SelectTrigger aria-label={t('settings.users.aria.roleSelect', 'Role for {{member}}', { member: who })} className="h-8 w-[104px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="glass">
-          <SelectItem value="viewer">Viewer</SelectItem>
-          <SelectItem value="editor">Editor</SelectItem>
+          <SelectItem value="viewer">{t('settings.users.roles.viewer', 'Viewer')}</SelectItem>
+          <SelectItem value="editor">{t('settings.users.roles.editor', 'Editor')}</SelectItem>
         </SelectContent>
       </Select>
       <Button
         variant="ghost"
         size="icon"
         onClick={() => onRemove(user.id)}
-        aria-label={`Remove ${who}`}
-        title="Remove member"
+        aria-label={t('settings.users.aria.removeMember', 'Remove {{member}}', { member: who })}
+        title={t('settings.users.buttons.removeMember', 'Remove member')}
         className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-destructive-foreground"
       >
         <Trash2 className="h-4 w-4" />
@@ -189,18 +192,18 @@ function MemberActions({
   );
 }
 
-function LockedPanel({ onUnlock }: { onUnlock: () => void }) {
+function LockedPanel({ onUnlock, t }: { onUnlock: () => void; t: TFunction }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/25 bg-gold/[0.10] text-gold-foreground">
         <Lock className="h-6 w-6" />
       </div>
       <h3 className="mb-1.5 flex items-center gap-2 text-base font-semibold text-foreground">
-        Team members
-        <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold-foreground">Pro</span>
+        {t('settings.users.section.lockedPanel.title', 'Team members')}
+        <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold-foreground">{t('settings.users.badge.pro', 'Pro')}</span>
       </h3>
       <p className="mb-6 max-w-sm text-sm leading-6 text-muted-foreground">
-        Invite colleagues and give them their own access to your calendars. Available on the Pro plan.
+        {t('settings.users.section.lockedPanel.description', 'Invite colleagues and give them their own access to your calendars. Available on the Pro plan.')}
       </p>
       {/* The one premium-upsell moment wears the gold language (lock tile + Pro pill),
           not the emerald used by every other primary action. */}
@@ -209,27 +212,27 @@ function LockedPanel({ onUnlock }: { onUnlock: () => void }) {
         onClick={onUnlock}
         className="border-gold/30 bg-gold/15 text-gold-foreground hover:bg-gold/25 hover:text-gold-foreground"
       >
-        Upgrade to Pro
+        {t('settings.users.buttons.upgradeToPro', 'Upgrade to Pro')}
       </Button>
     </div>
   );
 }
 
-function EmptyPanel({ canAddMember, onAddMember }: { canAddMember: boolean; onAddMember: () => void }) {
+function EmptyPanel({ canAddMember, onAddMember, t }: { canAddMember: boolean; onAddMember: () => void; t: TFunction }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/20 bg-primary/[0.10] text-accent-foreground">
         <Users className="h-6 w-6" />
       </div>
-      <h3 className="mb-1.5 text-base font-semibold text-foreground">No team members yet</h3>
+      <h3 className="mb-1.5 text-base font-semibold text-foreground">{t('settings.users.section.emptyPanel.title', 'No team members yet')}</h3>
       <p className="mb-6 max-w-sm text-sm leading-6 text-muted-foreground">
         {canAddMember
-          ? 'Invite your first colleague to share access to your calendars.'
-          : 'Create a calendar first, then you can invite colleagues to it.'}
+          ? t('settings.users.section.emptyPanel.withCalendar', 'Invite your first colleague to share access to your calendars.')
+          : t('settings.users.section.emptyPanel.noCalendar', 'Create a calendar first, then you can invite colleagues to it.')}
       </p>
       <Button onClick={onAddMember} disabled={!canAddMember}>
         <UserPlus className="mr-2 h-4 w-4" />
-        Invite a team member
+        {t('settings.users.buttons.inviteTeamMember', 'Invite a team member')}
       </Button>
     </div>
   );
@@ -252,11 +255,11 @@ function LoadingRows() {
   );
 }
 
-function MemberCard({ user, ...handlers }: { user: TeamUser } & MemberActionHandlers) {
+function MemberCard({ user, t, ...handlers }: { user: TeamUser; t: TFunction } & MemberActionHandlers) {
   return (
     <li className="space-y-3 px-5 py-4">
       <div className="min-w-0">
-        <p className="truncate font-medium text-foreground">{user.user?.full_name || 'Unknown user'}</p>
+        <p className="truncate font-medium text-foreground">{user.user?.full_name || t('settings.users.user.unknown', 'Unknown user')}</p>
         <p className="truncate text-sm text-muted-foreground">{user.user?.email}</p>
         {user.type === 'invitation' && user.status === 'pending' && user.expires_at && (
           <p className="mt-1 text-xs text-subtle-foreground">
@@ -265,15 +268,15 @@ function MemberCard({ user, ...handlers }: { user: TeamUser } & MemberActionHand
         )}
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <RoleBadge role={user.role} />
-        <StatusBadge user={user} />
+        <RoleBadge role={user.role} t={t} />
+        <StatusBadge user={user} t={t} />
         <span className="text-sm text-muted-foreground">
-          {user.role === 'owner' ? 'All calendars' : user.calendar?.name || 'Unknown'}
+          {user.role === 'owner' ? t('settings.users.calendar.all', 'All calendars') : user.calendar?.name || t('settings.users.calendar.unknown', 'Unknown')}
         </span>
       </div>
       {user.role !== 'owner' && (
         <div className="pt-0.5">
-          <MemberActions user={user} {...handlers} />
+          <MemberActions user={user} t={t} {...handlers} />
         </div>
       )}
     </li>
@@ -299,19 +302,20 @@ export function TeamMembersSection({
   onResend,
   onCancelInvite,
 }: TeamMembersSectionProps) {
+  const { t } = useTranslation('settings');
   const handlers: MemberActionHandlers = { onRoleChange, onRemove, onResend, onCancelInvite };
 
   const body = () => {
-    if (locked) return <LockedPanel onUnlock={onUnlock} />;
+    if (locked) return <LockedPanel onUnlock={onUnlock} t={t} />;
     if (loading) return <LoadingRows />;
-    if (users.length === 0) return <EmptyPanel canAddMember={canAddMember} onAddMember={onAddMember} />;
+    if (users.length === 0) return <EmptyPanel canAddMember={canAddMember} onAddMember={onAddMember} t={t} />;
 
     return (
       <>
         {/* Mobile: stacked cards (the table would clip its right columns) */}
         <ul className="divide-y divide-white/[0.05] md:hidden">
           {users.map((user) => (
-            <MemberCard key={user.id} user={user} {...handlers} />
+            <MemberCard key={user.id} user={user} t={t} {...handlers} />
           ))}
         </ul>
 
@@ -320,18 +324,18 @@ export function TeamMembersSection({
           <Table>
             <TableHeader>
               <TableRow className="border-white/[0.05] hover:bg-transparent">
-                <TableHead className="pl-6 text-muted-foreground">Member</TableHead>
-                <TableHead className="text-muted-foreground">Role</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
-                <TableHead className="text-muted-foreground">Calendar</TableHead>
-                <TableHead className="pr-6 text-right text-muted-foreground">Actions</TableHead>
+                <TableHead className="pl-6 text-muted-foreground">{t('settings.users.table.header.member', 'Member')}</TableHead>
+                <TableHead className="text-muted-foreground">{t('settings.users.table.header.role', 'Role')}</TableHead>
+                <TableHead className="text-muted-foreground">{t('settings.users.table.header.status', 'Status')}</TableHead>
+                <TableHead className="text-muted-foreground">{t('settings.users.table.header.calendar', 'Calendar')}</TableHead>
+                <TableHead className="pr-6 text-right text-muted-foreground">{t('settings.users.table.header.actions', 'Actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user) => (
                 <TableRow key={user.id} className="border-white/[0.05] transition-colors hover:bg-white/[0.02]">
                   <TableCell className="pl-6">
-                    <p className="font-medium text-foreground">{user.user?.full_name || 'Unknown user'}</p>
+                    <p className="font-medium text-foreground">{user.user?.full_name || t('settings.users.user.unknown', 'Unknown user')}</p>
                     <p className="text-sm text-muted-foreground">{user.user?.email}</p>
                     {user.type === 'invitation' && user.status === 'pending' && user.expires_at && (
                       <p className="mt-1 text-xs text-subtle-foreground">
@@ -340,20 +344,20 @@ export function TeamMembersSection({
                     )}
                   </TableCell>
                   <TableCell>
-                    <RoleBadge role={user.role} />
+                    <RoleBadge role={user.role} t={t} />
                   </TableCell>
                   <TableCell>
-                    <StatusBadge user={user} />
+                    <StatusBadge user={user} t={t} />
                   </TableCell>
                   <TableCell>
                     {user.role === 'owner' ? (
-                      <span className="text-sm text-muted-foreground">All calendars</span>
+                      <span className="text-sm text-muted-foreground">{t('settings.users.calendar.all', 'All calendars')}</span>
                     ) : (
-                      <span className="text-sm text-foreground">{user.calendar?.name || 'Unknown'}</span>
+                      <span className="text-sm text-foreground">{user.calendar?.name || t('settings.users.calendar.unknown', 'Unknown')}</span>
                     )}
                   </TableCell>
                   <TableCell className="pr-6 text-right">
-                    <MemberActions user={user} align="end" {...handlers} />
+                    <MemberActions user={user} align="end" t={t} {...handlers} />
                   </TableCell>
                 </TableRow>
               ))}
@@ -368,13 +372,13 @@ export function TeamMembersSection({
     <SettingsSection
       flush
       icon={Users}
-      title="Team members"
-      description="People who can access your calendars, and the invites you've sent."
+      title={t('settings.users.section.teamMembers.title', 'Team members')}
+      description={t('settings.users.section.teamMembers.description', "People who can access your calendars, and the invites you've sent.")}
       action={
         !locked ? (
           <Button onClick={onAddMember} disabled={!canAddMember}>
             <UserPlus className="mr-2 h-4 w-4" />
-            Add member
+            {t('settings.users.buttons.addMember', 'Add member')}
           </Button>
         ) : undefined
       }
