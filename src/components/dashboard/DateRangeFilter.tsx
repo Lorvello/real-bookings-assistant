@@ -103,7 +103,7 @@ export function DateRangeFilter({ selectedRange, onRangeChange }: DateRangeFilte
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            aria-label="Filter by date range"
+            aria-label={t('dashboard.aria.filterDateRange', 'Filter by date range')}
             className="bg-card border-border text-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <Calendar className="h-4 w-4 mr-2" />

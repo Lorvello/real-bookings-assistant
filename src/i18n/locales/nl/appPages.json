@@ -728,5 +728,10 @@
     "customerNotesLabel": "Opmerkingen klant:",
     "internalNotesLabel": "Interne notities:",
     "notesHeading": "Notities"
+  },
+  "aria": {
+    "removeException": "Roosteruitzondering verwijderen",
+    "editTimezone": "Tijdzone bewerken",
+    "qrCodeAlt": "WhatsApp QR-code"
   }
 }

@@ -122,7 +122,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               {qrUrl && !imgBroken ? (
                 <img
                   src={`${qrUrl}?v=${cacheBust}`}
-                  alt="WhatsApp QR Code"
+                  alt={t('aria.qrCodeAlt', 'WhatsApp QR Code')}
                   width={400}
                   height={400}
                   className="w-full h-auto max-w-[400px]"

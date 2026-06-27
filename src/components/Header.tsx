@@ -138,7 +138,7 @@ const Header = () => {
           <Link
             to="/"
             onClick={handleNavClick}
-            aria-label="Bookings Assistant home"
+            aria-label={t('ui.homeAria', 'Bookings Assistant home')}
             className="flex items-center rounded-xl hover:opacity-80 transition-opacity select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
           >
             <img
@@ -186,7 +186,7 @@ const Header = () => {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-slate-300 hover:text-white hover:bg-white/[0.06] rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
-              aria-label="Toggle mobile menu"
+              aria-label={t('ui.toggleMobileMenu', 'Toggle mobile menu')}
               aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

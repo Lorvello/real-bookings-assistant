@@ -99,7 +99,7 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({
               size="sm"
               onClick={() => setIsEditing(true)}
               className="h-8 w-8 min-w-11 md:min-w-0 p-0"
-              aria-label="Edit timezone"
+              aria-label={t('aria.editTimezone', 'Edit timezone')}
             >
               <Edit2 className="h-4 w-4" />
             </Button>

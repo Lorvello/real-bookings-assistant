@@ -284,7 +284,7 @@ export const DateOverrides: React.FC<DateOverridesProps> = ({ onChange }) => {
                   variant="outline"
                   size="sm"
                   onClick={() => removeOverride(override.id)}
-                  aria-label="Remove schedule exception"
+                  aria-label={t('aria.removeException', 'Remove schedule exception')}
                   className="min-w-11 md:min-w-0 text-destructive hover:text-destructive bg-destructive/10 hover:bg-destructive/20 border-destructive/20 rounded-2xl"
                 >
                   <Trash2 className="h-4 w-4" />

@@ -358,6 +358,9 @@
       "futureBullet1": "Vraagvoorspelling",
       "futureBullet2": "Seizoensgebonden boekingspatronen",
       "futureBullet3": "AI-groeiaanbevelingen"
+    },
+    "aria": {
+      "filterDateRange": "Filter op datumbereik"
     }
   }
 }

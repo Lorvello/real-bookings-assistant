@@ -139,5 +139,9 @@
     "openNow": "Open Stripe nu",
     "couldNotRedirect": "Kon niet doorsturen naar Stripe",
     "docTitle": "Doorsturen naar Stripe"
+  },
+  "ui": {
+    "homeAria": "Bookings Assistant startpagina",
+    "toggleMobileMenu": "Mobiel menu wisselen"
   }
 }
