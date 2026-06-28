@@ -281,7 +281,7 @@ export const StreamlinedSignup: React.FC = () => {
                   value={formData.countryCode}
                   onValueChange={(value) => updateFormData('countryCode', value)}
                 >
-                  <SelectTrigger className="w-[110px]">
+                  <SelectTrigger className="w-[110px]" aria-label={t('auth.signup.countryCodeAria', 'Country dialing code')}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -335,6 +335,10 @@ export const StreamlinedSignup: React.FC = () => {
                   type="button"
                   variant="ghost"
                   size="sm"
+                  aria-label={showConfirmPassword
+                    ? t('auth.passwordInput.hidePassword', 'Hide password')
+                    : t('auth.passwordInput.showPassword', 'Show password')}
+                  aria-pressed={showConfirmPassword}
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
@@ -358,6 +362,7 @@ export const StreamlinedSignup: React.FC = () => {
               <div className="flex items-start space-x-2">
                 <Checkbox
                   id="agreeToTerms"
+                  aria-label={t('auth.signup.agreeAria', 'I agree to the Terms of Service and Privacy Policy')}
                   checked={formData.agreeToTerms}
                   onCheckedChange={(checked) => updateFormData('agreeToTerms', checked as boolean)}
                 />
