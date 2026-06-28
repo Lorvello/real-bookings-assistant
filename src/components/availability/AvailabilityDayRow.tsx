@@ -57,6 +57,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
       {/* Toggle + Day name - fixed width */}
       <div className="flex items-center gap-3 min-w-[140px]">
         <Switch
+          aria-label={t('availPage.dayRow.toggleAria', 'Toggle availability for {{day}}', { day: day.label })}
           checked={dayAvailability.enabled}
           onCheckedChange={(enabled) => onUpdateDayEnabled(day.key, enabled)}
         />

@@ -39,6 +39,7 @@ export function SidebarHeader({ isSidebarOpen, onToggleSidebar, isMobile = false
       {/* Toggle Button - positioned correctly */}
       <button
         onClick={onToggleSidebar}
+        aria-label={isSidebarOpen ? t('app.sidebar.collapse', 'Collapse sidebar') : t('app.sidebar.expand', 'Expand sidebar')}
         className={`text-muted-foreground hover:text-foreground p-2 rounded-md hover:bg-white/[0.06] transition-all duration-200 hover:scale-105 group flex-shrink-0 ${
           isMobile ? 'p-3' : 'p-2'
         }`}

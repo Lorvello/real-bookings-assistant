@@ -178,6 +178,9 @@
       "status": {
         "closed": "Gesloten"
       }
+    },
+    "dayRow": {
+      "toggleAria": "Beschikbaarheid voor {{day}} in-/uitschakelen"
     }
   },
   "convPage": {

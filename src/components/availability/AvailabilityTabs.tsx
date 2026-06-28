@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Clock, Calendar } from 'lucide-react';
 
 interface AvailabilityTabsProps {
@@ -33,6 +33,13 @@ export const AvailabilityTabs: React.FC<AvailabilityTabsProps> = ({
             {t('availPage.tab.overrides', 'Date Overrides')}
           </TabsTrigger>
         </TabsList>
+        {/* The visible panel bodies live in AvailabilityManager (rendered as a sibling
+            for layout reasons), so each trigger's Radix-generated aria-controls would
+            otherwise dangle (WCAG 4.1.2 / aria-valid-attr-value). These empty, hidden
+            TabsContent panels give every trigger a real role="tabpanel" target without
+            changing any layout or behaviour. */}
+        <TabsContent value="schedule" className="sr-only m-0" />
+        <TabsContent value="overrides" className="sr-only m-0" />
       </Tabs>
     </div>
   );

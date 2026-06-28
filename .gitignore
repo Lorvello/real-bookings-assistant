@@ -28,3 +28,9 @@ dist-ssr
 
 # TypeScript incremental build cache (from `tsc -b` type-check gate)
 *.tsbuildinfo
+
+# Launch-ready-loop sim scratch dirs: throwaway harness drivers, evidence PNGs,
+# and the Deno lockfile, kept local-only so they never land in this PUBLIC repo.
+_automation/
+evidence/
+deno.lock
