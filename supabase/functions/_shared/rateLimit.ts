@@ -269,7 +269,31 @@ export class RateLimiter {
 }
 
 export function getClientIp(req: Request): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0].trim() 
-    || req.headers.get('x-real-ip') 
-    || 'unknown';
+  // D-022: the bucket key is written into public_api_rate_limits.ip_address, which is
+  // typed `inet`. A missing/blank/non-inet value (e.g. a header-stripped request, or a
+  // proxy that sends the literal string "unknown") would make that upsert 22P02-fail and,
+  // on the allowed path's alert_and_allow posture, let the request through UNCOUNTED, so
+  // an attacker stripping x-forwarded-for could no-op the limiter for that bucket. Coerce
+  // any unusable value to the valid sentinel inet '0.0.0.0' so header-less calls still hash
+  // to a real (shared) bucket and the counter + block persist and enforce.
+  const raw =
+    req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    req.headers.get('x-real-ip')?.trim() ||
+    '';
+  return isInetAddress(raw) ? raw : '0.0.0.0';
+}
+
+// Loose IPv4/IPv6 shape check, just enough to keep a non-inet value out of the
+// `inet`-typed ip_address column (Postgres does the strict parse). Rejects '', 'unknown',
+// and anything without inet-ish characters; the inet upsert validates the rest.
+function isInetAddress(value: string): boolean {
+  if (!value) return false;
+  // IPv4: four dot-separated 0-255 octets
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(value)) {
+    return value.split('.').every((o) => Number(o) <= 255);
+  }
+  // IPv6: hex groups + colons (allow :: compression and an IPv4 tail), no other chars
+  if (/^[0-9a-fA-F:]+$/.test(value) && value.includes(':')) return true;
+  if (/^[0-9a-fA-F:]+:(\d{1,3}\.){3}\d{1,3}$/.test(value)) return true;
+  return false;
 }
