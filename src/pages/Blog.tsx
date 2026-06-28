@@ -153,7 +153,8 @@ const Blog: React.FC = () => {
       />
       
       <Header />
-      
+
+      <main>
       {/* Hero Section */}
       <section className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="relative max-w-4xl mx-auto text-center">
@@ -236,7 +237,8 @@ const Blog: React.FC = () => {
           </div>
         </ScrollAnimatedSection>
       </section>
-      
+      </main>
+
       <Footer />
     </div>
   );

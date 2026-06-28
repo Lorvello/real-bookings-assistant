@@ -40,7 +40,8 @@
       "credMobile": "Onderzoek naar WhatsApp-adoptie en de branche",
       "updatedMonthly": "Gegevens maandelijks bijgewerkt",
       "varyByIndustry": "Resultaten kunnen per branche verschillen",
-      "varyShort": "Resultaten kunnen verschillen"
+      "varyShort": "Resultaten kunnen verschillen",
+      "scrollAriaLabel": "Vergelijkingstabel, horizontaal scrollen"
     },
     "compareStats": {
       "s1Metric": "Reactietijd",
@@ -111,7 +112,8 @@
       "after": "Na:",
       "implementation": "Implementatie",
       "results": "Resultaten",
-      "goTo": "Ga naar casestudy {{n}}"
+      "goTo": "Ga naar casestudy {{n}}",
+      "carouselAriaLabel": "Klantcasestudies, horizontaal scrollen"
     },
     "caseDisclaimer": {
       "text": "Gebaseerd op geverifieerde bedrijfsprestaties uit diepgaande casestudy's",

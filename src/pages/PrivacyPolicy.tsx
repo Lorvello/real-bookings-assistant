@@ -19,7 +19,7 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: 'hsl(217, 35%, 12%)' }}>
-      <div className="max-w-4xl mx-auto">
+      <main className="max-w-4xl mx-auto">
         {/* Back Link */}
         <button 
           onClick={handleBack}
@@ -277,7 +277,7 @@ const PrivacyPolicy = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 };

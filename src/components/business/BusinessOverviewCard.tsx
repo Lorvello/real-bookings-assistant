@@ -210,7 +210,7 @@ const CalendarItem: React.FC<CalendarItemProps> = ({
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div className="border rounded-lg">
         <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+          <button type="button" className="w-full flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors text-left">
             <div className="flex items-center gap-2">
               <div 
                 className="w-3 h-3 rounded-full" 
@@ -227,7 +227,7 @@ const CalendarItem: React.FC<CalendarItemProps> = ({
               </span>
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>
-          </div>
+          </button>
         </CollapsibleTrigger>
         
         <CollapsibleContent>

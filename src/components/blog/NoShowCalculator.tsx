@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { Calculator, TrendingDown, TrendingUp, DollarSign } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const NoShowCalculator: React.FC = () => {
+  const { t, i18n } = useTranslation('blogArticle');
   const [appointments, setAppointments] = useState(200);
   const [noShowRate, setNoShowRate] = useState(15);
   const [servicePrice, setServicePrice] = useState(85);
@@ -17,7 +19,7 @@ export const NoShowCalculator: React.FC = () => {
   }, [appointments, noShowRate, servicePrice]);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(i18n.language === 'nl' ? 'nl-NL' : 'en-US', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
@@ -32,8 +34,8 @@ export const NoShowCalculator: React.FC = () => {
           <Calculator className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-foreground">No-Show Revenue Calculator</h3>
-          <p className="text-muted-foreground text-sm">Calculate your hidden losses</p>
+          <h3 className="text-xl font-bold text-foreground">{t('blogArticle.calculator.title', 'No-Show Revenue Calculator')}</h3>
+          <p className="text-muted-foreground text-sm">{t('blogArticle.calculator.subtitle', 'Calculate your hidden losses')}</p>
         </div>
       </div>
 
@@ -41,12 +43,13 @@ export const NoShowCalculator: React.FC = () => {
         {/* Monthly Appointments */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Monthly Appointments</label>
+            <label className="text-sm font-medium text-foreground">{t('blogArticle.calculator.appointmentsLabel', 'Monthly Appointments')}</label>
             <span className="text-lg font-bold text-primary">{appointments}</span>
           </div>
           <Slider
             value={[appointments]}
             onValueChange={(value) => setAppointments(value[0])}
+            aria-label={t('blogArticle.calculator.appointmentsLabel', 'Monthly Appointments')}
             min={50}
             max={500}
             step={10}
@@ -61,12 +64,13 @@ export const NoShowCalculator: React.FC = () => {
         {/* No-Show Rate */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">No-Show Rate</label>
+            <label className="text-sm font-medium text-foreground">{t('blogArticle.calculator.noShowRateLabel', 'No-Show Rate')}</label>
             <span className="text-lg font-bold text-primary">{noShowRate}%</span>
           </div>
           <Slider
             value={[noShowRate]}
             onValueChange={(value) => setNoShowRate(value[0])}
+            aria-label={t('blogArticle.calculator.noShowRateLabel', 'No-Show Rate')}
             min={5}
             max={40}
             step={1}
@@ -81,12 +85,13 @@ export const NoShowCalculator: React.FC = () => {
         {/* Average Service Price */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <label className="text-sm font-medium text-foreground">Avg. Service Price</label>
+            <label className="text-sm font-medium text-foreground">{t('blogArticle.calculator.servicePriceLabel', 'Avg. Service Price')}</label>
             <span className="text-lg font-bold text-primary">€{servicePrice}</span>
           </div>
           <Slider
             value={[servicePrice]}
             onValueChange={(value) => setServicePrice(value[0])}
+            aria-label={t('blogArticle.calculator.servicePriceLabel', 'Avg. Service Price')}
             min={20}
             max={200}
             step={5}
@@ -104,7 +109,7 @@ export const NoShowCalculator: React.FC = () => {
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingDown className="w-4 h-4 text-red-400" />
-            <span className="text-sm text-red-300">Monthly Loss</span>
+            <span className="text-sm text-red-300">{t('blogArticle.calculator.monthlyLoss', 'Monthly Loss')}</span>
           </div>
           <div className="text-2xl md:text-3xl font-bold text-red-400">
             {formatCurrency(calculations.monthlyLoss)}
@@ -114,7 +119,7 @@ export const NoShowCalculator: React.FC = () => {
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <DollarSign className="w-4 h-4 text-red-400" />
-            <span className="text-sm text-red-300">Annual Loss</span>
+            <span className="text-sm text-red-300">{t('blogArticle.calculator.annualLoss', 'Annual Loss')}</span>
           </div>
           <div className="text-2xl md:text-3xl font-bold text-red-400">
             {formatCurrency(calculations.annualLoss)}
@@ -124,19 +129,19 @@ export const NoShowCalculator: React.FC = () => {
         <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary/80">Potential Savings</span>
+            <span className="text-sm text-primary/80">{t('blogArticle.calculator.potentialSavings', 'Potential Savings')}</span>
           </div>
           <div className="text-2xl md:text-3xl font-bold text-primary">
             {formatCurrency(calculations.potentialSavings)}
           </div>
-          <span className="text-xs text-muted-foreground">with 50% reduction</span>
+          <span className="text-xs text-muted-foreground">{t('blogArticle.calculator.savingsCaption', 'with 50% reduction')}</span>
         </div>
       </div>
 
       <div className="text-center">
         <Link to="/contact">
           <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            See How We Can Help Recover This Revenue →
+            {t('blogArticle.calculator.cta', 'See How We Can Help Recover This Revenue')} →
           </Button>
         </Link>
       </div>

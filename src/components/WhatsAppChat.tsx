@@ -42,7 +42,12 @@ const WhatsAppChat = () => {
           </div>
           
           {/* Enhanced chat area - proper flex-1 to fill space */}
-          <div className="whatsapp-chat-bg flex-1 p-2 md:p-3 space-y-1 md:space-y-3 relative overflow-y-auto">
+          <div
+            className="whatsapp-chat-bg flex-1 p-2 md:p-3 space-y-1 md:space-y-3 relative overflow-y-auto"
+            tabIndex={0}
+            role="region"
+            aria-label={t('demo.whatsappChat.regionAriaLabel', 'WhatsApp booking conversation demo')}
+          >
             {/* Subtle background overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/[0.02] to-transparent"></div>
 

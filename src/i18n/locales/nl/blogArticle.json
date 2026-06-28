@@ -12,6 +12,18 @@
     "nav": {
       "previous": "Vorig artikel",
       "next": "Volgend artikel"
+    },
+    "calculator": {
+      "title": "No-show omzetcalculator",
+      "subtitle": "Bereken je verborgen verliezen",
+      "appointmentsLabel": "Afspraken per maand",
+      "noShowRateLabel": "No-showpercentage",
+      "servicePriceLabel": "Gem. serviceprijs",
+      "monthlyLoss": "Verlies per maand",
+      "annualLoss": "Verlies per jaar",
+      "potentialSavings": "Mogelijke besparing",
+      "savingsCaption": "bij 50% reductie",
+      "cta": "Ontdek hoe wij deze omzet kunnen terugwinnen"
     }
   }
 }

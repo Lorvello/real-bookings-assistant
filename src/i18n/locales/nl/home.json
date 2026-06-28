@@ -302,7 +302,8 @@
       "msg1": "Hoi! Ik wil graag morgen een knipafspraak maken.",
       "msg2": "Hoi! Dat help ik je graag mee. Welke tijd komt morgen het beste uit?",
       "msg3": "Rond 14:00 zou perfect zijn!",
-      "msg4": "Perfect! Ik heb 14:00 beschikbaar. Je ontvangt zo de bevestiging! 💇‍♀️"
+      "msg4": "Perfect! Ik heb 14:00 beschikbaar. Je ontvangt zo de bevestiging! 💇‍♀️",
+      "regionAriaLabel": "WhatsApp-boekingsgesprek demo"
     },
     "calendarMockup": {
       "monthLabel": "Juli 2025",

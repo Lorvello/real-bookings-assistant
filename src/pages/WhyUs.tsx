@@ -529,7 +529,12 @@ const WhyUs = () => {
 
               {/* Mobile: Compact Table */}
               <ScrollAnimatedSection className="md:hidden overflow-x-auto bg-gradient-to-b from-slate-800/50 to-slate-900/40 border border-white/10 rounded-2xl shadow-[0_16px_40px_-14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] mb-8" delay={300}>
-                <div className="overflow-x-auto min-w-full">
+                <div
+                  className="overflow-x-auto min-w-full"
+                  tabIndex={0}
+                  role="region"
+                  aria-label={t('whyus.compare.scrollAriaLabel', 'Comparison table, scroll horizontally')}
+                >
                   <table className="w-full min-w-[500px]">
                     <thead>
                       <tr className="border-b border-slate-600/50">
@@ -799,8 +804,11 @@ const WhyUs = () => {
 
           {/* Mobile: Carousel */}
           <div className="md:hidden">
-            <div 
+            <div
               ref={sectorCarouselRef}
+              tabIndex={0}
+              role="region"
+              aria-label={t('whyus.cases.carouselAriaLabel', 'Customer case studies, scroll horizontally')}
               className="overflow-x-auto snap-x snap-mandatory scroll-smooth overscroll-x-contain perfect-snap-carousel"
               style={{
                 scrollbarWidth: 'none',

@@ -16,7 +16,7 @@ export default function PaymentCancelled() {
             'radial-gradient(60% 80% at 50% 0%, hsl(38 92% 50% / 0.12), transparent 70%)',
         }}
       />
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.025] px-8 py-10 text-center shadow-2xl shadow-black/40 backdrop-blur">
+      <main className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.025] px-8 py-10 text-center shadow-2xl shadow-black/40 backdrop-blur">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15 ring-1 ring-amber-500/30">
           <XCircle aria-hidden="true" className="h-9 w-9 text-amber-400" />
         </div>
@@ -24,8 +24,8 @@ export default function PaymentCancelled() {
         <p className="mt-2 text-sm text-white/55">
           {t('payment.cancelled.body', "The payment wasn't completed, so your appointment isn't confirmed yet. You can try again via your booking link or contact the business.")}
         </p>
-        <p className="mt-6 text-xs text-white/35">{t('payment.cancelled.notCharged', 'Nothing was charged.')}</p>
-      </div>
+        <p className="mt-6 text-xs text-white/55">{t('payment.cancelled.notCharged', 'Nothing was charged.')}</p>
+      </main>
     </div>
   );
 }

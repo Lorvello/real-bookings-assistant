@@ -17,6 +17,7 @@ import { Toaster } from '@/components/ui/toaster';
 
 import Index from '@/pages/Index';
 import SeeHowItWorks from '@/pages/SeeHowItWorks';
+import About from '@/pages/About';
 import TermsOfService from '@/pages/TermsOfService';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import Blog from '@/pages/Blog';
@@ -34,6 +35,7 @@ import ResetPassword from '@/pages/ResetPassword';
 const PAGES: Record<string, [React.ComponentType, string, string]> = {
   index:     [Index,            '/',                '/'],
   how:       [SeeHowItWorks,    '/how-it-works',    '/how-it-works'],
+  about:     [About,            '/about',           '/about'],
   terms:     [TermsOfService,   '/terms-of-service','/terms-of-service'],
   privacy:   [PrivacyPolicy,    '/privacy-policy',  '/privacy-policy'],
   blog:      [Blog,             '/blog',            '/blog'],

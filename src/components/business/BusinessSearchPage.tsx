@@ -62,7 +62,7 @@ export const BusinessSearchPage: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+    <main className="container mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h1 className="text-3xl font-bold">{t('businessSearch.page.title', 'Search Businesses')}</h1>
@@ -184,6 +184,6 @@ export const BusinessSearchPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
