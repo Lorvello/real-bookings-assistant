@@ -64,7 +64,7 @@ export function ContactListItem({ contact, isSelected, onClick }: ContactListIte
       )}
     >
       <Avatar className="h-10 w-10 shrink-0">
-        <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+        <AvatarFallback className="bg-primary/15 text-emerald-300 text-sm font-medium">
           {initials}
         </AvatarFallback>
       </Avatar>

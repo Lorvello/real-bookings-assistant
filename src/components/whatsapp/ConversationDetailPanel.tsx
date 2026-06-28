@@ -143,7 +143,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+              <AvatarFallback className="bg-primary/15 text-emerald-300 font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>

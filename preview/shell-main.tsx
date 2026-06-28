@@ -63,6 +63,11 @@ import Profile from '@/pages/Profile';
 import Success from '@/pages/Success';
 import TeamInvite from '@/pages/TeamInvite';
 import SecurityAudit from '@/pages/SecurityAudit';
+// R18 TRACK 3 batch 3: the /stripe/go utility redirect page (own <main>, fully t()'d).
+// Hook-bound (invokes stripe-connect-login on mount); with no backend it errors to its
+// "Direct redirect blocked" state, which still renders the full real translated layout
+// (heading + message + optional fallback link), so the visual+a11y+i18n sweep runs faithfully.
+import StripeGo from '@/pages/StripeGo';
 
 // A1a first-paint probe: records useIsMobile()'s value on the VERY FIRST render
 // (in the render body, before any passive effect runs). That first value is what
@@ -567,6 +572,8 @@ function Harness() {
                 <TeamInvite />
               ) : surface === 'security' ? (
                 <SecurityAudit />
+              ) : surface === 'stripe-go' ? (
+                <StripeGo />
               ) : (
                 <DashboardLayout>
                   <TallContent />

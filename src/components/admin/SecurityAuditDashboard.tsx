@@ -115,7 +115,12 @@ export const SecurityAuditDashboard = () => {
           <CardTitle>Recent Security Events</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+            tabIndex={0}
+            role="region"
+            aria-label="Recent security events"
+          >
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
