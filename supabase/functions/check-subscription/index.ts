@@ -75,7 +75,22 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       }).eq('id', user.id);
 
-      return new Response(JSON.stringify({ 
+      // Keep the `subscribers` mirror in sync. Without this, a stale
+      // subscribers.subscribed=true row (e.g. an old seed, or a customer whose
+      // Stripe customer was deleted) survives this downgrade, and
+      // get_user_status_type() (which returns 'paid_subscriber' on
+      // subscribers.subscribed=true BEFORE checking users expiry) would keep
+      // granting full paid access to a lapsed user = a paywall leak. The
+      // customer-found path already upserts subscribers (onConflict 'email');
+      // this branch must mirror it for subscribed=false.
+      await supabaseClient.from("subscribers").update({
+        subscribed: false,
+        subscription_tier: null,
+        subscription_end: null,
+        updated_at: new Date().toISOString(),
+      }).eq('user_id', user.id);
+
+      return new Response(JSON.stringify({
         subscribed: false,
         subscription_tier: null,
         subscription_end: null,
