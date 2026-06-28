@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
   const location = useLocation();
-  const { t } = useTranslation("notFound");
+  const { t } = useTranslation(["notFound", "app"]);
 
   useEffect(() => {
     console.error(
@@ -15,6 +15,16 @@ const NotFound = () => {
       location.pathname
     );
   }, [location.pathname]);
+
+  // F-036: /404 (path="*") wraps no DashboardLayout, so the F-035 title effect never
+  // runs here and the page previously set no document.title, leaving the browser tab
+  // on whatever the prior page left (or the index.html default). Mirror the F-035
+  // app-peer pattern: an i18n page title + the shared `app.documentTitleSuffix` brand
+  // suffix, following the EN<->NL toggle (`t` identity flips on changeLanguage).
+  useEffect(() => {
+    const suffix = t("app.documentTitleSuffix", { ns: "app", defaultValue: "Bookings Assistant" });
+    document.title = `${t("notFound.documentTitle", "Page Not Found")} | ${suffix}`;
+  }, [t]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0f1a] px-4 text-white">

@@ -12,7 +12,7 @@ import { useProfile } from '@/hooks/useProfile';
 export default function Success() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation('payment');
+  const { t } = useTranslation(['payment', 'app']);
   const { toast } = useToast();
   const { invalidateCache } = useUserStatus();
   const { refetch: refetchProfile } = useProfile();
@@ -21,6 +21,16 @@ export default function Success() {
   const [countdown, setCountdown] = useState(5);
   const toastShownRef = useRef(false);
   const verificationAttemptedRef = useRef(false);
+
+  // F-036: /success wraps no DashboardLayout, so the F-035 title effect never runs
+  // here and the page previously set no document.title, leaving the browser tab on
+  // whatever the prior page left (or the index.html default). Mirror the F-035
+  // app-peer pattern: an i18n page title + the shared `app.documentTitleSuffix`
+  // brand suffix, following the EN<->NL toggle (`t` identity flips on changeLanguage).
+  useEffect(() => {
+    const suffix = t('app.documentTitleSuffix', { ns: 'app', defaultValue: 'Bookings Assistant' });
+    document.title = `${t('payment.subscription.documentTitle', 'Payment Successful')} | ${suffix}`;
+  }, [t]);
 
   useEffect(() => {
     // Prevent multiple verification attempts

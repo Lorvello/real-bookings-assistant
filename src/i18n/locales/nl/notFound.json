@@ -1,5 +1,6 @@
 {
   "notFound": {
+    "documentTitle": "Pagina niet gevonden",
     "title": "Pagina niet gevonden",
     "description": "De pagina die je zoekt bestaat niet of is verplaatst.",
     "backHome": "Terug naar home",

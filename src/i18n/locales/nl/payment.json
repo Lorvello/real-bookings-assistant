@@ -11,6 +11,7 @@
       "notCharged": "Er is niets in rekening gebracht."
     },
     "subscription": {
+      "documentTitle": "Betaling geslaagd",
       "successTitle": "Betaling geslaagd!",
       "verifyingTitle": "Abonnement verifiëren...",
       "checkingStatus": "We controleren de status van je abonnement...",
