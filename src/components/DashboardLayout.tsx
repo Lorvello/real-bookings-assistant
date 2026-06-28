@@ -115,6 +115,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const currentPageTitle = getPageTitle(location.pathname, t);
 
+  // Cross-surface title seam: the logged-in app sets no document.title of its own,
+  // so the browser tab kept showing whichever public page's SEO title last ran (or
+  // the generic index.html default) for EVERY app route. Mirror the same i18n
+  // page-title map into the tab so the tab tracks the current app page AND follows
+  // the EN<->NL toggle. Reuses the existing `app.pageTitle.*` keys (no new copy to
+  // translate beyond the brand suffix). useSEO is public-only; this is its app peer.
+  useEffect(() => {
+    const suffix = t('app.documentTitleSuffix', 'Bookings Assistant');
+    document.title = currentPageTitle === suffix
+      ? suffix
+      : `${currentPageTitle} | ${suffix}`;
+  }, [currentPageTitle, t]);
+
   return (
     <AuthenticatedPageWrapper>
       <TooltipProvider delayDuration={0} skipDelayDuration={0}>

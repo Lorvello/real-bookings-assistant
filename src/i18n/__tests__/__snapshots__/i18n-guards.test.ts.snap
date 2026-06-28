@@ -108,6 +108,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "app.calSwitch.selectLabel": "Select Calendar",
   "app.calSwitch.selectPlaceholder": "Select calendar",
   "app.calSwitch.switch": "Switch Calendar",
+  "app.documentTitleSuffix": "Bookings Assistant",
   "app.logoAlt": "Bookings Assistant logo",
   "app.onboarding.cta.availability": "Set hours",
   "app.onboarding.cta.businessInfo": "Set up",
