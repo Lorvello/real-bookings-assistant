@@ -2,6 +2,7 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 
@@ -9,17 +10,30 @@ const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Viewport
-    ref={ref}
-    className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
-      className
-    )}
-    {...props}
-  />
-))
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport> & {
+    label?: string
+  }
+>(({ className, label, ...props }, ref) => {
+  const { t } = useTranslation("common")
+  // a11y (D-006): Radix renders the viewport as an <ol> whose toast <li>
+  // children carry role="status". axe-core's `list` rule flags that as an
+  // <ol> with non-listitem children. Re-roling the viewport as a labelled
+  // region removes the list semantics axe inspects, while preserving each
+  // toast's own role=status live-region announcement (what actually matters
+  // for screen readers). aria-label is i18n-able (defaults via common.toasts.region).
+  return (
+    <ToastPrimitives.Viewport
+      ref={ref}
+      role="region"
+      aria-label={label ?? t("toasts.region", "Notifications")}
+      className={cn(
+        "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
@@ -71,20 +85,24 @@ ToastAction.displayName = ToastPrimitives.Action.displayName
 const ToastClose = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Close>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Close
-    ref={ref}
-    className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
-      className
-    )}
-    toast-close=""
-    aria-label="Close notification"
-    {...props}
-  >
-    <X aria-hidden="true" className="h-4 w-4" />
-  </ToastPrimitives.Close>
-))
+>(({ className, ...props }, ref) => {
+  const { t } = useTranslation("common")
+  return (
+    <ToastPrimitives.Close
+      ref={ref}
+      className={cn(
+        "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
+        className
+      )}
+      toast-close=""
+      // a11y (D-006): i18n the close-button accessible name (was hardcoded EN).
+      aria-label={t("toasts.close", "Close notification")}
+      {...props}
+    >
+      <X aria-hidden="true" className="h-4 w-4" />
+    </ToastPrimitives.Close>
+  )
+})
 ToastClose.displayName = ToastPrimitives.Close.displayName
 
 const ToastTitle = React.forwardRef<

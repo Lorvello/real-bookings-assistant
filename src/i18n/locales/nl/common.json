@@ -2,6 +2,10 @@
   "language": {
     "label": "Taal"
   },
+  "toasts": {
+    "region": "Meldingen",
+    "close": "Melding sluiten"
+  },
   "nav": {
     "home": "Home",
     "howItWorks": "Hoe het werkt",
