@@ -273,6 +273,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "auth.login.noAccount": "Don't have an account?",
   "auth.login.orContinue": "or continue with",
   "auth.login.rememberDevice": "Remember this device for 30 days",
+  "auth.login.rememberDeviceAria": "Remember this device for 30 days",
   "auth.login.signIn": "Sign In",
   "auth.login.signUp": "Sign up",
   "auth.login.signingIn": "Signing In...",

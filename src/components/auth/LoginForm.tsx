@@ -285,6 +285,7 @@ export const LoginForm: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="rememberDevice"
+              aria-label={t('auth.login.rememberDeviceAria', 'Remember this device for 30 days')}
               checked={rememberDevice}
               onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
             />
