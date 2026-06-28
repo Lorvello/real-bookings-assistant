@@ -49,25 +49,37 @@ export function committedMutationThisTurn(toolCalls: ToolCall[]): boolean {
 // an EXISTING appointment ("je afspraak STAAT op ..." is allowed via get_my_appointments), and NOT a
 // preview question. We match a confirmation only when a clearly done/committed claim is present.
 // dash-free of em dashes per house rule.
+//
+// F-015 FIX (found by R12 verify): this regex MUST run with the unicode (`u`) flag. The accented FR/ES
+// (and the ä in DE "bestätigt") alternatives previously used ASCII `\b` word boundaries. In JS NON-unicode
+// mode `é`/`á`/`ä` are NON-word chars, so a `\b` immediately ADJACENT to an accented letter never matched
+// (`\bconfirmé\b` is false, `\bestá\b` is false) -> the whole FR branch + the accented-edge ES/DE words
+// were DEAD in the live Deno/JS runtime while NL/EN/IT caught fine, leaking FR/ES false confirmations.
+// We therefore replace every `\b` with a unicode-aware letter boundary (lookaround on `\p{L}`) and add
+// the `u` flag, so a word boundary is correct regardless of accents. `\w*` tails become `\p{L}*` for the
+// same reason. ASCII contractions ('s / 're / 've / it's) still work: the apostrophe is not a `\p{L}`,
+// so the lookarounds treat it as a boundary. All quantifiers stay bounded (no ReDoS).
+const B = "(?<![\\p{L}])"; // unicode word-start: not preceded by a (possibly accented) letter
+const A = "(?![\\p{L}])"; //  unicode word-end:   not followed by a (possibly accented) letter
 export const CONFIRM_CLAIM_RE = new RegExp(
   [
     // NL: geboekt / ingepland / gereserveerd / genoteerd / vastgezet / bevestigd (+ "afspraak ... staat ... vast")
-    "\\b(?:is|zijn|staat|heb ik|hebben we|je bent|u bent|je staat|u staat)\\b[^.!?]{0,40}\\b(geboekt|ingepland|gereserveerd|genoteerd|vastgezet|bevestigd|geannuleerd|verzet|verplaatst|verschoven)\\b",
-    "\\b(gelukt|gedaan)\\b[^.!?]{0,30}\\b(geboekt|ingepland|gereserveerd|genoteerd|afspraak|geannuleerd|verzet)\\b",
-    "\\bje plek is gereserveerd\\b",
-    "\\bje afspraak (is|staat) (geboekt|bevestigd|geannuleerd|verzet|nu)\\b",
+    `${B}(?:is|zijn|staat|heb ik|hebben we|je bent|u bent|je staat|u staat)${A}[^.!?]{0,40}${B}(geboekt|ingepland|gereserveerd|genoteerd|vastgezet|bevestigd|geannuleerd|verzet|verplaatst|verschoven)${A}`,
+    `${B}(gelukt|gedaan)${A}[^.!?]{0,30}${B}(geboekt|ingepland|gereserveerd|genoteerd|afspraak|geannuleerd|verzet)${A}`,
+    `${B}je plek is gereserveerd${A}`,
+    `${B}je afspraak (is|staat) (geboekt|bevestigd|geannuleerd|verzet|nu)${A}`,
     // EN: booked / scheduled / reserved / confirmed / cancelled / rescheduled (done-state)
-    "\\byour (appointment|booking|spot|slot)\\b[^.!?]{0,40}\\b(is|has been|'s)\\b[^.!?]{0,20}\\b(booked|scheduled|reserved|confirmed|cancelled|canceled|rescheduled|set|all set)\\b",
-    "\\b(you're|you are|you have been|you've been)\\b[^.!?]{0,20}\\b(booked|scheduled|all set|confirmed)\\b",
-    "\\b(appointment|booking)\\b[^.!?]{0,30}\\b(confirmed|booked|reserved|scheduled|cancelled|canceled|rescheduled)\\b",
-    "\\b(it's|that's) (booked|confirmed|done|all set|cancelled|canceled|rescheduled)\\b",
-    // DE / FR / ES / IT done-state (English floor covers most, but the model echoes the lang it sees)
-    "\\b(ist|sind)\\b[^.!?]{0,30}\\b(gebucht|reserviert|bestätigt|storniert|verschoben)\\b",
-    "\\b(est|a été)\\b[^.!?]{0,30}\\b(réservé|réservée|confirmé|confirmée|annulé|annulée|reprogrammé)\\b",
-    "\\b(está|ha sido|queda)\\b[^.!?]{0,30}\\b(reservad|confirmad|cancelad|reprogramad)\\w*",
-    "\\b(è stato|è stata|prenotat|confermat|cancellat|annullat)\\w*",
+    `${B}your (appointment|booking|spot|slot)${A}[^.!?]{0,40}${B}(is|has been|'s)${A}[^.!?]{0,20}${B}(booked|scheduled|reserved|confirmed|cancelled|canceled|rescheduled|set|all set)${A}`,
+    `${B}(you're|you are|you have been|you've been)${A}[^.!?]{0,20}${B}(booked|scheduled|all set|confirmed)${A}`,
+    `${B}(appointment|booking)${A}[^.!?]{0,30}${B}(confirmed|booked|reserved|scheduled|cancelled|canceled|rescheduled)${A}`,
+    `${B}(it's|that's) (booked|confirmed|done|all set|cancelled|canceled|rescheduled)${A}`,
+    // DE / FR / ES / IT done-state (the model echoes the lang it sees; all unicode-boundary-safe now)
+    `${B}(ist|sind)${A}[^.!?]{0,30}${B}(gebucht|reserviert|bestätigt|storniert|verschoben)${A}`,
+    `${B}(est|a été)${A}[^.!?]{0,30}${B}(réservé|réservée|confirmé|confirmée|annulé|annulée|reprogrammé)${A}`,
+    `${B}(está|ha sido|queda)${A}[^.!?]{0,30}${B}(reservad|confirmad|cancelad|reprogramad)\\p{L}*`,
+    `${B}(è stato|è stata|prenotat|confermat|cancellat|annullat)\\p{L}*`,
   ].join("|"),
-  "i",
+  "iu",
 );
 
 // A future/offer/preview/read-back context that, even alongside a confirm word, is NOT a false claim:

@@ -44,6 +44,50 @@ for (const claim of [
   Deno.test(`claim caught: ${claim.slice(0, 40)}`, () => assert(looksLikeBookingConfirmation(claim)));
 }
 
+// ── F-015: per-language done-state confirmations MUST be caught (FR/DE/ES/IT were dead) ──
+// Before F-015 the FR branch + accented-edge ES/DE words never matched in the live Deno/JS runtime
+// (a `\b` adjacent to an accented letter is false without the `u` flag). These pin the whole class.
+for (const [lang, claim] of [
+  ["FR", "Votre rendez-vous est confirmé. À bientôt chez Lorvello!"],
+  ["FR", "La place est réservée pour mardi."],
+  ["FR", "Votre rendez-vous a été annulé."],
+  ["DE", "Ihr Termin ist gebucht."],
+  ["DE", "Ihr Termin ist bestätigt."],
+  ["DE", "Der Termin ist storniert."],
+  ["ES", "¡Todo listo! Tu cita está confirmada para el martes a las 10:00."],
+  ["ES", "Tu cita ha sido cancelada."],
+  ["ES", "La cita queda reservada."],
+  ["IT", "Il tuo appuntamento è stato prenotato."],
+  ["IT", "La prenotazione è confermata."],
+  ["IT", "L'appuntamento è stato cancellato."],
+] as const) {
+  Deno.test(`F-015 ${lang} claim caught: ${claim.slice(0, 40)}`, () => assert(looksLikeBookingConfirmation(claim)));
+}
+
+// ── F-015: an OFFER/QUESTION in FR/DE/ES/IT must NOT be over-stripped ────────
+for (const [lang, safe] of [
+  ["FR", "Voulez-vous que je réserve pour mardi?"],
+  ["FR", "Puis-je confirmer le rendez-vous?"],
+  ["DE", "Soll ich den Termin für Dienstag buchen?"],
+  ["DE", "Möchten Sie, dass ich reserviere?"],
+  ["ES", "¿Quieres que reserve la cita para el martes?"],
+  ["ES", "¿Puedo confirmar tu cita?"],
+  ["IT", "Vuoi che prenoti per martedì?"],
+  ["IT", "Posso confermare l'appuntamento?"],
+] as const) {
+  Deno.test(`F-015 ${lang} offer NOT over-stripped: ${safe.slice(0, 40)}`, () => assert(!looksLikeBookingConfirmation(safe)));
+}
+
+// ── F-015: the live exploit pastes are stripped end-to-end (enforceNoFalseConfirmation) ──
+Deno.test("F-015: FR false confirm with NO mutation is stripped", () => {
+  const out = enforceNoFalseConfirmation("Votre rendez-vous est confirmé. À bientôt chez Lorvello!", [], "fr");
+  assertEquals(out, noFalseConfirmReply("fr"));
+});
+Deno.test("F-015: ES false confirm with NO mutation is stripped", () => {
+  const out = enforceNoFalseConfirmation("¡Todo listo! Tu cita está confirmada para el martes a las 10:00.", [], "es");
+  assertEquals(out, noFalseConfirmReply("es"));
+});
+
 // ── looksLikeBookingConfirmation: does NOT catch offers / questions / info ───
 for (const safe of [
   "Zal ik je voor donderdag 10:00 inboeken? Klopt dat?",
