@@ -142,7 +142,7 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
               t('publicBooking.pay.payNow', 'Pay now')
             )}
           </Button>
-          <p className="mt-3 text-center text-xs text-white/40">
+          <p className="mt-3 text-center text-xs text-white/55">
             {t('publicBooking.pay.securedBy', 'Secured by Stripe. Your card details never touch our servers.')}
           </p>
         </div>

@@ -193,7 +193,7 @@ export default function PublicBooking() {
     return (
       <Shell>
         <div className="mt-16 w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center backdrop-blur">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-white/40">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-white/55">
             <CalendarDays aria-hidden="true" className="h-6 w-6" />
           </div>
           <h1 className="text-lg font-semibold">{t('publicBooking.pb.notFoundTitle', 'Not found')}</h1>
@@ -235,24 +235,24 @@ export default function PublicBooking() {
           </div>
           <div className="mt-6 space-y-3 border-t border-white/10 px-8 py-6 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-white/45">{t('publicBooking.pb.service', 'Service')}</span>
+              <span className="text-white/55">{t('publicBooking.pb.service', 'Service')}</span>
               <span className="font-medium">{service?.name}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white/45">{t('publicBooking.pb.date', 'Date')}</span>
+              <span className="text-white/55">{t('publicBooking.pb.date', 'Date')}</span>
               <span className="font-medium">
                 {slot && format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: dateLocale })}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white/45">{t('publicBooking.pb.time', 'Time')}</span>
+              <span className="text-white/55">{t('publicBooking.pb.time', 'Time')}</span>
               <span className="font-medium">
                 {slot && format(new Date(slot.slot_start), 'HH:mm')}
                 {slot && ` – ${format(new Date(slot.slot_end), 'HH:mm')}`}
               </span>
             </div>
           </div>
-          <p className="border-t border-white/10 px-8 py-4 text-center text-xs text-white/40">
+          <p className="border-t border-white/10 px-8 py-4 text-center text-xs text-white/55">
             {t('publicBooking.pb.emailNote', "You'll receive a confirmation by email.")}
           </p>
         </div>
@@ -270,7 +270,7 @@ export default function PublicBooking() {
         <h1 className="mt-4 font-garamond text-3xl font-medium tracking-tight sm:text-4xl">
           {calendar.name}
         </h1>
-        <p className="mt-1 text-sm text-white/45">{t('publicBooking.pb.bookOnline', 'Book an appointment online')}</p>
+        <p className="mt-1 text-sm text-white/55">{t('publicBooking.pb.bookOnline', 'Book an appointment online')}</p>
       </header>
 
       <main aria-label={t('publicBooking.pb.bookOnline', 'Book an appointment online')} className="w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] shadow-2xl shadow-black/40 backdrop-blur">
@@ -315,7 +315,7 @@ export default function PublicBooking() {
             <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.02] px-6 py-4 sm:px-8">
               <div className="min-w-0">
                 <p className="truncate font-medium text-white">{service.name}</p>
-                <p className="mt-0.5 flex items-center gap-2 text-xs text-white/45">
+                <p className="mt-0.5 flex items-center gap-2 text-xs text-white/55">
                   {service.duration != null && <span>{service.duration} min</span>}
                   {service.duration != null && priceLabel(service.price) && <span>·</span>}
                   {priceLabel(service.price) && (
@@ -359,13 +359,13 @@ export default function PublicBooking() {
                     : t('publicBooking.pb.chooseTime', 'Choose a time')}
                 </h2>
                 {!date ? (
-                  <p className="text-sm text-white/40">{t('publicBooking.pb.selectDateFirst', 'Select a date first.')}</p>
+                  <p className="text-sm text-white/55">{t('publicBooking.pb.selectDateFirst', 'Select a date first.')}</p>
                 ) : loadingSlots ? (
                   <div className="flex items-center gap-2 text-sm text-white/50">
                     <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> {t('publicBooking.pb.loadingAvail', 'Loading availability…')}
                   </div>
                 ) : slots.length === 0 ? (
-                  <p className="text-sm text-white/40">
+                  <p className="text-sm text-white/55">
                     {t('publicBooking.pb.noTimes', 'No open times on this day. Try another date.')}
                   </p>
                 ) : (
@@ -407,9 +407,9 @@ export default function PublicBooking() {
                 <div className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-primary/20 bg-primary/[0.06] px-4 py-3 text-sm">
                   <CalendarDays aria-hidden="true" className="h-4 w-4 text-primary" />
                   <span className="font-medium">{service.name}</span>
-                  <span className="text-white/40">·</span>
+                  <span aria-hidden="true" className="text-white/55">·</span>
                   <span>{format(new Date(slot.slot_start), 'EEEE d MMMM', { locale: dateLocale })}</span>
-                  <span className="text-white/40">·</span>
+                  <span aria-hidden="true" className="text-white/55">·</span>
                   <span>
                     {format(new Date(slot.slot_start), 'HH:mm')}–
                     {format(new Date(slot.slot_end), 'HH:mm')}
@@ -447,7 +447,7 @@ export default function PublicBooking() {
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="phone" className="text-white/70">
-                      {t('publicBooking.pb.phone', 'Phone')} <span className="text-white/30">{t('publicBooking.pb.optional', '(optional)')}</span>
+                      {t('publicBooking.pb.phone', 'Phone')} <span className="text-white/55">{t('publicBooking.pb.optional', '(optional)')}</span>
                     </Label>
                     <Input
                       id="phone"
@@ -485,13 +485,13 @@ export default function PublicBooking() {
             setDate(undefined);
             setSlot(null);
           }}
-          className="mt-6 inline-flex items-center gap-1.5 text-sm text-white/40 transition hover:text-white/70"
+          className="mt-6 inline-flex items-center gap-1.5 text-sm text-white/55 transition hover:text-white"
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" /> {t('publicBooking.pb.chooseAnother', 'Choose another service')}
         </button>
       )}
 
-      <p className="mt-8 text-center text-xs text-white/25">
+      <p className="mt-8 text-center text-xs text-white/55">
         {t('publicBooking.pb.poweredBy', 'Powered by Bookings Assistant')}
       </p>
     </Shell>

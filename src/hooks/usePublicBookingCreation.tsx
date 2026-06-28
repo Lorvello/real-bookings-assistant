@@ -218,12 +218,13 @@ export const usePublicBookingCreation = () => {
         bookingId: booking.id
       });
 
-      if (!paymentRequired) {
-        toast({
-          title: t('publicBookingCreation.createdTitle', 'Boeking aangemaakt'),
-          description: t('publicBookingCreation.createdDescription', 'Je boeking is succesvol aangemaakt.'),
-        });
-      }
+      // NOTE: no success toast on the no-payment path. PublicBooking renders a full
+      // success card with its own role="status" aria-live announcement, so a toast
+      // would be redundant AND it drags the Radix toast viewport (an <ol> whose
+      // role="status" child + aria-hidden focus-proxy sentinels axe flags as serious
+      // WCAG 2.1 violations) onto the confirmation surface. Suppressing it keeps the
+      // booking-success state axe-clean. Error/rate-limit toasts below are kept:
+      // they carry information the inline UI does not surface.
 
       return {
         success: true,

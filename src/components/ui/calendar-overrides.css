@@ -177,17 +177,30 @@
   line-height: 1 !important;
 }
 
-/* Selected day styling */
+/* Selected day styling.
+   NOTE: react-day-picker v9 marks the selected cell with `.rdp-selected` and the
+   inner button with `.rdp-day_button` (it does NOT set aria-selected on the button,
+   and the legacy `.rdp-day_selected` class is gone). Without the v9 selectors below,
+   the selected day fell back to rdp's built-in --rdp-accent-color (#24985e), which is
+   only 3.66:1 against white text = a WCAG 1.4.3 fail. Pin it to the AA-safe brand
+   --primary (#1A7F4D ≈ 5:1 on white). Keep the legacy v8 selectors for safety. */
 .react-day-picker button[aria-selected="true"],
 .react-day-picker .rdp-day[aria-selected="true"],
-.react-day-picker .rdp-day_selected {
+.react-day-picker .rdp-day_selected,
+.react-day-picker .rdp-selected,
+.react-day-picker .rdp-selected .rdp-day_button,
+.react-day-picker .rdp-day_button[aria-selected="true"] {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
+  --rdp-accent-color: hsl(var(--primary)) !important;
+  --rdp-accent-background-color: hsl(var(--primary)) !important;
 }
 
 .react-day-picker button[aria-selected="true"]:hover,
 .react-day-picker .rdp-day[aria-selected="true"]:hover,
-.react-day-picker .rdp-day_selected:hover {
+.react-day-picker .rdp-day_selected:hover,
+.react-day-picker .rdp-selected .rdp-day_button:hover,
+.react-day-picker .rdp-day_button[aria-selected="true"]:hover {
   background-color: hsl(var(--primary)) !important;
   color: hsl(var(--primary-foreground)) !important;
 }
@@ -280,11 +293,28 @@
   z-index: -1 !important;
 }
 
-/* Hover effects */
-.react-day-picker button:hover:not([aria-selected="true"]):not(:disabled),
+/* Hover effects.
+   IMPORTANT: react-day-picker v9 puts aria-selected on the gridcell <td>, NOT on
+   the inner button, so a plain `button:not([aria-selected])` guard does NOT exclude
+   the selected day. A hovered selected day was therefore getting the translucent
+   accent/0.4 wash composited OVER the solid --primary, dropping effective contrast
+   to ~3.66:1 (a WCAG 1.4.3 fail that axe catches with the cursor parked on the day).
+   Exclude the v9 selected cell's button too, so the selected day keeps its solid
+   AA-safe --primary on hover. */
+.react-day-picker button:hover:not([aria-selected="true"]):not(:disabled):not([data-selected="true"]):not(.rdp-selected .rdp-day_button),
+.react-day-picker td:not([data-selected="true"]):not([aria-selected="true"]) > button:hover:not(:disabled),
 .react-day-picker .rdp-day:hover:not([aria-selected="true"]):not(:disabled) {
   background-color: hsl(var(--accent) / 0.4) !important;
   transform: scale(1.02) !important;
+}
+
+/* Selected day keeps solid --primary even on hover (overrides any accent wash). */
+.react-day-picker [data-selected="true"] > .rdp-day_button:hover,
+.react-day-picker .rdp-selected > .rdp-day_button:hover,
+.react-day-picker td[aria-selected="true"] > .rdp-day_button:hover {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  opacity: 1 !important;
 }
 
 /* Focus styling */
@@ -338,4 +368,24 @@
 
 .react-day-picker .rdp-nav_button {
   position: relative !important;
+}
+
+/* ---------------------------------------------------------------------------
+   FINAL, AUTHORITATIVE single-date selected-day rule (must stay LAST in file).
+   react-day-picker v9 puts data-selected="true" + aria-selected="true" on the
+   gridcell <td>, and the visible swatch is the inner .rdp-day_button. Earlier
+   range_* rules in this file (legacy single→range carryover) and rdp's built-in
+   --rdp-accent-color (#24985e / a 0.4-alpha green) otherwise win by source order
+   and drop the contrast to 3.66:1 against white = a WCAG 1.4.3 fail. This rule,
+   highest-specificity + last, pins the selected day to the AA-safe brand
+   --primary (#1A7F4D, ~5:1 on white text). Solid (no alpha) so contrast is
+   deterministic regardless of the backdrop.
+   --------------------------------------------------------------------------- */
+.react-day-picker [data-selected="true"] > .rdp-day_button,
+.react-day-picker [data-selected="true"].rdp-day_button,
+.react-day-picker .rdp-selected > .rdp-day_button,
+.react-day-picker td[aria-selected="true"] > .rdp-day_button {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  opacity: 1 !important;
 }
