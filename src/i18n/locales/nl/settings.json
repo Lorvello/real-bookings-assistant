@@ -499,7 +499,8 @@
       "trialNote": "{{daysRemaining}} dagen resterend in proef",
       "usageMeter": {
         "limitReached": "Limiet bereikt. Voer een upgrade uit om meer {{label}} toe te voegen.",
-        "unlimited": "Onbeperkt {{label}} beschikbaar."
+        "unlimited": "Onbeperkt {{label}} beschikbaar.",
+        "progressAria": "Gebruik van {{label}}: {{current}} van {{max}}"
       },
       "usageMeters": {
         "calendars": "Agenda's",

@@ -2246,6 +2246,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "settings.billing.toast.notice": "Notice",
   "settings.billing.trialNote": "{{daysRemaining}} days remaining in trial",
   "settings.billing.usageMeter.limitReached": "Limit reached — upgrade to add more {{label}}.",
+  "settings.billing.usageMeter.progressAria": "{{label}} usage: {{current}} of {{max}}",
   "settings.billing.usageMeter.unlimited": "Unlimited {{label}} available.",
   "settings.billing.usageMeters.calendars": "Calendars",
   "settings.billing.usageMeters.description": "Current usage across your plan limits.",

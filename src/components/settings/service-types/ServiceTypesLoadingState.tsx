@@ -12,6 +12,10 @@ export function ServiceTypesLoadingState() {
   const { t } = useTranslation('settings');
   return (
     <div
+      // role=status makes the aria-label valid (axe aria-prohibited-attr fires when a
+      // bare <div> with no role carries aria-label) AND announces the cold-load to AT.
+      // R17 F-029.
+      role="status"
       className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
       aria-busy="true"
       aria-label={t('settings.common.loadingServices', 'Loading services')}

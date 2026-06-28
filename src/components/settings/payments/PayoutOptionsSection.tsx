@@ -154,36 +154,42 @@ export function PayoutOptionsSection({
       <div role="radiogroup" aria-label={t('settings.payments.payout.speedAria', 'Payout speed')} className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {OPTIONS.map((option, index) => {
           const isSelected = selected === option.value;
+          // Presentational card shell. The radio semantics live on the inner
+          // header element ONLY; FeeBreakdown (which carries its own button +
+          // Select) is a SIBLING, not nested inside the radio, so axe
+          // `nested-interactive` (WCAG 4.1.2) no longer fires. R17 F-027.
           return (
             <div
               key={option.value}
-              ref={(el) => (cardRefs.current[index] = el)}
-              role="radio"
-              aria-checked={isSelected}
-              aria-label={`${t(option.titleKey, option.titleDefault)}, ${t(option.subtitleKey, option.subtitleDefault)}`}
-              // Roving tabindex: only the selected card is a tab stop; arrows move within the group.
-              tabIndex={isSelected ? 0 : -1}
-              onClick={() => onSelect(option.value)}
-              onKeyDown={(e) => {
-                if (e.key === ' ' || e.key === 'Enter') {
-                  e.preventDefault();
-                  onSelect(option.value);
-                } else if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) {
-                  e.preventDefault();
-                  const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1;
-                  const next = (index + dir + OPTIONS.length) % OPTIONS.length;
-                  onSelect(OPTIONS[next].value);
-                  cardRefs.current[next]?.focus();
-                }
-              }}
               className={cn(
-                'cursor-pointer rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'rounded-xl border p-4 transition-colors',
                 isSelected
                   ? 'border-primary/60 bg-primary/[0.06] ring-1 ring-primary/30'
                   : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]',
               )}
             >
-              <div className="flex items-start justify-between gap-3">
+              <div
+                ref={(el) => (cardRefs.current[index] = el)}
+                role="radio"
+                aria-checked={isSelected}
+                aria-label={`${t(option.titleKey, option.titleDefault)}, ${t(option.subtitleKey, option.subtitleDefault)}`}
+                // Roving tabindex: only the selected card is a tab stop; arrows move within the group.
+                tabIndex={isSelected ? 0 : -1}
+                onClick={() => onSelect(option.value)}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    onSelect(option.value);
+                  } else if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) {
+                    e.preventDefault();
+                    const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1;
+                    const next = (index + dir + OPTIONS.length) % OPTIONS.length;
+                    onSelect(OPTIONS[next].value);
+                    cardRefs.current[next]?.focus();
+                  }
+                }}
+                className="flex cursor-pointer items-start justify-between gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
                 <div>
                   <div className="font-semibold text-foreground">{t(option.titleKey, option.titleDefault)}</div>
                   <div className="mt-0.5 text-sm text-muted-foreground">{t(option.subtitleKey, option.subtitleDefault)}</div>

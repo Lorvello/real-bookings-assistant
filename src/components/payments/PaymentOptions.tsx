@@ -339,28 +339,29 @@ export function PaymentOptions({
   const renderMethodCard = (method: PaymentMethod) => {
     const isSelected = selected.includes(method.id);
     return (
+      // Presentational shell only: the toggle semantics live on the inner checkbox
+      // button and the info trigger is its SIBLING, never nested inside it. A
+      // role=checkbox container that also wrapped the info <button> tripped axe
+      // `nested-interactive` (WCAG 4.1.2) on every method card (two focusable
+      // controls cannot be nested). R17 F-027.
       <div
         key={method.id}
-        role="checkbox"
-        aria-checked={isSelected}
-        aria-label={`${method.name}, ${method.description}`}
-        tabIndex={0}
-        onClick={() => handleMethodToggle(method.id)}
-        onKeyDown={(e) => {
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            handleMethodToggle(method.id);
-          }
-        }}
         className={cn(
-          'cursor-pointer rounded-xl border p-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'rounded-xl border p-4 transition-colors',
           isSelected
             ? 'border-primary/60 bg-primary/[0.06] ring-1 ring-primary/30'
             : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]',
         )}
       >
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={isSelected}
+            aria-label={`${method.name}, ${method.description}`}
+            onClick={() => handleMethodToggle(method.id)}
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
             {/* Checkbox glyph */}
             <span
               className={cn(
@@ -391,10 +392,11 @@ export function PaymentOptions({
               )}
             </span>
 
-            {/* Info */}
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h4 className="font-medium text-foreground">{method.name}</h4>
+            {/* Info (inside the checkbox button: spans only, no heading/landmark
+                elements, which would be invalid inside an interactive control) */}
+            <span className="min-w-0">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-foreground">{method.name}</span>
                 {method.badge && (
                   <span className="rounded-full border border-primary/20 bg-primary/[0.10] px-2 py-0.5 text-[11px] font-medium text-accent-foreground">
                     {t('settings.payments.methods.recommended', 'Recommended')}
@@ -405,16 +407,16 @@ export function PaymentOptions({
                     {method.country}
                   </span>
                 )}
-              </div>
-              <p className="mt-0.5 text-sm text-muted-foreground">{method.description}</p>
-            </div>
-          </div>
+              </span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">{method.description}</span>
+            </span>
+          </button>
 
-          {/* Info button */}
+          {/* Info button: a SIBLING of the checkbox button (not nested), so the two
+              controls are independently focusable without an ARIA structure error. */}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={() => {
               setOpenModalId(method.id);
             }}
             // Mobile 44px tap target via the negative-margin idiom (absorbs into the card's

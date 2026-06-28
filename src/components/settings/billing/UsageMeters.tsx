@@ -84,7 +84,21 @@ export function UsageMeters({ hasNoSubscription, emptyMessage, meters = [], onVi
                   <span className="text-muted-foreground"> / {isUnlimited ? '∞' : meter.max || 0}</span>
                 </span>
               </div>
-              {showProgress && <Progress value={meter.percentage || 0} variant={meter.variant} className="h-1.5" />}
+              {showProgress && (
+                // Radix Progress.Root exposes role=progressbar, which WCAG 4.1.2 requires
+                // to carry an accessible name; the visible count reinforces it but the bar
+                // itself was nameless (axe aria-progressbar-name). R17 F-028.
+                <Progress
+                  value={meter.percentage || 0}
+                  variant={meter.variant}
+                  className="h-1.5"
+                  aria-label={t('settings.billing.usageMeter.progressAria', '{{label}} usage: {{current}} of {{max}}', {
+                    label: meter.label,
+                    current: meter.current || 0,
+                    max: meter.max || 0,
+                  })}
+                />
+              )}
               {atLimit && (meter.max ?? 0) > 0 && (
                 <p className="text-xs text-destructive-foreground">
                   {t('settings.billing.usageMeter.limitReached', 'Limit reached — upgrade to add more {{label}}.', { label: meter.label.toLowerCase() })}

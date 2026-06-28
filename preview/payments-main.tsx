@@ -10,6 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Info } from 'lucide-react';
 import '@/index.css';
+import '@/i18n'; // bootstrap i18n so NL renders in this standalone harness (sim sweep)
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SimplePageHeader } from '@/components/ui/SimplePageHeader';

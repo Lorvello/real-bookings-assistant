@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import '@/index.css';
+import '@/i18n'; // bootstrap i18n so NL renders in this standalone harness (sim sweep)
 import { Toaster } from '@/components/ui/toaster';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
