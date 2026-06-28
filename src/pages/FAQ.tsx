@@ -340,6 +340,7 @@ const FAQ = () => {
                 <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
                   <Input
                     type="text"
+                    aria-label={t('faq.search.ariaLabel', 'Search frequently asked questions')}
                     placeholder={t('faq.search.placeholder', 'Search frequently asked questions...')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

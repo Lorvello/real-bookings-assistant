@@ -10,6 +10,7 @@
     },
     "search": {
       "placeholder": "Zoek in de veelgestelde vragen...",
+      "ariaLabel": "Zoek in de veelgestelde vragen",
       "resultsFound": "{{count}} resultaten gevonden",
       "popularHeading": "Populaire vragen:"
     },

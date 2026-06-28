@@ -28,7 +28,10 @@ const PublicPageWrapper: React.FC<PublicPageWrapperProps> = ({
         overflow: isMobile ? 'visible' : 'hidden'
       }}
     >
-      {children}
+      {/* `<main>` landmark for AT navigation (WCAG 2.1 AA / ARIA landmark guidance).
+          Wraps each public page's primary content; the site `<footer>` (and the
+          fixed, body-portaled `<header>`) stay outside the main region. */}
+      <main>{children}</main>
       {showFooter && <Footer />}
     </div>
   );

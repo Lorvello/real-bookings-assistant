@@ -58,14 +58,15 @@ const StepIndicator = () => {
                     animationFillMode: 'both'
                   }}
                 >
-                  {/* Enhanced connecting line */}
-                  <div className="relative w-8 md:w-20 h-1 bg-gradient-to-r from-emerald-500/30 via-emerald-400/50 to-emerald-500/30 rounded-full overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-300/80 to-transparent w-6 animate-[pulse_2s_ease-in-out_infinite] rounded-full"></div>
+                  {/* Enhanced connecting line (opacity raised so steps 1-2-3 read as
+                      clearly linked on wide/dark viewports; was faint at /30-/50) */}
+                  <div className="relative w-8 md:w-20 h-1 bg-gradient-to-r from-emerald-500/45 via-emerald-400/75 to-emerald-500/45 rounded-full overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-200/90 to-transparent w-6 animate-[pulse_2s_ease-in-out_infinite] rounded-full"></div>
                   </div>
-                  
+
                   {/* Arrow head */}
                   <div className="ml-1">
-                    <div className="w-0 h-0 border-l-[8px] border-l-emerald-400/70 border-t-[5px] border-b-[5px] border-t-transparent border-b-transparent drop-shadow-sm"></div>
+                    <div className="w-0 h-0 border-l-[8px] border-l-emerald-400/90 border-t-[5px] border-b-[5px] border-t-transparent border-b-transparent drop-shadow-sm"></div>
                   </div>
                 </div>
               )}

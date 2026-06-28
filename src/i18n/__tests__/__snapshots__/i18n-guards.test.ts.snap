@@ -1548,6 +1548,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "faq.price.q4": "What happens if I stop?",
   "faq.price.q5": "Is there a long-term contract?",
   "faq.price.title": "Pricing & Plans",
+  "faq.search.ariaLabel": "Search frequently asked questions",
   "faq.search.placeholder": "Search frequently asked questions...",
   "faq.search.popularHeading": "Popular questions:",
   "faq.search.resultsFound": "{{count}} results found",
