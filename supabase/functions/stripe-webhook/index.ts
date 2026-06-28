@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getCurrentPeriodEndISO } from "../_shared/subscriptionPeriod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -191,8 +192,10 @@ async function handleSubscriptionCreated(
 
   const priceId = subscription.items.data[0]?.price?.id;
   const tier = await getTierFromPriceId(supabase, priceId, isTestMode);
-  
-  const endDate = new Date(subscription.current_period_end * 1000);
+
+  // Stripe >=2025-03-31 moved current_period_end onto the items; getCurrentPeriodEndISO
+  // reads top-level then item-level and never throws (was a RangeError -> 500 -> no sync).
+  const endDateIso = getCurrentPeriodEndISO(subscription);
 
   // Update users table
   const { error: userError } = await supabase
@@ -200,7 +203,7 @@ async function handleSubscriptionCreated(
     .update({
       subscription_status: 'active',
       subscription_tier: tier,
-      subscription_end_date: endDate.toISOString(),
+      subscription_end_date: endDateIso,
       payment_status: 'paid',
       grace_period_end: null,
       updated_at: new Date().toISOString()
@@ -225,7 +228,7 @@ async function handleSubscriptionCreated(
       email: userData?.email || '',
       subscribed: true,
       subscription_tier: tier,
-      subscription_end: endDate.toISOString(),
+      subscription_end: endDateIso,
       stripe_subscription_id: subscription.id,
       // Zonder stripe_customer_id vinden handlePaymentFailed/Succeeded de user niet
       // (ze zoeken op stripe_customer_id) -> grace-period werd nooit gezet.
@@ -268,7 +271,9 @@ async function handleSubscriptionUpdated(
   const userId = subscriber.user_id;
   const priceId = subscription.items.data[0]?.price?.id;
   const tier = await getTierFromPriceId(supabase, priceId, isTestMode);
-  const endDate = new Date(subscription.current_period_end * 1000);
+  // Stripe >=2025-03-31 moved current_period_end onto the items; resolve safely (was
+  // a RangeError on the now-undefined top-level field -> 500 -> subscription never synced).
+  const endDateIso = getCurrentPeriodEndISO(subscription);
 
   let subscriptionStatus = 'active';
   if (subscription.status === 'canceled') {
@@ -294,7 +299,7 @@ async function handleSubscriptionUpdated(
     .update({
       subscription_status: subscriptionStatus,
       subscription_tier: subscriptionStatus === 'active' ? tier : null,
-      subscription_end_date: endDate.toISOString(),
+      subscription_end_date: endDateIso,
       grace_period_end: graceEnd,
       updated_at: new Date().toISOString()
     })
@@ -310,7 +315,7 @@ async function handleSubscriptionUpdated(
     .update({
       subscribed: subscription.status === 'active',
       subscription_tier: subscription.status === 'active' ? tier : null,
-      subscription_end: endDate.toISOString(),
+      subscription_end: endDateIso,
       updated_at: new Date().toISOString()
     })
     .eq('user_id', userId);

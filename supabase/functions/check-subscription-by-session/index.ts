@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getCurrentPeriodEndISO } from "../_shared/subscriptionPeriod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -111,8 +112,10 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      
+      // Stripe >=2025-03-31 moved current_period_end onto the items; resolve safely
+      // (the old top-level read became new Date(NaN).toISOString() and threw).
+      subscriptionEnd = getCurrentPeriodEndISO(subscription);
+
       // Get tier from metadata first
       subscriptionTier = subscription.metadata?.tier_name || subscription.metadata?.tier;
       

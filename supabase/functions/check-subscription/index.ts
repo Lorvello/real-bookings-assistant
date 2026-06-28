@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeConfig } from "../_shared/stripeValidation.ts";
+import { getCurrentPeriodEndISO } from "../_shared/subscriptionPeriod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,7 +142,9 @@ serve(async (req) => {
 
     if (hasActiveSub || hasPastDueSub || hasIncompletePayment) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      // Stripe >=2025-03-31 moved current_period_end onto the items; resolve safely
+      // (the old top-level read became new Date(NaN).toISOString() and threw).
+      subscriptionEnd = getCurrentPeriodEndISO(subscription);
       nextBillingDate = subscriptionEnd; // For active subs, next billing is current period end
       paymentStatus = hasActiveSub ? 'paid' : 'unpaid';
       billingCycle = subscription.items.data[0].price.recurring?.interval || 'month';
