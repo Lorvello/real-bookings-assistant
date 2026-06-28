@@ -32,11 +32,17 @@ serve(async (req) => {
     let event: Stripe.Event;
     let isTestMode = false;
 
+    // Deno's Stripe SDK only exposes async signature verification: its
+    // SubtleCryptoProvider is async-only, so the synchronous constructEvent()
+    // throws "Use constructEventAsync(...)" and the fn 400s on every delivery.
+    // Verify with constructEventAsync + an explicit SubtleCrypto provider.
+    const cryptoProvider = Stripe.createSubtleCryptoProvider();
+
     // Try test mode first
     if (webhookSecretTest) {
       try {
         const stripeTest = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_TEST")!, { apiVersion: "2023-10-16" });
-        event = stripeTest.webhooks.constructEvent(body, signature, webhookSecretTest);
+        event = await stripeTest.webhooks.constructEventAsync(body, signature, webhookSecretTest, undefined, cryptoProvider);
         isTestMode = true;
         console.log("✅ Webhook verified (TEST mode)");
       } catch (err) {
@@ -44,7 +50,7 @@ serve(async (req) => {
         if (webhookSecretLive) {
           try {
             const stripeLive = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_LIVE")!, { apiVersion: "2023-10-16" });
-            event = stripeLive.webhooks.constructEvent(body, signature, webhookSecretLive);
+            event = await stripeLive.webhooks.constructEventAsync(body, signature, webhookSecretLive, undefined, cryptoProvider);
             isTestMode = false;
             console.log("✅ Webhook verified (LIVE mode)");
           } catch (liveErr) {
@@ -64,7 +70,7 @@ serve(async (req) => {
     } else if (webhookSecretLive) {
       try {
         const stripeLive = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_LIVE")!, { apiVersion: "2023-10-16" });
-        event = stripeLive.webhooks.constructEvent(body, signature, webhookSecretLive);
+        event = await stripeLive.webhooks.constructEventAsync(body, signature, webhookSecretLive, undefined, cryptoProvider);
         isTestMode = false;
         console.log("✅ Webhook verified (LIVE mode)");
       } catch (err) {
