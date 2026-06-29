@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,14 +34,12 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    // Parse request body to get test_mode (default to test for safety)
-    let test_mode = true;
-    try {
-      const body = await req.json();
-      test_mode = body.test_mode !== false; // Default to test mode
-    } catch {
-      // If no body, default to test mode
-    }
+    // SECURITY (F-V01): pin Stripe mode to the server's STRIPE_MODE, never the client
+    // body. This fn previously read `test_mode` from the request body, so an authed
+    // user could send test_mode:false in a TEST run and make this fn create a LIVE
+    // dashboard login link. validateStripeMode() defaults to test when STRIPE_MODE
+    // is unset.
+    const test_mode = validateStripeMode().mode === 'test';
     const environment = test_mode ? 'test' : 'live';
     logStep("Request parameters", { test_mode, environment });
 

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -62,8 +63,12 @@ serve(async (req) => {
     const accountOwnerId = userAccountData.account_owner_id || user.id;
     logStep("Account owner determined", { accountOwnerId });
 
-    // Get test mode from request body for platform consistency
-    const { test_mode = false } = body;
+    // SECURITY (F-V01): pin Stripe mode to the server's STRIPE_MODE, never the client
+    // body. This fn previously read `test_mode` from the request body defaulting to
+    // LIVE (false), so an authed user could send test_mode:false in a TEST run and
+    // delete/reset the LIVE business_stripe_accounts row (cross-environment data
+    // loss). validateStripeMode() defaults to test when STRIPE_MODE is unset.
+    const test_mode = validateStripeMode().mode === 'test';
     const environment = test_mode ? 'test' : 'live';
     
     // Initialize Stripe to get platform account ID
