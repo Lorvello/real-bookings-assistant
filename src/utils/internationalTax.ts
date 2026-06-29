@@ -23,15 +23,20 @@ export interface CountryTaxConfig {
 }
 
 // EU Harmonized Tax Codes
+// F-TAX-08: txcd_30060000 (professional/consulting), txcd_30070000 (medical) and
+// txcd_30020000 (education) are NOT valid Stripe tax codes (GET /v1/tax_codes returns
+// HTTP 400). Replaced with the valid equivalents (all HTTP 200, verified on the TEST key):
+// txcd_20060000 "Professional Services", txcd_20060027 "Medical Professional Services",
+// txcd_20060052 "Educational Services".
 export const EU_TAX_CODES = {
   GENERAL_SERVICES: 'txcd_10000000',
-  PERSONAL_CARE: 'txcd_20030000', 
+  PERSONAL_CARE: 'txcd_20030000',
   BEAUTY_WELLNESS: 'txcd_20030000',
-  PROFESSIONAL_SERVICES: 'txcd_30060000',
-  MEDICAL_SERVICES: 'txcd_30070000',
-  EDUCATION: 'txcd_30020000',
+  PROFESSIONAL_SERVICES: 'txcd_20060000',
+  MEDICAL_SERVICES: 'txcd_20060027',
+  EDUCATION: 'txcd_20060052',
   DIGITAL_SERVICES: 'txcd_10505000',
-  CONSULTING: 'txcd_30060000',
+  CONSULTING: 'txcd_20060000',
   FITNESS: 'txcd_20030000'
 };
 
@@ -39,7 +44,7 @@ export const EU_TAX_CODES = {
 export const US_TAX_CODES = {
   GENERAL_SERVICES: 'txcd_99999999',
   PERSONAL_CARE: 'txcd_20030000',
-  PROFESSIONAL_SERVICES: 'txcd_30060000',
+  PROFESSIONAL_SERVICES: 'txcd_20060000',
   DIGITAL_SERVICES: 'txcd_10505000'
 };
 

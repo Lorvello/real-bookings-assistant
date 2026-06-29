@@ -24,11 +24,14 @@ interface ServiceType {
 }
 
 // Simple relevant tax codes for Dutch businesses
+// F-TAX-08: txcd_30060000 / txcd_30070000 are NOT valid Stripe tax codes (HTTP 400);
+// replaced with the valid txcd_20060000 "Professional Services" and txcd_20060027
+// "Medical Professional Services" (both HTTP 200, verified on the TEST key).
 const RELEVANT_TAX_CODES = [
   { code: 'txcd_10000000', name: 'Standard Service (21% VAT)', description: 'Most services' },
   { code: 'txcd_20030000', name: 'Personal Care (21% VAT)', description: 'Hair, beauty, wellness' },
-  { code: 'txcd_30060000', name: 'Professional Services (21% VAT)', description: 'Consulting, advice, coaching' },
-  { code: 'txcd_30070000', name: 'Medical Care (0% VAT)', description: 'Medical treatments, physiotherapy' }
+  { code: 'txcd_20060000', name: 'Professional Services (21% VAT)', description: 'Consulting, advice, coaching' },
+  { code: 'txcd_20060027', name: 'Medical Care (0% VAT)', description: 'Medical treatments, physiotherapy' }
 ];
 
 export const SimpleProductTaxManager = ({ 

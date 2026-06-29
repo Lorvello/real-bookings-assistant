@@ -36,17 +36,22 @@ const logStep = (step: string, details?: any) => {
 const ENHANCED_CLASSIFICATIONS = {
   'professional_services': {
     keywords: ['consult', 'advice', 'legal', 'lawyer', 'attorney', 'accounting', 'finance', 'business', 'strategy', 'planning', 'coaching', 'mentor'],
+    // F-TAX-08: txcd_30060000 is NOT a valid Stripe tax code (GET /v1/tax_codes
+    // returns HTTP 400 "Invalid tax code"); use txcd_20060000 "Professional Services"
+    // (HTTP 200, verified on the TEST key). Any downstream Stripe push of the old id failed.
     tax_codes: {
-      'NL': 'txcd_30060000', 'DE': 'txcd_30060000', 'FR': 'txcd_30060000', 'GB': 'txcd_30060000',
-      'US': 'txcd_30060000', 'CA': 'txcd_30060000', 'AU': 'txcd_30060000'
+      'NL': 'txcd_20060000', 'DE': 'txcd_20060000', 'FR': 'txcd_20060000', 'GB': 'txcd_20060000',
+      'US': 'txcd_20060000', 'CA': 'txcd_20060000', 'AU': 'txcd_20060000'
     },
     confidence_multiplier: 1.2
   },
   'medical': {
     keywords: ['medical', 'health', 'doctor', 'clinic', 'therapy', 'physio', 'dental', 'treatment', 'checkup', 'exam', 'surgery'],
+    // F-TAX-08: txcd_30070000 is NOT a valid Stripe tax code (HTTP 400); use
+    // txcd_20060027 "Medical Professional Services" (HTTP 200, verified on the TEST key).
     tax_codes: {
-      'NL': 'txcd_30070000', 'DE': 'txcd_30070000', 'FR': 'txcd_30070000', 'GB': 'txcd_30070000',
-      'US': 'txcd_30070000', 'CA': 'txcd_30070000', 'AU': 'txcd_30070000'
+      'NL': 'txcd_20060027', 'DE': 'txcd_20060027', 'FR': 'txcd_20060027', 'GB': 'txcd_20060027',
+      'US': 'txcd_20060027', 'CA': 'txcd_20060027', 'AU': 'txcd_20060027'
     },
     confidence_multiplier: 1.5
   },
@@ -60,9 +65,11 @@ const ENHANCED_CLASSIFICATIONS = {
   },
   'educational': {
     keywords: ['lesson', 'teaching', 'education', 'class', 'course', 'workshop', 'seminar', 'training', 'tutoring'],
+    // F-TAX-08: txcd_30060000 is NOT a valid Stripe tax code (HTTP 400); use
+    // txcd_20060052 "Educational Services" (HTTP 200, verified on the TEST key).
     tax_codes: {
-      'NL': 'txcd_30060000', 'DE': 'txcd_30060000', 'FR': 'txcd_30060000', 'GB': 'txcd_30060000',
-      'US': 'txcd_30060000', 'CA': 'txcd_30060000', 'AU': 'txcd_30060000'
+      'NL': 'txcd_20060052', 'DE': 'txcd_20060052', 'FR': 'txcd_20060052', 'GB': 'txcd_20060052',
+      'US': 'txcd_20060052', 'CA': 'txcd_20060052', 'AU': 'txcd_20060052'
     },
     confidence_multiplier: 1.0
   },

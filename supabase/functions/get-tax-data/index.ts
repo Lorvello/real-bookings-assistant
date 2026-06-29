@@ -112,16 +112,18 @@ serve(async (req) => {
     // and automaticTax from `settings.dashboard.display_name` (the dashboard label).
     // The correct source is stripe.tax.settings.retrieve(): defaults.tax_behavior,
     // defaults.tax_code and status. (Same retrieve get-tax-settings proved in T2.)
+    // F-TAX-09: the previous taxCalculation:{automaticTax} sub-object was built here but
+    // never read into the response; the automatic-tax signal is surfaced via
+    // stripeAccountStatus.automaticTaxEnabled (taxSettingsStatus === 'active'). Removed
+    // the dead state so it cannot drift out of sync with the real signal.
     let taxSettings: {
       originAddress: any;
       defaultTaxBehavior: string;
       presetProductTaxCode: string | null;
-      taxCalculation: { automaticTax: string };
     } = {
       originAddress: null,
       defaultTaxBehavior: 'unknown',
-      presetProductTaxCode: null,
-      taxCalculation: { automaticTax: 'unknown' }
+      presetProductTaxCode: null
     };
     let taxSettingsStatus = 'unknown';
     try {
@@ -132,8 +134,7 @@ serve(async (req) => {
       taxSettings = {
         originAddress: settings.head_office?.address || null,
         defaultTaxBehavior: settings.defaults?.tax_behavior || 'unknown',
-        presetProductTaxCode: settings.defaults?.tax_code || null,
-        taxCalculation: { automaticTax: settings.status === 'active' ? 'enabled' : 'disabled' }
+        presetProductTaxCode: settings.defaults?.tax_code || null
       };
     } catch (settingsError) {
       logStep('Tax settings not available', { error: settingsError.message });

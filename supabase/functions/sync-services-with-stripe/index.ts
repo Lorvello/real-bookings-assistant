@@ -14,31 +14,36 @@ const logStep = (step: string, details?: any) => {
 };
 
 // International tax code mapping for countries
+// F-TAX-08: the professional/medical code ids txcd_30060000 / txcd_30070000 are NOT
+// valid Stripe tax codes (HTTP 400). This map is an informational label lookup, but the
+// keys must be the valid ids so the labels match what is actually pushed to Stripe:
+// txcd_20060000 "Professional Services", txcd_20060027 "Medical Professional Services"
+// (both HTTP 200, verified on the TEST key).
 const INTERNATIONAL_TAX_CODES = {
   // EU countries - use harmonized VAT codes
   NL: { // Netherlands
     'txcd_10000000': 'Standard services (21% VAT)',
     'txcd_20030000': 'Personal care services (21% VAT)',
-    'txcd_30060000': 'Professional services (21% VAT)',
-    'txcd_30070000': 'Medical services (9% VAT)',
+    'txcd_20060000': 'Professional services (21% VAT)',
+    'txcd_20060027': 'Medical services (9% VAT)',
   },
-  DE: { // Germany  
+  DE: { // Germany
     'txcd_10000000': 'Standard services (19% VAT)',
     'txcd_20030000': 'Personal care services (19% VAT)',
-    'txcd_30060000': 'Professional services (19% VAT)',
-    'txcd_30070000': 'Medical services (7% VAT)',
+    'txcd_20060000': 'Professional services (19% VAT)',
+    'txcd_20060027': 'Medical services (7% VAT)',
   },
   FR: { // France
     'txcd_10000000': 'Standard services (20% VAT)',
     'txcd_20030000': 'Personal care services (20% VAT)',
-    'txcd_30060000': 'Professional services (20% VAT)',
-    'txcd_30070000': 'Medical services (10% VAT)',
+    'txcd_20060000': 'Professional services (20% VAT)',
+    'txcd_20060027': 'Medical services (10% VAT)',
   },
   GB: { // United Kingdom
     'txcd_10000000': 'Standard services (20% VAT)',
     'txcd_20030000': 'Personal care services (20% VAT)',
-    'txcd_30060000': 'Professional services (20% VAT)',
-    'txcd_30070000': 'Medical services (5% VAT)',
+    'txcd_20060000': 'Professional services (20% VAT)',
+    'txcd_20060027': 'Medical services (5% VAT)',
   },
   // Add more countries as needed
 };

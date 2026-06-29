@@ -14,18 +14,25 @@ const logStep = (step: string, details?: any) => {
 };
 
 // Default tax codes by service category and country
+// F-TAX-08: txcd_30060000 / txcd_30070000 are NOT valid Stripe tax codes (GET
+// /v1/tax_codes returns HTTP 400 "Invalid tax code"). auto-setup-tax writes these
+// to service_types.tax_code and then invokes sync-services-with-stripe, which pushes
+// product_data.tax_code to stripe.prices.create -> Stripe rejected the price. Use the
+// valid equivalents (all HTTP 200, verified on the TEST key): professional_services ->
+// txcd_20060000 "Professional Services", medical -> txcd_20060027 "Medical Professional
+// Services". personal_care/general were already valid.
 const DEFAULT_TAX_CODES = {
   'professional_services': {
-    'NL': 'txcd_30060000', 'DE': 'txcd_30060000', 'FR': 'txcd_30060000', 'GB': 'txcd_30060000',
-    'US': 'txcd_30060000', 'CA': 'txcd_30060000', 'AU': 'txcd_30060000'
+    'NL': 'txcd_20060000', 'DE': 'txcd_20060000', 'FR': 'txcd_20060000', 'GB': 'txcd_20060000',
+    'US': 'txcd_20060000', 'CA': 'txcd_20060000', 'AU': 'txcd_20060000'
   },
   'personal_care': {
     'NL': 'txcd_20030000', 'DE': 'txcd_20030000', 'FR': 'txcd_20030000', 'GB': 'txcd_20030000',
     'US': 'txcd_20030000', 'CA': 'txcd_20030000', 'AU': 'txcd_20030000'
   },
   'medical': {
-    'NL': 'txcd_30070000', 'DE': 'txcd_30070000', 'FR': 'txcd_30070000', 'GB': 'txcd_30070000',
-    'US': 'txcd_30070000', 'CA': 'txcd_30070000', 'AU': 'txcd_30070000'
+    'NL': 'txcd_20060027', 'DE': 'txcd_20060027', 'FR': 'txcd_20060027', 'GB': 'txcd_20060027',
+    'US': 'txcd_20060027', 'CA': 'txcd_20060027', 'AU': 'txcd_20060027'
   },
   'general': {
     'NL': 'txcd_10000000', 'DE': 'txcd_10000000', 'FR': 'txcd_10000000', 'GB': 'txcd_10000000',

@@ -104,10 +104,12 @@ export const mockTaxCodes: MockTaxCode[] = [
     name: 'Digital - Software', 
     description: 'Software and apps' 
   },
-  { 
-    id: 'txcd_30000000', 
-    name: 'Services - Professional', 
-    description: 'Professional services' 
+  {
+    // F-TAX-08: txcd_30000000 is NOT a valid Stripe tax code (HTTP 400); use the valid
+    // txcd_20060000 "Professional Services" (HTTP 200, verified on the TEST key).
+    id: 'txcd_20060000',
+    name: 'Services - Professional',
+    description: 'Professional services'
   },
   { 
     id: 'txcd_99999999', 
