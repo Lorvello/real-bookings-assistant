@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { z } from "https://esm.sh/zod@3.23.8";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
@@ -13,18 +14,60 @@ const logStep = (step: string, details?: any) => {
   console.log(`[MANAGE-TAX-REGISTRATIONS] ${step}${detailsStr}`);
 };
 
-// International tax registration support
+// International tax registration support. US and CA are intentionally NOT in this
+// list for the create path: their Stripe Tax registrations are subdivision-scoped
+// (US needs country_options[us][state] + per-state election; CA needs
+// province_standard with a province that levies sales tax), so a single country-level
+// create call is rejected by Stripe. Modelling per-state/province registration is a
+// future feature; until then a US/CA create request is rejected up front with a clear
+// "Unsupported country code" instead of a confusing downstream Stripe error.
 const SUPPORTED_COUNTRIES = [
   'NL', 'DE', 'FR', 'GB', 'BE', 'ES', 'IT', 'AT', 'DK', 'SE', 'FI', 'PT', 'IE',
   'LU', 'CY', 'MT', 'SI', 'SK', 'CZ', 'HU', 'PL', 'EE', 'LV', 'LT', 'BG', 'RO', 'HR',
-  'US', 'CA', 'AU'
-];
+  'AU'
+] as const;
+
+// Validate the write payload (zod). action gates which other fields are required.
+// country must be a supported ISO-3166 alpha-2 code; registration_id is mandatory
+// for delete. Server cannot tamper the account (resolved from the caller's own bsa).
+// NOTE: vat_id is intentionally NOT in this schema. The previous create path stored
+// it as country_options[cc].value under the old (invalid) 'vat' shape; the current
+// Stripe Tax API registers VAT under the standard scheme without a free-text value,
+// so a caller-supplied vat_id has nowhere valid to go. zod .object() strips it
+// silently (it does not reject), so existing callers that still send vat_id keep
+// working; the field is simply not advertised or acted on. A real VAT-number capture
+// is a separate future feature.
+const RequestSchema = z.object({
+  action: z.enum(['list', 'create', 'delete']),
+  country: z.string().trim().length(2).toUpperCase()
+    .refine((c) => (SUPPORTED_COUNTRIES as readonly string[]).includes(c), {
+      message: 'Unsupported country code'
+    })
+    .optional(),
+  registration_id: z.string().trim().min(1).optional(),
+}).superRefine((data, ctx) => {
+  if (data.action === 'delete' && !data.registration_id) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['registration_id'],
+      message: 'registration_id is required for delete' });
+  }
+});
 
 const detectBusinessCountry = (stripeAccount: any): string => {
   if (stripeAccount?.country) {
     return stripeAccount.country.toUpperCase();
   }
   return 'NL'; // Default fallback
+};
+
+// Build a Stripe Tax-API-valid country_options block. The previous code sent
+// { [cc]: { type: 'vat', value } } which the current Tax API rejects. The verified
+// shape for every country in SUPPORTED_COUNTRIES (EU members + GB + AU) is the
+// standard registration with place_of_supply_scheme='standard' (confirmed live
+// against the Stripe TEST Tax API for NL, GB and AU). US/CA are excluded from
+// SUPPORTED_COUNTRIES because they need subdivision-scoped payloads.
+const buildCountryOptions = (country: string): Record<string, any> => {
+  const cc = country.toLowerCase();
+  return { [cc]: { type: 'standard', standard: { place_of_supply_scheme: 'standard' } } };
 };
 
 serve(async (req) => {
@@ -48,7 +91,27 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { action, country, vat_id, registration_id } = await req.json();
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = RequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      // Return the validation error as HTTP 200 with success:false, matching this
+      // fn's existing error convention (NO_ACCOUNT / UPGRADE_REQUIRED / SERVER_ERROR
+      // all return 200). supabase-js functions.invoke only populates `error` (and
+      // leaves `data` undefined) on a non-2xx status, so a 400 here would hide the
+      // structured message from the call sites that read `data.success`/`data.error`.
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstMsg = Object.values(fieldErrors).flat()[0] || 'Invalid tax registration request';
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'INVALID_INPUT',
+          error: firstMsg,
+          details: fieldErrors
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+    const { action, country, registration_id } = parsed.data;
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
     // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
@@ -171,29 +234,23 @@ serve(async (req) => {
 
       case 'create':
         const targetCountry = country || businessCountry;
-        
+
         if (!targetCountry) {
           throw new Error('Country is required for creating tax registration');
         }
 
-        if (!SUPPORTED_COUNTRIES.includes(targetCountry)) {
+        if (!(SUPPORTED_COUNTRIES as readonly string[]).includes(targetCountry)) {
           throw new Error(`Tax registration not yet supported for country: ${targetCountry}`);
         }
 
         try {
+          // Build a Tax-API-valid payload: standard scheme + place_of_supply for EU,
+          // active immediately. (The old { type: 'vat' } shape was rejected by Stripe.)
           const registrationData: any = {
             country: targetCountry,
+            country_options: buildCountryOptions(targetCountry),
+            active_from: 'now',
           };
-
-          // Add country-specific options for VAT registration
-          if (vat_id && ['NL', 'DE', 'FR', 'GB', 'BE', 'ES', 'IT'].includes(targetCountry)) {
-            registrationData.country_options = {
-              [targetCountry.toLowerCase()]: {
-                type: 'vat',
-                value: vat_id
-              }
-            };
-          }
 
           const registration = await stripe.tax.registrations.create(registrationData, {
             stripeAccount: stripeAccount.stripe_account_id
@@ -206,13 +263,15 @@ serve(async (req) => {
           });
 
           // Update business stripe account with new tax collection country
+          // (de-duplicated: re-creating a registration for the same country must not
+          // append a duplicate entry to the array).
+          const existingCountries: string[] = stripeAccount.tax_collection_countries || [];
+          const nextCountries = existingCountries.includes(targetCountry)
+            ? existingCountries
+            : [...existingCountries, targetCountry];
           await supabaseClient
             .from('business_stripe_accounts')
-            .update({
-              tax_collection_countries: stripeAccount.tax_collection_countries 
-                ? [...(stripeAccount.tax_collection_countries || []), targetCountry]
-                : [targetCountry]
-            })
+            .update({ tax_collection_countries: nextCountries })
             .eq('id', stripeAccount.id);
 
           return new Response(

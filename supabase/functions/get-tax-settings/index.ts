@@ -119,27 +119,53 @@ serve(async (req) => {
       logStep('Tax registrations not available', { error: error.message });
     }
 
-    // Get tax settings from Stripe
+    // F-TAX-03: read the REAL Stripe Tax settings instead of hard-coded placeholders.
+    // The Tax Settings API (stripe.tax.settings.retrieve) returns the connected
+    // account's actual defaults (tax_behavior, preset tax_code), head-office address,
+    // and the settings status (active once a head office is set). A merchant must see
+    // the real tax state, not a fabricated "active/exclusive" one. We still fall back
+    // to the account address + a clearly-labelled "unknown" state if Tax Settings is
+    // not available for the account (so we never present fabricated values as real).
+    let realTaxSettings: any = null;
+    try {
+      realTaxSettings = await stripe.tax.settings.retrieve({
+        stripeAccount: stripeAccount.stripe_account_id
+      });
+    } catch (settingsError) {
+      logStep('Tax settings not available', { error: (settingsError as Error).message });
+    }
+
+    // Stripe Tax Settings status is 'active' | 'pending'; 'unknown' is our local
+    // fallback when the Tax Settings API was unavailable for this account.
+    const settingsStatus = realTaxSettings?.status || 'unknown';
+    const settingsActive = settingsStatus === 'active';
+    const realDefaults = realTaxSettings?.defaults;
+    const headOffice = realTaxSettings?.head_office?.address;
+
     const taxSettings = {
       originAddress: {
-        line1: account.company?.address?.line1 || account.individual?.address?.line1 || '',
-        line2: account.company?.address?.line2 || account.individual?.address?.line2 || '',
-        city: account.company?.address?.city || account.individual?.address?.city || '',
-        state: account.company?.address?.state || account.individual?.address?.state || '',
-        postal_code: account.company?.address?.postal_code || account.individual?.address?.postal_code || '',
-        country: account.company?.address?.country || account.individual?.address?.country || 'NL'
+        line1: headOffice?.line1 || account.company?.address?.line1 || account.individual?.address?.line1 || '',
+        line2: headOffice?.line2 || account.company?.address?.line2 || account.individual?.address?.line2 || '',
+        city: headOffice?.city || account.company?.address?.city || account.individual?.address?.city || '',
+        state: headOffice?.state || account.company?.address?.state || account.individual?.address?.state || '',
+        postal_code: headOffice?.postal_code || account.company?.address?.postal_code || account.individual?.address?.postal_code || '',
+        country: headOffice?.country || account.company?.address?.country || account.individual?.address?.country || stripeAccount.country || 'NL'
       },
-      defaultTaxBehavior: 'exclusive', // Stripe default
-      pricesIncludeTax: false,
-      presetProductTaxCode: 'txcd_10000000', // General - Tangible Goods
+      defaultTaxBehavior: realDefaults?.tax_behavior || 'exclusive',
+      pricesIncludeTax: realDefaults?.tax_behavior === 'inclusive',
+      presetProductTaxCode: realDefaults?.tax_code || 'txcd_10000000',
+      taxProvider: realDefaults?.provider || null,
+      settingsStatus: settingsStatus,
+      // automaticTax now reflects whether Tax Settings are actually active on the
+      // account (head office set + provider configured), not a hard-coded true.
       automaticTax: {
         checkout: {
-          enabled: true,
-          status: 'active'
+          enabled: settingsActive,
+          status: settingsStatus
         },
         invoices: {
-          enabled: true,
-          status: 'active'
+          enabled: settingsActive,
+          status: settingsStatus
         }
       }
     };
@@ -171,10 +197,12 @@ serve(async (req) => {
       lastUpdated: new Date().toISOString()
     };
 
-    logStep('Tax settings retrieved', { 
+    logStep('Tax settings retrieved', {
       accountId: stripeAccount.stripe_account_id,
       registrations: taxRegistrations.length,
-      automaticTaxEnabled: true
+      settingsStatus: settingsStatus,
+      automaticTaxEnabled: settingsActive,
+      realSettings: realTaxSettings !== null
     });
 
     return new Response(

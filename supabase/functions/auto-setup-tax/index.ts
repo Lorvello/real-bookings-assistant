@@ -172,10 +172,21 @@ serve(async (req) => {
     const businessCountry = stripeAccount.country?.toUpperCase() || 'NL';
     logStep('Detected business country', { country: businessCountry });
 
+    // SECURITY (F-TAX-01): the service-role supabaseClient carries NO caller user
+    // context. Sub-invoking the tax fns through it makes their auth.getUser() see
+    // no user -> "User not authenticated" -> the whole orchestration breaks. Forward
+    // the CALLER's Authorization header to every sub-invoke so the callees resolve
+    // the SAME user (mirrors the payment loop's sync-services handling). The
+    // forwarded body test_mode stays INERT: each callee re-derives mode server-side
+    // via validateStripeMode() (T1 invariant), so no body-driven key pick is
+    // reintroduced.
+    const forwardAuth = { Authorization: authHeader };
+
     // STEP 1: Detect tax requirements
     logStep('Step 1: Detecting tax requirements');
     const { data: reqResponse } = await supabaseClient.functions.invoke('detect-tax-requirements', {
-      body: { test_mode, calendar_id }
+      body: { test_mode, calendar_id },
+      headers: forwardAuth
     });
 
     if (!reqResponse?.success) {
@@ -196,11 +207,12 @@ serve(async (req) => {
 
       try {
         const { data: regResponse } = await supabaseClient.functions.invoke('manage-tax-registrations', {
-          body: { 
+          body: {
             action: 'create',
             country: businessCountry,
             test_mode: test_mode
-          }
+          },
+          headers: forwardAuth
         });
 
         if (regResponse?.success) {
@@ -288,7 +300,8 @@ serve(async (req) => {
 
     try {
       const { data: syncResponse } = await supabaseClient.functions.invoke('sync-services-with-stripe', {
-        body: { test_mode }
+        body: { test_mode },
+        headers: forwardAuth
       });
 
       if (syncResponse?.success) {

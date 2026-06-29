@@ -144,8 +144,19 @@ serve(async (req) => {
       // Aggregate revenue by country
       const revenueByCountry = new Map();
       
+      const accountCountryFallback = stripeAccount.country?.toUpperCase() || 'NL';
       for (const transaction of transactions.data) {
-        const country = transaction.customer_details?.tax_exempt || transaction.shipping?.address?.country || 'UNKNOWN';
+        // F-TAX-05: derive the real country of the transaction. The previous code read
+        // transaction.customer_details?.tax_exempt (an enum like 'none'/'exempt'/
+        // 'reverse', NOT a country) which mis-bucketed every transaction. The buyer
+        // country lives on customer_details.address.country (the destination /
+        // place-of-supply); fall back to the shipping address, then to the account's
+        // own (registration) country, never to tax_exempt.
+        const country = (
+          transaction.customer_details?.address?.country ||
+          transaction.shipping?.address?.country ||
+          accountCountryFallback
+        ).toUpperCase();
         const amount = transaction.amount_total || 0;
         
         if (revenueByCountry.has(country)) {

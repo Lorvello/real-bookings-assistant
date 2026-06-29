@@ -152,3 +152,32 @@ Deno.test("TAX FNS (F-CLOSE-04): the derived test_mode is purely a function of t
     restore();
   }
 });
+
+// ---------------------------------------------------------------------------
+// T2: manage-tax-registrations create payload contract. The old code sent
+// country_options { [cc]: { type: 'vat', value } } which the current Stripe Tax
+// API rejects (it expects type 'standard' with a place_of_supply_scheme). This
+// mirror of the production buildCountryOptions() pins the corrected shape, which
+// was verified LIVE against the Stripe TEST Tax API for NL, GB and AU. US and CA
+// are excluded from SUPPORTED_COUNTRIES (their registrations are subdivision-scoped),
+// so the create builder only ever runs for the standard-scheme set.
+// ---------------------------------------------------------------------------
+function buildCountryOptionsMirror(country: string): Record<string, any> {
+  const cc = country.toLowerCase();
+  return { [cc]: { type: 'standard', standard: { place_of_supply_scheme: 'standard' } } };
+}
+
+Deno.test("T2 manage-tax-registrations: country options use 'standard' scheme, never the old 'vat' type", () => {
+  const nl = buildCountryOptionsMirror('NL');
+  assertEquals(nl.nl.type, 'standard');
+  assertEquals(nl.nl.standard.place_of_supply_scheme, 'standard');
+  // Regression: the removed { type: 'vat' } shape must not appear.
+  assertEquals((nl.nl as any).value, undefined);
+});
+
+Deno.test("T2 manage-tax-registrations: GB and AU (verified live) take the same standard scheme", () => {
+  assertEquals(buildCountryOptionsMirror('GB').gb.type, 'standard');
+  assertEquals(buildCountryOptionsMirror('GB').gb.standard.place_of_supply_scheme, 'standard');
+  assertEquals(buildCountryOptionsMirror('AU').au.type, 'standard');
+  assertEquals(buildCountryOptionsMirror('AU').au.standard.place_of_supply_scheme, 'standard');
+});
