@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { resolvePaymentTaxCents } from "../_shared/taxReport.ts";
+import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents } from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -185,26 +185,39 @@ serve(async (req) => {
     let totalRevenue = 0;
     let totalTax = 0;
     let totalNet = 0;
+    let totalRefunded = 0;
 
     for (const payment of payments || []) {
       try {
-        // Fetch payment intent from Stripe to get detailed tax data
+        // Fetch the payment intent from Stripe to get detailed tax data. Expand
+        // latest_charge so we can read the AUTHORITATIVE refunded amount
+        // (charge.amount_refunded) directly from Stripe at report time (F-TAX-17).
         const paymentIntent = await stripe.paymentIntents.retrieve(
           payment.stripe_payment_intent_id,
+          { expand: ['latest_charge'] },
           { stripeAccount: stripeAccount.stripe_account_id }
         );
 
         // F-TAX-02: gross = the charged total; tax from the authoritative source
-        // (Stripe automatic_tax amount_details.tax, else BA metadata.tax_amount);
-        // net = gross - tax; VAT rate = tax / net (net is the taxable base, so
-        // for an inclusive 21% amount: net 100, tax 21 -> 21% exact).
-        const grossAmount = paymentIntent.amount / 100;
-        const taxAmount = resolvePaymentTaxCents(paymentIntent) / 100;
-        const netAmount = grossAmount - taxAmount;
+        // (Stripe automatic_tax amount_details.tax, else BA metadata.tax_amount).
+        // F-TAX-17: subtract the authoritative refund read from Stripe
+        // (latest_charge.amount_refunded) and prorate the tax to the kept net, so
+        // a refunded booking is never reported at full gross+VAT. The row stays
+        // internally consistent (gross == net + tax) and rows sum to the TOTAL.
+        const grossOrigCents = paymentIntent.amount;
+        const taxOrigCents = resolvePaymentTaxCents(paymentIntent);
+        const refundedCents = resolveRefundedCents(paymentIntent);
+        const row = computeRefundAdjustedRow(grossOrigCents, taxOrigCents, refundedCents);
+
+        const grossAmount = row.grossCents / 100;
+        const taxAmount = row.taxCents / 100;
+        const netAmount = row.netCents / 100;
+        const refundedAmount = row.refundedCents / 100;
 
         totalRevenue += grossAmount;
         totalTax += taxAmount;
         totalNet += netAmount;
+        totalRefunded += refundedAmount;
 
         reportDetails.push({
           date: payment.created_at,
@@ -215,15 +228,17 @@ serve(async (req) => {
           grossAmount,
           taxAmount,
           netAmount,
+          refundedAmount,
+          fullyRefunded: row.fullyRefunded,
           taxRate: taxAmount > 0 && netAmount > 0 ? Math.round((taxAmount / netAmount) * 100 * 100) / 100 : 0,
           currency: payment.currency.toUpperCase(),
           paymentMethod: payment.payment_method_type || 'card'
         });
 
       } catch (stripeError) {
-        logStep('Error fetching payment intent for report', { 
-          paymentId: payment.stripe_payment_intent_id, 
-          error: stripeError.message 
+        logStep('Error fetching payment intent for report', {
+          paymentId: payment.stripe_payment_intent_id,
+          error: stripeError.message
         });
       }
     }
@@ -250,9 +265,13 @@ serve(async (req) => {
         transactionCount: reportDetails.length
       },
       summary: {
+        // F-TAX-17: totalRevenue/totalTax/totalNet are NET OF REFUNDS (each row
+        // already had its refund subtracted + tax prorated), so the filing figures
+        // never overstate VAT. totalRefunded surfaces the removed amount.
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         totalTax: Math.round(totalTax * 100) / 100,
         totalNet: Math.round(totalNet * 100) / 100,
+        totalRefunded: Math.round(totalRefunded * 100) / 100,
         averageTransactionValue: reportDetails.length > 0 ? Math.round((totalRevenue / reportDetails.length) * 100) / 100 : 0,
         taxableTransactions: reportDetails.filter(d => d.taxAmount > 0).length,
         taxRate: totalNet > 0 ? Math.round((totalTax / totalNet) * 100 * 100) / 100 : 0,

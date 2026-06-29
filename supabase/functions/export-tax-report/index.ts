@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { resolvePaymentTaxCents } from "../_shared/taxReport.ts";
+import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents } from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -163,31 +163,43 @@ serve(async (req) => {
       throw new Error('Failed to fetch payment data');
     }
 
-    // Prepare CSV data
+    // Prepare CSV data. Refunded (€) is added so the export round-trips the
+    // refund-adjusted figures (F-TAX-17); Gross/VAT/Net are already NET OF REFUNDS.
     const csvRows = [
-      ['Date', 'Customer Name', 'Customer Email', 'Service', 'Gross Amount (€)', 'VAT Amount (€)', 'Net Amount (€)', 'Payment ID']
+      ['Date', 'Customer Name', 'Customer Email', 'Service', 'Gross Amount (€)', 'VAT Amount (€)', 'Net Amount (€)', 'Refunded (€)', 'Payment ID']
     ];
 
     let totalGross = 0;
     let totalVat = 0;
+    let totalRefunded = 0;
 
     for (const payment of payments || []) {
       try {
-        // Fetch payment intent from Stripe to get tax data
+        // Fetch the payment intent from Stripe to get tax data; expand
+        // latest_charge to read the authoritative refunded amount (F-TAX-17).
         const paymentIntent = await stripe.paymentIntents.retrieve(
           payment.stripe_payment_intent_id,
+          { expand: ['latest_charge'] },
           { stripeAccount: stripeAccount.stripe_account_id }
         );
 
         // F-TAX-02: identical authoritative tax-source resolution as
-        // generate-tax-report (Stripe automatic_tax amount_details.tax, else BA
-        // metadata.tax_amount) so the CSV VAT/net match the report exactly.
-        const grossAmount = paymentIntent.amount / 100;
-        const vatAmount = resolvePaymentTaxCents(paymentIntent) / 100;
-        const netAmount = grossAmount - vatAmount;
+        // generate-tax-report. F-TAX-17: subtract the authoritative Stripe refund
+        // and prorate VAT to the kept net via the SAME shared resolver, so the CSV
+        // VAT/net match the report exactly and rows still sum to the TOTAL.
+        const grossOrigCents = paymentIntent.amount;
+        const taxOrigCents = resolvePaymentTaxCents(paymentIntent);
+        const refundedCents = resolveRefundedCents(paymentIntent);
+        const row = computeRefundAdjustedRow(grossOrigCents, taxOrigCents, refundedCents);
+
+        const grossAmount = row.grossCents / 100;
+        const vatAmount = row.taxCents / 100;
+        const netAmount = row.netCents / 100;
+        const refundedAmount = row.refundedCents / 100;
 
         totalGross += grossAmount;
         totalVat += vatAmount;
+        totalRefunded += refundedAmount;
 
         const date = new Date(payment.created_at).toLocaleDateString('nl-NL');
         const customerName = payment.bookings?.customer_name || 'Unknown';
@@ -202,6 +214,7 @@ serve(async (req) => {
           grossAmount.toFixed(2),
           vatAmount.toFixed(2),
           netAmount.toFixed(2),
+          refundedAmount.toFixed(2),
           payment.stripe_payment_intent_id
         ]);
 
@@ -212,7 +225,7 @@ serve(async (req) => {
 
     // Add summary row
     csvRows.push([]);
-    csvRows.push(['TOTAL', '', '', '', totalGross.toFixed(2), totalVat.toFixed(2), (totalGross - totalVat).toFixed(2), '']);
+    csvRows.push(['TOTAL', '', '', '', totalGross.toFixed(2), totalVat.toFixed(2), (totalGross - totalVat).toFixed(2), totalRefunded.toFixed(2), '']);
 
     // Convert to CSV string
     const csvContent = csvRows
@@ -221,12 +234,13 @@ serve(async (req) => {
 
     const filename = `tax-report-Q${quarter}-${year}.csv`;
 
-    logStep('Tax report generated', { 
-      quarter, 
-      year, 
+    logStep('Tax report generated', {
+      quarter,
+      year,
       totalTransactions: payments?.length || 0,
       totalGross: totalGross.toFixed(2),
-      totalVat: totalVat.toFixed(2)
+      totalVat: totalVat.toFixed(2),
+      totalRefunded: totalRefunded.toFixed(2)
     });
 
     return new Response(csvContent, {

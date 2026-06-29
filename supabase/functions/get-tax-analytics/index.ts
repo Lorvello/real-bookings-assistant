@@ -1,5 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14.21.0'
+import { validateStripeMode } from '../_shared/stripeValidation.ts'
+import { resolveRefundedCents } from '../_shared/taxReport.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -171,22 +174,78 @@ serve(async (req) => {
 
     console.log('Found completed bookings:', completedBookings?.length || 0)
 
+    // F-TAX-17: refunds must be reflected here too, so analytics agree with the
+    // tax reports. Build a bookingId -> refunded-FRACTION map by reading the
+    // AUTHORITATIVE refund from Stripe (charge.amount_refunded) for the matching
+    // booking_payments, mode-pinned via the server-derived key (T1 invariant; no
+    // body-driven key). We prorate on the payment's charged amount, then apply the
+    // same kept-fraction to the analytics revenue/tax (which are derived from
+    // bookings.total_price + the service rate, not from the PI). When no refund
+    // exists the fraction is 1.0 and nothing changes.
+    const refundFractionByBooking: Record<string, number> = {}
+    const bookingIds = (completedBookings || []).map(b => b.id)
+    if (bookingIds.length > 0) {
+      // SECURITY (F-CLOSE-04 mode-bypass class): mode/key is server-derived from
+      // STRIPE_MODE, never from the request body.
+      const test_mode = validateStripeMode().mode === 'test'
+      const { data: paymentsForBookings } = await supabaseClient
+        .from('booking_payments')
+        .select('booking_id, stripe_payment_intent_id, stripe_account_id, amount_cents')
+        .in('booking_id', bookingIds)
+        .in('status', ['succeeded', 'completed', 'refunded'])
+
+      if (paymentsForBookings && paymentsForBookings.length > 0) {
+        const stripeSecretKey = test_mode
+          ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
+          : Deno.env.get('STRIPE_SECRET_KEY_LIVE')
+        if (stripeSecretKey) {
+          const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' })
+          for (const pay of paymentsForBookings) {
+            try {
+              const pi = await stripe.paymentIntents.retrieve(
+                pay.stripe_payment_intent_id,
+                { expand: ['latest_charge'] },
+                { stripeAccount: pay.stripe_account_id }
+              )
+              const refundedCents = resolveRefundedCents(pi)
+              const chargedCents = pi.amount || pay.amount_cents || 0
+              if (refundedCents > 0 && chargedCents > 0) {
+                const keptFraction = Math.max(0, (chargedCents - refundedCents) / chargedCents)
+                refundFractionByBooking[pay.booking_id] = keptFraction
+              }
+            } catch (refundErr) {
+              console.log('Could not read refund for PI', pay.stripe_payment_intent_id, (refundErr as Error)?.message)
+            }
+          }
+        }
+      }
+    }
+
     // Calculate tax analytics
     let totalRevenue = 0
     let totalTaxCollected = 0
+    let totalRefunded = 0
     const monthlyData: { [key: string]: { revenue: number, tax: number, bookings: number } } = {}
-    const serviceStats: { [key: string]: { 
-      name: string, 
-      revenue: number, 
-      tax: number, 
-      bookings: number, 
-      tax_rate: number 
+    const serviceStats: { [key: string]: {
+      name: string,
+      revenue: number,
+      tax: number,
+      bookings: number,
+      tax_rate: number
     } } = {}
 
     completedBookings?.forEach(booking => {
-      const revenue = Number(booking.total_price) || 0
+      const grossRevenue = Number(booking.total_price) || 0
       const taxRate = booking.service_types.applicable_tax_rate || 21
-      
+
+      // F-TAX-17: scale revenue + tax by the kept fraction (1.0 when not refunded),
+      // so a refunded booking is not counted at full gross+VAT. The rate is
+      // unchanged; both revenue and tax scale by the same fraction, so the row
+      // stays internally consistent.
+      const keptFraction = refundFractionByBooking[booking.id] ?? 1
+      const revenue = grossRevenue * keptFraction
+      totalRefunded += grossRevenue - revenue
+
       let taxAmount = 0
       if (booking.service_types.tax_behavior === 'inclusive') {
         // Tax is included in the price
@@ -255,6 +314,9 @@ serve(async (req) => {
         overview: {
           total_tax_collected: totalTaxCollected,
           total_revenue: totalRevenue,
+          // F-TAX-17: revenue/tax above are NET OF REFUNDS; total_refunded surfaces
+          // the removed amount so analytics agree with the tax reports.
+          total_refunded: totalRefunded,
           tax_rate: avgTaxRate,
           currency: businessCurrency.toUpperCase(),
           collection_period: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,

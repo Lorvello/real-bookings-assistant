@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import { computeRegistrationStatus } from "../_shared/taxReport.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -166,29 +167,48 @@ serve(async (req) => {
       .eq('country_code', businessCountry)
       .single();
 
-    // Calculate current revenue to check threshold
+    // Calculate current revenue to check threshold.
+    // F-TAX-18 FIX (sev-3): the registration threshold is a MERCHANT-level
+    // obligation, not a per-calendar one. business_countries is UNIQUE(user_id,
+    // country_code), so each calendar's detect would otherwise overwrite the same
+    // row with only that calendar's revenue, and the last call would win, hiding a
+    // registration obligation when revenue is split across same-country calendars.
+    // Aggregate the country's revenue across ALL of the owner's calendars (resolved
+    // by account_owner_id) before computing registration_required, so the per-country
+    // row reflects the merchant aggregate regardless of which calendar triggered it.
     let currentRevenue = 0;
     let registrationRequired = false;
     let registrationRecommended = false;
 
-    if (threshold && calendar_id) {
-      // Get completed bookings from last 12 months
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    if (threshold) {
+      // All calendars belonging to the account owner (top-level account or a member
+      // resolving to the same owner). Stays strictly within the caller's own business.
+      const { data: ownerCalendars } = await supabaseClient
+        .from('calendars')
+        .select('id')
+        .eq('user_id', accountOwnerId);
 
-      const { data: bookings } = await supabaseClient
-        .from('bookings')
-        .select('total_price')
-        .eq('calendar_id', calendar_id)
-        .eq('status', 'completed')
-        .gte('created_at', oneYearAgo.toISOString());
+      const ownerCalendarIds = (ownerCalendars || []).map((c) => c.id);
 
-      if (bookings && bookings.length > 0) {
-        currentRevenue = bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0);
-        const thresholdAmount = threshold.threshold_amount_cents / 100;
-        
-        registrationRequired = currentRevenue >= thresholdAmount;
-        registrationRecommended = currentRevenue >= (thresholdAmount * 0.8); // 80% of threshold
+      if (ownerCalendarIds.length > 0) {
+        // Get completed bookings from the last 12 months across ALL owner calendars.
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+        const { data: bookings } = await supabaseClient
+          .from('bookings')
+          .select('total_price')
+          .in('calendar_id', ownerCalendarIds)
+          .eq('status', 'completed')
+          .gte('created_at', oneYearAgo.toISOString());
+
+        if (bookings && bookings.length > 0) {
+          currentRevenue = bookings.reduce((sum, booking) => sum + (booking.total_price || 0), 0);
+          const thresholdAmount = threshold.threshold_amount_cents / 100;
+          const status = computeRegistrationStatus(currentRevenue, thresholdAmount);
+          registrationRequired = status.registrationRequired;
+          registrationRecommended = status.registrationRecommended;
+        }
       }
     }
 
@@ -212,11 +232,16 @@ serve(async (req) => {
     // key, so a re-detect of the same (user_id, country_code) violates the unique index
     // and throws 23505. Pin onConflict to the real constraint columns so a re-detect is
     // idempotent (updates the existing row instead of inserting a duplicate).
+    // F-TAX-18: the row is keyed UNIQUE(user_id, country_code) and now reflects the
+    // merchant AGGREGATE across all the owner's calendars, so it does NOT belong to a
+    // single calendar. calendar_id is set null on the per-country row (it is read by
+    // no consumer; only the per-country registration_required/status is used
+    // downstream) to avoid a misleading last-calendar-wins value.
     await supabaseClient
       .from('business_countries')
       .upsert({
         user_id: user.id,
-        calendar_id: calendar_id,
+        calendar_id: null,
         country_code: businessCountry,
         is_primary: true,
         registration_threshold_amount: threshold?.threshold_amount_cents ? threshold.threshold_amount_cents / 100 : null,
