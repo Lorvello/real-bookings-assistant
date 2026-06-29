@@ -35,6 +35,23 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: userData.user.id });
 
+    // F-TAX-13: align this tax fn with the gated siblings (get-tax-settings:56,
+    // manage-tax-registrations:132, auto-setup-tax:135). It writes the user's
+    // tax_configured flag, a paid tax-compliance feature. Trial users have
+    // subscription_tier='professional' (active_trial -> 'professional'), so this does
+    // not block onboarding; only expired/cancelled (NULL) + free/starter are gated.
+    const { data: tierRow, error: tierError } = await supabaseClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userData.user.id)
+      .single();
+    if (tierError) {
+      throw new Error('Failed to fetch user data: ' + tierError.message);
+    }
+    if (!tierRow?.subscription_tier || !['professional', 'enterprise'].includes(tierRow.subscription_tier)) {
+      return createErrorResponse(req, 'Tax compliance features require Professional or Enterprise subscription', 200, { code: 'UPGRADE_REQUIRED' });
+    }
+
     const { configured } = await req.json();
     logStep("Request data parsed", { configured });
 

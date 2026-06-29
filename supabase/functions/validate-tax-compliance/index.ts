@@ -42,6 +42,30 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    // F-TAX-13: align this tax fn with the gated siblings (get-tax-settings:56,
+    // manage-tax-registrations:132, auto-setup-tax:135). It returns a compliance score
+    // computed from booking revenue + tax config, a paid tax-compliance feature. Trial
+    // users have subscription_tier='professional' (active_trial -> 'professional'), so
+    // this does not block onboarding; only expired/cancelled (NULL) + free/starter gated.
+    const { data: tierData, error: tierError } = await supabaseClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single();
+    if (tierError) {
+      throw new Error(`Failed to fetch user data: ${tierError.message}`);
+    }
+    if (!tierData?.subscription_tier || !['professional', 'enterprise'].includes(tierData.subscription_tier)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'UPGRADE_REQUIRED',
+          error: 'Tax compliance features require Professional or Enterprise subscription'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
     const { calendar_id } = await req.json();
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment/price-field is
     // server-derived from STRIPE_MODE, never from the request body. The body's

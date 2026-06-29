@@ -30,6 +30,32 @@ serve(async (req) => {
       throw new Error('Authentication required')
     }
 
+    // F-TAX-13: align this tax fn with the gated siblings (get-tax-settings:56,
+    // manage-tax-registrations:132). It returns tax revenue/analytics, a paid
+    // tax-compliance feature. Trial users have subscription_tier='professional'
+    // (active_trial -> 'professional'), so this does not block onboarding; only
+    // expired/cancelled (NULL) + free/starter are gated. The supabaseClient here is
+    // RLS-scoped to the caller (anon key + caller Authorization), so users.select on
+    // the caller's own id is permitted.
+    const { data: tierData, error: tierError } = await supabaseClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+    if (tierError) {
+      throw new Error(`Failed to fetch user data: ${tierError.message}`)
+    }
+    if (!tierData?.subscription_tier || !['professional', 'enterprise'].includes(tierData.subscription_tier)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'UPGRADE_REQUIRED',
+          error: 'Tax compliance features require Professional or Enterprise subscription'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
+    }
+
     const { calendar_id, start_date, end_date } = await req.json()
 
     if (!calendar_id) {

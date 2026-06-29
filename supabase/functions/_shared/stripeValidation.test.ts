@@ -221,3 +221,69 @@ Deno.test("F-TAX-04: tax-behavior comes from the Tax Settings enum, never an unr
   // A dashboard display name (what the buggy automaticTax read) is not a behavior.
   assertEquals(VALID.has("Bookings Assistant sandbox"), false);
 });
+
+// ---------------------------------------------------------------------------
+// TX-FIX-1: assign-tax-codes hardening (F-TAX-12 + F-TAX-13).
+// F-TAX-12 (LIVE charge tamper): the request body MUST NOT influence the tax
+// outcome. assign-tax-codes writes service_types.applicable_tax_rate (the rate
+// create-booking-payment + whatsapp-payment-handler charge with). The country
+// that picks the rate/tax_code is now resolved SERVER-SIDE from the caller's
+// business_stripe_accounts.country, and the zod schema no longer accepts a
+// business_country field, so a body-supplied country is stripped (inert).
+// F-TAX-13: assign-tax-codes (a write path) + 4 sibling tax fns gate on the SAME
+// ['professional','enterprise'] predicate the other tax fns use. Trial users have
+// subscription_tier='professional', so the gate does not block onboarding.
+// ---------------------------------------------------------------------------
+import { z } from "https://esm.sh/zod@3.23.8";
+
+// Mirror of assign-tax-codes' AssignSchema after the F-TAX-12 fix (no business_country).
+const AssignSchemaMirror = z.object({
+  calendar_id: z.string().uuid().optional(),
+  service_ids: z.array(z.string().uuid()).optional(),
+  bulk_update: z.boolean().optional().default(false),
+});
+
+// Mirror of the server-side country -> rate derivation in assign-tax-codes.
+function getCountryTaxRateMirror(country: string): number {
+  const rates: Record<string, number> = {
+    'NL': 21, 'DE': 19, 'FR': 20, 'GB': 20, 'US': 8.5, 'CA': 13, 'AU': 10,
+    'ES': 21, 'IT': 22, 'BE': 21, 'AT': 20, 'DK': 25, 'SE': 25, 'FI': 24,
+  };
+  return rates[country] ?? 21;
+}
+function resolveBusinessCountry(stripeAccountCountry?: string | null): string {
+  return (stripeAccountCountry?.toUpperCase()) || 'NL';
+}
+
+Deno.test("F-TAX-12: AssignSchema strips a body business_country (it cannot reach the rate lookup)", () => {
+  const parsed = AssignSchemaMirror.parse({ business_country: "AU", bulk_update: false });
+  // The field is stripped by zod .object(); it is not present in the parsed payload.
+  assertEquals((parsed as any).business_country, undefined);
+});
+
+Deno.test("F-TAX-12: rate is derived from the SERVER-resolved country, body is inert", () => {
+  // An NL Stripe account with a hostile body business_country:'AU' still charges 21.
+  const serverCountry = resolveBusinessCountry("nl"); // from business_stripe_accounts.country
+  assertEquals(serverCountry, "NL");
+  assertEquals(getCountryTaxRateMirror(serverCountry), 21);
+  // The exploit value (AU -> 10) is never reached because the body field is gone.
+  assertEquals(getCountryTaxRateMirror("AU"), 10); // proves AU would have been 10
+});
+
+Deno.test("F-TAX-12: missing Stripe account falls back to NL (21), never to a body value", () => {
+  assertEquals(resolveBusinessCountry(null), "NL");
+  assertEquals(getCountryTaxRateMirror(resolveBusinessCountry(undefined)), 21);
+});
+
+Deno.test("F-TAX-13: tier gate admits professional/enterprise (incl. trial=professional), blocks the rest", () => {
+  const allowed = (tier: string | null | undefined) =>
+    !!tier && ['professional', 'enterprise'].includes(tier);
+  // Trial users get subscription_tier='professional' (update_user_status), so onboarding works.
+  assertEquals(allowed('professional'), true);
+  assertEquals(allowed('enterprise'), true);
+  // Free / starter / expired (null) are blocked.
+  assertEquals(allowed('free'), false);
+  assertEquals(allowed('starter'), false);
+  assertEquals(allowed(null), false);
+  assertEquals(allowed(undefined), false);
+});

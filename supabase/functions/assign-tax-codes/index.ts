@@ -8,22 +8,21 @@ const corsHeaders = {
 };
 
 // Validate the write payload. calendar_id / service_ids constrain WHICH of the
-// caller's own services get classified; business_country is an ISO-2 code that
-// selects the country tax-code map + rate, so it must be one of the supported
-// countries (no arbitrary string reaching the rate/map lookup). zod .object()
-// strips any other body fields.
-const SUPPORTED_COUNTRIES = ['NL', 'DE', 'FR', 'GB', 'US', 'CA', 'AU', 'ES', 'IT', 'BE', 'AT', 'DK', 'SE', 'FI'] as const;
+// caller's own services get classified.
+//
+// F-TAX-12 (sev-2, LIVE charge tamper): the request body MUST NOT influence the
+// tax outcome. The country that selects the tax-code map + applicable_tax_rate is
+// resolved SERVER-SIDE from the caller's business_stripe_accounts.country (mirrors
+// auto-setup-tax:179 + detect-tax-requirements/validate-tax-compliance), never
+// from the body. applicable_tax_rate is the LIVE charge rate read by
+// create-booking-payment (service.applicable_tax_rate) and whatsapp-payment-handler;
+// a client-supplied business_country previously flipped it (proven: AU on an NL
+// service flipped 21 -> 10), letting a merchant force under-collecting VAT. We no
+// longer accept business_country from the client at all; zod .object() strips it
+// (and any other) extra body field so it is inert for the tax outcome.
 const AssignSchema = z.object({
   calendar_id: z.string().uuid({ message: 'calendar_id must be a valid uuid' }).optional(),
   service_ids: z.array(z.string().uuid({ message: 'each service_id must be a valid uuid' })).optional(),
-  business_country: z
-    .string()
-    .transform((c) => c.toUpperCase())
-    .refine((c) => (SUPPORTED_COUNTRIES as readonly string[]).includes(c), {
-      message: 'business_country must be a supported ISO-2 country code',
-    })
-    .optional()
-    .default('NL'),
   bulk_update: z.boolean().optional().default(false),
 });
 
@@ -159,12 +158,58 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
-    const { calendar_id, service_ids, business_country, bulk_update } = parsed.data;
+    const { calendar_id, service_ids, bulk_update } = parsed.data;
+
+    // F-TAX-13 (sev-2, paywall + tax-write bypass): assign-tax-codes is a WRITE path
+    // that mutates service_types.applicable_tax_rate (the LIVE charge rate). The other
+    // tax fns 403 non-professional/enterprise; this one previously did not, so a
+    // free-tier user could invoke it and land the tamper write. Add the SAME tier gate
+    // the gated siblings use (get-tax-settings:56, manage-tax-registrations:132,
+    // auto-setup-tax:135). Trial users have subscription_tier='professional'
+    // (update_user_status active_trial/trial_ending_soon -> 'professional'), so this
+    // does NOT block legitimate trial/onboarding; only expired/cancelled (NULL tier)
+    // and free/starter are blocked. account_owner_id is selected here so the same
+    // user row drives both the gate and the server-side country resolution below.
+    const { data: userData, error: userDataError } = await supabaseClient
+      .from('users')
+      .select('subscription_tier, account_owner_id')
+      .eq('id', user.id)
+      .single();
+
+    if (userDataError) {
+      throw new Error(`Failed to fetch user data: ${userDataError.message}`);
+    }
+
+    if (!userData?.subscription_tier || !['professional', 'enterprise'].includes(userData.subscription_tier)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'UPGRADE_REQUIRED',
+          error: 'Tax compliance features require Professional or Enterprise subscription'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
+    // F-TAX-12: resolve the tax country SERVER-SIDE from the caller's Stripe account,
+    // never from the body. business_stripe_accounts is scoped by account_owner_id
+    // (matches the sibling tax fns; falls back to the caller's own id for a top-level
+    // account, so no IDOR). The body cannot influence the rate/code derivation.
+    const accountOwnerId = userData.account_owner_id || user.id;
+    const { data: stripeAccount } = await supabaseClient
+      .from('business_stripe_accounts')
+      .select('country')
+      .eq('account_owner_id', accountOwnerId)
+      .maybeSingle();
+
+    const business_country = (stripeAccount?.country?.toUpperCase()) || 'NL';
+
     logStep('Function started', {
-      userId: user.id, 
-      calendarId: calendar_id, 
+      userId: user.id,
+      calendarId: calendar_id,
       serviceIds: service_ids,
       businessCountry: business_country,
+      businessCountrySource: stripeAccount?.country ? 'stripe_account' : 'default_NL',
       bulkUpdate: bulk_update
     });
 

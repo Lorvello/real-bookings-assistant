@@ -55,6 +55,30 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    // F-TAX-13: align this tax fn with the gated siblings (get-tax-settings:56,
+    // manage-tax-registrations:132, auto-setup-tax:135). It detects + persists tax
+    // requirements (revenue vs threshold), a paid tax-compliance feature. Trial users
+    // have subscription_tier='professional' (active_trial -> 'professional'), so this
+    // does not block onboarding; only expired/cancelled (NULL) + free/starter are gated.
+    const { data: tierData, error: tierError } = await supabaseClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single();
+    if (tierError) {
+      throw new Error(`Failed to fetch user data: ${tierError.message}`);
+    }
+    if (!tierData?.subscription_tier || !['professional', 'enterprise'].includes(tierData.subscription_tier)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'UPGRADE_REQUIRED',
+          error: 'Tax compliance features require Professional or Enterprise subscription'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
     const { calendar_id } = await req.json();
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
@@ -182,7 +206,12 @@ serve(async (req) => {
       logStep('Could not check existing registrations', { error: error.message });
     }
 
-    // Create or update business country record
+    // Create or update business country record.
+    // F-TAX-14 (sev-3): business_countries has UNIQUE(user_id, country_code) (migration
+    // 20250901184015...sql:18). Without onConflict the upsert defaults to the primary
+    // key, so a re-detect of the same (user_id, country_code) violates the unique index
+    // and throws 23505. Pin onConflict to the real constraint columns so a re-detect is
+    // idempotent (updates the existing row instead of inserting a duplicate).
     await supabaseClient
       .from('business_countries')
       .upsert({
@@ -195,7 +224,7 @@ serve(async (req) => {
         registration_required: registrationRequired,
         registration_status: hasExistingRegistration ? 'active' : (registrationRequired ? 'required' : 'not_required'),
         tax_collection_enabled: hasExistingRegistration
-      });
+      }, { onConflict: 'user_id,country_code' });
 
     logStep('Tax requirements detected', {
       businessCountry,
