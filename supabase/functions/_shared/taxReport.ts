@@ -227,6 +227,73 @@ export function computeRefundAdjustedRow(
 }
 
 /**
+ * F-TAX-23: build the booking_payments row for a WhatsApp / hosted-Checkout booking
+ * payment, so the charge becomes visible to the tax filing reports.
+ *
+ * The WhatsApp pay-and-book path (whatsapp-payment-handler) creates a hosted Stripe
+ * Checkout session and a whatsapp_payment_sessions row, but never a booking_payments
+ * row. The web path (create-booking-payment) is the only inserter, and the tax reports
+ * (generate-tax-report / export-tax-report) read FROM booking_payments, so a paid
+ * WhatsApp VAT charge showed EUR0 in the filing report. On checkout.session.completed
+ * the stripe-webhook now INSERTs a booking_payments row mirroring create-booking-payment.
+ *
+ * This builder is PURE (no IO) so the row shape can be unit-asserted. It mirrors
+ * create-booking-payment's insert EXACTLY for the columns the reports + the
+ * F-TAX-21 retrieveBookingPaymentIntent rely on:
+ *  - stripe_payment_intent_id (UNIQUE -> the natural idempotency key)
+ *  - stripe_account_id  = the CONNECTED account the destination charge transfers to
+ *                         (transfer_data.destination), which is exactly the value the
+ *                         reports filter booking_payments by. NOT the platform account.
+ *  - amount_cents       = paymentIntent.amount (the GROSS total incl. tax).
+ *  - currency           = paymentIntent.currency.
+ *  - status 'succeeded' = the report filter is status IN (succeeded, completed).
+ *  - platform_fee_cents = the application fee (so app-state stays consistent).
+ *  - customer_email/name= carried from the booking for the report's display join.
+ *  - payment_method_type= best-effort from the PI/charge.
+ * The tax itself is read by the reports from the PI metadata.tax_amount (which
+ * whatsapp-payment-handler now stamps), NOT from this row, so no tax column is needed.
+ */
+export interface WhatsappPaymentRowInput {
+  bookingId: string;
+  paymentIntentId: string;
+  connectedAccountId: string;
+  amountCents: number;
+  currency: string;
+  applicationFeeCents?: number | null;
+  customerEmail?: string | null;
+  customerName?: string | null;
+  paymentMethodType?: string | null;
+}
+
+export interface BookingPaymentRow {
+  booking_id: string;
+  stripe_payment_intent_id: string;
+  stripe_account_id: string;
+  amount_cents: number;
+  currency: string;
+  platform_fee_cents: number;
+  status: 'succeeded';
+  customer_email: string | null;
+  customer_name: string | null;
+  payment_method_type: string | null;
+}
+
+export function buildWhatsappBookingPaymentRow(input: WhatsappPaymentRowInput): BookingPaymentRow {
+  return {
+    booking_id: input.bookingId,
+    stripe_payment_intent_id: input.paymentIntentId,
+    stripe_account_id: input.connectedAccountId,
+    amount_cents: Math.round(input.amountCents),
+    currency: (input.currency || 'eur').toLowerCase(),
+    platform_fee_cents: Math.max(0, Math.round(input.applicationFeeCents ?? 0)),
+    status: 'succeeded',
+    customer_email: input.customerEmail ?? null,
+    customer_name: input.customerName ?? null,
+    payment_method_type: input.paymentMethodType ?? null,
+  };
+}
+
+/**
  * F-TAX-18: decide the per-country registration status from the merchant's
  * AGGREGATE revenue (summed across all of the owner's calendars), not a single
  * calendar's revenue. registration_required when aggregate >= threshold;

@@ -9,6 +9,7 @@
 // Run: deno test supabase/functions/_shared/taxReport.test.ts
 import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import {
+  buildWhatsappBookingPaymentRow,
   computeRefundAdjustedRow,
   computeRegistrationStatus,
   resolvePaymentTaxCents,
@@ -295,4 +296,88 @@ Deno.test("F-TAX-21: a non-missing error (auth/network) is re-thrown immediately
   // pointless connected retry that would also fail).
   assertEquals(calls.length, 1);
   assertEquals(calls[0], "platform");
+});
+
+// ---------------------------------------------------------------------------
+// F-TAX-23: the WhatsApp / hosted-Checkout pay-and-book path must create a
+// booking_payments row (the web path's only inserter is create-booking-payment),
+// or the tax filing reports (which read FROM booking_payments) show EUR0 VAT on a
+// real WhatsApp charge. buildWhatsappBookingPaymentRow builds that row, mirroring
+// create-booking-payment's shape for every column the reports + retrieveBookingPaymentIntent
+// rely on. The stripe_account_id MUST be the CONNECTED destination account (what the
+// reports filter by), the status MUST be 'succeeded' (the report filter), and the
+// amount/currency come straight from the charged PI.
+// ---------------------------------------------------------------------------
+
+Deno.test("F-TAX-23: row mirrors the web-path shape (connected acct, gross amount, succeeded)", () => {
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_1",
+    paymentIntentId: "pi_wa_1",
+    connectedAccountId: "acct_connected",
+    amountCents: 12100, // 121.00 gross (100 + 21% VAT)
+    currency: "EUR",
+    applicationFeeCents: 255,
+    customerEmail: "c@example.com",
+    customerName: "Customer One",
+    paymentMethodType: "ideal",
+  });
+  assertEquals(row, {
+    booking_id: "bk_1",
+    stripe_payment_intent_id: "pi_wa_1",
+    // The reports filter booking_payments by stripe_account_id == the connected
+    // destination account, NOT the platform account.
+    stripe_account_id: "acct_connected",
+    amount_cents: 12100,
+    currency: "eur", // normalized lowercase to match the schema default + web path
+    platform_fee_cents: 255,
+    status: "succeeded", // report filter is status IN (succeeded, completed)
+    customer_email: "c@example.com",
+    customer_name: "Customer One",
+    payment_method_type: "ideal",
+  });
+});
+
+Deno.test("F-TAX-23: defaults are safe (missing fee/customer/method, currency fallback)", () => {
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_2",
+    paymentIntentId: "pi_wa_2",
+    connectedAccountId: "acct_x",
+    amountCents: 5000,
+    currency: "",
+  });
+  assertEquals(row.platform_fee_cents, 0);
+  assertEquals(row.currency, "eur");
+  assertEquals(row.customer_email, null);
+  assertEquals(row.customer_name, null);
+  assertEquals(row.payment_method_type, null);
+  assertEquals(row.status, "succeeded");
+});
+
+Deno.test("F-TAX-23: amount/fee are rounded to integer cents (no fractional cents)", () => {
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_3",
+    paymentIntentId: "pi_wa_3",
+    connectedAccountId: "acct_y",
+    amountCents: 12100.4,
+    currency: "eur",
+    applicationFeeCents: 254.6,
+  });
+  assertEquals(row.amount_cents, 12100);
+  assertEquals(row.platform_fee_cents, 255);
+});
+
+Deno.test("F-TAX-23: idempotency key is the PI id, identical across retries (no double row)", () => {
+  // Two builds for the SAME charge (a webhook retry / dual-event) produce the SAME
+  // stripe_payment_intent_id, which is the UNIQUE upsert conflict target, so the
+  // second is a no-op at the DB layer (ignoreDuplicates) instead of a second row.
+  const a = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_4", paymentIntentId: "pi_wa_4", connectedAccountId: "acct_z",
+    amountCents: 12100, currency: "eur",
+  });
+  const b = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_4", paymentIntentId: "pi_wa_4", connectedAccountId: "acct_z",
+    amountCents: 12100, currency: "eur",
+  });
+  assertEquals(a.stripe_payment_intent_id, b.stripe_payment_intent_id);
+  assertEquals(a, b);
 });

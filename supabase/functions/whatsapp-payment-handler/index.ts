@@ -197,15 +197,26 @@ serve(async (req) => {
     let amountCents = Math.round(serviceType.price * 100);
 
     // Tax (mirror create-booking-payment so the WhatsApp payment matches the web
-    // payment — previously the WhatsApp path charged the untaxed price, an
+    // payment; previously the WhatsApp path charged the untaxed price, an
     // inconsistent amount for the same service). Exclusive tax is added on top;
     // inclusive tax is already in the price so the amount is unchanged.
-    if (serviceType.tax_enabled && serviceType.tax_code && serviceType.applicable_tax_rate) {
+    // F-TAX-23: also TRACK the VAT in cents and stamp it onto the PaymentIntent
+    // metadata (tax_amount, as a EUR string) below, exactly like create-booking-payment.
+    // The tax filing reports read the tax from PI metadata.tax_amount via
+    // resolvePaymentTaxCents; without it a paid WhatsApp VAT charge reported 0% VAT.
+    let taxAmountCents = 0;
+    const taxEnabled = !!(serviceType.tax_enabled && serviceType.tax_code && serviceType.applicable_tax_rate);
+    if (taxEnabled) {
       const taxRate = serviceType.applicable_tax_rate / 100;
-      if (serviceType.tax_behavior !== 'inclusive') {
-        amountCents = Math.round(serviceType.price * (1 + taxRate) * 100);
+      if (serviceType.tax_behavior === 'inclusive') {
+        // Tax is already inside the price; report only the tax portion of the gross.
+        taxAmountCents = Math.round((serviceType.price * taxRate / (1 + taxRate)) * 100);
+      } else {
+        // Tax is exclusive: add it on top and report the added VAT.
+        taxAmountCents = Math.round(serviceType.price * taxRate * 100);
+        amountCents = Math.round(serviceType.price * 100) + taxAmountCents;
       }
-      logStep("Tax applied", { taxRate: serviceType.applicable_tax_rate, behavior: serviceType.tax_behavior, amountCents });
+      logStep("Tax applied", { taxRate: serviceType.applicable_tax_rate, behavior: serviceType.tax_behavior, amountCents, taxAmountCents });
     }
 
     if (paymentType === 'installment' && installmentPlan) {
@@ -289,6 +300,19 @@ serve(async (req) => {
           // handleBookingPaymentSucceeded / handleCheckoutCompleted confirm exactly
           // this booking on payment. Omitted for the legacy conversation-only flow.
           ...(bookingId ? { booking_id: bookingId } : {}),
+          // F-TAX-23: stamp the VAT onto the PI metadata exactly like
+          // create-booking-payment, so the tax filing reports (which read
+          // metadata.tax_amount via resolvePaymentTaxCents) see this WhatsApp charge's
+          // VAT instead of 0%. Only on a full taxed payment; an installment charges a
+          // partial amount whose per-payment VAT split is out of this fix's scope.
+          ...(taxEnabled && paymentType !== 'installment'
+            ? {
+                tax_amount: (taxAmountCents / 100).toString(),
+                tax_rate: serviceType.applicable_tax_rate?.toString() || '0',
+                tax_behavior: serviceType.tax_behavior || 'exclusive',
+                manual_tax_calculated: 'true',
+              }
+            : {}),
         },
       },
       metadata: {

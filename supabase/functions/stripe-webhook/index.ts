@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getCurrentPeriodEndISO } from "../_shared/subscriptionPeriod.ts";
+import { buildWhatsappBookingPaymentRow } from "../_shared/taxReport.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,11 @@ serve(async (req) => {
     const body = await req.text();
     let event: Stripe.Event;
     let isTestMode = false;
+    // The Stripe client that VERIFIED this event (TEST or LIVE). Captured here so the
+    // booking handlers can read back the PaymentIntent in the same mode (used by the
+    // F-TAX-23 booking_payments insert on WhatsApp Checkout completion). Mode is NEVER
+    // taken from the body: it is the secret that actually verified the signature.
+    let stripe: Stripe | null = null;
 
     // Deno's Stripe SDK only exposes async signature verification: its
     // SubtleCryptoProvider is async-only, so the synchronous constructEvent()
@@ -45,6 +51,7 @@ serve(async (req) => {
         const stripeTest = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_TEST")!, { apiVersion: "2023-10-16" });
         event = await stripeTest.webhooks.constructEventAsync(body, signature, webhookSecretTest, undefined, cryptoProvider);
         isTestMode = true;
+        stripe = stripeTest;
         console.log("✅ Webhook verified (TEST mode)");
       } catch (err) {
         // Try live mode
@@ -53,6 +60,7 @@ serve(async (req) => {
             const stripeLive = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_LIVE")!, { apiVersion: "2023-10-16" });
             event = await stripeLive.webhooks.constructEventAsync(body, signature, webhookSecretLive, undefined, cryptoProvider);
             isTestMode = false;
+            stripe = stripeLive;
             console.log("✅ Webhook verified (LIVE mode)");
           } catch (liveErr) {
             console.error("❌ Webhook signature verification failed (both modes)", liveErr);
@@ -73,6 +81,7 @@ serve(async (req) => {
         const stripeLive = new Stripe(Deno.env.get("STRIPE_SECRET_KEY_LIVE")!, { apiVersion: "2023-10-16" });
         event = await stripeLive.webhooks.constructEventAsync(body, signature, webhookSecretLive, undefined, cryptoProvider);
         isTestMode = false;
+        stripe = stripeLive;
         console.log("✅ Webhook verified (LIVE mode)");
       } catch (err) {
         console.error("❌ Webhook signature verification failed", err);
@@ -132,7 +141,7 @@ serve(async (req) => {
         break;
       
       case 'checkout.session.completed':
-        await handleCheckoutCompleted(supabase, event.data.object as Stripe.Checkout.Session, isTestMode);
+        await handleCheckoutCompleted(supabase, event.data.object as Stripe.Checkout.Session, isTestMode, stripe);
         break;
       
       case 'customer.subscription.trial_will_end':
@@ -142,7 +151,7 @@ serve(async (req) => {
       // Pay & Book: een boeking-PaymentIntent (create-booking-payment) is geslaagd ->
       // bevestig de boeking + stuur de bevestigingsmail die create-booking inhield.
       case 'payment_intent.succeeded':
-        await handleBookingPaymentSucceeded(supabase, event.data.object as Stripe.PaymentIntent);
+        await handleBookingPaymentSucceeded(supabase, event.data.object as Stripe.PaymentIntent, stripe);
         break;
 
       // Connect: a merchant's account capabilities changed (finished onboarding,
@@ -485,7 +494,8 @@ async function handlePaymentSucceeded(
 async function handleCheckoutCompleted(
   supabase: any,
   session: Stripe.Checkout.Session,
-  isTestMode: boolean
+  isTestMode: boolean,
+  stripe: Stripe | null
 ) {
   console.log(`✅ Checkout completed: ${session.id}`);
 
@@ -493,7 +503,7 @@ async function handleCheckoutCompleted(
   // booking_id in de metadata en heeft GEEN subscription. Bevestig + mail de boeking.
   const bookingId = session.metadata?.booking_id;
   if (bookingId) {
-    await confirmBookingPaid(supabase, bookingId, session.payment_intent as string);
+    await confirmBookingPaid(supabase, bookingId, session.payment_intent as string, stripe);
     return;
   }
 
@@ -560,7 +570,8 @@ async function handleTrialWillEnd(
 // Idempotent: webhook-retries mogen de boeking niet dubbel bevestigen of mailen.
 async function handleBookingPaymentSucceeded(
   supabase: any,
-  paymentIntent: Stripe.PaymentIntent
+  paymentIntent: Stripe.PaymentIntent,
+  stripe: Stripe | null
 ) {
   const bookingId = paymentIntent.metadata?.booking_id;
   if (!bookingId) {
@@ -568,7 +579,9 @@ async function handleBookingPaymentSucceeded(
     return;
   }
   console.log(`💳 Booking payment succeeded: PI ${paymentIntent.id} -> booking ${bookingId}`);
-  await confirmBookingPaid(supabase, bookingId, paymentIntent.id);
+  // The full PI is already in hand on this path, so pass it through: ensureBookingPaymentRow
+  // can record the row with no extra Stripe round-trip (and no transient-retrieve failure mode).
+  await confirmBookingPaid(supabase, bookingId, paymentIntent.id, stripe, paymentIntent);
 }
 
 // Gedeeld door beide betaal-routes (hosted Checkout: checkout.session.completed,
@@ -578,11 +591,15 @@ async function handleBookingPaymentSucceeded(
 async function confirmBookingPaid(
   supabase: any,
   bookingId: string,
-  paymentIntentId?: string | null
+  paymentIntentId?: string | null,
+  stripe?: Stripe | null,
+  // Optional: the already-resolved PaymentIntent (payment_intent.succeeded carries it).
+  // When supplied, ensureBookingPaymentRow skips the Stripe retrieve.
+  prefetchedPi?: Stripe.PaymentIntent | null
 ) {
   const { data: booking } = await supabase
     .from('bookings')
-    .select('id, payment_status')
+    .select('id, payment_status, customer_email, customer_name')
     .eq('id', bookingId)
     .maybeSingle();
 
@@ -590,6 +607,17 @@ async function confirmBookingPaid(
     console.error(`❌ Booking ${bookingId} not found`);
     return;
   }
+
+  // F-TAX-23: ensure the booking_payments row exists even for the WhatsApp /
+  // hosted-Checkout path BEFORE the already-paid short-circuit. The web path
+  // (create-booking-payment) inserts this row up front; the WhatsApp path never did,
+  // so a paid WhatsApp VAT charge was invisible to the tax filing reports (they read
+  // FROM booking_payments). We run this first so a retry that arrives after the
+  // booking is already 'paid' (the dual-event / Stripe-retry case) still backfills a
+  // missing row, and the UNIQUE(stripe_payment_intent_id) upsert below never
+  // double-inserts. No-op when a row already exists (web path, or a prior delivery).
+  await ensureBookingPaymentRow(supabase, bookingId, paymentIntentId, booking, stripe, prefetchedPi);
+
   if (booking.payment_status === 'paid') {
     console.log(`ℹ️ Booking ${bookingId} already paid; skipping (idempotent).`);
     return;
@@ -602,6 +630,8 @@ async function confirmBookingPaid(
     .eq('id', bookingId);
 
   // Werk de payment-rij bij (op PI-id indien bekend, anders op booking_id).
+  // (ensureBookingPaymentRow already wrote 'succeeded' for an inserted WhatsApp row;
+  // this keeps the web-path pending->succeeded transition working unchanged.)
   if (paymentIntentId) {
     await supabase.from('booking_payments')
       .update({ status: 'succeeded' })
@@ -622,6 +652,125 @@ async function confirmBookingPaid(
   }
 
   console.log(`✅ Booking ${bookingId} confirmed + paid`);
+}
+
+// F-TAX-23: idempotently INSERT the booking_payments row for a paid booking when one
+// does not already exist, so the WhatsApp / hosted-Checkout pay-and-book path becomes
+// visible to the tax filing reports (which read FROM booking_payments). The web path
+// (create-booking-payment) already inserts this row up front, so this is a no-op there.
+//
+// Idempotency (HARD requirement): the insert is an upsert on the UNIQUE
+// stripe_payment_intent_id with ignoreDuplicates, so a webhook retry, the dual-event
+// case (checkout.session.completed AND payment_intent.succeeded both fire for one
+// booking), and an already-existing web-path row can NEVER create a second row or
+// double-count in the reports.
+//
+// Charge economics are NOT touched: this only mirrors the already-charged PI into the
+// app's own booking_payments ledger; amount/fee/transfer were fixed at charge time by
+// whatsapp-payment-handler. The PI is READ (platform context) to copy its authoritative
+// amount/currency/destination; no money action is taken.
+async function ensureBookingPaymentRow(
+  supabase: any,
+  bookingId: string,
+  paymentIntentId: string | null | undefined,
+  booking: { customer_email?: string | null; customer_name?: string | null },
+  stripe?: Stripe | null,
+  prefetchedPi?: Stripe.PaymentIntent | null
+) {
+  // No PI id (legacy conversation-only flow) -> nothing to key the row on; skip.
+  if (!paymentIntentId) return;
+
+  // Already recorded (web path inserted it, or a prior delivery did) -> no-op.
+  // (The UNIQUE(stripe_payment_intent_id) upsert below is the actual race guard; this
+  // pre-check just avoids the Stripe retrieve + a write attempt on the common case.)
+  const { data: existing } = await supabase
+    .from('booking_payments')
+    .select('id')
+    .eq('stripe_payment_intent_id', paymentIntentId)
+    .maybeSingle();
+  if (existing) return;
+
+  // Resolve the PI's authoritative figures (amount, currency, the connected destination
+  // account the reports filter by, fee). On payment_intent.succeeded the PI is already in
+  // hand (prefetchedPi). Otherwise (checkout.session.completed) retrieve it on the PLATFORM
+  // account (destination charges live there, the F-TAX-21 seam) via the verifying client.
+  let pi: Stripe.PaymentIntent;
+  if (prefetchedPi && prefetchedPi.id === paymentIntentId) {
+    pi = prefetchedPi;
+  } else {
+    if (!stripe) {
+      console.error(`F-TAX-23: no Stripe client to read PI ${paymentIntentId}; cannot record booking_payments row.`);
+      return;
+    }
+    try {
+      pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ['latest_charge'] });
+    } catch (err) {
+      console.error(`F-TAX-23: failed to retrieve PI ${paymentIntentId} on platform; skipping row insert:`, (err as Error)?.message);
+      return;
+    }
+  }
+
+  // Only record a SETTLED charge as 'succeeded'. An async method (SEPA debit, or an iDEAL
+  // that resolves to 'processing') can complete the Checkout session before the money
+  // clears; recording it 'succeeded' would surface it in the VAT filing report before it
+  // settles. The reports filter status IN (succeeded, completed), so a not-yet-succeeded
+  // PI is simply not recorded here; the later payment_intent.succeeded event (which carries
+  // the PI with status 'succeeded') backfills the row. iDEAL/card (BA's default methods)
+  // are synchronous, so the row is created on first delivery.
+  if (pi.status !== 'succeeded') {
+    console.log(`F-TAX-23: PI ${paymentIntentId} status '${pi.status}' not yet succeeded; deferring booking_payments row to payment_intent.succeeded.`);
+    return;
+  }
+
+  // The connected account this destination charge transfers to == the value the tax
+  // reports filter booking_payments.stripe_account_id by. Read it from the PI itself.
+  const connectedAccountId = typeof pi.transfer_data?.destination === 'string'
+    ? pi.transfer_data.destination
+    : (pi.transfer_data?.destination as { id?: string } | undefined)?.id;
+
+  if (!connectedAccountId) {
+    console.error(`F-TAX-23: PI ${paymentIntentId} has no transfer_data.destination; not a destination charge, skipping row insert.`);
+    return;
+  }
+
+  // payment_method_type is a display/CSV column on the reports (tax math is unaffected).
+  // Only record it from the ACTUAL charge; if latest_charge is not expanded/available,
+  // leave it null (the reports default to 'card' when null) rather than guessing from the
+  // OFFERED payment_method_types list, which would mislabel the method actually used.
+  const latestCharge = (pi.latest_charge && typeof pi.latest_charge === 'object')
+    ? pi.latest_charge as Stripe.Charge
+    : null;
+  const paymentMethodType = latestCharge?.payment_method_details?.type ?? null;
+
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId,
+    paymentIntentId,
+    connectedAccountId,
+    amountCents: pi.amount,
+    currency: pi.currency,
+    applicationFeeCents: pi.application_fee_amount ?? 0,
+    customerEmail: booking.customer_email ?? null,
+    customerName: booking.customer_name ?? null,
+    paymentMethodType,
+  });
+
+  // Upsert on the UNIQUE PI id; ignoreDuplicates makes a concurrent dual-event / retry
+  // a no-op instead of a 23505 or a second row.
+  const { error: insertErr } = await supabase
+    .from('booking_payments')
+    .upsert(row, { onConflict: 'stripe_payment_intent_id', ignoreDuplicates: true });
+
+  if (insertErr) {
+    // A duplicate-key race is benign (the row exists); anything else is logged but
+    // never throws here (the report-visibility insert must not 500 the webhook).
+    if (insertErr.code === '23505') {
+      console.log(`F-TAX-23: booking_payments row for PI ${paymentIntentId} already existed (race); no-op.`);
+    } else {
+      console.error(`F-TAX-23: failed to insert booking_payments row for PI ${paymentIntentId}:`, insertErr.message);
+    }
+    return;
+  }
+  console.log(`F-TAX-23: recorded booking_payments row for PI ${paymentIntentId} (booking ${bookingId}, acct ${connectedAccountId}).`);
 }
 
 async function getTierFromPriceId(
