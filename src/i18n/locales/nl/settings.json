@@ -420,7 +420,7 @@
       },
       "billingTimeline": {
         "accessUntil": "Toegang tot",
-        "billingCycle": "Facturingscyclus",
+        "billingCycle": "Factureringscyclus",
         "lastPayment": "Laatste betaling",
         "nextBilling": "Volgende facturering",
         "paymentStatus": "Betalingsstatus",
@@ -486,7 +486,7 @@
       },
       "timeline": {
         "cycleUnavailable": "Cyclus niet beschikbaar",
-        "nextBillingUnavailable": "Volgende facturingsdatum niet beschikbaar",
+        "nextBillingUnavailable": "Volgende factureringsdatum niet beschikbaar",
         "noActiveSubscription": "Geen actief abonnement",
         "noBillingHistory": "Geen factureringsgeschiedenis",
         "noPaymentHistory": "Geen betalingsgeschiedenis",

@@ -2,6 +2,9 @@
   "language": {
     "label": "Taal"
   },
+  "dialog": {
+    "close": "Sluiten"
+  },
   "toasts": {
     "region": "Meldingen",
     "close": "Melding sluiten"

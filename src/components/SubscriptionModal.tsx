@@ -275,7 +275,8 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
   return (
     <TooltipProvider>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent 
+        <DialogContent
+          aria-label={t('pricing.modal.dialogLabel', 'Subscription plans')}
           className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !translate-x-0 !translate-y-0 !transform-none !rounded-none !border-none z-[9999]"
           style={{
             overflow: 'hidden',
@@ -326,6 +327,7 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
+                    aria-label={t('pricing.modal.closeLabel', 'Close')}
                     className="h-10 w-10 hover:bg-white/10 text-white"
                   >
                     <X className="h-5 w-5" />
@@ -342,20 +344,22 @@ export function SubscriptionModal({ isOpen, onClose, userType }: SubscriptionMod
                   <div className="flex">
                     <button
                       onClick={() => setIsAnnual(false)}
+                      aria-pressed={!isAnnual}
                       className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 ${
                         !isAnnual
-                          ? 'bg-emerald-500 text-white shadow-lg'
-                          : 'text-slate-300 hover:text-white'
+                          ? 'bg-emerald-700 text-white shadow-lg'
+                          : 'text-slate-200 hover:text-white'
                       }`}
                     >
                       {t('pricing.billingMonthly', 'Monthly')}
                     </button>
                     <button
                       onClick={() => setIsAnnual(true)}
+                      aria-pressed={isAnnual}
                       className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm md:text-base font-medium transition-all duration-300 relative ${
                         isAnnual
-                          ? 'bg-emerald-500 text-white shadow-lg'
-                          : 'text-slate-300 hover:text-white'
+                          ? 'bg-emerald-700 text-white shadow-lg'
+                          : 'text-slate-200 hover:text-white'
                       }`}
                     >
                       {t('pricing.billingAnnual', 'Annual')}

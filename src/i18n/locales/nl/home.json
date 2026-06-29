@@ -166,7 +166,9 @@
       "choosePlan": "Kies abonnement",
       "errorTitle": "Fout",
       "errPriceConfig": "Prijsconfiguratie niet beschikbaar. Probeer het later opnieuw.",
-      "errCheckout": "Het afrekenen kon niet worden gestart. Probeer het opnieuw."
+      "errCheckout": "Het afrekenen kon niet worden gestart. Probeer het opnieuw.",
+      "dialogLabel": "Abonnementen",
+      "closeLabel": "Sluiten"
     },
     "plans": {
       "starter": {
