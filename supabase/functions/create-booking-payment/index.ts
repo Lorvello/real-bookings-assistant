@@ -85,11 +85,28 @@ serve(async (req) => {
 
     logStep("Booking fetched", { bookingId: booking.id, serviceName: booking.service_types?.name });
 
+    // SECURITY (confused-deputy / payment mis-routing): the booking, authorized by its
+    // confirmation_token above, is the single source of truth for which calendar (and
+    // therefore which Connect destination account, fee settings and amount) this payment
+    // belongs to. NEVER trust the client-supplied calendar_id for routing: a caller
+    // holding a valid token for booking A could otherwise pass calendar_id=B and route
+    // A's destination charge to merchant B's account (or apply B's lower platform fee).
+    // Pin everything downstream to the booking's own calendar_id. The sibling pay fns
+    // (whatsapp-payment-handler, create-installment-payment) already bind to the
+    // conversation's calendar; this matches that invariant.
+    const effectiveCalendarId = booking.calendar_id;
+    if (calendar_id && calendar_id !== effectiveCalendarId) {
+      logStep("Ignoring mismatched client calendar_id; using booking's own calendar", {
+        clientCalendarId: calendar_id,
+        bookingCalendarId: effectiveCalendarId,
+      });
+    }
+
     // Get payment settings for this calendar
     const { data: paymentSettings, error: settingsError } = await supabaseClient
       .from("payment_settings")
       .select("*")
-      .eq("calendar_id", calendar_id)
+      .eq("calendar_id", effectiveCalendarId)
       .single();
 
     if (settingsError) {
@@ -134,11 +151,11 @@ serve(async (req) => {
       );
     }
 
-    // Get the calendar owner for Stripe account lookup
+    // Get the calendar owner for Stripe account lookup (booking's own calendar).
     const { data: calendarOwner } = await supabaseClient
       .from("calendars")
       .select("user_id")
-      .eq("id", calendar_id)
+      .eq("id", effectiveCalendarId)
       .single();
 
     if (!calendarOwner) {
@@ -234,7 +251,7 @@ serve(async (req) => {
     const { data: calendarData } = await supabaseClient
       .from("calendars")
       .select("user_id")
-      .eq("id", calendar_id)
+      .eq("id", effectiveCalendarId)
       .single();
 
     const { data: userData } = await supabaseClient
@@ -257,7 +274,7 @@ serve(async (req) => {
       },
       metadata: {
         booking_id: booking.id,
-        calendar_id: calendar_id,
+        calendar_id: effectiveCalendarId,
         customer_email: booking.customer_email || '',
         customer_name: booking.customer_name,
         service_name: service?.name || 'Appointment Service',
