@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents } from "../_shared/taxReport.ts";
+import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -175,12 +175,15 @@ serve(async (req) => {
 
     for (const payment of payments || []) {
       try {
-        // Fetch the payment intent from Stripe to get tax data; expand
-        // latest_charge to read the authoritative refunded amount (F-TAX-17).
-        const paymentIntent = await stripe.paymentIntents.retrieve(
+        // F-TAX-21: retrieve in the correct account context (platform for
+        // destination charges, connected for installment direct charges) via the
+        // shared helper; expand latest_charge to read the authoritative refunded
+        // amount (F-TAX-17). Re-throws (not swallowed) if both contexts miss.
+        const paymentIntent = await retrieveBookingPaymentIntent(
+          stripe,
           payment.stripe_payment_intent_id,
-          { expand: ['latest_charge'] },
-          { stripeAccount: stripeAccount.stripe_account_id }
+          stripeAccount.stripe_account_id,
+          ['latest_charge'],
         );
 
         // F-TAX-02: identical authoritative tax-source resolution as
@@ -219,7 +222,9 @@ serve(async (req) => {
         ]);
 
       } catch (stripeError) {
-        logStep('Error fetching payment intent for export', { paymentId: payment.stripe_payment_intent_id, error: stripeError.message });
+        // F-TAX-21: surface a PI that could not be read in any account context
+        // instead of silently dropping it from the export.
+        logStep('DROPPED row: payment intent unreadable in any account context', { paymentId: payment.stripe_payment_intent_id, error: stripeError.message });
       }
     }
 

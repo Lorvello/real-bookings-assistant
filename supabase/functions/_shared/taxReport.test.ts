@@ -13,7 +13,42 @@ import {
   computeRegistrationStatus,
   resolvePaymentTaxCents,
   resolveRefundedCents,
+  retrieveBookingPaymentIntent,
 } from "./taxReport.ts";
+
+import { assertRejects } from "https://deno.land/std@0.190.0/testing/asserts.ts";
+
+// A minimal Stripe double whose paymentIntents.retrieve resolves only when called in
+// the configured "live" account context (platform = no opts.stripeAccount; connected =
+// opts.stripeAccount === connectedId). Any other context throws a resource_missing
+// shaped error, exactly like the real Stripe SDK.
+function makeStripeDouble(
+  pi: Record<string, unknown>,
+  livesOn: "platform" | "connected",
+  connectedId: string,
+) {
+  const missing = () => {
+    const e = new Error("No such payment_intent") as Error & { code: string; statusCode: number };
+    e.code = "resource_missing";
+    e.statusCode = 404;
+    return e;
+  };
+  const calls: Array<{ ctx: "platform" | "connected" }> = [];
+  return {
+    calls,
+    paymentIntents: {
+      // deno-lint-ignore no-explicit-any
+      retrieve: (_id: string, _params?: any, opts?: { stripeAccount?: string }) => {
+        const ctx: "platform" | "connected" = opts?.stripeAccount ? "connected" : "platform";
+        calls.push({ ctx });
+        if (ctx === livesOn && (ctx === "platform" || opts?.stripeAccount === connectedId)) {
+          return Promise.resolve(pi);
+        }
+        return Promise.reject(missing());
+      },
+    },
+  };
+}
 
 Deno.test("F-TAX-02: automatic_tax amount_details.tax.amount is authoritative when present", () => {
   // gross 12100 cents (121.00), Stripe-calculated tax 2100 cents (21.00)
@@ -193,4 +228,71 @@ Deno.test("F-TAX-18: aggregate below 80% -> neither", () => {
 Deno.test("F-TAX-18: aggregate exactly at threshold -> required", () => {
   const status = computeRegistrationStatus(20000, 20000);
   assertEquals(status.registrationRequired, true);
+});
+
+// ---------------------------------------------------------------------------
+// F-TAX-21: report PI retrieval must use the CORRECT account context.
+// Real booking-flow charges are DESTINATION charges on the PLATFORM account;
+// installment charges are DIRECT charges on the CONNECTED account. The shared
+// retriever tries platform first then connected, and re-throws if both miss so
+// the dropped transaction is surfaced (not silently swallowed).
+// ---------------------------------------------------------------------------
+
+Deno.test("F-TAX-21: destination-charge PI is found in PLATFORM context (the real-booking case)", async () => {
+  const pi = { id: "pi_dest", amount: 12100, metadata: { tax_amount: "21.00" } };
+  const s = makeStripeDouble(pi, "platform", "acct_connected");
+  const got = await retrieveBookingPaymentIntent(s, "pi_dest", "acct_connected", ["latest_charge"]);
+  assertEquals((got as { id: string }).id, "pi_dest");
+  // Platform context tried first and succeeded; connected never called.
+  assertEquals(s.calls.length, 1);
+  assertEquals(s.calls[0].ctx, "platform");
+});
+
+Deno.test("F-TAX-21: installment direct-charge PI falls back to CONNECTED context", async () => {
+  const pi = { id: "pi_installment", amount: 5000 };
+  const s = makeStripeDouble(pi, "connected", "acct_connected");
+  const got = await retrieveBookingPaymentIntent(s, "pi_installment", "acct_connected", ["latest_charge"]);
+  assertEquals((got as { id: string }).id, "pi_installment");
+  // Platform tried (miss) then connected (hit).
+  assertEquals(s.calls.length, 2);
+  assertEquals(s.calls[0].ctx, "platform");
+  assertEquals(s.calls[1].ctx, "connected");
+});
+
+Deno.test("F-TAX-21: PI missing in BOTH contexts RE-THROWS (surfaced, not swallowed)", async () => {
+  // livesOn a different connected id than we pass -> both platform and the passed
+  // connected context miss.
+  const pi = { id: "pi_orphan" };
+  const s = makeStripeDouble(pi, "connected", "acct_other");
+  await assertRejects(
+    () => retrieveBookingPaymentIntent(s, "pi_orphan", "acct_connected", ["latest_charge"]),
+    Error,
+    "resource_missing in both",
+  );
+  assertEquals(s.calls.length, 2); // platform then connected, both attempted
+});
+
+Deno.test("F-TAX-21: a non-missing error (auth/network) is re-thrown immediately, no connected fallback", async () => {
+  const authErr = new Error("Invalid API Key") as Error & { code: string; statusCode: number };
+  authErr.code = "authentication_error";
+  authErr.statusCode = 401;
+  const calls: Array<string> = [];
+  const s = {
+    paymentIntents: {
+      // deno-lint-ignore no-explicit-any
+      retrieve: (_id: string, _p?: any, opts?: { stripeAccount?: string }) => {
+        calls.push(opts?.stripeAccount ? "connected" : "platform");
+        return Promise.reject(authErr);
+      },
+    },
+  };
+  await assertRejects(
+    () => retrieveBookingPaymentIntent(s, "pi_x", "acct_connected", ["latest_charge"]),
+    Error,
+    "Invalid API Key",
+  );
+  // Only the platform attempt happened; a non-missing error short-circuits (no
+  // pointless connected retry that would also fail).
+  assertEquals(calls.length, 1);
+  assertEquals(calls[0], "platform");
 });

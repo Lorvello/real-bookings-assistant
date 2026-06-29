@@ -86,6 +86,74 @@ export function resolveRefundedCents(paymentIntent: RefundablePaymentIntent): nu
   return 0;
 }
 
+/**
+ * F-TAX-21: retrieve a booking PaymentIntent in the CORRECT Stripe account context.
+ *
+ * The product has TWO charge models and the report retrieval must match each:
+ *  - DESTINATION charges (create-booking-payment, whatsapp-payment-handler,
+ *    create-checkout service bookings): created with transfer_data.destination +
+ *    application_fee_amount and NO stripeAccount header, so the PI lives on the
+ *    PLATFORM account. These are the REAL booking-flow charges.
+ *  - DIRECT charges (create-installment-payment): created WITH a stripeAccount
+ *    header, so the PI lives on the CONNECTED account.
+ *
+ * Before this fix the reports retrieved every PI with { stripeAccount: connected },
+ * which is correct for installment PIs but throws `resource_missing` for the
+ * destination-charge PIs that back real bookings, and the per-payment try silently
+ * swallowed it -> the transaction was dropped -> filing reports showed EUR0 VAT on
+ * real charges.
+ *
+ * This helper tries the PLATFORM context first (where the real booking-flow
+ * destination charges live, the dominant case), then falls back to the CONNECTED
+ * context (installment direct charges). If BOTH miss it RE-THROWS so the seam is
+ * visible (callers log it as a dropped transaction instead of silently swallowing).
+ * It does NOT change any charge economics; it only changes how the report READS the
+ * PI back.
+ *
+ * `stripe` is a Stripe client. `Sentinel` typing kept loose (Deno esm import).
+ */
+export async function retrieveBookingPaymentIntent(
+  // deno-lint-ignore no-explicit-any
+  stripe: any,
+  paymentIntentId: string,
+  connectedAccountId: string,
+  // deno-lint-ignore no-explicit-any
+  expand: string[] = ['latest_charge'],
+  // deno-lint-ignore no-explicit-any
+): Promise<any> {
+  const isResourceMissing = (err: unknown): boolean => {
+    const e = err as { code?: string; statusCode?: number; rawType?: string } | null;
+    return e?.code === 'resource_missing' || e?.statusCode === 404;
+  };
+
+  // 1) Platform context (no stripeAccount header) -> destination-charge PIs (real bookings).
+  try {
+    return await stripe.paymentIntents.retrieve(paymentIntentId, { expand });
+  } catch (platformErr) {
+    if (!isResourceMissing(platformErr)) {
+      // A non-missing error (auth, network, rate-limit) is a real failure: re-throw.
+      throw platformErr;
+    }
+    // 2) Connected-account context -> installment direct-charge PIs.
+    try {
+      return await stripe.paymentIntents.retrieve(
+        paymentIntentId,
+        { expand },
+        { stripeAccount: connectedAccountId },
+      );
+    } catch (connectedErr) {
+      if (isResourceMissing(connectedErr)) {
+        // Genuinely not found in either context: surface a clear, attributable error
+        // so the caller can LOG the dropped transaction (no longer silently swallowed).
+        throw new Error(
+          `PaymentIntent ${paymentIntentId} not found in platform or connected (${connectedAccountId}) context (resource_missing in both)`,
+        );
+      }
+      throw connectedErr;
+    }
+  }
+}
+
 export interface TaxReportRow {
   /** kept gross (gross minus the refunded amount), in cents */
   grossCents: number;

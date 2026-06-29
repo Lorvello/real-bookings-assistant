@@ -291,16 +291,27 @@ serve(async (req) => {
       },
     };
 
-    // Use Stripe Tax API for professional/enterprise tiers, or manual calculation for others
-    if (useStripeTaxAPI && service?.tax_enabled) {
-      paymentIntentData.automatic_tax = { enabled: true };
-      logStep("Using Stripe Tax API for automatic tax calculation");
-    } else if (automaticTaxEnabled) {
-      // Manual tax calculation is already included in the amount
+    // F-TAX-20: this is a DESTINATION charge (transfer_data + application_fee_amount).
+    // Stripe REJECTS automatic_tax on a destination-charge PaymentIntent ("Received
+    // unknown parameter: automatic_tax") -> a 500 and the PI is never created, so the
+    // customer cannot pay. Since F-TAX-13 makes trial users professional, the
+    // automatic_tax branch was the DEFAULT path for any tax-enabled service and broke
+    // the real charge for pro/enterprise merchants. The manual-tax calculation above
+    // already produced the correct total (tax is in `amount` and in
+    // metadata.tax_amount), and the tax reports read metadata.tax_amount, so we ALWAYS
+    // use the manual-tax metadata here and never set automatic_tax on a destination
+    // charge. (useStripeTaxAPI is retained for the metadata.subscription_tier signal
+    // only; Stripe Tax automatic calculation is not compatible with this charge model.)
+    if (automaticTaxEnabled) {
+      // Manual tax calculation is already included in `amount`; record the breakdown
+      // so the tax reports (which read metadata.tax_amount) see the correct VAT.
       paymentIntentData.metadata.manual_tax_calculated = 'true';
       paymentIntentData.metadata.tax_rate = service?.applicable_tax_rate?.toString() || '0';
       paymentIntentData.metadata.tax_behavior = service?.tax_behavior || 'exclusive';
-      logStep("Using manual tax calculation based on service configuration");
+      logStep("Using manual tax calculation based on service configuration", {
+        useStripeTaxAPI,
+        note: "automatic_tax is not set on a destination charge (Stripe rejects it)",
+      });
     }
 
     // Idempotency key: a double-click (two requests for the same booking + amount)

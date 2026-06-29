@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents } from "../_shared/taxReport.ts";
+import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -186,16 +186,21 @@ serve(async (req) => {
     let totalTax = 0;
     let totalNet = 0;
     let totalRefunded = 0;
+    let droppedTransactions = 0;
 
     for (const payment of payments || []) {
       try {
-        // Fetch the payment intent from Stripe to get detailed tax data. Expand
-        // latest_charge so we can read the AUTHORITATIVE refunded amount
-        // (charge.amount_refunded) directly from Stripe at report time (F-TAX-17).
-        const paymentIntent = await stripe.paymentIntents.retrieve(
+        // F-TAX-21: retrieve the PI in the CORRECT account context. Real booking-flow
+        // charges are DESTINATION charges that live on the PLATFORM account; installment
+        // charges are DIRECT charges on the CONNECTED account. The shared helper tries
+        // platform first then connected and re-throws if both miss, so a real PI is no
+        // longer silently dropped (which made filing reports show EUR0 VAT). Expand
+        // latest_charge so we can read the AUTHORITATIVE refunded amount (F-TAX-17).
+        const paymentIntent = await retrieveBookingPaymentIntent(
+          stripe,
           payment.stripe_payment_intent_id,
-          { expand: ['latest_charge'] },
-          { stripeAccount: stripeAccount.stripe_account_id }
+          stripeAccount.stripe_account_id,
+          ['latest_charge'],
         );
 
         // F-TAX-02: gross = the charged total; tax from the authoritative source
@@ -236,7 +241,12 @@ serve(async (req) => {
         });
 
       } catch (stripeError) {
-        logStep('Error fetching payment intent for report', {
+        // F-TAX-21: surface (do NOT silently swallow) a PI that could not be retrieved
+        // in either account context. Count it so the report can report data quality,
+        // but keep generating the rest of the report (one bad PI must not 500 the whole
+        // filing report).
+        droppedTransactions += 1;
+        logStep('DROPPED transaction: payment intent unreadable in any account context', {
           paymentId: payment.stripe_payment_intent_id,
           error: stripeError.message
         });
@@ -262,7 +272,10 @@ serve(async (req) => {
         businessName: userData.business_name || 'Business',
         stripeAccountId: stripeAccount.stripe_account_id,
         environment,
-        transactionCount: reportDetails.length
+        transactionCount: reportDetails.length,
+        // F-TAX-21: number of payments that could not be read from Stripe in any
+        // account context (surfaced, not silently swallowed). 0 in a healthy report.
+        droppedTransactions
       },
       summary: {
         // F-TAX-17: totalRevenue/totalTax/totalNet are NET OF REFUNDS (each row

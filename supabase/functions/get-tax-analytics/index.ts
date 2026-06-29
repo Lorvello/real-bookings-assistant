@@ -2,7 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 import { validateStripeMode } from '../_shared/stripeValidation.ts'
-import { resolveRefundedCents } from '../_shared/taxReport.ts'
+import { resolveRefundedCents, retrieveBookingPaymentIntent } from '../_shared/taxReport.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -202,10 +202,16 @@ serve(async (req) => {
           const stripe = new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' })
           for (const pay of paymentsForBookings) {
             try {
-              const pi = await stripe.paymentIntents.retrieve(
+              // F-TAX-21: retrieve in the correct account context (platform for
+              // destination charges, connected for installment direct charges) via the
+              // shared helper. Before this fix the connected-only retrieve threw
+              // resource_missing on every real destination-charge PI, so refunds on
+              // real bookings were silently never applied to analytics.
+              const pi = await retrieveBookingPaymentIntent(
+                stripe,
                 pay.stripe_payment_intent_id,
-                { expand: ['latest_charge'] },
-                { stripeAccount: pay.stripe_account_id }
+                pay.stripe_account_id,
+                ['latest_charge'],
               )
               const refundedCents = resolveRefundedCents(pi)
               const chargedCents = pi.amount || pay.amount_cents || 0
@@ -214,7 +220,11 @@ serve(async (req) => {
                 refundFractionByBooking[pay.booking_id] = keptFraction
               }
             } catch (refundErr) {
-              console.log('Could not read refund for PI', pay.stripe_payment_intent_id, (refundErr as Error)?.message)
+              // F-TAX-21: surface (do not silently swallow) an unreadable PI. Analytics
+              // revenue/tax come from bookings.total_price, so a refund we cannot read
+              // leaves the booking at full gross (a known, logged degradation) rather
+              // than crashing analytics.
+              console.log('F-TAX-21 refund read failed for PI', pay.stripe_payment_intent_id, (refundErr as Error)?.message)
             }
           }
         }
