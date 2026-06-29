@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { validateStripeMode } from '../_shared/stripeValidation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -101,15 +102,23 @@ serve(async (req) => {
     }
     logStep("User settings updated");
 
-    // Initialize Stripe with test/live key based on mode
-    const stripeKey = settings.test_mode 
+    // SECURITY (F-V05/F-V08/F-V09 mode-bypass class): pin the Stripe mode to the
+    // server's STRIPE_MODE, NEVER the client body. This fn previously read
+    // `settings.test_mode` from the request body, so an authed pro/enterprise user
+    // could send test_mode:false in a TEST deployment to instantiate a LIVE Stripe
+    // client and mint LIVE installment prices. validateStripeMode() defaults to test
+    // when STRIPE_MODE is unset. The body's `test_mode` field is now ignored.
+    const isTestMode = validateStripeMode().mode === 'test';
+
+    // Initialize Stripe with test/live key based on the server-pinned mode
+    const stripeKey = isTestMode
       ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
       : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
-    
+
     if (!stripeKey) {
-      throw new Error(`Stripe ${settings.test_mode ? 'test' : 'live'} key is not configured`);
+      throw new Error(`Stripe ${isTestMode ? 'test' : 'live'} key is not configured`);
     }
-    logStep("Stripe key found", { mode: settings.test_mode ? 'test' : 'live' });
+    logStep("Stripe key found", { mode: isTestMode ? 'test' : 'live' });
     
     const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
