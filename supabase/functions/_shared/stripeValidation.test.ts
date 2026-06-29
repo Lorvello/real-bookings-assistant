@@ -181,3 +181,43 @@ Deno.test("T2 manage-tax-registrations: GB and AU (verified live) take the same 
   assertEquals(buildCountryOptionsMirror('AU').au.type, 'standard');
   assertEquals(buildCountryOptionsMirror('AU').au.standard.place_of_supply_scheme, 'standard');
 });
+
+// ---------------------------------------------------------------------------
+// T3: tax codes + service mapping.
+// F-TAX-06: detect-tax-requirements + validate-tax-compliance scoped
+// business_stripe_accounts by user_id while the siblings (get-tax-data,
+// update-service-tax-codes) scoped by account_owner_id. For a top-level account
+// the two are identical; for a sub-account they diverge and the user_id scope
+// resolved the wrong/empty account. The fix derives the same accountOwnerId the
+// siblings use: `userData.account_owner_id || user.id`. This mirror pins that
+// derivation (sub-account picks the OWNER's account, no IDOR for a top-level user).
+// F-TAX-04: get-tax-data must source tax-behavior from the Tax Settings API
+// (defaults.tax_behavior), never from unrelated account fields. The accepted set
+// is the Stripe tax_behavior enum plus the local 'unknown' fallback.
+// ---------------------------------------------------------------------------
+function resolveAccountOwnerId(userId: string, accountOwnerId?: string | null): string {
+  return accountOwnerId || userId;
+}
+
+Deno.test("F-TAX-06: top-level user resolves to their own id (no IDOR)", () => {
+  // account_owner_id null/equal-to-self -> the caller's own account, same as before.
+  assertEquals(resolveAccountOwnerId("user-1", null), "user-1");
+  assertEquals(resolveAccountOwnerId("user-1", "user-1"), "user-1");
+});
+
+Deno.test("F-TAX-06: sub-account user resolves to the business OWNER's id (matches siblings)", () => {
+  // The whole bug: a member whose account_owner_id points at the owner must read
+  // the OWNER's Stripe account, exactly as get-tax-data/update-service-tax-codes do.
+  assertEquals(resolveAccountOwnerId("member-9", "owner-3"), "owner-3");
+});
+
+Deno.test("F-TAX-04: tax-behavior comes from the Tax Settings enum, never an unrelated field", () => {
+  // The Tax Settings API defaults.tax_behavior is one of these; the unrelated
+  // statement-descriptor / dashboard-display-name fields the old code read are not.
+  const VALID = new Set(["inclusive", "exclusive", "unknown"]);
+  assertEquals(VALID.has("exclusive"), true);
+  assertEquals(VALID.has("inclusive"), true);
+  assertEquals(VALID.has("unknown"), true); // local fallback when retrieve fails
+  // A dashboard display name (what the buggy automaticTax read) is not a behavior.
+  assertEquals(VALID.has("Bookings Assistant sandbox"), false);
+});

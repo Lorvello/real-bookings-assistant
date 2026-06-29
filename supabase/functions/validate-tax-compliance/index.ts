@@ -82,12 +82,29 @@ serve(async (req) => {
     const issues: ComplianceIssue[] = [];
     let complianceScore = 100;
 
+    // F-TAX-06 FIX: scope the Stripe account by account_owner_id to match the sibling
+    // tax fns (get-tax-data, update-service-tax-codes, detect-tax-requirements). The old
+    // `.eq('user_id', user.id)` diverged: for a sub-account it resolved the wrong/empty
+    // account, producing a misleading compliance score. account_owner_id falls back to
+    // the caller's own id for a top-level account, so no IDOR is introduced.
+    const { data: ownerData, error: ownerError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single();
+
+    if (ownerError) {
+      throw new Error(`Failed to fetch user data: ${ownerError.message}`);
+    }
+
+    const accountOwnerId = ownerData?.account_owner_id || user.id;
+
     // 1. Validate Stripe Connect Account
     logStep('Validating Stripe Connect account');
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_owner_id', accountOwnerId)
       .eq('environment', test_mode ? 'test' : 'live')
       .single();
 

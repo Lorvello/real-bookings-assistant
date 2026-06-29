@@ -1,10 +1,31 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validate the write payload. calendar_id / service_ids constrain WHICH of the
+// caller's own services get classified; business_country is an ISO-2 code that
+// selects the country tax-code map + rate, so it must be one of the supported
+// countries (no arbitrary string reaching the rate/map lookup). zod .object()
+// strips any other body fields.
+const SUPPORTED_COUNTRIES = ['NL', 'DE', 'FR', 'GB', 'US', 'CA', 'AU', 'ES', 'IT', 'BE', 'AT', 'DK', 'SE', 'FI'] as const;
+const AssignSchema = z.object({
+  calendar_id: z.string().uuid({ message: 'calendar_id must be a valid uuid' }).optional(),
+  service_ids: z.array(z.string().uuid({ message: 'each service_id must be a valid uuid' })).optional(),
+  business_country: z
+    .string()
+    .transform((c) => c.toUpperCase())
+    .refine((c) => (SUPPORTED_COUNTRIES as readonly string[]).includes(c), {
+      message: 'business_country must be a supported ISO-2 country code',
+    })
+    .optional()
+    .default('NL'),
+  bulk_update: z.boolean().optional().default(false),
+});
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -122,8 +143,17 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id, service_ids, business_country = 'NL', bulk_update = false } = await req.json();
-    logStep('Function started', { 
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = AssignSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      const firstMsg = parsed.error.issues[0]?.message || 'Invalid input';
+      return new Response(
+        JSON.stringify({ success: false, code: 'INVALID_INPUT', error: firstMsg, details: parsed.error.flatten().fieldErrors }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+    const { calendar_id, service_ids, business_country, bulk_update } = parsed.data;
+    logStep('Function started', {
       userId: user.id, 
       calendarId: calendar_id, 
       serviceIds: service_ids,

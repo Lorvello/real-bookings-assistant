@@ -105,17 +105,39 @@ serve(async (req) => {
 
     logStep('Found Stripe account', { accountId: stripeAccount.stripe_account_id });
 
-    // Fetch Stripe account settings for tax configuration
-    const account = await stripe.accounts.retrieve(stripeAccount.stripe_account_id);
-    
-    // Get tax settings from Stripe
-    const taxSettings = {
-      originAddress: account.company?.address || account.individual?.address || null,
-      defaultTaxBehavior: account.settings?.payments?.statement_descriptor_suffix_kana || 'exclusive',
-      taxCalculation: {
-        automaticTax: account.settings?.dashboard?.display_name || 'disabled'
-      }
+    // F-TAX-04 FIX: tax-behavior MUST come from the Stripe Tax Settings API, not
+    // from unrelated account fields. The old code read defaultTaxBehavior from
+    // `settings.payments.statement_descriptor_suffix_kana` (a JP statement-descriptor
+    // field, empirically null -> it always fell back to a hard-coded 'exclusive')
+    // and automaticTax from `settings.dashboard.display_name` (the dashboard label).
+    // The correct source is stripe.tax.settings.retrieve(): defaults.tax_behavior,
+    // defaults.tax_code and status. (Same retrieve get-tax-settings proved in T2.)
+    let taxSettings: {
+      originAddress: any;
+      defaultTaxBehavior: string;
+      presetProductTaxCode: string | null;
+      taxCalculation: { automaticTax: string };
+    } = {
+      originAddress: null,
+      defaultTaxBehavior: 'unknown',
+      presetProductTaxCode: null,
+      taxCalculation: { automaticTax: 'unknown' }
     };
+    let taxSettingsStatus = 'unknown';
+    try {
+      const settings = await stripe.tax.settings.retrieve({
+        stripeAccount: stripeAccount.stripe_account_id
+      });
+      taxSettingsStatus = settings.status || 'unknown';
+      taxSettings = {
+        originAddress: settings.head_office?.address || null,
+        defaultTaxBehavior: settings.defaults?.tax_behavior || 'unknown',
+        presetProductTaxCode: settings.defaults?.tax_code || null,
+        taxCalculation: { automaticTax: settings.status === 'active' ? 'enabled' : 'disabled' }
+      };
+    } catch (settingsError) {
+      logStep('Tax settings not available', { error: settingsError.message });
+    }
 
     // Get tax registrations from Stripe Tax
     let taxRegistrations = [];
@@ -296,12 +318,20 @@ serve(async (req) => {
           end: endDate.toISOString()
         }
       },
+      // F-TAX-04: surface the REAL tax-behavior + tax settings from the right source.
+      taxSettings: {
+        defaultTaxBehavior: taxSettings.defaultTaxBehavior,
+        presetProductTaxCode: taxSettings.presetProductTaxCode,
+        originAddress: taxSettings.originAddress,
+        settingsStatus: taxSettingsStatus
+      },
       stripeAccountStatus: {
         accountId: stripeAccount.stripe_account_id,
         country: stripeAccount.country || 'NL',
         chargesEnabled: stripeAccount.charges_enabled,
         payoutsEnabled: stripeAccount.payouts_enabled,
-        automaticTaxEnabled: true,
+        // Real automatic-tax status from the Tax Settings API, not a hard-coded true.
+        automaticTaxEnabled: taxSettingsStatus === 'active',
         connectionStatus: 'active'
       },
       connectedAccountId: stripeAccount.stripe_account_id,

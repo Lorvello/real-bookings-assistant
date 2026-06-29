@@ -92,11 +92,29 @@ serve(async (req) => {
     
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
+    // F-TAX-06 FIX: scope the Stripe account by account_owner_id to match the sibling
+    // tax fns (get-tax-data, update-service-tax-codes). The old `.eq('user_id', user.id)`
+    // diverged from the siblings: for a sub-account (where the caller's user_id differs
+    // from the business owner's account_owner_id) it resolved the wrong/empty account.
+    // account_owner_id resolves to the caller's own id for a top-level account, so no
+    // IDOR is introduced (still strictly the caller's own business).
+    const { data: ownerData, error: ownerError } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single();
+
+    if (ownerError) {
+      throw new Error(`Failed to fetch user data: ${ownerError.message}`);
+    }
+
+    const accountOwnerId = ownerData?.account_owner_id || user.id;
+
     // Get user's Stripe account
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_owner_id', accountOwnerId)
       .eq('environment', test_mode ? 'test' : 'live')
       .eq('charges_enabled', true)
       .single();
