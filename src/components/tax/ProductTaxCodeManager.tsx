@@ -32,8 +32,8 @@ interface TaxCode {
 const COMMON_TAX_CODES = [
   { id: 'txcd_10000000', name: 'General services', description: 'General services' },
   { id: 'txcd_10301000', name: 'Professional services', description: 'Professional, scientific, and technical services' },
-  { id: 'txcd_10401010', name: 'Beauty services', description: 'Beauty and barber services' },
-  { id: 'txcd_10401020', name: 'Health services', description: 'Health and wellness services' },
+  { id: 'txcd_20040001', name: 'Beauty services', description: 'Beauty and barber services' },
+  { id: 'txcd_20040002', name: 'Health services', description: 'Health and wellness services' },
   { id: 'txcd_10501000', name: 'Educational services', description: 'Educational services' },
   { id: 'txcd_10502000', name: 'Training services', description: 'Training and coaching services' },
   { id: 'txcd_10401000', name: 'Personal care services', description: 'Personal care services' },

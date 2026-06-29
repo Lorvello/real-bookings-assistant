@@ -6,4 +6,4 @@ ADD COLUMN tax_code TEXT;
 CREATE INDEX idx_service_types_tax_code ON public.service_types(tax_code);
 
 -- Add comment to explain the column
-COMMENT ON COLUMN public.service_types.tax_code IS 'Stripe tax code for this service type (e.g., txcd_10502001 for physical goods)';
+COMMENT ON COLUMN public.service_types.tax_code IS 'Stripe tax code for this service type (e.g., txcd_99999999 for physical goods)';

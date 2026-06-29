@@ -15,7 +15,7 @@ const TAX_CODE_LABELS: Record<string, string> = {
   'txcd_99999999': 'Professional Services',
   'txcd_10401000': 'Digital Services',
   'txcd_10103000': 'Software Services',
-  'txcd_10502001': 'Consulting Services',
+  'txcd_20060048': 'Consulting Services',
   'txcd_20030000': 'Educational Services'
 };
 

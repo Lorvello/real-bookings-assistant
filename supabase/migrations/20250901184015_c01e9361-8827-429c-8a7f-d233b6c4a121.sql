@@ -94,10 +94,10 @@ ON CONFLICT (country_code) DO NOTHING;
 
 -- Insert common service classifications
 INSERT INTO public.service_classifications (service_name, classification_keywords, suggested_category, confidence_score, country_specific_tax_codes) VALUES
-('Consultation', ARRAY['consult', 'advice', 'meeting', 'planning'], 'professional_services', 0.9, '{"NL": "txcd_30060000", "DE": "txcd_30060000", "GB": "txcd_30060000"}'),
+('Consultation', ARRAY['consult', 'advice', 'meeting', 'planning'], 'professional_services', 0.9, '{"NL": "txcd_20060000", "DE": "txcd_20060000", "GB": "txcd_20060000"}'),
 ('Massage Therapy', ARRAY['massage', 'therapy', 'wellness', 'relaxation'], 'personal_care', 0.95, '{"NL": "txcd_20030000", "DE": "txcd_20030000", "GB": "txcd_20030000"}'),
-('Medical Check', ARRAY['medical', 'health', 'doctor', 'checkup'], 'medical', 0.9, '{"NL": "txcd_30070000", "DE": "txcd_30070000", "GB": "txcd_30070000"}'),
-('Legal Advice', ARRAY['legal', 'lawyer', 'attorney', 'law'], 'professional_services', 0.95, '{"NL": "txcd_30060000", "DE": "txcd_30060000", "GB": "txcd_30060000"}'),
+('Medical Check', ARRAY['medical', 'health', 'doctor', 'checkup'], 'medical', 0.9, '{"NL": "txcd_20060027", "DE": "txcd_20060027", "GB": "txcd_20060027"}'),
+('Legal Advice', ARRAY['legal', 'lawyer', 'attorney', 'law'], 'professional_services', 0.95, '{"NL": "txcd_20060000", "DE": "txcd_20060000", "GB": "txcd_20060000"}'),
 ('Fitness Training', ARRAY['fitness', 'training', 'exercise', 'workout'], 'personal_care', 0.85, '{"NL": "txcd_20030000", "DE": "txcd_20030000", "GB": "txcd_20030000"}')
 ON CONFLICT DO NOTHING;
 
