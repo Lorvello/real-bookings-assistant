@@ -139,8 +139,13 @@ export const NoShowCalculator: React.FC = () => {
       </div>
 
       <div className="text-center">
-        <Link to="/contact">
-          <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Link to="/contact" className="block sm:inline-block">
+          {/* h-auto + whitespace-normal so the long (especially NL) label wraps inside
+              the card on narrow phones instead of overflowing past the edge (F-C3-01). */}
+          <Button
+            size="lg"
+            className="h-auto w-full whitespace-normal py-3 text-center sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
             {t('blogArticle.calculator.cta', 'See How We Can Help Recover This Revenue')} →
           </Button>
         </Link>

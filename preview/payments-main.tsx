@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Info } from 'lucide-react';
 import '@/index.css';
 import '@/i18n'; // bootstrap i18n so NL renders in this standalone harness (sim sweep)
@@ -101,6 +102,7 @@ function FlexibilityDemo({ required }: { required: boolean }) {
 }
 
 function Harness() {
+  const { t: tSettings } = useTranslation('settings');
   const [payout, setPayout] = useState<PayoutType>('standard');
   const [method, setMethod] = useState('ideal');
   const [fund, setFund] = useState(true);
@@ -142,8 +144,8 @@ function Harness() {
 
                   <SettingsSection
                     icon={CreditCard}
-                    title="Payment methods"
-                    description="Choose which methods customers can pay with."
+                    title={tSettings('settings.payments.methods.sectionTitle', 'Payment methods')}
+                    description={tSettings('settings.payments.methods.sectionDescription', 'Choose which methods customers can pay with.')}
                   >
                     <PaymentOptions
                       selectedMethods={methods}
@@ -171,7 +173,7 @@ function Harness() {
                   <Divider label="Flexibility — payment optional" />
                   <FlexibilityDemo required={false} />
 
-                  <SettingsSection icon={Info} title="How payments work" flush>
+                  <SettingsSection icon={Info} title={tSettings('settings.payments.howPaymentsWork', 'How payments work')} flush>
                     <div className="divide-y divide-white/[0.05]">
                       <FundFlowSection open={fund} onOpenChange={setFund} onLearnMoreFees={() => setFees(true)} />
                       <HowItWorksSection open={how} onOpenChange={setHow} paymentRequired={false} onScrollTo={noop} />
