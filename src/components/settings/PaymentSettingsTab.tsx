@@ -60,6 +60,8 @@ export function PaymentSettingsTab() {
     const method = PAYMENT_METHOD_FEES.find((m) => m.id === paymentMethod);
     if (!method) return 'N/A';
 
+    // Mirror of backend DEFAULT_PLATFORM_FEE_PERCENT (0.019) in feeCalculator.ts;
+    // parity enforced by src/tests/integration/platformFeeConstant.test.ts.
     const platformPercentage = 1.9;
     const platformFixed = payoutType === 'standard' ? 0.25 : 0.35;
     const stripePercentage = payoutType === 'standard' ? 0.25 : 1.0;

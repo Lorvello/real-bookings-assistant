@@ -46,7 +46,9 @@ const PAYOUT_FEES = {
   instant: 35,  // €0.35 per payout (€0.10 extra for instant)
 };
 
-// Default platform fee percentage
+// Default platform fee percentage. SOURCE OF TRUTH for the 1.9% fee.
+// Mirrored in the UI as `platformPercentage = 1.9` (PaymentSettingsTab.tsx);
+// kept in sync by src/tests/integration/platformFeeConstant.test.ts.
 const DEFAULT_PLATFORM_FEE_PERCENT = 0.019; // 1.9%
 
 /**
