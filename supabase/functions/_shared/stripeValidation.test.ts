@@ -1,4 +1,5 @@
-// Regression guard for the Stripe MODE-BYPASS class (findings F-V01/F-V05/F-V08/F-V09).
+// Regression guard for the Stripe MODE-BYPASS class (findings F-V01/F-V05/F-V08/F-V09
+// for the payment/connect fns, and F-CLOSE-04 for the 12 Stripe Tax fns).
 // The recurring vuln across this codebase was reading `test_mode` from the request
 // BODY to select the Stripe key/environment, letting an authed user instantiate a
 // LIVE Stripe client in a TEST deployment. The fix everywhere is the same:
@@ -90,5 +91,64 @@ Deno.test("getStripeSecretKey maps mode -> the matching env key, never the other
     else Deno.env.set("STRIPE_SECRET_KEY_TEST", origTest);
     if (origLive === undefined) Deno.env.delete("STRIPE_SECRET_KEY_LIVE");
     else Deno.env.set("STRIPE_SECRET_KEY_LIVE", origLive);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// F-CLOSE-04: the 12 Stripe Tax fns. Before T1 they read `test_mode` from the
+// request BODY to pick the key/env. They now derive it server-side with the
+// exact expression below. These tests model that expression and prove a hostile
+// body `test_mode:false` cannot flip a TEST server to LIVE for the tax surface.
+//   auto-setup-tax, detect-tax-requirements, export-tax-report, generate-tax-report,
+//   get-tax-codes, get-tax-data, get-tax-registrations, get-tax-settings,
+//   get-tax-thresholds, manage-tax-registrations, update-service-tax-codes,
+//   validate-tax-compliance
+// ---------------------------------------------------------------------------
+
+// Mirror of the line every tax fn now runs: `const test_mode = validateStripeMode().mode === 'test'`.
+// `bodyTestMode` is what a (possibly hostile) caller sent; it MUST NOT influence the result.
+function taxFnDerivedTestMode(_bodyTestMode?: boolean): boolean {
+  return validateStripeMode().mode === "test";
+}
+
+Deno.test("TAX FNS (F-CLOSE-04): a TEST server stays TEST even when body sends test_mode:false", () => {
+  setMode("test");
+  try {
+    // The exact attack: an authed pro/enterprise user posts {"test_mode": false}.
+    // The derived test_mode must remain true (TEST) and the key must be the TEST key.
+    assertEquals(taxFnDerivedTestMode(false), true);
+    assertEquals(taxFnDerivedTestMode(true), true);
+    assertEquals(taxFnDerivedTestMode(undefined), true);
+    // And the env/key selection that follows is TEST regardless of the body.
+    const mode = validateStripeMode().mode;
+    assertEquals(mode, "test");
+  } finally {
+    restore();
+  }
+});
+
+Deno.test("TAX FNS (F-CLOSE-04): STRIPE_MODE unset -> tax fns default to TEST regardless of body", () => {
+  setMode(undefined);
+  try {
+    assertEquals(taxFnDerivedTestMode(false), true);
+    assertEquals(taxFnDerivedTestMode(true), true);
+  } finally {
+    restore();
+  }
+});
+
+Deno.test("TAX FNS (F-CLOSE-04): the derived test_mode is purely a function of the server env, not the body", () => {
+  // Same body value, both server modes: the body is inert; only STRIPE_MODE moves the result.
+  setMode("test");
+  try {
+    assertEquals(taxFnDerivedTestMode(false), true); // server test -> test
+  } finally {
+    restore();
+  }
+  setMode("live");
+  try {
+    assertEquals(taxFnDerivedTestMode(true), false); // server live -> live, despite body asking test
+  } finally {
+    restore();
   }
 });

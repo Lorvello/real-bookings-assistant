@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,7 +35,11 @@ serve(async (req) => {
     }
 
     const requestBody = await req.json();
-    const { calendar_id, test_mode = true, start_date, end_date, quarter, year } = requestBody;
+    const { calendar_id, start_date, end_date, quarter, year } = requestBody;
+    // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
+    // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
+    // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
+    const test_mode = validateStripeMode().mode === 'test';
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient

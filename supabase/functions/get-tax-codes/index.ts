@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,7 +34,12 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { test_mode = true } = await req.json();
+    // SECURITY (F-CLOSE-04 mode-bypass class): the Stripe mode/key MUST be derived
+    // from the server's STRIPE_MODE, never from the request body. The body is still
+    // parsed (callers may send other fields), but its test_mode is now INERT for
+    // key/env selection. validateStripeMode() defaults to test when STRIPE_MODE is unset.
+    await req.json().catch(() => ({}));
+    const test_mode = validateStripeMode().mode === 'test';
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient
