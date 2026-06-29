@@ -55,11 +55,23 @@ serve(async (req) => {
       throw new Error('Calendar not found or access denied')
     }
 
+    // F-TAX-06 class: scope the business Stripe account by account_owner_id to
+    // match the sibling tax fns (a member sub-account, where user_id !=
+    // account_owner_id, otherwise resolves the wrong/empty bsa). The calendar
+    // ownership check above is the IDOR guard; this only resolves the caller's
+    // own business owner.
+    const { data: ownerData } = await supabaseClient
+      .from('users')
+      .select('account_owner_id')
+      .eq('id', user.id)
+      .single()
+    const accountOwnerId = ownerData?.account_owner_id || user.id
+
     // Get business Stripe account for country detection
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('account_owner_id', accountOwnerId)
       .eq('charges_enabled', true)
       .maybeSingle()
 

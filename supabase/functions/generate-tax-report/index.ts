@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import { resolvePaymentTaxCents } from "../_shared/taxReport.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +14,17 @@ const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[GENERATE-TAX-REPORT] ${step}${detailsStr}`);
 };
+
+// Server-pinned request schema. test_mode is intentionally NOT consumed here
+// (mode is derived from STRIPE_MODE; see the F-CLOSE-04 invariant); zod .strip()
+// drops any extra body fields (including a stale test_mode) without erroring.
+const reportRequestSchema = z.object({
+  calendar_id: z.string().uuid().optional(),
+  report_type: z.enum(['quarterly', 'monthly', 'annual']).default('quarterly'),
+  year: z.number().int().min(2000).max(2100).optional(),
+  quarter: z.number().int().min(1).max(4).optional(),
+  month: z.number().int().min(1).max(12).optional(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,13 +47,26 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = reportRequestSchema.safeParse(rawBody ?? {});
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'INVALID_INPUT',
+          error: parsed.error.errors[0]?.message || 'Invalid report request',
+          details: parsed.error.flatten().fieldErrors,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
     const {
       calendar_id,
-      report_type = 'quarterly',
+      report_type,
       year = new Date().getFullYear(),
       quarter = Math.floor(new Date().getMonth() / 3) + 1,
-      month
-    } = await req.json();
+      month,
+    } = parsed.data;
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
     // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
@@ -168,8 +194,12 @@ serve(async (req) => {
           { stripeAccount: stripeAccount.stripe_account_id }
         );
 
+        // F-TAX-02: gross = the charged total; tax from the authoritative source
+        // (Stripe automatic_tax amount_details.tax, else BA metadata.tax_amount);
+        // net = gross - tax; VAT rate = tax / net (net is the taxable base, so
+        // for an inclusive 21% amount: net 100, tax 21 -> 21% exact).
         const grossAmount = paymentIntent.amount / 100;
-        const taxAmount = (paymentIntent.amount_details?.tax?.amount || 0) / 100;
+        const taxAmount = resolvePaymentTaxCents(paymentIntent) / 100;
         const netAmount = grossAmount - taxAmount;
 
         totalRevenue += grossAmount;
@@ -185,7 +215,7 @@ serve(async (req) => {
           grossAmount,
           taxAmount,
           netAmount,
-          taxRate: taxAmount > 0 ? (taxAmount / netAmount) * 100 : 0,
+          taxRate: taxAmount > 0 && netAmount > 0 ? Math.round((taxAmount / netAmount) * 100 * 100) / 100 : 0,
           currency: payment.currency.toUpperCase(),
           paymentMethod: payment.payment_method_type || 'card'
         });
@@ -231,10 +261,11 @@ serve(async (req) => {
       transactions: reportDetails,
       taxBreakdown: {
         standardRate: {
-          rate: 21.0,
-          netAmount: totalNet,
-          taxAmount: totalTax,
-          grossAmount: totalRevenue
+          // Effective rate = total tax / total net (the taxable base), rounded to 2 dp.
+          rate: totalNet > 0 ? Math.round((totalTax / totalNet) * 100 * 100) / 100 : 0,
+          netAmount: Math.round(totalNet * 100) / 100,
+          taxAmount: Math.round(totalTax * 100) / 100,
+          grossAmount: Math.round(totalRevenue * 100) / 100
         }
       },
       complianceInfo: {

@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import { resolvePaymentTaxCents } from "../_shared/taxReport.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +14,15 @@ const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[EXPORT-TAX-REPORT] ${step}${detailsStr}`);
 };
+
+// Server-pinned export request schema (mode is derived from STRIPE_MODE; any
+// stale body test_mode is dropped silently by zod .strip()).
+const exportRequestSchema = z.object({
+  calendar_id: z.string().uuid().optional(),
+  quarter: z.number().int().min(1).max(4).default(1),
+  year: z.number().int().min(2000).max(2100).optional(),
+  format: z.enum(['csv']).default('csv'),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,7 +45,23 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id, quarter = 1, year = new Date().getFullYear(), format = 'csv' } = await req.json();
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = exportRequestSchema.safeParse(rawBody ?? {});
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          code: 'INVALID_INPUT',
+          error: parsed.error.errors[0]?.message || 'Invalid export request',
+          details: parsed.error.flatten().fieldErrors,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+    // format is validated (csv only) but not otherwise consumed; the response is
+    // always CSV.
+    const { calendar_id, quarter } = parsed.data;
+    const year = parsed.data.year ?? new Date().getFullYear();
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
     // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
@@ -152,10 +179,11 @@ serve(async (req) => {
           { stripeAccount: stripeAccount.stripe_account_id }
         );
 
+        // F-TAX-02: identical authoritative tax-source resolution as
+        // generate-tax-report (Stripe automatic_tax amount_details.tax, else BA
+        // metadata.tax_amount) so the CSV VAT/net match the report exactly.
         const grossAmount = paymentIntent.amount / 100;
-        const vatAmount = paymentIntent.automatic_tax?.enabled && paymentIntent.automatic_tax?.status === 'complete'
-          ? (paymentIntent.amount_details?.tax?.amount || 0) / 100
-          : 0;
+        const vatAmount = resolvePaymentTaxCents(paymentIntent) / 100;
         const netAmount = grossAmount - vatAmount;
 
         totalGross += grossAmount;
