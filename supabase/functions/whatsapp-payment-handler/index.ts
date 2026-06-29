@@ -305,20 +305,31 @@ serve(async (req) => {
       applicationFee: feeCalculation.applicationFeeCents 
     });
 
-    // Store payment session in Supabase
+    // Store payment session in Supabase.
+    // NOTE: whatsapp_payment_sessions only has these columns (migration
+    // 20250828223936, re-verified via Mgmt-API): conversation_id, service_type_id,
+    // calendar_id, amount_cents, currency, payment_type, installment_plan (jsonb),
+    // stripe_payment_intent_id, stripe_session_id, payment_status, payment_url,
+    // expires_at. The previous insert referenced installment_plan_id / status /
+    // test_mode (none of which exist), so an installment WhatsApp booking threw 42703
+    // here (500 plus an orphaned Stripe session plus an orphaned pending booking),
+    // the exact same failure mode as the create-installment-payment F-V07 bug. The
+    // installment plan is now stored on the installment_plan jsonb column; status maps
+    // to payment_status; test_mode is carried on the Stripe session metadata, not this table.
     const { data: paymentSession, error: sessionError } = await supabaseClient
       .from('whatsapp_payment_sessions')
       .insert({
         conversation_id: conversationId,
         service_type_id: serviceTypeId,
+        calendar_id: conversation.calendar_id,
         stripe_session_id: session.id,
-        payment_url: session.url,
+        payment_url: session.url || '',
         amount_cents: amountCents,
+        currency: 'eur',
         payment_type: paymentType,
-        installment_plan_id: installmentPlan?.id,
-        status: 'pending',
+        installment_plan: installmentPlan ?? null,
+        payment_status: 'pending',
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        test_mode: testMode
       })
       .select()
       .single()
