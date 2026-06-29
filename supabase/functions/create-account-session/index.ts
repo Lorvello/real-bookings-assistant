@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
+import { validateStripeMode } from "../_shared/stripeValidation.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,9 +39,17 @@ serve(async (req) => {
       )
     }
 
-    const { components, account_id, test_mode = true } = await req.json()
+    const { components, account_id } = await req.json()
 
-    // Get correct Stripe secret key based on test_mode
+    // SECURITY (F-V05): pin the Stripe mode to the server's STRIPE_MODE, never the
+    // client body. This fn previously read `test_mode` from the request body, so an
+    // authed user could send test_mode:false in a TEST deployment and make the fn
+    // instantiate a LIVE Stripe client + mint a LIVE embedded account session into
+    // their tax settings. Same mode-bypass class as F-V01 (stripe-connect-*).
+    // validateStripeMode() defaults to test when STRIPE_MODE is unset.
+    const test_mode = validateStripeMode().mode === 'test'
+
+    // Get correct Stripe secret key based on the server-pinned mode
     const stripeSecretKey = test_mode
       ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
       : Deno.env.get('STRIPE_SECRET_KEY_LIVE')

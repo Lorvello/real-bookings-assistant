@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,7 +34,13 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
-    const { test_mode = true } = await req.json();
+    // SECURITY (F-V05): pin the Stripe mode to the server's STRIPE_MODE, never the
+    // client body. This fn previously read `test_mode` from the request body, so an
+    // authed user could send test_mode:false in a TEST deployment and make the fn
+    // read requirements against a LIVE Stripe client. Same mode-bypass class as
+    // F-V01. validateStripeMode() defaults to test when STRIPE_MODE is unset.
+    await req.json().catch(() => ({}));
+    const test_mode = validateStripeMode().mode === 'test';
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient

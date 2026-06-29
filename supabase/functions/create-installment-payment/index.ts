@@ -304,27 +304,29 @@ serve(async (req) => {
       throw new Error('Failed to create booking');
     }
 
-    // Create WhatsApp payment session
+    // Create WhatsApp payment session.
+    // NOTE: whatsapp_payment_sessions only has these columns (see migration
+    // 20250828223936): conversation_id, service_type_id, calendar_id, amount_cents,
+    // currency, payment_type, installment_plan (jsonb), stripe_payment_intent_id,
+    // stripe_session_id, payment_status, payment_url, expires_at. The previous insert
+    // referenced stripe_session_url / customer_name / customer_phone / customer_email
+    // / metadata (none of which exist), so every installment booking threw 42703 at
+    // this insert (500 + orphaned Stripe session + orphaned pending booking). The
+    // booking linkage now lives on installment_payments.booking_id (inserted below);
+    // the schedule and customer data live on the booking row itself.
     const { data: paymentSession, error: sessionError } = await supabaseClient
       .from('whatsapp_payment_sessions')
       .insert({
         conversation_id: conversationId,
         service_type_id: serviceTypeId,
+        calendar_id: conversation.calendar_id,
         payment_type: 'installment',
         installment_plan: installmentPlan,
         stripe_session_id: session.id,
-        stripe_session_url: session.url || '',
+        payment_url: session.url || '',
         amount_cents: firstPayment.amount_cents,
         currency: 'eur',
-        customer_name: customerData.name,
-        customer_phone: customerData.phone,
-        customer_email: customerData.email,
         payment_status: 'pending',
-        metadata: {
-          booking_id: booking.id,
-          total_service_price: servicePriceCents,
-          installment_schedule: installments
-        }
       })
       .select()
       .single();

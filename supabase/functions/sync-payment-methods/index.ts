@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,9 +21,15 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { payment_methods: paymentMethods, calendar_id: calendarId, test_mode = false } = await req.json();
-    
-    const stripeSecretKey = test_mode 
+    const { payment_methods: paymentMethods, calendar_id: calendarId } = await req.json();
+
+    // SECURITY (F-V05 class): pin the Stripe mode to the server's STRIPE_MODE, never
+    // the client body. This fn previously read `test_mode` from the request body, so
+    // an authed user could send test_mode:false in a TEST deployment and sync payment
+    // methods against a LIVE Stripe client. validateStripeMode() defaults to test.
+    const test_mode = validateStripeMode().mode === 'test';
+
+    const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
     

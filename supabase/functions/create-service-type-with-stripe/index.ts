@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
+import { validateStripeMode } from '../_shared/stripeValidation.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,7 +47,13 @@ serve(async (req) => {
     //  B) { serviceTypeId, name?, price?, currency?, calendarId } -> service row already
     //     exists; create a Stripe price for it and store the price id on the row.
     const body = await req.json().catch(() => ({}));
-    const { serviceData, serviceTypeId, name, price, currency, calendarId, testMode = false } = body;
+    const { serviceData, serviceTypeId, name, price, currency, calendarId } = body;
+    // SECURITY (F-V05 class): pin the Stripe mode to the server's STRIPE_MODE, never
+    // the client body. This fn previously read `testMode` from the request body
+    // (defaulting to LIVE), so an authed user could send testMode:false in a TEST
+    // deployment and create a LIVE Stripe price + write stripe_live_price_id.
+    // validateStripeMode() defaults to test when STRIPE_MODE is unset.
+    const testMode = validateStripeMode().mode === 'test';
     const isExisting = !!serviceTypeId && !serviceData;
     logStep("Request parsed", { mode: isExisting ? 'existing' : 'create', hasServiceData: !!serviceData, testMode });
 
