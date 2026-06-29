@@ -44,20 +44,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    // Get the specific webhook event with endpoint
+    // Get the specific webhook event. NOTE: webhook_events and webhook_endpoints have
+    // NO direct FK (both only FK to calendars), so a PostgREST `webhook_endpoints!inner`
+    // embed throws PGRST200 ("no relationship found") and made EVERY retry 404. Fetch the
+    // event plainly, then resolve its active endpoint(s) by calendar_id (same pattern as
+    // process-webhooks).
     const { data: event, error: fetchError } = await supabase
       .from('webhook_events')
-      .select(`
-        *,
-        webhook_endpoints!inner(webhook_url, is_active)
-      `)
+      .select('*')
       .eq('id', eventId)
-      .eq('webhook_endpoints.is_active', true)
       .single()
 
     if (fetchError || !event) {
       return new Response(
-        JSON.stringify({ error: 'Webhook event not found or endpoint inactive' }),
+        JSON.stringify({ error: 'Webhook event not found' }),
         {
           status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -79,24 +79,56 @@ serve(async (req) => {
       )
     }
 
+    // Resolve active endpoints for this event's calendar.
+    const { data: endpoints } = await supabase
+      .from('webhook_endpoints')
+      .select('webhook_url, is_active')
+      .eq('calendar_id', event.calendar_id)
+      .eq('is_active', true)
+
+    if (!endpoints || endpoints.length === 0) {
+      // No active endpoint to deliver to: record a failed attempt so the row reflects
+      // the retry, and tell the caller why.
+      const attempts = (event.attempts || 0) + 1
+      await supabase
+        .from('webhook_events')
+        .update({ status: 'failed', attempts, last_attempt_at: new Date().toISOString() })
+        .eq('id', eventId)
+      return new Response(
+        JSON.stringify({ success: false, error: 'No active endpoint for this calendar', attempts }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     try {
-      // Send webhook to n8n
-      const response = await fetch(event.webhook_endpoints.webhook_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'CalendarApp-Webhook/1.0',
-        },
-        body: JSON.stringify({
-          event_type: event.event_type,
-          timestamp: event.created_at,
-          data: event.payload,
-          retry: true
+      // Deliver to every active endpoint; success = at least one OK (mirrors process-webhooks).
+      const results = await Promise.allSettled(endpoints.map((ep: { webhook_url: string }) =>
+        fetch(ep.webhook_url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'CalendarApp-Webhook/1.0',
+          },
+          body: JSON.stringify({
+            event_type: event.event_type,
+            timestamp: event.created_at,
+            data: event.payload,
+            retry: true
+          })
         })
-      })
+      ))
+
+      // Prefer an OK endpoint's status; fall back to the first response, else 0.
+      const okResult = results.find(r => r.status === 'fulfilled' && r.value.ok)
+      const anyResult = results.find(r => r.status === 'fulfilled')
+      const chosen = okResult ?? anyResult
+      const response = {
+        ok: !!okResult,
+        status: (chosen && chosen.status === 'fulfilled') ? chosen.value.status : 0,
+      }
 
       const success = response.ok
-      const attempts = event.attempts + 1
+      const attempts = (event.attempts || 0) + 1
 
       // Update webhook event status
       await supabase
@@ -123,20 +155,21 @@ serve(async (req) => {
       console.error(`Error retrying webhook ${eventId}:`, error)
       
       // Update failed attempt
+      const attempts = (event.attempts || 0) + 1
       await supabase
         .from('webhook_events')
         .update({
           status: 'failed',
-          attempts: event.attempts + 1,
+          attempts,
           last_attempt_at: new Date().toISOString()
         })
         .eq('id', eventId)
 
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: error.message,
-          attempts: event.attempts + 1
+        JSON.stringify({
+          success: false,
+          error: (error as Error)?.message,
+          attempts
         }),
         { 
           status: 500,
