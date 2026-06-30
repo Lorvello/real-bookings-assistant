@@ -24,18 +24,19 @@ const corsHeaders = {
 // retried on a later run, not silently lost). In TEST, x-test-stub-whatsapp lets the
 // harness assert the routing + dedup without contacting Meta.
 async function sendWhatsAppReminder(
-  r: { customer_phone: string; customer_name: string; business_name: string; start_time: string; reminder_number: number; customer_locale: "nl" | "en" },
+  r: { booking_id: string; customer_phone: string; customer_name: string; business_name: string; start_time: string; reminder_number: number; customer_locale: "nl" | "en" },
   stub: boolean,
 ): Promise<{ delivered: boolean; stubbed: boolean; reason?: string }> {
   if (stub) {
     // TEST-only: prove the branch was taken without sending. Treated as deliverable so the
-    // claim-then-send dedup path is exercised end-to-end.
-    console.log(`[whatsapp-reminder][stub] would send reminder ${r.reminder_number} to ${r.customer_phone} (${r.customer_locale})`);
+    // claim-then-send dedup path is exercised end-to-end. Log the booking_id (UUID), never
+    // the customer phone number (PII), matching this fn's logging discipline.
+    console.log(`[whatsapp-reminder][stub] would send reminder ${r.reminder_number} for booking ${r.booking_id} (${r.customer_locale})`);
     return { delivered: true, stubbed: true };
   }
   // HUMAN-GATE: approved Meta template + WHATSAPP_ACCESS_TOKEN send not yet wired here.
-  // Fail closed: do not mark sent.
-  console.warn(`[whatsapp-reminder] Meta template send is gated; booking reminder ${r.reminder_number} for ${r.customer_phone} left for retry.`);
+  // Fail closed: do not mark sent. Log the booking_id (UUID), never the phone (PII).
+  console.warn(`[whatsapp-reminder] Meta template send is gated; booking reminder ${r.reminder_number} for booking ${r.booking_id} left for retry.`);
   return { delivered: false, stubbed: false, reason: "meta_template_gated" };
 }
 
@@ -112,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
           email++;
         } else {
           const wa = await sendWhatsAppReminder(
-            { customer_phone: r.customer_phone, customer_name: r.customer_name, business_name: r.business_name, start_time: r.start_time, reminder_number: r.reminder_number, customer_locale: locale },
+            { booking_id: r.booking_id, customer_phone: r.customer_phone, customer_name: r.customer_name, business_name: r.business_name, start_time: r.start_time, reminder_number: r.reminder_number, customer_locale: locale },
             stubWhatsApp,
           );
           delivered = wa.delivered;

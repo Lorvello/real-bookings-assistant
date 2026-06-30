@@ -10,6 +10,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// E-6 / E-6b: the terminal/dead booking statuses a late payment must NEVER resurrect.
+// SINGLE source of truth (exact DB enum spelling, hyphen on no-show). Both call sites that
+// need this set derive from THIS array so the JS guard (.includes) and the PostgREST filter
+// (.not status in (...)) can never drift apart:
+//   - DEAD_BOOKING_STATUSES         -> the JS array (.includes, .in(...))
+//   - DEAD_BOOKING_STATUSES_PGLIST  -> the PostgREST in-list string ("a","b","c")
+const DEAD_BOOKING_STATUSES = ['cancelled', 'completed', 'no-show'] as const;
+const DEAD_BOOKING_STATUSES_PGLIST = `(${DEAD_BOOKING_STATUSES.map((s) => `"${s}"`).join(',')})`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -651,8 +660,7 @@ async function confirmBookingPaid(
   // record WHY. The booking_payments row stays 'succeeded' on purpose: the charge is REAL
   // captured revenue and a real tax obligation (the filing reports must see it); the owner
   // reconciles it via the refund_required flag.
-  const DEAD_BOOKING_STATUSES = ['cancelled', 'completed', 'no-show']; // exact DB enum spelling (hyphen)
-  if (DEAD_BOOKING_STATUSES.includes(booking.status)) {
+  if ((DEAD_BOOKING_STATUSES as readonly string[]).includes(booking.status)) {
     const reason = `[E-6b ${new Date().toISOString()}] Late payment (PI ${paymentIntentId ?? 'n/a'}) landed AFTER this booking reached a terminal status (${booking.status}). Money was captured; booking NOT resurrected. MANUAL REFUND REQUIRED.`;
     const mergedNotes = booking.internal_notes
       ? `${booking.internal_notes}\n${reason}`
@@ -664,11 +672,21 @@ async function confirmBookingPaid(
       .from('bookings')
       .update({ payment_status: 'refund_required', internal_notes: mergedNotes })
       .eq('id', bookingId)
-      .in('status', DEAD_BOOKING_STATUSES)
+      .in('status', DEAD_BOOKING_STATUSES as readonly string[])
       .neq('payment_status', 'refund_required')
       .select('id');
     if (flagErr) {
-      console.error(`❌ E-6b: failed to flag terminal booking ${bookingId} (${booking.status}) for manual refund:`, flagErr);
+      // F-E6-V2 (money error-path): the flag-write FAILED, so this dead booking is NOT yet
+      // marked refund_required while money has been captured. We must NOT return 200 (Stripe
+      // would treat the event as handled and never retry, leaving the charge un-flagged).
+      // THROW: the switch-level catch releases the idempotency claim and the handler 500s, so
+      // Stripe RETRIES. The retry re-runs this same branch (booking is still terminal + still
+      // not refund_required) and flags it exactly once; the refund_required early-return + the
+      // .neq('payment_status','refund_required') guard keep a later success idempotent. The
+      // booking_payments / tax rows written above are idempotent, so the retry does not
+      // double-process them.
+      console.error(`❌ F-E6-V2: failed to flag terminal booking ${bookingId} (${booking.status}) for manual refund; throwing so Stripe retries:`, flagErr);
+      throw new Error(`E-6b flag-write failed for booking ${bookingId}: ${flagErr.message ?? flagErr}`);
     }
     if (!flagged || flagged.length === 0) {
       console.log(`ℹ️ E-6b: booking ${bookingId} (${booking.status}) already flagged / no longer terminal; not re-noting (idempotent).`);
@@ -705,7 +723,7 @@ async function confirmBookingPaid(
     .from('bookings')
     .update({ payment_status: 'paid', status: 'confirmed' })
     .eq('id', bookingId)
-    .not('status', 'in', `(${DEAD_BOOKING_STATUSES.map((s) => `"${s}"`).join(',')})`)
+    .not('status', 'in', DEAD_BOOKING_STATUSES_PGLIST)
     .select('id');
   if (confirmErr) {
     console.error(`❌ Failed to confirm booking ${bookingId} (payment_status/status update):`, confirmErr);

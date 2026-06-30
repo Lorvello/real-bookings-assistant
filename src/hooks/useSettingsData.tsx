@@ -1,13 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { TablesUpdate } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+
+// The exact shape public.users accepts on an UPDATE (generated Supabase types). Used to
+// type the partial save payload so its keys are constrained to real, writable columns:
+// the type-system mirror of the SAVEABLE_COLUMNS runtime allowlist below.
+type UsersUpdate = TablesUpdate<'users'>;
 
 // The single set of columns the Settings surface (Profile + AI Knowledge tabs) is
 // allowed to write to public.users. saveFields() filters every payload through this
 // so a tab can only ever update its own real columns — never id/email/subscription_*
 // or anything else. This is the allowlist that makes a partial, per-tab save safe.
-const SAVEABLE_COLUMNS = new Set<string>([
+const SAVEABLE_COLUMNS = new Set<keyof UsersUpdate>([
   // Profile (Users tab)
   'full_name', 'phone', 'date_of_birth',
   // Website + socials (AI Knowledge tab)
@@ -174,11 +180,15 @@ export const useSettingsData = () => {
     if (!user) return false;
 
     // Keep only allowlisted columns; coalesce empty strings to null (nullable text),
-    // leave booleans / non-empty values untouched.
-    const payload: Record<string, any> = {};
+    // leave booleans / non-empty values untouched. Typed as UsersUpdate so the payload's
+    // keys are provably writable users columns (the type-checker's view of the same
+    // allowlist SAVEABLE_COLUMNS enforces at runtime).
+    const payload: UsersUpdate = {};
     for (const [key, value] of Object.entries(changes || {})) {
-      if (!SAVEABLE_COLUMNS.has(key)) continue;
-      payload[key] = typeof value === 'string' && value.trim() === '' ? null : value;
+      if (!SAVEABLE_COLUMNS.has(key as keyof UsersUpdate)) continue;
+      const col = key as keyof UsersUpdate;
+      (payload as Record<keyof UsersUpdate, unknown>)[col] =
+        typeof value === 'string' && value.trim() === '' ? null : value;
     }
 
     // Nothing meaningful to write (all changes were non-saveable / empty diffs).
