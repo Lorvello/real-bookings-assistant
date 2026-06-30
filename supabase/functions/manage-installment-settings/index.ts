@@ -68,10 +68,18 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: userData.user.id });
 
-    // Check subscription tier - installments require Professional or Enterprise
+    // Check subscription tier - installments require Professional or Enterprise.
+    // FQ-7 fix: gate on the RESOLVED access status (get_user_status_type), NOT the raw
+    // users.subscription_tier column. When a tenant lapses (trial expires, subscription
+    // cancels, grace runs out) the status flips but subscription_tier is left intact
+    // (cancel keeps tier='professional'), so a raw-column check let a downgraded Free
+    // tenant keep enabling Pro-only installments via this API even though the dashboard
+    // hides it. We mirror the freemium-downgrade access model exactly the way the
+    // enforce_calendar_limit trigger does: lapsed -> Free (no installments); grace keeps
+    // the tier; paid/trial keep their tier. This is the authoritative server-side gate.
     const { data: userProfile, error: profileError } = await supabaseClient
       .from('users')
-      .select('subscription_tier')
+      .select('subscription_tier, grace_period_end')
       .eq('id', userData.user.id)
       .single();
 
@@ -79,14 +87,33 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
-    if (!userProfile.subscription_tier || !['professional', 'enterprise'].includes(userProfile.subscription_tier)) {
+    let effectiveTier: string | null = userProfile.subscription_tier ?? null;
+    const { data: statusVal, error: statusErr } = await supabaseClient
+      .rpc('get_user_status_type', { p_user_id: userData.user.id });
+    if (!statusErr && typeof statusVal === 'string') {
+      // Lapsed states drop to Free; missed_payment keeps its tier only while in grace.
+      if (statusVal === 'expired_trial' || statusVal === 'canceled_and_inactive') {
+        effectiveTier = 'free';
+      } else if (statusVal === 'missed_payment') {
+        const graceEnd = userProfile.grace_period_end ? new Date(userProfile.grace_period_end) : null;
+        if (!graceEnd || graceEnd.getTime() <= Date.now()) {
+          effectiveTier = 'free';
+        }
+      }
+      // active_trial / paid_subscriber / canceled_but_active / missed_payment_grace
+      // and setup_incomplete keep the raw subscription_tier column (a genuinely Pro
+      // tenant mid-setup or in grace stays Pro); the final allow-list does the gating.
+    }
+    // statusErr (RPC failed) falls back to the raw column = no weaker than before.
+
+    if (!effectiveTier || !['professional', 'enterprise'].includes(effectiveTier)) {
       // Expected business rule, NOT a server fault: installments are a Professional/
       // Enterprise feature. Return a TYPED 403 (not a thrown 500) so the client can
       // render a clean "upgrade to Pro" state instead of a red "non-2xx" toast. The
       // body leaks no PII or secret (only the rule and the required tier). This is the
       // authoritative server-side gate; the UI also disables the toggle, but THIS check
       // is what actually protects the feature and cannot be bypassed client-side.
-      logStep("Subscription tier insufficient", { tier: userProfile.subscription_tier ?? null });
+      logStep("Subscription tier insufficient", { tier: userProfile.subscription_tier ?? null, effectiveTier });
       return new Response(JSON.stringify({
         success: false,
         error: 'tier_required',
@@ -97,7 +124,7 @@ serve(async (req) => {
         status: 403,
       });
     }
-    logStep("Subscription tier validated", { tier: userProfile.subscription_tier });
+    logStep("Subscription tier validated", { tier: userProfile.subscription_tier, effectiveTier });
 
     const settings: InstallmentSettingsRequest = await req.json();
     logStep("Settings received", { enabled: settings.enabled, applyToServices: settings.applyToServices });
