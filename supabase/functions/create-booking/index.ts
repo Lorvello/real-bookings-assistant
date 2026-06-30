@@ -45,6 +45,14 @@ const normalizeVatId = (raw: unknown): string | null => {
   const v = raw.toUpperCase().replace(/[\s.\-]/g, '');
   return /^[A-Z]{2}[A-Z0-9]{2,12}$/.test(v) ? v : null;
 };
+// E-4: capture the visitor's UI language so the reminder body (process-booking-reminders)
+// can be NL or EN. Whitelist to the two supported locales; anything else (incl. absent)
+// -> null, which is treated as 'nl' downstream. No free text reaches the DB.
+const normalizeLocale = (raw: unknown): 'nl' | 'en' | null => {
+  if (typeof raw !== 'string') return null;
+  const l = raw.trim().toLowerCase().slice(0, 2);
+  return l === 'en' ? 'en' : l === 'nl' ? 'nl' : null;
+};
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -205,6 +213,8 @@ Deno.serve(async (req) => {
         // them off this row to drive the Stripe Tax calc + persist onto booking_payments.
         customer_country: normalizeCountry(bookingData.customerCountry),
         customer_vat_id: normalizeVatId(bookingData.customerVatId),
+        // E-4: visitor UI language -> reminder body locale. Null when absent (=> NL).
+        customer_locale: normalizeLocale(bookingData.customerLocale),
         status: 'pending',
         confirmation_token: crypto.randomUUID(),
         // Markeer de boeking expliciet als onbetaald wanneer betaling vereist is, zodat

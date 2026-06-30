@@ -80,3 +80,8 @@ verify_jwt = false
 
 [functions.test-ai-agent]
 verify_jwt = false
+# E-1: the reminder engine is invoked by pg_cron via pg_net (a SQL caller that cannot mint
+# a JWT). It is gated at the app layer by x-internal-secret (same posture as
+# whatsapp-payment-handler), so the gateway JWT check is disabled here.
+[functions.process-booking-reminders]
+verify_jwt = false

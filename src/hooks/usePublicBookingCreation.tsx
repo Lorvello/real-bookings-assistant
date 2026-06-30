@@ -34,7 +34,7 @@ interface BookingResult {
 
 export const usePublicBookingCreation = () => {
   const { toast } = useToast();
-  const { t } = useTranslation('notifications');
+  const { t, i18n } = useTranslation('notifications');
   const [loading, setLoading] = useState(false);
 
   const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
@@ -179,6 +179,9 @@ export const usePublicBookingCreation = () => {
         // Cross-border (X3a): only included when present (in_person bookings omit them).
         ...(sanitizedCountry ? { customerCountry: sanitizedCountry } : {}),
         ...(sanitizedVatId ? { customerVatId: sanitizedVatId } : {}),
+        // E-4: pass the visitor's UI language so the reminder body is sent in NL or EN.
+        // create-booking whitelists this to 'nl'|'en'; anything else is treated as NL.
+        customerLocale: (i18n.language || 'nl').slice(0, 2).toLowerCase(),
       };
 
       const { data, error } = await supabase.functions.invoke('create-booking', {

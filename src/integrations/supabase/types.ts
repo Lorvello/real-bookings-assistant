@@ -612,6 +612,7 @@ export type Database = {
           created_at: string | null
           customer_country: string | null
           customer_email: string | null
+          customer_locale: string | null
           customer_name: string
           customer_phone: string | null
           customer_vat_id: string | null
@@ -649,6 +650,7 @@ export type Database = {
           created_at?: string | null
           customer_country?: string | null
           customer_email?: string | null
+          customer_locale?: string | null
           customer_name: string
           customer_phone?: string | null
           customer_vat_id?: string | null
@@ -686,6 +688,7 @@ export type Database = {
           created_at?: string | null
           customer_country?: string | null
           customer_email?: string | null
+          customer_locale?: string | null
           customer_name?: string
           customer_phone?: string | null
           customer_vat_id?: string | null
@@ -5247,6 +5250,7 @@ export type Database = {
           is_active: boolean | null
           name: string | null
           price: number | null
+          supply_type: Database["public"]["Enums"]["supply_type"] | null
         }
         Relationships: [
           {
@@ -6060,8 +6064,11 @@ export type Database = {
           booking_id: string
           business_name: string
           calendar_id: string
+          channel: string
           customer_email: string
+          customer_locale: string
           customer_name: string
+          customer_phone: string
           reminder_number: number
           start_time: string
         }[]
