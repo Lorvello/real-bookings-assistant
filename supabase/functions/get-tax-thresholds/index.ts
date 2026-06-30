@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import {
+  computeOssBucket,
+  OSS_BUCKET_KEY,
+  OSS_PAN_EU_THRESHOLD_CENTS,
+  type BookingPaymentRowLike,
+} from "../_shared/ossThreshold.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,27 +19,12 @@ const logStep = (step: string, details?: any) => {
   console.log(`[GET-TAX-THRESHOLDS] ${step}${detailsStr}`);
 };
 
-// Tax thresholds by country (in cents)
-const TAX_THRESHOLDS = {
-  'US': 0, // No threshold
-  'GB': 8500000, // £85,000
-  'DE': 2200000, // €22,000
-  'FR': 3570000, // €35,700
-  'ES': 0, // No threshold for B2B
-  'IT': 6500000, // €65,000
-  'NL': 0, // No threshold
-  'BE': 2500000, // €25,000
-  'AT': 3000000, // €30,000
-  'SE': 32000000, // 320,000 SEK (~€30,000)
-  'DK': 5000000, // 50,000 DKK (~€6,700)
-  'FI': 1000000, // €10,000
-  'NO': 5000000, // 50,000 NOK (~€4,500)
-  'CH': 10000000, // 100,000 CHF (~€95,000)
-  'AU': 7500000, // $75,000 AUD
-  'CA': 3000000, // $30,000 CAD
-  'SG': 100000000, // $1,000,000 SGD
-  'MY': 50000000, // 500,000 MYR (~€100,000)
-};
+// X5 (F-TAX-19): the pre-2021 per-country distance-selling map (DE EUR22k / FR EUR35.7k
+// / IT EUR65k / ...) has been REMOVED. Those numbers were abolished by the 2021 EU VAT
+// e-commerce package. There is now ONE union-wide EUR10,000 threshold on the SUM of all
+// cross-border B2C supplies to other EU member states. The threshold constant +
+// bucket arithmetic live in _shared/ossThreshold.ts (a monitoring constant, NOT a VAT
+// rate; rates stay Stripe-computed). Surface "OSS registration required" when crossed.
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -48,18 +39,28 @@ serve(async (req) => {
     );
 
     // Authenticate the user
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      // F-TAX-22 tidy: graceful 200 instead of a non-null-assertion throw.
+      return new Response(
+        JSON.stringify({ success: false, code: 'NO_AUTH', error: 'Authorization header required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
+
     if (userError || !user) {
       throw new Error('User not authenticated');
     }
 
-    const { calendar_id } = await req.json();
+    // calendar_id is accepted for backward compatibility with the existing frontend
+    // caller but is INTENTIONALLY NOT used to scope the OSS bucket: the EUR10k
+    // threshold is a per-MERCHANT (account_owner_id) figure aggregated across ALL the
+    // owner's calendars (F-TAX-18 multi-calendar aggregation), never per-calendar.
+    await req.json().catch(() => ({}));
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
-    // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
-    // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
+    // from STRIPE_MODE, never from the request body. Defaults to test when unset.
     const test_mode = validateStripeMode().mode === 'test';
 
     // Check user's subscription tier
@@ -76,26 +77,29 @@ serve(async (req) => {
     // Only Professional and Enterprise users can access tax thresholds
     if (!userData?.subscription_tier || !['professional', 'enterprise'].includes(userData.subscription_tier)) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           code: 'UPGRADE_REQUIRED',
-          error: 'Tax threshold monitoring requires Professional or Enterprise subscription' 
+          error: 'Tax threshold monitoring requires Professional or Enterprise subscription'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
 
+    // SECURITY / scoping: resolve the OWNER (account_owner_id else self). Every query
+    // below is scoped to this owner; a member account resolves to the owner account so
+    // there is no per-user leak (no IDOR), mirroring the sibling tax functions.
     const accountOwnerId = userData.account_owner_id || user.id;
 
-    // Initialize Stripe
-    const stripeSecretKey = test_mode 
+    // Initialize Stripe (server-pinned key)
+    const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+
     if (!stripeSecretKey) {
       throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
     }
-    
+
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get platform account
@@ -103,22 +107,26 @@ serve(async (req) => {
     const platformAccountId = platformAccount.id;
     const environment = test_mode ? 'test' : 'live';
 
-    // Get user's Stripe account
+    // Get the owner's Stripe (connected) account row. NOTE (X5): we do NOT require
+    // charges_enabled here. OSS monitoring must keep working even if charges are later
+    // disabled on a merchant who already accrued cross-border B2C sales; the cumulative
+    // is computed from historical booking_payments, not from current charge state.
     const { data: stripeAccount } = await supabaseClient
       .from('business_stripe_accounts')
-      .select('*')
+      .select('stripe_account_id, country')
       .eq('account_owner_id', accountOwnerId)
       .eq('environment', environment)
       .eq('platform_account_id', platformAccountId)
-      .eq('charges_enabled', true)
-      .single();
+      .order('charges_enabled', { ascending: false }) // prefer an enabled account if several
+      .limit(1)
+      .maybeSingle();
 
     if (!stripeAccount) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           code: 'NO_ACCOUNT',
-          error: 'No active Stripe account found. Please complete Stripe onboarding first.' 
+          error: 'No Stripe account found. Please complete Stripe onboarding first.'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
@@ -126,121 +134,84 @@ serve(async (req) => {
 
     logStep('Found Stripe account', { accountId: stripeAccount.stripe_account_id });
 
-    // Calculate start of current year for threshold monitoring
+    const merchantCountry = (stripeAccount.country || 'NL').toUpperCase();
+
+    // Current-year window for threshold monitoring (the EUR10k OSS threshold is a
+    // calendar-year figure).
     const currentYear = new Date().getFullYear();
-    const yearStart = Math.floor(new Date(currentYear, 0, 1).getTime() / 1000);
-    const now = Math.floor(Date.now() / 1000);
+    const startDate = new Date(Date.UTC(currentYear, 0, 1)).toISOString();
+    const endDate = new Date().toISOString();
 
-    // Get tax transactions from Stripe (this might not be available for Express accounts)
-    let countryThresholds = [];
-    try {
-      const transactions = await stripe.tax.transactions.list({
-        created: { gte: yearStart, lt: now },
-        limit: 100
-      }, {
-        stripeAccount: stripeAccount.stripe_account_id
-      });
+    // CUMULATIVE CROSS-BORDER B2C: read the owner's real booking_payments rows for the
+    // year. SECURITY: scope by the owner's stripe_account_id (service-role bypasses RLS,
+    // so this explicit filter is the tenant boundary; it also aggregates across all the
+    // owner's calendars since every row under this account belongs to the owner).
+    const { data: payments, error: paymentsError } = await supabaseClient
+      .from('booking_payments')
+      .select('amount_cents, currency, status, customer_country, reverse_charge, refund_amount_cents, tax_breakdown')
+      .eq('stripe_account_id', stripeAccount.stripe_account_id)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate);
 
-      // Aggregate revenue by country
-      const revenueByCountry = new Map();
-      
-      const accountCountryFallback = stripeAccount.country?.toUpperCase() || 'NL';
-      for (const transaction of transactions.data) {
-        // F-TAX-05: derive the real country of the transaction. The previous code read
-        // transaction.customer_details?.tax_exempt (an enum like 'none'/'exempt'/
-        // 'reverse', NOT a country) which mis-bucketed every transaction. The buyer
-        // country lives on customer_details.address.country (the destination /
-        // place-of-supply); fall back to the shipping address, then to the account's
-        // own (registration) country, never to tax_exempt.
-        const country = (
-          transaction.customer_details?.address?.country ||
-          transaction.shipping?.address?.country ||
-          accountCountryFallback
-        ).toUpperCase();
-        const amount = transaction.amount_total || 0;
-        
-        if (revenueByCountry.has(country)) {
-          revenueByCountry.set(country, revenueByCountry.get(country) + amount);
-        } else {
-          revenueByCountry.set(country, amount);
-        }
-      }
-
-      // Calculate threshold status for each country
-      countryThresholds = Array.from(revenueByCountry.entries()).map(([country, revenue]) => {
-        const threshold = TAX_THRESHOLDS[country] || 0;
-        const percentage = threshold > 0 ? (revenue / threshold) * 100 : 0;
-        
-        let status = 'under';
-        if (percentage >= 100) status = 'exceeded';
-        else if (percentage >= 80) status = 'near';
-
-        return {
-          country,
-          revenue,
-          threshold,
-          percentage: Math.min(percentage, 100),
-          status,
-          currency: 'EUR' // Default to EUR, could be enhanced to detect actual currency
-        };
-      });
-
-      logStep('Calculated thresholds', { countries: countryThresholds.length });
-
-    } catch (error) {
-      logStep('Tax transactions not available', { error: error.message });
-      
-      // Fallback: Use booking payments from our database
-      const startDate = new Date(currentYear, 0, 1).toISOString();
-      const endDate = new Date().toISOString();
-
-      const { data: payments } = await supabaseClient
-        .from('booking_payments')
-        .select(`
-          amount_cents,
-          currency,
-          created_at,
-          bookings!inner(
-            calendar_id,
-            customer_name
-          )
-        `)
-        // SECURITY: scope to the caller's connected account. Without this filter
-        // the fallback summed booking_payments across EVERY tenant on the
-        // platform into totalRevenue (service-role client bypasses RLS).
-        .eq('stripe_account_id', stripeAccount.stripe_account_id)
-        .eq('status', 'succeeded')
-        .gte('created_at', startDate)
-        .lte('created_at', endDate);
-
-      if (payments && payments.length > 0) {
-        // For fallback, assume domestic transactions only
-        const totalRevenue = payments.reduce((sum, payment) => sum + payment.amount_cents, 0);
-        const accountCountry = stripeAccount.country || 'NL'; // Default to NL
-        const threshold = TAX_THRESHOLDS[accountCountry] || 0;
-        const percentage = threshold > 0 ? (totalRevenue / threshold) * 100 : 0;
-        
-        let status = 'under';
-        if (percentage >= 100) status = 'exceeded';
-        else if (percentage >= 80) status = 'near';
-
-        countryThresholds = [{
-          country: accountCountry,
-          revenue: totalRevenue,
-          threshold,
-          percentage: Math.min(percentage, 100),
-          status,
-          currency: payments[0]?.currency?.toUpperCase() || 'EUR'
-        }];
-      }
+    if (paymentsError) {
+      throw new Error(`Failed to read booking payments: ${paymentsError.message}`);
     }
+
+    const rows: BookingPaymentRowLike[] = (payments ?? []).map((p: any) => ({
+      amount_cents: p.amount_cents,
+      customer_country: p.customer_country,
+      reverse_charge: p.reverse_charge,
+      refund_amount_cents: p.refund_amount_cents,
+      tax_breakdown: p.tax_breakdown,
+      status: p.status,
+    }));
+
+    const oss = computeOssBucket(rows, merchantCountry);
+
+    logStep('Computed OSS bucket', {
+      merchantCountry,
+      cumulativeCents: oss.cumulativeCents,
+      registrationRequired: oss.registrationRequired,
+      contributing: oss.contributingPayments,
+    });
+
+    // The OSS threshold is denominated in EUR; the bucket + UI display in EUR.
+    const displayCurrency = 'EUR';
+
+    // BACKWARD-COMPATIBLE response: the existing ThresholdMonitoringDashboard reads
+    // `thresholds[]` with {country, revenue, threshold, percentage, status, currency}.
+    // We surface the single pan-EU OSS bucket as ONE entry (country = EU_OSS) so the UI
+    // renders unchanged, and ADD the richer OSS fields alongside (additive, non-breaking).
+    const ossThresholdEntry = {
+      country: OSS_BUCKET_KEY, // "EU_OSS" (single combined pan-EU bucket, not per-country)
+      revenue: oss.cumulativeCents,
+      threshold: OSS_PAN_EU_THRESHOLD_CENTS,
+      percentage: oss.percentage,
+      status: oss.status, // 'under' | 'near' | 'exceeded'
+      currency: displayCurrency,
+    };
 
     return new Response(
       JSON.stringify({
         success: true,
-        thresholds: countryThresholds,
+        thresholds: [ossThresholdEntry],
+        // --- additive OSS detail (X5) ---
+        oss: {
+          scheme: 'EU_OSS_PAN_EU',
+          merchantCountry,
+          thresholdCents: OSS_PAN_EU_THRESHOLD_CENTS,
+          cumulativeCents: oss.cumulativeCents,
+          remainingCents: oss.remainingCents,
+          percentage: oss.percentage,
+          registrationRequired: oss.registrationRequired,
+          status: oss.registrationRequired ? 'OSS registration required' : oss.status,
+          contributingPayments: oss.contributingPayments,
+          currency: displayCurrency,
+          message: oss.registrationRequired
+            ? 'OSS registration required: cumulative cross-border B2C sales have reached the EUR10,000 pan-EU threshold. Register for OSS and add the registration to your Stripe Tax settings.'
+            : `Cross-border B2C sales are EUR ${(oss.cumulativeCents / 100).toFixed(2)} of the EUR10,000 OSS threshold (EUR ${(oss.remainingCents / 100).toFixed(2)} remaining).`,
+        },
         lastUpdated: new Date().toISOString(),
-        note: countryThresholds.length === 0 ? 'No tax threshold data available yet' : undefined
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -249,12 +220,13 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    logStep('ERROR', { message: error.message });
+    const message = error instanceof Error ? error.message : String(error);
+    logStep('ERROR', { message });
     return new Response(
-      JSON.stringify({ 
-        success: false, 
+      JSON.stringify({
+        success: false,
         code: 'SERVER_ERROR',
-        error: error.message 
+        error: message
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
