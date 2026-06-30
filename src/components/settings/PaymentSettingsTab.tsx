@@ -488,16 +488,30 @@ export function PaymentSettingsTab() {
     );
   }
 
-  const hasStripeAccount = !!stripeAccount?.stripe_account_id;
+  // BUG-A FIX: a persisted Connect row whose `environment` differs from the app's
+  // current Stripe mode must NOT collapse to "not connected". getStripeAccount now
+  // returns the persisted row regardless of environment (account_owner_id scoped),
+  // PREFERRING the current-mode row. We only treat it as the in-mode account when its
+  // environment matches; otherwise it surfaces as the 'other-environment' state (the
+  // connection persisted, the owner just needs to finish onboarding in this mode).
+  const currentStripeMode = stripeConfig.mode;
+  const accountMatchesMode = !!stripeAccount && stripeAccount.environment === currentStripeMode;
+  const hasStripeAccount = accountMatchesMode && !!stripeAccount?.stripe_account_id;
   const isStripeSetupComplete =
-    !!stripeAccount?.onboarding_completed && !!stripeAccount?.charges_enabled && !!stripeAccount?.payouts_enabled;
+    accountMatchesMode &&
+    !!stripeAccount?.onboarding_completed &&
+    !!stripeAccount?.charges_enabled &&
+    !!stripeAccount?.payouts_enabled;
+  const hasOtherEnvAccount = !!stripeAccount?.stripe_account_id && !accountMatchesMode;
   const accountState = accountLoading
     ? 'loading'
     : isStripeSetupComplete
       ? 'complete'
       : hasStripeAccount
         ? 'incomplete'
-        : 'none';
+        : hasOtherEnvAccount
+          ? 'other-environment'
+          : 'none';
   const paymentRequired = settings?.payment_required_for_booking ?? true;
 
   return (
@@ -516,6 +530,7 @@ export function PaymentSettingsTab() {
         state={accountState}
         account={stripeAccount}
         isTestMode={stripeConfig.isTestMode}
+        currentMode={currentStripeMode}
         stripeLoading={stripeLoading}
         onOpenDashboard={handleOpenStripeDashboard}
         onRefresh={handleRefreshAccount}

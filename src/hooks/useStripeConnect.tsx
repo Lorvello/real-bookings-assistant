@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getStripeMode, getStripeConfig } from '@/utils/stripeConfig';
 import { useAccountRole } from '@/hooks/useAccountRole';
 import { useAuth } from '@/hooks/useAuth';
+import { selectStripeAccountForMode } from '@/types/payments';
 import type { BusinessStripeAccount, StripeConnectOnboardingLink } from '@/types/payments';
 
 export const useStripeConnect = () => {
@@ -56,51 +57,47 @@ export const useStripeConnect = () => {
         userId: user?.id,
         using: ownerId === accountOwnerId ? 'accountOwnerId' : 'user.id fallback'
       });
-      
+
       // Get the current environment mode
       const currentMode = getStripeMode();
-      
-      // Query for the account with current environment - prioritize completed accounts
-      // First try to get a completed account
-      let { data, error } = await supabase
+
+      // BUG-A FIX: read the persisted Connect account scoped ONLY to account_owner_id
+      // (RLS keeps this single-tenant, no IDOR), NOT filtered by `environment`.
+      // The old code filtered `.eq('environment', getStripeMode())`, so a row stored
+      // in (say) 'test' became invisible the moment the frontend ran in 'live' mode,
+      // rendering a PERSISTED connection as state='none' ("not connected") on every
+      // login and forcing the owner to re-onboard. A persisted row must never be
+      // hidden by a frontend mode mismatch; we still PREFER the current-mode row and
+      // expose the row's `environment` so the UI can show a precise per-environment
+      // state ("connected in test, finish live onboarding") instead of "not connected".
+      const { data: rows, error } = await supabase
         .from('business_stripe_accounts')
         .select('*')
         .eq('account_owner_id', ownerId)
-        .eq('environment', currentMode)
-        .eq('onboarding_completed', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
-      // If no completed account found, get any account (newest first)
-      if (!data && error?.code === 'PGRST116') {
-        const fallbackQuery = await supabase
-          .from('business_stripe_accounts')
-          .select('*')
-          .eq('account_owner_id', ownerId)
-          .eq('environment', currentMode)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        data = fallbackQuery.data;
-        error = fallbackQuery.error;
-      }
-
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
-      
+
+      const accounts = (rows ?? []) as BusinessStripeAccount[];
+
+      // Pure, unit-tested selection (see selectStripeAccountForMode): prefer the
+      // current-mode row, but NEVER hide a persisted row from the other environment.
+      const data = selectStripeAccountForMode(accounts, currentMode);
+
       console.log('[STRIPE CONNECT] Account query result:', {
         found: !!data,
+        currentMode,
+        environmentMatch: data ? data.environment === currentMode : null,
         accountId: data?.stripe_account_id,
         environment: data?.environment,
         onboarding_completed: data?.onboarding_completed,
         charges_enabled: data?.charges_enabled,
         payouts_enabled: data?.payouts_enabled
       });
-      
-      return data as BusinessStripeAccount;
+
+      return data;
     } catch (error) {
       console.error('[STRIPE CONNECT] Error fetching Stripe account:', error);
       toast({

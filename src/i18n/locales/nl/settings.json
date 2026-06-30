@@ -760,6 +760,14 @@
         "connectedDescription": "Gekoppeld. Betalingen worden rechtstreeks naar je zakelijke rekening uitbetaald.",
         "incompleteDescription": "Gekoppeld, nog een paar stappen voordat je betalingen kunt accepteren.",
         "notConnectedDescription": "Koppel Stripe om betalingen rechtstreeks op je zakelijke rekening te ontvangen.",
+        "otherEnvDescription": "Je Stripe-koppeling is opgeslagen. Om {{currentEnv}}-betalingen te accepteren hoef je alleen het instellen in {{currentEnv}}-modus af te ronden, je hoeft niet opnieuw te koppelen.",
+        "otherEnvConnected": "Gekoppeld in {{storedEnv}}-modus. Je koppeling blijft bewaard, je hoeft na het inloggen niet opnieuw te koppelen.",
+        "finishInCurrentEnv": "Instellen in {{currentEnv}} afronden",
+        "finishSetupBadge": "Instellen afronden",
+        "envLabel": {
+          "test": "test",
+          "live": "live"
+        },
         "statusActive": "Actief",
         "setupRequired": "Instellen vereist",
         "chargesEnabled": "Incasso ingeschakeld",

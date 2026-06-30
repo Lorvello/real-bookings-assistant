@@ -32,6 +32,34 @@ export interface BusinessStripeAccount {
   updated_at: string;
 }
 
+/**
+ * BUG-A selection logic, extracted as a PURE function so it is unit-testable in
+ * isolation (no Supabase mock needed) and reused by useStripeConnect.getStripeAccount.
+ *
+ * Given every Connect row persisted for one owner (already RLS-scoped to that owner,
+ * so single-tenant), pick the best one to render for the current frontend Stripe
+ * mode WITHOUT ever hiding a persisted row just because its `environment` differs
+ * from the current mode. Priority (newest-first within each tier; `accounts` MUST be
+ * passed sorted created_at DESC):
+ *   1. current-mode + onboarding_completed  (happy path)
+ *   2. current-mode, any onboarding state    (incomplete in current mode)
+ *   3. any environment, onboarding_completed (persisted in the OTHER env)
+ *   4. any environment, newest               (persisted but incomplete elsewhere)
+ * Returns null only when the owner has NO Connect row at all in any environment.
+ */
+export function selectStripeAccountForMode(
+  accounts: BusinessStripeAccount[],
+  currentMode: 'test' | 'live',
+): BusinessStripeAccount | null {
+  return (
+    accounts.find((a) => a.environment === currentMode && a.onboarding_completed) ??
+    accounts.find((a) => a.environment === currentMode) ??
+    accounts.find((a) => a.onboarding_completed) ??
+    accounts[0] ??
+    null
+  );
+}
+
 export interface BookingPayment {
   id: string;
   booking_id: string;

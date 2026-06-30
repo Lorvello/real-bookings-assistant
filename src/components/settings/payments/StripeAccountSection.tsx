@@ -43,7 +43,12 @@ function AccountTechnicalDetails({ accountId, isTestMode }: { accountId: string;
   );
 }
 
-export type StripeAccountState = 'loading' | 'complete' | 'incomplete' | 'none';
+// 'other-environment' = a Connect account PERSISTS for this owner but only in the
+// OTHER Stripe environment than the one the app currently runs in (e.g. an owner
+// onboarded in test, and the app is now in live mode). We must NEVER render this as
+// "not connected" (the BUG-A regression); the connection survives re-login and we
+// guide the owner to finish onboarding in the current environment instead.
+export type StripeAccountState = 'loading' | 'complete' | 'incomplete' | 'other-environment' | 'none';
 type ResearchTopic = 'no-shows' | 'cashflow' | 'compliance' | 'professionalism';
 
 interface StripeAccountSectionProps {
@@ -51,6 +56,9 @@ interface StripeAccountSectionProps {
   account: BusinessStripeAccount | null;
   isTestMode: boolean;
   stripeLoading: boolean;
+  // The Stripe environment the app currently runs in ('test' | 'live'); used by the
+  // 'other-environment' state to name which environment still needs onboarding.
+  currentMode: 'test' | 'live';
   onOpenDashboard: () => void;
   onRefresh: () => void;
   onReset: () => void;
@@ -125,6 +133,7 @@ export function StripeAccountSection({
   account,
   isTestMode,
   stripeLoading,
+  currentMode,
   onOpenDashboard,
   onRefresh,
   onReset,
@@ -257,7 +266,65 @@ export function StripeAccountSection({
     );
   }
 
-  // Not connected yet.
+  // BUG-A FIX: a connection PERSISTS for this owner, but in the OTHER Stripe
+  // environment than the app currently runs in. The connection survived re-login;
+  // we surface that honestly and point the owner at finishing onboarding in the
+  // current environment, rather than the misleading "not connected" empty-state.
+  if (state === 'other-environment' && account) {
+    const storedIsTest = account.environment === 'test';
+    const currentEnvLabel = currentMode === 'live'
+      ? t('settings.payments.account.envLabel.live', 'live')
+      : t('settings.payments.account.envLabel.test', 'test');
+    const storedEnvLabel = storedIsTest
+      ? t('settings.payments.account.envLabel.test', 'test')
+      : t('settings.payments.account.envLabel.live', 'live');
+    return (
+      <SettingsSection
+        icon={CreditCard}
+        title={t('settings.payments.account.title', 'Stripe account')}
+        description={t(
+          'settings.payments.account.otherEnvDescription',
+          'Your Stripe connection is saved. To accept {{currentEnv}} payments you only need to finish onboarding in {{currentEnv}} mode, you do not have to reconnect.',
+          { currentEnv: currentEnvLabel },
+        )}
+        action={
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning/[0.10] px-2.5 py-1 text-xs font-medium text-warning-foreground">
+            <AlertCircle className="h-3.5 w-3.5" />
+            {t('settings.payments.account.finishSetupBadge', 'Finish setup')}
+          </span>
+        }
+      >
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <div className="flex items-start gap-2.5 text-sm text-foreground">
+            <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success-foreground" />
+            <span>
+              {t(
+                'settings.payments.account.otherEnvConnected',
+                'Connected in {{storedEnv}} mode. Your connection persists, no need to reconnect after logging in.',
+                { storedEnv: storedEnvLabel },
+              )}
+            </span>
+          </div>
+          {account.stripe_account_id && (
+            <AccountTechnicalDetails accountId={account.stripe_account_id} isTestMode={storedIsTest} />
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <Button onClick={onStartOnboarding} disabled={stripeLoading}>
+            {stripeLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t('settings.payments.account.finishInCurrentEnv', 'Finish {{currentEnv}} onboarding', { currentEnv: currentEnvLabel })}
+          </Button>
+          <Button variant="outline" onClick={onRefresh} disabled={stripeLoading}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            {t('settings.payments.account.refreshStatus', 'Refresh status')}
+          </Button>
+        </div>
+      </SettingsSection>
+    );
+  }
+
+  // Not connected yet (no Connect row persisted in ANY environment for this owner).
   return (
     <SettingsSection
       icon={CreditCard}
