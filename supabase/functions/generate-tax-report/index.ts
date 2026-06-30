@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { computeRefundAdjustedRow, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
+import { computePerJurisdictionReport, computeRefundAdjustedRow, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -182,6 +182,11 @@ serve(async (req) => {
 
     // Process payments and generate detailed report data
     const reportDetails = [];
+    // X6: per-row inputs for the per-jurisdiction VAT summary + reverse-charge markers
+    // + OSS bucket. Built from the AUTHORITATIVE persisted columns (customer_country,
+    // tax_breakdown, reverse_charge) on booking_payments + the refund-adjusted money
+    // figures below, never from the stale PI metadata.tax_rate (CB-F-04).
+    const jurisdictionRows: JurisdictionRowInput[] = [];
     let totalRevenue = 0;
     let totalTax = 0;
     let totalNet = 0;
@@ -224,6 +229,17 @@ serve(async (req) => {
         totalNet += netAmount;
         totalRefunded += refundedAmount;
 
+        // X6: collect this row's per-jurisdiction input from the AUTHORITATIVE persisted
+        // columns + the refund-adjusted figures (so per-country VAT nets refunds exactly).
+        jurisdictionRows.push({
+          customerCountry: typeof payment.customer_country === 'string' ? payment.customer_country : null,
+          taxBreakdown: payment.tax_breakdown ?? null,
+          reverseCharge: payment.reverse_charge === true,
+          grossCents: row.grossCents,
+          taxCents: row.taxCents,
+          netCents: row.netCents,
+        });
+
         reportDetails.push({
           date: payment.created_at,
           transactionId: payment.stripe_payment_intent_id,
@@ -236,6 +252,10 @@ serve(async (req) => {
           refundedAmount,
           fullyRefunded: row.fullyRefunded,
           taxRate: taxAmount > 0 && netAmount > 0 ? Math.round((taxAmount / netAmount) * 100 * 100) / 100 : 0,
+          // X6: per-row destination country + reverse-charge marker, so a transaction
+          // line is auditable per-jurisdiction (read from the authoritative X1 columns).
+          customerCountry: typeof payment.customer_country === 'string' ? payment.customer_country : null,
+          reverseCharge: payment.reverse_charge === true,
           currency: payment.currency.toUpperCase(),
           paymentMethod: payment.payment_method_type || 'card'
         });
@@ -255,6 +275,13 @@ serve(async (req) => {
 
     // Sort by date
     reportDetails.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // X6: per-jurisdiction VAT summary + reverse-charge markers + OSS-eligible bucket.
+    // merchantCountry = the merchant's home country (the OSS cross-border boundary,
+    // matching the X5 isCrossBorderB2C definition); same source as complianceInfo
+    // jurisdiction below. PURE resolver over the authoritative persisted columns.
+    const merchantCountry = stripeAccount.country || 'NL';
+    const perJurisdiction = computePerJurisdictionReport(jurisdictionRows, merchantCountry);
 
     // Generate report summary
     const reportData = {
@@ -294,11 +321,43 @@ serve(async (req) => {
       taxBreakdown: {
         standardRate: {
           // Effective rate = total tax / total net (the taxable base), rounded to 2 dp.
+          // BACK-COMPAT (X6): the blended single-figure behavior is unchanged so any
+          // existing consumer keeps working; the per-jurisdiction detail is ADDITIVE below.
           rate: totalNet > 0 ? Math.round((totalTax / totalNet) * 100 * 100) / 100 : 0,
           netAmount: Math.round(totalNet * 100) / 100,
           taxAmount: Math.round(totalTax * 100) / 100,
           grossAmount: Math.round(totalRevenue * 100) / 100
         }
+      },
+      // X6: per-jurisdiction VAT summary (one line per destination country + line type),
+      // reverse-charge 0% lines marked DISTINCTLY from not_collecting 0%, and the
+      // OSS-eligible cross-border B2C bucket (ties to get-tax-thresholds' EUR10k). All
+      // figures in EUR, refund-adjusted, read from the authoritative persisted columns
+      // (customer_country / tax_breakdown / reverse_charge), never the stale PI metadata.
+      perJurisdiction: {
+        merchantCountry,
+        countryCount: perJurisdiction.countryCount,
+        reverseChargeTransactionCount: perJurisdiction.reverseChargeTransactionCount,
+        crossBorderGuardTransactionCount: perJurisdiction.crossBorderGuardTransactionCount,
+        totalCollectedTax: Math.round(perJurisdiction.totalCollectedTaxCents) / 100,
+        lines: perJurisdiction.lines.map((l) => ({
+          country: l.country,
+          lineType: l.lineType,
+          reverseCharge: l.reverseCharge,
+          transactionCount: l.transactionCount,
+          grossAmount: Math.round(l.grossCents) / 100,
+          taxAmount: Math.round(l.taxCents) / 100,
+          netAmount: Math.round(l.netCents) / 100,
+          taxRate: l.effectiveRatePct,
+        })),
+        ossEligible: {
+          transactionCount: perJurisdiction.ossEligible.transactionCount,
+          grossAmount: Math.round(perJurisdiction.ossEligible.grossCents) / 100,
+          // The TAXABLE value the OSS EUR10k threshold is measured on (net-of-VAT,
+          // net-of-refund); reconciles with get-tax-thresholds' cumulative.
+          taxableAmount: Math.round(perJurisdiction.ossEligible.taxableCents) / 100,
+          countries: perJurisdiction.ossEligible.countries,
+        },
       },
       complianceInfo: {
         automaticTaxEnabled: true,

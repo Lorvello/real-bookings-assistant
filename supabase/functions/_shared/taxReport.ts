@@ -337,3 +337,328 @@ export function computeRegistrationStatus(
     registrationRecommended: aggregateRevenue >= thresholdAmount * 0.8,
   };
 }
+
+// ---------------------------------------------------------------------------
+// X6 (Cross-Border / OSS VAT loop): per-jurisdiction VAT summary + reverse-charge
+// markers + OSS-eligible bucket for the tax reports.
+//
+// Until X6 the reports resolved ONE blended figure (taxBreakdown.standardRate =
+// total tax / total net) which is correct for a single-jurisdiction NL merchant but
+// loses information the moment cross-border charges exist: a Dutch VAT filing + an
+// OSS return need the VAT collected PER destination country, a B2B reverse-charge 0%
+// line must be auditable AS reverse-charge (not an indistinguishable bare 0%), and
+// the cross-border B2C sales must tie to the X5 OSS EUR10k threshold.
+//
+// This resolver is PURE (no IO) and reads ONLY the AUTHORITATIVE persisted fields the
+// charge paths write onto booking_payments at charge time (X1 columns):
+//  - customer_country  : the destination/billing country the calc ran against.
+//  - tax_breakdown      : Stripe's per-jurisdiction breakdown (+ any guard marker).
+//  - reverse_charge     : true when a valid EU B2B reverse-charge 0% was applied.
+// plus the per-row refund-adjusted money figures the report already computes via
+// computeRefundAdjustedRow (so the per-jurisdiction VAT nets refunds exactly like the
+// blended total, F-TAX-17 preserved).
+//
+// CB-F-04 (cosmetic, dispositioned here): on the guard / reverse-charge paths the
+// charge fns also stamp a legacy `manual_tax_calculated=true` / `tax_rate=21` in the
+// PI METADATA alongside the correct `tax_amount=0`. This resolver NEVER reads PI
+// metadata.tax_rate; it reads the authoritative tax_breakdown + reverse_charge + the
+// refund-adjusted taxCents, so the stale metadata cannot mislead the per-jurisdiction
+// or reverse-charge output. The per-country VAT is taken from the row's kept taxCents
+// (refund-adjusted), NOT recomputed from a metadata rate, so a 0% guard / reverse-
+// charge row contributes 0 VAT and is shown distinctly, never a fabricated 21%.
+//
+// NOTE on country resolution: a row's tax_breakdown may carry the destination country
+// even when customer_country was not separately persisted (legacy / older rows). We
+// prefer customer_country (the X1 column) and fall back to the breakdown's country, so
+// no taxed line is bucketed as "unknown" when the country is recoverable.
+// ---------------------------------------------------------------------------
+
+/** taxabilityReason markers that mean a B2B reverse-charge 0% line. */
+const REVERSE_CHARGE_REASON = "reverse_charge";
+/** taxabilityReason markers that mean the cross-border-rate-unavailable HARD GUARD. */
+const CROSS_BORDER_GUARD_REASON = "cross_border_rate_unavailable";
+/** taxabilityReason marker that means a domestic-rate-unavailable guard (CB-F-03). */
+const DOMESTIC_GUARD_REASON = "domestic_rate_unavailable";
+
+/** A persisted tax_breakdown entry (the normalized shape taxCalc.ts writes). */
+interface PersistedBreakdownEntry {
+  amountCents?: number | null;
+  amount?: number | null;
+  taxabilityReason?: string | null;
+  country?: string | null;
+  percentageDecimal?: string | null;
+}
+
+/** The per-jurisdiction line classification for a single report row. */
+export type JurisdictionLineType =
+  /** VAT was actually collected for this destination (a positive-rate line). */
+  | "collected"
+  /** A valid EU B2B reverse-charge 0% (auditable AS reverse-charge, not a bare 0%). */
+  | "reverse_charge"
+  /** Cross-border with no registration: the X2 HARD GUARD (register for OSS). */
+  | "cross_border_unavailable"
+  /** Domestic with no usable rate: the CB-F-03 guard (never a silent 0%). */
+  | "domestic_unavailable"
+  /** Domestic / standard-rated NL (the manual NL fallback path) or any plain taxed line. */
+  | "domestic";
+
+/**
+ * The minimal per-row input the X6 resolver needs. The caller passes the persisted
+ * cross-border columns (authoritative) + the refund-adjusted money figures it already
+ * computed for the blended total, so the per-jurisdiction figures net refunds exactly.
+ */
+export interface JurisdictionRowInput {
+  /** booking_payments.customer_country (X1). null for in_person / domestic legacy. */
+  customerCountry: string | null;
+  /** booking_payments.tax_breakdown (X1). Stripe's per-jurisdiction breakdown + markers. */
+  taxBreakdown: unknown;
+  /** booking_payments.reverse_charge (X1). true for a valid EU B2B reverse-charge. */
+  reverseCharge: boolean | null;
+  /** kept gross (refund-adjusted) for this row, in cents (computeRefundAdjustedRow.grossCents). */
+  grossCents: number;
+  /** kept tax (refund-adjusted) for this row, in cents (computeRefundAdjustedRow.taxCents). */
+  taxCents: number;
+  /** kept net (refund-adjusted) for this row, in cents (computeRefundAdjustedRow.netCents). */
+  netCents: number;
+}
+
+/** A per-country VAT summary line in the report. */
+export interface JurisdictionSummaryLine {
+  /** ISO-3166 alpha-2 destination country, or "UNKNOWN" when not recoverable. */
+  country: string;
+  /** number of transactions attributed to this country. */
+  transactionCount: number;
+  /** summed kept gross for this country, in cents. */
+  grossCents: number;
+  /** summed kept VAT collected for this country, in cents (refund-adjusted). */
+  taxCents: number;
+  /** summed kept net for this country, in cents. */
+  netCents: number;
+  /** effective rate for this country = tax / net * 100 (0 for 0%/guard/reverse lines). */
+  effectiveRatePct: number;
+  /** the line classification (collected / reverse_charge / guard / domestic). */
+  lineType: JurisdictionLineType;
+  /**
+   * true when this country line is a B2B reverse-charge 0% (a marker so the UI / CSV
+   * can show it DISTINCTLY from a not_collecting 0%). A country can have BOTH a
+   * reverse-charge line and a collected line if it had both kinds of charges; this
+   * resolver keys per (country + lineType) so they stay distinct.
+   */
+  reverseCharge: boolean;
+}
+
+export interface PerJurisdictionReport {
+  /** one line per (country + lineType), so reverse-charge 0% is distinct from a bare 0%. */
+  lines: JurisdictionSummaryLine[];
+  /** total VAT collected across all positive-rate (collected/domestic) lines, in cents. */
+  totalCollectedTaxCents: number;
+  /** number of distinct destination countries seen (excluding UNKNOWN). */
+  countryCount: number;
+  /** count of rows that were B2B reverse-charge 0%. */
+  reverseChargeTransactionCount: number;
+  /** count of rows that tripped the cross-border HARD GUARD (register for OSS). */
+  crossBorderGuardTransactionCount: number;
+  /**
+   * the OSS-eligible bucket: cross-border B2C sales (customer_country != merchant,
+   * not reverse_charge), consistent with the X5 EUR10k definition, so the report ties
+   * to get-tax-thresholds. Aggregated from the SAME refund-adjusted figures.
+   */
+  ossEligible: {
+    /** count of cross-border B2C transactions. */
+    transactionCount: number;
+    /** summed kept gross of cross-border B2C sales, in cents. */
+    grossCents: number;
+    /**
+     * summed TAXABLE (net-of-VAT, net-of-refund) value of cross-border B2C sales, in
+     * cents. This is the figure the X5 OSS EUR10k threshold is measured on (taxable
+     * value), so the report's OSS bucket reconciles with get-tax-thresholds.
+     */
+    taxableCents: number;
+    /** the destination countries that contributed to the OSS bucket. */
+    countries: string[];
+  };
+}
+
+/** Parse a persisted tax_breakdown into a typed entry array (defensive). */
+function parsePersistedBreakdown(breakdown: unknown): PersistedBreakdownEntry[] {
+  if (!Array.isArray(breakdown)) return [];
+  const out: PersistedBreakdownEntry[] = [];
+  for (const entry of breakdown) {
+    if (entry && typeof entry === "object") out.push(entry as PersistedBreakdownEntry);
+  }
+  return out;
+}
+
+/** The destination country for a row: prefer the X1 column, fall back to the breakdown. */
+function resolveRowCountry(
+  customerCountry: string | null,
+  entries: PersistedBreakdownEntry[],
+): string {
+  const cc = (customerCountry ?? "").toUpperCase();
+  if (cc.length === 2) return cc;
+  for (const e of entries) {
+    const ec = (e.country ?? "").toUpperCase();
+    if (ec.length === 2) return ec;
+  }
+  return "UNKNOWN";
+}
+
+/**
+ * Classify a single report row into a per-jurisdiction line type, reading ONLY the
+ * authoritative persisted fields (reverse_charge flag + the breakdown's taxability
+ * reasons + the refund-adjusted taxCents), NEVER the stale PI metadata.tax_rate
+ * (CB-F-04). Priority:
+ *  1. reverse_charge flag OR a reverse_charge breakdown marker -> reverse_charge.
+ *  2. a cross_border_rate_unavailable marker -> cross_border_unavailable (HARD GUARD).
+ *  3. a domestic_rate_unavailable marker -> domestic_unavailable (CB-F-03 guard).
+ *  4. positive kept tax -> collected.
+ *  5. otherwise -> domestic (the plain NL / standard-rated / 0-tax exempt line).
+ */
+export function classifyJurisdictionLine(
+  reverseCharge: boolean | null,
+  entries: PersistedBreakdownEntry[],
+  taxCents: number,
+): JurisdictionLineType {
+  const reasons = new Set(
+    entries
+      .map((e) => (typeof e.taxabilityReason === "string" ? e.taxabilityReason : ""))
+      .filter((r) => r.length > 0),
+  );
+  if (reverseCharge === true || reasons.has(REVERSE_CHARGE_REASON)) return "reverse_charge";
+  if (reasons.has(CROSS_BORDER_GUARD_REASON)) return "cross_border_unavailable";
+  if (reasons.has(DOMESTIC_GUARD_REASON)) return "domestic_unavailable";
+  if (taxCents > 0) return "collected";
+  return "domestic";
+}
+
+/**
+ * Sum the persisted tax cents on a breakdown (used only as a cross-check; the report
+ * uses the refund-adjusted taxCents as the authoritative per-row VAT). Mirrors
+ * ossThreshold.taxCentsFromBreakdown so the two layers agree.
+ */
+function breakdownTaxCents(entries: PersistedBreakdownEntry[]): number {
+  let total = 0;
+  for (const e of entries) {
+    const v = typeof e.amountCents === "number" ? e.amountCents
+      : typeof e.amount === "number" ? e.amount
+      : 0;
+    if (Number.isFinite(v) && v > 0) total += v;
+  }
+  return total;
+}
+
+/**
+ * X6: reduce the report's per-row inputs to the per-jurisdiction VAT summary +
+ * reverse-charge markers + OSS-eligible bucket. PURE (no IO). The caller has already
+ * scoped + refund-adjusted the rows (one owner, one period). merchantCountry decides
+ * the OSS cross-border boundary (matches the X5 isCrossBorderB2C definition).
+ *
+ * The per-country VAT is taken from each row's kept (refund-adjusted) taxCents, so it
+ * reconciles to the cent with the blended totalTax. A row whose breakdown carries no
+ * country falls under "UNKNOWN" (kept visible, never silently dropped).
+ */
+export function computePerJurisdictionReport(
+  rows: JurisdictionRowInput[],
+  merchantCountry: string,
+): PerJurisdictionReport {
+  const mc = (merchantCountry || "NL").toUpperCase();
+
+  // key = `${country}::${lineType}` so a reverse-charge 0% line is a DISTINCT bucket
+  // from a collected line for the same country (auditability).
+  const lineMap = new Map<string, JurisdictionSummaryLine>();
+
+  let totalCollectedTaxCents = 0;
+  let reverseChargeTransactionCount = 0;
+  let crossBorderGuardTransactionCount = 0;
+
+  let ossTxCount = 0;
+  let ossGrossCents = 0;
+  let ossTaxableCents = 0;
+  const ossCountries = new Set<string>();
+  const seenCountries = new Set<string>();
+
+  for (const row of rows) {
+    const entries = parsePersistedBreakdown(row.taxBreakdown);
+    const country = resolveRowCountry(row.customerCountry, entries);
+    const lineType = classifyJurisdictionLine(row.reverseCharge, entries, row.taxCents);
+
+    if (country !== "UNKNOWN") seenCountries.add(country);
+    if (lineType === "reverse_charge") reverseChargeTransactionCount += 1;
+    if (lineType === "cross_border_unavailable") crossBorderGuardTransactionCount += 1;
+    if (lineType === "collected" || lineType === "domestic") {
+      totalCollectedTaxCents += Math.max(0, row.taxCents);
+    }
+
+    const key = `${country}::${lineType}`;
+    const existing = lineMap.get(key);
+    if (existing) {
+      existing.transactionCount += 1;
+      existing.grossCents += row.grossCents;
+      existing.taxCents += row.taxCents;
+      existing.netCents += row.netCents;
+    } else {
+      lineMap.set(key, {
+        country,
+        transactionCount: 1,
+        grossCents: row.grossCents,
+        taxCents: row.taxCents,
+        netCents: row.netCents,
+        effectiveRatePct: 0, // computed after accumulation
+        lineType,
+        reverseCharge: lineType === "reverse_charge",
+      });
+    }
+
+    // OSS-eligible bucket: cross-border B2C (country != merchant, not reverse-charge),
+    // consistent with X5 isCrossBorderB2C. Taxable = net-of-VAT, net-of-refund (the
+    // refund-adjusted netCents already excludes VAT + refunds), matching the X5
+    // taxableCents derivation so the report ties to get-tax-thresholds.
+    const isCrossBorder = country !== "UNKNOWN" && country !== mc && lineType !== "reverse_charge";
+    if (isCrossBorder) {
+      ossTxCount += 1;
+      ossGrossCents += row.grossCents;
+      ossTaxableCents += Math.max(0, row.netCents);
+      ossCountries.add(country);
+    }
+  }
+
+  // Finalize effective rate per line (tax / net * 100), 2 dp. 0 for guard / reverse /
+  // 0-tax lines (net>0 but tax==0 -> 0%).
+  const lines = Array.from(lineMap.values()).map((l) => ({
+    ...l,
+    effectiveRatePct: l.taxCents > 0 && l.netCents > 0
+      ? Math.round((l.taxCents / l.netCents) * 100 * 100) / 100
+      : 0,
+  }));
+  // Stable sort: by country, then collected/domestic before reverse_charge before guards.
+  const typeOrder: Record<JurisdictionLineType, number> = {
+    collected: 0,
+    domestic: 1,
+    reverse_charge: 2,
+    cross_border_unavailable: 3,
+    domestic_unavailable: 4,
+  };
+  lines.sort((a, b) =>
+    a.country === b.country
+      ? typeOrder[a.lineType] - typeOrder[b.lineType]
+      : a.country.localeCompare(b.country)
+  );
+
+  return {
+    lines,
+    totalCollectedTaxCents,
+    countryCount: seenCountries.size,
+    reverseChargeTransactionCount,
+    crossBorderGuardTransactionCount,
+    ossEligible: {
+      transactionCount: ossTxCount,
+      grossCents: ossGrossCents,
+      taxableCents: ossTaxableCents,
+      countries: Array.from(ossCountries).sort(),
+    },
+  };
+}
+
+// Re-export the breakdown cross-check so report fns / tests can assert the persisted
+// breakdown tax agrees with the refund-adjusted taxCents (belt-and-suspenders).
+export { breakdownTaxCents as _breakdownTaxCentsForCrosscheck };

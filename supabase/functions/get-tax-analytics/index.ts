@@ -2,7 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 import { validateStripeMode } from '../_shared/stripeValidation.ts'
-import { resolveRefundedCents, retrieveBookingPaymentIntent } from '../_shared/taxReport.ts'
+import { computePerJurisdictionReport, computeRefundAdjustedRow, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from '../_shared/taxReport.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -183,6 +183,12 @@ serve(async (req) => {
     // bookings.total_price + the service rate, not from the PI). When no refund
     // exists the fraction is 1.0 and nothing changes.
     const refundFractionByBooking: Record<string, number> = {}
+    // X6: per-jurisdiction rows for the additive per-country VAT + reverse-charge + OSS
+    // block. Built from the AUTHORITATIVE persisted booking_payments columns
+    // (customer_country / tax_breakdown / reverse_charge) + the refund-adjusted PI
+    // figures, so analytics' cross-border view ties to the filing reports. Never reads
+    // the stale PI metadata.tax_rate (CB-F-04).
+    const jurisdictionRows: JurisdictionRowInput[] = []
     const bookingIds = (completedBookings || []).map(b => b.id)
     if (bookingIds.length > 0) {
       // SECURITY (F-CLOSE-04 mode-bypass class): mode/key is server-derived from
@@ -190,7 +196,7 @@ serve(async (req) => {
       const test_mode = validateStripeMode().mode === 'test'
       const { data: paymentsForBookings } = await supabaseClient
         .from('booking_payments')
-        .select('booking_id, stripe_payment_intent_id, stripe_account_id, amount_cents')
+        .select('booking_id, stripe_payment_intent_id, stripe_account_id, amount_cents, customer_country, tax_breakdown, reverse_charge')
         .in('booking_id', bookingIds)
         .in('status', ['succeeded', 'completed', 'refunded'])
 
@@ -219,6 +225,18 @@ serve(async (req) => {
                 const keptFraction = Math.max(0, (chargedCents - refundedCents) / chargedCents)
                 refundFractionByBooking[pay.booking_id] = keptFraction
               }
+              // X6: collect the refund-adjusted per-jurisdiction input for this payment
+              // (the SAME shared refund proration the filing reports use, F-TAX-17).
+              const taxOrigCents = resolvePaymentTaxCents(pi)
+              const adj = computeRefundAdjustedRow(chargedCents, taxOrigCents, refundedCents)
+              jurisdictionRows.push({
+                customerCountry: typeof pay.customer_country === 'string' ? pay.customer_country : null,
+                taxBreakdown: pay.tax_breakdown ?? null,
+                reverseCharge: pay.reverse_charge === true,
+                grossCents: adj.grossCents,
+                taxCents: adj.taxCents,
+                netCents: adj.netCents,
+              })
             } catch (refundErr) {
               // F-TAX-21: surface (do not silently swallow) an unreadable PI. Analytics
               // revenue/tax come from bookings.total_price, so a refund we cannot read
@@ -230,6 +248,11 @@ serve(async (req) => {
         }
       }
     }
+
+    // X6: the per-jurisdiction VAT summary + reverse-charge markers + OSS-eligible bucket
+    // for analytics (additive; the bookings-derived overview/monthly/service figures are
+    // unchanged). merchantCountry = the business country (the OSS cross-border boundary).
+    const perJurisdiction = computePerJurisdictionReport(jurisdictionRows, businessCountry)
 
     // Calculate tax analytics
     let totalRevenue = 0
@@ -334,6 +357,34 @@ serve(async (req) => {
         },
         monthly_trends: monthlyTrends,
         service_performance: servicePerformance,
+        // X6: additive per-jurisdiction VAT + reverse-charge markers + OSS-eligible
+        // bucket, read from the authoritative persisted booking_payments columns so the
+        // analytics cross-border view ties to the filing reports + get-tax-thresholds.
+        // EUR; refund-adjusted. The existing overview/monthly/service figures (derived
+        // from bookings.total_price) are UNCHANGED.
+        per_jurisdiction: {
+          merchant_country: businessCountry,
+          country_count: perJurisdiction.countryCount,
+          reverse_charge_transactions: perJurisdiction.reverseChargeTransactionCount,
+          cross_border_guard_transactions: perJurisdiction.crossBorderGuardTransactionCount,
+          total_collected_tax: Math.round(perJurisdiction.totalCollectedTaxCents) / 100,
+          lines: perJurisdiction.lines.map((l) => ({
+            country: l.country,
+            line_type: l.lineType,
+            reverse_charge: l.reverseCharge,
+            transactions: l.transactionCount,
+            gross: Math.round(l.grossCents) / 100,
+            tax: Math.round(l.taxCents) / 100,
+            net: Math.round(l.netCents) / 100,
+            tax_rate: l.effectiveRatePct,
+          })),
+          oss_eligible: {
+            transactions: perJurisdiction.ossEligible.transactionCount,
+            gross: Math.round(perJurisdiction.ossEligible.grossCents) / 100,
+            taxable: Math.round(perJurisdiction.ossEligible.taxableCents) / 100,
+            countries: perJurisdiction.ossEligible.countries,
+          },
+        },
         compliance_status: {
           tax_collection_active: taxEnabledServices.length > 0,
           services_configured: taxEnabledServices.length,

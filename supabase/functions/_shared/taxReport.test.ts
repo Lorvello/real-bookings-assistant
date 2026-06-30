@@ -10,14 +10,21 @@
 import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import {
   buildWhatsappBookingPaymentRow,
+  classifyJurisdictionLine,
+  computePerJurisdictionReport,
   computeRefundAdjustedRow,
   computeRegistrationStatus,
+  type JurisdictionRowInput,
   resolvePaymentTaxCents,
   resolveRefundedCents,
   retrieveBookingPaymentIntent,
 } from "./taxReport.ts";
 
 import { assertRejects } from "https://deno.land/std@0.190.0/testing/asserts.ts";
+
+// X5 helper, used to PROVE the X6 OSS-eligible bucket reconciles with the X5 threshold
+// resolver on the same rows (one source of truth for "what counts cross-border B2C").
+import { computeOssBucket, type BookingPaymentRowLike } from "./ossThreshold.ts";
 
 // A minimal Stripe double whose paymentIntents.retrieve resolves only when called in
 // the configured "live" account context (platform = no opts.stripeAccount; connected =
@@ -458,4 +465,202 @@ Deno.test("X3b-1: reverse_charge coerces non-true to false (null/undefined -> fa
     amountCents: 10000, currency: "eur", reverseCharge: null,
   });
   assertEquals(rowNull.reverse_charge, false);
+});
+
+// ---------------------------------------------------------------------------
+// X6: per-jurisdiction VAT summary + reverse-charge markers + OSS-eligible bucket.
+// computePerJurisdictionReport reduces the report's refund-adjusted per-row inputs +
+// the authoritative persisted cross-border columns (customer_country / tax_breakdown /
+// reverse_charge) into per-country lines, marks a B2B reverse-charge 0% DISTINCTLY from
+// a not_collecting / guard 0%, and surfaces the cross-border B2C OSS bucket. It reads
+// the authoritative fields ONLY, never the stale PI metadata.tax_rate (CB-F-04).
+// ---------------------------------------------------------------------------
+
+// breakdown shapes mirroring what taxCalc.ts normalizes + the charge fns persist.
+const bdNotCollecting = (country: string) => [
+  { amountCents: 0, inclusive: false, taxabilityReason: "not_collecting", country, percentageDecimal: "0.0", taxType: "vat" },
+];
+const bdCrossBorderGuard = (country: string) => [
+  { amountCents: 0, inclusive: false, taxabilityReason: "cross_border_rate_unavailable", country, percentageDecimal: null, taxType: null },
+  { amountCents: 0, inclusive: false, taxabilityReason: "not_collecting", country, percentageDecimal: "0.0", taxType: "vat" },
+];
+const bdReverseCharge = (country: string) => [
+  { amountCents: 0, inclusive: false, taxabilityReason: "reverse_charge", country, percentageDecimal: "0.0", taxType: "vat" },
+];
+const bdCollected = (country: string, taxCents: number) => [
+  { amountCents: taxCents, inclusive: true, taxabilityReason: "standard_rated", country, percentageDecimal: "0.21", taxType: "vat" },
+];
+
+Deno.test("X6 classify: reverse_charge flag OR marker -> reverse_charge (distinct from 0%)", () => {
+  assertEquals(classifyJurisdictionLine(true, [], 0), "reverse_charge");
+  assertEquals(classifyJurisdictionLine(false, bdReverseCharge("DE"), 0), "reverse_charge");
+  // not_collecting 0% is NOT reverse_charge -> domestic/0% line, the auditable distinction.
+  assertEquals(classifyJurisdictionLine(false, bdNotCollecting("DE"), 0), "domestic");
+});
+
+Deno.test("X6 classify: cross-border guard + domestic guard are their own line types", () => {
+  assertEquals(classifyJurisdictionLine(false, bdCrossBorderGuard("DE"), 0), "cross_border_unavailable");
+  assertEquals(
+    classifyJurisdictionLine(false, [{ taxabilityReason: "domestic_rate_unavailable", country: "NL" }], 0),
+    "domestic_unavailable",
+  );
+  // positive kept tax -> collected.
+  assertEquals(classifyJurisdictionLine(false, bdCollected("NL", 2100), 2100), "collected");
+});
+
+Deno.test("X6: per-country VAT summary reconciles to the cent with the persisted rows", () => {
+  // NL collected 21% (12100 gross / 2100 tax), DE-B2C guard 0% (10000/0),
+  // DE-B2B reverse-charge 0% (10000/0), FR-B2C guard 0% (10000/0).
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "NL", taxBreakdown: bdCollected("NL", 2100), reverseCharge: false, grossCents: 12100, taxCents: 2100, netCents: 10000 },
+    { customerCountry: "DE", taxBreakdown: bdCrossBorderGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "DE", taxBreakdown: bdReverseCharge("DE"), reverseCharge: true, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "FR", taxBreakdown: bdCrossBorderGuard("FR"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+
+  // Per-country VAT: only NL collected VAT (2100); DE + FR guard/reverse contribute 0.
+  assertEquals(rep.totalCollectedTaxCents, 2100);
+  // 3 distinct destination countries seen (NL, DE, FR).
+  assertEquals(rep.countryCount, 3);
+
+  // NL line is collected at 21%.
+  const nl = rep.lines.find((l) => l.country === "NL" && l.lineType === "collected");
+  assertEquals(nl?.taxCents, 2100);
+  assertEquals(nl?.netCents, 10000);
+  assertEquals(nl?.effectiveRatePct, 21.0);
+  assertEquals(nl?.reverseCharge, false);
+
+  // The DE reverse-charge line and the DE guard line are DISTINCT buckets (same country).
+  const deReverse = rep.lines.find((l) => l.country === "DE" && l.lineType === "reverse_charge");
+  const deGuard = rep.lines.find((l) => l.country === "DE" && l.lineType === "cross_border_unavailable");
+  assertEquals(deReverse?.reverseCharge, true);
+  assertEquals(deReverse?.taxCents, 0);
+  assertEquals(deGuard?.reverseCharge, false);
+  assertEquals(deGuard?.taxCents, 0);
+  // The two DE lines are NOT merged (auditability: reverse-charge vs not_collecting).
+  assertEquals(rep.lines.filter((l) => l.country === "DE").length, 2);
+});
+
+Deno.test("X6: reverse-charge marker is distinct from a not_collecting 0% line", () => {
+  // Two DE rows, both 0% to the buyer, but one is B2B reverse-charge and one is a plain
+  // not_collecting guard. They MUST be separable in the output (different lineType +
+  // reverseCharge flag), so a filing can audit B2B reverse-charge vs uncollected.
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "DE", taxBreakdown: bdReverseCharge("DE"), reverseCharge: true, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "DE", taxBreakdown: bdCrossBorderGuard("DE"), reverseCharge: false, grossCents: 5000, taxCents: 0, netCents: 5000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  assertEquals(rep.reverseChargeTransactionCount, 1);
+  assertEquals(rep.crossBorderGuardTransactionCount, 1);
+  const reverse = rep.lines.find((l) => l.lineType === "reverse_charge");
+  const guard = rep.lines.find((l) => l.lineType === "cross_border_unavailable");
+  assertEquals(reverse?.reverseCharge, true);
+  assertEquals(guard?.reverseCharge, false);
+  // They are genuinely two different lines.
+  assertEquals(rep.lines.length, 2);
+});
+
+Deno.test("X6: OSS-eligible bucket aggregates cross-border B2C and ties to the X5 resolver", () => {
+  // DE-B2C guard (10000), FR-B2C guard (10000) -> cross-border B2C, count toward OSS.
+  // NL collected -> domestic, excluded. DE-B2B reverse-charge -> excluded (B2B 0%).
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "NL", taxBreakdown: bdCollected("NL", 2100), reverseCharge: false, grossCents: 12100, taxCents: 2100, netCents: 10000 },
+    { customerCountry: "DE", taxBreakdown: bdCrossBorderGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "DE", taxBreakdown: bdReverseCharge("DE"), reverseCharge: true, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "FR", taxBreakdown: bdCrossBorderGuard("FR"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  // OSS = the two cross-border B2C guard rows (DE + FR). NL domestic + DE B2B excluded.
+  assertEquals(rep.ossEligible.transactionCount, 2);
+  assertEquals(rep.ossEligible.grossCents, 20000);
+  assertEquals(rep.ossEligible.taxableCents, 20000); // net-of-VAT (0 tax here) + net-of-refund
+  assertEquals(rep.ossEligible.countries, ["DE", "FR"]);
+
+  // RECONCILIATION with the X5 OSS threshold resolver on the SAME data: build the
+  // equivalent booking_payments rows and assert the X5 cumulative == the X6 taxable.
+  const x5Rows: BookingPaymentRowLike[] = [
+    { amount_cents: 12100, customer_country: "NL", reverse_charge: false, tax_breakdown: bdCollected("NL", 2100), status: "succeeded" },
+    { amount_cents: 10000, customer_country: "DE", reverse_charge: false, tax_breakdown: bdCrossBorderGuard("DE"), status: "succeeded" },
+    { amount_cents: 10000, customer_country: "DE", reverse_charge: true, tax_breakdown: bdReverseCharge("DE"), status: "succeeded" },
+    { amount_cents: 10000, customer_country: "FR", reverse_charge: false, tax_breakdown: bdCrossBorderGuard("FR"), status: "succeeded" },
+  ];
+  const x5 = computeOssBucket(x5Rows, "NL");
+  assertEquals(x5.cumulativeCents, rep.ossEligible.taxableCents); // 20000 == 20000
+  assertEquals(x5.contributingPayments, rep.ossEligible.transactionCount); // 2 == 2
+});
+
+Deno.test("X6: OSS taxable nets refunds (a partial-refunded cross-border B2C counts less)", () => {
+  // DE-B2C collected (hypothetically post-registration) 11900 gross / 1900 tax / 10000 net,
+  // half refunded -> the report passes the refund-adjusted figures (5950/950/5000). The
+  // OSS taxable for this row is the kept net (5000), not the original 10000.
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "DE", taxBreakdown: bdCollected("DE", 1900), reverseCharge: false, grossCents: 5950, taxCents: 950, netCents: 5000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  assertEquals(rep.ossEligible.transactionCount, 1);
+  assertEquals(rep.ossEligible.taxableCents, 5000); // kept net, refund excluded
+  // And the per-country collected VAT for DE is the kept (refund-adjusted) tax.
+  const de = rep.lines.find((l) => l.country === "DE" && l.lineType === "collected");
+  assertEquals(de?.taxCents, 950);
+});
+
+Deno.test("X6 CB-F-04: a stale metadata-style 21% rate cannot fabricate VAT on a 0% guard line", () => {
+  // The persisted tax_breakdown says cross-border guard 0% and taxCents is 0 (the
+  // authoritative refund-adjusted figure). Even though the CHARGE fn also stamped a
+  // legacy metadata tax_rate=21 on the PI, the resolver reads ONLY taxCents + the
+  // breakdown, so the line is 0% / guard, NOT a fabricated 21%.
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "DE", taxBreakdown: bdCrossBorderGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  const de = rep.lines.find((l) => l.country === "DE");
+  assertEquals(de?.lineType, "cross_border_unavailable");
+  assertEquals(de?.taxCents, 0);
+  assertEquals(de?.effectiveRatePct, 0); // never 21 from stale metadata
+  assertEquals(rep.totalCollectedTaxCents, 0);
+});
+
+Deno.test("X6: country falls back to the breakdown when customer_country is null (legacy row)", () => {
+  // An older row that did not persist customer_country but whose breakdown carries DE.
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: null, taxBreakdown: bdCrossBorderGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  assertEquals(rep.lines[0].country, "DE"); // recovered from the breakdown, not "UNKNOWN"
+  assertEquals(rep.ossEligible.countries, ["DE"]); // and it still counts cross-border
+});
+
+Deno.test("X6: a row with no country anywhere is kept as UNKNOWN (never silently dropped)", () => {
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: null, taxBreakdown: null, reverseCharge: false, grossCents: 12100, taxCents: 2100, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  assertEquals(rep.lines[0].country, "UNKNOWN");
+  assertEquals(rep.lines[0].taxCents, 2100); // its VAT is still summed
+  assertEquals(rep.countryCount, 0); // UNKNOWN is not counted as a destination country
+  // UNKNOWN is not merchant NL and not reverse-charge, but country==UNKNOWN is excluded
+  // from OSS (we cannot attribute it to a destination -> not auto-counted cross-border).
+  assertEquals(rep.ossEligible.transactionCount, 0);
+});
+
+Deno.test("X6: in_person / domestic NL only -> no cross-border, OSS bucket empty (no regression)", () => {
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: null, taxBreakdown: null, reverseCharge: false, grossCents: 12100, taxCents: 2100, netCents: 10000 },
+    { customerCountry: "NL", taxBreakdown: bdNotCollecting("NL"), reverseCharge: false, grossCents: 12100, taxCents: 2100, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  assertEquals(rep.ossEligible.transactionCount, 0);
+  assertEquals(rep.ossEligible.taxableCents, 0);
+  assertEquals(rep.reverseChargeTransactionCount, 0);
+  assertEquals(rep.crossBorderGuardTransactionCount, 0);
+});
+
+Deno.test("X6: empty batch -> zeroed report, no crash", () => {
+  const rep = computePerJurisdictionReport([], "NL");
+  assertEquals(rep.lines, []);
+  assertEquals(rep.totalCollectedTaxCents, 0);
+  assertEquals(rep.countryCount, 0);
+  assertEquals(rep.ossEligible.transactionCount, 0);
+  assertEquals(rep.ossEligible.countries, []);
 });
