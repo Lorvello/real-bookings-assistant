@@ -231,6 +231,43 @@ function deterministicConfirmation(
   return null;
 }
 
+// FQ-3 concurrency loser reply (guarantee-in-code, the refundGuard/deterministicConfirmation
+// pattern). When two end-clients confirm the SAME slot at once, the DB bookings_no_overlap exclusion
+// constraint lets exactly ONE insert win (no double-book is structurally impossible). The LOSER's
+// book_appointment COMMIT returns one of BOOK_RACE_LOSS_ERRORS:
+//   "slot_taken"      = the tight 23P01 exclusion-constraint race (both inserts passed validation
+//                        and collided at the constraint).
+//   "niet_beschikbaar" = the COMMON case: the winner's row landed first, so the loser's pre-insert
+//                        validate_booking_security now fails.
+//   "dag_vol"          = the winner reached the max/day cap in between.
+// All three, on a CONFIRMED commit, mean "the slot you just confirmed is gone." Without this the
+// loser's customer-facing reply was model-improvised prose ("Wat is je naam?", reproduced reliably)
+// = a confusing / misleading message. The honest reply is a hard correctness claim the end-client is
+// told, so it belongs in CODE, not the 20B model's text. Template it deterministically (EN floor + NL
+// default, the same `customerLanguage != null` convention as deterministicConfirmation/Preview): tell
+// the truth and offer another time. The error carries no proposal, so we never echo a now-invalid
+// time. Gated on the COMMIT turn so a first-PREVIEW "that time isn't free, here are alternatives"
+// (also "niet_beschikbaar") stays model-driven and helpful.
+const BOOK_RACE_LOSS_ERRORS = new Set(["slot_taken", "niet_beschikbaar", "dag_vol"]);
+function deterministicSlotTaken(
+  toolCalls: { name: string; result: unknown }[],
+  customerLanguage: string | null,
+  isCommitTurn: boolean,
+): string | null {
+  // Only on the commit turn: on a first PREVIEW turn, "niet_beschikbaar" means "pick another time"
+  // and the model's helpful alternatives offer is correct, so we never override it there.
+  if (!isCommitTurn) return null;
+  const lost = toolCalls.some(
+    (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
+      BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)),
+  );
+  if (!lost) return null;
+  const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
+  return en
+    ? "Sorry, that time was just taken by someone else, so I couldn't book it. Shall I look for another time for you?"
+    : "Sorry, dat tijdstip is net door iemand anders geboekt, dus het lukte niet meer. Zal ik een ander moment voor je zoeken?";
+}
+
 // B1 (2e-LLM-call collapse): a mutation tool result that represents a COMPLETED commit, exactly
 // the set deterministicConfirmation() can template. Used to (a) stop the agent loop right after a
 // successful book/cancel/reschedule so the compose model-call (call 2) never runs (~2-2.5s saved),
@@ -745,7 +782,17 @@ Deno.serve(async (req) => {
     // lost and no row was written). Force the commit. book_appointment with confirmBook reuses the
     // SERVER-stored pending_booking slot, so the nudge can only ever book the exact previewed slot,
     // never a model-reconstructed (possibly wrong) date.
-    const bookCommitMissed = confirmBook && !succeededMutation;
+    // FQ-3 concurrency: a confirmed-commit turn whose book_appointment lost the previewed slot to a
+    // concurrent booking (any of BOOK_RACE_LOSS_ERRORS). The DB bookings_no_overlap constraint already
+    // guaranteed no double-book, but it is an ERRORED mutation, so succeededMutation stays false and
+    // bookCommitMissed would fire, re-running the doomed commit (which fails again) and leaving the
+    // model to improvise a confused reply ("Wat is je naam?", reproduced reliably). Suppress the
+    // pointless nudge here; reply-assembly then templates an honest reply (deterministicSlotTaken),
+    // so the no-double-book guarantee in code is matched by a clean customer-facing outcome.
+    const slotTakenOnCommit = confirmBook && result.toolCalls.some(
+      (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
+        BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
+    const bookCommitMissed = confirmBook && !succeededMutation && !slotTakenOnCommit;
 
     // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
     // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
@@ -843,7 +890,13 @@ Deno.serve(async (req) => {
       // divergence structurally impossible. Only fires when book_appointment returned
       // needs_confirmation + proposal; if it didn't (no preview this turn), fall through unchanged.
       const preview = deterministicPreview(result.toolCalls, customerLanguage);
-      if (preview) {
+      const slotTaken = deterministicSlotTaken(result.toolCalls, customerLanguage, confirmBook);
+      if (slotTaken) {
+        // FQ-3: the concurrency LOSER. The DB already guaranteed no double-book; here we guarantee
+        // the customer-facing message is honest + helpful instead of model-improvised prose. Override
+        // whatever the model produced (including the suppressed-nudge fallthrough) with the template.
+        replyText = slotTaken;
+      } else if (preview) {
         replyText = preview;
       } else if (!replyText) {
         const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
