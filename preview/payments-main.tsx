@@ -70,12 +70,13 @@ function FlexibilityDemo({ required, canUseInstallments = true }: { required: bo
   const [payOnSite, setPayOnSite] = useState(false);
   const [installments, setInstallments] = useState(canUseInstallments);
   const [configOpen, setConfigOpen] = useState(true);
-  const [policy, setPolicy] = useState('Free cancellation up to 24h before the appointment.');
+  const [policy, setPolicy] = useState('Free cancellation up to 24 hours before the appointment. After that, no refund.');
   return (
     <PaymentFlexibilitySection
       refundPolicy={policy}
       onRefundPolicyChange={setPolicy}
       onSaveRefundPolicy={() => {}}
+      onSelectRefundPreset={setPolicy}
       savingRefundPolicy={false}
       paymentRequired={paymentRequired}
       onToggleOptional={(optional) => setPaymentRequired(!optional)}

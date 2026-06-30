@@ -392,6 +392,14 @@ export function PaymentSettingsTab() {
     await updateSettings({ refund_policy_text: refundPolicy });
   };
 
+  // AS-3: a preset writes its canonical sentence into refund_policy_text directly.
+  // We set local state AND persist with the explicit text (not the async-stale state),
+  // so a single click both reflects the choice and saves it for the agent.
+  const handleSelectRefundPreset = async (text: string) => {
+    setRefundPolicy(text);
+    await updateSettings({ refund_policy_text: text });
+  };
+
   const handleSavePaymentMethods = async () => {
     if (!selectedMethods.length) {
       toast({
@@ -576,6 +584,7 @@ export function PaymentSettingsTab() {
               refundPolicy={refundPolicy}
               onRefundPolicyChange={setRefundPolicy}
               onSaveRefundPolicy={handleUpdateSettings}
+              onSelectRefundPreset={handleSelectRefundPreset}
               savingRefundPolicy={settingsSaving}
               paymentRequired={paymentRequired}
               onToggleOptional={handleTogglePaymentOptional}

@@ -284,7 +284,7 @@ export function StripeAccountSection({
         title={t('settings.payments.account.title', 'Stripe account')}
         description={t(
           'settings.payments.account.otherEnvDescription',
-          'Your Stripe connection is saved. To accept {{currentEnv}} payments you only need to finish onboarding in {{currentEnv}} mode, you do not have to reconnect.',
+          'Your Stripe connection is saved. To accept {{currentEnv}} payments, just finish onboarding in that mode, you do not have to reconnect.',
           { currentEnv: currentEnvLabel },
         )}
         action={

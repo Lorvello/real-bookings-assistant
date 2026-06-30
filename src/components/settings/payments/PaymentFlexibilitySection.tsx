@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Wallet, Lock, Settings as SettingsIcon, Loader2 } from 'lucide-react';
+import { Wallet, Lock, Settings as SettingsIcon, Loader2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -9,11 +9,59 @@ import { Textarea } from '@/components/ui/textarea';
 import { SettingsSection } from '../SettingsSection';
 import { SettingsField } from '../SettingsField';
 
+/**
+ * Refund-policy presets (AS-3). The owner picks a common policy with a button
+ * instead of writing free text; "custom" reveals the textarea for an own policy.
+ *
+ * The selected preset writes its CANONICAL localized sentence into the same
+ * `refundPolicy` string that is persisted to `payment_settings.refund_policy_text`
+ * and read verbatim by the WhatsApp agent every turn (AS-2). So the agent honors a
+ * preset exactly as it honors hand-written text, and the unambiguous canonical
+ * sentence also reduces the AS-2w field-confusion watch-item. The active preset is
+ * DERIVED from the stored string (single source of truth), so it round-trips on
+ * re-open with no extra persisted state. A non-empty value that matches no preset
+ * resolves to 'custom'; an empty value resolves to no selection.
+ */
+type RefundPreset = 'free24' | 'free48' | 'none' | 'custom';
+
+/** Canonical, localized policy sentence for each non-custom preset. */
+function refundPresetText(preset: Exclude<RefundPreset, 'custom'>, t: (k: string, d: string) => string): string {
+  switch (preset) {
+    case 'free24':
+      return t(
+        'settings.payments.flexibility.presets.free24Text',
+        'Free cancellation up to 24 hours before the appointment. After that, no refund.',
+      );
+    case 'free48':
+      return t(
+        'settings.payments.flexibility.presets.free48Text',
+        'Free cancellation up to 48 hours before the appointment. After that, no refund.',
+      );
+    case 'none':
+      return t(
+        'settings.payments.flexibility.presets.noneText',
+        'No refunds. All bookings are final.',
+      );
+  }
+}
+
+/** Derive the active preset from the stored policy string (single source of truth). */
+function derivePreset(refundPolicy: string, t: (k: string, d: string) => string): RefundPreset | null {
+  const value = refundPolicy.trim();
+  if (!value) return null;
+  if (value === refundPresetText('free24', t)) return 'free24';
+  if (value === refundPresetText('free48', t)) return 'free48';
+  if (value === refundPresetText('none', t)) return 'none';
+  return 'custom';
+}
+
 interface PaymentFlexibilitySectionProps {
   // Refund & cancellation policy (feeds the AI agent via business_overview).
   refundPolicy: string;
   onRefundPolicyChange: (value: string) => void;
   onSaveRefundPolicy: () => void;
+  /** AS-3: select a preset -> writes its canonical sentence AND persists it in one click. */
+  onSelectRefundPreset: (text: string) => void;
   savingRefundPolicy: boolean;
 
   // Master flexibility toggle. `paymentRequired === true` means upfront payment is mandatory.
@@ -122,6 +170,7 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
     refundPolicy,
     onRefundPolicyChange,
     onSaveRefundPolicy,
+    onSelectRefundPreset,
     savingRefundPolicy,
     paymentRequired,
     onToggleOptional,
@@ -141,31 +190,131 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
     saving,
   } = props;
   const { t } = useTranslation('settings');
+  // Adapter: react-i18next's t has a broad signature; our preset helpers only need (key, default).
+  const tt = (k: string, d: string) => t(k, d);
+
+  // The active choice is DERIVED from the stored string (single source of truth) so it
+  // round-trips on re-open. A non-empty value that matches a canonical preset selects
+  // that preset; a non-empty value that matches none is 'custom'; an empty value is
+  // unselected. The one thing the string cannot express is "the owner clicked Custom but
+  // hasn't typed yet" (value is empty), so we hold that transient intent locally and
+  // clear it the moment a preset is picked. This keeps the editor visible while typing.
+  const [customMode, setCustomMode] = React.useState(false);
+  const derived = derivePreset(refundPolicy, tt);
+  const activePreset: RefundPreset | null = derived === 'custom' ? 'custom' : customMode ? 'custom' : derived;
+
+  const presetOptions: { id: Exclude<RefundPreset, 'custom'>; label: string }[] = [
+    { id: 'free24', label: t('settings.payments.flexibility.presets.free24Label', 'Free cancellation up to 24 hours') },
+    { id: 'free48', label: t('settings.payments.flexibility.presets.free48Label', 'Free cancellation up to 48 hours') },
+    { id: 'none', label: t('settings.payments.flexibility.presets.noneLabel', 'No refund (all bookings final)') },
+  ];
 
   return (
     <SettingsSection icon={Wallet} title={t('settings.payments.flexibility.title', 'Payment flexibility')} usedByAgent>
       <div className="space-y-6">
-        {/* Refund & cancellation policy */}
+        {/* Refund and cancellation policy: preset buttons plus an optional custom free text. */}
         <div className="border-b border-white/[0.05] pb-6">
           <SettingsField
             label={t('settings.payments.flexibility.refundPolicyLabel', 'Refund & cancellation policy')}
-            htmlFor="refund-policy"
             description={t('settings.payments.flexibility.refundPolicyDescription', 'Shown to your AI assistant so it answers refund and cancellation questions correctly.')}
           >
-            <Textarea
-              id="refund-policy"
-              value={refundPolicy}
-              onChange={(e) => onRefundPolicyChange(e.target.value)}
-              placeholder={t('settings.payments.flexibility.refundPolicyPlaceholder', 'e.g. Free cancellation up to 24h before the appointment; no refund afterwards.')}
-              rows={3}
-            />
+            {/* Radiogroup of common policies; selecting one writes its canonical sentence
+                and saves immediately so the agent honors it next turn. */}
+            <div
+              role="radiogroup"
+              aria-label={t('settings.payments.flexibility.presets.groupLabel', 'Refund policy')}
+              className="space-y-2"
+            >
+              {presetOptions.map((opt) => {
+                const selected = activePreset === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    disabled={savingRefundPolicy}
+                    onClick={() => {
+                      setCustomMode(false);
+                      onSelectRefundPreset(refundPresetText(opt.id, tt));
+                    }}
+                    className={cn(
+                      'flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                      'disabled:cursor-not-allowed disabled:opacity-60',
+                      selected
+                        ? 'border-primary/50 bg-primary/[0.08]'
+                        : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04]',
+                    )}
+                  >
+                    <span className={cn('text-sm font-medium', selected ? 'text-foreground' : 'text-muted-foreground')}>
+                      {opt.label}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
+                        selected ? 'border-primary bg-primary text-primary-foreground' : 'border-white/20',
+                      )}
+                    >
+                      {selected && <Check className="h-3 w-3" />}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {/* Custom option reveals the free-text policy field. */}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={activePreset === 'custom'}
+                onClick={() => {
+                  // Reveal the textarea and keep it revealed while empty. If switching FROM a
+                  // preset, clear the canonical sentence so the owner starts from their own words.
+                  setCustomMode(true);
+                  if (derived !== 'custom') onRefundPolicyChange('');
+                }}
+                className={cn(
+                  'flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  activePreset === 'custom'
+                    ? 'border-primary/50 bg-primary/[0.08]'
+                    : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12] hover:bg-white/[0.04]',
+                )}
+              >
+                <span className={cn('text-sm font-medium', activePreset === 'custom' ? 'text-foreground' : 'text-muted-foreground')}>
+                  {t('settings.payments.flexibility.presets.customLabel', 'Custom policy')}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
+                    activePreset === 'custom' ? 'border-primary bg-primary text-primary-foreground' : 'border-white/20',
+                  )}
+                >
+                  {activePreset === 'custom' && <Check className="h-3 w-3" />}
+                </span>
+              </button>
+            </div>
           </SettingsField>
-          <div className="mt-3">
-            <Button size="sm" onClick={onSaveRefundPolicy} disabled={savingRefundPolicy}>
-              {savingRefundPolicy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {savingRefundPolicy ? t('settings.payments.flexibility.saving', 'Saving…') : t('settings.payments.flexibility.savePolicy', 'Save policy')}
-            </Button>
-          </div>
+
+          {/* Free-text editor shows only when "custom" is the active choice. */}
+          {activePreset === 'custom' && (
+            <div className="mt-3 space-y-3">
+              <Textarea
+                id="refund-policy"
+                aria-label={t('settings.payments.flexibility.refundPolicyLabel', 'Refund & cancellation policy')}
+                value={refundPolicy}
+                onChange={(e) => onRefundPolicyChange(e.target.value)}
+                placeholder={t('settings.payments.flexibility.refundPolicyPlaceholder', 'e.g. Free cancellation up to 24h before the appointment; no refund afterwards.')}
+                rows={3}
+              />
+              <Button size="sm" onClick={onSaveRefundPolicy} disabled={savingRefundPolicy}>
+                {savingRefundPolicy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {savingRefundPolicy ? t('settings.payments.flexibility.saving', 'Saving…') : t('settings.payments.flexibility.savePolicy', 'Save policy')}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Require vs optional master toggle */}
