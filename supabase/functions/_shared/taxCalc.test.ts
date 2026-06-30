@@ -13,6 +13,10 @@ import {
   interpretCalculation,
   TaxCalcInputSchema,
   CROSS_BORDER_UNAVAILABLE_STATUS,
+  DOMESTIC_RATE_UNAVAILABLE_STATUS,
+  VAT_ID_UNVERIFIED_STATUS,
+  calculateTax,
+  validateVatIdViaVies,
 } from "./taxCalc.ts";
 
 // ---- Captured real Stripe TEST shapes (platform context, line amount 10000 cents) ----
@@ -171,4 +175,301 @@ Deno.test("X2: zod accepts a valid remote input incl optional eu_vat + defaults 
 
 Deno.test("X2: the cross-border guard status constant is stable (reports key off it)", () => {
   assertEquals(CROSS_BORDER_UNAVAILABLE_STATUS, "cross_border_rate_unavailable");
+});
+
+// =====================================================================================
+// X4: VAT-ID / reverse-charge + optional VIES guard + CB-F-03 (domestic silent-0% fix).
+// The real Stripe calls are proven via the REAL create-booking-payment flow (two-layer).
+// These tests pin (1) the VIES response-mapping, (2) calculateTax's VIES policy in BOTH
+// modes via a stubbed fetch, (3) the CB-F-03 domestic-guard decision, (4) zod bounds.
+// =====================================================================================
+
+// A stubbed fetch that maps a Stripe endpoint -> a canned JSON body. Lets us drive
+// calculateTax deterministically (calc endpoint) + the VIES check (tax_ids endpoint)
+// with zero network. `calc` may be a single body or an ARRAY of bodies consumed in order
+// (to model the tax_id_invalid retry: first call rejects, second succeeds). A body with
+// an `error` key is returned with the matching non-200 status. Restores fetch in finally.
+function withStubbedFetch(
+  routes: { calc?: unknown | unknown[]; vies?: { ok?: boolean; body: unknown } },
+  fn: () => Promise<void>,
+): () => Promise<void> {
+  return async () => {
+    const realFetch = globalThis.fetch;
+    const calcQueue: unknown[] = Array.isArray(routes.calc) ? [...routes.calc] : [routes.calc ?? {}];
+    let lastCalc: unknown = calcQueue[calcQueue.length - 1] ?? {};
+    globalThis.fetch = ((input: string | URL | Request, _init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("/v1/tax/calculations")) {
+        const body = calcQueue.length > 0 ? calcQueue.shift() : lastCalc;
+        lastCalc = body;
+        const hasError = !!(body && (body as Record<string, unknown>).error);
+        return Promise.resolve(
+          new Response(JSON.stringify(body ?? {}), {
+            status: hasError ? 400 : 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      }
+      if (url.includes("/v1/tax_ids")) {
+        const v = routes.vies ?? { ok: true, body: {} };
+        return Promise.resolve(
+          new Response(JSON.stringify(v.body), {
+            status: v.ok === false ? 400 : 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      }
+      return Promise.resolve(new Response("{}", { status: 200 }));
+    }) as typeof fetch;
+    try {
+      await fn();
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  };
+}
+
+const REMOTE_VAT_INPUT = {
+  stripeSecretKey: "rk_test_x",
+  connectedAccountId: "acct_x",
+  currency: "eur",
+  lineAmountCents: 10000,
+  taxCode: "txcd_10000000" as const,
+  taxBehavior: "exclusive" as const,
+  customerCountry: "DE",
+  customerVatId: "DE123456789",
+};
+
+// ---- (1) VIES response mapping (validateVatIdViaVies) ----
+
+Deno.test(
+  "X4 VIES: verification.status=verified -> verified",
+  withStubbedFetch({ vies: { ok: true, body: { verification: { status: "verified" } } } }, async () => {
+    const r = await validateVatIdViaVies({ stripeSecretKey: "rk_test_x", vatId: "DE123456789" });
+    assertEquals(r, "verified");
+  }),
+);
+
+Deno.test(
+  "X4 VIES: verification.status=unverified -> unverified (definitive negative)",
+  withStubbedFetch({ vies: { ok: true, body: { verification: { status: "unverified" } } } }, async () => {
+    const r = await validateVatIdViaVies({ stripeSecretKey: "rk_test_x", vatId: "DE000000000" });
+    assertEquals(r, "unverified");
+  }),
+);
+
+Deno.test(
+  "X4 VIES: verification.status=pending -> unavailable (no definitive yes, fail closed)",
+  withStubbedFetch({ vies: { ok: true, body: { verification: { status: "pending" } } } }, async () => {
+    // maxPolls 0 -> no bounded poll delay in the unit test; pending stays unavailable.
+    const r = await validateVatIdViaVies({ stripeSecretKey: "rk_test_x", vatId: "DE123456789", maxPolls: 0 });
+    assertEquals(r, "unavailable");
+  }),
+);
+
+Deno.test(
+  "X4 VIES: Stripe tax_id_invalid error -> unverified (format rejected)",
+  withStubbedFetch({ vies: { ok: false, body: { error: { code: "tax_id_invalid" } } } }, async () => {
+    const r = await validateVatIdViaVies({ stripeSecretKey: "rk_test_x", vatId: "NOTAVATID" });
+    assertEquals(r, "unverified");
+  }),
+);
+
+Deno.test(
+  "X4 VIES: other Stripe error -> unavailable (fail closed, never a false 'verified')",
+  withStubbedFetch({ vies: { ok: false, body: { error: { code: "rate_limit" } } } }, async () => {
+    const r = await validateVatIdViaVies({ stripeSecretKey: "rk_test_x", vatId: "DE123456789", maxPolls: 0 });
+    assertEquals(r, "unavailable");
+  }),
+);
+
+Deno.test(
+  "X4 VIES: pending then a poll resolves to verified (async live shape)",
+  async () => {
+    const realFetch = globalThis.fetch;
+    let createDone = false;
+    globalThis.fetch = ((input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.endsWith("/v1/tax_ids")) {
+        // the create call: returns pending + an id.
+        createDone = true;
+        return Promise.resolve(new Response(JSON.stringify({ id: "txi_poll", verification: { status: "pending" } }), { status: 200 }));
+      }
+      if (url.includes("/v1/tax_ids/txi_poll")) {
+        // the poll GET: now verified.
+        return Promise.resolve(new Response(JSON.stringify({ id: "txi_poll", verification: { status: "verified" } }), { status: 200 }));
+      }
+      return Promise.resolve(new Response("{}", { status: 200 }));
+    }) as typeof fetch;
+    try {
+      const r = await validateVatIdViaVies({ stripeSecretKey: "rk_test_x", vatId: "DE143593636", maxPolls: 2, pollDelayMs: 1 });
+      assertEquals(createDone, true);
+      assertEquals(r, "verified");
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  },
+);
+
+// ---- (2) calculateTax VIES policy, BOTH modes (the human-gate flag) ----
+
+Deno.test(
+  "X4 VIES OFF (default): format-valid eu_vat -> reverse_charge, not_checked (today's behavior)",
+  withStubbedFetch({ calc: DE_B2B }, async () => {
+    const r = await calculateTax({ ...REMOTE_VAT_INPUT }); // requireViesValidation defaults false
+    assertEquals(r.collectionState, "reverse_charge");
+    assertEquals(r.viesStatus, "not_checked");
+    assertEquals(r.vatIdRejected, false);
+    assertEquals(r.taxAmountCents, 0);
+  }),
+);
+
+Deno.test(
+  "X4 VIES ON + VIES verified: reverse_charge honored, viesStatus=verified",
+  withStubbedFetch(
+    { calc: DE_B2B, vies: { ok: true, body: { verification: { status: "verified" } } } },
+    async () => {
+      const r = await calculateTax({ ...REMOTE_VAT_INPUT, requireViesValidation: true });
+      assertEquals(r.collectionState, "reverse_charge");
+      assertEquals(r.viesStatus, "verified");
+    },
+  ),
+);
+
+Deno.test(
+  "X4 VIES ON + VIES unverified: downgraded to vat_id_unverified (NOT a silent 0% reverse-charge)",
+  withStubbedFetch(
+    { calc: DE_B2B, vies: { ok: true, body: { verification: { status: "unverified" } } } },
+    async () => {
+      const r = await calculateTax({ ...REMOTE_VAT_INPUT, requireViesValidation: true });
+      assertEquals(r.collectionState, "vat_id_unverified");
+      assertEquals(r.viesStatus, "unverified");
+    },
+  ),
+);
+
+Deno.test(
+  "X4 VIES ON + VIES unavailable: fail closed -> vat_id_unverified (no trust on an unconfirmed id)",
+  withStubbedFetch(
+    { calc: DE_B2B, vies: { ok: true, body: { verification: { status: "unavailable" } } } },
+    async () => {
+      const r = await calculateTax({ ...REMOTE_VAT_INPUT, requireViesValidation: true });
+      assertEquals(r.collectionState, "vat_id_unverified");
+    },
+  ),
+);
+
+Deno.test(
+  "X4 VIES ON but NOT a reverse_charge result (DE B2C not_collecting): VIES not run, state unchanged",
+  withStubbedFetch(
+    { calc: DE_B2C, vies: { ok: true, body: { verification: { status: "unverified" } } } },
+    async () => {
+      // No customerVatId -> reverse_charge never happens -> VIES path is not entered.
+      const r = await calculateTax({
+        ...REMOTE_VAT_INPUT,
+        customerVatId: undefined,
+        requireViesValidation: true,
+      });
+      assertEquals(r.collectionState, "not_collecting");
+      assertEquals(r.viesStatus, "not_checked");
+    },
+  ),
+);
+
+// ---- (2b) NO-ABUSE: a format-INVALID eu_vat is rejected by Stripe -> retry as B2C ----
+// The calc with the VAT id returns tax_id_invalid; calculateTax drops the id and retries,
+// landing on not_collecting (the charge path then fires its cross-border / domestic guard).
+// A bogus number can NEVER produce a reverse-charge.
+
+const STRIPE_TAX_ID_INVALID = { error: { code: "tax_id_invalid", message: "Invalid value for eu_vat." } };
+
+Deno.test(
+  "X4 NO-ABUSE: invalid-format eu_vat -> retried as B2C -> not_collecting, NOT reverse_charge, vatIdRejected=true",
+  withStubbedFetch({ calc: [STRIPE_TAX_ID_INVALID, DE_B2C] }, async () => {
+    const r = await calculateTax({ ...REMOTE_VAT_INPUT, customerVatId: "NOTAVATID" });
+    assertEquals(r.collectionState, "not_collecting"); // never reverse_charge
+    assertEquals(r.vatIdRejected, true);
+    assertEquals(r.taxAmountCents, 0);
+  }),
+);
+
+Deno.test(
+  "X4 NO-ABUSE: invalid eu_vat + VIES ON -> still B2C (VIES not even consulted; no reverse-charge to trust)",
+  withStubbedFetch(
+    { calc: [STRIPE_TAX_ID_INVALID, DE_B2C], vies: { ok: true, body: { verification: { status: "verified" } } } },
+    async () => {
+      const r = await calculateTax({ ...REMOTE_VAT_INPUT, customerVatId: "NOTAVATID", requireViesValidation: true });
+      assertEquals(r.collectionState, "not_collecting");
+      assertEquals(r.vatIdRejected, true);
+      assertEquals(r.viesStatus, "not_checked"); // VIES skipped: not a reverse_charge result
+    },
+  ),
+);
+
+Deno.test(
+  "X4 NO-ABUSE: a NON-tax_id error is NOT swallowed (real failures still throw)",
+  withStubbedFetch({ calc: { error: { code: "api_error", message: "boom" } } }, async () => {
+    let threw = false;
+    try {
+      await calculateTax({ ...REMOTE_VAT_INPUT });
+    } catch (_e) {
+      threw = true;
+    }
+    assertEquals(threw, true);
+  }),
+);
+
+// ---- (3) CB-F-03: the domestic-guard decision (mirrors create-booking-payment case (c)) ----
+// The fix: case (c) is a clean manual fallback ONLY when the manual block applied a
+// positive rate (automaticTaxEnabled && taxAmount>0); otherwise fire the domestic guard
+// instead of a silent 0%. This pins that decision shape.
+function decideDomesticCaseC(args: { automaticTaxEnabled: boolean; taxAmountCents: number }): "manual_fallback" | "domestic_guard" {
+  return (args.automaticTaxEnabled && args.taxAmountCents > 0) ? "manual_fallback" : "domestic_guard";
+}
+
+Deno.test("X4 CB-F-03: NL remote, applicable_tax_rate NULL (manual skipped) -> domestic_guard (never silent 0%)", () => {
+  assertEquals(decideDomesticCaseC({ automaticTaxEnabled: false, taxAmountCents: 0 }), "domestic_guard");
+});
+
+Deno.test("X4 CB-F-03: NL remote, applicable_tax_rate 21 (manual applied 21%) -> manual_fallback (no regression)", () => {
+  assertEquals(decideDomesticCaseC({ automaticTaxEnabled: true, taxAmountCents: 2100 }), "manual_fallback");
+});
+
+Deno.test("X4 CB-F-03: manual enabled but computed 0 tax -> domestic_guard (defensive, still never 0% silently)", () => {
+  assertEquals(decideDomesticCaseC({ automaticTaxEnabled: true, taxAmountCents: 0 }), "domestic_guard");
+});
+
+Deno.test("X4: guard status constants are stable (reports/X6 key off them)", () => {
+  assertEquals(DOMESTIC_RATE_UNAVAILABLE_STATUS, "domestic_rate_unavailable");
+  assertEquals(VAT_ID_UNVERIFIED_STATUS, "vat_id_unverified");
+});
+
+// ---- (4) zod bounds for the new flag ----
+
+Deno.test("X4: zod accepts requireViesValidation and defaults it false (policy default = format-only)", () => {
+  const parsed = TaxCalcInputSchema.parse({
+    stripeSecretKey: "rk_test_x",
+    connectedAccountId: "acct_x",
+    currency: "eur",
+    lineAmountCents: 10000,
+    taxCode: "txcd_10000000",
+    taxBehavior: "exclusive",
+    customerCountry: "DE",
+    customerVatId: "DE123456789",
+  });
+  assertEquals(parsed.requireViesValidation, false);
+});
+
+Deno.test("X4: zod accepts requireViesValidation true (the one-liner flip)", () => {
+  const parsed = TaxCalcInputSchema.parse({
+    stripeSecretKey: "rk_test_x",
+    connectedAccountId: "acct_x",
+    currency: "eur",
+    lineAmountCents: 10000,
+    taxCode: "txcd_10000000",
+    taxBehavior: "exclusive",
+    customerCountry: "DE",
+    requireViesValidation: true,
+  });
+  assertEquals(parsed.requireViesValidation, true);
 });

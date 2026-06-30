@@ -8,7 +8,19 @@ import {
   type TaxBreakdownEntry,
   CROSS_BORDER_UNAVAILABLE_STATUS,
   CROSS_BORDER_UNAVAILABLE_MESSAGE,
+  DOMESTIC_RATE_UNAVAILABLE_STATUS,
+  DOMESTIC_RATE_UNAVAILABLE_MESSAGE,
+  VAT_ID_UNVERIFIED_STATUS,
+  VAT_ID_UNVERIFIED_MESSAGE,
 } from "../_shared/taxCalc.ts";
+
+// VIES-trust policy flag (X4). Default OFF = Stripe format-only reverse-charge (today's
+// behavior). Flip to ON (TAX_REQUIRE_VIES=true as a Supabase edge secret) to additionally
+// require a real VIES confirmation before honoring a reverse-charge. One-liner to enforce.
+function requireViesPolicy(): boolean {
+  const v = (Deno.env.get("TAX_REQUIRE_VIES") || "").trim().toLowerCase();
+  return v === "true" || v === "1" || v === "yes";
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -268,6 +280,8 @@ serve(async (req) => {
     let taxBreakdownToPersist: TaxBreakdownEntry[] | null = null;
     let reverseChargeApplied = false;
     let crossBorderGuardTripped = false;                // not_collecting + cross-border
+    let domesticGuardTripped = false;                   // (X4 CB-F-03) domestic, no usable rate
+    let vatIdRejected = false;                          // (X4) supplied VAT id was format-invalid
     let persistedCustomerCountry: string | null = null;
     let taxTransactionPending = false;                  // case (a) collecting -> create_from_calculation on success
 
@@ -323,14 +337,27 @@ serve(async (req) => {
           taxBehavior,
           customerCountry,
           customerVatId: customerVatId ?? undefined,
+          // VIES-trust policy (X4). OFF by default -> Stripe format-only reverse-charge.
+          // ON -> a format-valid-but-VIES-unconfirmed number is downgraded to
+          // vat_id_unverified (handled below), never a silent 0% reverse-charge.
+          requireViesValidation: requireViesPolicy(),
         });
 
         taxBreakdownToPersist = calc.breakdown;
         taxCalculationId = calc.calculationId;
+        vatIdRejected = calc.vatIdRejected === true;
         logStep("Cross-border tax calc", {
           supplyType, customerCountry, state: calc.collectionState,
           taxCents: calc.taxAmountCents, context: calc.context, calc: calc.calculationId,
+          vatIdRejected,
         });
+        if (vatIdRejected) {
+          // NO-ABUSE: the supplied VAT id was format-invalid; Stripe rejected it and the
+          // calc was retried as B2C (no reverse-charge). Surface it; never silently honor.
+          logStep("VAT-ID REJECTED (format-invalid) -> treated as B2C, no reverse-charge", {
+            customerCountry,
+          });
+        }
 
         if (calc.collectionState === 'collecting') {
           // (a) Positive collectible rate -> use Stripe's figure. Attach the calc id and
@@ -339,15 +366,65 @@ serve(async (req) => {
           amount = taxBehavior === 'inclusive' ? lineAmountCents : calc.amountTotalCents;
           taxTransactionPending = true;
         } else if (calc.collectionState === 'reverse_charge') {
-          // (b) Valid EU B2B reverse-charge -> 0%, marked. No tax added.
+          // (b) Valid EU B2B reverse-charge -> 0%, marked. No tax added. (Under the
+          // require-VIES policy this state means VIES CONFIRMED the id; an unconfirmed id
+          // would have been downgraded to vat_id_unverified, handled below.)
           taxAmount = 0;
           amount = lineAmountCents;
           reverseChargeApplied = true;
+        } else if (calc.collectionState === 'vat_id_unverified') {
+          // (b') (X4 VIES) The require-VIES policy is ON and the eu_vat was format-valid
+          // but could NOT be confirmed via VIES. Do NOT silently apply a 0% reverse-charge.
+          // We fail the charge loudly so the booking is not completed on an unconfirmed id;
+          // the owner (or customer) must supply a verifiable VAT id or proceed without one.
+          // (When the policy is OFF, default, this state never occurs.)
+          logStep("VAT-ID UNVERIFIED GUARD (require-VIES on)", {
+            customerCountry, message: VAT_ID_UNVERIFIED_MESSAGE,
+          });
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: VAT_ID_UNVERIFIED_MESSAGE,
+              code: VAT_ID_UNVERIFIED_STATUS,
+            }),
+            { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
         } else if (merchantCountry === customerCountry) {
           // (c) not_collecting AND destination == merchant country (NL): fall back to the
-          // manual domestic path (the manual block above already set amount/taxAmount).
-          // This MUST NOT regress today's NL 21% while the NL registration is expired.
-          logStep("Cross-border not_collecting domestic -> manual NL fallback", { customerCountry });
+          // manual domestic path. The manual block above sets amount/taxAmount ONLY when
+          // applicable_tax_rate is a positive number (automaticTaxEnabled === true).
+          //
+          // CB-F-03 FIX: a remote DOMESTIC taxable service with tax_enabled + tax_code but
+          // a NULL/0 applicable_tax_rate would otherwise fall through here with amount =
+          // bare base and taxAmount = 0 -> a SILENT 0% domestic VAT charge. Guard against
+          // that: only treat case (c) as a clean manual fallback when the manual block
+          // actually applied a positive rate; otherwise fire a DOMESTIC hard guard (no
+          // hardcoded rate, no fake 0%).
+          if (automaticTaxEnabled && taxAmount > 0) {
+            logStep("Cross-border not_collecting domestic -> manual NL fallback", {
+              customerCountry, taxAmount: taxAmount / 100,
+            });
+          } else {
+            domesticGuardTripped = true;
+            taxAmount = 0;
+            amount = lineAmountCents;
+            taxBreakdownToPersist = [
+              {
+                amountCents: 0,
+                inclusive: false,
+                taxabilityReason: DOMESTIC_RATE_UNAVAILABLE_STATUS,
+                country: customerCountry,
+                percentageDecimal: null,
+                taxType: null,
+              },
+              ...calc.breakdown,
+            ];
+            logStep("DOMESTIC RATE GUARD (CB-F-03: no usable domestic rate, never silent 0%)", {
+              customerCountry, merchantCountry,
+              applicableTaxRate: service?.applicable_tax_rate ?? null,
+              message: DOMESTIC_RATE_UNAVAILABLE_MESSAGE,
+            });
+          }
         } else {
           // (d) not_collecting AND cross-border: the HARD GUARD. Never a silent clean 0%.
           // The charge proceeds as a destination charge, but the tax outcome is flagged
@@ -451,6 +528,8 @@ serve(async (req) => {
         ...(taxTransactionPending ? { tax_transaction_pending: 'true' } : {}),
         ...(reverseChargeApplied ? { reverse_charge: 'true' } : {}),
         ...(crossBorderGuardTripped ? { cross_border_status: CROSS_BORDER_UNAVAILABLE_STATUS } : {}),
+        ...(domesticGuardTripped ? { domestic_status: DOMESTIC_RATE_UNAVAILABLE_STATUS } : {}),
+        ...(vatIdRejected ? { vat_id_rejected: 'true' } : {}),
       },
     };
 
