@@ -592,7 +592,7 @@ export function PaymentSettingsTab() {
               onDeadlineChange={setDeadlineHours}
               onDeadlineBlur={handleDeadlineBlur}
               autoCancel={!!settings?.auto_cancel_unpaid_bookings}
-              onToggleAutoCancel={(checked) => updateSettings({ auto_cancel_unpaid_bookings: checked })}
+              onToggleAutoCancel={(checked) => updateSettings({ auto_cancel_unpaid_bookings: checked }, { optimistic: true })}
               payOnSiteEnabled={isPayOnSiteEnabled}
               onTogglePayOnSite={handleTogglePayOnSite}
               installmentsEnabled={installmentSettings?.enabled || false}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +11,13 @@ export const usePaymentSettings = (calendarId?: string) => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation('notifications');
+
+  // The last value we KNOW the DB holds (server-confirmed on fetch/save). Optimistic
+  // toggles paint ahead of the await; on a save failure we revert local state to this
+  // truth so a money-relevant toggle never stays visually wrong vs the backend
+  // (FQ-A-PAY). A ref (not state) so updateSettings reads the latest committed value
+  // synchronously, even when several optimistic toggles fire in the same tick.
+  const confirmedSettings = useRef<PaymentSettings | null>(null);
 
   const parseSettings = (data: any): PaymentSettings => ({
     ...data,
@@ -41,7 +48,9 @@ export const usePaymentSettings = (calendarId?: string) => {
       if (error) throw error;
 
       if (data) {
-        setSettings(parseSettings(data));
+        const parsed = parseSettings(data);
+        confirmedSettings.current = parsed;
+        setSettings(parsed);
       }
     } catch (error) {
       console.error('Error fetching payment settings:', error);
@@ -55,8 +64,30 @@ export const usePaymentSettings = (calendarId?: string) => {
     }
   };
 
-  const updateSettings = async (updates: Partial<PaymentSettings>) => {
+  /**
+   * Persist a partial payment-settings change.
+   *
+   * `optimistic`: when true (the toggles pass it), local state is painted ahead of
+   * the await for instant UI feedback. If the save then FAILS (network / RLS / permission),
+   * local state is REVERTED to the last server-confirmed value (`confirmedSettings`) so a
+   * money-relevant toggle (secure payments, payment required, pay-on-site, payout speed)
+   * never stays stuck in a state that disagrees with the DB (FQ-A-PAY). The destructive
+   * error toast is a role=status live region, so the failure is announced, not silent.
+   * Pass `optimistic: false` for callers that gate their UI on the returned boolean
+   * (payment methods, payout option) and therefore must not paint before confirmation.
+   */
+  const updateSettings = async (
+    updates: Partial<PaymentSettings>,
+    options?: { optimistic?: boolean },
+  ) => {
     if (!calendarId) return false;
+
+    const optimistic = options?.optimistic ?? false;
+    // Capture the truth to roll back to BEFORE we paint optimistically.
+    const snapshot = confirmedSettings.current;
+    if (optimistic) {
+      setSettings(prev => (prev ? { ...prev, ...updates } : prev));
+    }
 
     try {
       setSaving(true);
@@ -73,7 +104,9 @@ export const usePaymentSettings = (calendarId?: string) => {
         .single();
 
       if (error) throw error;
-      setSettings(parseSettings(data));
+      const parsed = parseSettings(data);
+      confirmedSettings.current = parsed;
+      setSettings(parsed);
 
       toast({
         title: t('paymentSettings.updateSuccessTitle', "Success"),
@@ -83,6 +116,11 @@ export const usePaymentSettings = (calendarId?: string) => {
       return true;
     } catch (error) {
       console.error('Error updating payment settings:', error);
+      // Revert the optimistic paint to the last value we KNOW the DB holds, so the
+      // toggle can never lie about a money-relevant setting after a failed save.
+      if (optimistic) {
+        setSettings(snapshot);
+      }
       toast({
         title: t('paymentSettings.updateErrorTitle', "Error"),
         description: t('paymentSettings.updateErrorDescription', "Failed to update payment settings"),
@@ -95,29 +133,20 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const toggleSecurePayments = async (enabled: boolean) => {
-    // OPTIMISTIC: Update local state immediately for instant UI feedback
     if (!enabled) {
-      setSettings(prev => prev ? { 
-        ...prev, 
-        secure_payments_enabled: false,
-        payment_required_for_booking: true,
-        payment_optional: false
-      } : prev);
-      // Cascade: reset all related settings when Pay & Book is disabled
-      return await updateSettings({ 
+      // Cascade: reset all related settings when Pay & Book is disabled.
+      // Optimistic paint + revert-on-failure handled centrally in updateSettings.
+      return await updateSettings({
         secure_payments_enabled: false,
         payment_required_for_booking: true,  // Reset to required
-        payment_optional: false              // Reset to not optional
-      });
+        payment_optional: false,             // Reset to not optional
+      }, { optimistic: true });
     }
-    setSettings(prev => prev ? { ...prev, secure_payments_enabled: enabled } : prev);
-    return await updateSettings({ secure_payments_enabled: enabled });
+    return await updateSettings({ secure_payments_enabled: enabled }, { optimistic: true });
   };
 
   const togglePaymentRequired = async (required: boolean) => {
-    // OPTIMISTIC: Update local state immediately for instant UI feedback
-    setSettings(prev => prev ? { ...prev, payment_required_for_booking: required } : prev);
-    return await updateSettings({ payment_required_for_booking: required });
+    return await updateSettings({ payment_required_for_booking: required }, { optimistic: true });
   };
 
   const updatePaymentMethods = async (methods: string[]) => {
@@ -125,13 +154,11 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const togglePaymentOptional = async (optional: boolean) => {
-    return await updateSettings({ payment_optional: optional });
+    return await updateSettings({ payment_optional: optional }, { optimistic: true });
   };
 
   const updateAllowedPaymentTiming = async (timings: string[]) => {
-    // OPTIMISTIC: Update local state immediately for instant UI feedback
-    setSettings(prev => prev ? { ...prev, allowed_payment_timing: timings } : prev);
-    return await updateSettings({ allowed_payment_timing: timings });
+    return await updateSettings({ allowed_payment_timing: timings }, { optimistic: true });
   };
 
   const updatePayoutOption = async (option: 'standard' | 'instant') => {
