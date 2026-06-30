@@ -302,6 +302,9 @@ Deno.serve(async (req) => {
   // hanging: the inbound message is already recorded + the webhook already 200'd Meta, so a
   // thrown agent run would otherwise silently drop the message (Meta won't retry).
   let phoneForFallback: string | null = null;
+  // FQ-B-ERRLEAK: the raw inbound text, hoisted so the catch can language-detect the graceful
+  // fallback even when the throw happened mid-run (after the message was parsed).
+  let fallbackMessage: string | null = null;
 
   try {
     const { phone, calendar_id, message, contact_name } = await req.json();
@@ -312,6 +315,7 @@ Deno.serve(async (req) => {
       });
     }
     phoneForFallback = phone;
+    fallbackMessage = String(message);
 
     // --- Load context (own loader; get_conversation_context RPC is buggy) ---
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
@@ -1079,20 +1083,42 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
+    // FQ-B-ERRLEAK (sev-2): the real error is logged SERVER-SIDE ONLY. It must NEVER reach the
+    // end-client. The previous code returned `{error: String(e.message)}` in the response BODY,
+    // which leaked the raw "LLM 400: {tool call validation failed ... missing 'customer_name'}"
+    // (and the tool schema) to any caller that reads the body (the §6 testpad, and the customer
+    // path if the body is ever surfaced). gpt-oss-20b reliably throws that on a book_appointment
+    // with missing params (~1/3 of book-commit turns). Now: log the detail here, send the customer
+    // a localized graceful fallback (the same graceful reply they already got over WhatsApp), and
+    // return ONLY a generic, leak-free body. No internal error string, no schema, no stack ever
+    // crosses the boundary to the end-client.
     console.error("whatsapp-agent error:", e);
-    // Best-effort fallback so a thrown run never leaves the customer in silence (the inbound
-    // is already recorded + Meta already 200'd, so it won't be retried). Never throws.
+    // Localize the fallback best-effort from the raw inbound (we may have thrown before
+    // customerLanguage was computed). null => Dutch default.
+    let fallbackLang: string | null = null;
+    try {
+      fallbackLang = detectCustomerLanguage(String(fallbackMessage ?? ""));
+    } catch (_) { /* detection must never throw the catch */ }
+    const fallbackReply = sanitizeReply(
+      fallbackLang != null
+        ? "Sorry, something went wrong on our side. Please send your message again in a moment and I'll help you further."
+        : "Sorry, er ging even iets mis aan onze kant. Stuur je bericht zo nog een keer, dan help ik je verder.",
+    );
+    // Best-effort: send the fallback so a thrown run never leaves the customer in silence (the
+    // inbound is already recorded + Meta already 200'd, so it won't be retried). Never throws.
+    let fallbackSent = false;
     if (phoneForFallback) {
       try {
-        await sendWhatsAppText(
-          phoneForFallback,
-          "Sorry, er ging even iets mis aan onze kant. Stuur je bericht zo nog een keer, dan help ik je verder.",
-        );
-      } catch (_) { /* swallow: the 500 below is the real signal */ }
+        const s = await sendWhatsAppText(phoneForFallback, fallbackReply);
+        fallbackSent = !!s.ok;
+      } catch (_) { /* swallow: keep the response leak-free regardless */ }
     }
-    return new Response(JSON.stringify({ error: String((e as Error)?.message || e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Leak-free body: a generic code + the SAME graceful reply the customer saw. The raw error
+    // stays in the server logs only. Status 200 because we DID handle the turn (the customer got a
+    // coherent reply); a non-leaking generic 200 is safer than echoing a 500 with internal detail.
+    return new Response(
+      JSON.stringify({ ok: false, error: "internal_error", reply: fallbackReply, sent: fallbackSent }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 });
