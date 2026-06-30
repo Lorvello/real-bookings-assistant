@@ -625,65 +625,87 @@ async function confirmBookingPaid(
   // still records it; createTaxTransaction is idempotent on the PI id.
   await recordTaxFilingTransactionIfPending(stripe, prefetchedPi);
 
-  if (booking.payment_status === 'paid') {
-    console.log(`ℹ️ Booking ${bookingId} already paid; skipping (idempotent).`);
-    return;
-  }
-  // E-6: idempotency for the resurrection path too. If we already flagged this booking
+  // E-6 / E-6b: idempotency for the resurrection path. If we already flagged this booking
   // for manual refund (a prior delivery of this same late payment), do not re-flag or
   // re-write. The booking_payments row + tax filing were already recorded above
   // (ensureBookingPaymentRow / recordTaxFilingTransactionIfPending are idempotent).
+  // NOTE: this runs BEFORE the payment_status==='paid' early-return on purpose, so a
+  // dead booking that somehow already carries payment_status='paid' is still caught by
+  // the dead-status guard below and flagged, instead of silently early-returning (E-6b
+  // sev-4 ordering fix).
   if (booking.payment_status === 'refund_required') {
     console.log(`ℹ️ Booking ${bookingId} already flagged refund_required; skipping (idempotent).`);
     return;
   }
 
-  // E-6 (money + double-book break): a payment that lands AFTER the booking was
-  // cancelled (cancel_overdue_unpaid_bookings freed the slot once payment_deadline_hours
-  // passed; the slot may already be re-booked by someone else) must NEVER resurrect the
-  // booking to 'confirmed'. Doing so would re-occupy a freed/possibly-rebooked slot AND
-  // silently capture money on a dead booking with no trace. Instead: keep the booking
-  // cancelled, flag it for MANUAL refund (router rule #3 forbids auto-running a refund or
-  // inventing a money-action here), and record WHY. The booking_payments row stays
-  // 'succeeded' on purpose: the charge is REAL captured revenue and a real tax obligation
-  // (the filing reports must see it); the owner reconciles it via the refund_required flag.
-  if (booking.status === 'cancelled') {
-    const reason = `[E-6 ${new Date().toISOString()}] Late payment (PI ${paymentIntentId ?? 'n/a'}) landed AFTER this booking was cancelled (slot freed by cancel_overdue_unpaid; possibly re-booked). Money was captured; booking NOT resurrected. MANUAL REFUND REQUIRED.`;
+  // E-6 (money + double-book break), generalized to all terminal/dead statuses by E-6b.
+  // A payment that lands AFTER a booking has reached a TERMINAL state must NEVER flip it
+  // to 'confirmed'. The dead-status set (DB enum bookings_status_check):
+  //   - 'cancelled': cancel_overdue_unpaid_bookings freed the slot once
+  //     payment_deadline_hours passed (the slot may already be re-booked); or an owner /
+  //     the agent cancelled it. Resurrecting re-occupies a freed/possibly-rebooked slot.
+  //   - 'completed' / 'no-show': the appointment is already over. A late payment must not
+  //     re-open it, send a fresh confirmation mail, or silently capture money untraced.
+  // For ANY of these: keep the booking in its dead status, flag it for MANUAL refund
+  // (router rule #3 forbids auto-running a refund or inventing a money-action here), and
+  // record WHY. The booking_payments row stays 'succeeded' on purpose: the charge is REAL
+  // captured revenue and a real tax obligation (the filing reports must see it); the owner
+  // reconciles it via the refund_required flag.
+  const DEAD_BOOKING_STATUSES = ['cancelled', 'completed', 'no-show']; // exact DB enum spelling (hyphen)
+  if (DEAD_BOOKING_STATUSES.includes(booking.status)) {
+    const reason = `[E-6b ${new Date().toISOString()}] Late payment (PI ${paymentIntentId ?? 'n/a'}) landed AFTER this booking reached a terminal status (${booking.status}). Money was captured; booking NOT resurrected. MANUAL REFUND REQUIRED.`;
     const mergedNotes = booking.internal_notes
       ? `${booking.internal_notes}\n${reason}`
       : reason;
-    const { error: flagErr } = await supabase
+    // Idempotent + no-clobber: only flag while the row is still in a dead status AND not
+    // already flagged refund_required (belt-and-suspenders with the early-return above for
+    // a concurrent redelivery). 0 rows updated -> already handled, leave it.
+    const { data: flagged, error: flagErr } = await supabase
       .from('bookings')
       .update({ payment_status: 'refund_required', internal_notes: mergedNotes })
       .eq('id', bookingId)
-      .eq('status', 'cancelled'); // guard: only flag while still cancelled (no clobber of a concurrent change)
+      .in('status', DEAD_BOOKING_STATUSES)
+      .neq('payment_status', 'refund_required')
+      .select('id');
     if (flagErr) {
-      console.error(`❌ E-6: failed to flag cancelled booking ${bookingId} for manual refund:`, flagErr);
+      console.error(`❌ E-6b: failed to flag terminal booking ${bookingId} (${booking.status}) for manual refund:`, flagErr);
+    }
+    if (!flagged || flagged.length === 0) {
+      console.log(`ℹ️ E-6b: booking ${bookingId} (${booking.status}) already flagged / no longer terminal; not re-noting (idempotent).`);
+      return;
     }
     // Make sure the payment ledger row reflects the captured charge so the owner can find it.
     const { error: payErr } = paymentIntentId
       ? await supabase.from('booking_payments').update({ status: 'succeeded' }).eq('stripe_payment_intent_id', paymentIntentId)
       : await supabase.from('booking_payments').update({ status: 'succeeded' }).eq('booking_id', bookingId);
     if (payErr) {
-      console.error(`❌ E-6: failed to mark booking_payments succeeded for cancelled booking ${bookingId}:`, payErr);
+      console.error(`❌ E-6b: failed to mark booking_payments succeeded for terminal booking ${bookingId}:`, payErr);
     }
-    console.warn(`⚠️ E-6 REFUND REQUIRED: cancelled booking ${bookingId} received a late payment (PI ${paymentIntentId ?? 'n/a'}). NOT resurrected; flagged refund_required. Owner must refund manually.`);
+    console.warn(`⚠️ E-6b REFUND REQUIRED: terminal booking ${bookingId} (${booking.status}) received a late payment (PI ${paymentIntentId ?? 'n/a'}). NOT resurrected; flagged refund_required. Owner must refund manually.`);
     return; // never send a confirmation mail, never set status='confirmed'
   }
 
+  // Legit already-paid idempotency: a normal confirmed/paid booking whose event is
+  // redelivered (or the dual checkout.session.completed + payment_intent.succeeded case).
+  // Runs AFTER the dead-status guard so a dead+paid row is flagged, not skipped (E-6b).
+  if (booking.payment_status === 'paid') {
+    console.log(`ℹ️ Booking ${bookingId} already paid; skipping (idempotent).`);
+    return;
+  }
+
   // Markeer betaald + bevestigd. (Normal path: booking is still pending/valid.)
-  // .neq('status','cancelled') + the returned-row check below close the TOCTOU window:
-  // if the cancel cron (or an owner) cancels this booking between the read above and this
-  // write, the UPDATE matches 0 rows (Supabase does NOT raise an error on a 0-row update),
-  // so we must inspect the returned rows, not just `error`. 0 rows -> do NOT mark the
-  // payment succeeded and do NOT send a confirmation mail for a booking that is no longer
-  // confirmable. The next delivery of this same event then takes the cancelled-path branch
-  // above (status is now 'cancelled') and flags it for manual refund.
+  // .not('status','in', deadset) + the returned-row check below close the TOCTOU window:
+  // if the cancel cron (or an owner) cancels/completes/no-shows this booking between the
+  // read above and this write, the UPDATE matches 0 rows (Supabase does NOT raise an error
+  // on a 0-row update), so we must inspect the returned rows, not just `error`. 0 rows ->
+  // do NOT mark the payment succeeded and do NOT send a confirmation mail for a booking
+  // that is no longer confirmable. The next delivery of this same event then takes the
+  // dead-status branch above (status is now terminal) and flags it for manual refund.
   const { data: confirmed, error: confirmErr } = await supabase
     .from('bookings')
     .update({ payment_status: 'paid', status: 'confirmed' })
     .eq('id', bookingId)
-    .neq('status', 'cancelled')
+    .not('status', 'in', `(${DEAD_BOOKING_STATUSES.map((s) => `"${s}"`).join(',')})`)
     .select('id');
   if (confirmErr) {
     console.error(`❌ Failed to confirm booking ${bookingId} (payment_status/status update):`, confirmErr);
