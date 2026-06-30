@@ -24,6 +24,28 @@ const sanitizeBookingText = (text: string): string => {
     .substring(0, 500);
 };
 
+// Cross-border (X3a): normalize + format-validate the optional customer tax fields before
+// persisting them onto the bookings row. These are NOT a tax authority (Stripe decides the
+// rate / reverse-charge in create-booking-payment); we only sanitize shape so a malformed
+// value never reaches the DB or Stripe. A value that fails the basic format is DROPPED
+// (treated as not supplied) rather than 400ing the whole booking: for a remote service a
+// missing country is caught later by create-booking-payment (400), and a bogus VAT-ID is
+// simply ignored by Stripe (no reverse-charge). This keeps a typo from blocking the book
+// step while never letting unvalidated input through.
+// country: ISO-3166 alpha-2 (exactly two ASCII letters) -> uppercase, else null.
+const normalizeCountry = (raw: unknown): string | null => {
+  if (typeof raw !== 'string') return null;
+  const c = raw.trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(c) ? c : null;
+};
+// VAT-ID: 2-letter country prefix + 2..12 alphanumerics (Stripe eu_vat shape) -> uppercase,
+// stripped of spaces/dots/hyphens, else null. Format only; Stripe runs the real check.
+const normalizeVatId = (raw: unknown): string | null => {
+  if (typeof raw !== 'string') return null;
+  const v = raw.toUpperCase().replace(/[\s.\-]/g, '');
+  return /^[A-Z]{2}[A-Z0-9]{2,12}$/.test(v) ? v : null;
+};
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -177,6 +199,12 @@ Deno.serve(async (req) => {
         start_time: sanitized.startTime,
         end_time: sanitized.endTime,
         notes: sanitized.notes,
+        // Cross-border (X3a): persist the customer billing country + optional EU VAT-ID
+        // (X1 columns). Format-validated above; null when absent/malformed. in_person
+        // bookings simply leave these null (no regression). create-booking-payment reads
+        // them off this row to drive the Stripe Tax calc + persist onto booking_payments.
+        customer_country: normalizeCountry(bookingData.customerCountry),
+        customer_vat_id: normalizeVatId(bookingData.customerVatId),
         status: 'pending',
         confirmation_token: crypto.randomUUID(),
         // Markeer de boeking expliciet als onbetaald wanneer betaling vereist is, zodat

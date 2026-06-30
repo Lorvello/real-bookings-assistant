@@ -10,8 +10,21 @@ import { BookingPaymentForm } from '@/components/booking/BookingPaymentForm';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { ArrowLeft, CalendarDays, CheckCircle2, Clock, Loader2, PencilLine } from 'lucide-react';
+import {
+  COUNTRY_OPTIONS,
+  isRemoteSupply,
+  isValidVatIdFormat,
+  type SupplyType,
+} from '@/components/booking/publicBookingFields';
 
 interface CalendarInfo {
   id: string;
@@ -24,6 +37,9 @@ interface ServiceType {
   name: string;
   duration: number | null;
   price: number | null;
+  // Cross-border (X3a): place-of-supply drives whether the customer country is required.
+  // Exposed on the public_service_types view (migration 20260630180000). null-safe.
+  supply_type: SupplyType | null;
 }
 
 interface Slot {
@@ -66,7 +82,7 @@ export default function PublicBooking() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slot, setSlot] = useState<Slot | null>(null);
 
-  const [customer, setCustomer] = useState({ name: '', email: '', phone: '' });
+  const [customer, setCustomer] = useState({ name: '', email: '', phone: '', country: '', vatId: '' });
   const [confirmed, setConfirmed] = useState(false);
   const [paymentRequired, setPaymentRequired] = useState(false);
   const [bookingForPayment, setBookingForPayment] = useState<{ id: string; calendar_id: string; confirmation_token: string } | null>(null);
@@ -94,7 +110,7 @@ export default function PublicBooking() {
       setCalendar(cal as CalendarInfo);
       const { data: svc } = await (supabase as any)
         .from('public_service_types')
-        .select('id, name, duration, price')
+        .select('id, name, duration, price, supply_type')
         .eq('calendar_id', cal.id)
         .eq('is_active', true)
         .order('price', { ascending: true });
@@ -135,9 +151,17 @@ export default function PublicBooking() {
     [customer.email]
   );
 
+  // Cross-border (X3a): country is REQUIRED for a remote_service/digital service (Stripe
+  // Tax needs it; create-booking-payment 400s without it), optional/hidden for in_person.
+  const countryRequired = useMemo(() => isRemoteSupply(service?.supply_type), [service?.supply_type]);
+  const countryMissing = countryRequired && !customer.country;
+  // VAT-ID is always optional; we only block on an obviously-malformed format (UX hint).
+  // Stripe does the authoritative format + (optional) VIES check server-side.
+  const vatIdValid = useMemo(() => isValidVatIdFormat(customer.vatId), [customer.vatId]);
+
   const canSubmit = useMemo(
-    () => !!(slot && customer.name.trim() && emailValid),
-    [slot, customer.name, emailValid]
+    () => !!(slot && customer.name.trim() && emailValid && !countryMissing && vatIdValid),
+    [slot, customer.name, emailValid, countryMissing, vatIdValid]
   );
 
   const handleSubmit = async () => {
@@ -150,6 +174,11 @@ export default function PublicBooking() {
       customerPhone: customer.phone || undefined,
       startTime: new Date(slot.slot_start),
       endTime: new Date(slot.slot_end),
+      // Cross-border (X3a): persist the customer country + optional EU VAT-ID onto the
+      // bookings row. create-booking-payment reads them from the row to drive the Stripe
+      // Tax calc (reverse-charge / cross-border guard) and to persist onto booking_payments.
+      customerCountry: customer.country || undefined,
+      customerVatId: customer.vatId.trim() || undefined,
     });
     // PAY & BOOK: bij verplichte vooruitbetaling is de boeking gereserveerd maar nog
     // niet bevestigd. Toon dan het betaal-vereist-scherm i.p.v. een valse bevestiging.
@@ -456,6 +485,75 @@ export default function PublicBooking() {
                       className="border-white/10 bg-white/[0.03]"
                     />
                   </div>
+
+                  {/* Cross-border (X3a): country selector. Shown + REQUIRED only for a
+                      remote_service/digital service (needed for cross-border VAT);
+                      hidden for in_person so the in-person flow is unchanged. */}
+                  {countryRequired && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="country" className="text-white/70">
+                        {t('publicBooking.pb.country', 'Country *')}
+                      </Label>
+                      <Select
+                        value={customer.country || undefined}
+                        onValueChange={(c) => setCustomer({ ...customer, country: c })}
+                      >
+                        <SelectTrigger
+                          id="country"
+                          aria-invalid={countryMissing}
+                          aria-describedby={countryMissing ? 'country-error' : undefined}
+                          className={`bg-white/[0.03] ${countryMissing ? 'border-red-500/70' : 'border-white/10'}`}
+                        >
+                          <SelectValue placeholder={t('publicBooking.pb.selectCountry', 'Select your country')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COUNTRY_OPTIONS.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              <span aria-hidden="true">{c.flag}</span> {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {countryMissing && (
+                        <p id="country-error" className="text-xs text-red-400">
+                          {t('publicBooking.pb.countryError', 'Please select your country.')}
+                        </p>
+                      )}
+                      <p className="text-xs text-white/45">
+                        {t('publicBooking.pb.countryHint', 'Required to apply the correct VAT for this online service.')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Cross-border (X3a): optional EU business VAT number. Only useful for
+                      a remote/digital service (B2B reverse-charge); shown alongside the
+                      country field. Stripe runs the authoritative format/VIES check. */}
+                  {countryRequired && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="vat-id" className="text-white/70">
+                        {t('publicBooking.pb.vatId', 'VAT number')} <span className="text-white/55">{t('publicBooking.pb.optional', '(optional)')}</span>
+                      </Label>
+                      <Input
+                        id="vat-id"
+                        value={customer.vatId}
+                        onChange={(e) => setCustomer({ ...customer, vatId: e.target.value })}
+                        placeholder="NL123456789B01"
+                        autoCapitalize="characters"
+                        aria-invalid={!vatIdValid}
+                        aria-describedby={!vatIdValid ? 'vat-id-error' : 'vat-id-hint'}
+                        className={`bg-white/[0.03] ${!vatIdValid ? 'border-red-500/70' : 'border-white/10'}`}
+                      />
+                      {!vatIdValid ? (
+                        <p id="vat-id-error" className="text-xs text-red-400">
+                          {t('publicBooking.pb.vatIdError', 'Enter a valid EU VAT number (e.g. NL123456789B01), or leave blank.')}
+                        </p>
+                      ) : (
+                        <p id="vat-id-hint" className="text-xs text-white/45">
+                          {t('publicBooking.pb.vatIdHint', 'EU businesses only. Leave blank if you are a private customer.')}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <Button

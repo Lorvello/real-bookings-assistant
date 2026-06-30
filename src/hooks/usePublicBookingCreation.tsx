@@ -16,6 +16,13 @@ interface BookingData {
   startTime: Date;
   endTime: Date;
   notes?: string;
+  // Cross-border (X3a): customer billing country (ISO-3166 alpha-2) + optional EU VAT-ID.
+  // Persisted onto the bookings row by create-booking; create-booking-payment reads them
+  // back from the row for the Stripe Tax calc. Both optional here (in_person bookings
+  // omit them); the public form enforces "required for remote/digital" client-side and
+  // create-booking-payment enforces it server-side.
+  customerCountry?: string;
+  customerVatId?: string;
 }
 
 interface BookingResult {
@@ -86,6 +93,16 @@ export const usePublicBookingCreation = () => {
 
       // Sanitize notes
       const sanitizedNotes = bookingData.notes ? sanitizeText(bookingData.notes).sanitized : undefined;
+
+      // Cross-border (X3a): normalize the optional tax fields. Country -> ISO-2 uppercase
+      // (only when exactly two letters, else dropped); VAT-ID -> uppercase, stripped of
+      // spaces/dots/hyphens. These are passed to create-booking which RE-validates +
+      // persists onto the bookings row. Client normalization is convenience only; the
+      // authoritative VAT decision is Stripe's (create-booking-payment).
+      const rawCountry = (bookingData.customerCountry ?? '').trim().toUpperCase();
+      const sanitizedCountry = /^[A-Z]{2}$/.test(rawCountry) ? rawCountry : undefined;
+      const rawVatId = (bookingData.customerVatId ?? '').toUpperCase().replace(/[\s.\-]/g, '');
+      const sanitizedVatId = rawVatId.length > 0 ? rawVatId : undefined;
 
       // Time validation
       const now = new Date();
@@ -158,7 +175,10 @@ export const usePublicBookingCreation = () => {
         customerPhone: sanitizedPhone,
         startTime: bookingData.startTime.toISOString(),
         endTime: bookingData.endTime.toISOString(),
-        notes: sanitizedNotes
+        notes: sanitizedNotes,
+        // Cross-border (X3a): only included when present (in_person bookings omit them).
+        ...(sanitizedCountry ? { customerCountry: sanitizedCountry } : {}),
+        ...(sanitizedVatId ? { customerVatId: sanitizedVatId } : {}),
       };
 
       const { data, error } = await supabase.functions.invoke('create-booking', {
