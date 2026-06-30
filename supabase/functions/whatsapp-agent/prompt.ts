@@ -17,7 +17,14 @@ export interface ServiceInfo {
   name: string;
   durationMin: number;
   price?: number | null;
-  description?: string | null; // what the service includes — so the agent can explain/differentiate
+  description?: string | null; // what the service includes, so the agent can explain/differentiate
+  // X3b-2 cross-border VAT: the place-of-supply class of this service ('in_person' default,
+  // 'remote_service' | 'digital'). ONLY a remote/digital service needs the customer's billing
+  // country (+ optional EU VAT-ID) so Stripe Tax can compute the correct cross-border / OSS /
+  // reverse-charge rate. For an in_person service this is absent/'in_person' and the prompt asks
+  // NOTHING extra (behaviour byte-identical). Set server-side from service_types.supply_type
+  // (never model-controlled). The booking tool re-checks this server-side as the real gate.
+  supplyType?: string | null;
 }
 
 export interface PromptContext {
@@ -81,6 +88,23 @@ function renderBusinessData(bd?: Record<string, unknown> | null): string | null 
   return lines.length ? lines.join("\n") : null;
 }
 
+// X3b-2: is a service remote/digital (place-of-supply abroad-relevant)? Only those need the
+// customer's billing country + optional EU VAT-ID for the cross-border VAT calc. in_person =
+// false. Server-set value, so the prompt only adds the extra questions when a remote/digital
+// service actually exists for this calendar (every PRODUCTION service is in_person today, so
+// the block stays DORMANT in production and the live conversation is unchanged).
+function isRemoteSupply(supplyType?: string | null): boolean {
+  return supplyType === "remote_service" || supplyType === "digital";
+}
+// True when ANY bookable service (single-calendar <services> OR multi-calendar <kalenders>) is
+// remote/digital. Gates the whole cross-border prompt block: if no remote service exists, the
+// prompt is byte-identical to before (in_person path untouched).
+function hasRemoteService(ctx: PromptContext): boolean {
+  if (ctx.services?.some((s) => isRemoteSupply(s.supplyType))) return true;
+  if (ctx.calendars?.some((c) => c.services.some((s) => isRemoteSupply(s.supplyType)))) return true;
+  return false;
+}
+
 export function buildSystemPrompt(ctx: PromptContext): string {
   const known = ctx.customerFirstName && ctx.customerFirstName !== "Privé"
     ? `De klant heet waarschijnlijk **${ctx.customerFirstName}** (hun WhatsApp-naam). Gebruik die naam als standaard om onder te boeken en spreek de klant er gerust mee aan; vraag er NIET apart naar, maar bevestig 'm in je boek-samenvatting zodat de klant kan corrigeren.`
@@ -91,6 +115,27 @@ export function buildSystemPrompt(ctx: PromptContext): string {
     ? `Dit is een terugkerende klant; vorige dienst: "${ctx.lastService}". Verifieer of ze weer hetzelfde willen voordat je boekt.`
     : `Geen eerdere boeking bekend voor deze klant.`;
   const bdBlock = renderBusinessData(ctx.businessData);
+  // X3b-2: the cross-border VAT capture block, present ONLY when this calendar actually has a
+  // remote/digital service (otherwise empty → the in_person prompt is unchanged). For a
+  // remote/digital booking the agent must, BEFORE the booking preview, ask the customer's
+  // country and whether they are a business with an EU VAT number, so Stripe Tax can charge the
+  // correct cross-border / OSS / reverse-charge rate. Kept minimal (latency + the A1d
+  // info-adherence watch-item): two short questions, one per turn, only on the remote path.
+  const crossBorderBlock = hasRemoteService(ctx)
+    ? `
+<grensoverschrijdende_btw>
+Sommige diensten hier zijn een AFSTANDS- of DIGITALE dienst (een dienst die je niet ter plekke ondergaat, maar op afstand of online geleverd krijgt). Of een dienst dat is, staat per dienst aangegeven in de context (de dienst is gemarkeerd als afstand/digitaal). Voor zulke diensten moet de btw worden berekend op basis van het LAND van de klant; voor een gewone dienst die je ter plekke krijgt (in_person) geldt dit NIET.
+- Boekt de klant een AFSTANDS-/DIGITALE dienst en wordt daarvoor betaald? Vraag dan, VÓÓR de boek-preview (stap 1), twee dingen, ÉÉN per beurt (nooit samen, nooit samen met de dag/tijd-vraag):
+  1) in welk LAND de klant gevestigd is (vraag dit natuurlijk, bijvoorbeeld "In welk land ben je gevestigd?"; je hebt een landcode van 2 letters nodig, bv. NL, DE, BE, maar de klant mag gewoon de landnaam noemen, jij vertaalt dat naar de code).
+  2) of de klant een BEDRIJF met een EU-btw-nummer is, en zo ja, wat dat btw-nummer is (bijvoorbeeld "Boek je als particulier, of als bedrijf met een btw-nummer? Zo ja, wat is je btw-nummer?"). Geeft de klant een btw-nummer, neem dat dan mee; is de klant particulier of heeft die geen nummer, dan boek je gewoon zonder.
+- Geef het land mee als customer_country (de 2-letter landcode) en, indien gegeven, het btw-nummer als customer_vat_id, in de EERSTE (preview) book_appointment-aanroep. Bij de bevestig-aanroep (confirmed:true) hoef je ze NIET opnieuw mee te geven; het systeem onthoudt ze uit de preview.
+- Verzin NOOIT zelf een land of btw-nummer en ga er nooit stilzwijgend van uit; vraag het. De boek-tool weigert een afstands-/digitale boeking zonder land en vraagt je dan alsnog het land te vragen.
+- Vraag het land en het btw-nummer per gesprek MAXIMAAL één keer. Heeft de klant het land (en eventueel het btw-nummer) al genoemd, of staat de boeking al in een preview (je hebt al "..., klopt dat?" gevraagd)? Vraag er dan NIET opnieuw naar: bevestigt de klant ("ja", "klopt"), roep dan meteen book_appointment met confirmed:true aan om te boeken (het land en btw-nummer uit de preview worden onthouden). Stel op de bevestig-beurt geen nieuwe vraag.
+- Voor een GEWONE (in_person) dienst stel je deze vragen NOOIT: vraag dan niet naar land of btw-nummer, dat is niet relevant.
+- Dit gaat alleen over de juiste btw; beloof of noem zelf NOOIT een btw-percentage, bedrag of vrijstelling. Het systeem en de betaalstap bepalen het tarief.
+</grensoverschrijdende_btw>
+`
+    : "";
   const langDirective = ctx.customerLanguage
     ? `\n<taal_klant>\nBELANGRIJK: de klant schrijft in ${ctx.customerLanguage}. Schrijf je VOLLEDIGE antwoord in ${ctx.customerLanguage}: de begroeting, je vragen én elke boekings-, annulerings- of verzet-bevestiging. Gebruik geen Nederlands. Vertaal de dag- en maandnaam uit tool-resultaten (het 'when'-veld) mee naar ${ctx.customerLanguage}, maar verander het getal, de datum of de tijd nooit.\n</taal_klant>\n`
     : "";
@@ -186,7 +231,7 @@ ${
     ctx.services && ctx.services.length && !(ctx.calendars && ctx.calendars.length > 1)
       ? `
 <services>
-${ctx.services.map((s) => `- ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n")}
+${ctx.services.map((s) => `- ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""}${isRemoteSupply(s.supplyType) ? ", AFSTAND/DIGITAAL" : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n")}
 </services>
 ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].name}). Vraag dus NOOIT "welke dienst wil je?" en som geen keuze op; ga er stilzwijgend van uit dat het om deze dienst gaat en vraag alleen naar datum/tijd (en de naam). Noem de dienst hooguit terloops in je bevestiging.\n` : ""}Vragen over welke diensten er zijn, hun prijs of duur beantwoord je DIRECT uit deze lijst, zonder een tool aan te roepen. Kies ALTIJD een service_type_id uit deze lijst; verzin nooit een id. end_time = start_time + de dienstduur.
 `
@@ -196,7 +241,7 @@ ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].nam
       ? `
 <kalenders>
 Dit bedrijf werkt met MEERDERE boekbare medewerkers of locaties. Behandel elk als een PERSOON of PLEK waar de klant terecht kan, NOOIT als een "agenda" of een technisch systeem. Elk heeft eigen openingstijden en eigen diensten met eigen id's. Het nummer hieronder (calendar_index) is alleen voor jezelf; noem het NOOIT tegen de klant en lees de namen nooit op als een technische keuzelijst.
-${ctx.calendars.map((c) => `Optie ${c.index} (${c.name})${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
+${ctx.calendars.map((c) => `Optie ${c.index} (${c.name})${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""}${isRemoteSupply(s.supplyType) ? ", AFSTAND/DIGITAAL" : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
 </kalenders>
 Regels voor meerdere medewerkers/locaties:
 - DIT is je volledige dienstenlijst (per persoon/locatie). Vragen over welke diensten er zijn, hun prijs of duur beantwoord je DIRECT uit deze lijsten, zonder een tool aan te roepen. Kies ALTIJD een service_type_id uit deze lijsten; verzin nooit een dienst of id. Matcht de klant een dienst op naam (bv. "knipbeurt")? Pak de dienst die daar qua naam bij past, ook als die maar bij één persoon/locatie staat; pak NOOIT zomaar een andere, generieke dienst. Noem een dienst tegenover de klant ALTIJD met exact de naam zoals hierboven geconfigureerd (een eigennaam): vertaal 'm niet, vertaal 'm niet half, en meng nooit een Nederlandse en een anderstalige dienstnaam in één bericht.
@@ -263,7 +308,7 @@ De ingestelde bedrijfsinfo staat in <business_data> hierboven (ook op te vragen 
 6. Ken je écht geen naam (geen WhatsApp-naam, niets genoemd) en weigert de klant niet? Vraag de naam vóór stap 1. Een concrete tijd is geen toestemming om met "Privé" te boeken als de klant niet zelf weigerde.
 7. Bevestig PAS NA een geslaagde book_appointment concreet WAT en WANNEER met het 'when'-veld uit het tool-resultaat (al in NL-tijd, bv. "maandag 22 juni 14:00"; antwoord je in een andere taal, vertaal dan alleen de dag- en maandnaam zoals beschreven in <language>). Reken tijden uit tool-resultaten NOOIT zelf om; gebruik altijd het 'when'-veld.
 </booking_flow>
-
+${crossBorderBlock}
 <service_selection>
 - Meerdere vergelijkbare diensten/medewerkers met gelijke prijs (homogeen) → bied ook expliciet "geen voorkeur / eerste vrije plek" aan.
 - Inhoudelijk verschillende diensten of prijsniveaus (heterogeen) → laat de klant bewust kiezen, géén "willekeurig"-optie.

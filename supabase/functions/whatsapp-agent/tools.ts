@@ -339,6 +339,51 @@ async function serviceDuration(supabase: SupabaseClient, serviceId: string): Pro
   return typeof d === "number" && d > 0 ? d : 30;
 }
 
+// X3b-2 cross-border VAT capture: normalize + format-validate the optional customer tax fields
+// the agent captures conversationally, before persisting them onto the bookings row (X1
+// columns). IDENTICAL shape rules to the web path (create-booking normalizeCountry/normalizeVatId)
+// so both channels store the same canonical value. These are NOT a tax authority: Stripe decides
+// the rate / reverse-charge later (whatsapp-payment-handler reads these off the row); we only
+// sanitize shape so a malformed value never reaches the DB or Stripe. A bad value is DROPPED
+// (→ null), not an error; a remote service missing a usable country is caught by the booking
+// guard below (it asks again) and, at charge time, by whatsapp-payment-handler (400).
+// country: ISO-3166 alpha-2 (exactly two ASCII letters) → uppercase, else null.
+export function normalizeCountry(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const c = raw.trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(c) ? c : null;
+}
+// VAT-ID: 2-letter country prefix + 2..12 alphanumerics (Stripe eu_vat shape) → uppercase,
+// stripped of spaces/dots/hyphens, else null. Format only; Stripe runs the real check.
+export function normalizeVatId(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const v = raw.toUpperCase().replace(/[\s.\-]/g, "");
+  return /^[A-Z]{2}[A-Z0-9]{2,12}$/.test(v) ? v : null;
+}
+
+// X3b-2 gate (server-side, never model-trusted): is the chosen service a remote/digital TAXABLE
+// supply that needs the customer's billing country for the cross-border VAT calc? Mirrors the
+// charge-time condition in create-booking-payment / whatsapp-payment-handler exactly
+// (isRemoteSupply && tax_enabled && tax_code), so the agent captures country precisely when (and
+// only when) the charge path will require it. in_person OR a remote service without tax cols =
+// false → no extra capture, the conversation is unchanged. Returns the supply_type too for
+// storing context. Defaults to in_person on any lookup miss (safe: no extra questions).
+async function serviceCrossBorder(
+  supabase: SupabaseClient,
+  serviceId: string,
+): Promise<{ supplyType: string; needsCountry: boolean }> {
+  const { data } = await supabase
+    .from("service_types")
+    .select("supply_type, tax_enabled, tax_code")
+    .eq("id", serviceId)
+    .maybeSingle();
+  const row = data as { supply_type?: string | null; tax_enabled?: boolean | null; tax_code?: string | null } | null;
+  const supplyType = (row?.supply_type ?? "in_person") || "in_person";
+  const isRemote = supplyType === "remote_service" || supplyType === "digital";
+  const needsCountry = isRemote && row?.tax_enabled === true && typeof row?.tax_code === "string" && row.tax_code.trim().length > 0;
+  return { supplyType, needsCountry };
+}
+
 // Resolve a customer-named clock time (date=YYYY-MM-DD, time=HH:MM in Amsterdam local) to the EXACT
 // slot ISO instant SERVER-SIDE, so book/reschedule can act on a named time in ONE tool call — no
 // separate get_available_slots LLM round-trip, which is the dominant per-turn latency cost (~3s).
@@ -600,6 +645,8 @@ export function createTools(
           start_time: { type: "string", description: "ALTERNATIEF voor date+time: de exacte 'start'-waarde (ISO 8601) van een slot uit get_available_slots, ongewijzigd gekopieerd. Gebruik date+time als je die hebt; val alleen op start_time terug als je al een ISO-slot uit get_available_slots koos. Reconstrueer een ISO-tijd NOOIT zelf." },
           end_time: { type: "string", description: "Alleen nodig bij start_time: ISO 8601 = start_time + de dienstduur. Bij date+time berekent de tool de eindtijd zelf." },
           customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
+          customer_country: { type: "string", description: "ALLEEN voor een AFSTANDS-/DIGITALE dienst (in <services>/<kalenders> gemarkeerd als AFSTAND/DIGITAAL): de 2-letter landcode (ISO, bv. NL, DE, BE) van het land waar de klant gevestigd is, voor de juiste grensoverschrijdende btw. Geef dit mee in de eerste (preview) aanroep. Laat WEG bij een gewone (in_person) dienst. Verzin nooit een land; vraag het de klant." },
+          customer_vat_id: { type: "string", description: "OPTIONEEL en alleen voor een AFSTANDS-/DIGITALE dienst: het EU-btw-nummer van de klant als die als BEDRIJF boekt (bv. NL123456789B01, DE123456789). Laat WEG als de klant particulier is of geen nummer heeft, en bij een in_person dienst. Verzin nooit een nummer." },
           calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview." },
           confirmed: { type: "boolean", description: "Laat WEG of false bij de eerste (preview) aanroep. Zet op true bij de tweede aanroep, NADAT de klant de samenvatting bevestigde, om echt te boeken." },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
@@ -834,7 +881,7 @@ export function createTools(
           bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string } | undefined;
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
           const { pending_booking: _drop, ...rest } = bookCtx;
@@ -978,6 +1025,33 @@ export function createTools(
           return { error: "ontbrekende_gegevens", message: "Dienst en starttijd zijn nodig om te boeken." };
         }
 
+        // X3b-2 CROSS-BORDER VAT CAPTURE (preview only; commit re-uses the stored proposal).
+        // The supply_type is checked SERVER-SIDE here (never the model's claim) so the country
+        // question can be neither skipped nor faked. For a remote/digital TAXABLE service we need
+        // the customer's billing country; we capture it (+ optional EU VAT-ID) from the model's
+        // args, format-validated. If the country is missing/malformed we REFUSE the preview and
+        // make the agent ask (mirrors the name-gate), so a remote booking can never be created
+        // without the country the charge path (whatsapp-payment-handler) will require. For an
+        // in_person service this whole block is a no-op: country/vat stay null and the booking
+        // row is byte-identical to before. On COMMIT we use the stored values, so this lookup +
+        // gate run only on a fresh preview.
+        let bookCountry: string | null = committing ? (normalizeCountry(pendingBook?.customer_country)) : null;
+        let bookVatId: string | null = committing ? (normalizeVatId(pendingBook?.customer_vat_id)) : null;
+        if (!committing) {
+          const xb = await serviceCrossBorder(supabase, serviceId);
+          bookCountry = normalizeCountry(args.customer_country);
+          bookVatId = normalizeVatId(args.customer_vat_id);
+          if (xb.needsCountry && !bookCountry) {
+            return {
+              error: "land_ontbreekt",
+              message:
+                "Dit is een afstands-/digitale dienst, dus voor de juiste btw is het land van de klant nodig. " +
+                "Vraag de klant kort in welk land ze gevestigd zijn (een 2-letter landcode zoals NL, DE of BE; de klant mag de landnaam noemen, vertaal die naar de code) " +
+                "en, indien van toepassing, of ze als bedrijf met een EU-btw-nummer boeken. Roep daarna book_appointment opnieuw aan met customer_country (en eventueel customer_vat_id). Boek nog niet.",
+            };
+          }
+        }
+
         // DUPLICATE GUARD: prevent an accidental DOUBLE booking. Observed: for "kan het
         // een uur later?" the model calls book_appointment (a 2nd booking) instead of
         // reschedule_appointment, leaving the original AND a new row. If this customer
@@ -1080,7 +1154,11 @@ export function createTools(
             await supabase.from("whatsapp_conversations").update({
               context: {
                 ...bookCtx,
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, at: Date.now() },
+                // X3b-2: carry the captured (already format-validated) cross-border fields into the
+                // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
+                // model having to resend them on the "ja" turn (same authoritative-from-server
+                // pattern as start_time / customer_name). null for an in_person booking.
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, at: Date.now() },
               },
             }).eq("id", ctx.conversationId);
           }
@@ -1109,6 +1187,14 @@ export function createTools(
           end_time: end,
           status: paymentRequired ? "pending" : "confirmed",
         };
+        // X3b-2: persist the customer billing country + optional EU VAT-ID (X1 columns) onto the
+        // booking row, so whatsapp-payment-handler reads them off the row at charge time to drive
+        // the Stripe Tax cross-border / OSS / reverse-charge calc (X3b-1). Only set when present:
+        // an in_person booking leaves both null and is byte-identical to before this change. The
+        // values are format-validated (normalizeCountry/normalizeVatId) and come from the stored
+        // proposal on commit, so the model cannot inject an unvalidated value here.
+        if (bookCountry) insertRow.customer_country = bookCountry;
+        if (bookVatId) insertRow.customer_vat_id = bookVatId;
         if (paymentRequired) {
           // Mirror the web create-booking flow: a pending pay-and-book reservation
           // must carry payment_required + payment_timing so cancel_overdue_unpaid_bookings()

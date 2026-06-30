@@ -279,7 +279,10 @@ Deno.serve(async (req) => {
       // Only ACTIVE, non-deleted services — otherwise a service the owner removed/deactivated
       // in the dashboard stays in <services> and the agent keeps offering + booking it via
       // WhatsApp (deletion sets is_active=false + is_deleted=true; deactivation sets is_active=false).
-      supabase.from("service_types").select("id, name, duration, price, description")
+      // supply_type (X3b-2): so the prompt can mark a remote/digital service AFSTAND/DIGITAAL and
+      // ask the customer's country + VAT-ID for cross-border VAT. in_person (the default + every
+      // production service today) → no marker, conversation unchanged.
+      supabase.from("service_types").select("id, name, duration, price, description, supply_type")
         .eq("calendar_id", calendar_id).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false"),
       // whatsapp_welcome_message = the custom greeting; allow_cancellations +
       // cancellation_deadline_hours are the SAME structured policy the agent ENFORCES
@@ -306,8 +309,8 @@ Deno.serve(async (req) => {
     const cal = calRes.data;
     const businessUserId = (cal as { user_id?: string } | null)?.user_id ?? "";
 
-    const services: ServiceInfo[] = ((svcRes.data as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null }>) ?? [])
-      .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description }));
+    const services: ServiceInfo[] = ((svcRes.data as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; supply_type: string | null }>) ?? [])
+      .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description, supplyType: s.supply_type }));
 
     // Per-calendar custom welcome greeting (NULL → default template in prompt.ts).
     const rawWelcome = (csRes.data as { whatsapp_welcome_message?: string | null } | null)?.whatsapp_welcome_message ?? null;
@@ -369,13 +372,13 @@ Deno.serve(async (req) => {
     if (isMultiCalendar) {
       const ids = calendars.map((c) => c.id);
       const { data: setSvc } = await supabase
-        .from("service_types").select("id, name, duration, price, description, calendar_id")
+        .from("service_types").select("id, name, duration, price, description, calendar_id, supply_type")
         .in("calendar_id", ids).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false");
       const byCal = new Map<string, ServiceInfo[]>();
       serviceCalendarMap = {};
-      for (const s of ((setSvc as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; calendar_id: string }>) ?? [])) {
+      for (const s of ((setSvc as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; calendar_id: string; supply_type: string | null }>) ?? [])) {
         const arr = byCal.get(s.calendar_id) ?? [];
-        arr.push({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description });
+        arr.push({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description, supplyType: s.supply_type });
         byCal.set(s.calendar_id, arr);
         serviceCalendarMap[s.id] = s.calendar_id;
       }
