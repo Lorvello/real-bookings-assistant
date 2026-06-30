@@ -40,6 +40,28 @@ function nlTime(d: Date): string {
   return `${time} ${day} ${month} ${d.getFullYear()}`;
 }
 
+// AS-3-V1: classify an OWNER-WRITTEN refund policy text as explicitly DENYING a refund,
+// explicitly GRANTING one, or silent ("unknown"). This is a structural signal (not a
+// guarantee): it lets the prompt route a vague refund question authoritatively and lets the
+// derived cancellation line append a no-money-back clarifier when a no-refund policy coexists.
+// Conservative on purpose: only "denied" on clear no-refund / bookings-final wording, only
+// "granted" on clear money-back wording; anything ambiguous stays "unknown" so the agent quotes
+// the owner's text verbatim and never invents an outcome. EN + NL phrasings covered. The agent
+// ALWAYS shows the verbatim policy text regardless; this only governs the safety routing.
+function classifyRefundDisposition(text: string): "granted" | "denied" | "unknown" {
+  const t = text.toLowerCase();
+  // Clear no-refund / final-sale signals (NL + EN). "geen terugbetaling", "niet terugbetaald",
+  // "geen restitutie", "definitief/final", "no refund(s)", "non-refundable", "all sales final".
+  const denies = /\b(geen\s+(terugbetaling|restitutie|geld\s+terug)|niet\s+(terugbetaald|gerestitueerd|terugbetaalbaar)|geen\s+recht\s+op\s+(terugbetaling|restitutie)|definitief|niet[\s-]?restitueerbaar|no\s+refunds?|non[\s-]?refundable|not\s+refundable|all\s+(sales|bookings)\s+(are\s+)?final)\b/i;
+  // Clear money-back grant signals. "volledige terugbetaling", "geld terug", "wordt terugbetaald",
+  // "krijg je je geld terug", "full refund", "money back", "you get a refund". Note: a no-refund
+  // text containing "geen terugbetaling" must NOT be read as a grant, so check deny FIRST.
+  const grants = /\b(volledige?\s+terugbetaling|wordt\s+terugbetaald|je\s+geld\s+terug|recht\s+op\s+(een\s+)?(volledige\s+)?terugbetaling|full\s+refund|money\s+back|you('|’)?ll\s+get\s+(a\s+)?refund|refunded\s+in\s+full)\b/i;
+  if (denies.test(t)) return "denied";
+  if (grants.test(t)) return "granted";
+  return "unknown";
+}
+
 // Deterministic concrete-date calendar for the next 14 days, built server-side from the
 // business's opening hours. The model reads the date + open/closed off this table instead
 // of computing a relative date ("aanstaande zondag") or deciding "is that day open?" itself
@@ -462,37 +484,6 @@ Deno.serve(async (req) => {
       else if (weeklyHours?.text) businessData.opening_hours = weeklyHours.text;
     }
 
-    // Cancellation/reschedule policy ANSWER inject. The agent already ENFORCES the deadline
-    // (getCalendarPolicy in tools.ts gates BOTH cancel and reschedule on
-    // cancellation_deadline_hours), but it could not EXPLAIN it: the free-text <business_data>
-    // field `cancellation_policy` is NULL for most tenants (incl. Lorvello), so a customer
-    // asking "wat is jullie annuleringsbeleid?" got an honest but unhelpful "dat weet ik niet".
-    // Derive a human sentence from the SAME structured settings and inject it — ONLY when no
-    // manual free-text policy is set (a hand-written policy always wins). Mirrors
-    // getCalendarPolicy's null-defaults exactly (allowCancellations ?? true, deadline ?? null).
-    const cs = csRes.data as {
-      allow_cancellations?: boolean | null;
-      cancellation_deadline_hours?: number | string | null;
-      booking_window_days?: number | string | null;
-      minimum_notice_hours?: number | string | null;
-    } | null;
-    if (businessData) {
-      const manual = businessData.cancellation_policy;
-      const hasManual = typeof manual === "string" && manual.trim();
-      if (!hasManual) {
-        const allowCancel = cs?.allow_cancellations ?? true;
-        // PostgREST returns numeric as a string ("24.00"); Number() → 24 so the sentence
-        // reads "24 uur", not "24.00 uur".
-        const rawDeadline = cs?.cancellation_deadline_hours;
-        const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
-        businessData.cancellation_policy = !allowCancel
-          ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
-          : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
-          ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.`
-          : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.`;
-      }
-    }
-
     // AS-2: Pay&Book refund / payment-timing ANSWER inject. The Pay&Book settings tab saves
     // refund_policy_text / payment_deadline_hours / allowed_payment_timing to payment_settings,
     // but the agent never read them, so an owner who set a refund policy there got an agent that
@@ -503,6 +494,11 @@ Deno.serve(async (req) => {
     //   - cancellation_policy (AI-kennis / structured deadline) covers free-cancellation TIMING.
     // The owner's hand-written refund_policy_text always wins; otherwise we describe the payment
     // timing + deadline from the same structured settings. Read live per turn (no cache).
+    // AS-3-V1: this inject now runs BEFORE the cancellation derive (it used to run after) so the
+    // cancellation derive can disambiguate its "kosteloos annuleren" line when a NO-REFUND refund
+    // policy coexists. The 20B model otherwise conflated free-cancel timing (no fee) with a
+    // money-back promise on vague phrasing ("krijg ik geld terug bij annuleren?").
+    let refundDisposition: "granted" | "denied" | "unknown" = "unknown";
     if (businessData) {
       const ps = psRes.data as {
         refund_policy_text?: string | null;
@@ -516,6 +512,7 @@ Deno.serve(async (req) => {
       if (hasManualRefund) {
         // A hand-written refund policy always wins, used verbatim.
         businessData.refund_policy = (manualRefund as string).trim();
+        refundDisposition = classifyRefundDisposition(manualRefund as string);
       } else if (ps) {
         // Derive a human sentence from the structured Pay&Book settings. allowed_payment_timing
         // is a jsonb array of: pay_now (vooruit/online), pay_on_site (op locatie). Only describe
@@ -540,6 +537,49 @@ Deno.serve(async (req) => {
         }
         // Only set refund_policy when we actually have something to say (avoid an empty line).
         if (parts.length) businessData.refund_policy = parts.join(" ");
+        // Derived path only describes payment TIMING, never the refund OUTCOME, so disposition
+        // stays "unknown": the prompt then sends a refund question to direct contact rather than
+        // letting the model guess a money-back outcome from the timing sentence.
+      }
+    }
+
+    // Cancellation/reschedule policy ANSWER inject. The agent already ENFORCES the deadline
+    // (getCalendarPolicy in tools.ts gates BOTH cancel and reschedule on
+    // cancellation_deadline_hours), but it could not EXPLAIN it: the free-text <business_data>
+    // field `cancellation_policy` is NULL for most tenants (incl. Lorvello), so a customer
+    // asking "wat is jullie annuleringsbeleid?" got an honest but unhelpful "dat weet ik niet".
+    // Derive a human sentence from the SAME structured settings and inject it, ONLY when no
+    // manual free-text policy is set (a hand-written policy always wins). Mirrors
+    // getCalendarPolicy's null-defaults exactly (allowCancellations ?? true, deadline ?? null).
+    const cs = csRes.data as {
+      allow_cancellations?: boolean | null;
+      cancellation_deadline_hours?: number | string | null;
+      booking_window_days?: number | string | null;
+      minimum_notice_hours?: number | string | null;
+    } | null;
+    if (businessData) {
+      const manual = businessData.cancellation_policy;
+      const hasManual = typeof manual === "string" && manual.trim();
+      if (!hasManual) {
+        const allowCancel = cs?.allow_cancellations ?? true;
+        // PostgREST returns numeric as a string ("24.00"); Number() converts to 24 so the
+        // sentence reads "24 uur", not "24.00 uur".
+        const rawDeadline = cs?.cancellation_deadline_hours;
+        const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
+        // AS-3-V1: when a NO-REFUND refund policy coexists, the derived "kosteloos annuleren"
+        // line is the conflation surface (the 20B model read "kosteloos" = no cancellation fee
+        // as "geld terug" = money-back). Append an explicit clause that free cancellation is
+        // about the cancellation fee, NOT a refund of any prepayment, so the data the model sees
+        // can no longer be misread as a refund promise. Only when the refund policy clearly says
+        // no refund (refundDisposition "denied"); behaviour unchanged otherwise.
+        const refundClarifier = refundDisposition === "denied"
+          ? " Let op: kosteloos annuleren betekent dat er geen annuleringskosten zijn, NIET dat een vooruitbetaling wordt terugbetaald (zie het terugbetaalbeleid)."
+          : "";
+        businessData.cancellation_policy = !allowCancel
+          ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
+          : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
+          ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.${refundClarifier}`
+          : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.${refundClarifier}`;
       }
     }
     const openingStruct = weeklyHours?.byDay ??
@@ -603,6 +643,7 @@ Deno.serve(async (req) => {
       minimumNoticeHours,
       earliestBookingNL,
       calendars: calendarsForPrompt,
+      refundDisposition,
     });
 
     // Build conversation turns. History already ends with the current inbound message

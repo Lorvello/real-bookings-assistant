@@ -55,6 +55,14 @@ export interface PromptContext {
   // staff/location. In multi-calendar mode the single <business_data> "openingstijden" line is
   // dropped (it would assert one wrong "the" hours) and these per-agenda hours are the truth.
   calendars?: Array<{ index: number; name: string; services: ServiceInfo[]; openingHours?: string | null }> | null;
+  // AS-3-V1: the disposition of the OWNER-SET refund policy, classified server-side from
+  // payment_settings.refund_policy_text. 'denied' = the policy clearly says NO refund / bookings
+  // final; 'granted' = the policy clearly grants a (full/partial) refund; 'unknown' = silent or
+  // only payment-timing was set. Drives the hard <terugbetaling> routing block so the model never
+  // turns a no-refund policy into a money-back promise on vague "krijg ik geld terug" phrasing.
+  // The verbatim refund_policy text is ALWAYS in <business_data>; this only governs the safety
+  // routing + the negative constraint. null/undefined → treated as 'unknown'.
+  refundDisposition?: "granted" | "denied" | "unknown" | null;
 }
 
 // Render the injected business data as readable Dutch lines so the agent ALWAYS has the
@@ -116,6 +124,34 @@ export function buildSystemPrompt(ctx: PromptContext): string {
     ? `Dit is een terugkerende klant; vorige dienst: "${ctx.lastService}". Verifieer of ze weer hetzelfde willen voordat je boekt.`
     : `Geen eerdere boeking bekend voor deze klant.`;
   const bdBlock = renderBusinessData(ctx.businessData);
+  // AS-3-V1: a HARD refund-routing block. The 20B model, on vague refund phrasing ("krijg ik
+  // mijn geld terug bij annuleren?"), conflated the free-cancellation TIMING line (kosteloos
+  // annuleren = no cancellation fee) with a money-back promise, and ~40% of the time contradicted
+  // a NO-REFUND policy, once even affirmatively promising a refund. This block makes the refund
+  // policy the single authoritative source for any "geld terug / terugbetaling / refund" question
+  // and adds a hard negative: NEVER state or imply a refund unless the refund policy explicitly
+  // grants one. Always shown when there is a refund policy at all (the field exists in
+  // <business_data>); the disposition tunes how strict the negative is. Kept tone in the prompt;
+  // the guarantee that it cannot fabricate a payment link/amount stays in code (book_appointment).
+  const hasRefundField = typeof ctx.businessData?.refund_policy === "string" &&
+    (ctx.businessData.refund_policy as string).trim().length > 0;
+  const refundBlock = hasRefundField
+    ? `
+<terugbetaling>
+Dit is je leidraad voor elke vraag over GELD TERUG / TERUGBETALING / restitutie / "refund" / "money back" (ook vaag gesteld, bijv. "krijg ik mijn geld terug bij annuleren?", "kan ik mijn geld terugkrijgen?", "wat als ik afzeg, krijg ik dan geld terug?").
+- Het "betaal- en terugbetaalbeleid" in <business_data> is de ENIGE, gezaghebbende bron voor of er geld terugkomt. Beantwoord een geld-terug-vraag UITSLUITEND daaruit. Citeer dat beleid letterlijk en voeg er niets aan toe dat over geld terug gaat.
+- HOUD TWEE DINGEN STRIKT GESCHEIDEN: "kosteloos annuleren of verzetten" (het annuleringsbeleid: er zijn dan geen annuleringskosten) betekent NIET dat een al gedane (vooruit)betaling wordt terugbetaald. Presenteer "kosteloos annuleren" dus NOOIT als antwoord op een geld-terug-vraag en plak die regel er ook niet als geruststelling achteraan; dat wekt ten onrechte de indruk van een terugbetaling.
+- HARDE REGEL: zeg of impliceer NOOIT dat de klant geld terugkrijgt, tenzij het betaal- en terugbetaalbeleid dat met zoveel woorden toezegt. Verzin nooit een terugbetaling, een percentage, een bedrag of een "gratis-annulering-met-geld-terug"-venster.${
+        ctx.refundDisposition === "denied"
+          ? `\n- Het ingestelde beleid is een GEEN-TERUGBETALING-beleid. Op een geld-terug-vraag is het antwoord dus duidelijk NEE: er is geen terugbetaling (citeer het beleid). Zeg dit vriendelijk en kort, en voeg GEEN "maar je kunt wel kosteloos annuleren"-regel toe, want die suggereert ten onrechte dat er toch iets terugkomt. Wil de klant daarna nog annuleren of verzetten, dan help je daar gewoon mee.`
+          : ctx.refundDisposition === "granted"
+          ? `\n- Het ingestelde beleid KENT een terugbetaling toe; leg uit wat er volgens het beleid wordt terugbetaald (citeer het beleid letterlijk: bijvoorbeeld het percentage of de termijn). Beloof nooit meer dan er staat.`
+          : `\n- Het ingestelde beleid zegt niet duidelijk of er geld terugkomt (het beschrijft vooral hoe/wanneer er betaald wordt). Gok dan NIET: zeg eerlijk dat je niet zeker weet of een betaling wordt terugbetaald en verwijs de klant voor de zekerheid naar rechtstreeks contact met ${ctx.businessName}. Beweer in dat geval NOOIT dat de klant wel of geen geld terugkrijgt.`
+      }
+- Jij voert zelf nooit een betaling of terugbetaling uit; je legt alleen het beleid uit.
+</terugbetaling>
+`
+    : "";
   // X3b-2: the cross-border VAT capture block, present ONLY when this calendar actually has a
   // remote/digital service (otherwise empty → the in_person prompt is unchanged). For a
   // remote/digital booking the agent must, BEFORE the booking preview, ask the customer's
@@ -264,7 +300,7 @@ ${
 Dit is ALLE bedrijfsinfo die ${ctx.businessName} heeft ingesteld. Je hebt deze info AL: beantwoord vragen over het bedrijf, beleid, locatie, contact of socials DIRECT hieruit, ZONDER get_business_data aan te roepen (dat is trager en onnodig). Gebruik UITSLUITEND deze gegevens als bron. Citeer waarden exact. Staat een gevraagd onderwerp hier NIET? Dan weet je het niet: verzin niets en verwijs naar rechtstreeks contact.
 ${bdBlock}
 </business_data>
-`
+${refundBlock}`
       : ""
   }
 <tools>
