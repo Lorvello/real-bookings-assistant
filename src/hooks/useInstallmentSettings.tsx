@@ -91,7 +91,28 @@ export const useInstallmentSettings = () => {
         }
       });
 
-      if (error) throw error;
+      // supabase-js raises a FunctionsHttpError for any non-2xx and hides the JSON
+      // body behind error.context (a Response). For the typed 403 tier-gate we parse
+      // that body and surface a friendly "upgrade to Pro" toast instead of the raw
+      // "Edge Function returned a non-2xx status code". The UI already disables the
+      // toggle for non-pro users, so this path is only hit on a race/edge case, but it
+      // must still fail gracefully.
+      if (error) {
+        let tierRequired = false;
+        try {
+          const body = await (error as any)?.context?.json?.();
+          if (body?.error === 'tier_required') tierRequired = true;
+        } catch (_) { /* body not JSON / already consumed */ }
+        if (tierRequired) {
+          toast({
+            title: t('installmentSettings.tierRequiredTitle', 'Upgrade to Professional'),
+            description: t('installmentSettings.tierRequiredDescription', 'Installment payments are available on the Professional plan or higher.'),
+            variant: "destructive"
+          });
+          return false;
+        }
+        throw error;
+      }
 
       if (!data.success) {
         throw new Error(data.error || 'Failed to update settings');

@@ -32,7 +32,14 @@ interface PaymentFlexibilitySectionProps {
   onTogglePayOnSite: (enabled: boolean) => void;
   installmentsEnabled: boolean;
   onToggleInstallments: (enabled: boolean) => void;
-  hasFullAccess: boolean;
+  /**
+   * REAL tier entitlement for installments: true only when subscription_tier is
+   * 'professional' or 'enterprise'. This MUST match the edge fn's tier gate, NOT the
+   * looser `hasFullAccess` (which is true for any trial/subscriber regardless of tier).
+   * A non-pro user with this false sees the switch disabled + an upgrade hint, so they
+   * can never fire the call the backend would reject.
+   */
+  canUseInstallments: boolean;
   installmentConfigOpen: boolean;
   onToggleInstallmentConfig: () => void;
   /** The InstallmentSettings editor, rendered by the orchestrator (needs profile + handlers). */
@@ -127,7 +134,7 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
     onTogglePayOnSite,
     installmentsEnabled,
     onToggleInstallments,
-    hasFullAccess,
+    canUseInstallments,
     installmentConfigOpen,
     onToggleInstallmentConfig,
     installmentSlot,
@@ -254,12 +261,12 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
             />
 
             <TimingRow
-              active={installmentsEnabled}
+              active={installmentsEnabled && canUseInstallments}
               activeColor="bg-primary"
               title={t('settings.payments.flexibility.installmentsTitle', 'Pay in installments')}
               description={t('settings.payments.flexibility.installmentsDescription', 'Split into multiple payments')}
               badge={
-                !hasFullAccess ? (
+                !canUseInstallments ? (
                   <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold-foreground">
                     {t('settings.payments.flexibility.proBadge', 'Pro')}
                   </span>
@@ -267,23 +274,32 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
               }
               control={
                 <>
-                  {installmentsEnabled && hasFullAccess && (
+                  {installmentsEnabled && canUseInstallments && (
                     <Button variant="ghost" size="sm" onClick={onToggleInstallmentConfig} className="text-xs">
                       <SettingsIcon className="mr-1 h-3 w-3" />
                       {t('settings.payments.flexibility.configure', 'Configure')}
                     </Button>
                   )}
                   <Switch
-                    checked={installmentsEnabled}
+                    checked={installmentsEnabled && canUseInstallments}
                     onCheckedChange={onToggleInstallments}
-                    disabled={saving || !hasFullAccess}
+                    disabled={saving || !canUseInstallments}
                     aria-label={t('settings.payments.flexibility.installmentsAria', 'Allow installment payments')}
+                    aria-describedby={!canUseInstallments ? 'installments-upgrade-hint' : undefined}
                   />
                 </>
               }
             />
 
-            {installmentsEnabled && hasFullAccess && installmentConfigOpen && (
+            {/* Non-pro upgrade hint. Tied to the disabled switch via aria-describedby so
+                screen readers announce WHY it is disabled, not just that it is greyed. */}
+            {!canUseInstallments && (
+              <p id="installments-upgrade-hint" className="px-4 text-xs text-muted-foreground">
+                {t('settings.payments.flexibility.installmentsUpgradeHint', 'Available on the Professional plan. Upgrade to let customers split payments.')}
+              </p>
+            )}
+
+            {installmentsEnabled && canUseInstallments && installmentConfigOpen && (
               <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">{installmentSlot}</div>
             )}
           </div>

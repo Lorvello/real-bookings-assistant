@@ -63,12 +63,12 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-function FlexibilityDemo({ required }: { required: boolean }) {
+function FlexibilityDemo({ required, canUseInstallments = true }: { required: boolean; canUseInstallments?: boolean }) {
   const [paymentRequired, setPaymentRequired] = useState(required);
   const [deadline, setDeadline] = useState('24');
   const [autoCancel, setAutoCancel] = useState(true);
   const [payOnSite, setPayOnSite] = useState(false);
-  const [installments, setInstallments] = useState(true);
+  const [installments, setInstallments] = useState(canUseInstallments);
   const [configOpen, setConfigOpen] = useState(true);
   const [policy, setPolicy] = useState('Free cancellation up to 24h before the appointment.');
   return (
@@ -88,7 +88,7 @@ function FlexibilityDemo({ required }: { required: boolean }) {
       onTogglePayOnSite={setPayOnSite}
       installmentsEnabled={installments}
       onToggleInstallments={setInstallments}
-      hasFullAccess
+      canUseInstallments={canUseInstallments}
       installmentConfigOpen={configOpen}
       onToggleInstallmentConfig={() => setConfigOpen((v) => !v)}
       saving={false}
@@ -172,6 +172,8 @@ function Harness() {
                   <FlexibilityDemo required />
                   <Divider label="Flexibility — payment optional" />
                   <FlexibilityDemo required={false} />
+                  <Divider label="Flexibility, payment optional (non-Pro: installments locked)" />
+                  <FlexibilityDemo required={false} canUseInstallments={false} />
 
                   <SettingsSection icon={Info} title={tSettings('settings.payments.howPaymentsWork', 'How payments work')} flush>
                     <div className="divide-y divide-white/[0.05]">

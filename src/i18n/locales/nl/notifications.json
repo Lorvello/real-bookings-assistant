@@ -559,7 +559,9 @@
     "saveSuccessTitle": "Instellingen opgeslagen",
     "saveSuccessDescription": "De termijninstellingen zijn succesvol bijgewerkt.",
     "saveErrorTitle": "Fout bij opslaan instellingen",
-    "saveErrorDescription": "Kan de termijninstellingen niet opslaan."
+    "saveErrorDescription": "Kan de termijninstellingen niet opslaan.",
+    "tierRequiredTitle": "Upgrade naar Professional",
+    "tierRequiredDescription": "Termijnbetalingen zijn beschikbaar op het Professional-abonnement of hoger."
   },
   "whatsappPaymentFlow": {
     "linkCreatedTitle": "Betaallink aangemaakt",

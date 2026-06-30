@@ -106,8 +106,18 @@ export function PaymentSettingsTab() {
     resetStripeAccount,
   } = useStripeConnect();
   const { settings: installmentSettings, updateSettings: updateInstallmentSettings } = useInstallmentSettings();
-  const { userStatus } = useUserStatus();
+  const { accessControl } = useUserStatus();
   const { profile } = useProfile();
+  // Installments are a Professional/Enterprise feature, matching the edge fn's
+  // server-side tier gate (manage-installment-settings checks subscription_tier IN
+  // ('professional','enterprise')). We gate the toggle on the REAL tier entitlement,
+  // NOT userStatus.hasFullAccess (true for ANY trial/subscriber regardless of tier,
+  // which let non-pro users fire a call the backend rejects with a 500/403). We reuse
+  // accessControl.canAccessTaxCompliance: in UserStatusContext it resolves true for
+  // exactly professional + enterprise + admin, and already folds in the admin bypass
+  // and the subscribers-table tier reconciliation (so a confirmed paid customer with a
+  // null users.subscription_tier mirror is not wrongly locked out).
+  const canUseInstallments = accessControl.canAccessTaxCompliance;
   const [stripeAccount, setStripeAccount] = useState<BusinessStripeAccount | null>(null);
   const [accountLoading, setAccountLoading] = useState(false);
   const [refundPolicy, setRefundPolicy] = useState('');
@@ -563,7 +573,7 @@ export function PaymentSettingsTab() {
               onTogglePayOnSite={handleTogglePayOnSite}
               installmentsEnabled={installmentSettings?.enabled || false}
               onToggleInstallments={handleToggleInstallments}
-              hasFullAccess={userStatus.hasFullAccess}
+              canUseInstallments={canUseInstallments}
               installmentConfigOpen={installmentConfigOpen}
               onToggleInstallmentConfig={() => setInstallmentConfigOpen(!installmentConfigOpen)}
               saving={settingsSaving}

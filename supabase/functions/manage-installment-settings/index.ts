@@ -80,7 +80,22 @@ serve(async (req) => {
     }
 
     if (!userProfile.subscription_tier || !['professional', 'enterprise'].includes(userProfile.subscription_tier)) {
-      throw new Error('Installment payments require Professional plan or higher');
+      // Expected business rule, NOT a server fault: installments are a Professional/
+      // Enterprise feature. Return a TYPED 403 (not a thrown 500) so the client can
+      // render a clean "upgrade to Pro" state instead of a red "non-2xx" toast. The
+      // body leaks no PII or secret (only the rule and the required tier). This is the
+      // authoritative server-side gate; the UI also disables the toggle, but THIS check
+      // is what actually protects the feature and cannot be bypassed client-side.
+      logStep("Subscription tier insufficient", { tier: userProfile.subscription_tier ?? null });
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'tier_required',
+        required_tier: 'professional',
+        message: 'Installment payments require the Professional plan or higher.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      });
     }
     logStep("Subscription tier validated", { tier: userProfile.subscription_tier });
 

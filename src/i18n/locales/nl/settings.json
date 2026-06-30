@@ -983,7 +983,8 @@
         "installmentsDescription": "Opsplitsen in meerdere betalingen",
         "proBadge": "Pro",
         "configure": "Configureren",
-        "installmentsAria": "Termijnbetalingen toestaan"
+        "installmentsAria": "Termijnbetalingen toestaan",
+        "installmentsUpgradeHint": "Beschikbaar op het Professional-abonnement. Upgrade om klanten betalingen te laten opsplitsen."
       },
       "fundFlow": {
         "title": "Geldstroom (hoe geld beweegt)",
