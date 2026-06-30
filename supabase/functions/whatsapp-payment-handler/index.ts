@@ -3,6 +3,25 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 import Stripe from 'https://esm.sh/stripe@14.21.0'
 import { calculateApplicationFee } from '../_shared/feeCalculator.ts'
 import { validateStripeMode } from '../_shared/stripeValidation.ts'
+import {
+  calculateTax,
+  type TaxBreakdownEntry,
+  CROSS_BORDER_UNAVAILABLE_STATUS,
+  CROSS_BORDER_UNAVAILABLE_MESSAGE,
+  DOMESTIC_RATE_UNAVAILABLE_STATUS,
+  DOMESTIC_RATE_UNAVAILABLE_MESSAGE,
+  VAT_ID_UNVERIFIED_STATUS,
+  VAT_ID_UNVERIFIED_MESSAGE,
+} from '../_shared/taxCalc.ts'
+
+// VIES-trust policy flag (X4), identical to create-booking-payment so BOTH charge paths
+// honor the same owner policy. Default OFF = Stripe format-only reverse-charge (today's
+// behavior). Flip to ON (TAX_REQUIRE_VIES=true edge secret) to require a real VIES
+// confirmation before honoring a reverse-charge.
+function requireViesPolicy(): boolean {
+  const v = (Deno.env.get('TAX_REQUIRE_VIES') || '').trim().toLowerCase();
+  return v === 'true' || v === '1' || v === 'yes';
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -70,15 +89,29 @@ serve(async (req) => {
     // Defense-in-depth: if a bookingId is supplied (pay-and-book), it MUST belong to
     // this conversation's calendar. Prevents a confused-deputy where a mismatched id
     // would later be confirmed-as-paid by the stripe-webhook for the wrong calendar.
+    // X3b-1: also read the booking row's customer_country / customer_vat_id (the X1
+    // columns) here. These drive the cross-border Stripe Tax calc below for a
+    // remote/digital service. They come from the BOOKING ROW only (X3b-2 wires the
+    // agent's conversational capture of these onto the row); the handler never trusts a
+    // body value for them, and they influence ONLY the tax figure (a Stripe-bounded
+    // computation) + reporting columns, never the destination account or platform fee.
+    let bookingCustomerCountry: string | null = null;
+    let bookingCustomerVatId: string | null = null;
     if (bookingId) {
       const { data: bk } = await supabaseClient
         .from('bookings')
-        .select('calendar_id')
+        .select('calendar_id, customer_country, customer_vat_id')
         .eq('id', bookingId)
         .maybeSingle();
       if (!bk || bk.calendar_id !== conversation.calendar_id) {
         throw new Error('bookingId does not belong to this conversation');
       }
+      bookingCustomerCountry = typeof bk.customer_country === 'string' && bk.customer_country.length === 2
+        ? bk.customer_country.toUpperCase()
+        : null;
+      bookingCustomerVatId = typeof bk.customer_vat_id === 'string' && bk.customer_vat_id.trim().length > 0
+        ? bk.customer_vat_id.trim()
+        : null;
     }
 
     // Get payment settings for this calendar
@@ -204,6 +237,10 @@ serve(async (req) => {
     // metadata (tax_amount, as a EUR string) below, exactly like create-booking-payment.
     // The tax filing reports read the tax from PI metadata.tax_amount via
     // resolvePaymentTaxCents; without it a paid WhatsApp VAT charge reported 0% VAT.
+    //
+    // This DOMESTIC manual block is correct for in_person services (place-of-supply =
+    // where performed) and as the not_collecting domestic (NL) fallback. The
+    // CROSS-BORDER branch below overrides it for remote_service/digital services.
     let taxAmountCents = 0;
     const taxEnabled = !!(serviceType.tax_enabled && serviceType.tax_code && serviceType.applicable_tax_rate);
     if (taxEnabled) {
@@ -217,6 +254,151 @@ serve(async (req) => {
         amountCents = Math.round(serviceType.price * 100) + taxAmountCents;
       }
       logStep("Tax applied", { taxRate: serviceType.applicable_tax_rate, behavior: serviceType.tax_behavior, amountCents, taxAmountCents });
+    }
+
+    // ---------------------------------------------------------------------------
+    // CROSS-BORDER / OSS branch (X3b-1): the SAME supply_type-based Stripe Tax
+    // Calculation-API branch create-booking-payment got in X2, on the WhatsApp charge
+    // path, REUSING _shared/taxCalc.ts (the calc logic is NOT duplicated here). For a
+    // remote_service/digital service the VAT is computed by Stripe Tax against the
+    // customer's country (cross-border / reverse-charge / OSS), NEVER hardcoded; for an
+    // in_person service this whole block is skipped and the domestic manual path above
+    // stands (regression-safe). The charge model is UNCHANGED below (still a destination
+    // charge via Stripe Checkout); we only adjust amountCents/taxAmountCents and stamp
+    // the calc id + breakdown markers onto the PI metadata for the webhook + reports.
+    //
+    // Persistence vars: stamped onto the PI metadata below; stripe-webhook's
+    // ensureBookingPaymentRow (the WhatsApp path's only booking_payments inserter, the
+    // F-TAX-23 idempotent insert) reads them back and persists customer_country +
+    // tax_breakdown + reverse_charge onto the row, so a WhatsApp remote charge is
+    // report-visible per-jurisdiction (X6), not EUR0.
+    let taxCalculationId: string | null = null;        // -> metadata[tax_calculation]
+    let taxBreakdownToPersist: TaxBreakdownEntry[] | null = null;
+    let reverseChargeApplied = false;
+    let crossBorderGuardTripped = false;                // not_collecting + cross-border
+    let domesticGuardTripped = false;                   // (CB-F-03) domestic, no usable rate
+    let vatIdRejected = false;                           // supplied VAT id was format-invalid
+    let persistedCustomerCountry: string | null = null;
+    let taxTransactionPending = false;                  // case (a) collecting -> create_from_calculation on success
+
+    const supplyType: string = serviceType.supply_type ?? 'in_person';
+    const isRemoteSupply = supplyType === 'remote_service' || supplyType === 'digital';
+    // The merchant's home country (where Stripe Tax is registered); business_country is
+    // the existing source of truth on the service, defaulting NL (mirrors X2).
+    const merchantCountry = (serviceType.business_country || 'NL').toUpperCase();
+
+    // The cross-border calc applies to a FULL taxed remote payment. An installment
+    // charges a partial amount whose per-payment VAT split is genuinely ambiguous and out
+    // of this fix's scope (the same gate as F-TAX-25 on the metadata stamp), so an
+    // installment keeps the existing behavior (no cross-border calc, no tax metadata).
+    if (isRemoteSupply && serviceType.tax_enabled && serviceType.tax_code && paymentType !== 'installment') {
+      if (!bookingCustomerCountry) {
+        // A remote/digital taxable service needs the customer country to compute VAT.
+        // Fail loud rather than silently apply the wrong (domestic) rate. X3b-2 will make
+        // the agent capture this onto the booking row before invoking this handler.
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'customer_country is required on the booking for a remote/digital service (cross-border VAT cannot be computed without it)',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      persistedCustomerCountry = bookingCustomerCountry;
+      const taxBehavior: 'inclusive' | 'exclusive' = serviceType.tax_behavior === 'inclusive' ? 'inclusive' : 'exclusive';
+      const lineAmountCents = Math.round(serviceType.price * 100);
+
+      try {
+        const calc = await calculateTax({
+          stripeSecretKey: stripeKey,
+          connectedAccountId: stripeAccount.stripe_account_id,
+          // Stripe Tax is not yet active on the connected account (registration
+          // human-gate); compute in the platform context (Tax active there) so we still
+          // get a real not_collecting / reverse_charge result. Flip to true (no other
+          // change) once OSS + Tax are activated on the connected account.
+          connectedTaxActive: false,
+          currency: 'eur',
+          lineAmountCents,
+          taxCode: serviceType.tax_code,
+          taxBehavior,
+          customerCountry: bookingCustomerCountry,
+          customerVatId: bookingCustomerVatId ?? undefined,
+          requireViesValidation: requireViesPolicy(),
+        });
+
+        taxBreakdownToPersist = calc.breakdown;
+        taxCalculationId = calc.calculationId;
+        vatIdRejected = calc.vatIdRejected === true;
+        logStep("Cross-border tax calc", {
+          supplyType, customerCountry: bookingCustomerCountry, state: calc.collectionState,
+          taxCents: calc.taxAmountCents, context: calc.context, calc: calc.calculationId, vatIdRejected,
+        });
+
+        if (calc.collectionState === 'collecting') {
+          // (a) Positive collectible rate -> use Stripe's figure; record a filing
+          // transaction after payment success (registration-gated, D-CB-REG today).
+          taxAmountCents = calc.taxAmountCents;
+          amountCents = taxBehavior === 'inclusive' ? lineAmountCents : calc.amountTotalCents;
+          taxTransactionPending = true;
+        } else if (calc.collectionState === 'reverse_charge') {
+          // (b) Valid EU B2B reverse-charge -> 0%, marked. No tax added.
+          taxAmountCents = 0;
+          amountCents = lineAmountCents;
+          reverseChargeApplied = true;
+        } else if (calc.collectionState === 'vat_id_unverified') {
+          // (b') (X4 VIES, only when the policy is ON) format-valid eu_vat that VIES could
+          // not confirm. Never a silent 0% reverse-charge: fail the charge loudly so the
+          // booking is not completed on an unconfirmed id.
+          logStep("VAT-ID UNVERIFIED GUARD (require-VIES on)", { customerCountry: bookingCustomerCountry, message: VAT_ID_UNVERIFIED_MESSAGE });
+          return new Response(
+            JSON.stringify({ success: false, error: VAT_ID_UNVERIFIED_MESSAGE, code: VAT_ID_UNVERIFIED_STATUS }),
+            { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        } else if (merchantCountry === bookingCustomerCountry) {
+          // (c) not_collecting AND destination == merchant country (NL): manual domestic
+          // fallback. The manual block above set taxAmountCents ONLY when applicable_tax_rate
+          // is positive. CB-F-03: if it did not (NULL/0 rate), fire the DOMESTIC hard guard
+          // instead of silently charging 0% domestic VAT.
+          if (taxEnabled && taxAmountCents > 0) {
+            logStep("Cross-border not_collecting domestic -> manual NL fallback", {
+              customerCountry: bookingCustomerCountry, taxAmount: taxAmountCents / 100,
+            });
+          } else {
+            domesticGuardTripped = true;
+            taxAmountCents = 0;
+            amountCents = lineAmountCents;
+            taxBreakdownToPersist = [
+              { amountCents: 0, inclusive: false, taxabilityReason: DOMESTIC_RATE_UNAVAILABLE_STATUS, country: bookingCustomerCountry, percentageDecimal: null, taxType: null },
+              ...calc.breakdown,
+            ];
+            logStep("DOMESTIC RATE GUARD (CB-F-03: no usable domestic rate, never silent 0%)", {
+              customerCountry: bookingCustomerCountry, merchantCountry,
+              applicableTaxRate: serviceType.applicable_tax_rate ?? null, message: DOMESTIC_RATE_UNAVAILABLE_MESSAGE,
+            });
+          }
+        } else {
+          // (d) not_collecting AND cross-border: the HARD GUARD. Never a silent clean 0%.
+          // The charge proceeds (destination charge) but the tax outcome is flagged so
+          // X6/reports surface "register for OSS" instead of a fake 0% VAT line.
+          crossBorderGuardTripped = true;
+          taxAmountCents = 0;
+          amountCents = lineAmountCents;
+          taxBreakdownToPersist = [
+            { amountCents: 0, inclusive: false, taxabilityReason: CROSS_BORDER_UNAVAILABLE_STATUS, country: bookingCustomerCountry, percentageDecimal: null, taxType: null },
+            ...calc.breakdown,
+          ];
+          logStep("CROSS-BORDER GUARD", { customerCountry: bookingCustomerCountry, merchantCountry, message: CROSS_BORDER_UNAVAILABLE_MESSAGE });
+        }
+      } catch (taxErr) {
+        // A Stripe Tax API failure on a remote service must not silently produce a wrong
+        // (domestic) VAT. Fail the charge loudly so the issue is visible.
+        logStep("Cross-border tax calc FAILED", { error: (taxErr as Error)?.message });
+        return new Response(
+          JSON.stringify({ success: false, error: `Cross-border tax calculation failed: ${(taxErr as Error)?.message}` }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
     }
 
     if (paymentType === 'installment' && installmentPlan) {
@@ -305,6 +487,8 @@ serve(async (req) => {
           // metadata.tax_amount via resolvePaymentTaxCents) see this WhatsApp charge's
           // VAT instead of 0%. Only on a full taxed payment; an installment charges a
           // partial amount whose per-payment VAT split is out of this fix's scope.
+          // For a cross-border remote service taxAmountCents is the Stripe-computed VAT
+          // (0 on the guard / reverse-charge cases), so the reports read the correct line.
           ...(taxEnabled && paymentType !== 'installment'
             ? {
                 tax_amount: (taxAmountCents / 100).toString(),
@@ -313,6 +497,23 @@ serve(async (req) => {
                 manual_tax_calculated: 'true',
               }
             : {}),
+          // CROSS-BORDER (X3b-1): mirror create-booking-payment's PI markers so
+          // stripe-webhook's ensureBookingPaymentRow can persist the X1 columns onto
+          // booking_payments (customer_country, tax_breakdown, reverse_charge) and
+          // recordTaxFilingTransactionIfPending can record the case-(a) filing
+          // transaction. tax_breakdown is carried as a compact JSON string (Stripe
+          // metadata values cap at 500 chars; a single-line per-jurisdiction breakdown
+          // fits). The reverse-charge / cross-border-guard / domestic-guard markers let
+          // the reports surface the right line. in_person -> none of these are set.
+          supply_type: supplyType,
+          ...(persistedCustomerCountry ? { customer_country: persistedCustomerCountry } : {}),
+          ...(taxBreakdownToPersist ? { tax_breakdown: JSON.stringify(taxBreakdownToPersist).slice(0, 500) } : {}),
+          ...(taxCalculationId ? { tax_calculation: taxCalculationId } : {}),
+          ...(taxTransactionPending ? { tax_transaction_pending: 'true' } : {}),
+          ...(reverseChargeApplied ? { reverse_charge: 'true' } : {}),
+          ...(crossBorderGuardTripped ? { cross_border_status: CROSS_BORDER_UNAVAILABLE_STATUS } : {}),
+          ...(domesticGuardTripped ? { domestic_status: DOMESTIC_RATE_UNAVAILABLE_STATUS } : {}),
+          ...(vatIdRejected ? { vat_id_rejected: 'true' } : {}),
         },
       },
       metadata: {

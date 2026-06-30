@@ -676,6 +676,57 @@ async function confirmBookingPaid(
 // app's own booking_payments ledger; amount/fee/transfer were fixed at charge time by
 // whatsapp-payment-handler. The PI is READ (platform context) to copy its authoritative
 // amount/currency/destination; no money action is taken.
+// CROSS-BORDER (X3b-1): reconstruct the three X1 persistence values from the markers
+// whatsapp-payment-handler stamped onto the PI metadata. tax_breakdown is carried as a
+// compact JSON string; we parse it defensively. If it is absent OR unparseable (e.g. a
+// 500-char Stripe-metadata truncation on an unusually long breakdown), we DO NOT silently
+// drop the tax outcome: we reconstruct a minimal breakdown from the discrete guard /
+// reverse-charge markers + customer_country so the report (X6) still surfaces the right
+// line (reverse-charge 0% / cross-border-unavailable / domestic-unavailable) instead of a
+// fake clean 0%. in_person / domestic charges carry no markers -> null/null/false.
+function readCrossBorderMarkers(pi: Stripe.PaymentIntent): {
+  customerCountry: string | null;
+  taxBreakdown: unknown | null;
+  reverseCharge: boolean;
+} {
+  const meta = (pi.metadata ?? {}) as Record<string, string>;
+  const customerCountry = typeof meta.customer_country === 'string' && meta.customer_country.length === 2
+    ? meta.customer_country.toUpperCase()
+    : null;
+  const reverseCharge = meta.reverse_charge === 'true';
+
+  let taxBreakdown: unknown | null = null;
+  const rawBreakdown = typeof meta.tax_breakdown === 'string' ? meta.tax_breakdown : '';
+  if (rawBreakdown) {
+    try {
+      const parsed = JSON.parse(rawBreakdown);
+      if (Array.isArray(parsed)) taxBreakdown = parsed;
+    } catch (_e) {
+      // Unparseable (truncated) -> fall through to the marker-based reconstruction below.
+      taxBreakdown = null;
+    }
+  }
+
+  // No usable breakdown but a guard / reverse-charge marker is present -> reconstruct a
+  // minimal one so the outcome is never lost (never a silent clean 0%).
+  if (!taxBreakdown) {
+    const reason = meta.cross_border_status || meta.domestic_status
+      || (reverseCharge ? 'reverse_charge' : null);
+    if (reason) {
+      taxBreakdown = [{
+        amountCents: 0,
+        inclusive: false,
+        taxabilityReason: reason,
+        country: customerCountry,
+        percentageDecimal: null,
+        taxType: null,
+      }];
+    }
+  }
+
+  return { customerCountry, taxBreakdown, reverseCharge };
+}
+
 async function ensureBookingPaymentRow(
   supabase: any,
   bookingId: string,
@@ -749,6 +800,14 @@ async function ensureBookingPaymentRow(
     : null;
   const paymentMethodType = latestCharge?.payment_method_details?.type ?? null;
 
+  // CROSS-BORDER (X3b-1): read the cross-border markers whatsapp-payment-handler stamped
+  // onto the PI metadata and persist the three X1 columns onto the row, so a remote
+  // WhatsApp charge is report-visible per-jurisdiction (X6), not just a blended figure.
+  // The web path (create-booking-payment) inserts these columns up front; the WhatsApp
+  // path's only inserter is THIS function, so the persistence lands here. in_person /
+  // domestic charges carry no markers -> null/null/false (byte-identical to before).
+  const cb = readCrossBorderMarkers(pi);
+
   const row = buildWhatsappBookingPaymentRow({
     bookingId,
     paymentIntentId,
@@ -759,6 +818,9 @@ async function ensureBookingPaymentRow(
     customerEmail: booking.customer_email ?? null,
     customerName: booking.customer_name ?? null,
     paymentMethodType,
+    customerCountry: cb.customerCountry,
+    taxBreakdown: cb.taxBreakdown,
+    reverseCharge: cb.reverseCharge,
   });
 
   // Upsert on the UNIQUE PI id; ignoreDuplicates makes a concurrent dual-event / retry

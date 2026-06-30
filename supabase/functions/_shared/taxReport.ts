@@ -250,8 +250,21 @@ export function computeRefundAdjustedRow(
  *  - platform_fee_cents = the application fee (so app-state stays consistent).
  *  - customer_email/name= carried from the booking for the report's display join.
  *  - payment_method_type= best-effort from the PI/charge.
- * The tax itself is read by the reports from the PI metadata.tax_amount (which
- * whatsapp-payment-handler now stamps), NOT from this row, so no tax column is needed.
+ * The tax AMOUNT itself is read by the reports from the PI metadata.tax_amount (which
+ * whatsapp-payment-handler stamps), NOT from this row.
+ *
+ * CROSS-BORDER (X3b-1): the row ALSO mirrors create-booking-payment's three X1 tax
+ * columns so a WhatsApp remote/digital charge is report-visible with per-jurisdiction
+ * VAT (X6) and reverse-charge 0% markers, not just a blended figure:
+ *  - customer_country = the billing country the cross-border calc ran against (null for
+ *                       in_person / domestic, no regression).
+ *  - tax_breakdown    = Stripe's per-jurisdiction breakdown (+ any guard marker), the
+ *                       same jsonb the web path persists; null when no calc ran.
+ *  - reverse_charge   = true when a valid EU B2B reverse-charge 0% was applied.
+ * These are sourced from the PI metadata stamped by whatsapp-payment-handler (the
+ * webhook is the WhatsApp path's only inserter), so the F-TAX-23 idempotent insert now
+ * also carries the cross-border fields. in_person / legacy callers omit them -> the row
+ * defaults to null/null/false (byte-identical to before for the domestic case).
  */
 export interface WhatsappPaymentRowInput {
   bookingId: string;
@@ -263,6 +276,12 @@ export interface WhatsappPaymentRowInput {
   customerEmail?: string | null;
   customerName?: string | null;
   paymentMethodType?: string | null;
+  /** X3b-1: the cross-border billing country the calc ran against (null = domestic/in_person). */
+  customerCountry?: string | null;
+  /** X3b-1: Stripe's per-jurisdiction tax_breakdown (+ guard markers); null when no calc ran. */
+  taxBreakdown?: unknown | null;
+  /** X3b-1: true when a valid EU B2B reverse-charge 0% was applied. Defaults false. */
+  reverseCharge?: boolean | null;
 }
 
 export interface BookingPaymentRow {
@@ -276,6 +295,10 @@ export interface BookingPaymentRow {
   customer_email: string | null;
   customer_name: string | null;
   payment_method_type: string | null;
+  /** X3b-1 cross-border persistence (mirrors create-booking-payment). */
+  customer_country: string | null;
+  tax_breakdown: unknown | null;
+  reverse_charge: boolean;
 }
 
 export function buildWhatsappBookingPaymentRow(input: WhatsappPaymentRowInput): BookingPaymentRow {
@@ -290,6 +313,11 @@ export function buildWhatsappBookingPaymentRow(input: WhatsappPaymentRowInput): 
     customer_email: input.customerEmail ?? null,
     customer_name: input.customerName ?? null,
     payment_method_type: input.paymentMethodType ?? null,
+    // X3b-1: cross-border columns. Default null/false so the domestic / in_person /
+    // legacy case stays byte-identical to the pre-X3b-1 row (no regression).
+    customer_country: input.customerCountry ?? null,
+    tax_breakdown: input.taxBreakdown ?? null,
+    reverse_charge: input.reverseCharge === true,
   };
 }
 

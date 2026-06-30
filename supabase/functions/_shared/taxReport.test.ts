@@ -334,6 +334,11 @@ Deno.test("F-TAX-23: row mirrors the web-path shape (connected acct, gross amoun
     customer_email: "c@example.com",
     customer_name: "Customer One",
     payment_method_type: "ideal",
+    // X3b-1: cross-border columns default to the domestic/in_person shape when no
+    // cross-border input is supplied (null/null/false), byte-identical to the web path.
+    customer_country: null,
+    tax_breakdown: null,
+    reverse_charge: false,
   });
 });
 
@@ -380,4 +385,77 @@ Deno.test("F-TAX-23: idempotency key is the PI id, identical across retries (no 
   });
   assertEquals(a.stripe_payment_intent_id, b.stripe_payment_intent_id);
   assertEquals(a, b);
+});
+
+// ---------------------------------------------------------------------------
+// X3b-1: the WhatsApp charge path now mirrors create-booking-payment's three X1
+// cross-border columns (customer_country, tax_breakdown, reverse_charge) so a remote
+// WhatsApp charge is report-visible per-jurisdiction (X6), not just a blended figure.
+// These are sourced from the PI metadata the handler stamps; the builder must persist
+// them when supplied and default to the domestic shape (null/null/false) when not.
+// ---------------------------------------------------------------------------
+
+Deno.test("X3b-1: remote cross-border guard charge persists country + breakdown, reverse_charge false", () => {
+  const breakdown = [
+    { amountCents: 0, inclusive: false, taxabilityReason: "cross_border_rate_unavailable", country: "DE", percentageDecimal: null, taxType: null },
+    { amountCents: 0, inclusive: false, taxabilityReason: "not_collecting", country: "DE", percentageDecimal: "0.0", taxType: "vat" },
+  ];
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_de", paymentIntentId: "pi_wa_de", connectedAccountId: "acct_c",
+    amountCents: 10000, currency: "eur", applicationFeeCents: 215,
+    customerCountry: "DE", taxBreakdown: breakdown, reverseCharge: false,
+  });
+  assertEquals(row.customer_country, "DE");
+  assertEquals(row.tax_breakdown, breakdown);
+  assertEquals(row.reverse_charge, false);
+  // amount stays the bare base (no fake tax) for the guard case.
+  assertEquals(row.amount_cents, 10000);
+});
+
+Deno.test("X3b-1: remote DE-B2B reverse-charge persists reverse_charge=true + country", () => {
+  const breakdown = [
+    { amountCents: 0, inclusive: false, taxabilityReason: "reverse_charge", country: "DE", percentageDecimal: "0.0", taxType: "vat" },
+  ];
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_b2b", paymentIntentId: "pi_wa_b2b", connectedAccountId: "acct_c",
+    amountCents: 10000, currency: "eur",
+    customerCountry: "DE", taxBreakdown: breakdown, reverseCharge: true,
+  });
+  assertEquals(row.customer_country, "DE");
+  assertEquals(row.reverse_charge, true);
+  assertEquals(row.tax_breakdown, breakdown);
+});
+
+Deno.test("X3b-1: domestic NL fallback persists country NL + breakdown, reverse_charge false", () => {
+  const breakdown = [
+    { amountCents: 0, inclusive: false, taxabilityReason: "not_collecting", country: "NL", percentageDecimal: "0.0", taxType: "vat" },
+  ];
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_nl", paymentIntentId: "pi_wa_nl", connectedAccountId: "acct_c",
+    amountCents: 12100, currency: "eur", // NL 21% via the manual fallback
+    customerCountry: "NL", taxBreakdown: breakdown, reverseCharge: false,
+  });
+  assertEquals(row.customer_country, "NL");
+  assertEquals(row.reverse_charge, false);
+  assertEquals(row.amount_cents, 12100);
+});
+
+Deno.test("X3b-1: in_person / domestic (no cross-border input) stays null/null/false (no regression)", () => {
+  const row = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_ip", paymentIntentId: "pi_wa_ip", connectedAccountId: "acct_c",
+    amountCents: 12100, currency: "eur", applicationFeeCents: 255,
+    customerEmail: "ip@example.com", customerName: "In Person",
+    // no customerCountry / taxBreakdown / reverseCharge supplied
+  });
+  assertEquals(row.customer_country, null);
+  assertEquals(row.tax_breakdown, null);
+  assertEquals(row.reverse_charge, false);
+});
+
+Deno.test("X3b-1: reverse_charge coerces non-true to false (null/undefined -> false)", () => {
+  const rowNull = buildWhatsappBookingPaymentRow({
+    bookingId: "bk_x", paymentIntentId: "pi_wa_x", connectedAccountId: "acct_c",
+    amountCents: 10000, currency: "eur", reverseCharge: null,
+  });
+  assertEquals(rowNull.reverse_charge, false);
 });
