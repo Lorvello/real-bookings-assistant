@@ -600,7 +600,7 @@ async function confirmBookingPaid(
 ) {
   const { data: booking } = await supabase
     .from('bookings')
-    .select('id, payment_status, customer_email, customer_name')
+    .select('id, status, payment_status, customer_email, customer_name, internal_notes')
     .eq('id', bookingId)
     .maybeSingle();
 
@@ -629,24 +629,86 @@ async function confirmBookingPaid(
     console.log(`ℹ️ Booking ${bookingId} already paid; skipping (idempotent).`);
     return;
   }
+  // E-6: idempotency for the resurrection path too. If we already flagged this booking
+  // for manual refund (a prior delivery of this same late payment), do not re-flag or
+  // re-write. The booking_payments row + tax filing were already recorded above
+  // (ensureBookingPaymentRow / recordTaxFilingTransactionIfPending are idempotent).
+  if (booking.payment_status === 'refund_required') {
+    console.log(`ℹ️ Booking ${bookingId} already flagged refund_required; skipping (idempotent).`);
+    return;
+  }
 
-  // Markeer betaald + bevestigd.
-  await supabase
+  // E-6 (money + double-book break): a payment that lands AFTER the booking was
+  // cancelled (cancel_overdue_unpaid_bookings freed the slot once payment_deadline_hours
+  // passed; the slot may already be re-booked by someone else) must NEVER resurrect the
+  // booking to 'confirmed'. Doing so would re-occupy a freed/possibly-rebooked slot AND
+  // silently capture money on a dead booking with no trace. Instead: keep the booking
+  // cancelled, flag it for MANUAL refund (router rule #3 forbids auto-running a refund or
+  // inventing a money-action here), and record WHY. The booking_payments row stays
+  // 'succeeded' on purpose: the charge is REAL captured revenue and a real tax obligation
+  // (the filing reports must see it); the owner reconciles it via the refund_required flag.
+  if (booking.status === 'cancelled') {
+    const reason = `[E-6 ${new Date().toISOString()}] Late payment (PI ${paymentIntentId ?? 'n/a'}) landed AFTER this booking was cancelled (slot freed by cancel_overdue_unpaid; possibly re-booked). Money was captured; booking NOT resurrected. MANUAL REFUND REQUIRED.`;
+    const mergedNotes = booking.internal_notes
+      ? `${booking.internal_notes}\n${reason}`
+      : reason;
+    const { error: flagErr } = await supabase
+      .from('bookings')
+      .update({ payment_status: 'refund_required', internal_notes: mergedNotes })
+      .eq('id', bookingId)
+      .eq('status', 'cancelled'); // guard: only flag while still cancelled (no clobber of a concurrent change)
+    if (flagErr) {
+      console.error(`❌ E-6: failed to flag cancelled booking ${bookingId} for manual refund:`, flagErr);
+    }
+    // Make sure the payment ledger row reflects the captured charge so the owner can find it.
+    const { error: payErr } = paymentIntentId
+      ? await supabase.from('booking_payments').update({ status: 'succeeded' }).eq('stripe_payment_intent_id', paymentIntentId)
+      : await supabase.from('booking_payments').update({ status: 'succeeded' }).eq('booking_id', bookingId);
+    if (payErr) {
+      console.error(`❌ E-6: failed to mark booking_payments succeeded for cancelled booking ${bookingId}:`, payErr);
+    }
+    console.warn(`⚠️ E-6 REFUND REQUIRED: cancelled booking ${bookingId} received a late payment (PI ${paymentIntentId ?? 'n/a'}). NOT resurrected; flagged refund_required. Owner must refund manually.`);
+    return; // never send a confirmation mail, never set status='confirmed'
+  }
+
+  // Markeer betaald + bevestigd. (Normal path: booking is still pending/valid.)
+  // .neq('status','cancelled') + the returned-row check below close the TOCTOU window:
+  // if the cancel cron (or an owner) cancels this booking between the read above and this
+  // write, the UPDATE matches 0 rows (Supabase does NOT raise an error on a 0-row update),
+  // so we must inspect the returned rows, not just `error`. 0 rows -> do NOT mark the
+  // payment succeeded and do NOT send a confirmation mail for a booking that is no longer
+  // confirmable. The next delivery of this same event then takes the cancelled-path branch
+  // above (status is now 'cancelled') and flags it for manual refund.
+  const { data: confirmed, error: confirmErr } = await supabase
     .from('bookings')
     .update({ payment_status: 'paid', status: 'confirmed' })
-    .eq('id', bookingId);
+    .eq('id', bookingId)
+    .neq('status', 'cancelled')
+    .select('id');
+  if (confirmErr) {
+    console.error(`❌ Failed to confirm booking ${bookingId} (payment_status/status update):`, confirmErr);
+    return; // do not send a confirmation mail for a write we are not sure landed
+  }
+  if (!confirmed || confirmed.length === 0) {
+    // The booking was cancelled between the read and this write (rare TOCTOU). Do not
+    // confirm, do not mail; leave the captured charge for the next delivery to flag.
+    console.warn(`⚠️ Booking ${bookingId} was not confirmed (no longer pending; cancelled after read). Skipping mail; a redelivery will flag refund if money landed.`);
+    return;
+  }
 
   // Werk de payment-rij bij (op PI-id indien bekend, anders op booking_id).
   // (ensureBookingPaymentRow already wrote 'succeeded' for an inserted WhatsApp row;
   // this keeps the web-path pending->succeeded transition working unchanged.)
   if (paymentIntentId) {
-    await supabase.from('booking_payments')
+    const { error: bpErr } = await supabase.from('booking_payments')
       .update({ status: 'succeeded' })
       .eq('stripe_payment_intent_id', paymentIntentId);
+    if (bpErr) console.error(`booking_payments succeeded update failed (PI ${paymentIntentId}):`, bpErr);
   } else {
-    await supabase.from('booking_payments')
+    const { error: bpErr } = await supabase.from('booking_payments')
       .update({ status: 'succeeded' })
       .eq('booking_id', bookingId);
+    if (bpErr) console.error(`booking_payments succeeded update failed (booking ${bookingId}):`, bpErr);
   }
 
   // Stuur nu de bevestigingsmail die create-booking inhield tot na betaling.
