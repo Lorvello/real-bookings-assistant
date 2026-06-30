@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import { computeReportPeriod } from "../_shared/taxReport.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -239,9 +240,14 @@ serve(async (req) => {
     const now = new Date();
     const currentQuarter = quarter || Math.floor(now.getMonth() / 3) + 1;
     const currentYear = year || now.getFullYear();
-    
-    const quarterStart = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-    const quarterEnd = new Date(currentYear, currentQuarter * 3, 0);
+
+    // CB-F-11: half-open quarter window [start, nextQuarterStart) in UTC via the shared
+    // helper, so the in-memory quarterly slice below INCLUDES the entire last day of the
+    // quarter (the old `new Date(y, q*3, 0)` + `paymentDate <= quarterEnd` silently
+    // dropped the last day). Same boundary as generate/export-tax-report.
+    const quarterPeriod = computeReportPeriod('quarterly', currentYear, currentQuarter);
+    const quarterStart = new Date(quarterPeriod.startIso);
+    const quarterEndExclusive = new Date(quarterPeriod.endExclusiveIso);
 
     // Calculate service breakdown with revenue per service
     const serviceBreakdown = new Map();
@@ -252,7 +258,8 @@ serve(async (req) => {
     for (const payment of payments || []) {
       try {
         const paymentDate = new Date(payment.created_at);
-        if (paymentDate >= quarterStart && paymentDate <= quarterEnd) {
+        // CB-F-11: half-open [start, nextQuarterStart) so the last day is included.
+        if (paymentDate >= quarterStart && paymentDate < quarterEndExclusive) {
           const paymentIntent = await stripe.paymentIntents.retrieve(
             payment.stripe_payment_intent_id,
             { stripeAccount: stripeAccount.stripe_account_id }
@@ -302,7 +309,9 @@ serve(async (req) => {
         vatRate: 21.0,
         period: {
           start: quarterStart.toISOString(),
-          end: quarterEnd.toISOString()
+          // CB-F-11: last INCLUSIVE instant for display (endExclusive - 1ms); the slice
+          // above uses the half-open [start, endExclusive) window.
+          end: new Date(quarterEndExclusive.getTime() - 1).toISOString()
         }
       },
       serviceBreakdown: servicesArray,

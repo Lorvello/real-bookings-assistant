@@ -164,6 +164,9 @@ serve(async (req) => {
       refund_amount_cents: p.refund_amount_cents,
       tax_breakdown: p.tax_breakdown,
       status: p.status,
+      // CB-N-2: pass the row currency so only EUR rows are summed into the EUR OSS bucket
+      // (a future non-EUR row cannot silently distort the EUR10k threshold). EUR-only today.
+      currency: p.currency,
     }));
 
     const oss = computeOssBucket(rows, merchantCountry);

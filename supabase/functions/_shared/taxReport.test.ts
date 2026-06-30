@@ -7,13 +7,14 @@
 // rate = tax / net, an inclusive 21% NL amount is arithmetically exact.
 //
 // Run: deno test supabase/functions/_shared/taxReport.test.ts
-import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
 import {
   buildWhatsappBookingPaymentRow,
   classifyJurisdictionLine,
   computePerJurisdictionReport,
   computeRefundAdjustedRow,
   computeRegistrationStatus,
+  computeReportPeriod,
   type JurisdictionRowInput,
   resolvePaymentTaxCents,
   resolveRefundedCents,
@@ -663,4 +664,152 @@ Deno.test("X6: empty batch -> zeroed report, no crash", () => {
   assertEquals(rep.countryCount, 0);
   assertEquals(rep.ossEligible.transactionCount, 0);
   assertEquals(rep.ossEligible.countries, []);
+});
+
+// ---------------------------------------------------------------------------
+// CB-F-10: the report OSS bucket + the cross-border guard line are EU-ONLY. A non-EU
+// cross-border B2C (US / GB / CH) must be EXCLUDED from the OSS bucket and shown as a
+// DISTINCT non-EU marker (never the EU "register for OSS" guard, never a silent 0%).
+// ---------------------------------------------------------------------------
+
+const bdGuard = bdCrossBorderGuard; // alias for readability below
+
+Deno.test("CB-F-10: a non-EU (GB/CH) cross-border guard row is NOT in the OSS bucket", () => {
+  // The X7 Round B repro at report scope: DE (EU) + GB + CH (non-EU), all guard 0%.
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "DE", taxBreakdown: bdGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "GB", taxBreakdown: bdGuard("GB"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "CH", taxBreakdown: bdGuard("CH"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  // OSS bucket = DE only (was DE+GB+CH before the fix).
+  assertEquals(rep.ossEligible.transactionCount, 1);
+  assertEquals(rep.ossEligible.countries, ["DE"]);
+  assertEquals(rep.ossEligible.taxableCents, 10000);
+  // The EU "register for OSS" guard count is DE only; GB+CH are non-EU.
+  assertEquals(rep.crossBorderGuardTransactionCount, 1);
+  assertEquals(rep.nonEuTransactionCount, 2);
+});
+
+Deno.test("CB-F-10: non-EU rows are classified as non_eu_unavailable (distinct line, not OSS guard)", () => {
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "GB", taxBreakdown: bdGuard("GB"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  const gb = rep.lines.find((l) => l.country === "GB");
+  assertEquals(gb?.lineType, "non_eu_unavailable");
+  assertEquals(gb?.taxCents, 0); // still 0%, non-silent marker (NOT a clean unmarked 0%)
+  // and it is NOT the EU register-for-OSS guard line.
+  assertEquals(rep.lines.some((l) => l.lineType === "cross_border_unavailable"), false);
+});
+
+Deno.test("CB-F-10: an EU cross-border guard row STILL says register-for-OSS (unchanged)", () => {
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "DE", taxBreakdown: bdGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  const de = rep.lines.find((l) => l.country === "DE");
+  assertEquals(de?.lineType, "cross_border_unavailable"); // EU -> still the OSS guard
+  assertEquals(rep.crossBorderGuardTransactionCount, 1);
+  assertEquals(rep.nonEuTransactionCount, 0);
+  assertEquals(rep.ossEligible.transactionCount, 1);
+});
+
+Deno.test("CB-F-10: the OSS bucket + the X5 threshold resolver AGREE on EU-only (reconciliation)", () => {
+  // SAME rows through both layers must give the SAME cross-border B2C set (EU-only).
+  const x6Rows: JurisdictionRowInput[] = [
+    { customerCountry: "DE", taxBreakdown: bdGuard("DE"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "GB", taxBreakdown: bdGuard("GB"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+    { customerCountry: "CH", taxBreakdown: bdGuard("CH"), reverseCharge: false, grossCents: 10000, taxCents: 0, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(x6Rows, "NL");
+  const x5Rows: BookingPaymentRowLike[] = [
+    { amount_cents: 10000, customer_country: "DE", reverse_charge: false, tax_breakdown: bdGuard("DE"), status: "succeeded" },
+    { amount_cents: 10000, customer_country: "GB", reverse_charge: false, tax_breakdown: bdGuard("GB"), status: "succeeded" },
+    { amount_cents: 10000, customer_country: "CH", reverse_charge: false, tax_breakdown: bdGuard("CH"), status: "succeeded" },
+  ];
+  const x5 = computeOssBucket(x5Rows, "NL");
+  // X6 taxable == X5 cumulative; X6 OSS count == X5 contributing (both EU-only = DE).
+  assertEquals(x5.cumulativeCents, rep.ossEligible.taxableCents); // 10000 == 10000
+  assertEquals(x5.contributingPayments, rep.ossEligible.transactionCount); // 1 == 1
+});
+
+Deno.test("CB-F-10: a non-EU row with a positive collected rate stays 'collected' (not remapped)", () => {
+  // Defensive: the non-EU remap ONLY touches the cross_border_unavailable guard line. If
+  // a registration ever made a non-EU destination collect a positive rate, it stays a
+  // collected line (the remap must not hide real collected VAT).
+  const rows: JurisdictionRowInput[] = [
+    { customerCountry: "GB", taxBreakdown: bdCollected("GB", 2000), reverseCharge: false, grossCents: 12000, taxCents: 2000, netCents: 10000 },
+  ];
+  const rep = computePerJurisdictionReport(rows, "NL");
+  const gb = rep.lines.find((l) => l.country === "GB");
+  assertEquals(gb?.lineType, "collected");
+  assertEquals(gb?.taxCents, 2000);
+  // collected non-EU is still not an EU OSS supply (EU-only bucket).
+  assertEquals(rep.ossEligible.transactionCount, 0);
+  assertEquals(rep.nonEuTransactionCount, 0); // only guard lines count as non_eu_unavailable
+});
+
+// ---------------------------------------------------------------------------
+// CB-F-11: the canonical half-open filing-period window. The boundary is EXCLUSIVE at
+// the start of the next period, so the entire LAST DAY of the period is INCLUDED and a
+// charge at 00:00:00.000 of the next period falls in the NEXT period (no gap, no
+// double-count). All bounds UTC.
+// ---------------------------------------------------------------------------
+
+Deno.test("CB-F-11: quarterly window is [Q-start, next-Q-start) in UTC (Q2 2026)", () => {
+  const p = computeReportPeriod("quarterly", 2026, 2);
+  assertEquals(p.startIso, "2026-04-01T00:00:00.000Z");
+  assertEquals(p.endExclusiveIso, "2026-07-01T00:00:00.000Z"); // EXCLUSIVE next-quarter start
+});
+
+Deno.test("CB-F-11: the last day of the quarter is INSIDE the window (the bug repro)", () => {
+  const p = computeReportPeriod("quarterly", 2026, 2);
+  // Jun 30 07:02 UTC (the adversarial timestamp) used to be DROPPED (<= Jun-30-00:00).
+  const lastDayCharge = "2026-06-30T07:02:00.000Z";
+  assert(lastDayCharge >= p.startIso, "last-day charge is after the start");
+  assert(lastDayCharge < p.endExclusiveIso, "last-day charge is now INSIDE the window");
+  // The very last instant of the quarter is still inside.
+  assert("2026-06-30T23:59:59.999Z" < p.endExclusiveIso);
+});
+
+Deno.test("CB-F-11: a charge at 00:00:00.000 of the next quarter falls in the NEXT period (no double-count)", () => {
+  const q2 = computeReportPeriod("quarterly", 2026, 2);
+  const q3 = computeReportPeriod("quarterly", 2026, 3);
+  const boundary = "2026-07-01T00:00:00.000Z";
+  // Exactly the boundary instant: NOT in Q2 (strict <), IS in Q3 ([start, ...)).
+  assertEquals(boundary < q2.endExclusiveIso, false); // excluded from Q2
+  assert(boundary >= q3.startIso && boundary < q3.endExclusiveIso); // included in Q3
+});
+
+Deno.test("CB-F-11: monthly window is [month-start, next-month-start); last day included", () => {
+  // signature is (reportType, year, quarter?, month?) -> month is the 4th arg.
+  const p = computeReportPeriod("monthly", 2026, undefined, 6); // June
+  assertEquals(p.startIso, "2026-06-01T00:00:00.000Z");
+  assertEquals(p.endExclusiveIso, "2026-07-01T00:00:00.000Z");
+  assert("2026-06-30T18:00:00.000Z" < p.endExclusiveIso); // last day included
+});
+
+Deno.test("CB-F-11: December rolls over to Jan 1 next year (month/quarter/year boundaries)", () => {
+  assertEquals(computeReportPeriod("monthly", 2026, undefined, 12).endExclusiveIso, "2027-01-01T00:00:00.000Z");
+  assertEquals(computeReportPeriod("quarterly", 2026, 4).endExclusiveIso, "2027-01-01T00:00:00.000Z");
+  assertEquals(computeReportPeriod("annual", 2026).endExclusiveIso, "2027-01-01T00:00:00.000Z");
+  // Dec 31 23:59 is inside the annual window.
+  assert("2026-12-31T23:59:00.000Z" < computeReportPeriod("annual", 2026).endExclusiveIso);
+});
+
+Deno.test("CB-F-11: annual window is [Jan 1, next Jan 1); Dec 31 is included", () => {
+  const p = computeReportPeriod("annual", 2026);
+  assertEquals(p.startIso, "2026-01-01T00:00:00.000Z");
+  assertEquals(p.endExclusiveIso, "2027-01-01T00:00:00.000Z");
+});
+
+Deno.test("CB-F-11: monthly without a month throws (caller contract)", () => {
+  let threw = false;
+  try {
+    computeReportPeriod("monthly", 2026);
+  } catch (_e) {
+    threw = true;
+  }
+  assert(threw, "monthly report without a month must throw");
 });

@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { classifyJurisdictionLine, computePerJurisdictionReport, computeRefundAdjustedRow, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
+import { classifyJurisdictionLine, computePerJurisdictionReport, computeRefundAdjustedRow, computeReportPeriod, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
+import { isEuMemberState } from "../_shared/ossThreshold.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -17,10 +18,13 @@ const logStep = (step: string, details?: any) => {
 
 // X6: a human-readable VAT-type label for the CSV so a B2B reverse-charge 0% line is
 // auditable AS reverse-charge, DISTINCT from a not_collecting / cross-border-guard 0%.
+// CB-F-10: a NON-EU cross-border line is labelled distinctly (outside OSS), NOT
+// "register for OSS".
 function vatTypeLabel(lineType: string): string {
   switch (lineType) {
     case 'reverse_charge': return 'Reverse charge (B2B 0%)';
-    case 'cross_border_unavailable': return 'Cross-border (not collecting - register for OSS)';
+    case 'cross_border_unavailable': return 'EU cross-border (not collecting - register for OSS)';
+    case 'non_eu_unavailable': return 'Non-EU destination (outside OSS - not collecting)';
     case 'domestic_unavailable': return 'Domestic (rate unavailable)';
     case 'collected': return 'Standard rated';
     case 'domestic': return 'Domestic';
@@ -141,9 +145,12 @@ serve(async (req) => {
       );
     }
 
-    // Calculate quarter date range
-    const quarterStart = new Date(year, (quarter - 1) * 3, 1);
-    const quarterEnd = new Date(year, quarter * 3, 0);
+    // CB-F-11: half-open quarter window [start, nextQuarterStart) in UTC via the shared
+    // helper, so the LAST DAY of the quarter is fully INCLUDED in the exported CSV (the
+    // old `new Date(y, q*3, 0)` + `created_at <= quarterEnd` silently dropped the entire
+    // last day from the filing the merchant downloads). Identical boundary to
+    // generate-tax-report.
+    const period = computeReportPeriod('quarterly', year, quarter);
 
     logStep('Exporting tax report', { quarter, year, accountId: stripeAccount.stripe_account_id });
 
@@ -161,8 +168,9 @@ serve(async (req) => {
         )
       `)
       .eq('stripe_account_id', stripeAccount.stripe_account_id)
-      .gte('created_at', quarterStart.toISOString())
-      .lte('created_at', quarterEnd.toISOString())
+      .gte('created_at', period.startIso)
+      // CB-F-11: strict `<` on the EXCLUSIVE next-quarter start (was `<= last-day-00:00:00`).
+      .lt('created_at', period.endExclusiveIso)
       .in('status', ['succeeded', 'completed']);
 
     if (calendar_id) {
@@ -187,6 +195,11 @@ serve(async (req) => {
 
     // X6: per-row inputs for the per-jurisdiction summary + OSS bucket appended below.
     const jurisdictionRows: JurisdictionRowInput[] = [];
+
+    // CB-F-10: the merchant's home country (the OSS cross-border boundary). Defined here
+    // so the per-row non-EU re-map in the loop and the per-jurisdiction summary below use
+    // the same value.
+    const merchantCountry = stripeAccount.country || 'NL';
 
     let totalGross = 0;
     let totalVat = 0;
@@ -242,18 +255,30 @@ serve(async (req) => {
           taxCents: row.taxCents,
           netCents: row.netCents,
         });
-        const lineType = classifyJurisdictionLine(
+        let lineType: string = classifyJurisdictionLine(
           rowReverse,
           Array.isArray(rowBreakdown) ? rowBreakdown : [],
           row.taxCents,
         );
+        // CB-F-10: re-map a cross-border-guard line on a NON-EU destination to the
+        // non-EU marker for THIS transaction line, so the per-row VAT Type matches the
+        // per-jurisdiction summary (OSS is EU-only; never "register for OSS" for non-EU).
+        const ccUpper = (rowCountry || '').toUpperCase();
+        if (
+          lineType === 'cross_border_unavailable' &&
+          ccUpper.length === 2 &&
+          ccUpper !== merchantCountry.toUpperCase() &&
+          !isEuMemberState(ccUpper)
+        ) {
+          lineType = 'non_eu_unavailable';
+        }
 
         csvRows.push([
           date,
           customerName,
           customerEmail,
           serviceName,
-          (rowCountry || '').toUpperCase(),
+          ccUpper,
           vatTypeLabel(lineType),
           grossAmount.toFixed(2),
           vatAmount.toFixed(2),
@@ -275,8 +300,8 @@ serve(async (req) => {
 
     // X6: per-jurisdiction VAT summary section + OSS-eligible bucket, appended below the
     // per-transaction lines so the export is a complete filing aid (Dutch VAT per country
-    // + the OSS return base), reading the authoritative persisted columns.
-    const merchantCountry = stripeAccount.country || 'NL';
+    // + the OSS return base), reading the authoritative persisted columns. merchantCountry
+    // was resolved above (used by the per-row non-EU re-map too).
     const perJurisdiction = computePerJurisdictionReport(jurisdictionRows, merchantCountry);
 
     csvRows.push([]);
@@ -295,7 +320,9 @@ serve(async (req) => {
     }
 
     csvRows.push([]);
-    csvRows.push(['OSS-ELIGIBLE (cross-border B2C, ties to the EUR10,000 OSS threshold)']);
+    // CB-F-10: the OSS bucket is EU cross-border B2C ONLY. Non-EU cross-border sales are
+    // surfaced on their own line (outside OSS scope), never counted toward the EUR10k.
+    csvRows.push(['OSS-ELIGIBLE (EU cross-border B2C, ties to the EUR10,000 OSS threshold)']);
     csvRows.push(['Transactions', 'Gross (€)', 'Taxable (€)', 'Countries']);
     csvRows.push([
       String(perJurisdiction.ossEligible.transactionCount),
@@ -303,6 +330,13 @@ serve(async (req) => {
       (perJurisdiction.ossEligible.taxableCents / 100).toFixed(2),
       perJurisdiction.ossEligible.countries.join(' '),
     ]);
+
+    // CB-F-10: a separate, explicit non-EU cross-border line so a US/GB/CH sale is
+    // visible as out-of-OSS-scope (never silently folded into the OSS bucket).
+    csvRows.push([]);
+    csvRows.push(['NON-EU CROSS-BORDER (outside OSS scope - not counted toward the EUR10,000 threshold)']);
+    csvRows.push(['Transactions']);
+    csvRows.push([String(perJurisdiction.nonEuTransactionCount)]);
 
     // Convert to CSV string
     const csvContent = csvRows

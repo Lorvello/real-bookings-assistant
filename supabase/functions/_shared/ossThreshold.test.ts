@@ -4,6 +4,9 @@ import { assertEquals, assert } from "https://deno.land/std@0.190.0/testing/asse
 import {
   OSS_PAN_EU_THRESHOLD_CENTS,
   OSS_BUCKET_KEY,
+  EU_MEMBER_STATES,
+  isEuMemberState,
+  isOssBucketCurrency,
   isCrossBorderB2C,
   taxableCents,
   taxCentsFromBreakdown,
@@ -156,4 +159,87 @@ Deno.test("X5: non-succeeded statuses are ignored", () => {
   const b = computeOssBucket(rows, NL);
   assertEquals(b.cumulativeCents, 500000);
   assertEquals(b.registrationRequired, false);
+});
+
+// ---------------------------------------------------------------------------
+// CB-F-10: the OSS scheme is EU-ONLY. The bucket + the "register for OSS" guard must
+// classify on EU-member-state membership, not merely "not the merchant country". A
+// non-EU remote B2C (US / UK-GB / CH) must be EXCLUDED from the EUR10k bucket.
+// ---------------------------------------------------------------------------
+
+Deno.test("CB-F-10: EU_MEMBER_STATES is exactly the 27 (incl NL/DE/FR, excl GB/US/CH/NO)", () => {
+  assertEquals(EU_MEMBER_STATES.size, 27);
+  // a few in-EU
+  assert(isEuMemberState("NL"));
+  assert(isEuMemberState("DE"));
+  assert(isEuMemberState("fr")); // case-insensitive
+  assert(isEuMemberState("IE"));
+  // the non-EU cases from the adversarial finding
+  assertEquals(isEuMemberState("GB"), false); // UK post-Brexit
+  assertEquals(isEuMemberState("US"), false);
+  assertEquals(isEuMemberState("CH"), false); // Switzerland
+  assertEquals(isEuMemberState("NO"), false); // Norway
+  assertEquals(isEuMemberState(null), false);
+  assertEquals(isEuMemberState(""), false);
+});
+
+Deno.test("CB-F-10: a NON-EU B2C (US/GB/CH) is EXCLUDED from isCrossBorderB2C", () => {
+  assertEquals(isCrossBorderB2C(row({ customer_country: "US" }), NL), false);
+  assertEquals(isCrossBorderB2C(row({ customer_country: "GB" }), NL), false);
+  assertEquals(isCrossBorderB2C(row({ customer_country: "CH" }), NL), false);
+  // EU still included.
+  assert(isCrossBorderB2C(row({ customer_country: "DE" }), NL));
+  assert(isCrossBorderB2C(row({ customer_country: "FR" }), NL));
+});
+
+Deno.test("CB-F-10: the exact adversarial scenario (US+GB+CH+DE) -> only DE counts", () => {
+  // The X7 Round B repro: 3 payments US/GB/CH + 1 DE, EUR100 each. Before the fix the
+  // bucket reported 3 / EUR300; correct is 1 / EUR100 (DE only).
+  const rows = [
+    row({ customer_country: "US", amount_cents: 10000 }),
+    row({ customer_country: "GB", amount_cents: 10000 }),
+    row({ customer_country: "CH", amount_cents: 10000 }),
+    row({ customer_country: "DE", amount_cents: 10000 }),
+  ];
+  const b = computeOssBucket(rows, NL);
+  assertEquals(b.contributingPayments, 1); // DE only (was 3)
+  assertEquals(b.cumulativeCents, 10000); // EUR100 (was EUR300)
+});
+
+// ---------------------------------------------------------------------------
+// CB-N-2: the EUR10k threshold is EUR-denominated. A non-EUR row must NOT be summed
+// cents-for-cents into the EUR bucket; it is excluded + counted separately.
+// ---------------------------------------------------------------------------
+
+Deno.test("CB-N-2: isOssBucketCurrency treats eur (and null/blank) as in-bucket, others out", () => {
+  assert(isOssBucketCurrency("eur"));
+  assert(isOssBucketCurrency("EUR"));
+  assert(isOssBucketCurrency(null)); // EUR-only product backward-compat
+  assert(isOssBucketCurrency("")); // ditto
+  assertEquals(isOssBucketCurrency("gbp"), false);
+  assertEquals(isOssBucketCurrency("usd"), false);
+});
+
+Deno.test("CB-N-2: a non-EUR EU cross-border row is excluded from the EUR bucket + counted", () => {
+  const rows = [
+    row({ customer_country: "DE", amount_cents: 500000, currency: "eur" }), // counts
+    row({ customer_country: "FR", amount_cents: 900000, currency: "gbp" }), // excluded (non-EUR)
+    row({ customer_country: "BE", amount_cents: 300000 }), // currency unset -> EUR, counts
+  ];
+  const b = computeOssBucket(rows, NL);
+  assertEquals(b.cumulativeCents, 800000); // 5,000 + 3,000 (the gbp 9,000 NOT summed)
+  assertEquals(b.contributingPayments, 2);
+  assertEquals(b.nonEurExcludedPayments, 1);
+  // The non-EUR row did NOT silently push the bucket over the threshold.
+  assertEquals(b.registrationRequired, false);
+});
+
+Deno.test("CB-N-2: nonEurExcludedPayments is 0 in the all-EUR (today's) case", () => {
+  const rows = [
+    row({ customer_country: "DE", amount_cents: 500000, currency: "eur" }),
+    row({ customer_country: "FR", amount_cents: 400000 }),
+  ];
+  const b = computeOssBucket(rows, NL);
+  assertEquals(b.nonEurExcludedPayments, 0);
+  assertEquals(b.contributingPayments, 2);
 });

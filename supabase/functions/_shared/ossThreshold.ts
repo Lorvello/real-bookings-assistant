@@ -33,6 +33,36 @@ export const OSS_PAN_EU_THRESHOLD_CENTS = 1_000_000;
 /** Bucket identifier surfaced to the frontend / reports for the single OSS bucket. */
 export const OSS_BUCKET_KEY = "EU_OSS";
 
+/**
+ * CB-F-10: the 27 EU member states (ISO-3166 alpha-2), the SINGLE source of truth for
+ * "is this destination inside the EU VAT area" used by the OSS classification.
+ *
+ * WHY THIS EXISTS: the OSS scheme is EU-ONLY. The EUR10,000 pan-EU threshold and the
+ * "register for OSS" advice apply solely to cross-border B2C supplies to OTHER EU member
+ * states. Before this set, the bucket counted ANY non-NL B2C (incl. US / UK-GB / CH /
+ * NO) toward the EU OSS threshold and told the merchant to "register for OSS" for non-EU
+ * customers, which is wrong (CB-F-10). A non-EU remote B2C supply is OUTSIDE OSS scope;
+ * Stripe still computes the actual rate (0% / not_collecting today), this set only fixes
+ * the EU-vs-non-EU CLASSIFICATION + the advisory message, never a VAT rate.
+ *
+ * SCOPE NOTE (deliberate): this is the EU-27 only. Great Britain (GB) is NON-EU
+ * post-Brexit (Northern Ireland XI has a special status but is not an ISO country code we
+ * receive here and never enters as a member state). Norway/Switzerland/Iceland etc. are
+ * non-EU. Kept as ONE constant so isCrossBorderB2C, the report OSS bucket, and the
+ * "register for OSS" guard message can NEVER diverge.
+ */
+export const EU_MEMBER_STATES: ReadonlySet<string> = new Set([
+  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
+  "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
+  "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+]);
+
+/** True when an ISO-3166 alpha-2 country is an EU member state (case-insensitive). */
+export function isEuMemberState(country: string | null | undefined): boolean {
+  if (!country) return false;
+  return EU_MEMBER_STATES.has(country.toUpperCase());
+}
+
 /** The "near" warning band: at >= 80% of the threshold we flag an approaching crossing. */
 export const OSS_NEAR_FRACTION = 0.8;
 
@@ -53,18 +83,45 @@ export interface BookingPaymentRowLike {
   tax_breakdown?: unknown;
   /** Payment status; only succeeded/paid rows count toward the threshold. */
   status?: string | null;
+  /**
+   * CB-N-2: ISO-4217 currency of the charge (booking_payments.currency). The EUR10,000
+   * OSS threshold is EUR-denominated, so only EUR rows may be summed into the EUR bucket.
+   * Product is EUR-only today; null/absent is treated as EUR for backward-compat with
+   * existing rows. A non-EUR row (e.g. a future gbp merchant) is EXCLUDED + counted
+   * separately so it can never silently distort the EUR threshold.
+   */
+  currency?: string | null;
+}
+
+/** The OSS threshold bucket currency. The EUR10,000 figure is EUR-denominated. */
+export const OSS_BUCKET_CURRENCY = "eur";
+
+/**
+ * CB-N-2: is this row's currency the EUR OSS-bucket currency? Product is EUR-only today,
+ * so a null/blank currency is treated as EUR (backward-compat with existing rows). A
+ * row in any other currency must NOT be summed cents-for-cents into the EUR threshold.
+ */
+export function isOssBucketCurrency(currency: string | null | undefined): boolean {
+  if (currency == null || currency === "") return true; // assume EUR (EUR-only product)
+  return currency.toLowerCase() === OSS_BUCKET_CURRENCY;
 }
 
 /**
- * Is this payment a CROSS-BORDER B2C supply that counts toward the OSS bucket?
+ * Is this payment a CROSS-BORDER B2C supply that counts toward the EU OSS bucket?
  *
  * Bucket definition (matches the X2 charge-path branch logic + the X1 data model):
  *  - customer_country is set (the remote/digital supply path is the ONLY path that
  *    sets it; in_person bookings leave it null) -> this excludes in_person DOMESTIC.
+ *  - customer_country IN the EU member states (CB-F-10) -> the OSS scheme is EU-ONLY, so
+ *    a non-EU destination (US / GB / CH / NO ...) is OUTSIDE OSS scope and must NOT count
+ *    toward the EUR10k pan-EU threshold. (Before this gate any non-NL B2C was counted.)
  *  - customer_country != merchant country (NL) -> cross-border only (excludes the
  *    domestic NL remote bucket, which is not an OSS supply).
  *  - reverse_charge is false -> B2C only (excludes B2B reverse-charge supplies, which
  *    are 0%-to-the-buyer and do NOT count toward the OSS distance-selling threshold).
+ *
+ * The CHARGE is unaffected (Stripe computes the rate; non-EU is correctly 0%/not
+ * collecting today). This predicate is the merchant-facing OSS MONITORING membership.
  *
  * @param merchantCountry ISO-3166 alpha-2 of the merchant's home country (e.g. "NL").
  */
@@ -75,6 +132,7 @@ export function isCrossBorderB2C(
   const cc = (row.customer_country ?? "").toUpperCase();
   if (cc.length !== 2) return false; // null/blank => in_person domestic, excluded
   if (cc === merchantCountry.toUpperCase()) return false; // domestic, excluded
+  if (!isEuMemberState(cc)) return false; // CB-F-10: non-EU is OUTSIDE OSS scope, excluded
   if (row.reverse_charge === true) return false; // B2B reverse-charge, excluded
   return true;
 }
@@ -150,6 +208,13 @@ export interface OssBucketResult {
   status: "under" | "near" | "exceeded";
   /** Number of cross-border B2C payments that contributed to the cumulative. */
   contributingPayments: number;
+  /**
+   * CB-N-2: number of EU cross-border B2C rows that were EXCLUDED from the EUR bucket
+   * because their currency was not EUR (a future non-EUR row). 0 today (EUR-only). A
+   * non-zero value means the EUR threshold is NOT counting some EU cross-border sales
+   * (a multi-currency normalization is then required before the figure is complete).
+   */
+  nonEurExcludedPayments: number;
 }
 
 /**
@@ -163,9 +228,19 @@ export function computeOssBucket(
 ): OssBucketResult {
   let cumulativeCents = 0;
   let contributingPayments = 0;
+  let nonEurExcludedPayments = 0;
   for (const row of rows) {
     if (!isCountedStatus(row.status ?? "succeeded")) continue;
+    // CB-F-10: only EU cross-border B2C counts toward the EU OSS threshold (non-EU is
+    // out of scope, excluded inside isCrossBorderB2C).
     if (!isCrossBorderB2C(row, merchantCountry)) continue;
+    // CB-N-2: the EUR10k threshold is EUR-denominated. A non-EUR row must NOT be summed
+    // cents-for-cents into the EUR bucket; count it separately so the exclusion is
+    // visible (never a silent currency-blind distortion). EUR-only product -> 0 today.
+    if (!isOssBucketCurrency(row.currency)) {
+      nonEurExcludedPayments += 1;
+      continue;
+    }
     cumulativeCents += taxableCents(row);
     contributingPayments += 1;
   }
@@ -189,5 +264,6 @@ export function computeOssBucket(
     registrationRequired,
     status,
     contributingPayments,
+    nonEurExcludedPayments,
   };
 }

@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { computePerJurisdictionReport, computeRefundAdjustedRow, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
+import { computePerJurisdictionReport, computeRefundAdjustedRow, computeReportPeriod, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -134,22 +134,16 @@ serve(async (req) => {
 
     logStep('Generating tax report', { reportType: report_type, year, quarter, month });
 
-    // Calculate date range based on report type
-    let startDate, endDate;
-    
-    if (report_type === 'quarterly') {
-      startDate = new Date(year, (quarter - 1) * 3, 1);
-      endDate = new Date(year, quarter * 3, 0);
-    } else if (report_type === 'monthly') {
-      if (!month) throw new Error('Month is required for monthly reports');
-      startDate = new Date(year, month - 1, 1);
-      endDate = new Date(year, month, 0);
-    } else if (report_type === 'annual') {
-      startDate = new Date(year, 0, 1);
-      endDate = new Date(year, 11, 31);
-    } else {
-      throw new Error('Invalid report type. Must be quarterly, monthly, or annual');
-    }
+    // CB-F-11: half-open filing-period window [start, nextPeriodStart) in UTC via the
+    // shared canonical helper, so the LAST DAY of every quarter/month/year is fully
+    // INCLUDED (the old `new Date(y, m, 0)` + `created_at <= endDate` silently dropped the
+    // entire last day, under-reporting the filing). startInclusive/endExclusive drive the
+    // DB query; endInclusiveDisplay (endExclusive - 1ms) is only for human-readable
+    // metadata. All bounds UTC-pinned + identical across every report fn.
+    const period = computeReportPeriod(report_type, year, quarter, month);
+    const startDate = new Date(period.startIso);
+    const endExclusive = new Date(period.endExclusiveIso);
+    const endInclusiveDisplay = new Date(endExclusive.getTime() - 1);
 
     // Get payment data from database
     let bookingQuery = supabaseClient
@@ -165,8 +159,9 @@ serve(async (req) => {
         )
       `)
       .eq('stripe_account_id', stripeAccount.stripe_account_id)
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
+      .gte('created_at', period.startIso)
+      // CB-F-11: strict `<` on the EXCLUSIVE next-period start (was `<= last-day-00:00:00`).
+      .lt('created_at', period.endExclusiveIso)
       .in('status', ['succeeded', 'completed']);
 
     if (calendar_id) {
@@ -290,7 +285,10 @@ serve(async (req) => {
         type: report_type,
         period: {
           start: startDate.toISOString(),
-          end: endDate.toISOString(),
+          // CB-F-11: `end` is the last INCLUSIVE instant of the period (for display);
+          // `endExclusive` is the half-open upper bound actually used by the query.
+          end: endInclusiveDisplay.toISOString(),
+          endExclusive: endExclusive.toISOString(),
           year,
           quarter: report_type === 'quarterly' ? quarter : undefined,
           month: report_type === 'monthly' ? month : undefined
@@ -338,7 +336,10 @@ serve(async (req) => {
         merchantCountry,
         countryCount: perJurisdiction.countryCount,
         reverseChargeTransactionCount: perJurisdiction.reverseChargeTransactionCount,
+        // CB-F-10: EU "register for OSS" guard count (EU destinations only).
         crossBorderGuardTransactionCount: perJurisdiction.crossBorderGuardTransactionCount,
+        // CB-F-10: NON-EU cross-border count (US/GB/CH...), outside OSS scope, NOT "register for OSS".
+        nonEuTransactionCount: perJurisdiction.nonEuTransactionCount,
         totalCollectedTax: Math.round(perJurisdiction.totalCollectedTaxCents) / 100,
         lines: perJurisdiction.lines.map((l) => ({
           country: l.country,
@@ -368,11 +369,11 @@ serve(async (req) => {
       }
     };
 
-    logStep('Tax report generated', { 
+    logStep('Tax report generated', {
       transactionCount: reportDetails.length,
       totalRevenue,
       totalTax,
-      period: `${startDate.toISOString()} - ${endDate.toISOString()}`
+      period: `[${startDate.toISOString()}, ${endExclusive.toISOString()})`
     });
 
     return new Response(

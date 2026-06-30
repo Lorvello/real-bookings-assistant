@@ -18,6 +18,11 @@
  *    priority order so net = gross - tax and rate = tax / net are exact.
  */
 
+// CB-F-10: the EU-member-state set is the SINGLE source of truth for EU-vs-non-EU OSS
+// classification, shared with ossThreshold.isCrossBorderB2C so the report OSS bucket and
+// the threshold monitor can NEVER diverge on which destinations are inside the EU.
+import { isEuMemberState } from "./ossThreshold.ts";
+
 interface AmountDetailsTax {
   amount_details?: { tax?: { amount?: number | null } | null } | null;
   metadata?: Record<string, string> | null;
@@ -395,8 +400,15 @@ export type JurisdictionLineType =
   | "collected"
   /** A valid EU B2B reverse-charge 0% (auditable AS reverse-charge, not a bare 0%). */
   | "reverse_charge"
-  /** Cross-border with no registration: the X2 HARD GUARD (register for OSS). */
+  /** EU cross-border with no registration: the X2 HARD GUARD (register for OSS). */
   | "cross_border_unavailable"
+  /**
+   * CB-F-10: a NON-EU cross-border destination (US / GB / CH ...). The OSS scheme is
+   * EU-only, so this is NOT "register for OSS"; it is an out-of-OSS-scope marker. Still a
+   * non-silent marker (never a clean 0%): the charge is Stripe-computed 0% / not
+   * collecting today, but the report shows it DISTINCTLY as outside OSS.
+   */
+  | "non_eu_unavailable"
   /** Domestic with no usable rate: the CB-F-03 guard (never a silent 0%). */
   | "domestic_unavailable"
   /** Domestic / standard-rated NL (the manual NL fallback path) or any plain taxed line. */
@@ -456,12 +468,23 @@ export interface PerJurisdictionReport {
   countryCount: number;
   /** count of rows that were B2B reverse-charge 0%. */
   reverseChargeTransactionCount: number;
-  /** count of rows that tripped the cross-border HARD GUARD (register for OSS). */
+  /**
+   * count of rows that tripped the EU cross-border HARD GUARD (register for OSS). CB-F-10:
+   * this counts ONLY EU destinations now; a non-EU guard/0% row is counted in
+   * nonEuTransactionCount instead (it is NOT a "register for OSS" case).
+   */
   crossBorderGuardTransactionCount: number;
   /**
-   * the OSS-eligible bucket: cross-border B2C sales (customer_country != merchant,
-   * not reverse_charge), consistent with the X5 EUR10k definition, so the report ties
-   * to get-tax-thresholds. Aggregated from the SAME refund-adjusted figures.
+   * CB-F-10: count of NON-EU cross-border rows (US / GB / CH ...). Outside OSS scope:
+   * not counted toward the EUR10k bucket and NOT shown "register for OSS". Surfaced as a
+   * non-silent marker so a non-EU remote sale is never an indistinguishable clean 0%.
+   */
+  nonEuTransactionCount: number;
+  /**
+   * the OSS-eligible bucket: EU cross-border B2C sales (customer_country IN EU,
+   * != merchant, not reverse_charge), consistent with the X5 EUR10k definition, so the
+   * report ties to get-tax-thresholds. Aggregated from the SAME refund-adjusted figures.
+   * CB-F-10: non-EU destinations are EXCLUDED (OSS is EU-only).
    */
   ossEligible: {
     /** count of cross-border B2C transactions. */
@@ -570,6 +593,7 @@ export function computePerJurisdictionReport(
   let totalCollectedTaxCents = 0;
   let reverseChargeTransactionCount = 0;
   let crossBorderGuardTransactionCount = 0;
+  let nonEuTransactionCount = 0;
 
   let ossTxCount = 0;
   let ossGrossCents = 0;
@@ -580,11 +604,26 @@ export function computePerJurisdictionReport(
   for (const row of rows) {
     const entries = parsePersistedBreakdown(row.taxBreakdown);
     const country = resolveRowCountry(row.customerCountry, entries);
-    const lineType = classifyJurisdictionLine(row.reverseCharge, entries, row.taxCents);
+    let lineType = classifyJurisdictionLine(row.reverseCharge, entries, row.taxCents);
+
+    // CB-F-10: the OSS scheme is EU-only. A cross-border (country != merchant, known)
+    // destination that is NOT an EU member state must NOT be shown as the EU
+    // "register for OSS" guard. Re-map a cross_border_unavailable line on a non-EU
+    // destination to the distinct non_eu_unavailable marker (still non-silent: it is
+    // shown as out-of-OSS-scope, never an indistinguishable clean 0%). Collected /
+    // reverse-charge / domestic-guard lines are unchanged (a positive non-EU rate, if a
+    // registration ever covered it, stays "collected"; reverse-charge is its own marker).
+    const isKnownCrossBorder = country !== "UNKNOWN" && country !== mc;
+    const isEu = isEuMemberState(country);
+    if (lineType === "cross_border_unavailable" && isKnownCrossBorder && !isEu) {
+      lineType = "non_eu_unavailable";
+    }
 
     if (country !== "UNKNOWN") seenCountries.add(country);
     if (lineType === "reverse_charge") reverseChargeTransactionCount += 1;
+    // crossBorderGuardTransactionCount is the "register for OSS" count -> EU only now.
     if (lineType === "cross_border_unavailable") crossBorderGuardTransactionCount += 1;
+    if (lineType === "non_eu_unavailable") nonEuTransactionCount += 1;
     if (lineType === "collected" || lineType === "domestic") {
       totalCollectedTaxCents += Math.max(0, row.taxCents);
     }
@@ -609,12 +648,13 @@ export function computePerJurisdictionReport(
       });
     }
 
-    // OSS-eligible bucket: cross-border B2C (country != merchant, not reverse-charge),
-    // consistent with X5 isCrossBorderB2C. Taxable = net-of-VAT, net-of-refund (the
-    // refund-adjusted netCents already excludes VAT + refunds), matching the X5
-    // taxableCents derivation so the report ties to get-tax-thresholds.
-    const isCrossBorder = country !== "UNKNOWN" && country !== mc && lineType !== "reverse_charge";
-    if (isCrossBorder) {
+    // OSS-eligible bucket: EU cross-border B2C (country IN EU, != merchant, not
+    // reverse-charge), consistent with X5 isCrossBorderB2C (CB-F-10: EU-only). Taxable =
+    // net-of-VAT, net-of-refund (the refund-adjusted netCents already excludes VAT +
+    // refunds), matching the X5 taxableCents derivation so the report ties to
+    // get-tax-thresholds. A non-EU destination is OUTSIDE OSS scope -> excluded.
+    const isOssEligible = isKnownCrossBorder && isEu && lineType !== "reverse_charge";
+    if (isOssEligible) {
       ossTxCount += 1;
       ossGrossCents += row.grossCents;
       ossTaxableCents += Math.max(0, row.netCents);
@@ -636,7 +676,8 @@ export function computePerJurisdictionReport(
     domestic: 1,
     reverse_charge: 2,
     cross_border_unavailable: 3,
-    domestic_unavailable: 4,
+    non_eu_unavailable: 4,
+    domestic_unavailable: 5,
   };
   lines.sort((a, b) =>
     a.country === b.country
@@ -650,6 +691,7 @@ export function computePerJurisdictionReport(
     countryCount: seenCountries.size,
     reverseChargeTransactionCount,
     crossBorderGuardTransactionCount,
+    nonEuTransactionCount,
     ossEligible: {
       transactionCount: ossTxCount,
       grossCents: ossGrossCents,
@@ -662,3 +704,76 @@ export function computePerJurisdictionReport(
 // Re-export the breakdown cross-check so report fns / tests can assert the persisted
 // breakdown tax agrees with the refund-adjusted taxCents (belt-and-suspenders).
 export { breakdownTaxCents as _breakdownTaxCentsForCrosscheck };
+
+// ---------------------------------------------------------------------------
+// CB-F-11 (filing-period boundary): the ONE canonical filing-period window for ALL the
+// tax report functions (generate-tax-report, export-tax-report, get-tax-data), so the
+// boundary can never diverge between them.
+//
+// THE BUG: the report fns computed the period END as `new Date(year, q*3, 0)` = the LAST
+// DAY of the period at 00:00:00 (Deno edge runs TZ=UTC, so 2026-06-30T00:00:00.000Z for
+// Q2), then filtered `created_at <= endDate`. So every charge created AFTER midnight on
+// the last day of the period (essentially the ENTIRE last day: Jun 30 / Sep 30 / Dec 31
+// / Mar 31, and the last day of every month) was SILENTLY DROPPED from the filing report,
+// under-reporting the VAT filing the merchant submits. This affected the existing
+// domestic NL filing too (real EUR VAT missing on a last-day booking), not only the
+// cross-border lines.
+//
+// THE FIX: a HALF-OPEN interval [periodStart, nextPeriodStart) with an EXCLUSIVE upper
+// bound at the START of the next period, so the whole last day is included and a charge
+// at exactly 00:00:00.000 of the next period falls in the NEXT period (no gap, no
+// double-count). All bounds are pinned in UTC (Date.UTC) to match the edge runtime and
+// be deterministic regardless of the host TZ. Callers filter `created_at >= startIso AND
+// created_at < endExclusiveIso` (note the strict `<`).
+// ---------------------------------------------------------------------------
+
+export type TaxReportPeriodType = "quarterly" | "monthly" | "annual";
+
+export interface TaxReportPeriod {
+  /** inclusive lower bound, ISO-8601 UTC (filter: created_at >= startIso). */
+  startIso: string;
+  /** EXCLUSIVE upper bound = start of the next period, ISO-8601 UTC (filter: created_at < endExclusiveIso). */
+  endExclusiveIso: string;
+}
+
+/**
+ * Compute the half-open filing-period window for a tax report. PURE + deterministic
+ * (UTC), so the boundary is unit-assertable and identical across every report fn.
+ *
+ *  - quarterly: [year-Q1, start of next quarter)        e.g. Q2 2026 -> [Apr 1, Jul 1)
+ *  - monthly:   [year-month-01, start of next month)    e.g. Jun 2026 -> [Jun 1, Jul 1)
+ *  - annual:    [year-01-01, start of next year)        e.g. 2026     -> [Jan 1 2026, Jan 1 2027)
+ *
+ * The next-period start naturally rolls the year over (quarter 4 -> Jan 1 next year;
+ * December -> Jan 1 next year) because Date.UTC normalizes an out-of-range month.
+ */
+export function computeReportPeriod(
+  reportType: TaxReportPeriodType,
+  year: number,
+  quarter?: number,
+  month?: number,
+): TaxReportPeriod {
+  let startMs: number;
+  let endExclusiveMs: number;
+
+  if (reportType === "quarterly") {
+    const q = quarter ?? 1;
+    const startMonth = (q - 1) * 3; // 0,3,6,9
+    startMs = Date.UTC(year, startMonth, 1);
+    endExclusiveMs = Date.UTC(year, startMonth + 3, 1); // start of the next quarter
+  } else if (reportType === "monthly") {
+    if (!month) throw new Error("Month is required for monthly reports");
+    startMs = Date.UTC(year, month - 1, 1);
+    endExclusiveMs = Date.UTC(year, month, 1); // start of the next month
+  } else if (reportType === "annual") {
+    startMs = Date.UTC(year, 0, 1);
+    endExclusiveMs = Date.UTC(year + 1, 0, 1); // start of the next year
+  } else {
+    throw new Error("Invalid report type. Must be quarterly, monthly, or annual");
+  }
+
+  return {
+    startIso: new Date(startMs).toISOString(),
+    endExclusiveIso: new Date(endExclusiveMs).toISOString(),
+  };
+}

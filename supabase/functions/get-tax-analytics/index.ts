@@ -366,7 +366,10 @@ serve(async (req) => {
           merchant_country: businessCountry,
           country_count: perJurisdiction.countryCount,
           reverse_charge_transactions: perJurisdiction.reverseChargeTransactionCount,
+          // CB-F-10: EU "register for OSS" guard count (EU destinations only).
           cross_border_guard_transactions: perJurisdiction.crossBorderGuardTransactionCount,
+          // CB-F-10: non-EU cross-border count (US/GB/CH...), outside OSS scope.
+          non_eu_transactions: perJurisdiction.nonEuTransactionCount,
           total_collected_tax: Math.round(perJurisdiction.totalCollectedTaxCents) / 100,
           lines: perJurisdiction.lines.map((l) => ({
             country: l.country,
