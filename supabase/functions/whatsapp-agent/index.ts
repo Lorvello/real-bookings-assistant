@@ -274,7 +274,7 @@ Deno.serve(async (req) => {
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
     // They are now batched into 3 dependency phases so independent reads run in parallel.
     // Phase 1 — everything that needs only (calendar_id, phone):
-    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours] = await Promise.all([
+    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours, psRes] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
       // Only ACTIVE, non-deleted services — otherwise a service the owner removed/deactivated
       // in the dashboard stays in <services> and the agent keeps offering + booking it via
@@ -304,6 +304,14 @@ Deno.serve(async (req) => {
       // says a day is open/closed differently from what it can actually book. In parallel, no
       // added latency. Independent of (user_id, contact_id) so it belongs in this phase.
       getCalendarWeeklyHours(supabase, calendar_id),
+      // Pay&Book policy of THIS calendar (the same payment_settings row the book-gate reads in
+      // tools.ts). Read live every turn (NOT via the bo_v2 cache: bo_v2 is per-USER while this
+      // is per-CALENDAR, and a cache would risk the known stale-cache bug-class). Lets the agent
+      // ANSWER refund / payment-deadline / payment-timing questions from the CURRENT Pay&Book
+      // value the owner set, instead of only the AI-kennis users.cancellation_policy field.
+      supabase.from("payment_settings")
+        .select("refund_policy_text, payment_deadline_hours, allowed_payment_timing, secure_payments_enabled, payment_required_for_booking")
+        .eq("calendar_id", calendar_id).maybeSingle(),
     ]);
 
     const cal = calRes.data;
@@ -482,6 +490,56 @@ Deno.serve(async (req) => {
           : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
           ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.`
           : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.`;
+      }
+    }
+
+    // AS-2: Pay&Book refund / payment-timing ANSWER inject. The Pay&Book settings tab saves
+    // refund_policy_text / payment_deadline_hours / allowed_payment_timing to payment_settings,
+    // but the agent never read them, so an owner who set a refund policy there got an agent that
+    // could not answer it (it only knew users.cancellation_policy from the AI-kennis tab, a
+    // DIFFERENT field). Project the CURRENT Pay&Book value into <business_data>.refund_policy so
+    // the agent honours it. Source-of-truth split (kept coherent, never contradictory):
+    //   - refund_policy (Pay&Book) is authoritative for REFUND / payment-deadline / payment-timing,
+    //   - cancellation_policy (AI-kennis / structured deadline) covers free-cancellation TIMING.
+    // The owner's hand-written refund_policy_text always wins; otherwise we describe the payment
+    // timing + deadline from the same structured settings. Read live per turn (no cache).
+    if (businessData) {
+      const ps = psRes.data as {
+        refund_policy_text?: string | null;
+        payment_deadline_hours?: number | string | null;
+        allowed_payment_timing?: unknown;
+        secure_payments_enabled?: boolean | null;
+        payment_required_for_booking?: boolean | null;
+      } | null;
+      const manualRefund = ps?.refund_policy_text;
+      const hasManualRefund = typeof manualRefund === "string" && manualRefund.trim();
+      if (hasManualRefund) {
+        // A hand-written refund policy always wins, used verbatim.
+        businessData.refund_policy = (manualRefund as string).trim();
+      } else if (ps) {
+        // Derive a human sentence from the structured Pay&Book settings. allowed_payment_timing
+        // is a jsonb array of: pay_now (vooruit/online), pay_on_site (op locatie). Only describe
+        // a deadline when up-front online payment is actually offered (pay_now present).
+        const timing = Array.isArray(ps.allowed_payment_timing)
+          ? (ps.allowed_payment_timing as unknown[]).map((t) => String(t))
+          : [];
+        const offersPayNow = timing.includes("pay_now");
+        const offersOnSite = timing.includes("pay_on_site");
+        const rawDeadline = ps.payment_deadline_hours;
+        const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
+        const parts: string[] = [];
+        if (offersPayNow && offersOnSite) {
+          parts.push("Je kunt vooraf online betalen of op locatie bij je afspraak.");
+        } else if (offersPayNow) {
+          parts.push("Betaling gaat vooraf online.");
+        } else if (offersOnSite) {
+          parts.push("Je betaalt op locatie bij je afspraak.");
+        }
+        if (offersPayNow && deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0) {
+          parts.push(`Een online vooruitbetaling moet binnen ${formatHoursNL(deadlineH)} na het boeken voldaan zijn, anders kan de reservering vervallen.`);
+        }
+        // Only set refund_policy when we actually have something to say (avoid an empty line).
+        if (parts.length) businessData.refund_policy = parts.join(" ");
       }
     }
     const openingStruct = weeklyHours?.byDay ??
