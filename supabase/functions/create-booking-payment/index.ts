@@ -3,6 +3,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { calculateApplicationFee } from "../_shared/feeCalculator.ts";
 import { validateStripeMode, getStripeSecretKey } from "../_shared/stripeValidation.ts";
+import {
+  calculateTax,
+  type TaxBreakdownEntry,
+  CROSS_BORDER_UNAVAILABLE_STATUS,
+  CROSS_BORDER_UNAVAILABLE_MESSAGE,
+} from "../_shared/taxCalc.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,7 +36,22 @@ serve(async (req) => {
 
     // Default to {} on unparseable JSON so we return a clean 400 below instead
     // of the catch-all 500.
-    const { booking_id, calendar_id, confirmation_token, test_mode = false, payment_method = 'card', payment_timing = 'pay_now' } = await req.json().catch(() => ({}));
+    const {
+      booking_id,
+      calendar_id,
+      confirmation_token,
+      test_mode = false,
+      payment_method = 'card',
+      payment_timing = 'pay_now',
+      // Cross-border (X2): the customer billing country (ISO-3166 alpha-2) + optional
+      // EU B2B VAT id. For remote_service/digital services these drive the Stripe Tax
+      // Calculation API. The web FORM wiring lands in X3; for X2 we thread whatever the
+      // caller passes (a booking row value or an explicit field), and persist it server
+      // side. These influence ONLY the tax computation (a Stripe-bounded figure), never
+      // the destination account or platform fee, which stay pinned to the booking below.
+      customer_country: bodyCustomerCountry,
+      customer_vat_id: bodyCustomerVatId,
+    } = await req.json().catch(() => ({}));
 
     if (!booking_id) {
       return new Response(
@@ -52,13 +73,14 @@ serve(async (req) => {
       .select(`
         *,
         service_types (
-          name, 
-          price, 
+          name,
+          price,
           tax_enabled,
           tax_code,
           tax_behavior,
           applicable_tax_rate,
           business_country,
+          supply_type,
           stripe_test_price_id,
           stripe_live_price_id
         )
@@ -223,12 +245,143 @@ serve(async (req) => {
       }
       
       automaticTaxEnabled = true;
-      logStep("Tax calculation", { 
-        base: baseAmount, 
-        taxRate: service.applicable_tax_rate, 
-        taxAmount: taxAmount / 100, 
-        total: amount / 100 
+      logStep("Tax calculation", {
+        base: baseAmount,
+        taxRate: service.applicable_tax_rate,
+        taxAmount: taxAmount / 100,
+        total: amount / 100
       });
+    }
+
+    // ---------------------------------------------------------------------------
+    // CROSS-BORDER / OSS branch (X2). The manual block above is the DOMESTIC NL path
+    // and is correct for in_person services (place-of-supply = where performed) and as
+    // the not_collecting domestic fallback. For remote_service/digital services the
+    // VAT must be computed by Stripe Tax against the customer's country (cross-border /
+    // reverse-charge / OSS), NEVER hardcoded. We pre-compute with the Calculation API
+    // and branch on Stripe's collection state. The charge model is UNCHANGED (still a
+    // destination charge below); we only adjust `amount`/`taxAmount` and stamp the calc
+    // id + breakdown for persistence and the post-success filing transaction.
+    //
+    // Persistence vars (written onto booking_payments + PI metadata further down):
+    let taxCalculationId: string | null = null;        // -> metadata[tax_calculation]
+    let taxBreakdownToPersist: TaxBreakdownEntry[] | null = null;
+    let reverseChargeApplied = false;
+    let crossBorderGuardTripped = false;                // not_collecting + cross-border
+    let persistedCustomerCountry: string | null = null;
+    let taxTransactionPending = false;                  // case (a) collecting -> create_from_calculation on success
+
+    const supplyType = service?.supply_type ?? 'in_person';
+    const isRemoteSupply = supplyType === 'remote_service' || supplyType === 'digital';
+    // Customer country: explicit body field (X3 form wiring) else the booking row (X1 col).
+    const customerCountry: string | null =
+      (typeof bodyCustomerCountry === 'string' && bodyCustomerCountry.trim().length === 2
+        ? bodyCustomerCountry.trim().toUpperCase()
+        : null) ?? (typeof booking.customer_country === 'string' && booking.customer_country.length === 2
+        ? booking.customer_country.toUpperCase()
+        : null);
+    const customerVatId: string | null =
+      (typeof bodyCustomerVatId === 'string' && bodyCustomerVatId.trim().length > 0
+        ? bodyCustomerVatId.trim()
+        : null) ?? (typeof booking.customer_vat_id === 'string' && booking.customer_vat_id.length > 0
+        ? booking.customer_vat_id
+        : null);
+    // The merchant's home country (where Stripe Tax is registered); business_country is
+    // the existing source of truth on the service, defaulting NL.
+    const merchantCountry = (service?.business_country || 'NL').toUpperCase();
+
+    if (isRemoteSupply && service?.tax_enabled && service?.tax_code) {
+      if (!customerCountry) {
+        // A remote/digital taxable service needs the customer country to compute VAT.
+        // Fail loud rather than silently apply the wrong (domestic) rate.
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'customer_country is required for a remote/digital service (cross-border VAT cannot be computed without it)',
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      persistedCustomerCountry = customerCountry;
+      // Stripe Tax has not been activated on the connected account yet (registration
+      // human-gate); compute in the platform context (Tax active there) so we still get
+      // a real not_collecting / reverse_charge result. When the merchant completes OSS +
+      // activates Tax on the connected account, flip connectedTaxActive true (no other
+      // change) and the same call computes against their registrations.
+      const taxBehavior: 'inclusive' | 'exclusive' = service.tax_behavior === 'inclusive' ? 'inclusive' : 'exclusive';
+      const lineAmountCents = Math.round(baseAmount * 100);
+
+      try {
+        const calc = await calculateTax({
+          stripeSecretKey: stripeKey,
+          connectedAccountId: stripeAccount.stripe_account_id,
+          connectedTaxActive: false,
+          currency: (booking.payment_currency || (merchantCountry === 'GB' ? 'gbp' : 'eur')).toLowerCase(),
+          lineAmountCents,
+          taxCode: service.tax_code,
+          taxBehavior,
+          customerCountry,
+          customerVatId: customerVatId ?? undefined,
+        });
+
+        taxBreakdownToPersist = calc.breakdown;
+        taxCalculationId = calc.calculationId;
+        logStep("Cross-border tax calc", {
+          supplyType, customerCountry, state: calc.collectionState,
+          taxCents: calc.taxAmountCents, context: calc.context, calc: calc.calculationId,
+        });
+
+        if (calc.collectionState === 'collecting') {
+          // (a) Positive collectible rate -> use Stripe's figure. Attach the calc id and
+          // record a filing transaction after payment success.
+          taxAmount = calc.taxAmountCents;
+          amount = taxBehavior === 'inclusive' ? lineAmountCents : calc.amountTotalCents;
+          taxTransactionPending = true;
+        } else if (calc.collectionState === 'reverse_charge') {
+          // (b) Valid EU B2B reverse-charge -> 0%, marked. No tax added.
+          taxAmount = 0;
+          amount = lineAmountCents;
+          reverseChargeApplied = true;
+        } else if (merchantCountry === customerCountry) {
+          // (c) not_collecting AND destination == merchant country (NL): fall back to the
+          // manual domestic path (the manual block above already set amount/taxAmount).
+          // This MUST NOT regress today's NL 21% while the NL registration is expired.
+          logStep("Cross-border not_collecting domestic -> manual NL fallback", { customerCountry });
+        } else {
+          // (d) not_collecting AND cross-border: the HARD GUARD. Never a silent clean 0%.
+          // The charge proceeds as a destination charge, but the tax outcome is flagged
+          // so X6/reports surface "register for OSS" instead of a fake 0% VAT line.
+          crossBorderGuardTripped = true;
+          taxAmount = 0;
+          amount = lineAmountCents;
+          taxBreakdownToPersist = [
+            {
+              amountCents: 0,
+              inclusive: false,
+              taxabilityReason: CROSS_BORDER_UNAVAILABLE_STATUS,
+              country: customerCountry,
+              percentageDecimal: null,
+              taxType: null,
+            },
+            ...calc.breakdown,
+          ];
+          logStep("CROSS-BORDER GUARD", {
+            customerCountry, merchantCountry, message: CROSS_BORDER_UNAVAILABLE_MESSAGE,
+          });
+        }
+      } catch (taxErr) {
+        // A Stripe Tax API failure on a remote service must not silently produce a wrong
+        // (domestic) VAT. Fail the charge loudly so the issue is visible.
+        logStep("Cross-border tax calc FAILED", { error: (taxErr as Error)?.message });
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Cross-border tax calculation failed: ${(taxErr as Error)?.message}`,
+          }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
     }
 
     // Calculate application fee using shared calculator
@@ -288,6 +441,16 @@ serve(async (req) => {
         payment_method: payment_method,
         payment_timing: payment_timing,
         application_fee_breakdown: JSON.stringify(feeCalculation.breakdown),
+        // Cross-border (X2): supply type + the persisted customer country, and (case (a))
+        // the Stripe Tax calculation id so the webhook can record a filing transaction
+        // (transactions/create_from_calculation) on payment success. The reverse-charge /
+        // cross-border-guard markers let the reports surface the right line later.
+        supply_type: supplyType,
+        ...(persistedCustomerCountry ? { customer_country: persistedCustomerCountry } : {}),
+        ...(taxCalculationId ? { tax_calculation: taxCalculationId } : {}),
+        ...(taxTransactionPending ? { tax_transaction_pending: 'true' } : {}),
+        ...(reverseChargeApplied ? { reverse_charge: 'true' } : {}),
+        ...(crossBorderGuardTripped ? { cross_border_status: CROSS_BORDER_UNAVAILABLE_STATUS } : {}),
       },
     };
 
@@ -326,7 +489,11 @@ serve(async (req) => {
       applicationFee: feeCalculation.applicationFeeCents 
     });
 
-    // Record payment attempt
+    // Record payment attempt. Cross-border (X2): persist the customer country, the
+    // Stripe per-jurisdiction tax_breakdown, and the reverse_charge flag AT CHARGE TIME
+    // (the X1 columns) so the filing reports (X6) can show per-country VAT / reverse-
+    // charge 0% lines / the OSS-eligible bucket; the reports cannot recompute these
+    // historically. in_person bookings leave these null/false (no regression).
     const { error: paymentError } = await supabaseClient
       .from("booking_payments")
       .insert({
@@ -340,6 +507,9 @@ serve(async (req) => {
         customer_email: booking.customer_email,
         customer_name: booking.customer_name,
         payment_method_type: payment_method,
+        customer_country: persistedCustomerCountry,
+        tax_breakdown: taxBreakdownToPersist,
+        reverse_charge: reverseChargeApplied,
       });
 
     if (paymentError) {

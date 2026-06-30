@@ -3,6 +3,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getCurrentPeriodEndISO } from "../_shared/subscriptionPeriod.ts";
 import { buildWhatsappBookingPaymentRow } from "../_shared/taxReport.ts";
+import { createTaxTransaction } from "../_shared/taxCalc.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -618,6 +619,12 @@ async function confirmBookingPaid(
   // double-inserts. No-op when a row already exists (web path, or a prior delivery).
   await ensureBookingPaymentRow(supabase, bookingId, paymentIntentId, booking, stripe, prefetchedPi);
 
+  // CROSS-BORDER (X2, case (a)): record the Stripe Tax filing transaction for a positive
+  // collectible cross-border charge (no-op unless the PI carries tax_transaction_pending;
+  // registration-gated, D-CB-REG). Runs before the already-paid short-circuit so a retry
+  // still records it; createTaxTransaction is idempotent on the PI id.
+  await recordTaxFilingTransactionIfPending(stripe, prefetchedPi);
+
   if (booking.payment_status === 'paid') {
     console.log(`ℹ️ Booking ${bookingId} already paid; skipping (idempotent).`);
     return;
@@ -771,6 +778,59 @@ async function ensureBookingPaymentRow(
     return;
   }
   console.log(`F-TAX-23: recorded booking_payments row for PI ${paymentIntentId} (booking ${bookingId}, acct ${connectedAccountId}).`);
+}
+
+// CROSS-BORDER (X2, case (a)): when a remote/digital service was charged with a POSITIVE
+// collectible cross-border VAT, create-booking-payment stamped the PI metadata with
+// `tax_calculation` (the Stripe Tax calculation id) and `tax_transaction_pending=true`.
+// On payment success we record the filing transaction (transactions/create_from_calculation)
+// so the calc becomes a recorded liability for the OSS/VAT return.
+//
+// Idempotent + best-effort: Stripe dedupes on `reference` (the PI id), and a failure here
+// is logged but NEVER throws (a missing filing transaction is a reporting concern, not a
+// money/charge concern; booking_payments.tax_breakdown already carries the figures, which
+// is what the reports read). This path is REGISTRATION-GATED (D-CB-REG): until the merchant
+// activates Stripe Tax + an OSS/destination registration on the connected account, Stripe
+// returns not_collecting cross-border and `tax_transaction_pending` is never set, so this
+// is a no-op. The code path exists so it works the moment registration clears.
+async function recordTaxFilingTransactionIfPending(
+  stripe: Stripe | null | undefined,
+  pi: Stripe.PaymentIntent | null | undefined,
+) {
+  if (!stripe || !pi) return;
+  const meta = pi.metadata ?? {};
+  const calcId = typeof meta.tax_calculation === 'string' ? meta.tax_calculation : null;
+  const pending = meta.tax_transaction_pending === 'true';
+  if (!calcId || !pending) return;
+
+  const connectedAccountId = typeof pi.transfer_data?.destination === 'string'
+    ? pi.transfer_data.destination
+    : (pi.transfer_data?.destination as { id?: string } | undefined)?.id;
+  if (!connectedAccountId) return;
+
+  const secretKey = Deno.env.get(
+    (Deno.env.get('STRIPE_MODE') === 'live') ? 'STRIPE_SECRET_KEY_LIVE' : 'STRIPE_SECRET_KEY_TEST',
+  );
+  if (!secretKey) {
+    console.error(`X2: no Stripe secret key to record tax transaction for PI ${pi.id}.`);
+    return;
+  }
+
+  try {
+    // The calculation was computed in the platform context today (connectedTaxActive
+    // false), so record the transaction in the same context. When Tax is active on the
+    // connected account this flips to the connected context with the Stripe-Account header.
+    const txId = await createTaxTransaction({
+      stripeSecretKey: secretKey,
+      calculationId: calcId,
+      reference: pi.id,
+      connectedAccountId,
+      connectedTaxActive: false,
+    });
+    console.log(`X2: recorded Stripe Tax transaction ${txId} for PI ${pi.id} (calc ${calcId}).`);
+  } catch (err) {
+    console.error(`X2: failed to record Stripe Tax transaction for PI ${pi.id} (non-fatal):`, (err as Error)?.message);
+  }
 }
 
 async function getTierFromPriceId(
