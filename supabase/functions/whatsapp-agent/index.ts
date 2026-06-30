@@ -710,10 +710,70 @@ Deno.serve(async (req) => {
     // (and isn't cancelling), drive the COMMIT deterministically via ctx.confirmBook — the
     // commit uses the SERVER-STORED exact start_time, which also kills the model's
     // time-reconstruction bug (it once booked 12:00 for a confirmed 10:00).
-    const pbk = convContext.pending_booking as { at?: number } | undefined;
+    const pbk = convContext.pending_booking as
+      { at?: number; service_type_id?: string; start_time?: string; end_time?: string; calendar_id?: string } | undefined;
     const pendingBookFresh = !!pbk && (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
     const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(msgLower);
     const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel;
+
+    // FQ-3 (ATTEMPT 2): SERVER-SIDE, MODEL-INDEPENDENT race-loss pre-check (the guarantee-in-code
+    // pattern). FQ-3 attempt-1 (deterministicSlotTaken) only fired when the 20B model itself called
+    // book_appointment on the loser commit turn and got a BOOK_RACE_LOSS_ERROR. The verifier proved
+    // the live model almost never reaches that state on the loser turn (it diverts: asks "Welke
+    // dienst?", re-queries slots, etc.), so the loser kept getting confusing prose. Fix: the SERVER
+    // already knows the previewed slot (the stored pending_booking). On a server-detected confirmBook,
+    // authoritatively RE-CHECK that slot's freeness via the SAME validate_booking_security RPC the
+    // commit uses, BEFORE running the agent. If it is no longer free, the customer lost the race: the
+    // honest reply is templated deterministically (deterministicSlotTaken) and the agent run is skipped
+    // entirely. Model-independent (the model cannot narrate around a short-circuit) and adds LESS
+    // latency than a full turn (one RPC, then return). The DB no-double-book guarantee is untouched:
+    // this only changes the loser's WORDS, never whether a row is written (the winner's row already
+    // exists; we never insert here). A null/error from the RPC means "treat as still free" and fall
+    // through to the normal flow (fail-open: never block a legitimate commit on a transient RPC error).
+    // Only when the slot is provably gone (valid === false) do we short-circuit.
+    let raceLostPreCheck = false;
+    if (confirmBook && pbk?.start_time && pbk?.end_time && pbk?.service_type_id) {
+      const preCalId = pbk.calendar_id ?? calendar_id;
+      const { data: stillValid, error: preErr } = await supabase.rpc("validate_booking_security", {
+        p_calendar_id: preCalId,
+        p_service_type_id: pbk.service_type_id,
+        p_start_time: pbk.start_time,
+        p_end_time: pbk.end_time,
+        p_customer_email: null,
+      });
+      // valid === false means the winner's row already occupies this slot (or it otherwise became
+      // unbookable). true / null / error means fall through and let the normal commit flow run.
+      if (!preErr && stillValid === false) raceLostPreCheck = true;
+    }
+    if (raceLostPreCheck) {
+      const slotTakenReply = sanitizeReply(
+        deterministicSlotTaken(
+          [{ name: "book_appointment", result: { error: "niet_beschikbaar" } }],
+          customerLanguage,
+          true,
+        ) ?? "",
+      ) || "Sorry, dat tijdstip is net door iemand anders geboekt. Zal ik een ander moment voor je zoeken?";
+      // Clear the stale pending_booking so a follow-up "ja" cannot re-trigger a doomed commit.
+      if (conversationId) {
+        const { pending_booking: _drop, ...restCtx } = convContext;
+        await supabase.from("whatsapp_conversations").update({ context: restCtx }).eq("id", conversationId);
+      }
+      const send = await sendWhatsAppText(phone, slotTakenReply);
+      if (conversationId) {
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationId,
+          message_id: send.messageId ?? `agent-${now.getTime()}`,
+          direction: "outbound",
+          message_type: "text",
+          content: slotTakenReply,
+          status: send.ok ? "sent" : "failed",
+        });
+      }
+      return new Response(
+        JSON.stringify({ ok: true, reply: slotTakenReply, sent: send.ok, steps: 0, toolCalls: [], race_lost: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // --- Run the agent ---
     const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message) });
@@ -860,13 +920,24 @@ Deno.serve(async (req) => {
         { role: "user", parts: [{ text: nudgeText }] },
       ];
       const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
+      // FQ-3 (ATTEMPT 2), secondary catch: the bookCommitMissed forced retry can ITSELF lose the
+      // race (its book_appointment returns a BOOK_RACE_LOSS_ERROR). The normal accept-gate below
+      // (MUTATION && !isErr) treats that errored mutation as "not done" and DISCARDS the retry, so
+      // result.toolCalls never carries the race-loss and deterministicSlotTaken (which reads them)
+      // returns null, leaving the model's confused prose. So when the retry lost the slot on a
+      // confirmBook turn, ADOPT it anyway: result.toolCalls then carries the race-loss and
+      // reply-assembly templates the honest reply. (The server-side pre-check above already catches
+      // the dominant case before the agent runs; this covers a race that lands DURING the turn.)
+      const retryRaceLost = (bookCommitMissed || confirmBook) && retry.toolCalls.some(
+        (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
+          BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
       // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
-      const accept = !!retry.text && (
+      const accept = retryRaceLost || (!!retry.text && (
         (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
-      );
+      ));
       if (accept) {
         result = retry;
       }
