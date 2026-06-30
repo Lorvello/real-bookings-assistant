@@ -6188,6 +6188,14 @@ export type Database = {
         Args: { p_calendar_id?: string }
         Returns: undefined
       }
+      owner_update_booking_status: {
+        Args: {
+          p_booking_id: string
+          p_new_status: string
+          p_reason?: string
+        }
+        Returns: Json
+      }
       refresh_business_overview_v2: {
         Args: { p_user_id?: string }
         Returns: undefined

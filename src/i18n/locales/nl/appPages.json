@@ -529,6 +529,22 @@
       "notes": {
         "customer": "Klantnotes:",
         "internal": "Interne notities:"
+      },
+      "actions": {
+        "markNoShow": "Markeer als no-show",
+        "cancelBooking": "Afspraak annuleren",
+        "cancelConfirmTitle": "Deze afspraak annuleren?",
+        "cancelConfirmBody": "Hiermee annuleer je de afspraak van {{name}} en komt het tijdslot weer vrij. De klant krijgt niet automatisch bericht. Dit kan niet ongedaan worden gemaakt.",
+        "cancelConfirmKeep": "Afspraak behouden",
+        "cancelConfirmYes": "Ja, annuleren",
+        "cancelling": "Annuleren…",
+        "successTitle": "Afspraak bijgewerkt",
+        "cancelled": "Afspraak geannuleerd. Het tijdslot is nu weer vrij.",
+        "markedNoShow": "Gemarkeerd als no-show. Het tijdslot is nu weer vrij.",
+        "refundNote": "Deze afspraak was betaald; gemarkeerd voor een handmatige terugbetaalbeslissing.",
+        "errorTitle": "Actie mislukt",
+        "genericError": "Kon de afspraak niet bijwerken.",
+        "invalidInput": "Ongeldig verzoek. Herlaad de pagina en probeer opnieuw."
       }
     },
     "dayModal": {

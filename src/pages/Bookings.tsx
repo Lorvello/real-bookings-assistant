@@ -26,7 +26,7 @@ const Bookings = () => {
   // Get active calendar IDs for filtering bookings
   const activeCalendarIds = getActiveCalendarIds();
   
-  const { bookings, loading: bookingsLoading } = useBookingsWithCalendarFilter(activeCalendarIds);
+  const { bookings, loading: bookingsLoading, refetch: refetchBookings } = useBookingsWithCalendarFilter(activeCalendarIds);
   
   const {
     searchTerm,
@@ -140,6 +140,7 @@ const Bookings = () => {
             open={isModalOpen}
             onClose={handleCloseModal}
             booking={selectedBooking}
+            onActed={() => { void refetchBookings(); }}
           />
         </div>
       </div>

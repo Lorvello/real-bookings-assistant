@@ -1,9 +1,22 @@
 
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
-import { Clock, User, Phone, Mail, Calendar, FileText } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Clock, User, Phone, Mail, Calendar, FileText, XCircle, UserX } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useBookingActions } from '@/hooks/useBookingActions';
 import { resolveBookingColor } from './utils/bookingColor';
 
 interface Booking {
@@ -40,15 +53,40 @@ interface BookingDetailModalProps {
   onClose: () => void;
   booking: Booking | null;
   viewingAllCalendars?: boolean;
+  /** Called after a successful owner action so the parent can refetch. */
+  onActed?: () => void;
 }
 
-export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars = false }: BookingDetailModalProps) {
+export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars = false, onActed }: BookingDetailModalProps) {
   const { t } = useTranslation('appPages');
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const { act, pendingAction, isActing } = useBookingActions(() => {
+    onActed?.();
+    onClose();
+  });
+
   if (!booking) return null;
 
   const startTime = new Date(booking.start_time);
   const endTime = new Date(booking.end_time);
   const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+
+  // Owner actions only make sense on a still-active booking.
+  const isTerminal = ['cancelled', 'completed', 'no-show'].includes(booking.status);
+  // A booking that has not started yet cannot be a no-show (mirrors the server guard).
+  const isFuture = startTime.getTime() > Date.now();
+  const canMarkNoShow = !isTerminal && !isFuture;
+  const canCancel = !isTerminal;
+  const showActions = canCancel || canMarkNoShow;
+
+  const handleMarkNoShow = () => {
+    void act({ bookingId: booking.id, status: 'no-show' });
+  };
+
+  const handleConfirmCancel = async () => {
+    const ok = await act({ bookingId: booking.id, status: 'cancelled' });
+    if (ok) setCancelConfirmOpen(false);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -238,7 +276,71 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             </div>
           )}
         </div>
+
+        {showActions && (
+          <DialogFooter className="mt-2 flex-col gap-2 sm:flex-row sm:justify-end">
+            {canMarkNoShow && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={pendingAction === 'no-show'}
+                disabled={isActing}
+                onClick={handleMarkNoShow}
+                className="w-full sm:w-auto"
+              >
+                <UserX aria-hidden="true" className="h-4 w-4" />
+                {t('calPage.bookingDetail.actions.markNoShow', 'Mark as no-show')}
+              </Button>
+            )}
+            {canCancel && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                loading={pendingAction === 'cancelled'}
+                disabled={isActing}
+                onClick={() => setCancelConfirmOpen(true)}
+                className="w-full bg-[hsl(0_72%_45%)] text-white hover:bg-[hsl(0_72%_40%)] sm:w-auto"
+              >
+                <XCircle aria-hidden="true" className="h-4 w-4" />
+                {t('calPage.bookingDetail.actions.cancelBooking', 'Cancel booking')}
+              </Button>
+            )}
+          </DialogFooter>
+        )}
       </DialogContent>
+
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={(o) => { if (!isActing) setCancelConfirmOpen(o); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('calPage.bookingDetail.actions.cancelConfirmTitle', 'Cancel this booking?')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'calPage.bookingDetail.actions.cancelConfirmBody',
+                'This cancels {{name}}’s appointment and frees the time slot. The customer is not notified automatically. This cannot be undone.',
+                { name: booking.customer_name },
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isActing}>
+              {t('calPage.bookingDetail.actions.cancelConfirmKeep', 'Keep booking')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void handleConfirmCancel(); }}
+              disabled={isActing}
+              className="bg-[hsl(0_72%_45%)] text-white hover:bg-[hsl(0_72%_40%)]"
+            >
+              {pendingAction === 'cancelled'
+                ? t('calPage.bookingDetail.actions.cancelling', 'Cancelling…')
+                : t('calPage.bookingDetail.actions.cancelConfirmYes', 'Yes, cancel it')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
