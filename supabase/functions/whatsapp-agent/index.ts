@@ -11,6 +11,8 @@ import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from ".
 import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours } from "./tools.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
+import { enforceRefundPolicy } from "./refundGuard.ts";
+import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
@@ -40,27 +42,9 @@ function nlTime(d: Date): string {
   return `${time} ${day} ${month} ${d.getFullYear()}`;
 }
 
-// AS-3-V1: classify an OWNER-WRITTEN refund policy text as explicitly DENYING a refund,
-// explicitly GRANTING one, or silent ("unknown"). This is a structural signal (not a
-// guarantee): it lets the prompt route a vague refund question authoritatively and lets the
-// derived cancellation line append a no-money-back clarifier when a no-refund policy coexists.
-// Conservative on purpose: only "denied" on clear no-refund / bookings-final wording, only
-// "granted" on clear money-back wording; anything ambiguous stays "unknown" so the agent quotes
-// the owner's text verbatim and never invents an outcome. EN + NL phrasings covered. The agent
-// ALWAYS shows the verbatim policy text regardless; this only governs the safety routing.
-function classifyRefundDisposition(text: string): "granted" | "denied" | "unknown" {
-  const t = text.toLowerCase();
-  // Clear no-refund / final-sale signals (NL + EN). "geen terugbetaling", "niet terugbetaald",
-  // "geen restitutie", "definitief/final", "no refund(s)", "non-refundable", "all sales final".
-  const denies = /\b(geen\s+(terugbetaling|restitutie|geld\s+terug)|niet\s+(terugbetaald|gerestitueerd|terugbetaalbaar)|geen\s+recht\s+op\s+(terugbetaling|restitutie)|definitief|niet[\s-]?restitueerbaar|no\s+refunds?|non[\s-]?refundable|not\s+refundable|all\s+(sales|bookings)\s+(are\s+)?final)\b/i;
-  // Clear money-back grant signals. "volledige terugbetaling", "geld terug", "wordt terugbetaald",
-  // "krijg je je geld terug", "full refund", "money back", "you get a refund". Note: a no-refund
-  // text containing "geen terugbetaling" must NOT be read as a grant, so check deny FIRST.
-  const grants = /\b(volledige?\s+terugbetaling|wordt\s+terugbetaald|je\s+geld\s+terug|recht\s+op\s+(een\s+)?(volledige\s+)?terugbetaling|full\s+refund|money\s+back|you('|’)?ll\s+get\s+(a\s+)?refund|refunded\s+in\s+full)\b/i;
-  if (denies.test(t)) return "denied";
-  if (grants.test(t)) return "granted";
-  return "unknown";
-}
+// AS-3-V1 refund-policy classifier (classifyRefundDisposition) was extracted to ./refundClassifier.ts
+// so it is unit-testable and the AS-Z-guard backstop can verify the full chain "owner policy ->
+// disposition -> guard rewrite". Imported above; behaviour is byte-identical to the prior inline copy.
 
 // Deterministic concrete-date calendar for the next 14 days, built server-side from the
 // business's opening hours. The model reads the date + open/closed off this table instead
@@ -879,6 +863,20 @@ Deno.serve(async (req) => {
         // reply honestly. A real successful commit goes through the `committed` branch above (and
         // deterministicConfirmation), so the legit confirmation path is never reached here.
         replyText = enforceNoFalseConfirmation(replyText, result.toolCalls, customerLanguage);
+        // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
+        // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
+        // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard
+        // correctness guarantee (never promise a refund a no-refund policy forbids = a liability) belongs
+        // in CODE. So when the refund disposition is "denied" (an active no-refund policy) and this prose
+        // reply nonetheless PROMISES money back, rewrite it to the authoritative no-refund line built from
+        // the owner's verbatim refund_policy text. No-op on "granted" (keep a correct refund affirmation)
+        // and "unknown" (keep the defer/contact path). businessData.refund_policy holds the verbatim owner
+        // text whenever disposition is "denied" (the classifier only returns "denied" from that manual
+        // text), so it is the canonical source the rewrite quotes. Layered ON TOP of the prompt, not a
+        // replacement; pure regex on the model's own output, no extra round-trip.
+        const canonicalRefundText = typeof businessData?.refund_policy === "string"
+          ? (businessData.refund_policy as string) : null;
+        replyText = enforceRefundPolicy(replyText, refundDisposition, canonicalRefundText, customerLanguage);
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
         // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"
