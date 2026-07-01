@@ -63,7 +63,7 @@ export default {
 				success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
 				warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
 				gold: { DEFAULT: 'hsl(var(--gold))', foreground: 'hsl(var(--gold-foreground))' },
-				destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+				destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))', on: 'hsl(var(--destructive-on))' },
 				
 				// Additional design system colors
 				card: {

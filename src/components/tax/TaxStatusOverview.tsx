@@ -107,7 +107,7 @@ export const TaxStatusOverview: React.FC<TaxStatusOverviewProps> = ({
       case 'warning':
         return { icon: AlertTriangle, text: 'Minor issues', color: 'bg-warning text-warning-foreground' };
       case 'non_compliant':
-        return { icon: AlertTriangle, text: 'Needs attention', color: 'bg-destructive text-destructive-foreground' };
+        return { icon: AlertTriangle, text: 'Needs attention', color: 'bg-destructive text-destructive-on' };
       default:
         return { icon: AlertTriangle, text: 'Unknown', color: 'bg-muted' };
     }

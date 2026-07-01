@@ -202,7 +202,7 @@ export function RecurringPatternsList({
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => onDeletePattern(pattern.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="bg-destructive text-destructive-on hover:bg-destructive/90"
                       >
                         Delete
                       </AlertDialogAction>

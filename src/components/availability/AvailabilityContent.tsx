@@ -185,15 +185,20 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
   // for "no availability" (FQ-A-STATES). Show a recoverable error card with retry.
   if (availabilityState.loadError) {
     return (
-      <div className="flex min-h-[16rem] flex-col items-center justify-center gap-3 py-16 text-center" role="alert">
-        <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
-          <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+      <div className="flex min-h-[16rem] items-center justify-center py-16">
+        <div
+          className="surface-raised fade-up flex max-w-md flex-col items-center gap-3 rounded-2xl px-8 py-12 text-center"
+          role="alert"
+        >
+          <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+            <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground">{t('availPage.errorState.title', "Couldn't load your availability")}</p>
+          <p className="max-w-xs text-xs text-subtle-foreground">{t('availPage.errorState.description', 'Something went wrong while loading your schedule. Please try again.')}</p>
+          <Button variant="secondary" size="sm" onClick={() => availabilityState.retryLoad()} className="mt-1 gap-1.5">
+            <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" /> {t('availPage.errorState.retryButton', 'Retry')}
+          </Button>
         </div>
-        <p className="text-sm font-medium text-foreground">{t('availPage.errorState.title', "Couldn't load your availability")}</p>
-        <p className="max-w-xs text-xs text-subtle-foreground">{t('availPage.errorState.description', 'Something went wrong while loading your schedule. Please try again.')}</p>
-        <Button variant="secondary" size="sm" onClick={() => availabilityState.retryLoad()} className="mt-1 gap-1.5">
-          <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" /> {t('availPage.errorState.retryButton', 'Retry')}
-        </Button>
       </div>
     );
   }

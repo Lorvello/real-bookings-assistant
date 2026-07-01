@@ -21,7 +21,7 @@ const buttonVariants = cva(
         // intensifies on hover.
         default: "bg-gradient-to-b from-primary to-primary/85 text-primary-foreground shadow-[inset_0_1px_0_0_hsl(var(--highlight)/0.18),0_2px_10px_-2px_hsl(var(--primary)/0.45)] hover:brightness-110 hover:shadow-[inset_0_1px_0_0_hsl(var(--highlight)/0.22),0_4px_18px_-2px_hsl(var(--primary)/0.55)]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.10)] hover:brightness-110",
+          "bg-destructive text-destructive-on shadow-[inset_0_1px_0_0_hsl(0_0%_100%/0.10)] hover:brightness-110",
         outline:
           "border border-white/[0.08] bg-transparent text-foreground hover:bg-white/[0.06] hover:border-white/[0.12]",
         secondary:

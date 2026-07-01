@@ -342,7 +342,7 @@ export function ServiceTypesManager() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={cancelDelete}>{t('settings.services.deleteDialogCancel', 'Cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-on">
               {t('settings.services.deleteDialogConfirm', 'Delete')}
             </AlertDialogAction>
           </AlertDialogFooter>

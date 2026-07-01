@@ -40,7 +40,7 @@ export const OfflineIndicator: React.FC = () => {
         'animate-in slide-in-from-top-2',
         isOnline
           ? 'bg-success/90 text-success-foreground'
-          : 'bg-destructive/90 text-destructive-foreground'
+          : 'bg-destructive/90 text-destructive-on'
       )}
     >
       {isOnline ? (
