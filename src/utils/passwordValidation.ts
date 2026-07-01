@@ -108,10 +108,21 @@ export const validatePassword = (password: string): PasswordValidationResult => 
     }
   }
 
+  const isValid = errors.length === 0;
+
+  // Keep the strength meter honest with the hard validation rule: a password
+  // that still fails a MANDATORY requirement (length, upper, lower, number,
+  // special char) must never be shown as "Strong" (score 5) while submit is
+  // blocked. Cap invalid passwords below the top tier so the meter cannot
+  // contradict the inline error. The length bonus point can otherwise push an
+  // otherwise-strong-but-no-symbol password to 5. This does not weaken the
+  // requirements; it only aligns the visual signal with isValid.
+  const cappedScore = isValid ? Math.min(5, score) : Math.min(4, score);
+
   return {
-    isValid: errors.length === 0,
+    isValid,
     errors,
-    score: Math.min(5, score),
+    score: cappedScore,
   };
 };
 

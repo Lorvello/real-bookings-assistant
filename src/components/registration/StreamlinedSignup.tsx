@@ -93,23 +93,6 @@ export const StreamlinedSignup: React.FC = () => {
     }
   };
 
-  const getPasswordStrength = (password: string) => {
-    let strength = 0;
-    const checks = [
-      password.length >= 8,
-      /[A-Z]/.test(password),
-      /[a-z]/.test(password),
-      /[0-9]/.test(password),
-      /[^A-Za-z0-9]/.test(password)
-    ];
-    
-    strength = checks.filter(Boolean).length;
-    
-    if (strength < 2) return { level: 'weak', color: 'bg-red-500', text: 'Weak' };
-    if (strength < 4) return { level: 'medium', color: 'bg-yellow-500', text: 'Medium' };
-    return { level: 'strong', color: 'bg-green-500', text: 'Strong' };
-  };
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -209,8 +192,6 @@ export const StreamlinedSignup: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <div className="flex w-full justify-center">
