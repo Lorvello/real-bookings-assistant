@@ -1,35 +1,87 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Shield, Activity } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, Shield, Activity, AlertCircle, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export const SecurityAuditDashboard = () => {
-  // Fetch recent security events
-  const { data: recentEvents } = useQuery({
+  // Fetch recent security events. Throw on error so a failed fetch surfaces as an error
+  // state instead of silently rendering empty tables / zeroed cards (FQ-STATE-SECAUDIT).
+  const {
+    data: recentEvents,
+    isLoading: eventsLoading,
+    isError: eventsError,
+    refetch: refetchEvents,
+  } = useQuery({
     queryKey: ['security-events'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('security_events_log')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
+      if (error) throw error;
       return data || [];
     }
   });
 
   // Fetch failed login attempts
-  const { data: failedLogins } = useQuery({
+  const {
+    data: failedLogins,
+    isLoading: loginsLoading,
+    isError: loginsError,
+    refetch: refetchLogins,
+  } = useQuery({
     queryKey: ['failed-logins'],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('failed_login_attempts')
         .select('*')
         .gte('attempt_time', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .order('attempt_time', { ascending: true });
+      if (error) throw error;
       return data || [];
     }
   });
+
+  const isLoading = eventsLoading || loginsLoading;
+  const isError = eventsError || loginsError;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[16rem] items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-[16rem] items-center justify-center py-16">
+        <div
+          className="surface-raised fade-up flex max-w-md flex-col items-center gap-3 rounded-2xl px-8 py-12 text-center"
+          role="alert"
+        >
+          <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+            <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground">Couldn't load the security audit</p>
+          <p className="max-w-xs text-xs text-subtle-foreground">
+            Something went wrong while loading security events. Please try again.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => { refetchEvents(); refetchLogins(); }}
+            className="mt-1 gap-1.5"
+          >
+            <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" /> Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Aggregate failed logins by day
   const failedLoginsByDay = failedLogins?.reduce((acc, login) => {

@@ -559,6 +559,11 @@
       },
       "invoice": {
         "noDescription": "Geen omschrijving"
+      },
+      "errorState": {
+        "title": "Kan je facturatiegegevens niet laden",
+        "description": "Er ging iets mis bij het laden van je abonnement. Je abonnement is niet gewijzigd. Probeer het opnieuw.",
+        "retryButton": "Opnieuw proberen"
       }
     },
     "users": {

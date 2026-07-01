@@ -61,7 +61,11 @@ export function useOptimizedLiveOperations(calendarIds?: string[]) {
         .eq('status', 'active');
 
       if (conversationsError) {
+        // Throw (matching the bookings query above) so a failed conversations fetch
+        // surfaces as the tab's error state instead of a confident wrong
+        // "0 active conversations" (FQ-STATE-LIVEOPS: no silent wrong state).
         console.error('Error fetching conversations:', conversationsError);
+        throw conversationsError;
       }
 
       const todayBookings = todayBookingsData || [];

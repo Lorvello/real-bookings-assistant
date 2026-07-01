@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
@@ -52,7 +54,7 @@ export const BillingTab: React.FC = () => {
   const { t } = useTranslation('settings');
   const { userStatus } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
-  const { billingData, isLoading: billingLoading, refetch } = useBillingData();
+  const { billingData, isLoading: billingLoading, error: billingError, refetch } = useBillingData();
   const { profileData } = useSettingsContext();
   const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -306,6 +308,35 @@ export const BillingTab: React.FC = () => {
     return (
       <div className="flex items-center justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      </div>
+    );
+  }
+
+  // A failed check-subscription fetch must NEVER be rendered as a downgraded / free
+  // "No active subscription" screen to a paying subscriber (FQ-STATE-BILLING). The hook
+  // only sets `billingError` when the invoke actually fails, so this is distinct from a
+  // genuine no-subscription state (billingData present, error null). Show a recoverable
+  // error card with retry instead of silently wrong billing.
+  if (billingError && !billingLoading) {
+    return (
+      <div className="flex min-h-[16rem] items-center justify-center py-16">
+        <div
+          className="surface-raised fade-up flex max-w-md flex-col items-center gap-3 rounded-2xl px-8 py-12 text-center"
+          role="alert"
+        >
+          <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+            <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground">
+            {t('settings.billing.errorState.title', "Couldn't load your billing details")}
+          </p>
+          <p className="max-w-xs text-xs text-subtle-foreground">
+            {t('settings.billing.errorState.description', 'Something went wrong while loading your subscription. Your plan has not changed. Please try again.')}
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => refetch()} className="mt-1 gap-1.5">
+            <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" /> {t('settings.billing.errorState.retryButton', 'Retry')}
+          </Button>
+        </div>
       </div>
     );
   }
