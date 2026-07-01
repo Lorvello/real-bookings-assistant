@@ -1021,7 +1021,7 @@ Deno.serve(async (req) => {
         const priceCheckServices = calendarsForPrompt
           ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
           : services;
-        replyText = enforcePriceClaim(replyText, priceCheckServices, customerLanguage);
+        replyText = enforcePriceClaim(replyText, priceCheckServices, customerLanguage, String(message));
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
         // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"

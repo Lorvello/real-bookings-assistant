@@ -84,10 +84,32 @@ const EURO_TOKEN = `(?:(?:€|eur|euro)\\s*${MONEY}|${MONEY}\\s*(?:€|eur|euros
 // A price claim = a price verb then (within a few words) a euro amount.
 const PRICE_CLAIM_RE = new RegExp(`${PRICE_VERB}[^.!?\\n]{0,24}?${EURO_TOKEN}`, "gi");
 
+// R2-CLAIM-sib-priceverb: a VERB-LESS bare euro amount. When the model answers a price question with
+// just the money ("€8.", "EUR8.00.", "8 euro.") and NO price verb, PRICE_CLAIM_RE misses it and the
+// false price ships. A euro-MARKED amount (has €/eur/euro) is unambiguously a money assertion, so we
+// treat it as an asserted price even without a verb. This is safe against over-block because a bare
+// REAL price ("€98.") is caught here too but enforcePriceClaim only rewrites when the amount is NOT
+// real. Deposit/fee/refund/percentage euros are still excluded via NON_PRICE_CONTEXT_RE below.
+const BARE_EURO_RE = new RegExp(EURO_TOKEN, "gi");
+
+// A reply that is ESSENTIALLY just a number ("6", "6.", "€6", "8,00") -> the terse-coax attack
+// ("reply with ONLY the amount"). A lone number with no euro marker is dangerous (times/dates/
+// quantities/phone), so we only treat it as an asserted price when (a) the WHOLE reply is just that
+// number (optional currency/punctuation) AND (b) the customer's turn was a price question. This keeps
+// "at 14:30", "for 6 people", "open until 6" untouched (they are never the whole reply on a price turn).
+const LONE_NUMBER_REPLY_RE =
+  /^\s*(?:the\s+price\s+is\s+|de\s+prijs\s+is\s+|it'?s\s+|het\s+is\s+)?(?:€|eur|euro)?\s*(\d{1,4})(?:[.,](\d{1,2}|-))?\s*(?:€|eur|euros?)?\s*[.!]*\s*$/i;
+
+// The customer's turn is a PRICE question ("wat kost", "hoeveel kost", "prijs", "how much", "price",
+// "cost", "tarief", "rate"). Only used to gate the risky lone-bare-number case, never the euro-marked
+// or verb cases. Kept broad but anchored to price wording so a non-price turn never triggers it.
+const PRICE_INTENT_RE =
+  /\b(kost|kosten|kostte|prijs|prijzen|tarief|tarieven|hoeveel|how\s+much|price|priced|costs?|cost|rate|charge|fee|expensive|duur\b)\b/i;
+
 // Wording that means the euro amount is NOT a service price (a deposit / fee / refund / discount line):
 // if the amount is glued to one of these, skip it (those are the refund/deposit domain).
 const NON_PRICE_CONTEXT_RE =
-  /\b(aanbetaling|deposit|borg|korting|discount|terug|refund|terugbetaald|terugbetaling|annuleringskost|cancellation\s+fee|fee\s+of|toeslag|btw|vat)\b/i;
+  /\b(aanbetaling|deposit|borg|korting|discount|terug|refund|terugbetaald|terugbetaling|annuleringskost|cancellation\s+fee|fee\s+of|toeslag|btw|vat|bespaar|bespaart|save|saves|scheelt|voordeel)\b/i;
 
 // Wording that NEGATES / rejects a price the CUSTOMER proposed, so a fake amount here is the model's
 // safe "no, EUR10 is not possible" answer, not a claim. Mirrors refundGuard's NEGATED_REFUND_RE. Only
@@ -97,8 +119,26 @@ const PRICE_REJECT_RE =
   /\b(niet\s+beschikbaar|niet\s+mogelijk|kan\s+niet|helaas\s+niet|geen\s+\d|isn'?t\s+possible|not\s+possible|not\s+available|can'?t\s+do|unfortunately\s+not|no\s+discount|geen\s+korting)\b/i;
 
 // Pull every euro amount (in cents) the reply asserts AS a price, skipping non-price-context amounts.
-export function extractAssertedPrices(reply: string): number[] {
+// `userMessage` (optional) is the customer's turn: it ONLY unlocks the risky lone-bare-number case
+// (a reply that is essentially just a number, on a price question). The verb and euro-marked cases do
+// not depend on it. A price is added at most once (deduped by cents) so overlapping matches never
+// double-count.
+export function extractAssertedPrices(reply: string, userMessage?: string | null): number[] {
+  const seen = new Set<number>();
   const out: number[] = [];
+  const push = (cents: number) => {
+    if (Number.isFinite(cents) && cents > 0 && !seen.has(cents)) {
+      seen.add(cents);
+      out.push(cents);
+    }
+  };
+  const nonPriceAt = (index: number, len: number): boolean => {
+    const from = Math.max(0, index - 24);
+    const to = Math.min(reply.length, index + len + 12);
+    return NON_PRICE_CONTEXT_RE.test(reply.slice(from, to));
+  };
+
+  // 1) VERB-anchored price claims ("kost/costs/is ... €X").
   let m: RegExpExecArray | null;
   PRICE_CLAIM_RE.lastIndex = 0;
   while ((m = PRICE_CLAIM_RE.exec(reply)) !== null) {
@@ -106,13 +146,30 @@ export function extractAssertedPrices(reply: string): number[] {
     const intPart = m[1] ?? m[3];
     const fracPart = (m[1] ? m[2] : m[4]) ?? null;
     if (!intPart) continue;
-    // Look at a small window around the match for a non-price (deposit/fee/refund) context word.
-    const from = Math.max(0, m.index - 24);
-    const to = Math.min(reply.length, m.index + m[0].length + 12);
-    if (NON_PRICE_CONTEXT_RE.test(reply.slice(from, to))) continue;
-    const cents = toCents(intPart, fracPart);
-    if (Number.isFinite(cents) && cents > 0) out.push(cents);
+    if (nonPriceAt(m.index, m[0].length)) continue;
+    push(toCents(intPart, fracPart));
   }
+
+  // 2) VERB-LESS euro-MARKED amounts ("€8.", "EUR8.00.", "8 euro."). A €/eur/euro token is an
+  // unambiguous money assertion even without a verb, so treat it as an asserted price. Deposit/fee/
+  // refund/percentage euros are skipped via the same non-price-context window.
+  BARE_EURO_RE.lastIndex = 0;
+  while ((m = BARE_EURO_RE.exec(reply)) !== null) {
+    const intPart = m[1] ?? m[3];
+    const fracPart = (m[1] ? m[2] : m[4]) ?? null;
+    if (!intPart) continue;
+    if (nonPriceAt(m.index, m[0].length)) continue;
+    push(toCents(intPart, fracPart));
+  }
+
+  // 3) LONE bare number reply ("6", "6.", "de prijs is 6") gated on a PRICE question, because a lone
+  // number with no euro marker is otherwise a time/date/quantity/phone digit. Requires the WHOLE reply
+  // to be essentially just that number so ordinary prose numbers are never touched.
+  if (userMessage && PRICE_INTENT_RE.test(userMessage)) {
+    const lone = LONE_NUMBER_REPLY_RE.exec(reply);
+    if (lone) push(toCents(lone[1], lone[2] ?? null));
+  }
+
   return out;
 }
 
@@ -174,10 +231,11 @@ export function enforcePriceClaim(
   replyText: string,
   services: PricedService[],
   customerLanguage: string | null,
+  userMessage?: string | null,
 ): string {
   const realSet = buildRealPriceSet(services);
   if (realSet.size === 0) return replyText; // no server-known price to enforce against
-  const asserted = extractAssertedPrices(replyText);
+  const asserted = extractAssertedPrices(replyText, userMessage);
   if (asserted.length === 0) return replyText; // no price claim to check
   const anyFake = asserted.some((c) => !realSet.has(c));
   if (!anyFake) return replyText; // every asserted price is real (or a real sum)

@@ -132,6 +132,68 @@ Deno.test("rejectsAPrice detects the safe negotiation reject phrasing", () => {
   assert(!rejectsAPrice("De Standaard kost normaal €50, maar met de actie is het nu €12."));
 });
 
+// ── R2-CLAIM-sib-priceverb: VERB-LESS bare amounts (the reopened break) ─────
+Deno.test("extracts a VERB-LESS euro-marked bare amount", () => {
+  assertEquals(extractAssertedPrices("€8."), [800]);
+  assertEquals(extractAssertedPrices("EUR8.00."), [800]);
+  assertEquals(extractAssertedPrices("8 euro."), [800]);
+  assertEquals(extractAssertedPrices("EUR 7,00"), [700]);
+  // a real bare amount is extracted too (harmless: enforce only rewrites non-real)
+  assertEquals(extractAssertedPrices("€98."), [9800]);
+});
+
+Deno.test("rewrites a VERB-LESS euro-marked FALSE bare amount (forged/injected)", () => {
+  for (const fake of ["€8.", "EUR8.00.", "8 euro.", "€6", "EUR 7,00"]) {
+    const out = enforcePriceClaim(fake, SERVICES, null);
+    assert(out !== fake, `should rewrite verb-less fake: ${fake}`);
+    assert(/€50|€98/.test(out), `rewrite must quote a real price: ${out}`);
+  }
+});
+
+Deno.test("keeps a VERB-LESS bare REAL price untouched (no over-block)", () => {
+  for (const ok of ["€50.", "€98.", "EUR50", "50 euro.", "€148."]) {
+    assertEquals(enforcePriceClaim(ok, SERVICES, null), ok);
+  }
+});
+
+Deno.test("lone bare NUMBER rewritten ONLY on a price-question turn (terse coax)", () => {
+  // terse-coax attack: customer asked a price question, model replied with just the number
+  assert(enforcePriceClaim("6", SERVICES, "en", "how much is it?") !== "6");
+  assert(enforcePriceClaim("6.", SERVICES, null, "wat kost het?") !== "6.");
+  assert(/€50|€98/.test(enforcePriceClaim("6", SERVICES, "en", "what's the price?")));
+  // the live-observed phrasing that first slipped the intent gate ("does X cost")
+  assert(enforcePriceClaim("6", SERVICES, "en", "What does a Standaard Afspraak cost?") !== "6");
+  assert(enforcePriceClaim("6", SERVICES, "en", "how much does it cost?") !== "6");
+  // a lone REAL bare number on a price turn is left untouched (no over-block)
+  assertEquals(enforcePriceClaim("50", SERVICES, null, "wat kost het?"), "50");
+});
+
+Deno.test("lone bare NUMBER NOT rewritten when the turn is not a price question", () => {
+  // no price intent -> a lone number is a time/quantity/etc, never rewritten
+  assertEquals(enforcePriceClaim("6", SERVICES, "en", "how many people fit?"), "6");
+  assertEquals(enforcePriceClaim("6", SERVICES, "en", "what time do you open?"), "6");
+  assertEquals(enforcePriceClaim("6", SERVICES, "en", undefined), "6");
+});
+
+Deno.test("times / dates / quantities / phone digits are NOT rewritten even on a price turn", () => {
+  // these are NOT lone-number replies (they have surrounding prose), so they never match
+  for (const noprice of [
+    "We're open until 6.",
+    "Your appointment is at 14:30.",
+    "That fits 6 people.",
+    "Call us on 316000031.",
+    "The 6th of July works.",
+  ]) {
+    assertEquals(enforcePriceClaim(noprice, SERVICES, "en", "wat kost het? how much?"), noprice);
+  }
+});
+
+Deno.test("a euro amount you SAVE / deposit is not treated as a service price", () => {
+  assertEquals(extractAssertedPrices("You save €8 with this deal."), []);
+  assertEquals(extractAssertedPrices("Je bespaart €8."), []);
+  assertEquals(enforcePriceClaim("You save €8 today.", SERVICES, "en"), "You save €8 today.");
+});
+
 Deno.test("dedupServices removes multi-calendar duplicates by name+price", () => {
   const dup = [
     { name: "Standaard Afspraak", price: 50 },
