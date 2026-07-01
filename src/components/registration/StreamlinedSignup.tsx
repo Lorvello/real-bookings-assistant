@@ -83,7 +83,14 @@ export const StreamlinedSignup: React.FC = () => {
 
   const updateFormData = (field: keyof SignupFormData, value: string | boolean) => {
     let processedValue = value;
-    
+    // P1-COUNTRYCODE-STALE: when the country-code dropdown changes AFTER the
+    // phone number was already typed, the previously-normalized value (which
+    // was resolved against the OLD country) must be re-normalized against the
+    // NEWLY selected country here too, not just on the phone field's own
+    // onChange. Without this, switching +31 -> +44 with no further edit to
+    // the phone field silently kept the stale +31-prefixed value.
+    let phoneRenormalized: string | undefined;
+
     // Apply new validation API for better security
     if (typeof value === 'string') {
       if (field === 'email') {
@@ -97,6 +104,28 @@ export const StreamlinedSignup: React.FC = () => {
         const defaultCountry = DIAL_CODE_TO_COUNTRY[formData.countryCode] || 'NL';
         const result = validatePhoneNumber(value, { allowEmpty: true, defaultCountry });
         processedValue = result.sanitized;
+      } else if (field === 'countryCode') {
+        // Re-run phone normalization against the newly-selected country so an
+        // already-typed number never submits stale-prefixed for the country
+        // the user picked last.
+        //
+        // formData.phone is already E.164 (has an explicit "+" calling code
+        // from the OLD selection) by the time the phone field's own onChange
+        // has run once. libphonenumber-js ALWAYS honors an explicit "+"
+        // calling code over the defaultCountry hint, so simply re-parsing
+        // formData.phone as-is against the new country is a no-op (it stays
+        // "+31...", GB or not). Strip the OLD selection's calling-code prefix
+        // first (formData.countryCode, the dropdown value BEFORE this change)
+        // to recover the bare national digits, then re-normalize those digits
+        // against the NEW country so the "+" prefix actually changes.
+        const oldDialCode = formData.countryCode;
+        const nationalDigits = formData.phone.startsWith(oldDialCode)
+          ? formData.phone.slice(oldDialCode.length)
+          : formData.phone;
+        const defaultCountry = DIAL_CODE_TO_COUNTRY[value] || 'NL';
+        const result = validatePhoneNumber(nationalDigits, { allowEmpty: true, defaultCountry });
+        phoneRenormalized = result.sanitized;
+        processedValue = value;
       } else if (field === 'fullName') {
         const result = sanitizeText(value, { allowEmpty: true, maxLength: 200 });
         processedValue = result.sanitized;
@@ -105,9 +134,13 @@ export const StreamlinedSignup: React.FC = () => {
         processedValue = result.sanitized;
       }
     }
-    
-    setFormData(prev => ({ ...prev, [field]: processedValue }));
-    
+
+    setFormData(prev => ({
+      ...prev,
+      [field]: processedValue,
+      ...(phoneRenormalized !== undefined ? { phone: phoneRenormalized } : {})
+    }));
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -129,6 +162,20 @@ export const StreamlinedSignup: React.FC = () => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = t('auth.signup.errPhone', 'Phone number is required');
+    } else {
+      // P1-COUNTRYCODE-STALE defense in depth: updateFormData() keeps
+      // formData.phone re-normalized against the selected country on every
+      // phone keystroke AND every dropdown change, so by the time we get
+      // here it should already be a valid E.164 number for the selected
+      // country. Re-validate at submit time anyway (against the CURRENTLY
+      // selected country) as a backstop, so a stale or otherwise malformed
+      // value can never silently reach registerUser() even if some future
+      // code path stops keeping formData.phone in sync.
+      const defaultCountry = DIAL_CODE_TO_COUNTRY[formData.countryCode] || 'NL';
+      const phoneCheck = validatePhoneNumber(formData.phone, { defaultCountry });
+      if (!phoneCheck.valid) {
+        newErrors.phone = t('auth.signup.errPhoneInvalid', 'Please enter a valid phone number for the selected country');
+      }
     }
 
     if (!formData.password) {

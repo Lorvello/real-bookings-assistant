@@ -6,6 +6,8 @@ import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputS
 import { secureLogger } from '@/utils/secureLogger';
 import { checkBookingRateLimit } from '@/utils/rateLimiter';
 import ProductionSecurity from '@/utils/productionSecurity';
+import { isValidCountryCode } from '@/components/booking/publicBookingFields';
+import type { CountryCode } from 'libphonenumber-js';
 
 interface BookingData {
   calendarSlug: string;
@@ -117,9 +119,27 @@ export const usePublicBookingCreation = () => {
       }
 
       // Validate phone if provided
+      // P1-COUNTRYCODE-BOOKING: this is the real public, international-facing booking
+      // form (PublicBooking.tsx). validatePhoneNumber() defaults defaultCountry to 'NL'
+      // when not passed, so a non-NL customer's bare national-format number (no leading
+      // "+") was either silently mis-normalized as Dutch, or rejected outright as
+      // "Ongeldig telefoonnummer" even though it is a real, valid number for their own
+      // country (reproduced: a UK customer booking a remote_service appointment, having
+      // already selected United Kingdom in the required cross-border-VAT country field,
+      // got "invalid phone number" and could not complete the booking at all).
+      //
+      // The form already collects bookingData.customerCountry (ISO-3166 alpha-2, e.g.
+      // "GB") for remote/digital services needing cross-border VAT -- reuse that as the
+      // defaultCountry hint instead of hardcoding NL. It is optional (in_person bookings
+      // omit it), so this only improves accuracy when a country is already known; the NL
+      // fallback stays for the in_person / country-not-collected path where NL remains
+      // the right default for this NL-based product today.
       let sanitizedPhone: string | undefined = undefined;
       if (bookingData.customerPhone) {
-        const phoneResult = validatePhoneNumber(bookingData.customerPhone);
+        const defaultCountry: CountryCode = isValidCountryCode(bookingData.customerCountry)
+          ? (bookingData.customerCountry!.trim().toUpperCase() as CountryCode)
+          : 'NL';
+        const phoneResult = validatePhoneNumber(bookingData.customerPhone, { defaultCountry });
         if (!phoneResult.valid) {
           throw new Error(phoneResult.errors[0] || 'Ongeldig telefoonnummer');
         }
