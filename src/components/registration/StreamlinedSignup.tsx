@@ -14,6 +14,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { validatePassword } from '@/utils/passwordValidation';
 import { validateEmail, validatePhoneNumber, sanitizeText } from '@/utils/inputSanitization';
+import type { CountryCode } from 'libphonenumber-js';
 
 interface SignupFormData {
   fullName: string;
@@ -46,6 +47,21 @@ const countryCodes = [
   { code: '+39', country: 'Italy' }
 ];
 
+// Maps the signup form's dial-code dropdown (formData.countryCode) to the
+// ISO 3166-1 alpha-2 code libphonenumber-js expects as defaultCountry, so a
+// bare national-format phone number is parsed against the country the user
+// actually selected instead of always assuming NL.
+const DIAL_CODE_TO_COUNTRY: Record<string, CountryCode> = {
+  '+31': 'NL',
+  '+32': 'BE',
+  '+49': 'DE',
+  '+33': 'FR',
+  '+44': 'GB',
+  '+1': 'US',
+  '+34': 'ES',
+  '+39': 'IT'
+};
+
 export const StreamlinedSignup: React.FC = () => {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
@@ -74,7 +90,12 @@ export const StreamlinedSignup: React.FC = () => {
         const result = validateEmail(value, { allowEmpty: true });
         processedValue = result.sanitized;
       } else if (field === 'phone') {
-        const result = validatePhoneNumber(value, { allowEmpty: true, defaultCountry: 'NL' });
+        // Resolve defaultCountry from the user's selected dial-code dropdown
+        // (formData.countryCode), not a hardcoded 'NL', so a national-format
+        // number typed under e.g. a +44 selection normalizes to a correct UK
+        // E.164 number instead of being mis-parsed as Dutch.
+        const defaultCountry = DIAL_CODE_TO_COUNTRY[formData.countryCode] || 'NL';
+        const result = validatePhoneNumber(value, { allowEmpty: true, defaultCountry });
         processedValue = result.sanitized;
       } else if (field === 'fullName') {
         const result = sanitizeText(value, { allowEmpty: true, maxLength: 200 });
