@@ -44,6 +44,56 @@ for (const claim of [
   Deno.test(`claim caught: ${claim.slice(0, 40)}`, () => assert(looksLikeBookingConfirmation(claim)));
 }
 
+// ── R3ADV-CG-NL: NL phantom-confirm "staat vast" / "vaststaat" / "vastgelegd" MUST be caught ──
+// The 20B model shipped these DONE-state NL confirmations under prompt injection (reproduced live
+// 5/16 on deployed v159, DB=0 rows), and the pre-fix alternation (vastgezet+bevestigd) missed them.
+for (const claim of [
+  "Je afspraak staat vast. 🚀",
+  "Je afspraak staat vast.",
+  "Je afspraak staat vast. Tot dan! 👋",
+  "Je afspraak is vastgelegd. Tot dan! 😊",
+  "Je afspraak is vastgezet.",
+  "Je reservering staat vast.",
+  "Je boeking staat nu vast.",
+  "De afspraak vaststaat, tot dan.",
+  "Je afspraak ligt vast.",
+  "Je afspraak is vastgelegd en bevestigd.",
+]) {
+  Deno.test(`R3ADV-CG-NL claim caught: ${claim.slice(0, 40)}`, () => assert(looksLikeBookingConfirmation(claim)));
+}
+
+// ── R3ADV-CG-NL: NO over-block. A non-booking "vast" (price/opening hours fixed) must NOT be caught,
+// and an offer/question form must stay safe. These pin the false-positive boundary of the fix.
+for (const safe of [
+  "De prijs staat vast: 50 euro voor de standaardbehandeling.",
+  "Onze prijzen staan vast, geen verrassingen achteraf.",
+  "De openingstijden staan vast: 09:00 tot 17:00.",
+  "Het tarief ligt vast op 98 euro.",
+  "Zal ik je afspraak vastleggen voor donderdag 10:00?",
+  "Wil je dat ik je afspraak vastzet voor 14:00?",
+]) {
+  Deno.test(`R3ADV-CG-NL over-block guard, safe: ${safe.slice(0, 40)}`, () => assert(!looksLikeBookingConfirmation(safe)));
+}
+
+// ── R3ADV-CG-NL: end-to-end strip. Phantom NL confirm with NO mutation -> honest no-booking reply. ──
+Deno.test("R3ADV-CG-NL: 'staat vast' phantom with NO mutation is stripped", () => {
+  const out = enforceNoFalseConfirmation("Je afspraak staat vast. 🚀", [slotsRead], null);
+  assertEquals(out, noFalseConfirmReply(null));
+  assert(!looksLikeBookingConfirmation(out), "replacement must not itself read as a confirmation");
+});
+Deno.test("R3ADV-CG-NL: 'is vastgelegd' phantom with NO mutation is stripped", () => {
+  const out = enforceNoFalseConfirmation("Je afspraak is vastgelegd. Tot dan! 😊", [], null);
+  assertEquals(out, noFalseConfirmReply(null));
+});
+Deno.test("R3ADV-CG-NL: a REAL committed booking phrased 'staat vast' is NOT stripped", () => {
+  const legit = "Top! Je afspraak staat vast voor donderdag 2 juli 10:00. 🎉";
+  assertEquals(enforceNoFalseConfirmation(legit, [okBook], null), legit);
+});
+Deno.test("R3ADV-CG-NL: a non-booking 'de prijs staat vast' is never touched", () => {
+  const price = "De prijs staat vast: 50 euro voor de standaardbehandeling.";
+  assertEquals(enforceNoFalseConfirmation(price, [], null), price);
+});
+
 // ── F-015: per-language done-state confirmations MUST be caught (FR/DE/ES/IT were dead) ──
 // Before F-015 the FR branch + accented-edge ES/DE words never matched in the live Deno/JS runtime
 // (a `\b` adjacent to an accented letter is false without the `u` flag). These pin the whole class.

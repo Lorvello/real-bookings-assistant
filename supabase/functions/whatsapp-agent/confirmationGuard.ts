@@ -63,11 +63,24 @@ const B = "(?<![\\p{L}])"; // unicode word-start: not preceded by a (possibly ac
 const A = "(?![\\p{L}])"; //  unicode word-end:   not followed by a (possibly accented) letter
 export const CONFIRM_CLAIM_RE = new RegExp(
   [
-    // NL: geboekt / ingepland / gereserveerd / genoteerd / vastgezet / bevestigd (+ "afspraak ... staat ... vast")
-    `${B}(?:is|zijn|staat|heb ik|hebben we|je bent|u bent|je staat|u staat)${A}[^.!?]{0,40}${B}(geboekt|ingepland|gereserveerd|genoteerd|vastgezet|bevestigd|geannuleerd|verzet|verplaatst|verschoven)${A}`,
+    // NL: geboekt / ingepland / gereserveerd / genoteerd / vastgezet / vastgelegd / bevestigd (+ "afspraak ... staat ... vast")
+    // R3ADV-CG-NL FIX: the alternation missed `vastgelegd` and `vastligt` (unambiguous done-state
+    // synonyms of vastgezet) AND the bare "staat vast" / "vaststaat" phrasing the 20B model shipped
+    // under injection ("Je afspraak staat vast", "is vastgelegd"). vastgelegd/vastligt are added to the
+    // generic done-word list (never a false-positive: a price is "vastgelegd" only rhetorically and not
+    // as an APPOINTMENT claim, and this whole regex is only reached on a prose turn with no committed
+    // mutation). The bare word "vast"/"vaststaat" is intentionally NOT added here: "de prijs staat vast"
+    // (price is fixed) must NOT trip. Instead "vast"/"vaststaat" is caught below ONLY when bound to an
+    // appointment noun, so a non-booking "staat vast" is untouched.
+    `${B}(?:is|zijn|staat|heb ik|hebben we|je bent|u bent|je staat|u staat)${A}[^.!?]{0,40}${B}(geboekt|ingepland|gereserveerd|genoteerd|vastgezet|vastgelegd|vastligt|bevestigd|geannuleerd|verzet|verplaatst|verschoven)${A}`,
     `${B}(gelukt|gedaan)${A}[^.!?]{0,30}${B}(geboekt|ingepland|gereserveerd|genoteerd|afspraak|geannuleerd|verzet)${A}`,
     `${B}je plek is gereserveerd${A}`,
     `${B}je afspraak (is|staat) (geboekt|bevestigd|geannuleerd|verzet|nu)${A}`,
+    // R3ADV-CG-NL: appointment-scoped "vast" phrasings. Requires an APPOINTMENT noun so a non-booking
+    // "de prijs staat vast" is never matched. Catches "je afspraak staat vast", "de afspraak vaststaat",
+    // "je reservering/boeking/plek staat vast", both word orders (subject staat vast / vaststaat).
+    `${B}(?:je|jouw|uw|de|die|deze)${A}[^.!?]{0,10}${B}(afspraak|reservering|boeking|plek|plaats)${A}[^.!?]{0,20}${B}(staat|is|ligt)${A}[^.!?]{0,6}${B}vast${A}`,
+    `${B}(?:je|jouw|uw|de|die|deze)${A}[^.!?]{0,10}${B}(afspraak|reservering|boeking|plek|plaats)${A}[^.!?]{0,12}${B}vaststaat${A}`,
     // EN: booked / scheduled / reserved / confirmed / cancelled / rescheduled (done-state)
     `${B}your (appointment|booking|spot|slot)${A}[^.!?]{0,40}${B}(is|has been|'s)${A}[^.!?]{0,20}${B}(booked|scheduled|reserved|confirmed|cancelled|canceled|rescheduled|set|all set)${A}`,
     `${B}(you're|you are|you have been|you've been)${A}[^.!?]{0,20}${B}(booked|scheduled|all set|confirmed)${A}`,
