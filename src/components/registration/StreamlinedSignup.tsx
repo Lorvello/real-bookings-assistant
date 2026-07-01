@@ -146,7 +146,11 @@ export const StreamlinedSignup: React.FC = () => {
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName,
-        phone: formData.countryCode + formData.phone
+        // formData.phone is already sanitized to a full E.164 number (incl.
+        // country calling code) by validatePhoneNumber() in updateFormData();
+        // prepending formData.countryCode here double-counted the dialing
+        // code (e.g. "+31" + "+31600000399" -> "+31+31600000399").
+        phone: formData.phone
       };
 
       const result = await registerUser(registrationData);
