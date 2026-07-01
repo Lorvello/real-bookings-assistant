@@ -5,18 +5,28 @@ import { useAuth } from '@/hooks/useAuth';
 import { Calendar } from '@/types/database';
 
 export const useCalendars = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [calendars, setCalendars] = useState<Calendar[]>([]);
+  // Keep loading TRUE until auth has resolved AND (if a user exists) the first
+  // calendar fetch has completed. Reporting loading=false while auth is still
+  // resolving would let consumers read an empty calendars[] as "genuinely empty"
+  // and flash an empty CTA before the real data arrives (RUX-2).
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) {
+      // Auth not resolved yet; calendars are indeterminate, stay loading.
+      setLoading(true);
+      return;
+    }
     if (user) {
       fetchCalendars();
     } else {
+      // Auth resolved, no user: there are genuinely no calendars to load.
       setCalendars([]);
       setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchCalendars = async () => {
     try {
