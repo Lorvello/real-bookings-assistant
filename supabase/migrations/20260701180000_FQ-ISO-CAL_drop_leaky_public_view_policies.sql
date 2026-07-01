@@ -1,0 +1,55 @@
+-- FQ-ISO-CAL (sev-2, cross-tenant config READ leak): drop the redundant *_public_view
+-- base-table SELECT policies that leak every tenant's business config to any logged-in tenant.
+--
+-- THE LEAK (adversarial round 1, repro re-confirmed with real magiclink JWTs):
+-- Three permissive SELECT policies on the BASE tables calendars / service_types /
+-- availability_overrides are granted to role `public` (which covers `authenticated`) and
+-- key ONLY on is_active (or the calendar being active), with NO auth.uid() tenant scope:
+--   * calendars_public_view                USING (is_active = true AND coalesce(is_deleted,false)=false)
+--   * service_types_public_view            USING (EXISTS active calendar AND is_active ...)
+--   * service_types_public_booking_access  USING (is_active AND EXISTS active calendar)   [same class, 2nd copy]
+--   * availability_overrides_public_view   USING (EXISTS calendar WHERE is_active)
+-- Because `authenticated` HOLDS the base-table SELECT grant, any logged-in tenant could
+--   GET /rest/v1/calendars?user_id=eq.<victim>&select=*        -> every tenant's calendars (id/user_id/name/slug/timezone)
+--   GET /rest/v1/service_types?select=calendar_id,name,price   -> every tenant's service names + PRICES
+-- (competitor price-scrape + config enumeration). anon is already blocked at the GRANT
+-- level (42501; the R52/R44 revoke removed anon base SELECT), which is why anon-only
+-- isolation probes (FQ-12) missed it. Violates measurable-core #4 (airtight isolation).
+--
+-- WHY BARE-DROP IS SAFE (traced before dropping, live via Mgmt-API):
+--  1. The PUBLIC /book/:slug page does NOT read these base tables. It reads the owner-owned
+--     SECURITY DEFINER views public_calendars / public_service_types (PublicBooking.tsx:105/117),
+--     which run as `postgres` and bypass RLS entirely. Availability comes from the
+--     get_business_available_slots / get_available_slots / check_availability RPCs, all
+--     SECURITY DEFINER (none read these policies). So dropping the base-table public-read
+--     policies does not touch any anon read path. anon holds NO base SELECT grant on
+--     calendars / service_types at all.
+--  2. The OWNER's own-read is served by the auth.uid()-scoped policies, which are UNTOUCHED:
+--     calendars_select_own (auth.uid() = user_id), service_types_owner_or_member_view
+--     (calendar owned by auth.uid() OR calendar_members), availability_overrides_owner_all
+--     (calendar owned by auth.uid()). Those remain the only SELECT paths post-drop.
+--  3. availability_overrides: anon holds a base SELECT grant, but no anon/public code path
+--     reads the base table (all consumers are SECURITY DEFINER RPCs; the only direct reader
+--     is the auth-gated owner hook useAvailabilityOverrides, covered by the owner_all policy).
+--
+-- NET EFFECT: closes the authenticated cross-tenant read; anon public booking + owner
+-- dashboard read paths unchanged. No column/grant change, no view change, no fn change.
+--
+-- DOWN (manual, NOT recommended, re-introduces the leak):
+--   CREATE POLICY calendars_public_view ON public.calendars FOR SELECT TO public
+--     USING (is_active = true AND coalesce(is_deleted,false) = false);
+--   CREATE POLICY service_types_public_view ON public.service_types FOR SELECT TO public
+--     USING (EXISTS (SELECT 1 FROM calendars WHERE calendars.id = service_types.calendar_id
+--       AND calendars.is_active = true AND coalesce(calendars.is_deleted,false)=false)
+--       AND is_active = true AND coalesce(is_deleted,false)=false);
+--   CREATE POLICY service_types_public_booking_access ON public.service_types FOR SELECT TO public
+--     USING (is_active = true AND coalesce(is_deleted,false)=false AND EXISTS (SELECT 1 FROM calendars c
+--       WHERE c.id = service_types.calendar_id AND c.is_active = true AND coalesce(c.is_deleted,false)=false));
+--   CREATE POLICY availability_overrides_public_view ON public.availability_overrides FOR SELECT TO public
+--     USING (EXISTS (SELECT 1 FROM calendars WHERE calendars.id = availability_overrides.calendar_id
+--       AND calendars.is_active = true));
+
+DROP POLICY IF EXISTS calendars_public_view ON public.calendars;
+DROP POLICY IF EXISTS service_types_public_view ON public.service_types;
+DROP POLICY IF EXISTS service_types_public_booking_access ON public.service_types;
+DROP POLICY IF EXISTS availability_overrides_public_view ON public.availability_overrides;
