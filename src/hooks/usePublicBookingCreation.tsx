@@ -32,6 +32,41 @@ interface BookingResult {
   payment_required?: boolean;
 }
 
+/**
+ * Normalize the many shapes create-booking can put in `body.error` into ONE readable
+ * customer-facing string. The edge fn returns a plain string for most rejects (409
+ * SLOT_TAKEN, 400 "Invalid email"), but an ARRAY of {field,message} objects for the
+ * validate_booking_security failures that are actually the most common on this path:
+ * the slot got taken between availability-display and submit (`time_conflict`) and the
+ * off-policy `availability` reject. Previously the raw array was thrown straight into a
+ * new Error, so those two toasts read "[object Object]". This flattens string | array |
+ * object into the joined human messages, and returns undefined when there is nothing
+ * usable (so the caller keeps its own default). (FQ-B-WEBBOOK.)
+ */
+export const extractBookingErrorMessage = (err: unknown): string | undefined => {
+  if (typeof err === 'string') {
+    const s = err.trim();
+    return s.length > 0 ? s : undefined;
+  }
+  if (Array.isArray(err)) {
+    const msgs = err
+      .map((e) =>
+        typeof e === 'string'
+          ? e
+          : e && typeof e === 'object' && typeof (e as any).message === 'string'
+            ? (e as any).message
+            : ''
+      )
+      .filter((m) => m.trim().length > 0);
+    return msgs.length > 0 ? msgs.join('. ') : undefined;
+  }
+  if (err && typeof err === 'object' && typeof (err as any).message === 'string') {
+    const s = (err as any).message.trim();
+    return s.length > 0 ? s : undefined;
+  }
+  return undefined;
+};
+
 export const usePublicBookingCreation = () => {
   const { toast } = useToast();
   const { t, i18n } = useTranslation('notifications');
@@ -215,12 +250,21 @@ export const usePublicBookingCreation = () => {
       if (error) {
         // Surface the edge function's own message (e.g. the 409 SLOT_TAKEN conflict:
         // "This time slot is no longer available...") instead of the generic
-        // "Edge Function returned a non-2xx status code" — otherwise a customer whose
-        // slot was just taken is wrongly told to "try again".
+        // "Edge Function returned a non-2xx status code" (otherwise a customer whose
+        // slot was just taken is wrongly told to "try again").
+        //
+        // create-booking returns `error` in TWO shapes: a plain string (409 SLOT_TAKEN,
+        // 400 "Invalid email", the 500 generic) AND an ARRAY of {field,message} objects
+        // (validate_booking_security failures: the COMMON slot-just-taken `time_conflict`
+        // and the off-policy `availability` rejections). Assigning the array straight to
+        // the thrown Error stringified it to "[object Object]" (a raw, meaningless toast
+        // on the single most likely failure path). Normalize every shape to a readable
+        // string so the customer always sees a real message (FQ-B-WEBBOOK).
         let message = error.message;
         try {
           const body = await (error as any).context?.json?.();
-          if (body?.error) message = body.error;
+          const normalized = extractBookingErrorMessage(body?.error);
+          if (normalized) message = normalized;
         } catch { /* keep the default message */ }
         throw new Error(message);
       }

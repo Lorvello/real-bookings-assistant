@@ -95,28 +95,38 @@ export default function PublicBooking() {
       // Public read via the owner-privileged public_calendars view (R53): exposes only
       // id,name,slug,is_active, never the tenant's user_id (anon SELECT on the base table is
       // revoked). Cast to any because the view isn't in the generated Supabase types.
-      const { data: cal } = await (supabase as any)
-        .from('public_calendars')
-        .select('id, name, slug')
-        .eq('slug', slug)
-        .eq('is_active', true)
-        .maybeSingle();
-      if (cancelled) return;
-      if (!cal) {
-        setCalendar(null);
-        setLoadingCal(false);
-        return;
+      // Wrapped in try/finally: if the underlying fetch REJECTS (offline / DNS / CORS),
+      // .maybeSingle() throws rather than returning {error}, and without this the async
+      // IIFE would reject with setLoadingCal(false) never reached, leaving the page stuck
+      // on an INFINITE loading spinner. On any failure we fall through to the graceful
+      // not-found card (calendar stays null) instead of hanging. (FQ-B-WEBBOOK, CHECK2.)
+      try {
+        const { data: cal } = await (supabase as any)
+          .from('public_calendars')
+          .select('id, name, slug')
+          .eq('slug', slug)
+          .eq('is_active', true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (!cal) {
+          setCalendar(null);
+          return;
+        }
+        setCalendar(cal as CalendarInfo);
+        const { data: svc } = await (supabase as any)
+          .from('public_service_types')
+          .select('id, name, duration, price, supply_type')
+          .eq('calendar_id', cal.id)
+          .eq('is_active', true)
+          .order('price', { ascending: true });
+        if (cancelled) return;
+        setServices((svc as ServiceType[]) ?? []);
+      } catch {
+        // Network/query failure: render the graceful not-found state, never a stuck spinner.
+        if (!cancelled) setCalendar(null);
+      } finally {
+        if (!cancelled) setLoadingCal(false);
       }
-      setCalendar(cal as CalendarInfo);
-      const { data: svc } = await (supabase as any)
-        .from('public_service_types')
-        .select('id, name, duration, price, supply_type')
-        .eq('calendar_id', cal.id)
-        .eq('is_active', true)
-        .order('price', { ascending: true });
-      if (cancelled) return;
-      setServices((svc as ServiceType[]) ?? []);
-      setLoadingCal(false);
     })();
     return () => {
       cancelled = true;
