@@ -493,7 +493,10 @@ export function formatHoursNL(hours: number): string {
 
 // The Operations settings the agent must honour. Read once per booking/cancel/
 // reschedule. Defaults are permissive when no settings row exists.
-async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): Promise<CalendarPolicy> {
+// Exported (T3-A1) so index.ts can derive the SAME per-calendar policy for the
+// <business_data> cancellation_policy text when the customer has one identifiable
+// upcoming booking, instead of always the entry calendar's settings.
+export async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): Promise<CalendarPolicy> {
   const { data } = await supabase
     .from("calendar_settings")
     .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days, minimum_notice_hours")
@@ -524,6 +527,20 @@ async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): 
 // Hours from now until a booking starts (negative once it has started).
 function hoursUntil(startTime: string): number {
   return (new Date(startTime).getTime() - Date.now()) / 3_600_000;
+}
+
+// T3-A1: human-readable free-cancellation sentence for THIS booking's OWN calendar policy
+// (allowCancellations already true at every call site below, so only the deadline branches
+// apply here). Mirrors the derivation index.ts uses for the generic <business_data>
+// cancellation_policy line, but scoped to a SPECIFIC calendar's policy instead of the entry
+// calendar's. Used by cancel_appointment's needs_confirmation/cancelled results, which inject
+// this for the booking's actual calendar_id, so the spoken answer during a cancel flow can
+// never cite a different calendar's deadline than the one just enforced.
+export function formatCancellationPolicyNL(policy: CalendarPolicy): string {
+  const h = policy.cancellationDeadlineHours;
+  return h != null && Number.isFinite(h) && h > 0
+    ? `Je kunt deze afspraak tot ${formatHoursNL(h)} van tevoren kosteloos annuleren of verzetten via WhatsApp.`
+    : `Je kunt deze afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.`;
 }
 
 // Fetch + format ALL business info the agent may share, nulls stripped. Shared by the
@@ -1400,8 +1417,13 @@ export function createTools(
         return {
           needs_confirmation: true,
           appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time },
+          // T3-A1: the free-cancellation sentence for THIS booking's OWN calendar (b.calendar_id),
+          // not the generic <business_data> annuleringsbeleid (which reflects only the ENTRY
+          // calendar and can differ in a multi-calendar business). Use this field, never
+          // <business_data>, whenever this specific booking's cancellation terms come up.
+          cancellation_policy_this_booking: formatCancellationPolicyNL(cancelPolicy),
           // guidance = internal-only (the model composes the customer-facing read-back itself).
-          guidance: "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true.",
+          guidance: "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).",
         };
       }
 

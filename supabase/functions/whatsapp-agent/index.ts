@@ -8,7 +8,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours } from "./tools.ts";
+import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarPolicy, getCalendarWeeklyHours } from "./tools.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
@@ -583,29 +583,59 @@ Deno.serve(async (req) => {
       booking_window_days?: number | string | null;
       minimum_notice_hours?: number | string | null;
     } | null;
-    if (businessData) {
-      const manual = businessData.cancellation_policy;
-      const hasManual = typeof manual === "string" && manual.trim();
-      if (!hasManual) {
-        const allowCancel = cs?.allow_cancellations ?? true;
-        // PostgREST returns numeric as a string ("24.00"); Number() converts to 24 so the
-        // sentence reads "24 uur", not "24.00 uur".
-        const rawDeadline = cs?.cancellation_deadline_hours;
-        const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
-        // AS-3-V1: when a NO-REFUND refund policy coexists, the derived "kosteloos annuleren"
-        // line is the conflation surface (the 20B model read "kosteloos" = no cancellation fee
-        // as "geld terug" = money-back). Append an explicit clause that free cancellation is
-        // about the cancellation fee, NOT a refund of any prepayment, so the data the model sees
-        // can no longer be misread as a refund promise. Only when the refund policy clearly says
-        // no refund (refundDisposition "denied"); behaviour unchanged otherwise.
-        const refundClarifier = refundDisposition === "denied"
-          ? " Let op: kosteloos annuleren betekent dat er geen annuleringskosten zijn, NIET dat een vooruitbetaling wordt terugbetaald (zie het terugbetaalbeleid)."
-          : "";
-        businessData.cancellation_policy = !allowCancel
-          ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
-          : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
-          ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.${refundClarifier}`
-          : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.${refundClarifier}`;
+    const hasManualCancellationPolicy = typeof businessData?.cancellation_policy === "string" &&
+      (businessData.cancellation_policy as string).trim().length > 0;
+    if (businessData && !hasManualCancellationPolicy) {
+      const allowCancel = cs?.allow_cancellations ?? true;
+      // PostgREST returns numeric as a string ("24.00"); Number() converts to 24 so the
+      // sentence reads "24 uur", not "24.00 uur".
+      const rawDeadline = cs?.cancellation_deadline_hours;
+      const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
+      // AS-3-V1: when a NO-REFUND refund policy coexists, the derived "kosteloos annuleren"
+      // line is the conflation surface (the 20B model read "kosteloos" = no cancellation fee
+      // as "geld terug" = money-back). Append an explicit clause that free cancellation is
+      // about the cancellation fee, NOT a refund of any prepayment, so the data the model sees
+      // can no longer be misread as a refund promise. Only when the refund policy clearly says
+      // no refund (refundDisposition "denied"); behaviour unchanged otherwise.
+      const refundClarifier = refundDisposition === "denied"
+        ? " Let op: kosteloos annuleren betekent dat er geen annuleringskosten zijn, NIET dat een vooruitbetaling wordt terugbetaald (zie het terugbetaalbeleid)."
+        : "";
+      businessData.cancellation_policy = !allowCancel
+        ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
+        : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
+        ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.${refundClarifier}`
+        : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.${refundClarifier}`;
+
+      // T3-A1: the sentence above is derived from the ENTRY calendar's settings only. In a
+      // MULTI-calendar business a customer's actual upcoming booking may live in a DIFFERENT
+      // calendar with its OWN cancellation deadline. cancel_appointment's own tool result already
+      // fixes the in-flow case (injects the booking's own calendar policy once that tool runs),
+      // but the model sometimes answers a combined "cancel this + what's the deadline" message
+      // straight from <business_data> without calling the tool (prompt.ts deliberately routes a
+      // bare policy question away from cancel_appointment). So when this customer has EXACTLY ONE
+      // identifiable upcoming booking anywhere in the owner's allowlist, override the sentence
+      // with THAT booking's own calendar policy, so the spoken answer is correct however the
+      // model reaches it. Ambiguous (2+ upcoming bookings) or none found: keep the entry-calendar
+      // sentence as the best available generic answer (mirrors cancel_appointment's own
+      // "meerdere_afspraken" disambiguation, which this text-only inject does not replicate, to
+      // stay scoped to composing the policy TEXT, not the tool's disambiguation flow).
+      if (isMultiCalendar && calendars.length > 1) {
+        const { data: upcoming } = await supabase
+          .from("bookings")
+          .select("calendar_id")
+          .eq("customer_phone", phone)
+          .in("calendar_id", calendars.map((c) => c.id))
+          .in("status", ["confirmed", "pending"])
+          .gt("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true })
+          .limit(2);
+        const rows = (upcoming as Array<{ calendar_id: string }> | null) ?? [];
+        if (rows.length === 1 && rows[0].calendar_id !== calendar_id) {
+          const ownPolicy = await getCalendarPolicy(supabase, rows[0].calendar_id);
+          businessData.cancellation_policy = !ownPolicy.allowCancellations
+            ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
+            : `${formatCancellationPolicyNL(ownPolicy)}${refundClarifier}`;
+        }
       }
     }
     const openingStruct = weeklyHours?.byDay ??
