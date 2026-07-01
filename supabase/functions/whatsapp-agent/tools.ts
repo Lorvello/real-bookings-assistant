@@ -35,6 +35,13 @@ export interface ToolContext {
   // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
   // we extract the clock time the customer named and resolve which booking they meant.
   userMessage?: string;
+  // FQ-11 locale: the customer's normalised booking locale ("en" when a non-Dutch language was
+  // server-detected this turn/conversation, else "nl"). Persisted onto the booking row's
+  // customer_locale so the reminder engine (get_due_booking_reminders + reminderBody) sends the
+  // reminder in the SAME language the customer booked in. Without it every WhatsApp booking stored
+  // customer_locale=null -> the RPC normalised null to 'nl' -> an English customer got a Dutch
+  // reminder. Set in index.ts each turn from customerLanguage.
+  customerLocale?: "nl" | "en";
 }
 
 interface UpcomingBooking {
@@ -881,7 +888,7 @@ export function createTools(
           bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null } | undefined;
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en" } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
           const { pending_booking: _drop, ...rest } = bookCtx;
@@ -1158,7 +1165,7 @@ export function createTools(
                 // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
                 // model having to resend them on the "ja" turn (same authoritative-from-server
                 // pattern as start_time / customer_name). null for an in_person booking.
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, at: Date.now() },
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: Date.now() },
               },
             }).eq("id", ctx.conversationId);
           }
@@ -1186,6 +1193,11 @@ export function createTools(
           start_time: start,
           end_time: end,
           status: paymentRequired ? "pending" : "confirmed",
+          // FQ-11: stamp the booking locale so the reminder engine sends in the customer's own
+          // language. On COMMIT prefer the locale captured at preview (authoritative, alongside
+          // start_time/customer_name); on a fresh single-turn insert fall back to this turn's
+          // detected locale. Defaults to 'nl' when unknown (matches the RPC's null->nl norm).
+          customer_locale: (committing ? pendingBook?.customer_locale : undefined) ?? ctx.customerLocale ?? "nl",
         };
         // X3b-2: persist the customer billing country + optional EU VAT-ID (X1 columns) onto the
         // booking row, so whatsapp-payment-handler reads them off the row at charge time to drive
