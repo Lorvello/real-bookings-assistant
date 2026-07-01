@@ -65,8 +65,8 @@ const ConversationsContent = () => {
   const dateRange = getDateRange();
   
   // Use real data hooks
-  const { data: metrics, isLoading: metricsLoading } = useWhatsAppConversationMetrics(selectedCalendarId || undefined);
-  const { conversations, isLoading: conversationsLoading } = useWhatsAppConversationsList(
+  const { data: metrics, isLoading: metricsLoading, isError: metricsError, refetch: refetchMetrics } = useWhatsAppConversationMetrics(selectedCalendarId || undefined);
+  const { conversations, isLoading: conversationsLoading, error: conversationsError, refetch: refetchConversations } = useWhatsAppConversationsList(
     selectedCalendarId || '',
     {
       searchTerm,
@@ -74,6 +74,7 @@ const ConversationsContent = () => {
       dateRange,
     }
   );
+  const hasFetchError = metricsError || !!conversationsError;
 
   if (authLoading) {
     return (
@@ -148,6 +149,42 @@ const ConversationsContent = () => {
           onOpenChange={setCreateCalendarOpen}
           trigger="button"
         />
+      </DashboardLayout>
+    );
+  }
+
+  // Graceful error state: if the metrics/list fetch fails (network / RLS / server),
+  // show a recoverable error card instead of a blank surface or a raw error
+  // (FQ-A-CONV). Mirrors the no-calendar empty-state pattern + the calendar grid's
+  // retry affordance; the destructive icon + retry button keep it on-brand.
+  if (hasFetchError) {
+    return (
+      <DashboardLayout>
+        <div className="bg-background min-h-full p-2 md:p-8">
+          <div className="space-y-3 md:space-y-6">
+            <SimplePageHeader title={t('convPage.header', 'WhatsApp')} />
+            <Card role="alert">
+              <CardHeader className="text-center py-12">
+                <div className="relative mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 ring-1 ring-destructive/20">
+                  <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+                </div>
+                <CardTitle className="text-foreground">{t('convPage.errorTitle', "Couldn't load your conversations")}</CardTitle>
+                <CardDescription className="text-muted-foreground mx-auto max-w-sm">
+                  {t('convPage.errorDescription', 'Something went wrong while loading your WhatsApp data. Please try again.')}
+                </CardDescription>
+                <div className="mt-6">
+                  <Button
+                    variant="secondary"
+                    className="gap-2"
+                    onClick={() => { refetchMetrics(); refetchConversations(); }}
+                  >
+                    {t('convPage.errorRetry', 'Try again')}
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
       </DashboardLayout>
     );
   }

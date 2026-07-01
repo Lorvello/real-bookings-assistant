@@ -78,13 +78,11 @@ export const usePaymentSettings = (calendarId?: string) => {
    */
   const updateSettings = async (
     updates: Partial<PaymentSettings>,
-    options?: { optimistic?: boolean },
+    options?: { optimistic?: boolean; settingLabel?: string },
   ) => {
     if (!calendarId) return false;
 
     const optimistic = options?.optimistic ?? false;
-    // Capture the truth to roll back to BEFORE we paint optimistically.
-    const snapshot = confirmedSettings.current;
     if (optimistic) {
       setSettings(prev => (prev ? { ...prev, ...updates } : prev));
     }
@@ -116,14 +114,24 @@ export const usePaymentSettings = (calendarId?: string) => {
       return true;
     } catch (error) {
       console.error('Error updating payment settings:', error);
-      // Revert the optimistic paint to the last value we KNOW the DB holds, so the
-      // toggle can never lie about a money-relevant setting after a failed save.
+      // Revert the optimistic paint to the LATEST server-confirmed value
+      // (confirmedSettings.current), NOT a call-time snapshot. When several toggles
+      // fire together in one Promise.all (handleTogglePaymentOptional / PayOnSite),
+      // a sibling save can commit and advance confirmedSettings.current before this
+      // one fails; reverting to the ref means the failed toggle rolls back to truth
+      // without clobbering the sibling's committed value locally (FQ-A-PAY-N1).
       if (optimistic) {
-        setSettings(snapshot);
+        setSettings(confirmedSettings.current);
       }
+      // Name the specific money setting that failed. The control reverts silently, so
+      // the toast is the ONLY signal the owner gets; a generic "Failed to update payment
+      // settings" left them unsure WHICH toggle bounced back (FQ-A-PAY-copy, design>=9).
+      const settingLabel = options?.settingLabel;
       toast({
         title: t('paymentSettings.updateErrorTitle', "Error"),
-        description: t('paymentSettings.updateErrorDescription', "Failed to update payment settings"),
+        description: settingLabel
+          ? t('paymentSettings.updateErrorNamed', 'Couldn’t save "{{setting}}". It has been reset to the last saved value.', { setting: settingLabel })
+          : t('paymentSettings.updateErrorDescription', "Failed to update payment settings"),
         variant: "destructive",
       });
       return false;
@@ -133,6 +141,7 @@ export const usePaymentSettings = (calendarId?: string) => {
   };
 
   const toggleSecurePayments = async (enabled: boolean) => {
+    const settingLabel = t('paymentSettings.setting.securePayments', 'Pay & Book');
     if (!enabled) {
       // Cascade: reset all related settings when Pay & Book is disabled.
       // Optimistic paint + revert-on-failure handled centrally in updateSettings.
@@ -140,30 +149,45 @@ export const usePaymentSettings = (calendarId?: string) => {
         secure_payments_enabled: false,
         payment_required_for_booking: true,  // Reset to required
         payment_optional: false,             // Reset to not optional
-      }, { optimistic: true });
+      }, { optimistic: true, settingLabel });
     }
-    return await updateSettings({ secure_payments_enabled: enabled }, { optimistic: true });
+    return await updateSettings({ secure_payments_enabled: enabled }, { optimistic: true, settingLabel });
   };
 
   const togglePaymentRequired = async (required: boolean) => {
-    return await updateSettings({ payment_required_for_booking: required }, { optimistic: true });
+    return await updateSettings(
+      { payment_required_for_booking: required },
+      { optimistic: true, settingLabel: t('paymentSettings.setting.paymentRequired', 'Payment required to book') },
+    );
   };
 
   const updatePaymentMethods = async (methods: string[]) => {
-    return await updateSettings({ enabled_payment_methods: methods });
+    return await updateSettings(
+      { enabled_payment_methods: methods },
+      { settingLabel: t('paymentSettings.setting.paymentMethods', 'Payment methods') },
+    );
   };
 
   const togglePaymentOptional = async (optional: boolean) => {
-    return await updateSettings({ payment_optional: optional }, { optimistic: true });
+    return await updateSettings(
+      { payment_optional: optional },
+      { optimistic: true, settingLabel: t('paymentSettings.setting.paymentOptional', 'Make payment optional') },
+    );
   };
 
   const updateAllowedPaymentTiming = async (timings: string[]) => {
-    return await updateSettings({ allowed_payment_timing: timings }, { optimistic: true });
+    return await updateSettings(
+      { allowed_payment_timing: timings },
+      { optimistic: true, settingLabel: t('paymentSettings.setting.paymentTiming', 'When customers pay') },
+    );
   };
 
   const updatePayoutOption = async (option: 'standard' | 'instant') => {
     // First update local settings
-    const success = await updateSettings({ payout_option: option });
+    const success = await updateSettings(
+      { payout_option: option },
+      { settingLabel: t('paymentSettings.setting.payoutSpeed', 'Payout speed') },
+    );
     
     if (success && calendarId) {
       try {

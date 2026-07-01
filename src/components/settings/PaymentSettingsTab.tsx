@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Info, CreditCard } from 'lucide-react';
+import { Info, CreditCard } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
@@ -477,10 +477,42 @@ export function PaymentSettingsTab() {
     setTimeout(() => scrollToSection('fees-section'), 100);
   };
 
+  // While the account ROLE is still resolving we must NOT paint the 'none' /
+  // "not connected" state (that would flash a misleading "no Stripe account" to an
+  // owner who actually has one, FQ-A-AUTH). Show an exact-shape skeleton (header +
+  // account card + option rows) so the real settings cross-fade in instead of a bare
+  // spinner that pops, and the owner never sees a false "not connected".
   if (settingsLoading || roleLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6" aria-busy="true" aria-live="polite">
+        <span className="sr-only">{t('settings.payments.loadingLabel', 'Loading payment settings')}</span>
+        {/* Pay & Book header */}
+        <div className="surface-raised rounded-xl p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-2">
+              <div className="shimmer h-5 w-40 rounded bg-white/[0.06]" />
+              <div className="shimmer h-4 w-64 rounded bg-white/[0.05]" />
+            </div>
+            <div className="shimmer h-6 w-11 rounded-full bg-white/[0.06]" />
+          </div>
+        </div>
+        {/* Stripe account card */}
+        <div className="surface-raised rounded-xl p-6 space-y-3">
+          <div className="shimmer h-4 w-28 rounded bg-white/[0.06]" />
+          <div className="shimmer h-9 w-48 rounded-md bg-white/[0.05]" />
+        </div>
+        {/* Option rows */}
+        <div className="surface-raised rounded-xl p-6 space-y-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center justify-between gap-4">
+              <div className="space-y-2">
+                <div className="shimmer h-4 w-44 rounded bg-white/[0.06]" />
+                <div className="shimmer h-3 w-56 rounded bg-white/[0.04]" />
+              </div>
+              <div className="shimmer h-6 w-11 rounded-full bg-white/[0.06]" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -592,7 +624,7 @@ export function PaymentSettingsTab() {
               onDeadlineChange={setDeadlineHours}
               onDeadlineBlur={handleDeadlineBlur}
               autoCancel={!!settings?.auto_cancel_unpaid_bookings}
-              onToggleAutoCancel={(checked) => updateSettings({ auto_cancel_unpaid_bookings: checked }, { optimistic: true })}
+              onToggleAutoCancel={(checked) => updateSettings({ auto_cancel_unpaid_bookings: checked }, { optimistic: true, settingLabel: t('settings.payments.setting.autoCancel', 'Auto-cancel unpaid bookings') })}
               payOnSiteEnabled={isPayOnSiteEnabled}
               onTogglePayOnSite={handleTogglePayOnSite}
               installmentsEnabled={installmentSettings?.enabled || false}

@@ -13,6 +13,11 @@
   },
   "availPage": {
     "header": "Beschikbaarheid",
+    "errorState": {
+      "title": "Kan je beschikbaarheid niet laden",
+      "description": "Er ging iets mis bij het laden van je schema. Probeer het opnieuw.",
+      "retryButton": "Opnieuw proberen"
+    },
     "tab": {
       "schedule": "Schema",
       "overrides": "Datumafwijkingen"
@@ -184,6 +189,9 @@
     }
   },
   "convPage": {
+    "errorTitle": "Kan je gesprekken niet laden",
+    "errorDescription": "Er ging iets mis bij het laden van je WhatsApp-gegevens. Probeer het opnieuw.",
+    "errorRetry": "Opnieuw proberen",
     "noCalendarTitle": "Selecteer een agenda",
     "selectCalendarPlaceholder": "Selecteer agenda",
     "status": {

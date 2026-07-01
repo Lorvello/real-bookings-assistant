@@ -10,6 +10,7 @@ import { ServiceTypeCard } from './ServiceTypeCard';
 import { ServiceTypesEmptyState } from './ServiceTypesEmptyState';
 import { ServiceTypesLoadingState } from './ServiceTypesLoadingState';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTaxConfiguration } from '@/hooks/useTaxConfiguration';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
@@ -63,6 +64,12 @@ export function ServiceTypesManager() {
   const [saving, setSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingService, setDeletingService] = useState<ServiceType | null>(null);
+  // Count of upcoming bookings still attached to the service being deleted, so the
+  // confirm dialog can WARN the owner instead of silently retiring a service that has
+  // future appointments (FQ-A-DIENSTEN). Delete is a soft-delete (is_deleted=true) so
+  // existing bookings keep their reference and are never orphaned; this just makes the
+  // consequence explicit before they confirm.
+  const [futureBookingCount, setFutureBookingCount] = useState<number | null>(null);
   const [formData, setFormData] = useState<ServiceTypeFormData>(DEFAULT_FORM_DATA);
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([]);
   
@@ -216,9 +223,24 @@ export function ServiceTypesManager() {
     // Set the newly created calendar as the target
     setTargetCalendarId(calendar.id);
   };
-  const handleDelete = (service: ServiceType) => {
+  const handleDelete = async (service: ServiceType) => {
     setDeletingService(service);
+    setFutureBookingCount(null);
     setShowDeleteDialog(true);
+    // Best-effort future-booking probe. If it fails we still allow the guarded delete
+    // (soft-delete never orphans), we just fall back to the generic confirm copy.
+    try {
+      const { count, error } = await supabase
+        .from('bookings')
+        .select('id', { count: 'exact', head: true })
+        .eq('service_type_id', service.id)
+        .gte('start_time', new Date().toISOString())
+        .neq('status', 'cancelled')
+        .neq('status', 'no-show');
+      if (!error) setFutureBookingCount(count ?? 0);
+    } catch (e) {
+      console.error('Could not count future bookings for service:', e);
+    }
   };
   const confirmDelete = async () => {
     if (!deletingService?.id) return;
@@ -239,11 +261,13 @@ export function ServiceTypesManager() {
     } finally {
       setShowDeleteDialog(false);
       setDeletingService(null);
+      setFutureBookingCount(null);
     }
   };
   const cancelDelete = () => {
     setShowDeleteDialog(false);
     setDeletingService(null);
+    setFutureBookingCount(null);
   };
   if (loading) {
     return <ServiceTypesLoadingState />;
@@ -311,7 +335,9 @@ export function ServiceTypesManager() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('settings.services.deleteConfirmTitle', 'Delete this service?')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('settings.services.deleteConfirmDescription', 'Are you sure you want to delete "{{serviceName}}"? This can\'t be undone.', { serviceName: deletingService?.name })}
+              {futureBookingCount && futureBookingCount > 0
+                ? t('settings.services.deleteConfirmWithBookings', '"{{serviceName}}" has {{count}} upcoming booking(s). Deleting it removes the service from your booking flow and the AI agent, but those existing appointments keep their details. New customers can no longer book it. This can\'t be undone.', { serviceName: deletingService?.name, count: futureBookingCount })
+                : t('settings.services.deleteConfirmDescription', 'Are you sure you want to delete "{{serviceName}}"? This can\'t be undone.', { serviceName: deletingService?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

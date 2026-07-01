@@ -294,6 +294,7 @@
       "failedToDeleteError": "Kan dienst niet verwijderen. Probeer het opnieuw.",
       "deleteConfirmTitle": "Deze dienst verwijderen?",
       "deleteConfirmDescription": "Wil je \"{{serviceName}}\" echt verwijderen? Dit kan niet ongedaan gemaakt worden.",
+      "deleteConfirmWithBookings": "\"{{serviceName}}\" heeft {{count}} aankomende boeking(en). Als je de dienst verwijdert, verdwijnt hij uit je boekingsflow en bij de AI-agent, maar bestaande afspraken behouden hun gegevens. Nieuwe klanten kunnen hem niet meer boeken. Dit kan niet ongedaan gemaakt worden.",
       "deleteDialogCancel": "Annuleren",
       "deleteDialogConfirm": "Verwijderen",
       "fields": {
@@ -743,6 +744,10 @@
       }
     },
     "payments": {
+      "loadingLabel": "Betaalinstellingen laden",
+      "setting": {
+        "autoCancel": "Onbetaalde boekingen automatisch annuleren"
+      },
       "header": {
         "title": "Betalen & Boeken",
         "description": "Verzamel veilige vooruitbetalingen op boekingen om no-shows te beperken en omzet vooraf vast te leggen, uitbetaald naar je eigen rekening via Stripe.",

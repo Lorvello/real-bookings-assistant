@@ -18,6 +18,9 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 // server-confirmed row so the hook has a real "truth" to revert to.
 const toastSpy = vi.fn();
 let upsertShouldFail = false;
+// FQ-A-PAY-N1: per-payload failure predicate, so a test can make ONE sibling save in a
+// Promise.all fail while the others succeed. When set it overrides `upsertShouldFail`.
+let upsertFailPredicate: ((payload: Record<string, unknown>) => boolean) | null = null;
 let confirmedRow: Record<string, unknown>;
 
 const makeRow = (overrides: Record<string, unknown> = {}) => ({
@@ -45,10 +48,12 @@ vi.mock('@/integrations/supabase/client', () => ({
       }),
       upsert: (payload: Record<string, unknown>) => ({
         select: () => ({
-          single: () =>
-            upsertShouldFail
+          single: () => {
+            const fails = upsertFailPredicate ? upsertFailPredicate(payload) : upsertShouldFail;
+            return fails
               ? Promise.resolve({ data: null, error: { message: 'permission denied for table payment_settings' } })
-              : Promise.resolve({ data: { ...confirmedRow, ...payload }, error: null }),
+              : Promise.resolve({ data: { ...confirmedRow, ...payload }, error: null });
+          },
         }),
       }),
     }),
@@ -58,7 +63,14 @@ vi.mock('@/integrations/supabase/client', () => ({
 
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: toastSpy }) }));
 vi.mock('@/utils/stripeConfig', () => ({ isTestMode: () => true }));
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (_k: string, d: string) => d }) }));
+// Mimic i18next interpolation of {{var}} so the named-error-toast test (FQ-A-PAY-copy)
+// exercises the real description string the owner sees, not a raw template.
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (_k: string, d: string, opts?: Record<string, unknown>) =>
+      opts ? d.replace(/\{\{(\w+)\}\}/g, (_m, name) => String(opts[name] ?? `{{${name}}}`)) : d,
+  }),
+}));
 
 import { usePaymentSettings } from '@/hooks/usePaymentSettings';
 
@@ -66,6 +78,7 @@ describe('FQ-A-PAY: optimistic payment toggles revert on a failed save', () => {
   beforeEach(() => {
     toastSpy.mockClear();
     upsertShouldFail = false;
+    upsertFailPredicate = null;
     confirmedRow = makeRow(); // secure_payments_enabled = true is the DB truth
   });
 
@@ -167,5 +180,52 @@ describe('FQ-A-PAY: optimistic payment toggles revert on a failed save', () => {
       await result.current.togglePaymentRequired(true);
     });
     expect(result.current.settings?.payment_required_for_booking).toBe(false); // reverted to confirmed
+  });
+
+  // FQ-A-PAY-copy: the error toast must NAME the specific money setting that failed,
+  // because the control reverts silently so the toast is the owner's only signal.
+  it('names the failed setting in the error toast description', async () => {
+    const { result } = await mountReady();
+    upsertShouldFail = true;
+
+    await act(async () => {
+      await result.current.togglePaymentRequired(false);
+    });
+
+    expect(toastSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: 'destructive',
+        description: expect.stringContaining('Payment required to book'),
+      }),
+    );
+  });
+
+  // FQ-A-PAY-N1: two toggles fire together in one Promise.all (as the real
+  // handleTogglePaymentOptional / handleTogglePayOnSite do). The SUCCEEDING sibling
+  // commits and advances confirmedSettings.current; the FAILING sibling must revert to
+  // that latest committed truth, NOT to a stale call-time snapshot, so it never rolls
+  // the successful sibling back locally.
+  it('a failing sibling in a Promise.all reverts to committed truth without clobbering the successful sibling', async () => {
+    const { result } = await mountReady();
+    // Start: required = true, optional = false.
+    expect(result.current.settings?.payment_required_for_booking).toBe(true);
+    expect(result.current.settings?.payment_optional).toBe(false);
+
+    // payment_optional save SUCCEEDS; payment_required save FAILS, in the same tick.
+    upsertFailPredicate = (payload) => 'payment_required_for_booking' in payload;
+
+    await act(async () => {
+      await Promise.all([
+        result.current.togglePaymentOptional(true),   // succeeds -> optional becomes true (committed)
+        result.current.togglePaymentRequired(false),  // fails -> must revert to committed truth
+      ]);
+    });
+
+    // The successful sibling's committed value is preserved locally (not clobbered).
+    expect(result.current.settings?.payment_optional).toBe(true);
+    // The failed sibling reverted to the last CONFIRMED required value (still true).
+    expect(result.current.settings?.payment_required_for_booking).toBe(true);
+    // The failure was announced.
+    expect(toastSpy).toHaveBeenCalledWith(expect.objectContaining({ variant: 'destructive' }));
   });
 });

@@ -32,9 +32,17 @@ interface AvailabilityState {
 
 export const useStableAvailabilityState = () => {
   const { selectedCalendar, calendars, viewingAllCalendars, loading: calendarsLoading } = useCalendarContext();
-  const { schedules, loading: schedulesLoading } = useAvailabilitySchedules(selectedCalendar?.id);
+  const { schedules, loading: schedulesLoading, error: schedulesError, refetch: refetchSchedules } = useAvailabilitySchedules(selectedCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
-  const { rules, loading: rulesLoading } = useAvailabilityRules(defaultSchedule?.id);
+  const { rules, loading: rulesLoading, error: rulesError, refetch: refetchRules } = useAvailabilityRules(defaultSchedule?.id);
+
+  // Surface a data-fetch failure so the page can show a recoverable error state
+  // instead of an endless "checking" skeleton or a silently-empty schedule (FQ-A-STATES).
+  const loadError = schedulesError || rulesError || null;
+  const retryLoad = () => {
+    refetchSchedules?.();
+    refetchRules?.();
+  };
 
   // Cache to prevent unnecessary recalculations
   const lastConfigStateRef = useRef<string>('');
@@ -125,6 +133,8 @@ export const useStableAvailabilityState = () => {
 
   return {
     ...state,
-    ...refreshState
+    ...refreshState,
+    loadError,
+    retryLoad,
   };
 };

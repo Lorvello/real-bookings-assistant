@@ -87,9 +87,14 @@ export function PerformanceEfficiencyTab({ calendarIds, dateRange }: Performance
 
   if (error) {
     return (
-      <div className="text-center py-16">
-        <p className="text-destructive-foreground mb-2">{t('dashboard.perfEff.errTitle', 'Error loading performance data')}</p>
-        <p className="text-sm text-muted-foreground">{t('dashboard.perfEff.errDesc', 'Please try refreshing the page')}</p>
+      <div className="space-y-8" role="alert">
+        <div className="surface-raised rounded-2xl border border-white/[0.08] p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-destructive/10 rounded-2xl flex items-center justify-center border border-destructive/20">
+            <Activity aria-hidden="true" className="h-8 w-8 text-destructive-foreground" />
+          </div>
+          <p className="text-foreground font-medium mb-1">{t('dashboard.perfEff.errTitle', 'Error loading performance data')}</p>
+          <p className="text-sm text-muted-foreground">{t('dashboard.perfEff.errDesc', 'Please try refreshing the page')}</p>
+        </div>
       </div>
     );
   }

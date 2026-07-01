@@ -548,6 +548,15 @@
     "updateSuccessDescription": "Betaalinstellingen succesvol bijgewerkt",
     "updateErrorTitle": "Fout",
     "updateErrorDescription": "Kan de betaalinstellingen niet bijwerken",
+    "updateErrorNamed": "Kan \"{{setting}}\" niet opslaan. De oude waarde is hersteld.",
+    "setting": {
+      "securePayments": "Betalen & Boeken",
+      "paymentRequired": "Betaling verplicht om te boeken",
+      "paymentMethods": "Betaalmethoden",
+      "paymentOptional": "Betaling optioneel maken",
+      "paymentTiming": "Wanneer klanten betalen",
+      "payoutSpeed": "Uitbetaalsnelheid"
+    },
     "payoutSyncWarningTitle": "Waarschuwing",
     "payoutSyncWarningDescription": "Instellingen lokaal opgeslagen, maar synchroniseren met Stripe is mislukt",
     "payoutSyncSuccessTitle": "Gelukt",
