@@ -12,7 +12,7 @@ import { ResearchModal } from './ResearchModal';
 import { StripeModeIndicator } from '@/components/developer/StripeModeIndicator';
 import { getStripeConfig, isTestMode } from '@/utils/stripeConfig';
 import { useToast } from '@/hooks/use-toast';
-import type { BusinessStripeAccount } from '@/types/payments';
+import { deriveStripeAccountState, type BusinessStripeAccount } from '@/types/payments';
 import { PaymentOptions } from '../payments/PaymentOptions';
 import { InstallmentSettings } from './InstallmentSettings';
 import { useInstallmentSettings } from '@/hooks/useInstallmentSettings';
@@ -542,16 +542,11 @@ export function PaymentSettingsTab() {
     !!stripeAccount?.onboarding_completed &&
     !!stripeAccount?.charges_enabled &&
     !!stripeAccount?.payouts_enabled;
-  const hasOtherEnvAccount = !!stripeAccount?.stripe_account_id && !accountMatchesMode;
+  // State derivation lives in one shared pure fn (src/types/payments.ts) so the UI and
+  // the persistence test can never drift (FQ-2-obs). Loading is decided here first.
   const accountState = accountLoading
     ? 'loading'
-    : isStripeSetupComplete
-      ? 'complete'
-      : hasStripeAccount
-        ? 'incomplete'
-        : hasOtherEnvAccount
-          ? 'other-environment'
-          : 'none';
+    : deriveStripeAccountState(stripeAccount ?? null, currentStripeMode);
   const paymentRequired = settings?.payment_required_for_booking ?? true;
 
   return (

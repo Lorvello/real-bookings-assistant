@@ -9,7 +9,11 @@
 //    row into the rendered Stripe-account state, across a mode mismatch and a
 //    simulated re-login, plus the genuine no-row empty state.
 import { describe, it, expect } from 'vitest';
-import { selectStripeAccountForMode, type BusinessStripeAccount } from '@/types/payments';
+import {
+  selectStripeAccountForMode,
+  deriveStripeAccountState,
+  type BusinessStripeAccount,
+} from '@/types/payments';
 
 // The persisted live-DB row (environment='test', fully onboarded) for the owner.
 const TEST_ROW: BusinessStripeAccount = {
@@ -37,24 +41,11 @@ function oldEnvFilteredRead(
   );
 }
 
-// Mirror of PaymentSettingsTab's state derivation (env-aware after the fix).
-function deriveAccountState(
-  account: BusinessStripeAccount | null,
-  currentMode: 'test' | 'live',
-): 'complete' | 'incomplete' | 'other-environment' | 'none' {
-  const matchesMode = !!account && account.environment === currentMode;
-  const setupComplete =
-    matchesMode &&
-    !!account?.onboarding_completed &&
-    !!account?.charges_enabled &&
-    !!account?.payouts_enabled;
-  const hasInMode = matchesMode && !!account?.stripe_account_id;
-  const hasOtherEnv = !!account?.stripe_account_id && !matchesMode;
-  if (setupComplete) return 'complete';
-  if (hasInMode) return 'incomplete';
-  if (hasOtherEnv) return 'other-environment';
-  return 'none';
-}
+// State derivation is now the SHARED pure fn from src/types/payments.ts (imported
+// above as deriveStripeAccountState), the same fn PaymentSettingsTab renders from,
+// so this test and the component can no longer drift (FQ-2-obs). Local alias kept so
+// the existing assertions read unchanged.
+const deriveAccountState = deriveStripeAccountState;
 
 describe('BUG-A: Stripe Connect persistence across re-login + mode mismatch', () => {
   it('REPRODUCES the bug: old env-filtered read hides a persisted test row when mode=live', () => {

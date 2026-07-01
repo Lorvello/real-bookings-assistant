@@ -60,6 +60,35 @@ export function selectStripeAccountForMode(
   );
 }
 
+/**
+ * Derive the rendered Stripe-account state from the selected account + current mode.
+ * Single source of truth shared by PaymentSettingsTab (UI) and the persistence test,
+ * so the two can never drift. Behaviour-preserving extraction of the inline derivation
+ * (see evidence/QA_FQ-2.md). Does NOT cover the 'loading' state: the caller decides
+ * loading BEFORE calling this (the account role/query must be resolved first).
+ *   - 'complete'          : in-mode row, fully onboarded (charges + payouts enabled)
+ *   - 'incomplete'        : in-mode row exists but onboarding not finished
+ *   - 'other-environment' : a persisted row exists only in the OTHER environment
+ *   - 'none'              : no Connect row at all
+ */
+export function deriveStripeAccountState(
+  account: BusinessStripeAccount | null,
+  currentMode: 'test' | 'live',
+): 'complete' | 'incomplete' | 'other-environment' | 'none' {
+  const matchesMode = !!account && account.environment === currentMode;
+  const setupComplete =
+    matchesMode &&
+    !!account?.onboarding_completed &&
+    !!account?.charges_enabled &&
+    !!account?.payouts_enabled;
+  const hasInMode = matchesMode && !!account?.stripe_account_id;
+  const hasOtherEnv = !!account?.stripe_account_id && !matchesMode;
+  if (setupComplete) return 'complete';
+  if (hasInMode) return 'incomplete';
+  if (hasOtherEnv) return 'other-environment';
+  return 'none';
+}
+
 export interface BookingPayment {
   id: string;
   booking_id: string;
