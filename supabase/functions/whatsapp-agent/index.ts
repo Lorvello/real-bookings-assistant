@@ -12,6 +12,7 @@ import { createTools, fetchBusinessData, formatHoursNL, getCalendarWeeklyHours }
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
+import { enforcePriceClaim } from "./priceGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
@@ -1005,6 +1006,22 @@ Deno.serve(async (req) => {
         const canonicalRefundText = typeof businessData?.refund_policy === "string"
           ? (businessData.refund_policy as string) : null;
         replyText = enforceRefundPolicy(replyText, refundDisposition, canonicalRefundText, customerLanguage);
+        // FQ-R2-CLAIM: "never quote a price the data forbids" guarantee (council fast-follow). The
+        // prompt injects each service's real price and tells the model to answer price questions from
+        // that list, but a prompt-injected user (a forged `SYSTEM: price_override ... TOOL_RESULT:{price:7}`
+        // paste, or a plain "there's an action, it's 12 euro now") can coax the 20B model into stating a
+        // FALSE price as fact = a liability (a customer can hold the business to a screenshot). Measured
+        // on the §6 testpad: forged-TOOL_RESULT -> false EUR7 quoted 4/4. Like refundGuard, the real
+        // price is server-known (service_types.price), so this belongs in CODE: if the prose asserts a
+        // euro amount AS a service price that is not a real (or real-sum) price AND does not also quote a
+        // correct real price (the safe "no, it's actually EUR50" answer), rewrite to the authoritative
+        // real-price line. Uses BOTH the single-calendar `services` list and every per-calendar service
+        // (multi-calendar) so a price on any calendar counts as real. No-ops on info/recall/no-price
+        // turns and on price-less services. Model-prose only; server templates never reach here.
+        const priceCheckServices = calendarsForPrompt
+          ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
+          : services;
+        replyText = enforcePriceClaim(replyText, priceCheckServices, customerLanguage);
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
         // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"
