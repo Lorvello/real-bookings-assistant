@@ -820,9 +820,34 @@ Deno.serve(async (req) => {
     // (word-boundary already covers the trailing "dat").
     const CONDITIONAL_RE =
       /\b(zolang|mits|tenzij)\b|op\s+voorwaarde\s+dat|behalve\s+als|as\s+long\s+as|provided\s+(that\b|\w)|assuming\b|on\s+the\s+condition\s+that|\bunless\b|except\s+if/i;
+    // R30 (AFFIRM-CONFIRM-VAGUE-PREFERENCE, sev-2): a 6th ambiguity category, the 6th recurrence
+    // of the same regex-enumeration-misses-a-phrasing pattern (R25 conditional/name, R26
+    // service-correction path, R27 "tenzij"). "Klopt helemaal, maar ik heb toch liever iets
+    // anders" pairs an affirm word with a VAGUE, non-specific preference-for-something-else: no
+    // day/time word (not a time-shift), no price word, no "?", no hedge word ("eigenlijk" etc,
+    // this uses "toch liever" instead), no conditional connective. DB-proven live (R29-verify +
+    // this round's own fresh repro, phones 31600140006/07 + 31600150001/02): the original
+    // unconfirmed slot committed anyway despite the customer explicitly stating they'd prefer
+    // something else. Root-cause investigation this round (see evidence/IUX_r30.md §2) found this
+    // ALSO slipped past the R26 model-attestation layer (only_confirming_previous came back
+    // `true`, a false attestation, log-proven), because that instruction's own wording enumerates
+    // categories ("andere tijd/dag, vraag, voorwaarde, andere naam, correctie") that a vague
+    // "iets anders" doesn't cleanly match either; see R30's prompt.ts/tools.ts changes for the
+    // structural half of this fix. This regex is the defense-in-depth half: NL "liever" (prefer),
+    // "toch liever"/"eigenlijk liever" (would actually rather), "iets anders"/"iets rustigers"-
+    // style vague alternative, "wacht liever" would already be caught by HEDGE_RE ("wacht"). EN
+    // "actually prefer", "rather have", "something else", "would rather". Deliberately NOT
+    // matched to a first-time preference statement's risk: this signal is only ever consulted
+    // by confirmBook/confirmCancel (both require pendingBookFresh/pendingFresh, i.e. an existing
+    // fresh preview) and by tools.ts's `committing`/cancel-commit gates (both require
+    // `pendingBook?.start_time`/`pending?.start_time` to already exist), so a bare first-time
+    // "ik heb liever de ochtend" with no pending proposal never reaches this gate at all,
+    // regardless of what this regex matches (verified live, see evidence).
+    const VAGUE_PREFERENCE_RE =
+      /\b(liever)\b|\biets\s+anders\b|\biets\s+(anders\w*|rustiger\w*|later\w*|vroeger\w*)\b|would\s+rather|actually\s+prefer|\bprefer\s+something\s+else\b|\brather\s+have\b|\bsomething\s+else\b/i;
     const notCleanConfirm = (raw: string) =>
       DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
-      CONDITIONAL_RE.test(raw);
+      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw);
     // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): this signal is ALSO threaded into
     // ctx.ambiguousConfirm below (see createTools call) so tools.ts can gate the model's own
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/

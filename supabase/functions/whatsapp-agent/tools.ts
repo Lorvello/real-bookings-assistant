@@ -667,7 +667,7 @@ export function createTools(
       description:
         "Boekt een NIEUWE afspraak in TWEE stappen (net als annuleren, zodat de klant eerst kan bevestigen). " +
         "STAP 1 (preview): heeft de klant een concrete dag + tijd genoemd? Roep dan METEEN aan met service_type_id + date (YYYY-MM-DD uit de <kalender>) + time (HH:MM) + naam — je hoeft get_available_slots NIET apart aan te roepen, de tool zoekt zelf het exacte vrije slot voor die tijd. De tool boekt dan NIETS en geeft 'needs_confirmation' terug met dienst, tijd en naam; vat die kort samen en vraag of het klopt. Is die tijd niet vrij, dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor. " +
-        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan (confirmed:true + only_confirming_previous, de tool gebruikt de in stap 1 opgeslagen tijd). only_confirming_previous MOET je meesturen: true bij een kale bevestiging zonder iets anders erbij, false zodra het bericht ook een andere tijd/dag, een vraag, een voorwaarde, een andere naam of een correctie bevat. " +
+        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan (confirmed:true + only_confirming_previous, de tool gebruikt de in stap 1 opgeslagen tijd). only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG signaal bevat dat de klant iets anders wil dan precies de samengevatte afspraak, in welke vorm dan ook (bv. andere tijd/dag, vraag, voorwaarde, andere naam, correctie, of een vage voorkeur zoals 'toch liever iets anders' zonder dat de klant zegt wat). Twijfel je of het bericht 100% een kale bevestiging is, kies dan false. " +
         'Zonder naam weigert de tool de boeking, tenzij de klant expliciet weigerde (update_lead met name_refused: true, dan customer_name "Privé"). ' +
         "Vereist dit bedrijf vooruitbetaling, dan geeft stap 2 een betaallink (payment_url) terug; stuur die en zeg dat de plek gereserveerd is tot betaling.",
       parameters: {
@@ -686,7 +686,7 @@ export function createTools(
           only_confirming_previous: {
             type: "boolean",
             description:
-              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt'), niets anders. false = het bericht bevat ook iets anders (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd boeken). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale, onvoorwaardelijke bevestiging ('ja', 'klopt'), helemaal niets anders. false = het bericht bevat ENIG signaal dat de klant iets anders wil dan precies de samengevatte afspraak, ongeacht hoe dat signaal geformuleerd is: bv. andere tijd/dag, vraag, voorwaarde, andere naam, twijfel/correctie, of een vage/ongespecificeerde voorkeur ('toch liever iets anders', 'liever iets rustigers') zonder dat de klant zegt wat precies. De vraag is niet 'past dit in een van de genoemde categorieën', maar 'is dit ECHT en UITSLUITEND een kale bevestiging van precies wat ik zonet samenvatte, zonder enige andere inhoud'. Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd boeken). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
           },
           service_type_id: { type: "string", description: "UUID van de dienst uit de services-lijst. Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de dienst uit de preview." },
           date: { type: "string", description: "Datum YYYY-MM-DD (uit de <kalender>). Geef date + time door als de klant een concrete tijd noemde; de tool zoekt zelf het exacte slot (sneller, geen aparte get_available_slots nodig)." },
@@ -721,7 +721,7 @@ export function createTools(
       description:
         "Annuleert de aankomende afspraak van DEZE klant in TWEE stappen (annuleren is destructief → altijd één bevestiging). " +
         "Stap 1: roep aan ZONDER confirmed → de tool annuleert NIETS en geeft 'needs_confirmation' + de afspraak (dienst + when) terug; lees die terug, vraag of je echt mag annuleren, en bied aan om in plaats daarvan te verzetten. " +
-        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true + only_confirming_previous → dan annuleert de tool. only_confirming_previous MOET je meesturen: true bij een kale bevestiging zonder iets anders erbij, false zodra het bericht ook een vraag, een voorwaarde of een correctie bevat. Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden; vraag welke en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00').",
+        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true + only_confirming_previous, dan annuleert de tool. only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG signaal bevat dat de klant iets anders wil (bv. vraag, voorwaarde, correctie, of een vage voorkeur zoals 'toch liever iets anders'). Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden; vraag welke en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00').",
       parameters: {
         type: "object",
         properties: {
@@ -732,7 +732,7 @@ export function createTools(
           only_confirming_previous: {
             type: "boolean",
             description:
-              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt', 'annuleer maar'), niets anders. false = het bericht bevat ook iets anders (vraag, voorwaarde, andere afspraak/tijd, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd annuleren). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale, onvoorwaardelijke bevestiging ('ja', 'klopt', 'annuleer maar'), helemaal niets anders. false = het bericht bevat ENIG signaal dat de klant iets anders wil dan precies de annulering die je zonet voorlegde, ongeacht hoe dat signaal geformuleerd is: bv. vraag, voorwaarde, andere afspraak/tijd, twijfel/correctie, of een vage/ongespecificeerde voorkeur zonder dat de klant zegt wat precies. De vraag is niet 'past dit in een van de genoemde categorieën', maar 'is dit ECHT en UITSLUITEND een kale bevestiging, zonder enige andere inhoud'. Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd annuleren). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
           },
           match_time: {
             type: "string",
