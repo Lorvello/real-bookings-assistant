@@ -31,6 +31,15 @@ export interface ToolContext {
   // previous turn. Drives the book COMMIT deterministically (and from the SERVER-stored exact
   // start_time, so the model's time-reconstruction can't book the wrong hour).
   confirmBook?: boolean;
+  // R24 (AFFIRM-CONFIRM-FALSEPOS, sev-2, second commit path): server-detected, same signal
+  // index.ts computes to gate confirmBook/confirmCancel (a day/time-shift mention, a price
+  // question, a trailing "?", or a hedge word, see index.ts's own comment for the 5 proven
+  // false-positive repro shapes). R23 (1d81a59a) only gated the SERVER-forced confirmBook/
+  // confirmCancel arm; it never reached the MODEL's own self-issued args.confirmed flag, which
+  // prompt.ts explicitly instructs the model to set on any affirm-shaped reply regardless of
+  // ambiguity. Threading this through ctx lets book_appointment/cancel_appointment gate BOTH
+  // arms of that OR on the same signal, so an ambiguous message can never commit via either path.
+  ambiguousConfirm?: boolean;
   // The customer's raw current message. Used as a SERVER-SIDE disambiguation fallback when the
   // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
   // we extract the clock time the customer named and resolve which booking they meant.
@@ -922,7 +931,16 @@ export function createTools(
         // COMMIT only when a proposal was previewed in a previous turn AND the customer
         // confirmed (server-detected ctx.confirmBook, or the model's confirmed flag). On
         // commit we use the STORED proposal, never the model's (possibly mis-reconstructed) args.
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !!pendingBook?.start_time;
+        // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): the model's own args.confirmed is
+        // just as capable of misreading an ambiguous message (a time-shift or service-correction
+        // qualifier attached to an affirm word) as the server force ctx.confirmBook was before
+        // R23's ambiguousConfirm gate. Gating ONLY ctx.confirmBook (R23's fix) left this arm of
+        // the OR fully open: the model self-issues confirmed:true on any ja/klopt-shaped reply
+        // per prompt.ts, independent of ambiguity. Applying !ctx.ambiguousConfirm to BOTH arms
+        // closes that path: on an ambiguous message neither arm can commit, so the model runs
+        // normally against the still-pending proposal (re-previews or answers the question)
+        // instead of silently committing the wrong thing.
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !!pendingBook?.start_time;
 
         const serviceId = String((committing ? pendingBook!.service_type_id : args.service_type_id) ?? "");
         let start = String((committing ? pendingBook!.start_time : args.start_time) ?? "");
@@ -1330,7 +1348,10 @@ export function createTools(
         // Confirmation is detected server-side (ctx.confirmCancel) OR via the model's confirmed flag.
         // We re-resolve the previewed appointment fresh so a since-changed/cancelled booking is caught
         // (the Contrarian's race window: re-validate at execution, not at confirmation).
-        if ((confirmed || ctx.confirmCancel === true) && pending?.start_time) {
+        // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path, cancel mirror): same reasoning as
+        // book_appointment above, applied to ctx.ambiguousConfirm here too, so neither the server
+        // force nor the model's own confirmed flag can commit a cancel on an ambiguous message.
+        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && pending?.start_time) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();

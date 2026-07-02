@@ -786,6 +786,10 @@ Deno.serve(async (req) => {
     const HEDGE_RE = /\b(wacht|momentje|trouwens|eigenlijk|bedoelde|bedoel|meant|actually|wait|sorry)\b/i;
     const notCleanConfirm = (raw: string) =>
       DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw);
+    // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): this signal is ALSO threaded into
+    // ctx.ambiguousConfirm below (see createTools call) so tools.ts can gate the model's own
+    // self-issued args.confirmed the same way, not just the server-forced confirmBook/
+    // confirmCancel computed from it right below. R23 only fixed the latter; R24 closes the former.
     const ambiguousConfirm = notCleanConfirm(msgLower);
     const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm;
 
@@ -865,7 +869,10 @@ Deno.serve(async (req) => {
     }
 
     // --- Run the agent ---
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
+    // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): thread ambiguousConfirm through so
+    // tools.ts can gate the model's own args.confirmed the same way confirmBook/confirmCancel
+    // are already gated above, not just the server-forced arm.
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, ambiguousConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
