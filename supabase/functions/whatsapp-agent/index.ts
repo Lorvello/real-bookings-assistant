@@ -784,8 +784,19 @@ Deno.serve(async (req) => {
     const PRICE_QUESTION_RE =
       /\b(kost|kosten|kostte|prijs|prijzen|tarief|tarieven|hoeveel|how\s+much|price|priced|costs?|cost|rate|charge|fee)\b/i;
     const HEDGE_RE = /\b(wacht|momentje|trouwens|eigenlijk|bedoelde|bedoel|meant|actually|wait|sorry)\b/i;
+    // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-CONDITIONAL, sev-2): a 5th ambiguity category, found by
+    // R24-verify. A message can pair an affirm word with a CONDITION/hypothetical rather than an
+    // unconditional yes, for example "Klopt, annuleer maar zolang het gratis is" or "Klopt, zolang
+    // mijn vriend Noud ook nog een plekje kan krijgen". None of the 4 existing categories catch
+    // this (no day/time word, "gratis" is not in PRICE_QUESTION_RE, no trailing "?", no hedge
+    // word), so it committed/cancelled immediately without the agent ever addressing the stated
+    // condition. NL: "zolang" (as long as), "mits" (provided that), "op voorwaarde dat" (on
+    // condition that). EN: "as long as", "provided (that)", "assuming", "on the condition that".
+    const CONDITIONAL_RE =
+      /\b(zolang|mits)\b|op\s+voorwaarde\s+dat|as\s+long\s+as|provided\s+(that\b|\w)|assuming\b|on\s+the\s+condition\s+that/i;
     const notCleanConfirm = (raw: string) =>
-      DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw);
+      DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
+      CONDITIONAL_RE.test(raw);
     // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): this signal is ALSO threaded into
     // ctx.ambiguousConfirm below (see createTools call) so tools.ts can gate the model's own
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/

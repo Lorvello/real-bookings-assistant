@@ -928,6 +928,27 @@ export function createTools(
           const { pending_booking: _drop, ...rest } = bookCtx;
           await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
         };
+        // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-NAME, sev-3): a name-correction stated on the SAME
+        // turn as the confirmation ("Klopt, maar dan voor Iris" on a Dana preview) was silently
+        // swallowed: the commit always sourced customer_name from the STORED pendingBook proposal
+        // (see rawName below), never the current turn's args.customer_name, even when the model
+        // itself called update_lead with the corrected name in the same turn. None of the 4/5
+        // ambiguousConfirm categories cover a bare name swap (no day/time word, no price word, no
+        // "?", no hedge word, no conditional word), so ctx.ambiguousConfirm stayed false and the
+        // stale name committed. Fix: treat a same-turn name change as its own ambiguity signal,
+        // the same "clarify over guess" pattern as ambiguousConfirm, rather than trusting the
+        // model's args.customer_name on a commit turn (which would reopen the exact "trust the
+        // model on an ambiguous turn" risk R23/R24 closed for time/service corrections). Compares
+        // the model's args.customer_name THIS turn against the stored preview name; a real
+        // placeholder-vs-real-name mismatch (empty/"Privé"/"Prive" on either side) is not a
+        // correction and is ignored, only two distinct non-empty real names count.
+        const isRealName = (n: unknown) => {
+          const t = String(n ?? "").trim().toLowerCase();
+          return t !== "" && t !== "privé" && t !== "prive";
+        };
+        const nameChanged = !!pendingBook?.start_time && isRealName(args.customer_name) && isRealName(pendingBook?.customer_name) &&
+          String(args.customer_name).trim().toLowerCase() !== String(pendingBook?.customer_name).trim().toLowerCase();
+
         // COMMIT only when a proposal was previewed in a previous turn AND the customer
         // confirmed (server-detected ctx.confirmBook, or the model's confirmed flag). On
         // commit we use the STORED proposal, never the model's (possibly mis-reconstructed) args.
@@ -940,11 +961,20 @@ export function createTools(
         // closes that path: on an ambiguous message neither arm can commit, so the model runs
         // normally against the still-pending proposal (re-previews or answers the question)
         // instead of silently committing the wrong thing.
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !!pendingBook?.start_time;
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && !!pendingBook?.start_time;
+        // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
+        // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
+        // rather than falling through to the generic fresh-preview path, which would expect
+        // args.service_type_id/date/time the model has no reason to resupply on a bare "Klopt,
+        // maar dan voor Iris" confirm turn and would otherwise dead-end on "ontbrekende_gegevens".
+        // This is a pure re-preview (no insert either way), so it carries none of the commit risk;
+        // it just corrects WHICH name gets shown back to the customer for the next confirm.
+        const wouldHaveCommitted = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !!pendingBook?.start_time;
+        const namePreviewOnly = nameChanged && wouldHaveCommitted;
 
-        const serviceId = String((committing ? pendingBook!.service_type_id : args.service_type_id) ?? "");
-        let start = String((committing ? pendingBook!.start_time : args.start_time) ?? "");
-        let end = String((committing ? pendingBook!.end_time : args.end_time) ?? "");
+        const serviceId = String(((committing || namePreviewOnly) ? pendingBook!.service_type_id : args.service_type_id) ?? "");
+        let start = String(((committing || namePreviewOnly) ? pendingBook!.start_time : args.start_time) ?? "");
+        let end = String(((committing || namePreviewOnly) ? pendingBook!.end_time : args.end_time) ?? "");
 
         // A2: which of the owner's calendars are we booking in? On COMMIT use the calendar stored
         // during the preview (authoritative, like start_time), so the confirm turn needs no
@@ -953,7 +983,7 @@ export function createTools(
         // guess (booking in the wrong staff/location is a real error) and ask which one. Every
         // value of calId comes from ctx.calendars → it can never point at another owner's calendar.
         let calId = ctx.calendarId;
-        if (committing) {
+        if (committing || namePreviewOnly) {
           calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
         } else {
           const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
@@ -975,13 +1005,13 @@ export function createTools(
         // model answers). bookPolicy is fetched ONCE here and reused for the max/day cap below
         // (no extra round-trip — it was already fetched unconditionally further down).
         const bookPolicy = await getCalendarPolicy(supabase, calId);
-        if (!committing && isPastDateNL(args.date)) {
+        if (!committing && !namePreviewOnly && isPastDateNL(args.date)) {
           return { error: "datum_verleden", message: "Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
         }
-        if (!committing && isBeyondWindowNL(args.date, bookPolicy.bookingWindowDays)) {
-          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet boeken — je kunt tot ${bookPolicy.bookingWindowDays} dagen vooruit een afspraak maken. Vraag de klant vriendelijk een eerdere datum.` };
+        if (!committing && !namePreviewOnly && isBeyondWindowNL(args.date, bookPolicy.bookingWindowDays)) {
+          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet boeken, je kunt tot ${bookPolicy.bookingWindowDays} dagen vooruit een afspraak maken. Vraag de klant vriendelijk een eerdere datum.` };
         }
-        if (!committing && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
+        if (!committing && !namePreviewOnly && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
           const r = await resolveSlotForTime(supabase, calId, serviceId, String(args.date), String(args.time), dur, bookPolicy.minimumNoticeHours);
           if ("error" in r) {
@@ -1050,7 +1080,7 @@ export function createTools(
         // Safety: end_time is no longer a required param (date+time computes it). If the model used
         // the legacy start_time path and gave a valid ISO start but NO end, derive end from the
         // service duration so we never insert a booking with an empty end_time.
-        if (!committing && start && /^\d{4}-\d{2}-\d{2}T/.test(start) && !end && serviceId) {
+        if (!committing && !namePreviewOnly && start && /^\d{4}-\d{2}-\d{2}T/.test(start) && !end && serviceId) {
           const dur = await serviceDuration(supabase, serviceId);
           end = new Date(new Date(start).getTime() + dur * 60000).toISOString();
         }
@@ -1058,10 +1088,13 @@ export function createTools(
         // NAME GATE: never create a nameless booking. The model must collect a real name
         // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
         // recorded in the conversation context). A bare "Privé"/empty without a recorded
-        // refusal means the model jumped to booking before asking — refuse and make it ask.
+        // refusal means the model jumped to booking before asking, refuse and make it ask.
         // This is a server-side guard because the LLM (temp 0.2) otherwise satisfies the
         // required customer_name param with a premature placeholder.
-        const rawName = String((committing ? pendingBook!.customer_name : args.customer_name) ?? "").trim();
+        // R25: on a namePreviewOnly turn, use the model's THIS-TURN args.customer_name (the
+        // corrected name), not the stale pendingBook name, so the re-preview reflects the
+        // correction the customer just stated.
+        const rawName = String(((committing) ? pendingBook!.customer_name : args.customer_name) ?? "").trim();
         const nameMissing = rawName === "" || rawName.toLowerCase() === "privé" || rawName.toLowerCase() === "prive";
         const refused = nameMissing && bookCtx.name_refused === true;
         if (nameMissing && !refused) {
@@ -1085,9 +1118,9 @@ export function createTools(
         // in_person service this whole block is a no-op: country/vat stay null and the booking
         // row is byte-identical to before. On COMMIT we use the stored values, so this lookup +
         // gate run only on a fresh preview.
-        let bookCountry: string | null = committing ? (normalizeCountry(pendingBook?.customer_country)) : null;
-        let bookVatId: string | null = committing ? (normalizeVatId(pendingBook?.customer_vat_id)) : null;
-        if (!committing) {
+        let bookCountry: string | null = (committing || namePreviewOnly) ? (normalizeCountry(pendingBook?.customer_country)) : null;
+        let bookVatId: string | null = (committing || namePreviewOnly) ? (normalizeVatId(pendingBook?.customer_vat_id)) : null;
+        if (!committing && !namePreviewOnly) {
           const xb = await serviceCrossBorder(supabase, serviceId);
           bookCountry = normalizeCountry(args.customer_country);
           bookVatId = normalizeVatId(args.customer_vat_id);
@@ -1112,7 +1145,7 @@ export function createTools(
         // turn blocked genuine second bookings forever, because gpt-4.1-mini rarely re-sets the flag on
         // the "ja" turn (adversarial finding: infinite preview loop). The overlap constraint +
         // validate_booking_security still catch any real slot conflict on insert.
-        if (!committing && args.confirm_second_booking !== true) {
+        if (!committing && !namePreviewOnly && args.confirm_second_booking !== true) {
           const { data: existing } = await supabase
             .from("bookings")
             .select("start_time")
@@ -1186,6 +1219,9 @@ export function createTools(
 
         // PREVIEW phase: every guard passed, but DON'T insert yet. Store the proposal and ask
         // the customer to confirm; the next affirm turn commits THIS exact proposal.
+        // R25: this branch is ALSO where a namePreviewOnly turn lands (nameChanged blocked the
+        // commit above), re-storing the SAME validated slot/service with the CORRECTED name and
+        // asking the customer to confirm again, rather than silently committing the stale name.
         if (!committing) {
           // Compound-request guard: only ONE pending_booking can be held at a time, so a
           // second preview in the same turn would silently drop the first while the model
