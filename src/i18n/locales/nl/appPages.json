@@ -422,7 +422,11 @@
     "title": "Je AI-agent",
     "greeting": "Hallo, ik ben je AI boekingsassistent. Stel me een vraag die je klanten zouden kunnen stellen.",
     "hint": "Druk op Enter om te versturen",
-    "header": "Test je AI-agent"
+    "header": "Test je AI-agent",
+    "suggestion1": "Wat zijn jullie openingstijden?",
+    "suggestion2": "Hoe boek ik een afspraak?",
+    "suggestion3": "Waar zijn jullie gevestigd?",
+    "suggestion4": "Kan ik annuleren of verzetten?"
   },
   "calPage": {
     "loading": {

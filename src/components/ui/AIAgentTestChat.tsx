@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -270,7 +270,12 @@ export default function AIAgentTestPage({
   title,
   greeting,
   hint,
-}: { framed?: boolean; title?: string; greeting?: string; hint?: string } = {}) {
+  // Owner-facing surface only (Test-AI-Agent page passes these; the public marketing
+  // demo does not). Tappable example questions shown while the transcript is still
+  // just the greeting, so a first-time owner has a concrete next step instead of a
+  // blank input. Disappear the moment a real conversation starts.
+  suggestedPrompts,
+}: { framed?: boolean; title?: string; greeting?: string; hint?: string; suggestedPrompts?: string[] } = {}) {
   const { t } = useTranslation('home');
   const resolvedTitle = title ?? t('demo.aiAgent.title', 'AI Agent Demo');
   const resolvedGreeting = greeting ?? t('demo.aiAgent.greeting', "Hello! I'm your AI agent. Ask me a question to test my capabilities!");
@@ -285,6 +290,13 @@ export default function AIAgentTestPage({
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  // Mirrors `messages` for sendMessage's async closure (see below): reading
+  // this instead of `messages` directly avoids a stale-closure snapshot when
+  // sendMessage is called again before the previous reply has resolved.
+  const messagesRef = useRef<Message[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const placeholders = [
     t('demo.aiAgent.placeholder1', "Ask me something about your business..."),
@@ -317,31 +329,35 @@ export default function AIAgentTestPage({
     return data.reply || t('demo.aiAgent.errorNoResponse', "Sorry, I couldn't generate a response.");
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
+  // Shared send path: both the real form submit and a suggested-prompt chip
+  // click land here, so the chip experience is not a second, divergent
+  // implementation of "send a message" (one code path, one set of bugs).
+  const sendMessage = useCallback(async (text: string) => {
+    if (!text.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: "user",
-      content: inputValue,
+      content: text,
       timestamp: new Date(),
     };
 
-    const updatedMessages = [...messages, userMessage];
+    // Read via the ref (always current) rather than `messages` from the
+    // outer closure, so back-to-back sends (e.g. a fast chip tap) each send
+    // the correct, up-to-date conversation history to the agent.
+    const updatedMessages = [...messagesRef.current, userMessage];
     setMessages(updatedMessages);
-    setInputValue("");
     setIsTyping(true);
 
     try {
-      const reply = await getAIResponse(inputValue, updatedMessages);
+      const reply = await getAIResponse(text, updatedMessages);
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "bot",
         content: reply,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botResponse]);
+      setMessages((cur) => [...cur, botResponse]);
     } catch (error) {
       console.error('Failed to get AI response:', error);
       const errorResponse: Message = {
@@ -350,10 +366,28 @@ export default function AIAgentTestPage({
         content: t('demo.aiAgent.errorGeneric', "Sorry, something went wrong. Please try again."),
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorResponse]);
+      setMessages((cur) => [...cur, errorResponse]);
     } finally {
       setIsTyping(false);
     }
+  }, [t]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const text = inputValue;
+    setInputValue("");
+    void sendMessage(text);
+  };
+
+  // Only offer suggestions while the transcript is still just the opening
+  // greeting (a real back-and-forth has already started otherwise) and only
+  // before the owner has typed anything (do not fight an in-progress draft).
+  const showSuggestedPrompts = Boolean(
+    suggestedPrompts?.length && messages.length === 1 && !isTyping && !inputValue
+  );
+
+  const handleSuggestedPromptClick = (prompt: string) => {
+    void sendMessage(prompt);
   };
 
   return (
@@ -436,6 +470,33 @@ export default function AIAgentTestPage({
                   </motion.div>
                 ))}
               </AnimatePresence>
+
+              {showSuggestedPrompts && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.15 }}
+                  className="pl-8 sm:pl-11 flex flex-col gap-1.5 sm:gap-2"
+                >
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Sparkles aria-hidden="true" className="h-3 w-3 text-primary/70" />
+                    {t('demo.aiAgent.suggestionsLabel', 'Try asking')}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {suggestedPrompts!.map((prompt, i) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => handleSuggestedPromptClick(prompt)}
+                        className="fade-up text-left text-xs sm:text-sm px-3 py-1.5 sm:py-2 rounded-full border border-primary/25 bg-primary/[0.06] text-foreground/90 hover:bg-primary/[0.12] hover:border-primary/40 active:scale-[0.97] transition-[background-color,border-color,transform] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        style={{ animationDelay: `${200 + i * 60}ms` }}
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
               {isTyping && (
                 <motion.div

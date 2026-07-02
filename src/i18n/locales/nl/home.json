@@ -329,7 +329,8 @@
       "placeholder4": "Vraag me om een leadgeneratiestrategie...",
       "placeholder5": "Test mijn creativiteit met content-ideeën...",
       "errorNoResponse": "Sorry, ik kon geen antwoord genereren.",
-      "errorGeneric": "Sorry, er ging iets mis. Probeer het opnieuw."
+      "errorGeneric": "Sorry, er ging iets mis. Probeer het opnieuw.",
+      "suggestionsLabel": "Probeer te vragen"
     }
   }
 }
