@@ -957,8 +957,24 @@ Deno.serve(async (req) => {
     const isErr = (r: unknown) => !!r && typeof r === "object" &&
       ("error" in (r as Record<string, unknown>) || "needs_confirmation" in (r as Record<string, unknown>));
     const succeededMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
+    // R29 (T3-LATENCY-PAYOFF, confirmStall root-cause): bareAffirm is a PREFIX match on the
+    // customer's whole message ("Klopt, maar kan het ook een uur later?" starts with "Klopt" so
+    // it matches), not "the message is ONLY an affirmation". Before this fix, confirmStall fired
+    // on that exact shape even though the customer's message is CHANGING the request (a
+    // time-shift, a price question, a name correction, a conditional), not confirming a stalled
+    // proposal: a false-trigger measured at ~100% on that specific shape in a fresh repro batch
+    // (7/7 log-confirmed fires, all accepted=false, i.e. the wasted 2-3-step retry never even
+    // helped, the model correctly re-asked/re-offered on its own, the retry was pure overhead).
+    // Fix: reuse ambiguousConfirm/notCleanConfirm (line 823-830), the SAME proven-safe signal
+    // R23-R27 already use to gate confirmBook/confirmCancel against this identical ambiguity
+    // class (day/time-shift, price question, trailing "?", hedge words, conditionals). This does
+    // NOT weaken the guarantee confirmStall protects (a genuine bare "ja"/"klopt" to a stalled
+    // proposal, with nothing else in the message, still fires exactly as before, ambiguousConfirm
+    // is false on a clean "Ja" or "Klopt"). It only stops the nudge-and-retry from firing on
+    // messages that were never a clean confirmation in the first place, where the model's own
+    // "which one?" follow-up was already the CORRECT behavior.
     const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
-    const confirmStall = !succeededMutation && bareAffirm && !cancelPreviewMissed && !confirmCancel &&
+    const confirmStall = !succeededMutation && bareAffirm && !ambiguousConfirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
 
     // Cancel-commit-missed: the customer AFFIRMED a pending cancel (server-detected confirmCancel)
