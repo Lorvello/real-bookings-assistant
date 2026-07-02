@@ -845,9 +845,36 @@ Deno.serve(async (req) => {
     // regardless of what this regex matches (verified live, see evidence).
     const VAGUE_PREFERENCE_RE =
       /\b(liever)\b|\biets\s+anders\b|\biets\s+(anders\w*|rustiger\w*|later\w*|vroeger\w*)\b|would\s+rather|actually\s+prefer|\bprefer\s+something\s+else\b|\brather\s+have\b|\bsomething\s+else\b/i;
+    // R31 (AFFIRM-CONFIRM-HONESTLY-NOT-WHAT-I-HAD-IN-MIND, sev-2): a 7th ambiguity category, the
+    // 8th recurrence of the same regex-enumeration-misses-a-phrasing pattern (R25 conditional/
+    // name, R26 service-correction path, R27 "tenzij", R30 vague-preference). "Yes correct, but
+    // that's honestly not really what I had in mind" pairs an affirm word with an open-ended
+    // REJECTION/dissatisfaction statement: no day/time word, no price word, no "?", no hedge word,
+    // no conditional connective, no VAGUE_PREFERENCE_RE trigger (no "liever"/"iets anders"/
+    // "something else"/"rather have"/"prefer" at all). DB-proven live (R30-verify + this round's
+    // own fresh repro, phones 31600170004/07 + 31600180001/02): the original unconfirmed slot
+    // committed anyway despite the customer explicitly stating the result was not what they
+    // wanted. Root-cause investigation this round (see evidence/IUX_r31.md section 2) found this
+    // is NOT a model-attestation miss (the model itself correctly declined to attest cleanliness
+    // on the primary turn); it is the SERVER's own confirmBook (driven by this same regex gap)
+    // forcing a stall-retry nudge that overrides the model's correct judgment. Closing the regex
+    // gap here is therefore sufficient to close this exact case (see index.ts's bookCommitMissed/
+    // nudge-text hardening below for the defense-in-depth half). NL: "toch niet" (not after all),
+    // "niet wat ik wilde/zocht/bedoelde/verwachtte", "niet wat ik in gedachten had", "niet wat ik
+    // voor ogen had", "dat bedoelde ik niet", "van gedachten veranderd". EN: "not what I had in
+    // mind", "not really what I wanted/meant", "that's not it", "changed my mind", "not quite
+    // what I". Deliberately NOT matched to a first-time rejection-then-restate risk: this signal
+    // is only ever consulted by confirmBook/confirmCancel (both require pendingBookFresh/
+    // pendingFresh, i.e. an existing fresh preview) and by tools.ts's committing/cancel-commit
+    // gates (both require pendingBook?.start_time/pending?.start_time to already exist), so a
+    // bare first-time "dat is niet wat ik zocht, ik wil eigenlijk..." with no pending proposal
+    // never reaches this gate at all, regardless of what this regex matches (same structural
+    // proof R30 relied on for VAGUE_PREFERENCE_RE; verified live, see evidence).
+    const REJECTION_RE =
+      /\bniet\s+wat\s+ik\s+(wilde|zocht|bedoelde|verwachtte|in\s+gedachten\s+had)\b|\bniet\s+helemaal\s+wat\s+ik\b|\btoch\s+niet\b|\bdat\s+bedoelde\s+ik\s+niet\b|\bniet\s+wat\s+ik\s+voor\s+ogen\s+had\b|\bvan\s+gedachten\s+veranderd\b|\bnot\s+(really\s+)?what\s+i\s+(had\s+in\s+mind|wanted|meant|expected)\b|\bthat'?s?\s+not\s+(it|really\s+it)\b|\bnot\s+really\s+what\s+i\s+(wanted|meant)\b|\bchanged\s+my\s+mind\b|\bnot\s+quite\s+what\s+i\b/i;
     const notCleanConfirm = (raw: string) =>
       DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
-      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw);
+      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw) || REJECTION_RE.test(raw);
     // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): this signal is ALSO threaded into
     // ctx.ambiguousConfirm below (see createTools call) so tools.ts can gate the model's own
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/
@@ -1081,10 +1108,24 @@ Deno.serve(async (req) => {
         reschedStall ? "reschedStall" : bookPreviewMissed ? "bookPreviewMissed" :
         cancelPreviewMissed ? "cancelPreviewMissed" : confirmStall ? "confirmStall" :
         emptyNoAction ? "emptyNoAction" : slotOfferUnbacked ? "slotOfferUnbacked" : "looksLikeStall";
+      // R31 (AFFIRM-CONFIRM-HONESTLY-NOT-WHAT-I-HAD-IN-MIND): the cancelCommitMissed/
+      // bookCommitMissed/confirmStall nudge texts used to assert "het systeem heeft de
+      // bevestiging al als schoon herkend" (the system already recognized this confirmation as
+      // clean), which is misleading: that server-side signal (confirmBook/confirmCancel) is
+      // itself just this same regex layer's own belief, not an independent truth, so telling the
+      // model it is already settled actively overrode the model's own (in this round's repro,
+      // CORRECT) judgment on the retry turn. Reworded to instead instruct the model to make its
+      // OWN honest only_confirming_previous judgment on THIS retry call, same as any other
+      // book/cancel commit call, so a future regex gap on a new phrasing degrades to "the model
+      // still gets a fair, unbiased chance to say false" instead of "the nudge tells it the
+      // answer is already true." Safe by construction, unchanged: tools.ts still requires
+      // args.only_confirming_previous === true AND !ctx.ambiguousConfirm AND a stored
+      // pendingBook/pending to ever commit (tools.ts's committing/cancel-commit gates), so this
+      // wording change can only ever make a wrong commit LESS likely, never more.
       const nudgeText = cancelCommitMissed
-        ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true EN only_confirming_previous:true (het systeem heeft de bevestiging al als schoon herkend) om 'm echt te annuleren, en antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
+        ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd, vraag, voorwaarde, twijfel, afwijzing/ontevredenheid in welke vorm dan ook). Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
         : bookCommitMissed
-        ? "[systeem] De klant bevestigde de zojuist voorgestelde afspraak, maar je hebt book_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geboekt. Roep NU book_appointment aan met confirmed:true EN only_confirming_previous:true (het systeem heeft de bevestiging al als schoon herkend) om 'm echt te boeken. Het systeem gebruikt het in de preview opgeslagen tijdslot: geef de datum of tijd NIET opnieuw door en bereken niets na. Vraag niets extra's en zeg NOOIT dat er geboekt is voordat de tool 'ok' teruggaf."
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde afspraak, maar je hebt book_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geboekt. Roep NU book_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel, of een afwijzing/ontevredenheid in welke vorm dan ook, ook als er geen concreet alternatief genoemd wordt). Twijfel je: false, dan vraagt het systeem gewoon nogmaals, veiliger dan verkeerd boeken. Het systeem gebruikt bij confirmed:true het in de preview opgeslagen tijdslot: geef de datum of tijd NIET opnieuw door en bereken niets na. Vraag niets extra's en zeg NOOIT dat er geboekt is voordat de tool 'ok' teruggaf."
         : reschedStall
         ? "[systeem] Je beschreef een verzetting naar een concrete tijd maar riep reschedule_appointment niet aan, dus er is NIETS verzet. Roep NU reschedule_appointment aan met date (YYYY-MM-DD) + time (HH:MM) van die nieuwe tijd. De genoemde tijd is de bevestiging: vraag niet om 'oké?' of 'klopt dat?', verzet meteen en antwoord met het resultaat ('Gedaan, je staat nu op ...')."
         : bookPreviewMissed
@@ -1098,7 +1139,7 @@ Deno.serve(async (req) => {
         // Safe by construction: tools.ts only commits when a server-stored pending_booking exists
         // (committing = confirmed && pendingBook, tools.ts ~917), so a stray confirmed:true can
         // never book anything except the exact previewed slot; without a preview it just previews.
-        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde; herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Heb je deze beurt al een boekings-preview met book_appointment gedaan, roep book_appointment dan opnieuw aan met confirmed:true EN only_confirming_previous:true (het systeem heeft de bevestiging al als schoon herkend; het systeem boekt exact het opgeslagen tijdslot; NIET nogmaals zonder confirmed aanroepen, dat maakt alleen weer een preview). Stel geen extra vraag en kondig niets aan: antwoord met het resultaat."
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde; herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Heb je deze beurt al een boekings-preview met book_appointment gedaan, roep book_appointment dan opnieuw aan met confirmed:true, en beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (het systeem boekt exact het opgeslagen tijdslot; NIET nogmaals zonder confirmed aanroepen, dat maakt alleen weer een preview). Stel geen extra vraag en kondig niets aan: antwoord met het resultaat."
         : emptyNoAction
         ? "[systeem] Je gaf GEEN antwoord aan de klant. Beantwoord hun LAATSTE bericht kort en behulpzaam in hun taal: roep de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) als er een actie nodig is, of leg kort uit wat er kan. Vraagt de klant een dag die GESLOTEN is (zie <kalender>/<kalenders>), zeg dat dan eerlijk, noem de openingstijden en bied een open dag aan. Stuur nooit een lege of generieke foutmelding."
         : slotOfferUnbacked
