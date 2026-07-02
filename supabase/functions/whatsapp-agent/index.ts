@@ -792,8 +792,17 @@ Deno.serve(async (req) => {
     // word), so it committed/cancelled immediately without the agent ever addressing the stated
     // condition. NL: "zolang" (as long as), "mits" (provided that), "op voorwaarde dat" (on
     // condition that). EN: "as long as", "provided (that)", "assuming", "on the condition that".
+    // R27 (AFFIRM-CONFIRM-COVERAGE-GAP-UNLESS, sev-2): "tenzij"/"unless" is a DIFFERENT connective
+    // shape than "zolang"/"mits" (those state the condition FOR proceeding; "tenzij"/"unless"
+    // states the condition AGAINST proceeding / for an alternative instead), so it was never
+    // covered by the R25 pattern. R26-verify DB-proved this live: "Ja annuleer maar, tenzij
+    // jullie toch nog een gratis alternatief hebben" committed the cancel without addressing the
+    // stated condition, bypassing both this regex layer AND the model's own
+    // only_confirming_previous attestation (R26). NL: "tenzij" (unless), "behalve als" (except
+    // if). EN: "unless", "except if". "tenzij dat" is matched by the same \b(tenzij)\b entry
+    // (word-boundary already covers the trailing "dat").
     const CONDITIONAL_RE =
-      /\b(zolang|mits)\b|op\s+voorwaarde\s+dat|as\s+long\s+as|provided\s+(that\b|\w)|assuming\b|on\s+the\s+condition\s+that/i;
+      /\b(zolang|mits|tenzij)\b|op\s+voorwaarde\s+dat|behalve\s+als|as\s+long\s+as|provided\s+(that\b|\w)|assuming\b|on\s+the\s+condition\s+that|\bunless\b|except\s+if/i;
     const notCleanConfirm = (raw: string) =>
       DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
       CONDITIONAL_RE.test(raw);

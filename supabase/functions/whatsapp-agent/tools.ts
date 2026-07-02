@@ -672,7 +672,22 @@ export function createTools(
         "Vereist dit bedrijf vooruitbetaling, dan geeft stap 2 een betaallink (payment_url) terug; stuur die en zeg dat de plek gereserveerd is tot betaling.",
       parameters: {
         type: "object",
+        // R27 (T3-LATENCY-PAYOFF): confirmed/only_confirming_previous moved to be the FIRST two
+        // properties (was 9th/10th of 10, after 8 mostly-commit-irrelevant fields). Mirrors
+        // cancel_appointment's existing, better-performing field order below, where these two are
+        // already fields 1-2. Live `[stall-retry]` log evidence (this round's own baseline batch +
+        // R26-verify) caught bookCommitMissed (this tool) firing repeatedly while
+        // confirmCancelMissed did not, consistent with the model's attention being spent reasoning
+        // about/omitting 8 preceding fields before reaching only_confirming_previous on the commit
+        // call. Pure JSON-key-order change: JS object key order is preserved into the schema JSON
+        // sent to Groq; no change to validation, defaults, or the fail-closed `=== true` gate below.
         properties: {
+          confirmed: { type: "boolean", description: "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview." },
+          only_confirming_previous: {
+            type: "boolean",
+            description:
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt'), niets anders. false = het bericht bevat ook iets anders (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd boeken). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
+          },
           service_type_id: { type: "string", description: "UUID van de dienst uit de services-lijst. Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de dienst uit de preview." },
           date: { type: "string", description: "Datum YYYY-MM-DD (uit de <kalender>). Geef date + time door als de klant een concrete tijd noemde; de tool zoekt zelf het exacte slot (sneller, geen aparte get_available_slots nodig)." },
           time: { type: "string", description: "Kloktijd HH:MM (Amsterdamse tijd) die de klant koos, bv '14:00'. Samen met date de voorkeursmanier om te boeken." },
@@ -682,12 +697,6 @@ export function createTools(
           customer_country: { type: "string", description: "ALLEEN voor een AFSTANDS-/DIGITALE dienst (in <services>/<kalenders> gemarkeerd als AFSTAND/DIGITAAL): de 2-letter landcode (ISO, bv. NL, DE, BE) van het land waar de klant gevestigd is, voor de juiste grensoverschrijdende btw. Geef dit mee in de eerste (preview) aanroep. Laat WEG bij een gewone (in_person) dienst. Verzin nooit een land; vraag het de klant." },
           customer_vat_id: { type: "string", description: "OPTIONEEL en alleen voor een AFSTANDS-/DIGITALE dienst: het EU-btw-nummer van de klant als die als BEDRIJF boekt (bv. NL123456789B01, DE123456789). Laat WEG als de klant particulier is of geen nummer heeft, en bij een in_person dienst. Verzin nooit een nummer." },
           calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview." },
-          confirmed: { type: "boolean", description: "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview." },
-          only_confirming_previous: {
-            type: "boolean",
-            description:
-              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt'), niets anders. false = het bericht bevat ook iets anders (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd boeken).",
-          },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
         },
         // R26: service_type_id/customer_name are NOT schema-required anymore (were previously).
@@ -723,7 +732,7 @@ export function createTools(
           only_confirming_previous: {
             type: "boolean",
             description:
-              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt', 'annuleer maar'), niets anders. false = het bericht bevat ook iets anders (vraag, voorwaarde, andere afspraak/tijd, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd annuleren).",
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt', 'annuleer maar'), niets anders. false = het bericht bevat ook iets anders (vraag, voorwaarde, andere afspraak/tijd, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd annuleren). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
           },
           match_time: {
             type: "string",
