@@ -446,7 +446,28 @@ Deno.serve(async (req) => {
       const otherCals = calendars.filter((c) => c.id !== calendar_id);
       const otherHours = await Promise.all(otherCals.map((c) => getCalendarWeeklyHours(supabase, c.id)));
       otherCals.forEach((c, i) => hoursByCal.set(c.id, otherHours[i]?.text ?? null));
-      calendarsForPrompt = calendars.map((c, i) => ({ index: i + 1, name: c.name, services: byCal.get(c.id) ?? [], openingHours: hoursByCal.get(c.id) ?? null }));
+      // T3-A1 (R7): per-calendar cancellation policy, same pattern as openingHours above, so the
+      // model can correctly answer a question about a NAMED DIFFERENT calendar's policy (the
+      // <business_data> override further below only ever resolves to the CUSTOMER'S OWN upcoming
+      // booking, never an arbitrary named calendar; both are needed for the two different
+      // question shapes). One getCalendarPolicy call per calendar in the allowlist (max 5, the
+      // same allowlist size cap as the services query above), reusing the same exported helpers
+      // R6 added for the own-booking case. Only runs in multi-calendar mode, so single-calendar
+      // tenants pay zero added cost, identical gating to the rest of this block.
+      // businessName is derived further below in this function; use the same source
+      // (businessData.business_name) directly here since that const is not yet in scope.
+      const businessNameForPolicy = (businessData?.business_name as string | null) ?? "ons bedrijf";
+      const policyByCal = await Promise.all(calendars.map((c) => getCalendarPolicy(supabase, c.id)));
+      const policyTextByCal = new Map<string, string | null>(
+        calendars.map((c, i) => {
+          const p = policyByCal[i];
+          const text = !p.allowCancellations
+            ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessNameForPolicy}.`
+            : formatCancellationPolicyNL(p);
+          return [c.id, text];
+        }),
+      );
+      calendarsForPrompt = calendars.map((c, i) => ({ index: i + 1, name: c.name, services: byCal.get(c.id) ?? [], openingHours: hoursByCal.get(c.id) ?? null, cancellationPolicy: policyTextByCal.get(c.id) ?? null }));
     }
 
     const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
