@@ -107,49 +107,58 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
             </DropdownMenuItem>
             
             <DropdownMenuSeparator />
-            
-            {calendars.map((calendar) => {
-              const isActive = !viewingAllCalendars && selectedCalendar?.id === calendar.id;
-              return (
-              <DropdownMenuItem
-                key={calendar.id}
-                onClick={() => selectCalendar(calendar)}
-                className={`flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group ${isActive ? 'bg-primary/[0.06] ring-1 ring-inset ring-primary/20' : ''}`}
-              >
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0 border border-border"
-                  style={{ backgroundColor: calendar.color || '#6B7280' }}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium truncate text-foreground">{calendar.name}</span>
-                    {calendar.is_default && (
-                      <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
-                    )}
-                    {isActive && (
-                      <Badge className="text-xs bg-primary/15 text-primary border-transparent">{t('app.calSwitch.active', 'Active')}</Badge>
+
+            {/* IUX R8 P2: bounded + scrollable so a growing multi-calendar chain
+                (real persona: several locations/practitioners) never renders
+                calendar rows outside the viewport with no way to reach them.
+                The base DropdownMenuContent primitive has no max-height of its
+                own (only overflow-hidden for the rounded-corner clip), so an
+                unbounded .map() here let Radix's collision-avoidance shift the
+                whole popover off-screen once the list grew past ~1 viewport. */}
+            <div className="max-h-[50vh] overflow-y-auto">
+              {calendars.map((calendar) => {
+                const isActive = !viewingAllCalendars && selectedCalendar?.id === calendar.id;
+                return (
+                <DropdownMenuItem
+                  key={calendar.id}
+                  onClick={() => selectCalendar(calendar)}
+                  className={`flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group ${isActive ? 'bg-primary/[0.06] ring-1 ring-inset ring-primary/20' : ''}`}
+                >
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0 border border-border"
+                    style={{ backgroundColor: calendar.color || '#6B7280' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium truncate text-foreground">{calendar.name}</span>
+                      {calendar.is_default && (
+                        <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
+                      )}
+                      {isActive && (
+                        <Badge className="text-xs bg-primary/15 text-primary border-transparent">{t('app.calSwitch.active', 'Active')}</Badge>
+                      )}
+                    </div>
+                    {calendar.description && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {calendar.description}
+                      </p>
                     )}
                   </div>
-                  {calendar.description && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {calendar.description}
-                    </p>
-                  )}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => handleEditCalendar(calendar, e)}
-                  aria-label={t('app.calSwitch.editAria', 'Edit {{name}}', { name: calendar.name })}
-                  title={t('app.calSwitch.editTitle', 'Edit calendar')}
-                  className="shrink-0 p-1 h-7 w-7 text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground transition"
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuItem>
-              );
-            })}
-            
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleEditCalendar(calendar, e)}
+                    aria-label={t('app.calSwitch.editAria', 'Edit {{name}}', { name: calendar.name })}
+                    title={t('app.calSwitch.editTitle', 'Edit calendar')}
+                    className="shrink-0 p-1 h-7 w-7 text-muted-foreground opacity-70 hover:opacity-100 hover:text-foreground transition"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuItem>
+                );
+              })}
+            </div>
+
             <DropdownMenuSeparator />
             
             <DropdownMenuItem 

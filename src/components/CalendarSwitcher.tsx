@@ -117,48 +117,54 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 </>
               )}
               
-              {calendars.map((calendar) => (
-                <DropdownMenuItem
-                  key={calendar.id}
-                  onClick={() => selectCalendar(calendar)}
-                  className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
-                >
-                  <div 
-                    className="w-3 h-3 rounded-full flex-shrink-0 border border-border" 
-                    style={{ backgroundColor: calendar.color || 'hsl(var(--subtle-foreground))' }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium truncate text-foreground">{calendar.name}</span>
-                      {calendar.is_default && (
-                        <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
+              {/* IUX R8 P2: bounded + scrollable, same fix as CalendarSwitcherSection.tsx
+                  - the base DropdownMenuContent primitive has no max-height of its own,
+                  so an unbounded .map() here let a growing multi-calendar chain push
+                  rows off-screen with no way to scroll to them. */}
+              <div className="max-h-[50vh] overflow-y-auto">
+                {calendars.map((calendar) => (
+                  <DropdownMenuItem
+                    key={calendar.id}
+                    onClick={() => selectCalendar(calendar)}
+                    className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
+                  >
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0 border border-border"
+                      style={{ backgroundColor: calendar.color || 'hsl(var(--subtle-foreground))' }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium truncate text-foreground">{calendar.name}</span>
+                        {calendar.is_default && (
+                          <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
+                        )}
+                      </div>
+                      {calendar.description && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {calendar.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {t('app.calSwitch.ownerYou', 'Owner: You')}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleEditCalendar(calendar, e)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
+                        <div className="w-2 h-2 bg-primary rounded-full" />
                       )}
                     </div>
-                    {calendar.description && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {calendar.description}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {t('app.calSwitch.ownerYou', 'Owner: You')}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => handleEditCalendar(calendar, e)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    {(!viewingAllCalendars || hideAllCalendarsOption) && selectedCalendar?.id === calendar.id && (
-                      <div className="w-2 h-2 bg-primary rounded-full" />
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-              
+                  </DropdownMenuItem>
+                ))}
+              </div>
+
               <DropdownMenuSeparator />
               
               <DropdownMenuItem 
