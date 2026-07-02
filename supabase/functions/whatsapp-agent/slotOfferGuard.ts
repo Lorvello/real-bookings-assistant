@@ -94,6 +94,20 @@ export function collectTurnSlots(
         const hhmm = add(raw);
         if (hhmm) collected.push(hhmm);
       }
+      // R22 (task_745b7fa0): get_available_slots also carries `laatste_slot`, the genuine LAST
+      // free slot of the day, which the head-truncated (12-cap) available_slots list omits on a
+      // full day. It comes from the SAME RPC result, so it is real ground truth: without this,
+      // the guard rewrote a truthful "latest slot is 16:30" answer into an early-slots offer
+      // (measured live). Dedup via add(); appended last = chronologically correct position.
+      const lastSlot = (r as { laatste_slot?: unknown }).laatste_slot;
+      const lastTijd = lastSlot && typeof lastSlot === "object" &&
+          typeof (lastSlot as { tijd?: unknown }).tijd === "string"
+        ? (lastSlot as { tijd: string }).tijd
+        : null;
+      if (lastTijd) {
+        const hhmm = add(lastTijd);
+        if (hhmm && !collected.includes(hhmm)) collected.push(hhmm);
+      }
       if (dateLabel && collected.length) byDate.set(dateLabel, collected);
     }
   }

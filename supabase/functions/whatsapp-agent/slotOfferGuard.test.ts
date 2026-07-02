@@ -42,6 +42,27 @@ Deno.test("a fully real offer passes through untouched", () => {
   assertEquals(out, reply);
 });
 
+// R22 (task_745b7fa0): the result's `laatste_slot` (true last slot of the day, omitted from the
+// 12-cap available_slots list on a full day) is REAL ground truth from the same RPC. A truthful
+// "latest slot" answer citing it must never be rewritten as phantom.
+Deno.test("laatste_slot time counts as real and is not rewritten", () => {
+  const tc: ToolCall = {
+    name: "get_available_slots",
+    result: {
+      date: "2026-07-03",
+      available_slots: [{ tijd: "09:00", start: "2026-07-03T09:00:00+02:00" }],
+      count: 15,
+      laatste_slot: { tijd: "16:30", start: "2026-07-03T16:30:00+02:00" },
+    },
+  };
+  const reply = "Het laatste slot dat voor sluitingstijd klaar is, is 16:30. Zal ik die boeken?";
+  assertEquals(enforceSlotOffer(reply, [tc], "de laatste knipbeurt graag", null), reply);
+  // and a genuinely phantom time is still rebuilt, with 16:30 in the allowlist/rebuild set
+  const out = enforceSlotOffer("Schikt 13:00?", [tc], "de laatste knipbeurt graag", null);
+  assert(!out.includes("13:00"), `phantom 13:00 must be gone: ${out}`);
+  assert(out.includes("16:30"), `real laatste_slot 16:30 should appear in rebuild: ${out}`);
+});
+
 Deno.test("mixed offer (one real, one phantom) is rebuilt", () => {
   const out = enforceSlotOffer("09:00 of 13:00?", [slots("2026-06-29", ["09:00", "10:30"])], "maandag", null);
   assert(out.includes("09:00") && out.includes("10:30"), out);

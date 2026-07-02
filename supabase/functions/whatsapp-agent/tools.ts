@@ -626,7 +626,8 @@ export function createTools(
       description:
         "Geeft ECHTE vrije tijdslots voor een dienst op een datum. Roep aan vóór je een tijd voorstelt of boekt. Verzin nooit zelf tijden. " +
         "Elk slot = { tijd: de kloktijd die je AAN DE KLANT toont (bv '14:00'), start: de exacte ISO-tijd die je ONGEWIJZIGD doorgeeft als book_appointment.start_time }. " +
-        "Reken zelf NOOIT tijden om; toon `tijd`, boek met `start`.",
+        "Reken zelf NOOIT tijden om; toon `tijd`, boek met `start`. " +
+        "LET OP: available_slots toont maximaal de eerste 12 slots van de dag; `laatste_slot` in het resultaat is het ECHTE laatste vrije slot. Vraagt de klant naar het laatste / zo laat mogelijke moment, gebruik dan ALTIJD `laatste_slot`, nooit de laatste tijd uit de lijst.",
       parameters: {
         type: "object",
         properties: {
@@ -839,10 +840,17 @@ export function createTools(
         // Each slot carries `tijd` (NL clock time to SHOW the customer) and `start`
         // (the exact ISO instant to pass back as book_appointment.start_time). The
         // model presents `tijd` and books `start`, so it never converts UTC itself.
+        // R22 (task_745b7fa0): `.slice(0, 12)` HEAD-truncates the day, so on a full day the
+        // model literally never saw the true last slots and answered "latest slot" questions
+        // with the 12th-shown time (measured live: true last 16:30, agent said 15:30).
+        // Additive fix: `laatste_slot` always carries the genuine LAST free slot of the day;
+        // the shown list stays byte-identical for every other question shape.
+        const lastFree = slots.length > 0 ? slots[slots.length - 1] : null;
         return {
           date: args.date,
           available_slots: slots.slice(0, 12).map((s) => ({ tijd: nlTimeOnly(s), start: s })),
           count: slots.length,
+          laatste_slot: lastFree ? { tijd: nlTimeOnly(lastFree), start: lastFree } : null,
         };
       }
 
