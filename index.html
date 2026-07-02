@@ -16,12 +16,19 @@
     <meta name="theme-color" content="#0B0D11" />
 
     <!-- Security Headers -->
+    <!-- X-Content-Type-Options / X-XSS-Protection / Permissions-Policy: browsers DO honor these via
+         <meta http-equiv>, so they stay here as a client-side backstop. -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
-    
+    <!-- X-Frame-Options REMOVED from here (R13 T3-B2 / RUX-9): browsers refuse to honor X-Frame-Options via
+         <meta http-equiv>, per the HTML spec and every browser vendor. It can ONLY be set as a real HTTP
+         response header, so this tag never provided any clickjacking protection, it only produced a console
+         warning ("X-Frame-Options may only be set via an HTTP header, not inside <meta>.") on every page load.
+         Real protection now lives in vercel.json's `headers` config, applied by Vercel as an actual HTTP
+         response header on every route. -->
+
     <!-- Content Security Policy will be set by productionSecurity.ts -->
     
     <!-- Cache Control Hints -->
