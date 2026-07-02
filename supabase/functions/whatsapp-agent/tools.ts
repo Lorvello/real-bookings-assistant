@@ -40,6 +40,19 @@ export interface ToolContext {
   // ambiguity. Threading this through ctx lets book_appointment/cancel_appointment gate BOTH
   // arms of that OR on the same signal, so an ambiguous message can never commit via either path.
   ambiguousConfirm?: boolean;
+  // R32 (2nd AFFIRM-CONFIRM taste-fork, Mathew's "zero errors, build it properly" decision): a
+  // THIRD, purely structural commit gate, computed by ./hardConfirmGate.ts's classifyHardConfirm
+  // against the raw customer message BEFORE the LLM ever runs. true only when the normalized
+  // message is an EXACT member of a small, finite, human-auditable allow-list (or one of a tiny
+  // set of fixed "confirm-word + trivial pleasantry" skeletons), never a content-classification
+  // regex. This is ADDITIONAL to (ANDed with, not a replacement for) ambiguousConfirm and the
+  // model's own only_confirming_previous attestation below: a commit now requires ALL THREE to
+  // agree. Closes the confirmation-ambiguity bug class (9 recurrences, R22-R31) BY CONSTRUCTION:
+  // any message containing content beyond a clean confirm/reject token structurally cannot be a
+  // member of the finite allow-list, so it cannot set this true, so it cannot commit through this
+  // gate, regardless of what new phrasing a customer invents in the future. See
+  // evidence/IUX_r32.md section 2 for the full design reasoning.
+  hardConfirm?: boolean;
   // The customer's raw current message. Used as a SERVER-SIDE disambiguation fallback when the
   // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
   // we extract the clock time the customer named and resolve which booking they meant.
@@ -1012,14 +1025,27 @@ export function createTools(
         // NOT have covered 5 of 6 known historical bugs (the server already never trusts those
         // fields from args on commit) and was rejected as the primary mechanism.
         const cleanlyConfirmed = args.only_confirming_previous === true;
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && !!pendingBook?.start_time;
+        // R32: ctx.hardConfirm === true is a THIRD, structural, ANDed requirement (see ToolContext
+        // comment above, evidence/IUX_r32.md section 2). committing now needs ALL of: the server
+        // or model saying "confirmed", the regex ambiguousConfirm layer NOT flagging it, the name
+        // not having changed, the model's own attestation, AND the hard structural gate agreeing
+        // the raw message is a member of the finite clean-confirm allow-list. Any one of the four
+        // independent checks failing blocks the commit; only the hard gate is immune to novel
+        // phrasing by construction (it does not pattern-match "badness", it membership-tests
+        // "goodness" against a closed list).
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
         // rather than falling through to the generic fresh-preview path, which would expect
-        // args.service_type_id/date/time the model has no reason to resupply on a bare "Klopt,
-        // maar dan voor Iris" confirm turn and would otherwise dead-end on "ontbrekende_gegevens".
+        // args.service_type_id/date/time the model has no reason to resupply on a bare confirm
+        // turn that also corrects the name, and would otherwise dead-end on "ontbrekende_gegevens".
         // This is a pure re-preview (no insert either way), so it carries none of the commit risk;
         // it just corrects WHICH name gets shown back to the customer for the next confirm.
+        // R32: deliberately NOT gated on ctx.hardConfirm. This path fires when the customer bundled
+        // a real name-correction with a clean affirm (e.g. "Klopt, maar dan voor Iris"); that
+        // message is legitimately not a hard-confirm member by design, since it carries extra
+        // content, and nameChanged already isolates exactly this shape and only ever RE-PREVIEWS,
+        // never commits, so leaving it un-gated here carries no commit risk.
         const wouldHaveCommitted = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !!pendingBook?.start_time;
         const namePreviewOnly = nameChanged && wouldHaveCommitted;
 
@@ -1442,7 +1468,10 @@ export function createTools(
         // model's own explicit only_confirming_previous attestation too, same reasoning, same
         // fail-closed semantics (missing/false/anything but true blocks the commit).
         const cleanlyConfirmedCancel = args.only_confirming_previous === true;
-        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && pending?.start_time) {
+        // R32: same third structural AND-condition as the book commit gate above (ctx.hardConfirm
+        // === true), see ToolContext comment + evidence/IUX_r32.md section 2. A cancel can only
+        // commit when the raw message is ALSO a member of the finite clean-confirm allow-list.
+        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && ctx.hardConfirm === true && pending?.start_time) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();

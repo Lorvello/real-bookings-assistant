@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarPolicy, getCalendarWeeklyHours } from "./tools.ts";
+import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
@@ -880,6 +881,17 @@ Deno.serve(async (req) => {
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/
     // confirmCancel computed from it right below. R23 only fixed the latter; R24 closes the former.
     const ambiguousConfirm = notCleanConfirm(msgLower);
+    // R32 (2nd AFFIRM-CONFIRM taste-fork): the THIRD, purely structural gate. Computed here,
+    // before the LLM ever runs, from the RAW (not lowercased/pre-processed) customer message via
+    // ./hardConfirmGate.ts, which does its own bounded normalization. Deliberately independent of
+    // ambiguousConfirm/AFFIRM_RE above: those are content-classification (enumerate the ways a
+    // message can be UNCLEAR); this is membership-classification (is the message a member of a
+    // small, finite, human-auditable list of ways to be CLEAR). See evidence/IUX_r32.md section 2.
+    // hardConfirm=true only for an exact/curated-pleasantry clean "yes"; hardReject=true mirrors
+    // for a clean "no". Neither implies confirmCancel/confirmBook below (those still require a
+    // FRESH pending proposal to exist); this signal only ever GATES a commit, never triggers one.
+    const hardVerdict = classifyHardConfirm(message);
+    const hardConfirm = hardVerdict === "confirm";
     const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
@@ -896,6 +908,15 @@ Deno.serve(async (req) => {
     // R23: same ambiguousConfirm gate as confirmCancel (see its comment above for the 3 repro
     // shapes and the design reasoning). A day/time-shift mention, a price question, a trailing "?",
     // or a hedge word means this is NOT a clean confirmation of the exact previewed slot.
+    // R32: deliberately NOT additionally gated on hardConfirm here. confirmBook/confirmCancel drive
+    // more than the commit itself (bookCommitMissed/cancelCommitMissed nudges, the race-loss
+    // pre-check below); tools.ts's actual commit code independently AND-requires ctx.hardConfirm
+    // === true regardless of this flag's value, so safety does not depend on this line. Leaving it
+    // as-is keeps the existing nudge/re-preview UX behavior unchanged for messages the regex layer
+    // considers clean but the hard gate does not yet recognize (e.g. a brand-new genuine-confirm
+    // phrasing not on the curated allow-list): the model still gets a normal turn and can still
+    // re-preview/answer, it simply cannot commit until hardConfirm agrees. See section 6b below for
+    // the measured smooth-UX-rate tradeoff this choice implies.
     const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel && !ambiguousConfirm;
 
     // FQ-3 (ATTEMPT 2): SERVER-SIDE, MODEL-INDEPENDENT race-loss pre-check (the guarantee-in-code
@@ -961,7 +982,7 @@ Deno.serve(async (req) => {
     // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): thread ambiguousConfirm through so
     // tools.ts can gate the model's own args.confirmed the same way confirmBook/confirmCancel
     // are already gated above, not just the server-forced arm.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, ambiguousConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
