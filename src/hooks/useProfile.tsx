@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -71,7 +71,11 @@ export const useProfile = () => {
     return () => window.removeEventListener('ba:profile-updated', onProfileUpdated);
   }, [user?.id]);
 
-  const fetchProfile = async () => {
+  // useCallback with a stable identity so consumers (e.g. UserStatusContext's
+  // visibility/focus/interval revalidation, P4-STALEPROFILE fix) can safely list
+  // `refetch` in a useEffect dependency array without the effect re-running (and
+  // resetting the poll interval) on every render.
+  const fetchProfile = useCallback(async () => {
     if (fetchInProgress.current || !user?.id) return;
     
     fetchInProgress.current = true;
@@ -116,7 +120,7 @@ export const useProfile = () => {
       setLoading(false);
       fetchInProgress.current = false;
     }
-  };
+  }, [user?.id]);
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return;

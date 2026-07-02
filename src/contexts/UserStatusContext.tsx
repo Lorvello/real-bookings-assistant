@@ -17,8 +17,18 @@ const UserStatusContext = createContext<UserStatusContextType | undefined>(undef
 const USER_STATUS_CACHE_KEY = 'globalUserStatusCache';
 const CACHE_VERSION = '3.0';
 
+// A stale-tab trial/subscription status is a real business-impact bug, not just
+// cosmetic: an already-expired trial can keep showing full paid-feature access
+// (see P4-STALEPROFILE, IUX R14/R15) until a hard reload. Refetch cheaply on
+// visibility/focus-regain (near-zero cost while the tab is hidden, catches the
+// realistic "left it open, came back" case) AND on a periodic backstop interval
+// for a tab that's never actually blurred/hidden. This is a trial-status check,
+// not a real-time feed, so the interval is intentionally coarse to avoid
+// needlessly burning Supabase read-quota.
+const STATUS_REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+
 export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { profile } = useProfile();
+  const { profile, refetch: refetchProfile } = useProfile();
   const { tiers } = useSubscriptionTiers();
   const { t, i18n } = useTranslation('app');
   
@@ -61,83 +71,124 @@ export const UserStatusProvider: React.FC<{ children: ReactNode }> = ({ children
   
   const fetchInProgress = useRef(false);
   const initialLoadComplete = useRef(false);
+  // Latest profile id, readable from the visibility/focus/interval effect below
+  // without re-subscribing those listeners on every profile change.
+  const profileIdRef = useRef<string | undefined>(profile?.id);
+  profileIdRef.current = profile?.id;
 
-  // Single fetch on mount - never refetch during navigation
-  useEffect(() => {
-    if (!profile?.id || initialLoadComplete.current) return;
+  const fetchUserStatus = React.useCallback(async (userId: string) => {
+    // Admin-bypass fix: do NOT short-circuit on cache before role check
+    // We intentionally skip the early cache return so we can always verify admin role first.
+    if (fetchInProgress.current) return;
+    fetchInProgress.current = true;
 
-    const fetchUserStatus = async () => {
-      // Admin-bypass fix: do NOT short-circuit on cache before role check
-      // We intentionally skip the early cache return so we can always verify admin role first.
-      if (fetchInProgress.current) return;
-      fetchInProgress.current = true;
+    try {
+      // STEP 1: Check admin role FIRST (priority check) using SECURITY DEFINER RPC
+      const { data: isAdminResult } = await supabase
+        .rpc('has_role', { _user_id: userId, _role: 'admin' });
 
-      try {
-        // STEP 1: Check admin role FIRST (priority check) using SECURITY DEFINER RPC
-        const { data: isAdminResult } = await supabase
-          .rpc('has_role', { _user_id: profile.id, _role: 'admin' });
-        
-        const adminStatus = isAdminResult === true;
-        setIsAdmin(adminStatus);
-        
-        // If admin, skip subscription check and set admin status
-        if (adminStatus) {
-          console.info('[UserStatusContext] Admin detected via has_role RPC');
-          setUserStatusType('admin');
-          
-          // Cache admin status
-          try {
-            sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
-              version: CACHE_VERSION,
-              data: { userStatusType: 'admin' },
-              userId: profile.id,
-              timestamp: Date.now()
-            }));
-          } catch (error) {
-            console.error('Error caching admin status:', error);
-          }
-          
-          setIsLoading(false);
-          initialLoadComplete.current = true;
-          fetchInProgress.current = false;
-          return; // Early return for admin
+      const adminStatus = isAdminResult === true;
+      setIsAdmin(adminStatus);
+
+      // If admin, skip subscription check and set admin status
+      if (adminStatus) {
+        console.info('[UserStatusContext] Admin detected via has_role RPC');
+        setUserStatusType('admin');
+
+        // Cache admin status
+        try {
+          sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+            version: CACHE_VERSION,
+            data: { userStatusType: 'admin' },
+            userId,
+            timestamp: Date.now()
+          }));
+        } catch (error) {
+          console.error('Error caching admin status:', error);
         }
-        
-        // STEP 2: For non-admins, check subscription status normally
-        const { data, error } = await supabase
-          .rpc('get_user_status_type', { p_user_id: profile.id });
 
-        if (error) {
-          console.error('Error fetching user status:', error);
-          setUserStatusType('unknown');
-        } else {
-          const status = data || 'unknown';
-          setUserStatusType(status);
-          
-          // Cache the result
-          try {
-            sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
-              version: CACHE_VERSION,
-              data: { userStatusType: status },
-              userId: profile.id,
-              timestamp: Date.now()
-            }));
-          } catch (error) {
-            console.error('Error caching status:', error);
-          }
-        }
-      } catch (error) {
+        setIsLoading(false);
+        initialLoadComplete.current = true;
+        fetchInProgress.current = false;
+        return; // Early return for admin
+      }
+
+      // STEP 2: For non-admins, check subscription status normally
+      const { data, error } = await supabase
+        .rpc('get_user_status_type', { p_user_id: userId });
+
+      if (error) {
         console.error('Error fetching user status:', error);
         setUserStatusType('unknown');
-      } finally {
-        setIsLoading(false);
-        fetchInProgress.current = false;
-        initialLoadComplete.current = true;
+      } else {
+        const status = data || 'unknown';
+        setUserStatusType(status);
+
+        // Cache the result
+        try {
+          sessionStorage.setItem(USER_STATUS_CACHE_KEY, JSON.stringify({
+            version: CACHE_VERSION,
+            data: { userStatusType: status },
+            userId,
+            timestamp: Date.now()
+          }));
+        } catch (error) {
+          console.error('Error caching status:', error);
+        }
       }
+    } catch (error) {
+      console.error('Error fetching user status:', error);
+      setUserStatusType('unknown');
+    } finally {
+      setIsLoading(false);
+      fetchInProgress.current = false;
+      initialLoadComplete.current = true;
+    }
+  }, []);
+
+  // Single fetch on mount / on user switch - never refetch on plain SPA navigation.
+  useEffect(() => {
+    if (!profile?.id || initialLoadComplete.current) return;
+    fetchUserStatus(profile.id);
+  }, [profile?.id, fetchUserStatus]);
+
+  // P4-STALEPROFILE fix: a long-open tab must eventually notice a trial/subscription
+  // change (most importantly: an expired trial) without requiring a hard reload or
+  // re-login. Two triggers, both cheap and both re-deriving from the real DB:
+  //  (a) document visibilitychange -> visible, and window focus: near-zero cost
+  //      while the tab is hidden/blurred, catches the realistic "left it open,
+  //      came back" case immediately.
+  //  (b) a 10-minute periodic backstop for a tab that is kept foregrounded and
+  //      never blurred/hidden (so (a) never fires). This is a trial-status check,
+  //      not a live feed, so the interval is intentionally coarse.
+  // Both call the SAME profile + status refetch used everywhere else, and this
+  // effect lives in UserStatusProvider, which App.tsx mounts exactly once for the
+  // whole app - so this never multiplies into per-component polling regardless of
+  // how many components separately call useProfile()/useUserStatus().
+  useEffect(() => {
+    const revalidate = () => {
+      const userId = profileIdRef.current;
+      if (!userId) return;
+      // Force a fresh fetch even though initialLoadComplete is already true.
+      initialLoadComplete.current = false;
+      refetchProfile();
+      fetchUserStatus(userId);
     };
 
-    fetchUserStatus();
-  }, [profile?.id]);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') revalidate();
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', revalidate);
+    const intervalId = window.setInterval(revalidate, STATUS_REFRESH_INTERVAL_MS);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', revalidate);
+      window.clearInterval(intervalId);
+    };
+  }, [fetchUserStatus, refetchProfile]);
 
   // Effective subscription tier — SOURCE-OF-TRUTH RECONCILIATION.
   // get_user_status_type() decides "paid_subscriber" from the `subscribers` table,
