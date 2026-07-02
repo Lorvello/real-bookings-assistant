@@ -29,7 +29,15 @@ export function getAllowedOrigins(): string[] {
   // function does not hit a false CORS rejection. Vercel PREVIEW deploys are
   // NOT enumerable ahead of time (each preview gets a fresh subdomain), so
   // they are matched via a pattern in isOriginAllowed() below, scoped to
-  // non-production only. This whole branch never runs when APP_ENV=production.
+  // non-production only. This whole branch never runs when APP_ENV=production
+  // -- and on THIS project's live deployed functions, APP_ENV IS 'production'
+  // (set deliberately during the 2026-06-10 Lovable-to-Vercel cutover, see
+  // MIGRATION_OFF_LOVABLE.md FASE 4). So the Vercel-preview pattern below is
+  // dev/local-only: it never activates against the live deployed function,
+  // by design, matching this project's own frontend convention in
+  // `src/utils/environment.ts` (which buckets `*.vercel.app` WITH production,
+  // not against it). Do not read this as "will support live preview
+  // deploys" -- it does not, and is not meant to.
   return [
     'http://localhost:5173',
     'http://localhost:3000',
@@ -50,6 +58,16 @@ export function getAllowedOrigins(): string[] {
  * ONLY that specific pattern (scheme https, ends in `.vercel.app`) and is
  * only ever consulted outside production (see isOriginAllowed below), so it
  * cannot widen what the live bookingsassistant.com origin accepts.
+ *
+ * DEV/LOCAL-ONLY IN PRACTICE: this project's live deployed edge functions run
+ * with APP_ENV=production (deliberate, see MIGRATION_OFF_LOVABLE.md FASE 4),
+ * so isOriginAllowed()'s `appEnv !== 'production'` guard means this pattern
+ * never actually runs against the live function. Verified live 2026-07-02: a
+ * real `*.vercel.app`-shaped Origin sent to the deployed `test-ai-agent`
+ * function is rejected (falls back to bookingsassistant.com), confirming
+ * this. If a real need for allowing live Vercel preview origins in
+ * production ever arises, that is a deliberate scope change to make here,
+ * not an assumption to carry forward from this comment.
  */
 function isVercelPreviewOrigin(origin: string): boolean {
   try {
