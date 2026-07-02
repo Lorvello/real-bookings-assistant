@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateFnsLocale } from '@/lib/dateLocale';
@@ -107,7 +107,44 @@ const calculateBookingPosition = (booking: Booking, baseTimeSlot: string) => {
   return { topOffset, height };
 };
 
-// Booking block — contrast-safe accent chip
+// Live "now" marker, re-renders once a minute (never on every tick) so the
+// line drifts smoothly across a work session without any per-second cost.
+function useNowMinute() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const msToNextMinute = 60000 - (Date.now() % 60000);
+    const timeout = setTimeout(() => {
+      setNow(new Date());
+      interval = setInterval(() => setNow(new Date()), 60000);
+    }, msToNextMinute);
+    // Real effect cleanup: clears whichever timer is currently pending, so an
+    // unmount before the first minute boundary clears the timeout, and an
+    // unmount afterwards clears the interval instead of leaking it.
+    return () => {
+      clearTimeout(timeout);
+      if (interval) clearInterval(interval);
+    };
+  }, []);
+  return now;
+}
+
+// Pixel offset of "now" relative to the grid's first visible time slot, same
+// unit conversion as calculateBookingPosition so the line and the booking
+// blocks agree pixel-for-pixel.
+function calculateNowOffset(now: Date, baseTimeSlot: string) {
+  const [baseHours, baseMinutes] = baseTimeSlot.split(':').map(Number);
+  const baseSlotMinutes = baseHours * 60 + baseMinutes;
+  const nowTotalMinutes = now.getHours() * 60 + now.getMinutes();
+  const offsetMinutes = nowTotalMinutes - baseSlotMinutes;
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const baseUnit = isMobile ? 28 : 40; // height of one 30-min slot, matches calculateBookingPosition
+
+  return (offsetMinutes / 30) * baseUnit;
+}
+
+// Booking block, contrast-safe accent chip
 function BookingBlock({ booking, timeSlot, onBookingClick }: { booking: Booking; timeSlot: string; onBookingClick: (booking: Booking) => void }) {
   const { t } = useTranslation('appPages');
   const { topOffset, height } = calculateBookingPosition(booking, timeSlot);
@@ -197,6 +234,17 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
   const endTime = timeRange?.endTime || '18:00';
   const timeSlots = generateTimeSlots(startTime, endTime, 30);
 
+  const now = useNowMinute();
+  const todayIndex = weekDays.findIndex((day) => isToday(day));
+  const [rangeStartHour, rangeStartMinute] = startTime.split(':').map(Number);
+  const [rangeEndHour, rangeEndMinute] = endTime.split(':').map(Number);
+  const nowMinutesOfDay = now.getHours() * 60 + now.getMinutes();
+  const isNowWithinVisibleRange =
+    todayIndex !== -1 &&
+    nowMinutesOfDay >= rangeStartHour * 60 + rangeStartMinute &&
+    nowMinutesOfDay <= rangeEndHour * 60 + rangeEndMinute;
+  const nowOffset = isNowWithinVisibleRange ? calculateNowOffset(now, startTime) : 0;
+
   const handleBookingClick = (booking: Booking) => {
     setSelectedBooking(booking);
     setBookingDetailOpen(true);
@@ -237,6 +285,24 @@ export function WeekView({ bookings, currentDate, timeRange, viewingAllCalendars
 
         {/* Scrollable time grid */}
         <div className="relative">
+          {/* Live "now" indicator: a thin accent line + dot across today's column only,
+              positioned at the same pixel offset booking blocks use so it lines up exactly. */}
+          {isNowWithinVisibleRange && (
+            <div
+              className="pointer-events-none absolute inset-x-0 z-20 grid grid-cols-8"
+              style={{ top: `${nowOffset}px` }}
+              aria-hidden="true"
+            >
+              <div />
+              <div
+                className="relative h-0 border-t-2 border-destructive"
+                style={{ gridColumnStart: todayIndex + 2 }}
+              >
+                <div className="absolute -left-1 -top-[5px] h-2.5 w-2.5 rounded-full bg-destructive" />
+              </div>
+            </div>
+          )}
+
           {timeSlots.map((timeSlot, index) => (
             <div
               key={timeSlot}

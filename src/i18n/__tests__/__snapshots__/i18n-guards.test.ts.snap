@@ -835,6 +835,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "calPage.bookingDetail.calendarSection.label": "Calendar",
   "calPage.bookingDetail.customerSection.label": "Customer Information",
   "calPage.bookingDetail.dateTimeSection.label": "Date & Time",
+  "calPage.bookingDetail.description": "Details and actions for this appointment.",
   "calPage.bookingDetail.duration.value": "{{duration}} minutes",
   "calPage.bookingDetail.durationSection.label": "Duration",
   "calPage.bookingDetail.notes.customer": "Customer notes:",

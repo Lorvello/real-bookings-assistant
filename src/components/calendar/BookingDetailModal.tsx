@@ -1,10 +1,10 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
+import { dateFnsLocale } from '@/lib/dateLocale';
 import { Clock, User, Phone, Mail, Calendar, FileText, XCircle, UserX } from 'lucide-react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -58,7 +58,8 @@ interface BookingDetailModalProps {
 }
 
 export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars = false, onActed }: BookingDetailModalProps) {
-  const { t } = useTranslation('appPages');
+  const { t, i18n } = useTranslation('appPages');
+  const locale = dateFnsLocale(i18n.language);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const { act, pendingAction, isActing } = useBookingActions(() => {
     onActed?.();
@@ -133,6 +134,12 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             />
             {t('calPage.bookingDetail.title', 'Appointment Details')}
           </DialogTitle>
+          {/* sr-only: satisfies Radix's Dialog description requirement (was missing,
+              found via a real console warning during R20's a11y pass) without changing
+              the modal's already-reviewed visual layout. */}
+          <DialogDescription className="sr-only">
+            {t('calPage.bookingDetail.description', 'Details and actions for this appointment.')}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 sm:space-y-6">
@@ -196,7 +203,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
               </div>
               <div className="space-y-0.5 sm:space-y-1">
                 <div className="font-semibold text-foreground text-xs sm:text-sm tabular-nums">
-                  {format(startTime, 'EEEE d MMMM yyyy', { locale: enUS })}
+                  {format(startTime, 'EEEE d MMMM yyyy', { locale })}
                 </div>
                 <div className="text-muted-foreground text-xs sm:text-sm tabular-nums">
                   {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')}

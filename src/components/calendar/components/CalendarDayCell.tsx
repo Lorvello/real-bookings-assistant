@@ -193,13 +193,21 @@ export function CalendarDayCell({
         
         {hasMultipleBookings && (
           <div
-            className="text-center px-1 py-1 sm:py-2 bg-primary/10 rounded-lg ring-1 ring-primary/20 hover:bg-primary/[0.16] transition-colors duration-150 cursor-pointer"
+            className="overflow-hidden text-center px-1 py-1 sm:py-2 bg-primary/10 rounded-lg ring-1 ring-primary/20 hover:bg-primary/[0.16] transition-colors duration-150 cursor-pointer"
             onClick={handleMultipleBookingsClick}
           >
-            <div className="text-accent-foreground font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
-              {t('calPage.dayCell.appointmentCount', '{{n}} appointment{{plural}}', { n: dayBookings.length, plural: dayBookings.length === 1 ? '' : 's' })}
+            {/* Below sm, the cell is too narrow (~40px) to fit "N appointments" on one
+                line without it visually overflowing into the next day's cell (found on a
+                real mobile-viewport spot-check, R20); the count-only badge already shown
+                at the top of the cell carries that information, so this line drops to just
+                the count here and the full phrase returns at sm+ where there is room. */}
+            <div className="truncate text-accent-foreground font-semibold text-[9px] sm:text-xs mb-0.5 tabular-nums">
+              <span className="sm:hidden">{dayBookings.length}</span>
+              <span className="hidden sm:inline">
+                {t('calPage.dayCell.appointmentCount', '{{n}} appointment{{plural}}', { n: dayBookings.length, plural: dayBookings.length === 1 ? '' : 's' })}
+              </span>
             </div>
-            <div className="text-[8px] sm:text-xs text-accent-foreground">
+            <div className="hidden sm:block truncate text-[8px] sm:text-xs text-accent-foreground">
               {t('calPage.dayCell.clickHint', 'Click for details')}
             </div>
           </div>

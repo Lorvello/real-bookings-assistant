@@ -513,6 +513,7 @@
     },
     "bookingDetail": {
       "title": "Afspraakdetails",
+      "description": "Details en acties voor deze afspraak.",
       "status": {
         "confirmed": "Bevestigd",
         "pending": "In afwachting",
