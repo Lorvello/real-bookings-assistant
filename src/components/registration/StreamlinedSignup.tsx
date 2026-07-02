@@ -127,8 +127,28 @@ export const StreamlinedSignup: React.FC = () => {
         phoneRenormalized = result.sanitized;
         processedValue = value;
       } else if (field === 'fullName') {
+        // P4-NAMESPACE fix: sanitizeText() is shared with the booking-flow Zod
+        // .transform() (bookingSchema.ts / usePublicBookingCreation.tsx) which is
+        // only evaluated once at submit time there, so its unconditional .trim()
+        // is harmless in that context. Here it runs on EVERY keystroke via
+        // updateFormData, so a live-typed "Robert Achterberg" trims back to
+        // "Robert" the instant the trailing space lands, silently eating every
+        // inter-word space as the user types (see P4-NAMESPACE, IUX R14/R15).
+        // Keep every security-relevant transform sanitizeText does (HTML-escape,
+        // control-char strip, zero-width-char strip via its own .sanitized
+        // output) but restore the plain-whitespace trim() would have removed.
+        // Safe because trim() ONLY strips whitespace characters, and whitespace
+        // is never itself a sanitize target (not touched by the HTML-escape,
+        // control-char, or zero-width-char passes above), so re-attaching the
+        // ORIGINAL leading/trailing whitespace onto the already-sanitized,
+        // already-escaped core cannot reintroduce anything sanitizeText removed.
+        // handleSubmit() applies a final .trim() before this reaches the API, so
+        // a value that happens to still have a trailing space when the user
+        // clicks submit never leaks a stray space into the stored full name.
         const result = sanitizeText(value, { allowEmpty: true, maxLength: 200 });
-        processedValue = result.sanitized;
+        const leadingWs = value.match(/^\s*/)?.[0] ?? '';
+        const trailingWs = value.match(/\s*$/)?.[0] ?? '';
+        processedValue = (leadingWs + result.sanitized + trailingWs).slice(0, 200);
       } else {
         const result = sanitizeText(value, { allowEmpty: true });
         processedValue = result.sanitized;
@@ -213,7 +233,13 @@ export const StreamlinedSignup: React.FC = () => {
       const registrationData = {
         email: formData.email,
         password: formData.password,
-        fullName: formData.fullName,
+        // P4-NAMESPACE: updateFormData() intentionally keeps live-typed interior/
+        // trailing spaces in formData.fullName (see the comment there) so the
+        // field no longer eats spaces while the user types. Final .trim() here
+        // matches validateForm()'s own required-field check (which already
+        // trims) so a name that happens to end mid-typing right after a space
+        // never submits with a stray trailing space.
+        fullName: formData.fullName.trim(),
         // formData.phone is already sanitized to a full E.164 number (incl.
         // country calling code) by validatePhoneNumber() in updateFormData();
         // prepending formData.countryCode here double-counted the dialing
