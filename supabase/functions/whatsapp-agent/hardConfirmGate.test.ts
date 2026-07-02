@@ -132,6 +132,28 @@ Deno.test("every HARD_CONFIRM_PATTERNS entry is start/end anchored (^...$)", () 
   }
 });
 
+// ── 4b. Cancel-confirm shapes (found live on the R32 testpad, section 6b of evidence/IUX_r32.md) ─
+// "Ja, annuleer maar" / "Yes, cancel it" are extremely common, unambiguous ways to CONFIRM a
+// cancel that had been misclassified "none" (falling back to a safe but unnecessary re-ask) before
+// this fix. Distinct from a BARE "annuleer maar" alone (kept in HARD_REJECT_EXACT: the DECLINE-an-
+// offer reading), and distinct from a message that reverses the verb ("Nee, annuleer maar niet"),
+// which must stay "none".
+Deno.test("Ja, annuleer maar hard-confirms (cancel-confirm shape)", () => {
+  assertEquals(classifyHardConfirm("Ja, annuleer maar"), "confirm");
+  assertEquals(classifyHardConfirm("ja annuleer maar"), "confirm");
+});
+Deno.test("Yes, cancel it hard-confirms (cancel-confirm shape)", () => {
+  assertEquals(classifyHardConfirm("Yes, cancel it"), "confirm");
+  assertEquals(classifyHardConfirm("Yes cancel that"), "confirm");
+});
+Deno.test("bare 'annuleer maar' alone (no ja/yes prefix) is still a reject, not a confirm", () => {
+  assertEquals(classifyHardConfirm("annuleer maar"), "reject");
+});
+Deno.test("a negated cancel-verb phrase does not falsely hard-confirm", () => {
+  assertEquals(classifyHardConfirm("Nee, annuleer maar niet"), "none");
+  assertEquals(classifyHardConfirm("Ja maar annuleer het toch maar niet"), "none");
+});
+
 // ── 5b. Invisible/bidi-control formatting marks (found during R32's own security lens) ─────────
 Deno.test("a trailing invisible bidi mark does not defeat a genuine bare confirm", () => {
   const LRM = "‎";

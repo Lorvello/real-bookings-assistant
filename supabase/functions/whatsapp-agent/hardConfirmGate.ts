@@ -110,6 +110,13 @@ export const HARD_REJECT_EXACT: ReadonlySet<string> = new Set([
 // genuine-confirm corpus plus this round's own UX-smoothness sample, section 6b below), not because
 // "it might help." When in doubt, an entry was left out (falls back to the existing layers, safe).
 const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?|thanks?|thank you|please)";
+// R32 live-testpad finding (section 6b): a bare affirm word followed ONLY by the SAME cancel verb
+// already named in the preview being confirmed ("Ja, annuleer maar" / "Yes, cancel it") is a
+// genuinely common, unambiguous CANCEL-confirm shape, distinct from a bare "annuleer maar" alone
+// (which sits in HARD_REJECT_EXACT for the DECLINE-an-offer/proposal reading). Restricted to a
+// fixed, tiny alternation of the cancel verb itself, never a free-form action word, so it stays a
+// closed skeleton like every other entry in this list.
+const CANCEL_VERB = "(?:annuleer(?: het)? maar|annuleren maar|cancel it|cancel that|cancel please)";
 export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^ja,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^klopt,? ${PLEASANTRY}!?$`, "i"),
@@ -127,6 +134,7 @@ export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^sounds good,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^correct,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^${PLEASANTRY},? ja!?$`, "i"),
+  new RegExp(`^(?:ja|yes|klopt|akkoord),? ${CANCEL_VERB}!?$`, "i"),
 ];
 
 export const HARD_REJECT_PATTERNS: readonly RegExp[] = [
