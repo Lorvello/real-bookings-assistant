@@ -835,8 +835,9 @@ Deno.serve(async (req) => {
     const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
-    // ~40% preview-prose drift on commit turns; the reply is templated deterministically below). Only
-    // the PRIMARY call gets it; the stall-retry below keeps call 2 (its accept-gate needs retry.text).
+    // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
+    // R22 (T3-LATENCY-RETRY tail): the stall-retry now gets the SAME short-circuit (its accept-gate
+    // no longer needs retry.text on a committed mutation, see retryCommitted below).
     let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2, stopOnToolResult: isCommittedMutation });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
@@ -953,6 +954,15 @@ Deno.serve(async (req) => {
       OFFER_CONTEXT_RE.test(result.text || "");
 
     if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || emptyNoAction || slotOfferUnbacked) {
+      // T3-LATENCY-RETRY follow-up (R22): the stall-retry DOUBLES the turn's sequential LLM
+      // round-trips, and when accepted, `result = retry` makes the primary call's step count
+      // invisible in the response. Log which heuristic fired + both step counts so tail-latency
+      // turns are diagnosable from the function logs. Log-only, no behavior change.
+      const nudgeReason =
+        cancelCommitMissed ? "cancelCommitMissed" : bookCommitMissed ? "bookCommitMissed" :
+        reschedStall ? "reschedStall" : bookPreviewMissed ? "bookPreviewMissed" :
+        cancelPreviewMissed ? "cancelPreviewMissed" : confirmStall ? "confirmStall" :
+        emptyNoAction ? "emptyNoAction" : slotOfferUnbacked ? "slotOfferUnbacked" : "looksLikeStall";
       const nudgeText = cancelCommitMissed
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true om 'm echt te annuleren, en antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
         : bookCommitMissed
@@ -964,7 +974,13 @@ Deno.serve(async (req) => {
         : cancelPreviewMissed
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
         : confirmStall
-        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde — herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Stel geen extra vraag en kondig niets aan — antwoord met het resultaat."
+        // R22 (tail): the "confirmed:true" sentence below kills a measured live flail where this
+        // retry called book_appointment WITHOUT confirmed 3-6x in a row (each call just re-previews,
+        // burning a full LLM round-trip + tool exec per call, then the whole retry gets discarded).
+        // Safe by construction: tools.ts only commits when a server-stored pending_booking exists
+        // (committing = confirmed && pendingBook, tools.ts ~917), so a stray confirmed:true can
+        // never book anything except the exact previewed slot; without a preview it just previews.
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde; herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Heb je deze beurt al een boekings-preview met book_appointment gedaan, roep book_appointment dan opnieuw aan met ALLEEN confirmed:true (het systeem boekt exact het opgeslagen tijdslot; NIET nogmaals zonder confirmed aanroepen, dat maakt alleen weer een preview). Stel geen extra vraag en kondig niets aan: antwoord met het resultaat."
         : emptyNoAction
         ? "[systeem] Je gaf GEEN antwoord aan de klant. Beantwoord hun LAATSTE bericht kort en behulpzaam in hun taal: roep de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) als er een actie nodig is, of leg kort uit wat er kan. Vraagt de klant een dag die GESLOTEN is (zie <kalender>/<kalenders>), zeg dat dan eerlijk, noem de openingstijden en bied een open dag aan. Stuur nooit een lege of generieke foutmelding."
         : slotOfferUnbacked
@@ -975,7 +991,18 @@ Deno.serve(async (req) => {
         { role: "model", parts: [{ text: result.text }] },
         { role: "user", parts: [{ text: nudgeText }] },
       ];
-      const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 6, temperature: 0.2 });
+      // T3-LATENCY-RETRY tail fix (R22). Two scoped, latency-only changes, no heuristic-decision
+      // change:
+      // (1) maxSteps 6 -> 3. The nudge asks for ONE concrete action; every ACCEPTED retry in the
+      //     R22 log sample committed at step 0-1. The pathological case (measured live: a
+      //     confirmStall retry re-PREVIEWING book_appointment 6x in a row without ever committing,
+      //     then being discarded by the accept-gate) burned 6 sequential LLM calls + 6 tool execs
+      //     for nothing, stretching the turn to 7-11s. 3 steps still covers the longest legitimate
+      //     retry (read -> mutation -> compose); a retry that flails past that was NEVER accepted.
+      // (2) stopOnToolResult: a retry that COMMITS skips its compose call, exactly like the
+      //     primary (B1); reply-assembly below templates the confirmation deterministically from
+      //     the tool result, so the composed prose was dead weight (~0.15-1.7s/turn).
+      const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 3, temperature: 0.2, stopOnToolResult: isCommittedMutation });
       // FQ-3 (ATTEMPT 2), secondary catch: the bookCommitMissed forced retry can ITSELF lose the
       // race (its book_appointment returns a BOOK_RACE_LOSS_ERROR). The normal accept-gate below
       // (MUTATION && !isErr) treats that errored mutation as "not done" and DISCARDS the retry, so
@@ -989,11 +1016,24 @@ Deno.serve(async (req) => {
           BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
       // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
-      const accept = retryRaceLost || (!!retry.text && (
+      // R22: a COMMITTED retry is adopted unconditionally, text or no text. With stopOnToolResult
+      // above, a committed retry returns empty text BY DESIGN (reply-assembly templates it via
+      // deterministicConfirmation, the same path as a committed primary). This also closes a
+      // latent pre-existing hazard: a retry whose mutation had ALREADY LANDED in the DB but whose
+      // text came back empty used to be DISCARDED, leaving the customer a reply inconsistent with
+      // the database. All previously-accepted retries remain accepted (the old conditions are
+      // kept verbatim below).
+      const retryCommitted = retry.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
+      const accept = retryRaceLost || retryCommitted || (!!retry.text && (
         (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       ));
+      console.log(
+        `[stall-retry] reason=${nudgeReason} accepted=${accept} primary_steps=${result.steps}` +
+        ` retry_steps=${retry.steps} primary_tools=${result.toolCalls.map((t) => t.name).join(",") || "-"}` +
+        ` retry_tools=${retry.toolCalls.map((t) => t.name).join(",") || "-"}`,
+      );
       if (accept) {
         result = retry;
       }

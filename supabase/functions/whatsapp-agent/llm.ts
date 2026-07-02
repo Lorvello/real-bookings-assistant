@@ -182,7 +182,25 @@ async function runAgentOpenAI(
       body.tool_choice = "auto";
     }
 
+    const callT0 = Date.now();
     const data = await postOpenAI(baseUrl, key, body);
+    // T3-LATENCY-RETRY follow-up (R22): per-call usage/timing observability. The turn's outer
+    // response only carries the ACCEPTED result's step count, so tail-latency spikes were
+    // undiagnosable from outside (is it reasoning-token variance, extra sequential round-trips,
+    // or Groq-side queue/inference time?). Groq returns queue_time/prompt_time/completion_time
+    // (seconds) plus completion_tokens_details.reasoning_tokens in `usage`; OpenAI lacks the
+    // Groq-only fields and logs "-". Log-only: no behavior change, no customer data logged.
+    try {
+      const u = (data?.usage ?? {}) as Record<string, unknown>;
+      const det = (u.completion_tokens_details ?? {}) as Record<string, unknown>;
+      console.log(
+        `[llm-usage] model=${model} step=${step} ms=${Date.now() - callT0}` +
+        ` prompt_tok=${u.prompt_tokens ?? "-"} completion_tok=${u.completion_tokens ?? "-"}` +
+        ` reasoning_tok=${det.reasoning_tokens ?? "-"} queue_s=${u.queue_time ?? "-"}` +
+        ` prompt_s=${u.prompt_time ?? "-"} completion_s=${u.completion_time ?? "-"}` +
+        ` total_s=${u.total_time ?? "-"} tool_calls=${(data?.choices?.[0]?.message?.tool_calls ?? []).length}`,
+      );
+    } catch (_) { /* observability must never break the turn */ }
     const msg = data?.choices?.[0]?.message;
     if (!msg) return { text: "", steps: step + 1, toolCalls };
 
