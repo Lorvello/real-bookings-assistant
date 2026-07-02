@@ -76,9 +76,9 @@ export function SimpleMultiSelect({
                     <Badge
                       key={value}
                       variant="secondary"
-                      className="flex items-center gap-1 px-2 py-0.5 hover:bg-secondary"
+                      className="flex items-center gap-1 px-2 py-0.5 hover:bg-secondary max-w-full"
                     >
-                      <span>{option?.label || value}</span>
+                      <span className="truncate max-w-[220px] sm:max-w-[280px]">{option?.label || value}</span>
                       <span
                         role="button"
                         tabIndex={0}

@@ -87,32 +87,32 @@ export function AvailabilityQuickSetup({ availability, onChange }: AvailabilityQ
 
       <div className="space-y-2 border border-border/50 rounded-lg p-3 bg-muted/20">
         {DAYS.map((day) => (
-          <div key={day.key} className="flex items-center gap-3">
+          <div key={day.key} className="flex items-center gap-3 min-w-0 flex-wrap sm:flex-nowrap">
             <Switch
               checked={availability[day.key]?.enabled ?? false}
               onCheckedChange={() => toggleDay(day.key)}
-              className="data-[state=checked]:bg-primary"
+              className="data-[state=checked]:bg-primary shrink-0"
             />
-            <span className="w-10 text-sm font-medium text-foreground">
+            <span className="w-10 shrink-0 text-sm font-medium text-foreground">
               {dayLabels[day.key] ?? day.label}
             </span>
-            
+
             {availability[day.key]?.enabled ? (
-              <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center gap-2 w-full min-w-0 sm:w-auto sm:flex-1">
                 <select
                   value={availability[day.key]?.startTime || '09:00'}
                   onChange={(e) => updateTime(day.key, 'startTime', e.target.value)}
-                  className="h-8 px-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="h-8 w-0 min-w-0 flex-1 sm:w-auto sm:flex-initial px-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   {TIME_OPTIONS.map((time) => (
                     <option key={time} value={time}>{time}</option>
                   ))}
                 </select>
-                <span className="text-muted-foreground">-</span>
+                <span className="text-muted-foreground shrink-0">-</span>
                 <select
                   value={availability[day.key]?.endTime || '17:00'}
                   onChange={(e) => updateTime(day.key, 'endTime', e.target.value)}
-                  className="h-8 px-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="h-8 w-0 min-w-0 flex-1 sm:w-auto sm:flex-initial px-2 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   {TIME_OPTIONS.map((time) => (
                     <option key={time} value={time}>{time}</option>

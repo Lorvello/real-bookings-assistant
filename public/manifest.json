@@ -1,11 +1,11 @@
 {
-  "name": "Bookify - AI Booking Assistant",
-  "short_name": "Bookify",
+  "name": "Bookings Assistant - AI Booking Assistant",
+  "short_name": "Bookings Assistant",
   "description": "Smart calendar booking system with AI-powered WhatsApp assistant",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#0B0D11",
+  "theme_color": "#0B0D11",
   "orientation": "portrait-primary",
   "icons": [
     {

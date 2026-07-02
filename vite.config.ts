@@ -13,22 +13,28 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Bookify - AI Booking Assistant',
-        short_name: 'Bookify',
+        name: 'Bookings Assistant - AI Booking Assistant',
+        short_name: 'Bookings Assistant',
         description: 'Smart calendar booking system with AI-powered WhatsApp assistant',
-        theme_color: '#3b82f6',
+        // R12 P3-PWA-ICONS: was the stale Lovable-era blue (#3b82f6); the real app
+        // theme is the dark-premium-emerald token set (index.css --background /
+        // --primary), so the install/splash chrome now matches the actual product.
+        theme_color: '#0B0D11',
+        background_color: '#0B0D11',
         icons: [
           {
             src: 'icon-192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'icon-512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       },

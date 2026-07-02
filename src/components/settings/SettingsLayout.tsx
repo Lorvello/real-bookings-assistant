@@ -195,12 +195,20 @@ export const SettingsTabs = () => {
           </div>
         </aside>
 
-        {/* RIGHT COLUMN — fills the available width (consistent with the full-width
+        {/* RIGHT COLUMN: fills the available width (consistent with the full-width
             Availability/Calendar/Dashboard pages), capped only on very wide screens so
             single-column form fields never stretch to an unreadable length.
             pb clears the floating SettingsSaveBar (fixed bottom-0) so the last
-            section's content is never covered when there are unsaved changes. */}
-        <div className="min-w-0 flex-1 pb-24 md:max-w-4xl xl:max-w-5xl">
+            section's content is never covered when there are unsaved changes.
+            R12 P3-SAVEBAR-OVERLAP: the real scroll parent is DashboardLayout's
+            main.overflow-y-auto, which has no bottom padding of its own; this
+            div's padding is the only clearance the bar gets. 96px (pb-24) left too
+            little slack against the bar's own worst-case height (pill plus the
+            safe-area inset on notched phones can reach roughly 110-120px), so on
+            mobile the bar visually covered the last field(s) while scrolling past
+            them, not just at rest. Bumped to a larger fixed value on mobile so the
+            bar can never cover a field, on any device, even mid-scroll. */}
+        <div className="min-w-0 flex-1 pb-40 md:pb-24 md:max-w-4xl xl:max-w-5xl">
           <TabsContent value="users" className="mt-0 focus-visible:outline-none">
             <ProfileTab />
           </TabsContent>
