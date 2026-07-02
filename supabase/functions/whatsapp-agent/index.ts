@@ -754,10 +754,40 @@ Deno.serve(async (req) => {
     const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     // A hypothetical / policy QUESTION that merely contains a cancel word ("krijg ik geld terug als ik
     // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
-    // cancellation — it's an info question, answered from <business_data>. Without this, asking about the
+    // cancellation, it's an info question, answered from <business_data>. Without this, asking about the
     // refund policy armed a cancel and the next "ja" destroyed the booking (adversarial finding).
     const cancelPolicyQuestion = /\b(beleid|policy|terugbetaling|terug ?betaald|geld terug|refund|kosten|hoeveel|als ik|wat als|stel dat|wat gebeurt|hoe zit het|wanneer kan ik)\b/i.test(msgLower);
-    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion;
+    // R23 (AFFIRM-CONFIRM-FALSEPOS, sev-2): AFFIRM_RE/NEGATE_RE are pure keyword regexes with ZERO
+    // check that an affirmative word genuinely means "yes, commit exactly what was just previewed".
+    // R22-verify reproduced 3 live false-positive commits, all sharing one shape: the message pairs
+    // an affirm word with EXTRA content that changes or questions the previewed deal, which neither
+    // regex was ever designed to see:
+    //   (a) "Ja klopt, kan het ook een uur later?" committed the OLD time instead of clarifying
+    //       (a relative time-shift request: "uur later/eerder", "later/eerder", or any clock time).
+    //   (b) "Oke wacht, hoeveel kost dat ook alweer?" committed instead of answering a PRICE
+    //       question (reusing priceGuard's PRICE_INTENT_RE wording).
+    //   (c) "Sure, sorry ik bedoelde eigenlijk maandag" committed the previewed (wrong) day instead
+    //       of correcting to the day the customer just named.
+    // Design choice (documented per the run-spec): rather than trying to enumerate every possible
+    // qualifier, treat ANY of (a) a day-of-week/relative-time-shift mention, (b) a price question,
+    // (c) a trailing "?" (the message itself asks something), or (d) a handful of hedge words that
+    // signal "wait/actually/but" as evidence the "yes" is NOT a clean, unconditional confirmation of
+    // the exact previewed slot. This mirrors the SAME "?" signal index.ts already uses elsewhere in
+    // this file to detect an unresolved question (confirmStall, FUTURE_OR_OFFER_RE in
+    // confirmationGuard.ts), so it is a proven-safe pattern in this codebase, not a new invention.
+    // A clean confirmation ("Ja", "Klopt!", "Prima, tot dan") never matches any of these, so the fast
+    // legitimate path is untouched. When this fires, confirmBook/confirmCancel simply stay false and
+    // the model runs normally (it sees the pending proposal via context and typically re-previews or
+    // answers the question); a clarifying turn is safer than a wrong commit.
+    const DAY_OR_TIME_SHIFT_RE =
+      /\b(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|monday|tuesday|wednesday|thursday|friday|saturday|sunday|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b|\b\d{1,2}[:.]\d{2}\b|\b(uur|hour|stunde|heure)\s*(later|eerder|earlier|vroeger|voor|na)\b|\b(later|eerder|earlier|vroeger)\b/i;
+    const PRICE_QUESTION_RE =
+      /\b(kost|kosten|kostte|prijs|prijzen|tarief|tarieven|hoeveel|how\s+much|price|priced|costs?|cost|rate|charge|fee)\b/i;
+    const HEDGE_RE = /\b(wacht|momentje|trouwens|eigenlijk|bedoelde|bedoel|meant|actually|wait|sorry)\b/i;
+    const notCleanConfirm = (raw: string) =>
+      DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw);
+    const ambiguousConfirm = notCleanConfirm(msgLower);
+    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
@@ -770,7 +800,10 @@ Deno.serve(async (req) => {
       { at?: number; service_type_id?: string; start_time?: string; end_time?: string; calendar_id?: string } | undefined;
     const pendingBookFresh = !!pbk && (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
     const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(msgLower);
-    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel;
+    // R23: same ambiguousConfirm gate as confirmCancel (see its comment above for the 3 repro
+    // shapes and the design reasoning). A day/time-shift mention, a price question, a trailing "?",
+    // or a hedge word means this is NOT a clean confirmation of the exact previewed slot.
+    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel && !ambiguousConfirm;
 
     // FQ-3 (ATTEMPT 2): SERVER-SIDE, MODEL-INDEPENDENT race-loss pre-check (the guarantee-in-code
     // pattern). FQ-3 attempt-1 (deterministicSlotTaken) only fired when the 20B model itself called
