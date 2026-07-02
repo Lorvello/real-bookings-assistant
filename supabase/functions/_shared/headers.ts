@@ -8,12 +8,12 @@
 export function getAllowedOrigins(): string[] {
   const appEnv = Deno.env.get('APP_ENV') || 'development';
   const customOrigins = Deno.env.get('ALLOWED_ORIGINS');
-  
+
   // Parse custom origins from environment variable
   if (customOrigins) {
     return customOrigins.split(',').map(o => o.trim());
   }
-  
+
   // Default origins by environment
   if (appEnv === 'production') {
     return [
@@ -22,16 +22,59 @@ export function getAllowedOrigins(): string[] {
       'https://grdgjhkygzciwwrxgvgy.supabase.co'
     ];
   }
-  
-  // Development mode - allow localhost
+
+  // Development mode - allow localhost. Includes this project's actual dev
+  // ports (5199 via `vite.config.ts` strictPort, 8080 per the BA routing map)
+  // alongside the older 5173/3000 defaults, so local QA against a real edge
+  // function does not hit a false CORS rejection. Vercel PREVIEW deploys are
+  // NOT enumerable ahead of time (each preview gets a fresh subdomain), so
+  // they are matched via a pattern in isOriginAllowed() below, scoped to
+  // non-production only. This whole branch never runs when APP_ENV=production.
   return [
     'http://localhost:5173',
     'http://localhost:3000',
+    'http://localhost:5199',
+    'http://localhost:8080',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
+    'http://127.0.0.1:5199',
+    'http://127.0.0.1:8080',
     'https://bookingsassistant.com',
     'https://grdgjhkygzciwwrxgvgy.supabase.co'
   ];
+}
+
+/**
+ * Vercel preview deploys get a fresh, unpredictable `*.vercel.app` subdomain
+ * per branch/PR, so they cannot be enumerated as exact strings. This matches
+ * ONLY that specific pattern (scheme https, ends in `.vercel.app`) and is
+ * only ever consulted outside production (see isOriginAllowed below), so it
+ * cannot widen what the live bookingsassistant.com origin accepts.
+ */
+function isVercelPreviewOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    return url.protocol === 'https:' && url.hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Check whether an origin is allowed: exact match against the environment's
+ * allowlist, or (non-production only) a scoped Vercel-preview pattern match.
+ */
+function isOriginAllowed(origin: string, allowedOrigins: string[]): boolean {
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  const appEnv = Deno.env.get('APP_ENV') || 'development';
+  if (appEnv !== 'production' && isVercelPreviewOrigin(origin)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -41,16 +84,16 @@ export function getAllowedOrigins(): string[] {
 export function validateOrigin(request: Request): string | null {
   const origin = request.headers.get('origin');
   const allowedOrigins = getAllowedOrigins();
-  
+
   if (!origin) {
     // Allow requests without origin (e.g., same-origin, Postman, curl)
     return null;
   }
-  
-  if (allowedOrigins.includes(origin)) {
+
+  if (isOriginAllowed(origin, allowedOrigins)) {
     return origin;
   }
-  
+
   console.warn(`Rejected request from unauthorized origin: ${origin}`);
   return null;
 }
