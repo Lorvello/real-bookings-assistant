@@ -35,6 +35,23 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
 );
 
+// R28 (T3-LATENCY-PAYOFF): run the outbound WhatsApp send (and its dependent DB writes)
+// AFTER this function's own HTTP response is returned. R27-verify's instrumentation found
+// the synchronous `await sendWhatsAppText` cost 526-765ms on EVERY payoff/commit turn, on
+// top of the genuine LLM-call chain, keeping the <3s warm p50 gate open. Meta delivery is
+// inherently async already (single/double ticks arrive independently via webhook), so the
+// customer-facing "turn is done" signal for gate purposes is this function's own response,
+// not Meta's accept of the POST. Same helper as `whatsapp-webhook/index.ts` (proven in
+// production there): `EdgeRuntime.waitUntil` keeps the isolate alive for the background
+// promise so it is not killed the instant the response is written; falls back to bare
+// fire-and-forget with `.catch()` logging if the runtime ever lacks it. Errors inside the
+// background promise are always caught and logged server-side, never thrown into the void.
+function runInBackground(p: Promise<unknown>): void {
+  const er = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
+  if (er?.waitUntil) er.waitUntil(p.catch((e) => console.error("bg task error:", e)));
+  else p.catch((e) => console.error("bg task error:", e));
+}
+
 function nlTime(d: Date): string {
   const tz = "Europe/Amsterdam";
   const time = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz });
@@ -1206,45 +1223,73 @@ Deno.serve(async (req) => {
     }
 
     // --- Reply + persist outbound ---
-    const send = await sendWhatsAppText(phone, reply);
-    if (conversationId) {
-      await supabase.from("whatsapp_messages").insert({
-        conversation_id: conversationId,
-        message_id: send.messageId ?? `agent-${now.getTime()}`,
-        direction: "outbound",
-        message_type: "text",
-        content: reply,
-        status: send.ok ? "sent" : "failed",
-      });
-      // Durably mark that the welcome has fired so it never repeats on later turns,
-      // independent of message-history loading. Also persist the detected language so a
-      // later short message inherits the thread's language. Merge into context (don't clobber).
-      const ctxUpdate: Record<string, unknown> = {};
-      if (isFirstContact && !greetingAlreadySent) ctxUpdate.greeting_sent = true;
-      if (detectedThisMsg && detectedThisMsg !== convContext.detected_language) {
-        ctxUpdate.detected_language = detectedThisMsg;
+    // R28 (T3-LATENCY-PAYOFF): the Graph API send + its dependent DB writes (outbound message
+    // row, greeting/language context merge) no longer block the HTTP response. They run in
+    // `runInBackground` (EdgeRuntime.waitUntil), so the turn's wall-clock (what the <3s gate
+    // measures) stops paying the 526-765ms Graph API round-trip R27-verify measured on every
+    // turn. A send failure is still fully observable: `sendWhatsAppText` already logs
+    // `console.error` internally on a non-ok response, and the persisted `whatsapp_messages`
+    // row still gets `status:'failed'` (same as before) so it is visible via a DB query, not
+    // silently lost. Added: a dedicated `[bg-send-failed]` log line here (grep-able,
+    // distinguishes "the send genuinely failed" from an unrelated background-task error) since
+    // the response body can no longer report `sent:true/false` truthfully (the send has not
+    // happened yet when the response is written). The DB booking/cancel commit itself is
+    // UNCONDITIONAL on send success both before and after this change (the insert already
+    // happened earlier in the tool-call path, long before this block); this change only moves
+    // WHEN the confirmation text is dispatched relative to the response, never whether the
+    // underlying mutation succeeded.
+    const replyForBg = reply;
+    const conversationIdForBg = conversationId;
+    const phoneForBg = phone;
+    const nowForBg = now;
+    const isFirstContactForBg = isFirstContact;
+    const greetingAlreadySentForBg = greetingAlreadySent;
+    const detectedThisMsgForBg = detectedThisMsg;
+    const convContextForBg = convContext;
+    runInBackground((async () => {
+      const send = await sendWhatsAppText(phoneForBg, replyForBg);
+      if (!send.ok) {
+        console.error("[bg-send-failed]", JSON.stringify({ phone: phoneForBg, conversationId: conversationIdForBg, error: send.error, status: send.status }));
       }
-      if (Object.keys(ctxUpdate).length > 0) {
-        // CRITICAL: merge onto a FRESH read, not the turn-START convContext. The tools wrote
-        // to context DURING this turn (pending_booking / pending_cancel / booking_name); using
-        // the stale snapshot here clobbered those — e.g. a first-contact booking preview's
-        // pending_booking was wiped by this greeting_sent write, so the next "ja" re-previewed
-        // instead of committing. Re-read so this only ADDS greeting_sent/detected_language.
-        const { data: freshConv } = await supabase
-          .from("whatsapp_conversations").select("context").eq("id", conversationId).maybeSingle();
-        const latestCtx = ((freshConv as { context?: Record<string, unknown> } | null)?.context) ?? convContext;
-        await supabase
-          .from("whatsapp_conversations")
-          .update({ context: { ...latestCtx, ...ctxUpdate } })
-          .eq("id", conversationId);
+      if (conversationIdForBg) {
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationIdForBg,
+          message_id: send.messageId ?? `agent-${nowForBg.getTime()}`,
+          direction: "outbound",
+          message_type: "text",
+          content: replyForBg,
+          status: send.ok ? "sent" : "failed",
+        });
+        // Durably mark that the welcome has fired so it never repeats on later turns,
+        // independent of message-history loading. Also persist the detected language so a
+        // later short message inherits the thread's language. Merge into context (don't clobber).
+        const ctxUpdate: Record<string, unknown> = {};
+        if (isFirstContactForBg && !greetingAlreadySentForBg) ctxUpdate.greeting_sent = true;
+        if (detectedThisMsgForBg && detectedThisMsgForBg !== convContextForBg.detected_language) {
+          ctxUpdate.detected_language = detectedThisMsgForBg;
+        }
+        if (Object.keys(ctxUpdate).length > 0) {
+          // CRITICAL: merge onto a FRESH read, not the turn-START convContext. The tools wrote
+          // to context DURING this turn (pending_booking / pending_cancel / booking_name); using
+          // the stale snapshot here clobbered those, e.g. a first-contact booking preview's
+          // pending_booking was wiped by this greeting_sent write, so the next "ja" re-previewed
+          // instead of committing. Re-read so this only ADDS greeting_sent/detected_language.
+          const { data: freshConv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", conversationIdForBg).maybeSingle();
+          const latestCtx = ((freshConv as { context?: Record<string, unknown> } | null)?.context) ?? convContextForBg;
+          await supabase
+            .from("whatsapp_conversations")
+            .update({ context: { ...latestCtx, ...ctxUpdate } })
+            .eq("id", conversationIdForBg);
+        }
       }
-    }
+    })());
 
     return new Response(
       JSON.stringify({
         ok: true,
         reply,
-        sent: send.ok,
+        sent: null,
         steps: result.steps,
         toolCalls: result.toolCalls.map((t) => t.name),
       }),
