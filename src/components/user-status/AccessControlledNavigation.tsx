@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -52,6 +52,31 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
   const { userStatus, accessControl } = useUserStatus();
   const { toast } = useToast();
   const { hasAlerts, alertCount } = useAvailabilityAlerts();
+
+  // IUX R10 (P1-NAV): a click that lands while userStatus.isStatusLoading is
+  // still true (the auth/profile/access-control fetch chain has not settled
+  // yet, real on a genuinely fresh /dashboard landing, 150-400ms in practice)
+  // used to be silently dropped by the isStatusLoading guard in
+  // handleItemClick below. A real user's first nav click right after landing
+  // could land in that window and appear to do nothing. Queue the intent
+  // instead of discarding it, and replay it the instant loading finishes, so
+  // the click still "does its job" without the guard's safety property
+  // (never act on stale/incomplete access-control data) being weakened: the
+  // replay runs handleItemClick again from scratch once real data is in.
+  const pendingClickRef = useRef<NavItem | null>(null);
+
+  useEffect(() => {
+    if (!userStatus.isStatusLoading && pendingClickRef.current) {
+      const item = pendingClickRef.current;
+      pendingClickRef.current = null;
+      handleItemClick(item);
+    }
+    // handleItemClick is intentionally not in the deps: it is a plain
+    // function recreated every render and closes over the same state this
+    // effect already re-runs on (userStatus). Adding it would refire the
+    // replay on unrelated renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userStatus.isStatusLoading]);
 
   // Memoize navigation items with ULTRA-STABLE state to prevent any flashing
   const navigationItems = useMemo(() => {
@@ -131,8 +156,14 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
     // admin both set userType==='subscriber'/isSubscriber).
     const isPaidSubscriber = userStatus.userType === 'subscriber' || userStatus.isSubscriber;
     
-    // Don't process clicks during loading/unknown states to prevent glitches
+    // Don't process clicks during loading/unknown states to prevent glitches:
+    // access-control data (isRestricted, tier, etc.) is not settled yet, so
+    // acting now could route on wrong info. IUX R10 (P1-NAV): queue the
+    // click instead of silently dropping it, the useEffect above replays it
+    // (re-running handleItemClick from scratch, so it still checks fresh
+    // status) the instant isStatusLoading flips to false.
     if (userStatus.isStatusLoading) {
+      pendingClickRef.current = item;
       return;
     }
     
@@ -240,13 +271,18 @@ export function AccessControlledNavigation({ isSidebarOpen, onNavigate, onMobile
             key={item.name}
             onClick={() => handleItemClick(item)}
             title={!isSidebarOpen ? t(item.labelKey, item.name) : undefined}
+            aria-disabled={userStatus.isStatusLoading || undefined}
             className={`
               group relative flex items-center w-full text-left rounded-md outline-none
-              transition-[background-color,color,box-shadow] duration-150 min-h-[44px] touch-manipulation mb-1
+              transition-[background-color,color,box-shadow,opacity] duration-150 min-h-[44px] touch-manipulation mb-1
               focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface-1
               ${isSidebarOpen
                 ? 'gap-3 px-3 py-2 text-sm font-medium'
                 : 'w-12 h-12 justify-center p-0 mx-auto'
+              }
+              ${userStatus.isStatusLoading
+                ? 'opacity-60 cursor-wait'
+                : ''
               }
               ${item.isActive
                 ? 'bg-primary/[0.12] text-foreground shadow-[0_0_24px_-10px_hsl(var(--primary)/0.55)] hover:bg-primary/[0.14]'
