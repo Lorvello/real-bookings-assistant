@@ -128,7 +128,8 @@
           "name": "Beschikbaarheid",
           "description": "Stel je werktijden in"
         }
-      }
+      },
+      "payoff": "Zodra deze stappen klaar zijn, gaat je WhatsApp-assistent live en boekt hij afspraken voor je."
     },
     "sidebar": {
       "collapse": "Zijbalk inklappen",

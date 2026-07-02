@@ -389,7 +389,7 @@ export const StreamlinedSignup: React.FC = () => {
             <div className="space-y-2">
               <PasswordInput
                 label={t('auth.signup.passwordLabel', 'Password')}
-                placeholder={t('auth.signup.passwordPlaceholder', 'Create a strong password (8+ chars, numbers, special chars)')}
+                placeholder={t('auth.signup.passwordPlaceholder', 'Create a password')}
                 value={formData.password}
                 onChange={(value) => updateFormData('password', value)}
                 showStrengthIndicator={true}
