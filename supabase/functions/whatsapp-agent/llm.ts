@@ -157,9 +157,25 @@ async function runAgentOpenAI(
   // Detect from the model id so OPENAI_MODEL can be flipped to a faster non-reasoning
   // model for the latency test without a 400.
   const isReasoning = /^(gpt-5|o\d)/i.test(model);
+  // T3-LATENCY-RETRY (R21): gpt-oss-20b (the LIVE Groq model) is ALSO a reasoning model, but the
+  // regex above never matched it (its id is "openai/gpt-oss-20b", not "gpt-5*"/"o\d*"), so it fell
+  // into the temperature-only branch and NEVER got a reasoning_effort sent, meaning Groq applied
+  // its own uncapped default. Direct-probe measurement (10+10 calls, varied prompts, real-size
+  // system prompt): baseline reasoning_tokens ranged ~85-216 per call (one isolated repro spiked to
+  // 1998, exhausting the entire max_completion_tokens budget on hidden reasoning and costing ~3s for
+  // that ONE step alone); with reasoning_effort:"low" it consistently stayed ~11-19 tokens. Chained
+  // across runAgent's multi-step loop (2-4 sequential Groq calls in one turn, occasionally doubled by
+  // index.ts's stall-retry nudge) this reasoning-token variance is what stretched some turns from the
+  // normal ~2s to 6-11s, not extra retries or a slow DB/tool call (individually fast, ~30-150ms).
+  // Groq's gpt-oss only accepts reasoning_effort "low"/"medium"/"high" (NOT OpenAI's "minimal"/"none",
+  // both rejected with a 400 on a live probe), so this gets its OWN branch rather than reusing
+  // isReasoning's "minimal". gpt-4.1-mini (the safe-revert OPENAI_MODEL) is unaffected: it fails the
+  // isGroqReasoning test below and keeps the existing temperature-only path.
+  const isGroqReasoning = /gpt-oss/i.test(model);
   for (let step = 0; step < maxSteps; step++) {
     const body: Record<string, unknown> = { model, messages, max_completion_tokens: 2000 };
     if (isReasoning) body.reasoning_effort = "minimal";
+    else if (isGroqReasoning) { body.reasoning_effort = "low"; body.temperature = opts.temperature ?? 0.2; }
     else body.temperature = opts.temperature ?? 0.2;
     if (tools) {
       body.tools = tools;
