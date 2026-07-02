@@ -667,25 +667,44 @@ export function createTools(
       description:
         "Boekt een NIEUWE afspraak in TWEE stappen (net als annuleren, zodat de klant eerst kan bevestigen). " +
         "STAP 1 (preview): heeft de klant een concrete dag + tijd genoemd? Roep dan METEEN aan met service_type_id + date (YYYY-MM-DD uit de <kalender>) + time (HH:MM) + naam — je hoeft get_available_slots NIET apart aan te roepen, de tool zoekt zelf het exacte vrije slot voor die tijd. De tool boekt dan NIETS en geeft 'needs_confirmation' terug met dienst, tijd en naam; vat die kort samen en vraag of het klopt. Is die tijd niet vrij, dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor. " +
-        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan (alleen confirmed:true volstaat, de tool gebruikt de in stap 1 opgeslagen tijd). " +
+        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan (confirmed:true + only_confirming_previous, de tool gebruikt de in stap 1 opgeslagen tijd). only_confirming_previous MOET je meesturen: true bij een kale bevestiging zonder iets anders erbij, false zodra het bericht ook een andere tijd/dag, een vraag, een voorwaarde, een andere naam of een correctie bevat. " +
         'Zonder naam weigert de tool de boeking, tenzij de klant expliciet weigerde (update_lead met name_refused: true, dan customer_name "Privé"). ' +
         "Vereist dit bedrijf vooruitbetaling, dan geeft stap 2 een betaallink (payment_url) terug; stuur die en zeg dat de plek gereserveerd is tot betaling.",
       parameters: {
         type: "object",
         properties: {
-          service_type_id: { type: "string" },
+          service_type_id: { type: "string", description: "UUID van de dienst uit de services-lijst. Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de dienst uit de preview." },
           date: { type: "string", description: "Datum YYYY-MM-DD (uit de <kalender>). Geef date + time door als de klant een concrete tijd noemde; de tool zoekt zelf het exacte slot (sneller, geen aparte get_available_slots nodig)." },
           time: { type: "string", description: "Kloktijd HH:MM (Amsterdamse tijd) die de klant koos, bv '14:00'. Samen met date de voorkeursmanier om te boeken." },
           start_time: { type: "string", description: "ALTERNATIEF voor date+time: de exacte 'start'-waarde (ISO 8601) van een slot uit get_available_slots, ongewijzigd gekopieerd. Gebruik date+time als je die hebt; val alleen op start_time terug als je al een ISO-slot uit get_available_slots koos. Reconstrueer een ISO-tijd NOOIT zelf." },
           end_time: { type: "string", description: "Alleen nodig bij start_time: ISO 8601 = start_time + de dienstduur. Bij date+time berekent de tool de eindtijd zelf." },
-          customer_name: { type: "string", description: 'Naam van de klant, of "Privé".' },
+          customer_name: { type: "string", description: "Naam van de klant, of \"Privé\". Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de naam uit de preview, tenzij de klant 'm net corrigeerde." },
           customer_country: { type: "string", description: "ALLEEN voor een AFSTANDS-/DIGITALE dienst (in <services>/<kalenders> gemarkeerd als AFSTAND/DIGITAAL): de 2-letter landcode (ISO, bv. NL, DE, BE) van het land waar de klant gevestigd is, voor de juiste grensoverschrijdende btw. Geef dit mee in de eerste (preview) aanroep. Laat WEG bij een gewone (in_person) dienst. Verzin nooit een land; vraag het de klant." },
           customer_vat_id: { type: "string", description: "OPTIONEEL en alleen voor een AFSTANDS-/DIGITALE dienst: het EU-btw-nummer van de klant als die als BEDRIJF boekt (bv. NL123456789B01, DE123456789). Laat WEG als de klant particulier is of geen nummer heeft, en bij een in_person dienst. Verzin nooit een nummer." },
           calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview." },
-          confirmed: { type: "boolean", description: "Laat WEG of false bij de eerste (preview) aanroep. Zet op true bij de tweede aanroep, NADAT de klant de samenvatting bevestigde, om echt te boeken." },
+          confirmed: { type: "boolean", description: "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview." },
+          only_confirming_previous: {
+            type: "boolean",
+            description:
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt'), niets anders. false = het bericht bevat ook iets anders (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd boeken).",
+          },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
         },
-        required: ["service_type_id", "customer_name"],
+        // R26: service_type_id/customer_name are NOT schema-required anymore (were previously).
+        // Root cause found live during this round's own latency testing: a hard JSON-schema
+        // `required` violation on the Groq API is a 400 that CRASHES the whole turn before any
+        // server-side logic runs (no graceful reply, "Sorry, er ging even iets mis"), and the
+        // model started omitting these on the confirm-call more often once the prompt started
+        // emphasizing confirmed:true + only_confirming_previous as the pair needed to commit. The
+        // server-side code ALREADY handles a missing/empty value gracefully on BOTH paths: on
+        // commit, serviceId/rawName are ALWAYS sourced from the server-stored pendingBook, never
+        // from args (tools.ts ~985/~1125), so an omitted arg here changes nothing; on a fresh
+        // preview, a missing serviceId/start falls through to the existing "ontbrekende_gegevens"
+        // error (~1135) and a missing/empty name falls through to the existing NAME GATE
+        // "naam_ontbreekt" error (~1128), both of which produce a helpful in-character reply
+        // instead of a crash. Removing the schema-level `required` turns a hard, ungraceful,
+        // whole-turn-killing 400 into the already-correct, already-tested graceful in-app error
+        // path. Not a loosening of any actual guarantee: the commit gate itself is unchanged.
       },
     },
     {
@@ -693,13 +712,18 @@ export function createTools(
       description:
         "Annuleert de aankomende afspraak van DEZE klant in TWEE stappen (annuleren is destructief → altijd één bevestiging). " +
         "Stap 1: roep aan ZONDER confirmed → de tool annuleert NIETS en geeft 'needs_confirmation' + de afspraak (dienst + when) terug; lees die terug, vraag of je echt mag annuleren, en bied aan om in plaats daarvan te verzetten. " +
-        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true → dan annuleert de tool. Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden; vraag welke en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00').",
+        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true + only_confirming_previous → dan annuleert de tool. only_confirming_previous MOET je meesturen: true bij een kale bevestiging zonder iets anders erbij, false zodra het bericht ook een vraag, een voorwaarde of een correctie bevat. Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden; vraag welke en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00').",
       parameters: {
         type: "object",
         properties: {
           confirmed: {
             type: "boolean",
-            description: "Alleen op true zetten NADAT de klant expliciet bevestigde dat de afspraak geannuleerd mag worden. Zonder confirmed:true annuleert de tool niets (alleen preview).",
+            description: "true NADAT de klant expliciet bevestigde te annuleren, samen met only_confirming_previous. Zonder confirmed:true annuleert de tool niets (alleen preview).",
+          },
+          only_confirming_previous: {
+            type: "boolean",
+            description:
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale bevestiging ('ja', 'klopt', 'annuleer maar'), niets anders. false = het bericht bevat ook iets anders (vraag, voorwaarde, andere afspraak/tijd, twijfel/correctie). Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd annuleren).",
           },
           match_time: {
             type: "string",
@@ -961,7 +985,25 @@ export function createTools(
         // closes that path: on an ambiguous message neither arm can commit, so the model runs
         // normally against the still-pending proposal (re-previews or answers the question)
         // instead of silently committing the wrong thing.
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && !!pendingBook?.start_time;
+        // R26 (structural rebuild, replaces category-by-category regex patching as the PRIMARY
+        // mechanism): R23-R25 each closed one more wording CATEGORY the ambiguousConfirm regex
+        // bank did not yet cover (time-shift/price/day -> service-correction -> conditional/name),
+        // an inherently unbounded enumeration of natural language (Mathew's own framing: too many
+        // ways to phrase something in Dutch, doubles in English). Instead of adding a 6th/7th/Nth
+        // regex category, require the SAME model call that is already reading the message and
+        // deciding to call the tool to make its own belief about message-cleanliness EXPLICIT and
+        // machine-checkable: args.only_confirming_previous must be exactly true (missing/false/any
+        // other value fails CLOSED, never open) for EVERY commit, whichever arm drives it. This
+        // generalizes to any future phrasing/language without a new regex, because it is the
+        // model's own language understanding attesting to a fact the server can mechanically check
+        // for presence, not a wording pattern the server has to recognize. ambiguousConfirm (regex)
+        // and nameChanged stay as a SECOND, independent, model-independent layer (defense-in-depth,
+        // catches the case where the small 20B model's own attestation is wrong); see the round's
+        // evidence file for the full reasoning on why field-echo-compare on date/time/service would
+        // NOT have covered 5 of 6 known historical bugs (the server already never trusts those
+        // fields from args on commit) and was rejected as the primary mechanism.
+        const cleanlyConfirmed = args.only_confirming_previous === true;
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && !!pendingBook?.start_time;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
         // rather than falling through to the generic fresh-preview path, which would expect
@@ -1387,7 +1429,11 @@ export function createTools(
         // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path, cancel mirror): same reasoning as
         // book_appointment above, applied to ctx.ambiguousConfirm here too, so neither the server
         // force nor the model's own confirmed flag can commit a cancel on an ambiguous message.
-        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && pending?.start_time) {
+        // R26 (structural rebuild, cancel mirror of the book_appointment gate above): require the
+        // model's own explicit only_confirming_previous attestation too, same reasoning, same
+        // fail-closed semantics (missing/false/anything but true blocks the commit).
+        const cleanlyConfirmedCancel = args.only_confirming_previous === true;
+        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && pending?.start_time) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();
