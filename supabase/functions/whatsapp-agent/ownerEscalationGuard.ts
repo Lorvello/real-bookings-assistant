@@ -57,12 +57,33 @@ export const OWNER_ESCALATION_CLAIM_RE = new RegExp(
   [
     // "ik vraag/geef/leg dit (nu/meteen/even) voor aan de eigenaar" (present-tense active claim)
     `${B}(ik|we|wij)${A}[^.!?]{0,10}${B}(vraag|geef|leg|heb\\s+gevraagd|stuur)${A}[^.!?]{0,40}${B}${OWNER_NOUN}${A}`,
-    // "ik heb het (even) nagepraat/doorgegeven/gevraagd/besproken (met de eigenaar)" (completed-past claim)
-    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,30}${B}(nagepraat|doorgegeven|gevraagd|besproken|overlegd|gecheckt)${A}`,
+    // "ik heb het (even) nagepraat/doorgegeven/doorgestuurd/gevraagd/besproken (met de eigenaar)"
+    // (completed-past claim). Owner-noun NOT required here (unchanged from the original): a reply like
+    // "ik heb het nagepraat, maar HIJ heeft nog geen antwoord gegeven" refers to the owner via a pronoun
+    // from context (the customer's own preceding message), not a fresh noun, and must still be caught.
+    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,30}${B}(nagepraat|doorgegeven|doorgestuurd|gestuurd|gevraagd|besproken|overlegd|gecheckt)${A}`,
+    // same verb set, but OWNER-NOUN-ANCHORED at a wider distance. NOTE (corrected during code review):
+    // the line-64 pattern above ALSO already catches the R64 trial-6/6 test-case sentence on its own
+    // once "doorgestuurd" was added to its verb list (heb-to-verb gap there is ~29 chars, under the
+    // 30-char cap above; the owner-noun is not required by line 64 at all). This alternative is NOT
+    // needed for THAT specific sentence; it is kept because it covers a DIFFERENT, wider-gap shape
+    // line 64 cannot: a heb-to-verb gap over 30 chars (e.g. "Ik heb, na er lang over te hebben
+    // nagedacht, doorgestuurd naar de eigenaar", gap ~56 chars), which still needs an owner-noun
+    // anchor nearby to stay precise (an unanchored 60-char cap would be too loose). Both orderings
+    // (verb-before-noun, noun-before-verb) are covered so word order does not matter.
+    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,60}${B}(nagepraat|doorgegeven|doorgestuurd|gestuurd|gevraagd|besproken|overlegd|gecheckt)${A}[^.!?]{0,60}${B}${OWNER_NOUN}${A}`,
+    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,20}${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(nagepraat|doorgegeven|doorgestuurd|gestuurd|gevraagd|besproken|overlegd|gecheckt)${A}`,
     // "de eigenaar heeft (nog) geen antwoord gegeven / heeft gereageerd / zei" (implies a real question
     // was actually put to a real human and a real reply channel is open)
     `${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(heeft|had)${A}[^.!?]{0,20}${B}(nog\\s+)?(geen\\s+)?(antwoord|gereageerd|gezegd|teruggekoppeld)${A}`,
     `${B}${OWNER_NOUN}${A}[^.!?]{0,10}${B}(zei|zegt|antwoordde|reageerde)${A}`,
+    // R64 LIVE GAP (trial 6/6, hard-pressure re-test): "ik kan geen (directe) reactie/antwoord van de
+    // eigenaar ophalen/krijgen/hebben" - phrased as the AGENT's own inability to fetch a reply rather
+    // than the owner's silence, but it still implies a real pending question was posed to a real human
+    // and a real reply channel exists to poll, which is exactly as false as the owner-silence phrasing
+    // above (no such channel exists). Anchored on "geen" + reactie/antwoord + owner-noun + a
+    // fetch/receive verb so a plain "ik heb geen informatie" (unrelated to the owner) never matches.
+    `${B}geen${A}[^.!?]{0,15}${B}(directe\\s+)?(reactie|antwoord|terugkoppeling)${A}[^.!?]{0,20}${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(ophalen|krijgen|gehad|ontvangen)${A}`,
     // "ik heb contact (gehad) met de eigenaar"
     `${B}(ik|we|wij)${A}[^.!?]{0,10}${B}(heb(ben)?\\s+)?contact${A}[^.!?]{0,15}${B}(gehad\\s+)?${B}(met\\s+)?${OWNER_NOUN}${A}`,
     // EN mirrors

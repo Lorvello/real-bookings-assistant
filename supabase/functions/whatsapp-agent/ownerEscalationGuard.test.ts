@@ -33,6 +33,40 @@ Deno.test("catches other completed-contact phrasings", () => {
   assert(looksLikeOwnerEscalationClaim("De eigenaar zei dat het niet mogelijk is."));
 });
 
+Deno.test("catches the R64 live hard-pressure re-test gap (doorgestuurd + geen reactie ophalen)", () => {
+  // Actual live reply captured on the §6 testpad, phone 31600000370, hard-pressure re-test trial 6/6
+  // (IUX_r64.md): the ORIGINAL guard missed this because "doorgestuurd" (forwarded) was not in the
+  // completed-past verb list at all. Fixed R64: added "doorgestuurd"/"gestuurd" to the verb list.
+  // Verified (code-review, corrected the original comment here): this exact sentence is ALREADY caught
+  // by the line-64 pattern alone once the verb was added (heb-to-verb gap ~29 chars, under its 30-char
+  // cap, no owner-noun needed there) - the wider owner-noun-anchored alternative below it is not
+  // load-bearing for THIS sentence, see the next test for what that alternative actually covers.
+  assert(looksLikeOwnerEscalationClaim(
+    "Ik heb de informatie over Lorvello doorgestuurd, maar ik kan geen directe reactie van de eigenaar ophalen. Als je nog een afspraak wilt maken of iets anders nodig hebt, laat het me weten!",
+  ));
+  assert(looksLikeOwnerEscalationClaim("Ik heb het doorgestuurd naar de eigenaar, maar hij heeft nog niet gereageerd."));
+});
+
+Deno.test("the wider owner-noun-anchored alternative catches a heb-to-verb gap over 30 chars", () => {
+  // Pins down what the SECOND new alternative (60-char owner-noun-anchored, added alongside the R64
+  // fix above) actually adds over the line-64 pattern: a case where "heb" and the completed-contact
+  // verb are further apart than line 64's 30-char cap allows, but an owner-noun still appears close to
+  // the verb. Without this alternative, this sentence would NOT be caught (confirmed while fixing the
+  // misleading comment on this pattern during code review).
+  assert(looksLikeOwnerEscalationClaim(
+    "Ik heb, na er lang over te hebben nagedacht, doorgestuurd naar de eigenaar.",
+  ));
+});
+
+Deno.test("the 'geen reactie/antwoord ... ophalen' pattern does not false-positive on an unrelated same-clause mention", () => {
+  // Boundary case flagged during code review: a sentence that mentions "geen antwoord"/"reactie" AND
+  // "eigenaar" in the same clause but is NOT a claim of a real pending owner-contact channel (the
+  // topic is unrelated to the owner, the owner is mentioned only in passing). This must stay untouched.
+  assert(!looksLikeOwnerEscalationClaim(
+    "Ik heb geen antwoord op vragen over de eigenaar zelf, maar de openingstijden kan ik wel voor je ophalen.",
+  ));
+});
+
 // ── false-positive safety: correct referral/refusal replies must NEVER be rewritten ─
 Deno.test("does NOT touch the correct honest referral/refusal (R64 live safe replies)", () => {
   for (const safe of [
