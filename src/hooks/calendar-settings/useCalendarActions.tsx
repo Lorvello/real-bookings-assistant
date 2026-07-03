@@ -3,7 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import {
   updateCalendarInfo,
-  updateCalendarServiceTypes,
+  updateServiceTypesCalendarLink,
   updateCalendarMembers
 } from './calendarSettingsUtils';
 
@@ -37,9 +37,11 @@ export const useCalendarActions = () => {
         }
       }
 
-      // Update service types
+      // Update service types (IUX R55, EDITCALENDAR-SERVICETYPES-DUALTABLE: writes through
+      // service_types.calendar_id directly, the app's real source of truth, not the
+      // calendar_service_types junction table)
       if (updates.serviceTypeIds !== undefined) {
-        const serviceTypesSuccess = await updateCalendarServiceTypes(calendarId, updates.serviceTypeIds);
+        const serviceTypesSuccess = await updateServiceTypesCalendarLink(calendarId, updates.serviceTypeIds);
         if (!serviceTypesSuccess) {
           allSuccess = false;
           errors.push('service types');

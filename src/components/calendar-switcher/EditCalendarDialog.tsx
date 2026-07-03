@@ -20,7 +20,7 @@ import { useCalendarMembers } from '@/hooks/useCalendarMembers';
 import { useCalendarSettings } from '@/hooks/useCalendarSettings';
 import { useDeleteCalendar } from '@/hooks/useDeleteCalendar';
 import { useCalendarActions } from '@/hooks/calendar-settings/useCalendarActions';
-import { fetchCalendarServiceTypes, fetchCalendarMembers } from '@/hooks/calendar-settings/calendarSettingsUtils';
+import { fetchServiceTypesByCalendarId, fetchCalendarMembers } from '@/hooks/calendar-settings/calendarSettingsUtils';
 import { SimpleMultiSelect } from '@/components/ui/simple-multi-select';
 import { ServiceTypeQuickCreateDialog } from './ServiceTypeQuickCreateDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -59,6 +59,13 @@ export function EditCalendarDialog({
   });
 
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
+  // IUX R55 (EDITCALENDAR-SERVICETYPES-DUALTABLE): snapshot of what was ALREADY linked to this
+  // calendar when the dialog opened. Services in this set cannot be deselected here: RLS
+  // (service_types_owner_only_modify's WITH CHECK) structurally rejects any write that would set
+  // service_types.calendar_id to null, since that can never satisfy "a calendar this user owns has
+  // this id." Every other real editing surface (Settings > Services) already models a service's
+  // calendar as reassignable-but-never-unassignable for the same reason. See handleServiceTypeChange.
+  const [initiallyLinkedServiceTypes, setInitiallyLinkedServiceTypes] = useState<string[]>([]);
   // The service types linked to THIS calendar, with names. useServiceTypes(undefined, true) only
   // returns the ACTIVE calendars' services, so when editing a non-active calendar its linked services
   // were missing from the options and SimpleMultiSelect fell back to showing the raw UUID. We merge
@@ -79,9 +86,15 @@ export function EditCalendarDialog({
         });
         
         // Load currently linked service types (+ their names, so the multiselect never shows a UUID).
+        // IUX R55 (EDITCALENDAR-SERVICETYPES-DUALTABLE): read via service_types.calendar_id
+        // directly, the same source of truth useServiceTypes.tsx and useCreateCalendar.tsx use,
+        // instead of the calendar_service_types junction table (which the bundled "New Calendar"
+        // service-creation flow never wrote to, causing this dialog to show "0 services selected"
+        // for every calendar created the normal way).
         try {
-          const linkedServiceTypes = await fetchCalendarServiceTypes(calendar.id);
+          const linkedServiceTypes = await fetchServiceTypesByCalendarId(calendar.id);
           setSelectedServiceTypes(linkedServiceTypes);
+          setInitiallyLinkedServiceTypes(linkedServiceTypes);
           if (linkedServiceTypes.length) {
             const { data: stRows } = await supabase
               .from('service_types').select('id, name').in('id', linkedServiceTypes);
@@ -92,6 +105,7 @@ export function EditCalendarDialog({
         } catch (error) {
           console.error('Error loading calendar service types:', error);
           setSelectedServiceTypes([]);
+          setInitiallyLinkedServiceTypes([]);
           setLinkedServiceTypeOptions([]);
         }
         
@@ -223,6 +237,24 @@ export function EditCalendarDialog({
   };
 
   const handleServiceTypeChange = (selectedValues: string[]) => {
+    // IUX R55 (EDITCALENDAR-SERVICETYPES-DUALTABLE): a service already linked to this calendar
+    // cannot be deselected here (see initiallyLinkedServiceTypes comment above, RLS-enforced). If
+    // the multiselect tries to drop one, restore it and tell the owner where the real operation
+    // (reassign to a different calendar, or delete the service) lives, instead of silently
+    // accepting a selection that Save would not actually be able to honor.
+    const droppedAlreadyLinked = initiallyLinkedServiceTypes.filter(id => !selectedValues.includes(id));
+    if (droppedAlreadyLinked.length > 0) {
+      setSelectedServiceTypes([...new Set([...selectedValues, ...droppedAlreadyLinked])]);
+      toast({
+        title: t('calPage.editCalendar.cannotRemoveServiceTitle', "Can't remove this service here"),
+        description: t(
+          'calPage.editCalendar.cannotRemoveServiceDescription',
+          'A service already belongs to exactly one calendar. To move or remove it, use Settings > Services.'
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
     setSelectedServiceTypes(selectedValues);
   };
 

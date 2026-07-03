@@ -136,7 +136,14 @@ export const updateCalendarInfo = async (calendarId: string, updates: {
   }
 };
 
-// Fetch service types linked to a calendar
+// LEGACY (IUX R55, EDITCALENDAR-SERVICETYPES-DUALTABLE): these two functions only ever read/wrote
+// the calendar_service_types junction table, while the app's real source of truth for "which
+// services does a calendar have" is service_types.calendar_id directly (see useServiceTypes.tsx's
+// architecture comment + useCreateCalendar.tsx's bundled-service flow, which both use the direct
+// column). EditCalendarDialog.tsx used to call these, causing it to show "0 services" for any
+// calendar created via the normal flow. No longer called from EditCalendarDialog (see
+// fetchServiceTypesByCalendarId / updateServiceTypesCalendarLink below); kept only because the
+// junction table itself is out of scope to drop and some future code may still want it.
 export const fetchCalendarServiceTypes = async (calendarId: string): Promise<string[]> => {
   try {
     const { data, error } = await supabase
@@ -191,6 +198,72 @@ export const updateCalendarServiceTypes = async (calendarId: string, serviceType
     return true;
   } catch (error) {
     console.error('Error updating calendar service types:', error);
+    return false;
+  }
+};
+
+// Fetch service types linked to a calendar via the REAL source of truth (service_types.calendar_id
+// directly). This is the same link useServiceTypes.tsx and useCreateCalendar.tsx use for every real
+// booking/tax/checkout/WhatsApp-agent path (IUX R55, EDITCALENDAR-SERVICETYPES-DUALTABLE).
+export const fetchServiceTypesByCalendarId = async (calendarId: string): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('service_types')
+      .select('id')
+      .eq('calendar_id', calendarId)
+      .or('is_deleted.is.null,is_deleted.eq.false');
+
+    if (error) {
+      console.error('Error fetching service types by calendar_id:', error);
+      return [];
+    }
+
+    return data?.map(item => item.id) || [];
+  } catch (error) {
+    console.error('Error fetching service types by calendar_id:', error);
+    return [];
+  }
+};
+
+// Add service types to a calendar via the REAL source of truth (service_types.calendar_id).
+// IUX R55 (EDITCALENDAR-SERVICETYPES-DUALTABLE): this is deliberately ADD-ONLY, it never sets
+// calendar_id to null. Two independent reasons, both confirmed live against the real DB before
+// shipping this fix:
+//   1. RLS: service_types_owner_only_modify's WITH CHECK requires
+//      `EXISTS (calendars WHERE calendars.id = service_types.calendar_id AND owner = auth.uid())`.
+//      That EXISTS can never be true when calendar_id is NULL, so a client-side UPDATE that nulls
+//      calendar_id is REJECTED by RLS outright (confirmed via a live repro: "Error unlinking
+//      service types from calendar" console error, DB unchanged). Unlinking to NULL is not a
+//      reachable state through the app's own client, by design of the policy.
+//   2. Product model: every other real editing surface (Settings > Services, ServiceTypesManager.tsx)
+//      already treats a service's calendar as a single-select "which calendar owns this service"
+//      field, reassignable to a DIFFERENT calendar, never nulled out. There is no "orphan this
+//      service from every calendar" operation anywhere in the app; the only ways to stop a service
+//      belonging to a calendar are to reassign it elsewhere or soft-delete it (deleteServiceType).
+// So this function only ever moves services INTO this calendar (covers both brand-new additions and
+// re-confirming an already-linked service); it does not attempt to remove a service that gets
+// deselected in the dialog, since there is no valid target state for that under RLS.
+export const updateServiceTypesCalendarLink = async (calendarId: string, serviceTypeIds: string[]): Promise<boolean> => {
+  try {
+    console.log('Linking service_types.calendar_id for calendar:', calendarId, serviceTypeIds);
+
+    if (serviceTypeIds.length === 0) {
+      return true;
+    }
+
+    const { error: linkError } = await supabase
+      .from('service_types')
+      .update({ calendar_id: calendarId })
+      .in('id', serviceTypeIds);
+
+    if (linkError) {
+      console.error('Error linking service types to calendar:', linkError);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating service_types.calendar_id link:', error);
     return false;
   }
 };
