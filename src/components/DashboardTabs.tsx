@@ -34,13 +34,30 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
   const { checkAccess } = useAccessControl();
   const { userStatus } = useUserStatus();
 
+  // Tabs the user has actually opened at least once this session (IUX R39).
+  // Radix TabsContent unmounts its subtree when inactive by default, so every
+  // re-visit to an already-seen tab replayed its loading skeleton AND its whole
+  // framer-motion entrance from scratch (screenshot-proven: Overview -> Live
+  // Operations -> back to Overview re-faded every time). The fix keeps a
+  // once-visited tab's panel mounted (forceMount + CSS-hidden instead of
+  // removed from the DOM) so switching back is instant. Deliberately NOT
+  // force-mounting all 5 tabs unconditionally up front: that mounted every
+  // Pro-locked tab's real data-fetching component simultaneously on first
+  // dashboard load regardless of access/visit state, which collided on
+  // concurrent Supabase realtime-channel subscriptions for the same
+  // calendarId and crashed the route. Lazy-mount-on-first-visit, keep-alive
+  // after avoids that entirely: at most the tabs the user actually clicked
+  // are ever mounted together.
+  const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set(['overview']));
+
   const handleTabChange = (value: string) => {
     // Restricted (Pro) tabs still switch: their TabsContent renders the
     // AccessBlockedOverlay with its upgrade CTA. Previously an early return after
     // a transient toast meant setActiveTab never ran, so the upgrade overlay (the
-    // conversion driver) was unreachable dead code — only the toast showed. The
+    // conversion driver) was unreachable dead code, only the toast showed. The
     // per-tab access gate + lock badge live in the TabsContent/TabsTrigger.
     setActiveTab(value);
+    setVisitedTabs((prev) => (prev.has(value) ? prev : new Set(prev).add(value)));
     onTabChange?.(value);
   };
 
@@ -132,69 +149,88 @@ export function DashboardTabs({ calendarIds, dateRange, onTabChange }: Dashboard
           </div>
         </div>
 
-        {/* Tab Content */}
-        <TabsContent value="overview">
+        {/* Tab Content.
+            IUX R39: keep-alive-after-first-visit instead of Radix's default
+            unmount-when-inactive, so re-visiting a tab is instant (no re-fade,
+            no re-fetch skeleton). `forceMount` only applies to tabs already in
+            visitedTabs (a tab you have not opened yet stays fully unmounted,
+            exactly like before); the component inside is likewise only
+            rendered once visited. This is deliberately NOT "mount all 5 up
+            front": an earlier attempt at unconditional forceMount on every
+            tab crashed the route (5 tabs' real components, including the
+            Pro-locked ones, all mounting simultaneously on first dashboard
+            load collided on concurrent Supabase realtime-channel
+            subscriptions for the same calendarId). Lazy-mount-on-first-visit,
+            keep-alive-after keeps at most the tabs the user actually clicked
+            mounted together, so the fix cannot reintroduce that crash. */}
+        <TabsContent value="overview" {...(visitedTabs.has('overview') ? { forceMount: true as const } : {})} className="data-[state=inactive]:hidden">
           <div className="surface-raised rounded-xl p-0.5 md:p-6">
-            <OverviewTab calendarIds={calendarIds} />
+            {visitedTabs.has('overview') && <OverviewTab calendarIds={calendarIds} />}
           </div>
         </TabsContent>
 
-        <TabsContent value="business-intelligence">
+        <TabsContent value="business-intelligence" {...(visitedTabs.has('business-intelligence') ? { forceMount: true as const } : {})} className="data-[state=inactive]:hidden">
           <div className="surface-raised rounded-xl p-0.5 md:p-6">
-            {hasBusinessIntelligenceAccess ? (
-              <BusinessIntelligenceTab 
-                calendarIds={calendarIds}
-                dateRange={dateRange}
-              />
-            ) : (
-              <LockedTabPanel
-                feature={t('dashboard.tab.bi', 'Business Intelligence')}
-                description={t('dashboard.locked.biDesc', 'Advanced business metrics, revenue analytics and service performance to grow your business.')}
-                bullets={[t('dashboard.locked.biBullet1', 'Revenue & service analytics'), t('dashboard.locked.biBullet2', 'Top-performing services'), t('dashboard.locked.biBullet3', 'Growth trends over time')]}
-                icon={TrendingUp}
-                onUpgrade={handleUpgrade}
-              />
+            {visitedTabs.has('business-intelligence') && (
+              hasBusinessIntelligenceAccess ? (
+                <BusinessIntelligenceTab
+                  calendarIds={calendarIds}
+                  dateRange={dateRange}
+                />
+              ) : (
+                <LockedTabPanel
+                  feature={t('dashboard.tab.bi', 'Business Intelligence')}
+                  description={t('dashboard.locked.biDesc', 'Advanced business metrics, revenue analytics and service performance to grow your business.')}
+                  bullets={[t('dashboard.locked.biBullet1', 'Revenue & service analytics'), t('dashboard.locked.biBullet2', 'Top-performing services'), t('dashboard.locked.biBullet3', 'Growth trends over time')]}
+                  icon={TrendingUp}
+                  onUpgrade={handleUpgrade}
+                />
+              )
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="performance-efficiency">
+        <TabsContent value="performance-efficiency" {...(visitedTabs.has('performance-efficiency') ? { forceMount: true as const } : {})} className="data-[state=inactive]:hidden">
           <div className="surface-raised rounded-xl p-0.5 md:p-6">
-            {hasPerformanceAccess ? (
-              <PerformanceEfficiencyTab 
-                calendarIds={calendarIds}
-                dateRange={dateRange}
-              />
-            ) : (
-              <LockedTabPanel
-                feature={t('dashboard.locked.perfFeature', 'Performance & Efficiency')}
-                description={t('dashboard.locked.perfDesc', 'Performance metrics, no-show rates, customer satisfaction and efficiency analytics.')}
-                bullets={[t('dashboard.locked.perfBullet1', 'No-show & efficiency rates'), t('dashboard.locked.perfBullet2', 'Peak-hour analysis'), t('dashboard.locked.perfBullet3', 'Customer satisfaction scores')]}
-                icon={Activity}
-                onUpgrade={handleUpgrade}
-              />
+            {visitedTabs.has('performance-efficiency') && (
+              hasPerformanceAccess ? (
+                <PerformanceEfficiencyTab
+                  calendarIds={calendarIds}
+                  dateRange={dateRange}
+                />
+              ) : (
+                <LockedTabPanel
+                  feature={t('dashboard.locked.perfFeature', 'Performance & Efficiency')}
+                  description={t('dashboard.locked.perfDesc', 'Performance metrics, no-show rates, customer satisfaction and efficiency analytics.')}
+                  bullets={[t('dashboard.locked.perfBullet1', 'No-show & efficiency rates'), t('dashboard.locked.perfBullet2', 'Peak-hour analysis'), t('dashboard.locked.perfBullet3', 'Customer satisfaction scores')]}
+                  icon={Activity}
+                  onUpgrade={handleUpgrade}
+                />
+              )
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="live-operations">
+        <TabsContent value="live-operations" {...(visitedTabs.has('live-operations') ? { forceMount: true as const } : {})} className="data-[state=inactive]:hidden">
           <div className="surface-raised rounded-xl p-0.5 md:p-6">
-            <LiveOperationsTab calendarIds={calendarIds} />
+            {visitedTabs.has('live-operations') && <LiveOperationsTab calendarIds={calendarIds} />}
           </div>
         </TabsContent>
 
-        <TabsContent value="future-insights">
+        <TabsContent value="future-insights" {...(visitedTabs.has('future-insights') ? { forceMount: true as const } : {})} className="data-[state=inactive]:hidden">
           <div className="surface-raised rounded-xl p-0.5 md:p-6">
-            {hasFutureInsightsAccess ? (
-              <FutureInsightsTab calendarIds={calendarIds} />
-            ) : (
-              <LockedTabPanel
-                feature={t('dashboard.tab.futureInsights', 'Future Insights')}
-                description={t('dashboard.locked.futureDesc', 'Advanced predictions, seasonal patterns and AI recommendations to grow your business.')}
-                bullets={[t('dashboard.locked.futureBullet1', 'Demand forecasting'), t('dashboard.locked.futureBullet2', 'Seasonal booking patterns'), t('dashboard.locked.futureBullet3', 'AI growth recommendations')]}
-                icon={Brain}
-                onUpgrade={handleUpgrade}
-              />
+            {visitedTabs.has('future-insights') && (
+              hasFutureInsightsAccess ? (
+                <FutureInsightsTab calendarIds={calendarIds} />
+              ) : (
+                <LockedTabPanel
+                  feature={t('dashboard.tab.futureInsights', 'Future Insights')}
+                  description={t('dashboard.locked.futureDesc', 'Advanced predictions, seasonal patterns and AI recommendations to grow your business.')}
+                  bullets={[t('dashboard.locked.futureBullet1', 'Demand forecasting'), t('dashboard.locked.futureBullet2', 'Seasonal booking patterns'), t('dashboard.locked.futureBullet3', 'AI growth recommendations')]}
+                  icon={Brain}
+                  onUpgrade={handleUpgrade}
+                />
+              )
             )}
           </div>
         </TabsContent>
