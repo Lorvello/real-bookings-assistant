@@ -31,6 +31,11 @@ export interface ToolContext {
   // previous turn. Drives the book COMMIT deterministically (and from the SERVER-stored exact
   // start_time, so the model's time-reconstruction can't book the wrong hour).
   confirmBook?: boolean;
+  // R40: same idea for update_booking_name. Drives the rename COMMIT deterministically instead of
+  // relying purely on the model's own confirmed:true self-attestation, which live testing this
+  // round proved unreliable for this newer tool (the model tends to re-preview instead of commit
+  // on a bare "ja klopt" turn). Set in index.ts each turn from a fresh pending_rename context.
+  confirmRename?: boolean;
   // R24 (AFFIRM-CONFIRM-FALSEPOS, sev-2, second commit path): server-detected, same signal
   // index.ts computes to gate confirmBook/confirmCancel (a day/time-shift mention, a price
   // question, a trailing "?", or a hedge word, see index.ts's own comment for the 5 proven
@@ -828,6 +833,41 @@ export function createTools(
         },
       },
     },
+    {
+      // R40 (T3, new capability): a customer whose booking is already CONFIRMED sometimes
+      // needs the NAME on it corrected (typo, booked under a colleague's name, etc.) without
+      // cancelling and rebooking (which would also needlessly re-trigger any payment/deposit
+      // flow and cancellation-policy math). book_appointment's own name-correction handling
+      // (nameChanged/namePreviewOnly) only ever applies to the in-flight PENDING PREVIEW of a
+      // NOT-YET-committed booking; there was no tool at all for a booking already written to
+      // the DB. Deliberately scoped to the NAME field only (not day/time/service, those already
+      // have reschedule_appointment / cancel+rebook), same "one clean tool per real user need"
+      // pattern as the existing three mutation tools.
+      name: "update_booking_name",
+      description:
+        "Wijzigt ALLEEN de naam op een BESTAANDE, al bevestigde afspraak van deze klant (bv. verkeerd gespeld, of per ongeluk onder iemand anders' naam geboekt). GEEN nieuwe boeking, GEEN dag/tijd/dienst-wijziging (gebruik daarvoor reschedule_appointment). Twee stappen, zoals annuleren: " +
+        "STAP 1 (preview): roep aan met new_name = de nieuwe naam die de klant noemt. De tool wijzigt NIETS en geeft 'needs_confirmation' terug met de HUIDIGE naam + de voorgestelde nieuwe naam; lees dat kort terug en vraag of het klopt. Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' terug; geef bij de volgende aanroep match_time = de kloktijd van de bedoelde afspraak mee. " +
+        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan met confirmed:true + only_confirming_previous. only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG ander signaal bevat. Twijfel je: false.",
+      parameters: {
+        type: "object",
+        properties: {
+          new_name: { type: "string", description: "De nieuwe naam voor de afspraak, zoals de klant die noemt. Verplicht bij de preview-aanroep; bij de bevestig-aanroep (confirmed:true) niet nodig, de tool gebruikt de in stap 1 opgeslagen naam." },
+          confirmed: { type: "boolean", description: "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview." },
+          only_confirming_previous: {
+            type: "boolean",
+            description: "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale, onvoorwaardelijke bevestiging ('ja', 'klopt'), helemaal niets anders. false = het bericht bevat ENIG ander signaal. Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd wijzigen).",
+          },
+          match_time: {
+            type: "string",
+            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM, Amsterdamse tijd) van de afspraak die de klant kiest, bv '14:00'.",
+          },
+          match_start_time: {
+            type: "string",
+            description: "Optioneel alternatief voor match_time: de exacte start_time van de gekozen afspraak uit de eerder teruggegeven lijst.",
+          },
+        },
+      },
+    },
   ];
 
   // Turn-local: how many book_appointment PREVIEWS happened this turn. The two-phase
@@ -862,6 +902,9 @@ export function createTools(
   // exact and immune to retry-timing.
   let lastSelfWrittenBookAt: number | undefined;
   let lastSelfWrittenCancelAt: number | undefined;
+  // R40: same self-write-chain guard, mirrored for update_booking_name's own pending_rename
+  // preview/commit dance (see the R36 comment above for the full reasoning).
+  let lastSelfWrittenRenameAt: number | undefined;
 
   const execute: ToolExecutor = async (name, args) => {
     switch (name) {
@@ -1788,6 +1831,171 @@ export function createTools(
           return { error: rres?.error || "verzetten_mislukt", message: "Het verzetten lukte niet. Probeer een ander tijdstip." };
         }
         return { ok: true, rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart } };
+      }
+
+      case "update_booking_name": {
+        // R40 (T3, new capability): correct the customer_name on an EXISTING, already-confirmed
+        // booking, without cancel+rebook. Two-phase preview/commit, mirroring cancel_appointment's
+        // shape exactly, including the SAME commit-safety stack proven across R22-R36 for book/
+        // cancel: only_confirming_previous===true (model attestation) AND !ctx.ambiguousConfirm
+        // (regex ambiguity layer) AND ctx.hardConfirm===true (finite closed-list structural gate),
+        // plus its own self-write-chain guard (lastSelfWrittenRenameAt) mirroring R36's
+        // PHANTOM-BOOKING-SELFCHAIN fix so a same-turn preview-then-self-confirm chain can never
+        // commit off its own just-written stamp. Deliberately reuses ctx.ambiguousConfirm/
+        // ctx.hardConfirm as-is (both are computed unconditionally every turn in index.ts,
+        // independent of book/cancel) rather than adding a new server-side confirmRename regex
+        // detector: the model's own args.confirmed+only_confirming_previous is the ONLY commit
+        // driver here (no ctx.confirmRename "server force" arm exists, unlike confirmBook/
+        // confirmCancel), so there is only ONE arm to gate, already covered by the three
+        // conditions above; adding a second server-detection arm would only be needed if a
+        // "server force" path existed, which this tool intentionally does not have (smaller
+        // surface, same safety bar).
+        const isRealName = (n: unknown) => {
+          const t = String(n ?? "").trim().toLowerCase();
+          return t !== "" && t !== "privé" && t !== "prive";
+        };
+        let renameCtx: Record<string, unknown> = {};
+        if (ctx.conversationId) {
+          const { data: conv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          renameCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+        }
+        const pendingRename = renameCtx.pending_rename as
+          { booking_id?: string; start_time?: string; old_name?: string; new_name?: string; at?: number } | undefined;
+        const clearPendingRename = async () => {
+          if (!ctx.conversationId) return;
+          const { pending_rename: _drop, ...rest } = renameCtx;
+          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+        };
+
+        const cleanlyConfirmedRename = args.only_confirming_previous === true;
+        const renamePreviewIsSelfWritten =
+          typeof pendingRename?.at === "number" && pendingRename.at === lastSelfWrittenRenameAt;
+        // R40 (renameCommitMissed follow-up): ctx.confirmRename (server-detected, mirrors
+        // confirmBook/confirmCancel) is ORed in as a SECOND trigger for the commit attempt,
+        // exactly like book_appointment/cancel_appointment's own `args.confirmed === true ||
+        // ctx.confirmX === true` pattern. It is NOT a bypass: every other AND-condition below
+        // (ambiguousConfirm, hardConfirm, the self-write-chain guard) still applies identically
+        // regardless of which arm triggered the attempt, same safety bar as the OTHER two arms.
+        if (
+          (args.confirmed === true || ctx.confirmRename === true) && !ctx.ambiguousConfirm && cleanlyConfirmedRename && ctx.hardConfirm === true &&
+          pendingRename?.booking_id && isRealName(pendingRename?.new_name) && !renamePreviewIsSelfWritten
+        ) {
+          // Re-validate at execution (race window: the booking may since have been cancelled or
+          // moved by a concurrent turn), same "re-resolve fresh, never trust the stale preview
+          // alone" pattern as cancel_appointment's commit phase.
+          const { data: fresh } = await supabase
+            .from("bookings")
+            .select("id, status, start_time, customer_phone")
+            .eq("id", pendingRename.booking_id)
+            .maybeSingle();
+          const freshBooking = fresh as { id: string; status: string; start_time: string; customer_phone: string } | null;
+          if (!freshBooking || freshBooking.customer_phone !== ctx.phone || !["confirmed", "pending"].includes(freshBooking.status) || new Date(freshBooking.start_time) <= new Date()) {
+            await clearPendingRename();
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
+          const { error } = await supabase.from("bookings").update({
+            customer_name: String(pendingRename.new_name),
+            updated_at: new Date().toISOString(),
+          }).eq("id", freshBooking.id);
+          if (error) return { error: error.message };
+          await clearPendingRename();
+          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
+        }
+
+        // R40 (renameCommitMissed follow-up, live-repro'd this round): when the customer's raw
+        // message DETERMINISTICALLY affirms a fresh prior-turn pending_rename (ctx.confirmRename,
+        // same server-side signal as confirmBook/confirmCancel, computed BEFORE this turn's model
+        // call ever ran) AND the model calls again with the SAME new_name it already previewed
+        // (a re-preview instead of a clean confirm, the exact failure mode measured live: the
+        // small model sometimes re-sends {new_name:"Lisa"} on a "ja klopt" turn instead of
+        // {confirmed:true, only_confirming_previous:true}), treat this as the commit the customer
+        // actually asked for rather than silently re-arming an identical preview and stalling
+        // forever (the self-write-chain guard above correctly refuses to let a SAME-turn retry
+        // confirm a preview the primary call itself just rewrote, so without this the turn can
+        // only loop). Deliberately narrow and safe-by-construction: only fires when (a) a fresh
+        // pending_rename already exists from a GENUINELY PRIOR turn (not self-written this turn,
+        // enforced by !renamePreviewIsSelfWritten below reusing the exact same discriminator as
+        // the commit branch above), (b) the new_name is UNCHANGED from what was already proposed
+        // (a real correction, e.g. a different name, still falls through to a normal re-preview,
+        // never silently substituted), and (c) ctx.ambiguousConfirm/ctx.hardConfirm still gate it
+        // identically to every other commit path (same three-layer AND as the primary branch).
+        const sameNamePreviewIsSelfWritten =
+          typeof pendingRename?.at === "number" && pendingRename.at === lastSelfWrittenRenameAt;
+        if (
+          ctx.confirmRename === true && !ctx.ambiguousConfirm && ctx.hardConfirm === true &&
+          pendingRename?.booking_id && isRealName(pendingRename?.new_name) && !sameNamePreviewIsSelfWritten &&
+          isRealName(args.new_name) && String(args.new_name).trim().toLowerCase() === String(pendingRename.new_name).trim().toLowerCase()
+        ) {
+          const { data: fresh } = await supabase
+            .from("bookings")
+            .select("id, status, start_time, customer_phone")
+            .eq("id", pendingRename.booking_id)
+            .maybeSingle();
+          const freshBooking = fresh as { id: string; status: string; start_time: string; customer_phone: string } | null;
+          if (!freshBooking || freshBooking.customer_phone !== ctx.phone || !["confirmed", "pending"].includes(freshBooking.status) || new Date(freshBooking.start_time) <= new Date()) {
+            await clearPendingRename();
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
+          const { error } = await supabase.from("bookings").update({
+            customer_name: String(pendingRename.new_name),
+            updated_at: new Date().toISOString(),
+          }).eq("id", freshBooking.id);
+          if (error) return { error: error.message };
+          await clearPendingRename();
+          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
+        }
+
+        // PREVIEW phase (default; also where a stray confirmed:true WITHOUT a preview lands).
+        const newNameRaw = String(args.new_name ?? "").trim();
+        if (!isRealName(newNameRaw)) {
+          return { error: "naam_ontbreekt", message: "Welke naam moet er op de afspraak komen te staan?" };
+        }
+        const renameMatchTime = args.match_time
+          ? String(args.match_time)
+          : (!args.match_start_time ? extractClockTimes(ctx.userMessage ?? "")[0] : undefined);
+        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, renameMatchTime);
+        if (target.none) {
+          return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om de naam op te wijzigen." };
+        }
+        if (target.ambiguous) {
+          return {
+            error: "meerdere_afspraken",
+            message: "Je hebt meerdere aankomende afspraken staan.",
+            guidance: "Vraag kort welke van deze afspraken de klant de naam op wil wijzigen.",
+            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
+          };
+        }
+        const b = target.booking!;
+        const { data: currentRow } = await supabase.from("bookings").select("customer_name").eq("id", b.id).maybeSingle();
+        const currentName = (currentRow as { customer_name?: string } | null)?.customer_name ?? null;
+        if (currentName && currentName.trim().toLowerCase() === newNameRaw.toLowerCase()) {
+          // No-op: already that name. Friendly short-circuit, no DB write, no pending marker.
+          return { ok: true, no_change: true, message: `De afspraak staat al onder de naam ${currentName}.` };
+        }
+        const renamePreviewAt = Date.now();
+        lastSelfWrittenRenameAt = renamePreviewAt;
+        if (ctx.conversationId) {
+          await supabase
+            .from("whatsapp_conversations")
+            .update({ context: { ...renameCtx, pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt } } })
+            .eq("id", ctx.conversationId);
+        }
+        return {
+          needs_confirmation: true,
+          appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time) },
+          current_name: currentName,
+          proposed_name: newNameRaw,
+          guidance: "NIETS gewijzigd. Lees de afspraak (dienst + tijd) + de huidige naam + de nieuwe naam terug en vraag of het klopt. Pas NA de bevestiging van de klant: roep update_booking_name opnieuw aan met confirmed:true + only_confirming_previous.",
+        };
       }
 
       default:

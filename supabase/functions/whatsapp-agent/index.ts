@@ -268,6 +268,16 @@ function deterministicConfirmation(
   if (cancel?.cancelled) {
     return en ? `Done, your appointment has been cancelled.` : `Gedaan, je afspraak is geannuleerd.`;
   }
+  // R40: update_booking_name commit. no_change (name was already that) is deliberately NOT
+  // handled here: it never satisfies isCommittedMutation (no r.renamed), so stopOnToolResult
+  // never fires for it and the model composes that reply normally, same as any other tool result
+  // that isn't a genuine commit.
+  const renamed = okResult("update_booking_name");
+  if (renamed?.renamed) {
+    return en
+      ? `Done, the name on your appointment (${renamed.renamed.when}) is now ${renamed.renamed.new_name}.`
+      : `Gedaan, de naam op je afspraak (${renamed.renamed.when}) is nu ${renamed.renamed.new_name}.`;
+  }
   return null;
 }
 
@@ -315,6 +325,10 @@ function deterministicSlotTaken(
 // returns needs_confirmation (no ok:true) and is excluded, so two-phase preview turns stay
 // model-generated. Book commit / pay-and-book / same-turn already_booked carry ok:true; cancel
 // commit carries ok:true + cancelled; reschedule commit carries ok:true + rescheduled.to.
+// R40: update_booking_name commit carries ok:true + renamed (mirrors cancel's ok:true + cancelled
+// shape); its own no-op short-circuit (ok:true + no_change, no DB write) is deliberately EXCLUDED
+// here (same reasoning as a PREVIEW: nothing was committed, so it must not stop the loop early or
+// be treated as a succeeded mutation downstream).
 function isCommittedMutation(name: string, result: unknown): boolean {
   if (!result || typeof result !== "object") return false;
   const r = result as Record<string, any>;
@@ -322,6 +336,7 @@ function isCommittedMutation(name: string, result: unknown): boolean {
   if (name === "book_appointment") return true;
   if (name === "cancel_appointment") return !!r.cancelled;
   if (name === "reschedule_appointment") return !!(r.rescheduled && r.rescheduled.to);
+  if (name === "update_booking_name") return !!r.renamed;
   return false;
 }
 
@@ -934,6 +949,22 @@ Deno.serve(async (req) => {
     const hardConfirm = hardVerdict === "confirm";
     const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm;
 
+    // R40 (update_booking_name): same deterministic server-side detection as confirmCancel, for
+    // the SAME reason it exists there. Live testing this round found the small model unreliably
+    // re-previews update_booking_name on a bare "ja klopt" turn INSTEAD of confirming a pending
+    // rename that genuinely predates this turn (a fresh HTTP request, own pending_rename read from
+    // context on prior-turn history), the same "small model can't reliably self-issue confirmed:
+    // true" gap R22-era confirmBook/confirmCancel were built to close. Without a server force, the
+    // confirmStall retry mechanism's own self-write-chain guard (mirrors R36) then correctly
+    // refuses to let the retry confirm a preview the PRIMARY call itself just (re-)wrote this same
+    // turn, so the customer's genuine confirmation from a real prior turn never lands. Mirrors
+    // confirmCancel exactly: same 15-min freshness window reasoning, same AFFIRM_RE/NEGATE_RE/
+    // ambiguousConfirm gating (a rename-policy-question equivalent doesn't exist, so no extra
+    // exclusion needed beyond the shared ambiguousConfirm layer).
+    const pr = convContext.pending_rename as { at?: number } | undefined;
+    const pendingRenameFresh = !!pr && (typeof pr.at !== "number" || (Date.now() - pr.at) < 15 * 60 * 1000);
+    const confirmRename = pendingRenameFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
     // proposal, NO insert), so an accidental immediate booking is impossible and the customer
@@ -1026,7 +1057,7 @@ Deno.serve(async (req) => {
     // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
     // confirmStall retry runAgent call below) now tracks its own preview writes internally and
     // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -1066,7 +1097,10 @@ Deno.serve(async (req) => {
     // action, so this fires even when calledAction is true. All mutating tools are
     // server-guarded (book refuses a double, reschedule re-validates, cancel previews), so a
     // stray nudge can never produce a wrong outcome.
-    const MUTATION_TOOLS = new Set(["book_appointment", "cancel_appointment", "reschedule_appointment"]);
+    // R40: update_booking_name added, same "mutating tool, server-guarded two-phase commit"
+    // reasoning as the other three (its own commit gate requires only_confirming_previous===true
+    // AND !ambiguousConfirm AND hardConfirm===true AND a stored pending_rename, see tools.ts).
+    const MUTATION_TOOLS = new Set(["book_appointment", "cancel_appointment", "reschedule_appointment", "update_booking_name"]);
     // A mutation only "counts" if it SUCCEEDED. The model sometimes calls book_appointment on
     // a reschedule-confirm turn; the duplicate guard refuses it (no double-book) but the
     // reschedule never happens — so an ERRORED mutation must NOT suppress the nudge. A PREVIEW
@@ -1121,6 +1155,14 @@ Deno.serve(async (req) => {
         BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
     const bookCommitMissed = confirmBook && !succeededMutation && !slotTakenOnCommit;
 
+    // R40: Rename-commit-missed (mirrors cancelCommitMissed exactly). The customer AFFIRMED a
+    // pending name-change (server-detected confirmRename) but no rename SUCCEEDED this turn (the
+    // model re-previewed instead of committing, the exact live-repro'd failure mode this round).
+    // Force the commit via a nudge. The two-phase commit re-resolves the SERVER-stored
+    // pending_rename, so a nudge can only ever rename the correct booking to the correct
+    // already-previewed name, never a model-reconstructed one.
+    const renameCommitMissed = confirmRename && !succeededMutation;
+
     // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
     // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
     // no pending_booking proposal exists and the customer's next "ja" has nothing to commit.
@@ -1163,13 +1205,14 @@ Deno.serve(async (req) => {
     const slotOfferUnbacked = !calledMutationTool && !calledSlots && offeredTimesPrimary.length > 0 &&
       OFFER_CONTEXT_RE.test(result.text || "");
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || emptyNoAction || slotOfferUnbacked) {
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed || emptyNoAction || slotOfferUnbacked) {
       // T3-LATENCY-RETRY follow-up (R22): the stall-retry DOUBLES the turn's sequential LLM
       // round-trips, and when accepted, `result = retry` makes the primary call's step count
       // invisible in the response. Log which heuristic fired + both step counts so tail-latency
       // turns are diagnosable from the function logs. Log-only, no behavior change.
       const nudgeReason =
         cancelCommitMissed ? "cancelCommitMissed" : bookCommitMissed ? "bookCommitMissed" :
+        renameCommitMissed ? "renameCommitMissed" :
         reschedStall ? "reschedStall" : bookPreviewMissed ? "bookPreviewMissed" :
         cancelPreviewMissed ? "cancelPreviewMissed" : confirmStall ? "confirmStall" :
         emptyNoAction ? "emptyNoAction" : slotOfferUnbacked ? "slotOfferUnbacked" : "looksLikeStall";
@@ -1189,6 +1232,8 @@ Deno.serve(async (req) => {
       // wording change can only ever make a wrong commit LESS likely, never more.
       const nudgeText = cancelCommitMissed
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd, vraag, voorwaarde, twijfel, afwijzing/ontevredenheid in welke vorm dan ook). Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
+        : renameCommitMissed
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde naamswijziging op de afspraak, maar je hebt update_booking_name niet (geslaagd) aangeroepen, dus de naam is nog NIET gewijzigd. Roep NU update_booking_name aan met BEIDE velden confirmed:true EN only_confirming_previous samen in DEZELFDE aanroep. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil. Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Geef new_name NIET opnieuw door: het systeem gebruikt de in de preview opgeslagen naam. Antwoord met het resultaat."
         : bookCommitMissed
         ? "[systeem] De klant bevestigde de zojuist voorgestelde afspraak, maar je hebt book_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geboekt. Roep NU book_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel, of een afwijzing/ontevredenheid in welke vorm dan ook, ook als er geen concreet alternatief genoemd wordt). Twijfel je: false, dan vraagt het systeem gewoon nogmaals, veiliger dan verkeerd boeken. Het systeem gebruikt bij confirmed:true het in de preview opgeslagen tijdslot: geef de datum of tijd NIET opnieuw door en bereken niets na. Vraag niets extra's en zeg NOOIT dat er geboekt is voordat de tool 'ok' teruggaf."
         : reschedStall
@@ -1204,7 +1249,7 @@ Deno.serve(async (req) => {
         // Safe by construction: tools.ts only commits when a server-stored pending_booking exists
         // (committing = confirmed && pendingBook, tools.ts ~917), so a stray confirmed:true can
         // never book anything except the exact previewed slot; without a preview it just previews.
-        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde; herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment of cancel_appointment). Heb je deze beurt al een boekings-preview met book_appointment gedaan, roep book_appointment dan opnieuw aan met confirmed:true, en beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (het systeem boekt exact het opgeslagen tijdslot; NIET nogmaals zonder confirmed aanroepen, dat maakt alleen weer een preview). Stel geen extra vraag en kondig niets aan: antwoord met het resultaat."
+        ? "[systeem] De klant bevestigde de zojuist voorgestelde actie. Voer 'm NU uit met de juiste tool (meestal reschedule_appointment naar het EXACTE tijdstip dat jij net voorstelde of dat de klant noemde; herbereken de tijd NIET zelf, gebruik letterlijk dat tijdstip; anders book_appointment, cancel_appointment of update_booking_name). Heb je deze beurt al een preview gedaan met book_appointment of update_booking_name, roep DIEZELFDE tool dan opnieuw aan met confirmed:true (en bij update_booking_name ook only_confirming_previous:true, in DEZELFDE aanroep), en beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (het systeem gebruikt exact het opgeslagen tijdslot/de opgeslagen naam; NIET nogmaals zonder confirmed aanroepen, dat maakt alleen weer een preview). Stel geen extra vraag en kondig niets aan: antwoord met het resultaat."
         : emptyNoAction
         ? "[systeem] Je gaf GEEN antwoord aan de klant. Beantwoord hun LAATSTE bericht kort en behulpzaam in hun taal: roep de juiste tool aan (get_available_slots / book_appointment / reschedule_appointment / cancel_appointment) als er een actie nodig is, of leg kort uit wat er kan. Vraagt de klant een dag die GESLOTEN is (zie <kalender>/<kalenders>), zeg dat dan eerlijk, noem de openingstijden en bied een open dag aan. Stuur nooit een lege of generieke foutmelding."
         : slotOfferUnbacked
@@ -1249,7 +1294,7 @@ Deno.serve(async (req) => {
       // kept verbatim below).
       const retryCommitted = retry.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
       const accept = retryRaceLost || retryCommitted || (!!retry.text && (
-        (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed)
+        (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       ));
