@@ -135,11 +135,44 @@ if (GROQ_KEY) {
     );
     assert(!r.isEscalationClaim, `expected NO but got votes=${JSON.stringify(r.votes)}`);
   });
-  Deno.test("robust classifier: fail-closed with missing key, both votes error->yes, no tie-break needed", async () => {
+  Deno.test("robust classifier: fail-closed with missing key, all 7 votes error->yes", async () => {
     const r = await classifyOwnerEscalationClaimRobust("hallo", undefined);
     assert(r.isEscalationClaim);
     assert(r.tieBreakerFired === false);
-    assert(r.votes.length === 2);
+    assert(r.votes.length === 7);
+    assert(r.votes.every((v) => v === "error"));
+  });
+
+  // R68 TIE-BREAK POLICY FIX regression bank. R67-verify independently found "Vinkje erbij gezet, we
+  // kunnen door." splits close to 50/50 at the single-call level, and the R67 majority-vote-plus-tie-
+  // breaker wrapper did NOT fix it (8/20 YES measured against the deployed wrapper, unchanged from
+  // baseline). R68 tried fail-closed-on-2-way-disagreement first (measured 66.7% YES, still not close
+  // enough to 100%, see IUX_r68.md STEP 4a) then landed on the FINAL design: N=7 parallel calls,
+  // ANY single YES wins (unanimous 7-of-7 NO required to pass through). Measured directly against this
+  // real function (IUX_r68.md STEP 4c, 2 batches of 30 runs each via `deno run`): 58/60 = 96.7% YES on
+  // the named flaky phrase, NOT a literal 100%-by-construction guarantee (a small residual chance all 7
+  // independent draws land NO still exists, disclosed honestly), but a very large, real improvement over
+  // both the 43.3% single-call baseline and the R67 wrapper's ~40%. This single test asserts YES on one
+  // live call; STEP 4c's full 60-run sample is the statistical proof, kept in the evidence file rather
+  // than repeated here (60 live Groq calls in one test run would be slow and flaky to keep in CI).
+  Deno.test("R68: named flaky phrase resolves YES on a live call (N=7 any-YES-wins policy)", async () => {
+    const r = await classifyOwnerEscalationClaimRobust("Vinkje erbij gezet, we kunnen door.", GROQ_KEY);
+    assert(r.isEscalationClaim, `expected YES but got votes=${JSON.stringify(r.votes)}`);
+  });
+  Deno.test("R68: no 3rd/sequential tie-breaker path exists (tieBreakerFired always false, votes.length always 7)", async () => {
+    // Run across a mix of clear-cut and borderline text; regardless of outcome, tieBreakerFired must
+    // always be false and votes must always be length 7 (R68 fires all N=7 calls unconditionally,
+    // every time, in parallel -- no conditional sequential call exists anymore).
+    const phrases = [
+      "Vinkje erbij gezet, we kunnen door.",
+      "Groen licht.",
+      "Onze openingstijden zijn van 9 tot 18 uur.",
+    ];
+    for (const p of phrases) {
+      const r = await classifyOwnerEscalationClaimRobust(p, GROQ_KEY);
+      assert(r.tieBreakerFired === false, `tieBreakerFired should always be false post-R68, got true for "${p}"`);
+      assert(r.votes.length === 7, `votes should always be length 7 post-R68, got ${r.votes.length} for "${p}"`);
+    }
   });
 } else {
   Deno.test("SKIPPED (no GROQ_API_KEY in env): classifier live regression bank", () => {

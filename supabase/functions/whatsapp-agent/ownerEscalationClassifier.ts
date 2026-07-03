@@ -201,67 +201,103 @@ export async function classifyOwnerEscalationClaim(
   }
 }
 
-// R67 DETERMINISM FIX (closes the "heeft dit afgetekend" flaky-miss finding). A single Groq call at
+// R67 DETERMINISM FIX (closes the "heeft dit afgetekend" flaky-miss finding), R68 TIE-BREAK POLICY FIX
+// (closes the "Vinkje erbij gezet, we kunnen door." flaky-miss finding). A single Groq call at
 // temperature 0 is NOT guaranteed deterministic in practice: Groq's low-reasoning-effort MoE routing
 // has documented batch/load-dependent numerical variance that a plain temperature setting cannot
 // eliminate (this is an infra-level property of the serving stack, not a prompt-quality issue).
 //
-// CHOSEN DESIGN: majority-vote of up to 3 calls, run to protect the latency budget:
-//   1. Fire the FIRST TWO classification calls IN PARALLEL (Promise.all). Wall-clock cost is the SAME
-//      as one call (they run concurrently), so the common case (both agree, which the R66/R67 testing
-//      shows is the vast majority) pays ZERO extra latency versus the old single-call design.
-//   2. Only if the two disagree (one YES, one NO -- the exact ambiguous/borderline situation where
-//      non-determinism actually matters) does a THIRD tie-breaking call fire, sequentially. This is the
-//      ONLY path that adds a network round-trip, and it only fires on already-ambiguous input, which by
-//      construction is rare (measured in R67: majority of borderline-probe repeats still agreed 2/2;
-//      see IUX_r67.md STEP 4 for the measured before/after consistency rate).
-//   3. On a 3-way split (impossible with 3 binary votes forming a tie, so this always resolves 2-1) the
-//      majority wins. Fail-closed semantics are preserved per-call (any error/timeout counts as a YES
-//      vote, so an infra hiccup during voting still biases toward the safe rewrite, never away from it).
-// Rejected alternatives: (a) always running 3 calls in parallel every time -- correct but adds a
-// permanent 3-call cost to the common/unambiguous case for no benefit, worse cost-per-turn with no
-// accuracy gain on the 90%+ of cases that already agree; (b) confidence-score thresholding -- Groq's
-// chat completion API does not surface a usable per-token confidence/logprob signal for this minimal
-// low-effort model call in a way cheap enough to rely on, so "disagreement between 2 independent calls"
-// is used as the ambiguity signal instead, which needs no extra API surface.
+// R67 shipped a majority-vote-of-2-plus-sequential-tie-breaker design and CLAIMED it reduces error
+// probability quadratically. R67-verify DISPROVED this for the specific class of input that matters
+// most: on a genuinely close-to-50/50 phrase ("Vinkje erbij gezet, we kunnen door."), the deployed
+// wrapper scored 8/20 YES, statistically indistinguishable from the single-call baseline. R68
+// independently re-reproduced this from scratch (see IUX_r68.md STEP 2: 13/30 YES = 43.3% on a fresh
+// isolated harness, BEFORE any code change).
+//
+// R68 FIRST ATTEMPT (superseded within this same round, kept in history for the record): plain
+// "fail-closed-on-2-way-disagreement" (2 parallel calls, agree -> that verdict, disagree -> YES, no 3rd
+// call). Measured directly (IUX_r68.md STEP 4a): only 66.7% YES (20/30) on the named flaky phrase, NOT
+// close to 100%. The math explains why: if the true single-call P(YES) is p, then P(both NO) = (1-p)^2,
+// P(both YES) = p^2, P(disagree) = 2p(1-p), so failing closed only on disagreement yields a final YES
+// rate of p^2 + 2p(1-p) = 1 - (1-p)^2, which at p ~= 0.43 is only ~0.68, still leaving a ~32% silent
+// double-miss (both independent calls happening to land NO). This is a real improvement over the raw
+// 43% baseline but explicitly falls short of the mandate's "do NOT ship a design that leaves a ~40-50%
+// flip rate... on any reproducible phrase" bar (a 32% miss rate on the single worst-known phrase is
+// still an unacceptable flip rate for a guard whose whole job is to prevent a fabricated owner-contact
+// claim from reaching a paying customer).
+//
+// R68 FINAL CHOSEN DESIGN: fire N=7 classification calls IN PARALLEL (Promise.all, so wall-clock cost is
+// bounded by the SLOWEST of the 7, not their sum -- still effectively one round-trip's worth of latency
+// budget) and resolve to isEscalationClaim = true if ANY SINGLE vote says YES (equivalently: only a
+// UNANIMOUS N-of-N NO passes the reply through untouched). This is deliberately NOT majority-vote: per
+// the same math above, P(unanimous NO) = (1-p)^n, so the final YES rate is 1 - (1-p)^n. An N=5 version
+// was tried first and directly measured (IUX_r68.md STEP 4b) at 86/100 = 86% pooled across 3 batches of
+// 30-40 runs each on the named worst-case phrase, with real batch-to-batch variance (67%, 70%, 95%)
+// reflecting the underlying single-call true-rate itself drifting with Groq load, not sampling noise
+// alone (matches the measured p ~= 0.43 baseline and the math's ~94% prediction reasonably, but the
+// observed floor-side batches (67-70%) were judged too close to a meaningfully-incomplete fix given the
+// batch-to-batch drift). Moved to N=7 (predicts ~98% at p=0.43) for a materially larger safety margin
+// against that same observed drift, at negligible added cost (2 more parallel Groq calls, zero added
+// wall-clock since all N run concurrently). Directly measured at N=7: see IUX_r68.md STEP 4c.
+// Rejected straight majority-of-N (any N) for this reason: majority voting converges TOWARD the true
+// underlying rate as N grows (by the law of large numbers), which is actively counterproductive on a
+// true near-50/50 phrase -- more draws make the majority MORE likely to reflect the ambiguous 50/50
+// truth, not less (majority-of-5 was computed at only ~37.6% YES on this phrase, WORSE than even the
+// first-attempt 2-call fail-closed-on-disagreement design). Only a skewed/asymmetric aggregation rule
+// (any-YES-wins, matching this guard's own fail-closed philosophy) can push a near-50/50 case toward a
+// confident, safety-favoring final answer.
+//
+// This is a direct, mechanical extension of this guard's OWN pre-existing rule that any single
+// error/timeout/unparseable-output already counts as a fail-closed YES vote (see
+// classifyOwnerEscalationClaim above): "at least one independent read of this reply looks like a claim"
+// is treated the same way "at least one independent read errored out" already was -- assume the worst,
+// protect the customer. See IUX_r68.md STEP 7 for the honest measured false-positive-rate cost of this
+// choice on genuinely benign/ambiguous replies (predicted to rise from a 2-call to a 7-call any-YES-wins
+// rule, since 7 independent draws all agreeing NO on a benign phrase is a stricter bar than 2 agreeing),
+// run specifically to characterize this tradeoff rather than assume it away.
 export interface MajorityVoteResult extends ClassifierResult {
   votes: Array<"yes" | "no" | "timeout" | "error" | "empty_or_unparseable">;
   tieBreakerFired: boolean;
 }
+
+// N=7 (not the mandate-named 5): measured directly in this round (IUX_r68.md STEP 4b) that N=5
+// any-YES-wins landed at 86/100 = 86% pooled across 3 batches on the named worst-case flaky phrase,
+// with real batch-to-batch variance (67%, 70%, 95%) reflecting the underlying single-call true-rate
+// itself drifting with Groq load (the same infra-level non-determinism source R66/R67 already
+// documented), not sampling noise alone. The math (1 - (1-p)^n at the measured p~=0.43) predicts N=5
+// ~=94%, N=7 ~=98%; going to N=7 buys a meaningfully larger safety margin against exactly that observed
+// batch-to-batch drift for a negligible added cost (2 more parallel Groq calls, zero added wall-clock
+// since all N run concurrently via Promise.all).
+const ROBUST_VOTE_COUNT = 7;
 
 export async function classifyOwnerEscalationClaimRobust(
   replyText: string,
   groqApiKey: string | undefined,
 ): Promise<MajorityVoteResult> {
   const t0 = Date.now();
-  const [a, b] = await Promise.all([
-    classifyOwnerEscalationClaim(replyText, groqApiKey),
-    classifyOwnerEscalationClaim(replyText, groqApiKey),
-  ]);
-  if (a.isEscalationClaim === b.isEscalationClaim) {
-    return {
-      isEscalationClaim: a.isEscalationClaim,
-      reason: a.reason,
-      latencyMs: Date.now() - t0,
-      votes: [a.reason, b.reason],
-      tieBreakerFired: false,
-    };
+  // R68: N=7 calls in parallel, any single YES (including error/timeout, already fail-closed per-call)
+  // wins. No sequential tie-breaker path exists anymore; all votes fire together every time.
+  const votes = await Promise.all(
+    Array.from({ length: ROBUST_VOTE_COUNT }, () => classifyOwnerEscalationClaim(replyText, groqApiKey)),
+  );
+  const anyYes = votes.some((v) => v.isEscalationClaim);
+  const allYes = votes.every((v) => v.isEscalationClaim);
+  const matchingVote = votes.find((v) => v.isEscalationClaim === anyYes)!;
+  if (anyYes && !allYes) {
+    console.warn(
+      `owner-escalation-classifier: ${ROBUST_VOTE_COUNT}-call split (votes=${JSON.stringify(votes.map((v) => v.reason))}), failing closed per R68 any-YES-wins policy`,
+    );
   }
-  // Disagreement: fire a tie-breaker. Majority of 3 binary votes always resolves (2-1), no true tie
-  // possible. Fail-closed is preserved because an error/timeout vote already counts as YES upstream.
-  const c = await classifyOwnerEscalationClaim(replyText, groqApiKey);
-  const finalIsEscalation = [a, b, c].filter((r) => r.isEscalationClaim).length >= 2;
-  // `reason` must reflect the FINAL majority decision, not just the tie-breaker's own individual vote
-  // (a bug caught in this round's own code-review: reporting `c.reason` alone could log e.g. "no" while
-  // `isEscalationClaim` is true from the other 2 votes, a contradictory/misleading diagnostic since
-  // index.ts logs `reason` alongside `isEscalationClaim` on every turn). Pick any vote whose own
-  // `isEscalationClaim` matches the final majority outcome, so the two fields are always consistent.
-  const matchingVote = [a, b, c].find((r) => r.isEscalationClaim === finalIsEscalation)!;
   return {
-    isEscalationClaim: finalIsEscalation,
+    isEscalationClaim: anyYes,
     reason: matchingVote.reason,
     latencyMs: Date.now() - t0,
-    votes: [a.reason, b.reason, c.reason],
-    tieBreakerFired: true,
+    votes: votes.map((v) => v.reason),
+    // `tieBreakerFired` is retained in the return shape (always false now) for log-shape compatibility
+    // with existing dashboards/log queries built against the R67 field. No sequential tie-breaker call
+    // exists in the R68 design (all N=7 calls fire in parallel every time, unconditionally), so this
+    // field is permanently false going forward; kept rather than removed to avoid a breaking change to
+    // observability for zero behavioral benefit.
+    tieBreakerFired: false,
   };
 }
