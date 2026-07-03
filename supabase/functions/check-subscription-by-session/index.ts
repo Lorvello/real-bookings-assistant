@@ -171,22 +171,62 @@ serve(async (req) => {
       });
     }
 
+    // R44 (same bug class as R43's check-subscription trial-destruction fix):
+    // hasActiveSub===false does NOT mean "this user has no subscription", it means
+    // "Stripe reports zero subscriptions with status:'active' for this customer right
+    // now". A user re-hitting /success (page refresh, back/forward, slow-network
+    // double-submit) with a still-active trial (subscription_status='trial', a future
+    // trial_end_date, set correctly by handle_new_user()) would otherwise be silently
+    // downgraded to 'expired'/null here, exactly like the pre-fix check-subscription
+    // bug. Read the row first and skip the destructive write when the trial is still
+    // genuinely live; only fall through to the downgrade when it is not.
+    let trialStillActive = false;
+    let currentUser: { subscription_status?: string | null; subscription_tier?: string | null; trial_end_date?: string | null } | null = null;
+    if (!hasActiveSub) {
+      const { data } = await supabaseClient
+        .from("users")
+        .select("subscription_status, subscription_tier, trial_end_date")
+        .eq("id", userId)
+        .maybeSingle();
+      currentUser = data;
+      trialStillActive =
+        currentUser?.subscription_status === 'trial' &&
+        !!currentUser.trial_end_date &&
+        new Date(currentUser.trial_end_date) > new Date();
+    }
+
+    if (trialStillActive && currentUser) {
+      logStep("No active Stripe subscription yet, but an active trial exists, preserving trial state (no downgrade)", {
+        trial_end_date: currentUser.trial_end_date,
+      });
+      return new Response(JSON.stringify({
+        success: true,
+        subscribed: false,
+        subscription_tier: currentUser.subscription_tier,
+        subscription_end: null,
+        payment_status: 'trialing',
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Update user in database
     const updateResult = await supabaseClient.from("users").update({
       subscription_status: hasActiveSub ? 'active' : 'expired',
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: hasActiveSub ? 'paid' : 'unpaid',
-      // active/expired never carry a grace window — clear any stale one (same
+      // active/expired never carry a grace window, clear any stale one (same
       // grace-consistency fix as check-subscription / the webhook handlers).
       grace_period_end: null,
       updated_at: new Date().toISOString(),
     }).eq('id', userId);
-    
-    logStep("Database update", { 
+
+    logStep("Database update", {
       error: updateResult.error,
       subscription_status: hasActiveSub ? 'active' : 'expired',
-      subscription_tier: subscriptionTier 
+      subscription_tier: subscriptionTier
     });
 
     // Also update subscribers table
@@ -198,9 +238,9 @@ serve(async (req) => {
       subscription_tier: subscriptionTier,
       subscription_end: subscriptionEnd,
       updated_at: new Date().toISOString(),
-    }, { 
+    }, {
       onConflict: 'user_id',
-      ignoreDuplicates: false 
+      ignoreDuplicates: false
     });
 
     // (Removed) auth-session minting. The caller is already authenticated above, so
