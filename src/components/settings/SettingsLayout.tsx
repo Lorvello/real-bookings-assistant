@@ -141,7 +141,13 @@ export const SettingsTabs = () => {
       // 2px left bar when active (PLAYBOOK §2c selected system). No movement.
       // min-h-11 md:min-h-0 → the mobile horizontal-scroller nav items are >=44px tall
       // (touch-target, DoD §2); the desktop vertical rail keeps its natural two-line height.
-      'group relative mb-0 flex min-h-11 w-full shrink-0 items-center gap-3 rounded-lg border-0 px-3 py-2.5 text-left md:min-h-0',
+      // R43: w-full made every pill fill the ENTIRE scroll container on mobile, so the
+      // horizontal scroller showed exactly one tab with zero peek of its neighbors and
+      // no visual cue that Operations/Services/Pay & Book/Users/Billing existed off
+      // to the right (a first-time mobile owner had no reason to swipe). Capping the
+      // mobile width so ~1.15 pills are visible restores the "there's more" affordance;
+      // md+ still gets the original full-width vertical rail via md:w-full.
+      'group relative mb-0 flex min-h-11 w-[86%] max-w-[320px] shrink-0 items-center gap-3 rounded-lg border-0 px-3 py-2.5 text-left md:min-h-0 md:w-full md:max-w-none',
       'text-sm text-muted-foreground transition-colors duration-150',
       'hover:bg-white/[0.03] hover:text-foreground',
       'data-[state=active]:bg-primary/[0.10] data-[state=active]:text-foreground data-[state=active]:shadow-none',

@@ -267,9 +267,15 @@ export const AIKnowledgeTab: React.FC = () => {
   };
 
   const descLen = ((localBusinessData as any)?.business_description || '').length;
+  // R43: these were hardcoded English literals ('Business Name' / 'Business Type')
+  // joined straight into an otherwise-translated sentence, so NL mode showed
+  // "Vereist om de instellingen af te ronden: Business Name + Business Type." on
+  // every fresh signup until both fields were filled in. Route each through t()
+  // with the same field-label keys already used above, so the banner is fully
+  // translated in both languages.
   const requiredMissing = [
-    !((localBusinessData as any)?.business_name?.trim()) && 'Business Name',
-    !((localBusinessData as any)?.business_type) && 'Business Type',
+    !((localBusinessData as any)?.business_name?.trim()) && t('settings.knowledge.fields.businessName', 'Business name'),
+    !((localBusinessData as any)?.business_type) && t('settings.knowledge.fields.businessType', 'Business type'),
   ].filter(Boolean) as string[];
 
   return (

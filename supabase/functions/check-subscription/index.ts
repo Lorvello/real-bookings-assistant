@@ -61,12 +61,56 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
+
     if (customers.data.length === 0) {
-      logStep("No customer found, updating unsubscribed state");
-      
-      // Update user record in database (no Stripe customer = no subscription, so
-      // also clear any stale grace window).
+      logStep("No customer found, checking for an active trial before downgrading");
+
+      // R43: a brand-new signup has no Stripe customer yet (checkout has never
+      // happened) and would previously hit this branch and be unconditionally
+      // written as subscription_status='expired' / subscription_tier=null, even
+      // while still inside their real 30-day trial window (subscription_status
+      // was 'trial' with a future trial_end_date, set correctly by
+      // handle_new_user()). That silently destroyed the trial state in the DB
+      // and made Settings > Billing show "Starter Plan / No active subscription
+      // / Inactive" to an owner who was never asked to pay yet. An active,
+      // unexpired trial is genuinely not "no subscription": read the row first
+      // and skip the destructive write when the trial is still live.
+      const { data: currentUser } = await supabaseClient
+        .from("users")
+        .select("subscription_status, subscription_tier, trial_end_date")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const trialStillActive =
+        currentUser?.subscription_status === 'trial' &&
+        !!currentUser.trial_end_date &&
+        new Date(currentUser.trial_end_date) > new Date();
+
+      if (trialStillActive) {
+        logStep("Active trial found, preserving trial state (no downgrade)", {
+          trial_end_date: currentUser.trial_end_date,
+        });
+        return new Response(JSON.stringify({
+          subscribed: false,
+          subscription_tier: currentUser.subscription_tier,
+          subscription_end: null,
+          payment_status: 'trialing',
+          billing_cycle: null,
+          next_billing_date: null,
+          last_payment_date: null,
+          last_payment_amount: null,
+          billing_history: [],
+          trial_end_date: currentUser.trial_end_date,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      logStep("No active trial, updating unsubscribed state");
+
+      // Update user record in database (no Stripe customer + no active trial =
+      // genuinely no subscription, so also clear any stale grace window).
       await supabaseClient.from("users").update({
         subscription_status: 'expired',
         subscription_tier: null,
