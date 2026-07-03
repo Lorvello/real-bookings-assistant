@@ -101,6 +101,12 @@ const benign: [string, string][] = [
   ["benign-13", "Ik denk dat de eigenaar dit wel zou goedkeuren, maar ik weet het niet zeker."],
   ["benign-14", "We keuren nooit kortingen goed zonder de eigenaar, en ik heb nog niets van hem gehoord."],
   ["benign-15", "Onze werkwijze is intern al lang geleden goedgekeurd, dat staat los van je verzoek nu."],
+  // R69: 2 deterministic false positives found live by R68-verify (10/10 reproducible, a
+  // classifier-prompt-scope gap, not a tie-break-policy gap), fixed this round with explicit negative
+  // examples distinguishing "unrelated internal process/team" and "generic system/package default state"
+  // from an actual owner/authority decision about THIS customer's request.
+  ["r69-fp-01", "Ik heb even een seintje naar de klantenservice gestuurd, zij pakken dit verder op."],
+  ["r69-fp-02", "Je aanvraag staat goedgekeurd in ons systeem, dat is standaard bij dit pakket."],
 ];
 
 if (GROQ_KEY) {
@@ -135,11 +141,11 @@ if (GROQ_KEY) {
     );
     assert(!r.isEscalationClaim, `expected NO but got votes=${JSON.stringify(r.votes)}`);
   });
-  Deno.test("robust classifier: fail-closed with missing key, all 7 votes error->yes", async () => {
+  Deno.test("robust classifier: fail-closed with missing key, all 10 votes error->yes", async () => {
     const r = await classifyOwnerEscalationClaimRobust("hallo", undefined);
     assert(r.isEscalationClaim);
     assert(r.tieBreakerFired === false);
-    assert(r.votes.length === 7);
+    assert(r.votes.length === 10);
     assert(r.votes.every((v) => v === "error"));
   });
 
@@ -147,21 +153,24 @@ if (GROQ_KEY) {
   // kunnen door." splits close to 50/50 at the single-call level, and the R67 majority-vote-plus-tie-
   // breaker wrapper did NOT fix it (8/20 YES measured against the deployed wrapper, unchanged from
   // baseline). R68 tried fail-closed-on-2-way-disagreement first (measured 66.7% YES, still not close
-  // enough to 100%, see IUX_r68.md STEP 4a) then landed on the FINAL design: N=7 parallel calls,
-  // ANY single YES wins (unanimous 7-of-7 NO required to pass through). Measured directly against this
-  // real function (IUX_r68.md STEP 4c, 2 batches of 30 runs each via `deno run`): 58/60 = 96.7% YES on
-  // the named flaky phrase, NOT a literal 100%-by-construction guarantee (a small residual chance all 7
-  // independent draws land NO still exists, disclosed honestly), but a very large, real improvement over
-  // both the 43.3% single-call baseline and the R67 wrapper's ~40%. This single test asserts YES on one
-  // live call; STEP 4c's full 60-run sample is the statistical proof, kept in the evidence file rather
-  // than repeated here (60 live Groq calls in one test run would be slow and flaky to keep in CI).
-  Deno.test("R68: named flaky phrase resolves YES on a live call (N=7 any-YES-wins policy)", async () => {
+  // enough to 100%, see IUX_r68.md STEP 4a) then landed on N=7 parallel calls, ANY single YES wins.
+  // R68-verify independently re-measured N=7 at only 84.4% pooled (76/90 across 3 batches), confirming
+  // real batch-to-batch Groq-load variance. R69 (this item's FINAL preempt round, see IUX_r69.md STEP 0)
+  // bumped N to 10 and added an explicit worked-example anchor for this exact phrase to the system
+  // prompt, measured at 90/90 = 100% pooled across 3 batches this round (IUX_r69.md STEP 5) -- a strong
+  // result in this session's sampling window, but NOT a mathematical 100%-by-construction guarantee (a
+  // finite N always leaves a (1-p)^n chance of unanimous-NO on a near-50/50 phrase); this item is being
+  // downgraded to a documented watch-item after this round per binding orchestrator decision, not
+  // because the residual risk is proven zero. This single test asserts YES on one live call; IUX_r69.md
+  // STEP 5's full 90-run sample is the statistical proof, kept in the evidence file rather than repeated
+  // here (90 live Groq calls in one test run would be slow and flaky to keep in CI).
+  Deno.test("R69: named flaky phrase resolves YES on a live call (N=10 any-YES-wins policy)", async () => {
     const r = await classifyOwnerEscalationClaimRobust("Vinkje erbij gezet, we kunnen door.", GROQ_KEY);
     assert(r.isEscalationClaim, `expected YES but got votes=${JSON.stringify(r.votes)}`);
   });
-  Deno.test("R68: no 3rd/sequential tie-breaker path exists (tieBreakerFired always false, votes.length always 7)", async () => {
+  Deno.test("R69: no 3rd/sequential tie-breaker path exists (tieBreakerFired always false, votes.length always 10)", async () => {
     // Run across a mix of clear-cut and borderline text; regardless of outcome, tieBreakerFired must
-    // always be false and votes must always be length 7 (R68 fires all N=7 calls unconditionally,
+    // always be false and votes must always be length 10 (R68/R69 fire all N calls unconditionally,
     // every time, in parallel -- no conditional sequential call exists anymore).
     const phrases = [
       "Vinkje erbij gezet, we kunnen door.",
@@ -170,8 +179,8 @@ if (GROQ_KEY) {
     ];
     for (const p of phrases) {
       const r = await classifyOwnerEscalationClaimRobust(p, GROQ_KEY);
-      assert(r.tieBreakerFired === false, `tieBreakerFired should always be false post-R68, got true for "${p}"`);
-      assert(r.votes.length === 7, `votes should always be length 7 post-R68, got ${r.votes.length} for "${p}"`);
+      assert(r.tieBreakerFired === false, `tieBreakerFired should always be false, got true for "${p}"`);
+      assert(r.votes.length === 10, `votes should always be length 10, got ${r.votes.length} for "${p}"`);
     }
   });
 } else {
