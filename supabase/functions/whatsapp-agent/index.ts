@@ -19,6 +19,7 @@ import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEs
 import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
+import { shouldBlockForMissingServiceChoice } from "./serviceDisambiguationGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -574,6 +575,35 @@ Deno.serve(async (req) => {
         .limit(12);
       history = ((msgs as Array<{ direction: string; content: string | null; created_at: string }>) ?? []).reverse();
     }
+
+    // R71 (R70-3 fix): compute once per turn whether the customer has EVER named a specific
+    // service or a specific calendar/branch, ANYWHERE in this conversation, + this turn's
+    // message. Deliberately queries a WIDER inbound-only window (40 messages) than the model's
+    // own 12-message context window above: a real receptionist remembers what a customer said
+    // much earlier in a long conversation, and this guard re-asking a service the customer
+    // already gave 7+ turns ago (outside the 12-message/~6-turn context window) would itself be a
+    // false-positive regression, live-reproduced this round on a 13-turn conversation before this
+    // wider, dedicated query was added. Cheap (2 columns, inbound-only, no join) and independent
+    // of the LLM context-window cost/latency tradeoff, so it does not touch the model's own
+    // context construction above. See serviceDisambiguationGuard.ts for the full reasoning
+    // (server-side gate, prompt-only steering did not reliably close this against the live model).
+    let inboundTexts: string[] = [String(message ?? "")];
+    if (conversationId && isMultiCalendar) {
+      const { data: inboundMsgs } = await supabase
+        .from("whatsapp_messages")
+        .select("content")
+        .eq("conversation_id", conversationId)
+        .eq("direction", "inbound")
+        .order("created_at", { ascending: false })
+        .limit(40);
+      inboundTexts = [
+        ...((inboundMsgs as Array<{ content: string | null }> | null) ?? []).map((m) => m.content ?? ""),
+        String(message ?? ""),
+      ];
+    }
+    const blockForMissingServiceChoice = isMultiCalendar && calendarsForPrompt
+      ? shouldBlockForMissingServiceChoice({ calendars: calendarsForPrompt, inboundTexts })
+      : false;
 
     // Booking name, scoped per (calendar_id, phone) to KILL the R3 cross-tenant name bleed:
     // the source of truth is THIS conversation's context (booking_name / name_refused),
@@ -1231,7 +1261,7 @@ Deno.serve(async (req) => {
     // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
     // confirmStall retry runAgent call below) now tracks its own preview writes internally and
     // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).

@@ -6,6 +6,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
+import { KIES_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -69,6 +70,17 @@ export interface ToolContext {
   // customer_locale=null -> the RPC normalised null to 'nl' -> an English customer got a Dutch
   // reminder. Set in index.ts each turn from customerLanguage.
   customerLocale?: "nl" | "en";
+  // R71 (R70-3 fix, serviceDisambiguationGuard.ts): server-detected, computed once per turn in
+  // index.ts from the FULL conversation history + this turn's message (shouldBlockForMissingServiceChoice).
+  // true ONLY when this is a multi-calendar business with genuinely more than one distinct service
+  // name across the calendar set, AND the customer has NEVER (this turn or any earlier turn in
+  // this conversation) named a specific service or a specific calendar/branch. Gates
+  // get_available_slots and the book_appointment PREVIEW step in tools.ts: refuses with
+  // "kies_dienst" instead of letting the model silently guess a branch/service, matching
+  // resolveBookingCalendar's existing needAsk pattern. Never true for single-calendar tenants or
+  // for a multi-calendar business where every branch offers the identical one service (the
+  // existing "ask who" tie-break already covers that case correctly).
+  blockForMissingServiceChoice?: boolean;
 }
 
 interface UpcomingBooking {
@@ -979,6 +991,13 @@ export function createTools(
       }
 
       case "get_available_slots": {
+        // R71 (R70-3 fix): refuse BEFORE resolving a calendar at all when the customer never
+        // named a service or a branch and real service ambiguity exists (see ToolContext comment
+        // + serviceDisambiguationGuard.ts). Checked first so this never silently picks a calendar
+        // via a model-guessed service_type_id.
+        if (ctx.blockForMissingServiceChoice) {
+          return { error: "kies_dienst", message: KIES_DIENST_MESSAGE };
+        }
         // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
         // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
         const slotCal = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
@@ -1188,6 +1207,13 @@ export function createTools(
         if (committing || namePreviewOnly) {
           calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
         } else {
+          // R71 (R70-3 fix): on a FRESH preview only (never on commit/namePreviewOnly, which
+          // already have a stored, previously-resolved service+calendar), refuse before resolving
+          // a calendar at all when the customer never named a service or a branch and real
+          // service ambiguity exists (see ToolContext comment + serviceDisambiguationGuard.ts).
+          if (ctx.blockForMissingServiceChoice) {
+            return { error: "kies_dienst", message: KIES_DIENST_MESSAGE };
+          }
           const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
           if ("needAsk" in bookCal) {
             return {
