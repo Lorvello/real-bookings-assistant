@@ -79,7 +79,10 @@ export function ContactListSidebar({
                 <div className="glow-accent relative mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
                   <Users aria-hidden="true" className="h-5 w-5 text-accent-foreground" />
                 </div>
-                <p className="text-sm font-medium text-foreground">{t('convPage.noContactsTitle', 'No contacts yet')}</p>
+                {/* DESIGN_SPEC §2 pattern (BookingsEmptyState.tsx): serif-editorial headline for a
+                    warm first-time empty state; IUX R47 found this surface had drifted to a plain
+                    sans headline while Dashboard/Bookings already use font-serif italic here. */}
+                <p className="font-serif text-lg italic text-foreground">{t('convPage.noContactsTitle', 'No contacts yet')}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground max-w-[200px]">
                   {t('convPage.noContactsDescription', 'Conversations appear here when a customer messages you on WhatsApp.')}
                 </p>
