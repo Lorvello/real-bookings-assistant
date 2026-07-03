@@ -64,6 +64,19 @@ export interface ToolContext {
   // customer_locale=null -> the RPC normalised null to 'nl' -> an English customer got a Dutch
   // reminder. Set in index.ts each turn from customerLanguage.
   customerLocale?: "nl" | "en";
+  // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, structural additive safety net): the epoch-ms instant
+  // THIS turn started (index.ts's own `now`, captured before runAgent ever runs). A FOURTH,
+  // independent AND-condition on the book/cancel commit gates below: pending_booking.at /
+  // pending_cancel.at must be STRICTLY BEFORE this instant, i.e. the preview that is being
+  // committed must genuinely have been written by a PRIOR turn, never by a tool call earlier in
+  // THIS SAME turn's own tool-call sequence. Closes a rare (<2% base rate, see evidence/IUX_r35.md
+  // VERIFY section) anomaly where the model self-chains book_appointment/cancel_appointment twice
+  // in one turn off a single first-ever message (preview, then self-issue confirmed:true reading
+  // its own just-written proposal), which none of the existing checks (ambiguousConfirm,
+  // only_confirming_previous, hardConfirm) can see: they all classify the raw MESSAGE, none of
+  // them know WHEN pendingBook/pending was written relative to the turn's own start. Required
+  // (not optional) so a caller can never silently omit it and disable the guard.
+  turnStartedAt: number;
 }
 
 interface UpcomingBooking {
@@ -968,7 +981,7 @@ export function createTools(
           bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en" } | undefined;
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
           const { pending_booking: _drop, ...rest } = bookCtx;
@@ -1033,7 +1046,15 @@ export function createTools(
         // independent checks failing blocks the commit; only the hard gate is immune to novel
         // phrasing by construction (it does not pattern-match "badness", it membership-tests
         // "goodness" against a closed list).
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time;
+        // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, PURE ADDITIVE FIFTH condition, see ToolContext
+        // comment above + evidence/IUX_r36.md): pendingBook.at must be STRICTLY BEFORE this turn's
+        // own start (ctx.turnStartedAt). Every prior condition classifies the raw customer MESSAGE;
+        // none of them can tell a genuinely prior-turn preview apart from a preview the model wrote
+        // moments earlier in this SAME turn's own tool-call sequence and then self-confirmed. A
+        // missing/non-numeric `at` fails CLOSED (treated as NOT prior-turn), matching the fail-safe
+        // direction of every other check here.
+        const previewFromPriorTurn = typeof pendingBook?.at === "number" && pendingBook.at < ctx.turnStartedAt;
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time && previewFromPriorTurn;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
         // rather than falling through to the generic fresh-preview path, which would expect
@@ -1450,7 +1471,7 @@ export function createTools(
             .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
           cancelCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
-        const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string } | undefined;
+        const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string; at?: number } | undefined;
         const clearPending = async () => {
           if (!ctx.conversationId) return;
           const { pending_cancel: _drop, ...rest } = cancelCtx;
@@ -1471,7 +1492,12 @@ export function createTools(
         // R32: same third structural AND-condition as the book commit gate above (ctx.hardConfirm
         // === true), see ToolContext comment + evidence/IUX_r32.md section 2. A cancel can only
         // commit when the raw message is ALSO a member of the finite clean-confirm allow-list.
-        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && ctx.hardConfirm === true && pending?.start_time) {
+        // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, PURE ADDITIVE fourth condition, mirrors the book
+        // gate above, see ToolContext comment + evidence/IUX_r36.md): pending.at must be STRICTLY
+        // BEFORE this turn's own start, so a same-turn preview-then-self-confirm chain can never
+        // commit a cancel either. Fails CLOSED on a missing/non-numeric `at`.
+        const cancelPreviewFromPriorTurn = typeof pending?.at === "number" && pending.at < ctx.turnStartedAt;
+        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && ctx.hardConfirm === true && pending?.start_time && cancelPreviewFromPriorTurn) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();
