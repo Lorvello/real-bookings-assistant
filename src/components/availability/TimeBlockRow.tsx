@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Plus, Trash2, Copy } from 'lucide-react';
 import { CompactTimePicker } from './CompactTimePicker';
@@ -13,6 +14,7 @@ interface TimeBlock {
 interface TimeBlockRowProps {
   block: TimeBlock;
   dayKey: string;
+  dayLabel: string;
   canDelete: boolean;
   isLastBlock: boolean;
   isFirstBlock: boolean;
@@ -28,6 +30,7 @@ interface TimeBlockRowProps {
 export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   block,
   dayKey,
+  dayLabel,
   canDelete,
   isLastBlock,
   isFirstBlock,
@@ -39,6 +42,7 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   onToggleDropdown,
   onCloseDropdown,
 }) => {
+  const { t } = useTranslation('appPages');
   const startDropdownId = `${dayKey}-${block.id}-start`;
   const endDropdownId = `${dayKey}-${block.id}-end`;
 
@@ -74,12 +78,13 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             size="icon"
             onClick={() => onAddTimeBlock(dayKey)}
             className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-foreground hover:bg-accent"
-            title="Add time slot"
+            title={t('availPage.timeBlockRow.addTitle', 'Add time slot')}
+            aria-label={t('availPage.timeBlockRow.addAria', 'Add another time slot for {{day}}', { day: dayLabel })}
           >
             <Plus className="h-4 w-4" />
           </Button>
         )}
-        
+
         {/* Copy button - only on first block */}
         {isFirstBlock && onCopyDay && (
           <Button
@@ -87,12 +92,13 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             size="icon"
             onClick={() => onCopyDay(dayKey)}
             className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-foreground hover:bg-accent"
-            title="Copy to next day"
+            title={t('availPage.timeBlockRow.copyTitle', 'Copy to next day')}
+            aria-label={t('availPage.timeBlockRow.copyAria', 'Copy {{day}} hours to the next day', { day: dayLabel })}
           >
             <Copy className="h-4 w-4" />
           </Button>
         )}
-        
+
         {/* Delete button - only if multiple blocks */}
         {canDelete && (
           <Button
@@ -100,7 +106,8 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
             size="icon"
             onClick={() => onRemoveTimeBlock(dayKey, block.id)}
             className="h-8 w-8 min-w-11 md:min-w-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-            title="Remove time slot"
+            title={t('availPage.timeBlockRow.removeTitle', 'Remove time slot')}
+            aria-label={t('availPage.timeBlockRow.removeAria', 'Remove this time slot for {{day}}', { day: dayLabel })}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

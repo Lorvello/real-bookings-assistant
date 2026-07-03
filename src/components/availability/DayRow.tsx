@@ -72,6 +72,7 @@ export const DayRow: React.FC<DayRowProps> = ({
               key={block.id}
               block={block}
               dayKey={day.key}
+              dayLabel={day.label}
               canDelete={dayAvailability.timeBlocks.length > 1}
               isLastBlock={index === dayAvailability.timeBlocks.length - 1}
               isFirstBlock={index === 0}

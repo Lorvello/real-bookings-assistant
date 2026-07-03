@@ -53,7 +53,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
 }) => {
   const { t } = useTranslation('appPages');
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 py-4">
+    <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 rounded-lg px-2 py-4 -mx-2 transition-colors duration-150 hover:bg-white/[0.02]">
       {/* Toggle + Day name - fixed width */}
       <div className="flex items-center gap-3 min-w-[140px]">
         <Switch
@@ -81,6 +81,7 @@ export const AvailabilityDayRow: React.FC<AvailabilityDayRowProps> = ({
               key={block.id}
               block={block}
               dayKey={day.key}
+              dayLabel={day.label}
               canDelete={dayAvailability.timeBlocks.length > 1}
               isLastBlock={index === dayAvailability.timeBlocks.length - 1}
               isFirstBlock={index === 0}

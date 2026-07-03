@@ -189,6 +189,14 @@
     },
     "dayRow": {
       "toggleAria": "Beschikbaarheid voor {{day}} in-/uitschakelen"
+    },
+    "timeBlockRow": {
+      "addTitle": "Tijdslot toevoegen",
+      "addAria": "Nog een tijdslot toevoegen voor {{day}}",
+      "copyTitle": "Kopiëren naar volgende dag",
+      "copyAria": "Uren van {{day}} kopiëren naar de volgende dag",
+      "removeTitle": "Tijdslot verwijderen",
+      "removeAria": "Dit tijdslot voor {{day}} verwijderen"
     }
   },
   "convPage": {

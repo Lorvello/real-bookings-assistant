@@ -283,7 +283,7 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
 
   return (
     <div className="space-y-4">
-      <div className="divide-y divide-white/[0.06]">
+      <div className="stagger-fade divide-y divide-white/[0.06]">
         {DAYS.map((day) => {
           const dayAvailability = availability[day.key];
           const dayKey = day.key;

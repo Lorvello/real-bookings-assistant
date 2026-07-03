@@ -79,7 +79,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
 
   return (
     <div className="space-y-6">
-      <Card className="bg-card border-white/[0.08]">
+      <Card className="fade-up">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
           <CardTitle className="text-lg font-semibold">{t('availPage.card.weeklyHours', 'Weekly Hours')}</CardTitle>
           <Button
