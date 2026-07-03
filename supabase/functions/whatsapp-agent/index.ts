@@ -260,6 +260,15 @@ function deterministicConfirmation(
   const resched = okResult("reschedule_appointment");
   if (resched?.rescheduled?.to) {
     const reWhen = en ? enWhen(resched.rescheduled.to_start_time, resched.rescheduled.to) : resched.rescheduled.to;
+    // R48: a multi-calendar reschedule may also have switched staff/location (new_agenda set
+    // only when it actually changed calendar). Mention it here too, so this Groq-empty-text
+    // fallback path stays as complete as the model's own normal composed reply.
+    const newAgenda = typeof resched.new_agenda === "string" ? resched.new_agenda : null;
+    if (newAgenda) {
+      return en
+        ? `Done, your appointment is now on ${reWhen} with ${newAgenda}.`
+        : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`;
+    }
     return en
       ? `Done, your appointment is now on ${reWhen}.`
       : `Gedaan, je afspraak staat nu op ${reWhen}.`;

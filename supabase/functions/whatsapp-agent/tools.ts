@@ -809,11 +809,12 @@ export function createTools(
       name: "reschedule_appointment",
       description:
         "Verzet de eerstvolgende aankomende afspraak van DEZE klant naar een nieuwe tijd, in ÉÉN stap. " +
-        "De DIENST blijft hetzelfde — vraag die NIET opnieuw. De nieuwe tijd die de klant noemt IS de bevestiging: " +
+        "De DIENST blijft normaal hetzelfde, vraag die NIET opnieuw. De nieuwe tijd die de klant noemt IS de bevestiging: " +
         "roep METEEN aan met date (YYYY-MM-DD uit de <kalender>) + time (HH:MM); de tool zoekt zelf het exacte slot, " +
         "checkt of het vrij is en verzet direct. Vraag NIET 'klopt dat?' en kondig niets aan. Is die tijd niet vrij, " +
         "dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor (geen aparte get_available_slots nodig). " +
-        "Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' met de tijden terug; geef bij de volgende aanroep match_time = de kloktijd van de BESTAANDE afspraak die verzet moet worden mee (bv '14:00'), naast date+time van de nieuwe tijd.",
+        "Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' met de tijden terug; geef bij de volgende aanroep match_time = de kloktijd van de BESTAANDE afspraak die verzet moet worden mee (bv '14:00'), naast date+time van de nieuwe tijd. " +
+        "ALLEEN bij meerdere agenda's (<kalenders> in je context): wil de klant naar een ANDERE medewerker/locatie verzetten (bv. 'kan ik naar Anna in plaats van Bram verzetten'), geef dan service_type_id van de dienst bij DIE nieuwe agenda mee (of calendar_index) samen met de nieuwe date+time; de tool verzet de afspraak dan mee naar die agenda, in dezelfde ene stap, mits daar een vrij slot is.",
       parameters: {
         type: "object",
         properties: {
@@ -821,10 +822,11 @@ export function createTools(
           time: { type: "string", description: "Nieuwe kloktijd HH:MM (Amsterdamse tijd), bv '14:00'." },
           start_time: { type: "string", description: "ALTERNATIEF voor date+time: nieuwe starttijd als exacte ISO 8601 uit get_available_slots. Gebruik bij voorkeur date+time." },
           end_time: { type: "string", description: "Alleen bij start_time: nieuwe eindtijd = start_time + dezelfde dienstduur. Bij date+time rekent de tool dit zelf." },
-          service_type_id: { type: "string", description: "Alleen meegeven als de klant óók van dienst wisselt (zeldzaam)." },
+          service_type_id: { type: "string", description: "Alleen meegeven als de klant óók van dienst wisselt, OF (bij meerdere agenda's) naar een andere medewerker/locatie wil: kies dan de service_type_id uit DIE agenda's dienstenlijst, de tool leidt de nieuwe agenda daar zelf uit af." },
+          calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context) en de klant wil naar een andere medewerker/locatie verzetten zonder een specifieke nieuwe dienst te noemen: het nummer van de gekozen agenda. Laat WEG als de agenda niet wijzigt of er maar één agenda is; service_type_id is de voorkeursmanier." },
           match_time: {
             type: "string",
-            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM) van de BESTAANDE afspraak die de klant wil verzetten, bv '14:00'. DIT is de betrouwbare manier om te kiezen welke afspraak — geef de tijd door die de klant noemt. Niet te verwarren met 'time' (de NIEUWE tijd).",
+            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM) van de BESTAANDE afspraak die de klant wil verzetten, bv '14:00'. DIT is de betrouwbare manier om te kiezen welke afspraak: geef de tijd door die de klant noemt. Niet te verwarren met 'time' (de NIEUWE tijd).",
           },
           match_start_time: {
             type: "string",
@@ -1744,7 +1746,56 @@ export function createTools(
           };
         }
         const b = target.booking!;
-        const serviceId = args.service_type_id ? String(args.service_type_id) : b.service_type_id;
+
+        // R48: resolve which calendar this reschedule targets. Default = the booking's OWN
+        // current calendar (unchanged behaviour). Only in multi-calendar mode, and only when the
+        // model gave a resolvable hint (a service_type_id that maps to a DIFFERENT calendar, or an
+        // explicit calendar_index), do we switch. resolveBookingCalendar is the SAME allowlist-
+        // routing function book_appointment/get_available_slots already use, so the model can
+        // never target a calendar outside ctx.calendars (no new trust boundary). A service_type_id
+        // that resolves to the booking's own current calendar (the common "same agenda" case) is a
+        // no-op switch, matching prior behaviour exactly.
+        let targetCalId = b.calendar_id;
+        if (ctx.calendars.length > 1 && (args.service_type_id || args.calendar_index != null)) {
+          const calRes = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
+          if ("needAsk" in calRes) {
+            return {
+              error: "meerdere_agendas",
+              message: "Bij welke medewerker/locatie wil de klant de afspraak?",
+              options: calRes.options,
+            };
+          }
+          targetCalId = calRes.id;
+        }
+
+        // R48: the SERVICE must belong to targetCalId, never left over from the booking's OLD
+        // calendar (a service id is only valid within its own calendar's slot/duration lookup;
+        // mixing an old-calendar service id with a new-calendar id produces a meaningless
+        // get_available_slots call, silently reading as "no free times all day"). If the model
+        // gave an explicit service_type_id, trust it as-is (it already drove targetCalId above).
+        // If only calendar_index switched the calendar WITHOUT naming a new service, find the
+        // service on the target calendar with the SAME NAME as the booking's current service
+        // (the common "same treatment, different staff" case); if none matches by name, refuse
+        // to guess and ask which service, exactly like resolveBookingCalendar's own needAsk path.
+        let serviceId = args.service_type_id ? String(args.service_type_id) : b.service_type_id;
+        if (targetCalId !== b.calendar_id && !args.service_type_id) {
+          const { data: oldSvc } = await supabase.from("service_types").select("name").eq("id", b.service_type_id).maybeSingle();
+          const oldName = (oldSvc as { name?: string } | null)?.name?.trim().toLowerCase();
+          const { data: newCalSvcs } = await supabase
+            .from("service_types").select("id, name").eq("calendar_id", targetCalId).eq("is_active", true)
+            .or("is_deleted.is.null,is_deleted.eq.false");
+          const match = oldName
+            ? ((newCalSvcs as Array<{ id: string; name: string }> | null) ?? []).find((s) => s.name.trim().toLowerCase() === oldName)
+            : null;
+          if (!match) {
+            return {
+              error: "dienst_onbekend",
+              message: "Welke dienst wil de klant bij die andere medewerker/locatie?",
+              options: ((newCalSvcs as Array<{ id: string; name: string }> | null) ?? []).map((s) => s.name),
+            };
+          }
+          serviceId = match.id;
+        }
 
         // Resolve the new time. FAST PATH: the customer named a date+time, so resolve the EXACT slot
         // server-side (no separate get_available_slots LLM round-trip). Else fall back to an ISO
@@ -1752,17 +1803,19 @@ export function createTools(
         let newStart = String(args.start_time ?? "");
         let newEnd = String(args.end_time ?? "");
         // Policy fetched ONCE here (reused for the cancel-deadline check below) so the date
-        // guards short-circuit before any slot resolution.
-        const reschedPolicy = await getCalendarPolicy(supabase, b.calendar_id);
+        // guards short-circuit before any slot resolution. Uses targetCalId (the NEW calendar when
+        // switching, else unchanged) so a reschedule-with-calendar-switch enforces the destination
+        // agenda's own booking window / notice / deadline, not the origin agenda's.
+        const reschedPolicy = await getCalendarPolicy(supabase, targetCalId);
         if (isPastDateNL(args.date)) {
           return { error: "datum_verleden", message: "Die nieuwe datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
         }
         if (isBeyondWindowNL(args.date, reschedPolicy.bookingWindowDays)) {
-          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet verzetten — je kunt tot ${reschedPolicy.bookingWindowDays} dagen vooruit een afspraak zetten. Vraag de klant vriendelijk een eerdere datum.` };
+          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet verzetten, je kunt tot ${reschedPolicy.bookingWindowDays} dagen vooruit een afspraak zetten. Vraag de klant vriendelijk een eerdere datum.` };
         }
         if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
           const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, b.calendar_id, serviceId, String(args.date), String(args.time), dur, reschedPolicy.minimumNoticeHours);
+          const r = await resolveSlotForTime(supabase, targetCalId, serviceId, String(args.date), String(args.time), dur, reschedPolicy.minimumNoticeHours);
           if ("error" in r) {
             return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag kort de gewenste dag en tijd." };
           }
@@ -1815,11 +1868,15 @@ export function createTools(
         // between freeing the slot and moving it left the booking cancelled with no
         // replacement and no trace. The RPC rolls back EVERYTHING on any failure, so
         // the booking always keeps its original time + status if it cannot move.
+        // R48: p_calendar_id = targetCalId always (equal to b.calendar_id when not
+        // switching, so this is a no-op on the RPC's own COALESCE for every existing
+        // single-calendar / same-calendar caller).
         const { data: rr, error: rrErr } = await supabase.rpc("reschedule_booking_atomic", {
           p_booking_id: b.id,
           p_new_start: newStart,
           p_new_end: newEnd,
           p_service_type_id: args.service_type_id ? serviceId : null,
+          p_calendar_id: targetCalId,
         });
         if (rrErr) return { error: rrErr.message };
         const rres = rr as { ok?: boolean; error?: string } | null;
@@ -1830,7 +1887,14 @@ export function createTools(
           if (rres?.error === "geen_boeking") return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
           return { error: rres?.error || "verzetten_mislukt", message: "Het verzetten lukte niet. Probeer een ander tijdstip." };
         }
-        return { ok: true, rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart } };
+        const switchedCalendar = targetCalId !== b.calendar_id
+          ? ctx.calendars.find((c) => c.id === targetCalId)?.name ?? null
+          : null;
+        return {
+          ok: true,
+          rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart },
+          ...(switchedCalendar ? { new_agenda: switchedCalendar } : {}),
+        };
       }
 
       case "update_booking_name": {
