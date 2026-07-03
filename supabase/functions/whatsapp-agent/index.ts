@@ -1054,12 +1054,25 @@ Deno.serve(async (req) => {
       const won = claimRow?.won;
       if (!claimErr && won === false) {
         confirmBurstLost = true;
-      } else if (!claimErr && won === true && !confirmBook && claimRow?.claim_id) {
-        // Not a clean confirm this turn (e.g. a question, or ambiguousConfirm/day-time-shift/
-        // price/hedge/conditional content) -> release immediately so a genuinely new confirm
-        // attempt (this turn's own retry, or a sibling that arrives moments later) is never
-        // blocked by a claim this message never actually earned. Released BY ROW ID (not by key)
-        // so this can never delete a different, newer claim generation for the same key.
+      } else if (!claimErr && won === true && !hardConfirm && claimRow?.claim_id) {
+        // IUX R60 (HARD-CONFIRM-EXACT-CLAIM-GAP): release used to gate on `!confirmBook`, the
+        // SERVER's narrow AFFIRM_RE-based classification. But tools.ts's actual commit gate
+        // (line ~1161) AND-requires `ctx.hardConfirm === true` (hardConfirmGate.ts's WIDER
+        // HARD_CONFIRM_EXACT/HARD_CONFIRM_PATTERNS classification), which the model's own
+        // independent attestation path (args.confirmed + only_confirming_previous) can satisfy
+        // even when confirmBook is false (e.g. "correct"/"that's right"/"sounds good" are in
+        // HARD_CONFIRM_EXACT but not AFFIRM_RE). Releasing on `!confirmBook` let those siblings
+        // go free before their LLM turn, so a tight burst could still have multiple siblings each
+        // independently commit via hardConfirm. Gating on `!hardConfirm` instead means: any
+        // wording able to reach the model's own commit path also necessarily holds the claim
+        // through that path, closing the gap at its source. `hardConfirm` is computed above
+        // (line ~958), unconditionally every turn, before this block runs, so no reordering was
+        // needed, only swapping which boolean the release trusts. Not a clean hard-confirm this
+        // turn (e.g. a question, or content ambiguousConfirm/day-time-shift/price/hedge flags,
+        // which are also never in HARD_CONFIRM_EXACT) -> release immediately so a genuinely new
+        // confirm attempt (this turn's own retry, or a sibling that arrives moments later) is
+        // never blocked by a claim this message never actually earned. Released BY ROW ID (not by
+        // key) so this can never delete a different, newer claim generation for the same key.
         const { error: releaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", {
           p_claim_id: claimRow.claim_id,
         });
@@ -1114,7 +1127,11 @@ Deno.serve(async (req) => {
       const wonCancel = cancelClaimRow?.won;
       if (!cancelClaimErr && wonCancel === false) {
         confirmCancelBurstLost = true;
-      } else if (!cancelClaimErr && wonCancel === true && !confirmCancel && cancelClaimRow?.claim_id) {
+      } else if (!cancelClaimErr && wonCancel === true && !hardConfirm && cancelClaimRow?.claim_id) {
+        // IUX R60 (HARD-CONFIRM-EXACT-CLAIM-GAP): same fix as the book-path block above, mirrored
+        // here. cancel_appointment's own commit gate (tools.ts line ~1615) also AND-requires
+        // ctx.hardConfirm === true, so the release must trust the same wider signal, not the
+        // narrower `confirmCancel`.
         const { error: releaseCancelErr } = await supabase.rpc("release_whatsapp_confirm_claim", {
           p_claim_id: cancelClaimRow.claim_id,
         });
