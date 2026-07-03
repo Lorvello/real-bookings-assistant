@@ -54,13 +54,47 @@ export const AIKnowledgeTab: React.FC = () => {
 
   // Sync local state when the server data arrives / changes. The settings shell only
   // mounts this tab once profileData has an id, so local state is initialised from
-  // real data at mount — no "initialized" flag is needed to gate the save bar.
+  // real data at mount, no "initialized" flag is needed to gate the save bar.
+  //
+  // IUX-R70-UNSAVEDWIPE: businessData/profileData get a brand-new object
+  // reference on EVERY re-fetch (useSettingsData's fetchUserData always calls
+  // setBusinessData({...}) with a fresh object, even when nothing changed
+  // server-side). A background auth-lifecycle event (Supabase's
+  // onAuthStateChange fires on ordinary things like TOKEN_REFRESHED, not just
+  // real logins) hands AuthContext a new session.user reference, which
+  // retriggers fetchUserData (deps [user]), which retriggers THIS effect,
+  // silently overwriting any in-progress unsaved edit with the last-known
+  // server value, no warning, no toast. Reproduced live: filling
+  // "Business name" then clicking the Business type combobox (which does
+  // nothing to businessData itself) wiped the name back to empty in about 40%
+  // of trials, purely from an unrelated background refetch racing the edit.
+  // Fix: only accept a fresh server snapshot when the CURRENT local copy has
+  // no unsaved diff against the PREVIOUS server snapshot (a real edit is
+  // never clobbered); still fires on true first-load and after every save
+  // (where local and server already match again).
+  const prevProfileServerRef = useRef(profileData);
+  const prevBusinessServerRef = useRef(businessData);
+
   useEffect(() => {
-    if (profileData?.id) setLocalProfileData(profileData);
+    if (!profileData?.id) return;
+    const localHasNoPendingEdit =
+      JSON.stringify(localProfileData) === JSON.stringify(prevProfileServerRef.current) ||
+      JSON.stringify(localProfileData) === JSON.stringify(profileData);
+    if (localHasNoPendingEdit || !localProfileData) {
+      setLocalProfileData(profileData);
+    }
+    prevProfileServerRef.current = profileData;
   }, [profileData]);
 
   useEffect(() => {
-    if (businessData) setLocalBusinessData(businessData);
+    if (!businessData) return;
+    const localHasNoPendingEdit =
+      JSON.stringify(localBusinessData) === JSON.stringify(prevBusinessServerRef.current) ||
+      JSON.stringify(localBusinessData) === JSON.stringify(businessData);
+    if (localHasNoPendingEdit || !localBusinessData) {
+      setLocalBusinessData(businessData);
+    }
+    prevBusinessServerRef.current = businessData;
   }, [businessData]);
 
   useEffect(() => () => clearTimeout(savedTimer.current), []);
