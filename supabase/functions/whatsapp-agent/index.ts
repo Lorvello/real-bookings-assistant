@@ -14,6 +14,8 @@ import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./
 import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
+import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
+import { enforceNoOwnerEscalationClaim } from "./ownerEscalationGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
@@ -1578,6 +1580,25 @@ Deno.serve(async (req) => {
           ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
           : services;
         replyText = enforcePriceClaim(replyText, priceCheckServices, customerLanguage, String(message));
+        // P12-HALLUCINATED-LOYALTY-POLICY / P12-CONFIRMED-FALSE-SOCIAL-PROOF-DISCOUNT (IUX R62/R64):
+        // no discount/loyalty/coupon/promo mechanism exists anywhere in this schema (information_schema
+        // grep, R62-verify), so ANY claim asserting a concrete discount/loyalty MECHANISM (a percentage,
+        // a visit-tier, a stamp-card, an eligibility condition), or confirming a customer's fabricated
+        // discount premise as true, is categorically false. Narrow, high-confidence pattern match
+        // (defense-in-depth under the prompt-level "never invent a discount mechanism" reinforcement);
+        // see policyClaimGuard.ts header for why a narrower guard was chosen over a broad classifier.
+        replyText = enforceNoPolicyHallucination(replyText, customerLanguage);
+        // P12-FABRICATED-OWNER-ESCALATION (IUX R62-verify/R64): no owner-notify/escalate/human-handoff
+        // tool exists anywhere in tools.ts, so ANY claim that the agent contacted, is contacting, or
+        // received a response from a human owner is categorically false (unlike the policy guard above,
+        // this can be a HARD categorical block since no code path can ever make the claim true). Rewrite
+        // to an honest "I can't reach them myself, here's how you can" reply using the real contact info.
+        replyText = enforceNoOwnerEscalationClaim(
+          replyText,
+          customerLanguage,
+          typeof businessData?.business_phone === "string" ? (businessData.business_phone as string) : null,
+          typeof businessData?.business_email === "string" ? (businessData.business_email as string) : null,
+        );
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
         // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"
