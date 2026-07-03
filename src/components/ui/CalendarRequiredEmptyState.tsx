@@ -9,13 +9,26 @@ interface CalendarRequiredEmptyStateProps {
   title: string;
   description: string;
   showCreateButton?: boolean;
+  /** AVAILABILITY-EMPTYSTATE-STALE-AFTER-CREATE (IUX R63 fix): this component
+   *  renders its OWN CreateCalendarDialog instance. Callers whose own "no
+   *  calendars" gate is driven by a SEPARATE useCalendars() instance (e.g.
+   *  AvailabilityManager, which intentionally keeps its own instance so its
+   *  loading flag never mismatches, see RUX-2) must pass their own refetch
+   *  here so a calendar created from THIS empty state's dialog is reflected;
+   *  otherwise nothing tells that separate instance to refetch and the empty
+   *  state stays stuck even though the calendar exists (proven live, IUX R63).
+   *  Optional and a no-op by default so callers reading calendars straight
+   *  from CalendarContext (already kept in sync by useCreateCalendar itself)
+   *  don't need to pass anything. */
+  onCalendarCreated?: () => void;
 }
 
-export function CalendarRequiredEmptyState({ 
+export function CalendarRequiredEmptyState({
   icon,
-  title, 
+  title,
   description,
-  showCreateButton = true
+  showCreateButton = true,
+  onCalendarCreated
 }: CalendarRequiredEmptyStateProps) {
   const { t } = useTranslation('appPages');
   const [showCreateDialog, setShowCreateDialog] = React.useState(false);
@@ -49,6 +62,7 @@ export function CalendarRequiredEmptyState({
             <CreateCalendarDialog
               open={showCreateDialog}
               onOpenChange={setShowCreateDialog}
+              onCalendarCreated={onCalendarCreated}
             />
           </>
         )}

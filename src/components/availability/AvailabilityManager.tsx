@@ -25,7 +25,7 @@ export const AvailabilityManager = () => {
   // Use the loading flag from THIS useCalendars instance so it always matches the
   // calendars array read below (avoids a two-instance mismatch where the context's
   // separate instance reports loaded while this one has not resolved yet).
-  const { calendars, loading: calendarsLoading } = useCalendars();
+  const { calendars, loading: calendarsLoading, refetch: refetchCalendars } = useCalendars();
   const { userStatus, accessControl } = useUserStatus();
   const [activeTab, setActiveTabRaw] = useState('schedule');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -106,6 +106,16 @@ export const AvailabilityManager = () => {
       <CalendarRequiredEmptyState
         title={t('availPage.emptyState.setup.title', 'Set Up Your Availability')}
         description={t('availPage.emptyState.setup.description', 'Create a calendar first to configure your booking availability and schedule.')}
+        // AVAILABILITY-EMPTYSTATE-STALE-AFTER-CREATE (IUX R63 fix): this
+        // component's own useCalendars() instance is deliberately separate
+        // from CalendarContext's (RUX-2, see comment above) so its loading
+        // flag never mismatches. That means creating a calendar here (via
+        // this empty state's own CreateCalendarDialog) updates
+        // CalendarContext but never told THIS instance to refetch, leaving
+        // calendars.length stuck at 0 and this empty state stuck on screen
+        // even though the calendar was created (proven live). Refetch this
+        // instance directly once the dialog confirms creation.
+        onCalendarCreated={refetchCalendars}
       />
     );
   }

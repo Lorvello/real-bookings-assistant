@@ -54,17 +54,22 @@ export const AvailabilityContent: React.FC<AvailabilityContentProps> = ({ active
     }
   }, [selectedCalendar?.id]);
 
-  const handleCalendarCreated = useCallback(async () => {
-    try {
-      availabilityState.setRefreshing(true);
-      await refreshCalendars();
-      setIsGuidedModalOpen(true);
-    } catch (error) {
-      console.error('Error after calendar creation:', error);
-    } finally {
-      availabilityState.setRefreshing(false);
-    }
-  }, [refreshCalendars]);
+  // AVAILABILITY-EMPTYSTATE-STALE-AFTER-CREATE (IUX R63 fix): this used to run its
+  // own redundant `await refreshCalendars()` in parallel with `useCreateCalendar`'s
+  // own refresh+select sequence (see useCreateCalendar.tsx `createCalendar()`,
+  // which already awaits refreshCalendars() and then calls selectCalendar() BEFORE
+  // invoking this onSuccess callback). Two independent, unsequenced calls to the
+  // same CalendarContext.refreshCalendars() raced: this hook's own
+  // `finally { setRefreshing(false) }` could fire and force
+  // useStableAvailabilityState to recompute BEFORE React had committed
+  // selectCalendar's state update, so `selectedCalendar` briefly read as null and
+  // the stale 'needs_calendar' empty state got cached, requiring a hard reload to
+  // unstick. Fix: do not re-run the refresh here at all, `useCreateCalendar` has
+  // already refreshed the list and selected the new calendar by the time this
+  // callback runs. Just open the guided modal.
+  const handleCalendarCreated = useCallback(() => {
+    setIsGuidedModalOpen(true);
+  }, []);
 
   const handleGuidedComplete = useCallback(async () => {
     try {
