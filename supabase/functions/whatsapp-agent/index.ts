@@ -8,7 +8,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarPolicy, getCalendarWeeklyHours } from "./tools.ts";
+import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
@@ -78,7 +78,20 @@ function nlTime(d: Date): string {
 // (the "Maandag is open" claim was entry-calendar-centric: true for the entry calendar, wrong for
 // another agenda closed that day). Stripping the status removes the structural seduction at the
 // source instead of repeatedly warning the model against it.
-function buildCalendarHint(now: Date, byDay: Record<string, { open: boolean; start?: string; end?: string }> | null, includeStatus = true): string | null {
+// WEEKLYHOURS-IGNORES-OVERRIDES (R38): dateOverrides is an OPTIONAL per-exact-date map
+// (from getCalendarDateOverrides, keyed "YYYY-MM-DD") applied on top of the recurring
+// day-of-week byDay status, so a one-off availability_overrides row (holiday-hours,
+// special closure) is reflected in this table instead of silently invisible. Semantics
+// mirror get_available_slots exactly: an override with isAvailable=false always wins
+// (closed even on a recurring-open day); isAvailable=true with explicit start/end
+// replaces the day's window; isAvailable=true with no times has no effect (falls back
+// to the recurring status). Absent map / no row for a date = unchanged prior behaviour.
+function buildCalendarHint(
+  now: Date,
+  byDay: Record<string, { open: boolean; start?: string; end?: string }> | null,
+  includeStatus = true,
+  dateOverrides?: Record<string, { isAvailable: boolean; start?: string; end?: string }>,
+): string | null {
   if (!byDay) return null;
   const tz = "Europe/Amsterdam";
   const todayStr = now.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD in Amsterdam
@@ -93,7 +106,15 @@ function buildCalendarHint(now: Date, byDay: Record<string, { open: boolean; sta
     if (includeStatus) {
       const dutchDay = cap(dt.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz }));
       const st = byDay[dutchDay];
-      const status = st?.open ? `open ${st.start}-${st.end}` : "GESLOTEN";
+      const ov = dateOverrides?.[iso];
+      let status: string;
+      if (ov && !ov.isAvailable) {
+        status = "GESLOTEN";
+      } else if (ov && ov.isAvailable && ov.start && ov.end) {
+        status = `open ${ov.start}-${ov.end}`;
+      } else {
+        status = st?.open ? `open ${st.start}-${st.end}` : "GESLOTEN";
+      }
       lines.push(`- ${label} [${iso}]: ${status}${mark}`);
     } else {
       lines.push(`- ${label} [${iso}]${mark}`);
@@ -336,11 +357,21 @@ Deno.serve(async (req) => {
     phoneForFallback = phone;
     fallbackMessage = String(message);
 
+    // WEEKLYHOURS-IGNORES-OVERRIDES (R38): the SAME 14-day window buildCalendarHint renders
+    // below, computed here (Amsterdam-local, DST-safe via the same 11:00 UTC mid-day trick
+    // buildCalendarHint itself uses) so the override fetch below is bounded and cheap, no
+    // added round-trip (same Promise.all phase-1 batch).
+    const hintTodayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
+    const [hintY, hintM, hintD] = hintTodayStr.split("-").map(Number);
+    const hintFromISO = hintTodayStr;
+    const hintToISO = new Date(Date.UTC(hintY, hintM - 1, hintD + 13, 11, 0, 0))
+      .toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
+
     // --- Load context (own loader; get_conversation_context RPC is buggy) ---
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
     // They are now batched into 3 dependency phases so independent reads run in parallel.
     // Phase 1 — everything that needs only (calendar_id, phone):
-    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours, psRes] = await Promise.all([
+    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours, psRes, dateOverrides] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
       // Only ACTIVE, non-deleted services — otherwise a service the owner removed/deactivated
       // in the dashboard stays in <services> and the agent keeps offering + booking it via
@@ -378,6 +409,12 @@ Deno.serve(async (req) => {
       supabase.from("payment_settings")
         .select("refund_policy_text, payment_deadline_hours, allowed_payment_timing, secure_payments_enabled, payment_required_for_booking")
         .eq("calendar_id", calendar_id).maybeSingle(),
+      // WEEKLYHOURS-IGNORES-OVERRIDES (R38): per-exact-date overrides for the SAME 14-day
+      // window buildCalendarHint renders, so the concrete-date <kalender> table (the model's
+      // literal per-date source of truth, no tool call) reflects a one-off override instead
+      // of silently falling back to the recurring day-of-week status. Independent of
+      // (user_id, contact_id), belongs in this phase.
+      getCalendarDateOverrides(supabase, calendar_id, hintFromISO, hintToISO),
     ]);
 
     const cal = calRes.data;
@@ -681,7 +718,10 @@ Deno.serve(async (req) => {
       ((businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null);
     // P1-2: single-calendar -> the table carries the one calendar's open/closed (authoritative).
     // Multi-calendar -> status-less date map only; per-agenda open/closed comes from <kalenders>.
-    const calendarHint = buildCalendarHint(now, openingStruct, !isMultiCalendar);
+    // R38: dateOverrides applies a same-window availability_overrides row on top of the
+    // recurring status, only meaningful in single-calendar (includeStatus) mode; harmless to
+    // pass unconditionally since buildCalendarHint ignores it when includeStatus is false.
+    const calendarHint = buildCalendarHint(now, openingStruct, !isMultiCalendar, dateOverrides);
 
     // Booking horizon for the prompt: how far ahead this calendar accepts bookings
     // (booking_window_days). Without this the model called a far-future date "al voorbij"

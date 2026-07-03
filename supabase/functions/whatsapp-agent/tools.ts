@@ -361,6 +361,48 @@ export async function getCalendarWeeklyHours(
   return { byDay, text: formatOpeningHoursFromByDay(byDay) };
 }
 
+// WEEKLYHOURS-IGNORES-OVERRIDES (R38, sev-2): getCalendarWeeklyHours above is a pure
+// day-of-week (recurring) map, with no concept of a specific date, so it cannot represent a
+// one-off availability_overrides exception (holiday-hours-extension, special closure, etc).
+// The 14-day concrete-date <kalender> table (index.ts buildCalendarHint) is built FROM that
+// day-of-week map and is engineered so the model reads open/closed straight off it, per
+// exact date, WITHOUT calling a tool. So an override on any date whose weekday the table
+// renders was silently invisible: the model could confidently say "we're closed" on a day
+// that actually has an override-open window (or vice versa), never consulting
+// get_available_slots (which already handles overrides correctly, see the R34 migration).
+// This fetches the override rows for a bounded date window (the same 14 days the hint
+// renders) so buildCalendarHint can apply them per exact date, matching get_available_slots'
+// own override semantics exactly: is_available=false means closed regardless of the
+// recurring rule; is_available=true with explicit start/end replaces the day's window;
+// is_available=true with null times has no override effect and falls back to the recurring
+// day-of-week status.
+export interface DateOverride { isAvailable: boolean; start?: string; end?: string; }
+export async function getCalendarDateOverrides(
+  supabase: SupabaseClient,
+  calendarId: string,
+  fromDateISO: string, // "YYYY-MM-DD", inclusive
+  toDateISO: string, // "YYYY-MM-DD", inclusive
+): Promise<Record<string, DateOverride>> {
+  const { data } = await supabase
+    .from("availability_overrides")
+    .select("date, is_available, start_time, end_time")
+    .eq("calendar_id", calendarId)
+    .gte("date", fromDateISO)
+    .lte("date", toDateISO);
+  const rows = (data as Array<{ date: string; is_available: boolean | null; start_time: string | null; end_time: string | null }> | null) ?? [];
+  const out: Record<string, DateOverride> = {};
+  for (const r of rows) {
+    out[r.date] = {
+      // DB column defaults to false and the RPC treats a falsy/NULL is_available as closed
+      // (NOT v_override_record.is_available), so mirror that exactly here.
+      isAvailable: r.is_available === true,
+      start: r.start_time ? hhmm(r.start_time) : undefined,
+      end: r.end_time ? hhmm(r.end_time) : undefined,
+    };
+  }
+  return out;
+}
+
 // Service duration (minutes) for end-time computation; default 30 when unknown.
 async function serviceDuration(supabase: SupabaseClient, serviceId: string): Promise<number> {
   const { data } = await supabase.from("service_types").select("duration").eq("id", serviceId).maybeSingle();
