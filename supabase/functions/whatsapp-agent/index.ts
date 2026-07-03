@@ -982,11 +982,11 @@ Deno.serve(async (req) => {
     // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): thread ambiguousConfirm through so
     // tools.ts can gate the model's own args.confirmed the same way confirmBook/confirmCancel
     // are already gated above, not just the server-forced arm.
-    // R36 (PHANTOM-BOOKING-SELFCHAIN): turnStartedAt = the SAME `now` instant already captured at
-    // the top of this turn (line 537), before convContext/pbk/pc were even read and long before
-    // runAgent's tool-call loop can run. tools.ts requires any pending_booking/pending_cancel it
-    // commits to have an `at` strictly before this instant, closing a same-turn self-chain.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", turnStartedAt: now.getTime() });
+    // R36 (PHANTOM-BOOKING-SELFCHAIN): no new field needed here. tools.ts's own closure (created
+    // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
+    // confirmStall retry runAgent call below) now tracks its own preview writes internally and
+    // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl" });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).

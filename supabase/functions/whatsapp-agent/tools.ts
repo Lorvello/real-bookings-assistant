@@ -64,19 +64,6 @@ export interface ToolContext {
   // customer_locale=null -> the RPC normalised null to 'nl' -> an English customer got a Dutch
   // reminder. Set in index.ts each turn from customerLanguage.
   customerLocale?: "nl" | "en";
-  // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, structural additive safety net): the epoch-ms instant
-  // THIS turn started (index.ts's own `now`, captured before runAgent ever runs). A FOURTH,
-  // independent AND-condition on the book/cancel commit gates below: pending_booking.at /
-  // pending_cancel.at must be STRICTLY BEFORE this instant, i.e. the preview that is being
-  // committed must genuinely have been written by a PRIOR turn, never by a tool call earlier in
-  // THIS SAME turn's own tool-call sequence. Closes a rare (<2% base rate, see evidence/IUX_r35.md
-  // VERIFY section) anomaly where the model self-chains book_appointment/cancel_appointment twice
-  // in one turn off a single first-ever message (preview, then self-issue confirmed:true reading
-  // its own just-written proposal), which none of the existing checks (ambiguousConfirm,
-  // only_confirming_previous, hardConfirm) can see: they all classify the raw MESSAGE, none of
-  // them know WHEN pendingBook/pending was written relative to the turn's own start. Required
-  // (not optional) so a caller can never silently omit it and disable the guard.
-  turnStartedAt: number;
 }
 
 interface UpcomingBooking {
@@ -816,6 +803,24 @@ export function createTools(
   // so this never blocks a legitimate booking.
   let bookedThisTurn: { when: string; payment_url?: string } | null = null;
 
+  // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2): the exact `at` epoch-ms stamp THIS closure itself
+  // wrote the last time IT stored a pending_booking / pending_cancel preview (undefined until
+  // this closure's own first preview write this HTTP turn). createTools/execute is created ONCE
+  // per HTTP request and this SAME closure instance is reused for both the primary AND the
+  // R22 bookCommitMissed/confirmStall RETRY runAgent call (index.ts's single createTools call
+  // site), so this correctly spans a legitimate same-turn retry, unlike a naive wall-clock
+  // "before this turn started" check (which was tried first, see evidence/IUX_r36.md section 6.1
+  // for the false-positive it caused on a genuine bookCommitMissed retry: the retry's own
+  // re-preview legitimately re-stamps `at`, and a wall-clock-only check could not tell that
+  // apart from a same-turn self-chain). The actual, precise distinguishing question is: "is the
+  // `pending_booking.at`/`pending_cancel.at` I am about to commit a stamp THIS CLOSURE ITSELF
+  // JUST WROTE" (self-chain, must NOT commit) vs "a stamp that predates ANY preview this closure
+  // has written this turn" (genuinely a prior HTTP turn's proposal, safe to commit). Comparing
+  // against the closure's own last-self-written stamp (not a wall-clock instant) makes this
+  // exact and immune to retry-timing.
+  let lastSelfWrittenBookAt: number | undefined;
+  let lastSelfWrittenCancelAt: number | undefined;
+
   const execute: ToolExecutor = async (name, args) => {
     switch (name) {
       case "get_business_data": {
@@ -1047,14 +1052,26 @@ export function createTools(
         // phrasing by construction (it does not pattern-match "badness", it membership-tests
         // "goodness" against a closed list).
         // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, PURE ADDITIVE FIFTH condition, see ToolContext
-        // comment above + evidence/IUX_r36.md): pendingBook.at must be STRICTLY BEFORE this turn's
-        // own start (ctx.turnStartedAt). Every prior condition classifies the raw customer MESSAGE;
-        // none of them can tell a genuinely prior-turn preview apart from a preview the model wrote
-        // moments earlier in this SAME turn's own tool-call sequence and then self-confirmed. A
-        // missing/non-numeric `at` fails CLOSED (treated as NOT prior-turn), matching the fail-safe
-        // direction of every other check here.
-        const previewFromPriorTurn = typeof pendingBook?.at === "number" && pendingBook.at < ctx.turnStartedAt;
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time && previewFromPriorTurn;
+        // comment above + evidence/IUX_r36.md): closes the specific incident shape (a first-ever
+        // message, ZERO prior pending_booking, that self-chains a preview-then-self-confirm in ONE
+        // turn purely off the model's OWN args.confirmed:true). The precise, narrow discriminator:
+        // ctx.confirmBook is computed in index.ts from the pending_booking that ALREADY EXISTED
+        // in the DB before this HTTP turn's runAgent ever started (a genuine, server-verified
+        // PRIOR-turn proposal). When ctx.confirmBook is true, a real prior-turn proposal is proven
+        // to exist independently of anything this closure does this turn, so any same-turn
+        // re-preview/retry oscillation from there (the proven bookCommitMissed recovery flow,
+        // where the model's first attempt omits only_confirming_previous and a nudge retries) stays
+        // fully allowed, unchanged from before this round. Only when ctx.confirmBook is FALSE (no
+        // prior-turn proposal existed AT ALL) and the commit is being driven purely by the model's
+        // own self-issued args.confirmed===true is the pendingBook required to predate anything
+        // THIS closure itself wrote this turn (lastSelfWrittenBookAt): that is precisely the
+        // self-chain shape (preview call writes it, self-confirm call reads its own just-written
+        // stamp back), and it is the ONLY path this guard touches. A missing/non-numeric
+        // pendingBook.at fails CLOSED (excluded) in that narrow case.
+        const noPriorTurnProposal = ctx.confirmBook !== true;
+        const previewIsSelfWritten = noPriorTurnProposal &&
+          typeof pendingBook?.at === "number" && pendingBook.at === lastSelfWrittenBookAt;
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time && !previewIsSelfWritten;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
         // rather than falling through to the generic fresh-preview path, which would expect
@@ -1334,6 +1351,11 @@ export function createTools(
           const { data: stRow } = await supabase
             .from("service_types").select("name").eq("id", serviceId).maybeSingle();
           const svcName = (stRow as { name?: string } | null)?.name ?? null;
+          // R36: stamp + remember it as OUR OWN write (lastSelfWrittenBookAt), so a later call
+          // within THIS SAME closure/turn that reads this exact row back can never treat it as a
+          // genuine prior-turn proposal (see the committing gate above + ToolContext comment).
+          const previewAt = Date.now();
+          lastSelfWrittenBookAt = previewAt;
           if (ctx.conversationId) {
             await supabase.from("whatsapp_conversations").update({
               context: {
@@ -1342,7 +1364,7 @@ export function createTools(
                 // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
                 // model having to resend them on the "ja" turn (same authoritative-from-server
                 // pattern as start_time / customer_name). null for an in_person booking.
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: Date.now() },
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: previewAt },
               },
             }).eq("id", ctx.conversationId);
           }
@@ -1493,11 +1515,17 @@ export function createTools(
         // === true), see ToolContext comment + evidence/IUX_r32.md section 2. A cancel can only
         // commit when the raw message is ALSO a member of the finite clean-confirm allow-list.
         // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, PURE ADDITIVE fourth condition, mirrors the book
-        // gate above, see ToolContext comment + evidence/IUX_r36.md): pending.at must be STRICTLY
-        // BEFORE this turn's own start, so a same-turn preview-then-self-confirm chain can never
-        // commit a cancel either. Fails CLOSED on a missing/non-numeric `at`.
-        const cancelPreviewFromPriorTurn = typeof pending?.at === "number" && pending.at < ctx.turnStartedAt;
-        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && ctx.hardConfirm === true && pending?.start_time && cancelPreviewFromPriorTurn) {
+        // gate above, see ToolContext comment + evidence/IUX_r36.md): same narrow discriminator as
+        // the book gate. ctx.confirmCancel is computed in index.ts from a pending_cancel that
+        // ALREADY EXISTED before this turn started (server-verified prior-turn proposal); when
+        // true, any same-turn oscillation (the proven cancelCommitMissed recovery retry) stays
+        // fully allowed. Only when NO prior-turn pending_cancel existed at all (ctx.confirmCancel
+        // false) and the commit is driven purely by the model's own self-issued confirmed:true is
+        // the pending required to predate anything THIS closure itself wrote this turn.
+        const noPriorTurnCancelProposal = ctx.confirmCancel !== true;
+        const cancelPreviewIsSelfWritten = noPriorTurnCancelProposal &&
+          typeof pending?.at === "number" && pending.at === lastSelfWrittenCancelAt;
+        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && ctx.hardConfirm === true && pending?.start_time && !cancelPreviewIsSelfWritten) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();
@@ -1583,10 +1611,13 @@ export function createTools(
           };
         }
 
+        // R36: same self-write tracking as the book preview above (lastSelfWrittenCancelAt).
+        const cancelPreviewAt = Date.now();
+        lastSelfWrittenCancelAt = cancelPreviewAt;
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...cancelCtx, pending_cancel: { booking_id: b.id, start_time: b.start_time, at: Date.now() } } })
+            .update({ context: { ...cancelCtx, pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt } } })
             .eq("id", ctx.conversationId);
         }
         return {
