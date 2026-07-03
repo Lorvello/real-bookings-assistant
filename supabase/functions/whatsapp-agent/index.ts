@@ -15,7 +15,8 @@ import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
-import { enforceNoOwnerEscalationClaim } from "./ownerEscalationGuard.ts";
+import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
+import { classifyOwnerEscalationClaim } from "./ownerEscalationClassifier.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
@@ -1593,12 +1594,31 @@ Deno.serve(async (req) => {
         // received a response from a human owner is categorically false (unlike the policy guard above,
         // this can be a HARD categorical block since no code path can ever make the claim true). Rewrite
         // to an honest "I can't reach them myself, here's how you can" reply using the real contact info.
-        replyText = enforceNoOwnerEscalationClaim(
-          replyText,
-          customerLanguage,
-          typeof businessData?.business_phone === "string" ? (businessData.business_phone as string) : null,
-          typeof businessData?.business_email === "string" ? (businessData.business_email as string) : null,
-        );
+        const ownerPhone = typeof businessData?.business_phone === "string" ? (businessData.business_phone as string) : null;
+        const ownerEmail = typeof businessData?.business_email === "string" ? (businessData.business_email as string) : null;
+        const replyBeforeOwnerGuard = replyText;
+        replyText = enforceNoOwnerEscalationClaim(replyText, customerLanguage, ownerPhone, ownerEmail);
+        // OWNERESCALATION-VERBLIST-BRITTLE structural fix (IUX R66): the regex guard above is a
+        // closed shape (verb stems + subject/auxiliary skeleton) that R64-verify and R65-verify BOTH
+        // independently proved incomplete against idiom/metaphor/passive-voice paraphrases (see
+        // ownerEscalationClassifier.ts header + IUX_r66.md for the full reasoning + regression bank).
+        // SECOND PASS: a narrow, single-purpose classification call judges the SAME replyText's
+        // MEANING rather than its wording. Skipped when the regex guard already rewrote replyText to
+        // the fixed safe-fallback template (that string is a reviewed constant, never model output,
+        // so it can never itself be a false claim -- no need to spend a network round-trip on it).
+        if (replyText === replyBeforeOwnerGuard) {
+          const clf = await classifyOwnerEscalationClaim(replyText, Deno.env.get("GROQ_API_KEY"));
+          console.log(
+            `owner-escalation-classifier: reason=${clf.reason} latencyMs=${clf.latencyMs} isEscalationClaim=${clf.isEscalationClaim}`,
+          );
+          if (clf.isEscalationClaim) {
+            replyText = noOwnerEscalationReply(customerLanguage, ownerPhone, ownerEmail);
+            console.warn(
+              `owner-escalation-classifier: rewrote a fabricated owner-contact claim missed by the regex guard:`,
+              JSON.stringify(replyBeforeOwnerGuard),
+            );
+          }
+        }
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
         // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"
