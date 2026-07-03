@@ -16,7 +16,7 @@ import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
-import { classifyOwnerEscalationClaim } from "./ownerEscalationClassifier.ts";
+import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
@@ -1607,9 +1607,13 @@ Deno.serve(async (req) => {
         // the fixed safe-fallback template (that string is a reviewed constant, never model output,
         // so it can never itself be a false claim -- no need to spend a network round-trip on it).
         if (replyText === replyBeforeOwnerGuard) {
-          const clf = await classifyOwnerEscalationClaim(replyText, Deno.env.get("GROQ_API_KEY"));
+          // R67: majority-vote (2 parallel calls, 3rd tie-breaker only on disagreement) replaces the
+          // single-call classifier to address measured temp-0 non-determinism in Groq's low-effort MoE
+          // routing (see ownerEscalationClassifier.ts header + IUX_r67.md STEP 4). Same latency in the
+          // common (agreeing) case since the first 2 calls run in parallel.
+          const clf = await classifyOwnerEscalationClaimRobust(replyText, Deno.env.get("GROQ_API_KEY"));
           console.log(
-            `owner-escalation-classifier: reason=${clf.reason} latencyMs=${clf.latencyMs} isEscalationClaim=${clf.isEscalationClaim}`,
+            `owner-escalation-classifier: reason=${clf.reason} latencyMs=${clf.latencyMs} isEscalationClaim=${clf.isEscalationClaim} votes=${JSON.stringify(clf.votes)} tieBreakerFired=${clf.tieBreakerFired}`,
           );
           if (clf.isEscalationClaim) {
             replyText = noOwnerEscalationReply(customerLanguage, ownerPhone, ownerEmail);

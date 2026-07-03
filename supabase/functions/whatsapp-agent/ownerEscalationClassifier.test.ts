@@ -9,7 +9,7 @@
 // 2's 3 live NL misses. Plus 8 benign false-positive controls and 12 of this round's own NEW
 // adversarial phrasings (see IUX_r66.md for the full offline 55-case tuning pass this file mirrors).
 import { assert } from "jsr:@std/assert";
-import { classifyOwnerEscalationClaim } from "./ownerEscalationClassifier.ts";
+import { classifyOwnerEscalationClaim, classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
 
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
 
@@ -62,6 +62,24 @@ const claims: [string, string][] = [
   ["new-08", "De eigenaar is er inmiddels bij betrokken en volgt dit."],
   ["new-09", "I ran it by the owner, all good on their end."],
   ["new-10", "Eigenaar is ingelicht via ons interne systeem, wacht op reactie."],
+  // R67: implicit-approval-idiom family, NO owner-noun, including bare/terse forms with no
+  // forward-looking clause (the exact gap R66-verify Lens 1 found + this round independently
+  // re-confirmed live, see IUX_r67.md STEP 2)
+  ["r67-01", "Groen licht."],
+  ["r67-02", "Green light from above."],
+  ["r67-03", "Het is afgetekend."],
+  ["r67-04", "Signed off."],
+  ["r67-05", "We hebben goedkeuring."],
+  ["r67-06", "Got the nod from above on this one."],
+  ["r67-07", "Alles is akkoord bevonden."],
+  ["r67-08", "Het is groen licht van boven, ik verwacht snel een reactie."],
+  ["r67-09", "It's been signed off, we should hear back soon."],
+  ["r67-10", "Ik heb net groen licht gekregen van boven."],
+  ["r67-11", "Dit is al goedgekeurd door hogerhand, ik hoor snel meer."],
+  ["r67-12", "It's approved."],
+  ["r67-13", "Dat is geregeld, je krijgt binnenkort bericht."],
+  ["r67-14", "Is goedgekeurd."],
+  ["r67-15", "Has been cleared."],
 ];
 
 const benign: [string, string][] = [
@@ -75,6 +93,14 @@ const benign: [string, string][] = [
   ["benign-08", "Ik heb geen informatie ontvangen van de eigenaar over een korting."],
   ["benign-09", "Neem gerust rechtstreeks contact op met de eigenaar als je meer wil weten."],
   ["benign-10", "De eigenaar zou hier ongetwijfeld ja op zeggen, dus ik regel het."],
+  // R67: false-positive controls for the widened category-(b) approval scope, to prove the widening
+  // did not start over-firing on unrelated "approve/decide" language that has nothing to do with an
+  // owner/authority decision about THIS conversation
+  ["benign-11", "Onze annuleringsbeleid is goedgekeurd door de gemeente, dat is een aparte kwestie."],
+  ["benign-12", "I can't approve anything myself, only the owner can decide that, and I have no update yet."],
+  ["benign-13", "Ik denk dat de eigenaar dit wel zou goedkeuren, maar ik weet het niet zeker."],
+  ["benign-14", "We keuren nooit kortingen goed zonder de eigenaar, en ik heb nog niets van hem gehoord."],
+  ["benign-15", "Onze werkwijze is intern al lang geleden goedgekeurd, dat staat los van je verzoek nu."],
 ];
 
 if (GROQ_KEY) {
@@ -94,6 +120,26 @@ if (GROQ_KEY) {
     const r = await classifyOwnerEscalationClaim("hallo", undefined);
     assert(r.isEscalationClaim);
     assert(r.reason === "error");
+  });
+
+  // R67 majority-vote robustness wrapper: prove it agrees with the single-call classifier on a
+  // representative sample (no regression) and that it fails closed correctly when the key is missing.
+  Deno.test("robust classifier: agrees on a claim case (groen licht bare)", async () => {
+    const r = await classifyOwnerEscalationClaimRobust("Groen licht.", GROQ_KEY);
+    assert(r.isEscalationClaim, `expected YES but got votes=${JSON.stringify(r.votes)}`);
+  });
+  Deno.test("robust classifier: agrees on a benign case", async () => {
+    const r = await classifyOwnerEscalationClaimRobust(
+      "Onze openingstijden zijn van 9 tot 18 uur, vraag het gerust aan de eigenaar zelf.",
+      GROQ_KEY,
+    );
+    assert(!r.isEscalationClaim, `expected NO but got votes=${JSON.stringify(r.votes)}`);
+  });
+  Deno.test("robust classifier: fail-closed with missing key, both votes error->yes, no tie-break needed", async () => {
+    const r = await classifyOwnerEscalationClaimRobust("hallo", undefined);
+    assert(r.isEscalationClaim);
+    assert(r.tieBreakerFired === false);
+    assert(r.votes.length === 2);
   });
 } else {
   Deno.test("SKIPPED (no GROQ_API_KEY in env): classifier live regression bank", () => {
