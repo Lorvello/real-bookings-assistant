@@ -17,6 +17,7 @@ import { UpgradePrompt } from '@/components/user-status/UpgradePrompt';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 import { AuthenticatedPageWrapper } from '@/components/AuthenticatedPageWrapper';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,11 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  // AVAILABILITY-INAPP-NAV-STILL-NOOP (IUX R52): every in-app navigation path
+  // from this shell (sidebar nav, back-to-website, sign out) routes through
+  // guardedNavigate, so a dirty surface (e.g. Weekly-Hours) can intercept it
+  // with a real confirm dialog instead of silently losing an unsaved change.
+  const { guardedNavigate } = useNavigationGuard();
   const { t } = useTranslation('app');
   const { signOut } = useAuth();
   const isMobile = useIsMobile();
@@ -84,19 +90,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [location.pathname, isMobile]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+  const handleSignOut = () => {
+    guardedNavigate(async () => {
+      await signOut();
+      navigate('/');
+    });
   };
 
   const handleNavigation = (href: string) => {
     // Production-safe navigation logging removed
-    navigate(href);
+    guardedNavigate(() => navigate(href));
   };
 
   const handleBackToWebsite = () => {
     // Production-safe navigation logging removed
-    navigate('/');
+    guardedNavigate(() => navigate('/'));
   };
 
   const toggleSidebar = () => {

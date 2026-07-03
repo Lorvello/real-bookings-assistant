@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { CalendarProvider } from '@/contexts/CalendarContext';
 import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarContext';
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
+import { NavigationGuardProvider } from '@/contexts/NavigationGuardContext';
 import { useEffect, Suspense } from 'react';
 import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
 import { useAuth, AuthProvider } from '@/hooks/useAuth';
@@ -127,12 +128,13 @@ function App() {
           <ConversationCalendarProvider>
             <div className="w-full h-screen overflow-hidden">
               <Router>
-                <div 
-                  className="w-full overflow-y-auto overflow-x-hidden" 
+                <NavigationGuardProvider>
+                <div
+                  className="w-full overflow-y-auto overflow-x-hidden"
                   data-scroll-container
-                  style={{ 
+                  style={{
                     height: '100vh',
-                    overscrollBehavior: 'none' 
+                    overscrollBehavior: 'none'
                   }}
                 >
                   <GlobalWebhookProcessor />
@@ -367,6 +369,7 @@ function App() {
                   <Toaster />
                   <SecurityAlertsMonitor />
                 </div>
+                </NavigationGuardProvider>
               </Router>
             </div>
           </ConversationCalendarProvider>

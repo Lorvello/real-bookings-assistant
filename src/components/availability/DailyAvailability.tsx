@@ -5,6 +5,7 @@ import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager
 import { useToast } from '@/hooks/use-toast';
 import { SettingsSaveBar } from '@/components/settings/SettingsSaveBar';
 import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 
 interface DailyAvailabilityProps {
   onChange: () => void;
@@ -212,6 +213,25 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     setChangedDays(new Set());
     await refreshAvailability();
   };
+
+  // AVAILABILITY-INAPP-NAV-STILL-NOOP (IUX R52): register this surface's
+  // dirty state with the app-wide navigation guard (see
+  // src/contexts/NavigationGuardContext.tsx) so an in-app sidebar/back/sign-out
+  // navigation while a day is unsaved shows a real confirm dialog instead of
+  // silently discarding it. Additive to the existing beforeunload guard above,
+  // which still covers browser-level exits unchanged. Reuses the exact same
+  // "revert to server truth" semantics as the Discard button (handleDiscard),
+  // so leaving via the dialog behaves identically to pressing Discard.
+  const { setGuard } = useNavigationGuard();
+  useEffect(() => {
+    if (hasUnsavedChanges) {
+      setGuard({ onDiscard: handleDiscard });
+    } else {
+      setGuard(null);
+    }
+    return () => setGuard(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasUnsavedChanges]);
 
   const toggleDropdown = (dropdownId: string) => {
     setOpenDropdowns(prev => {
