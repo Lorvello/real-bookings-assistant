@@ -117,6 +117,18 @@ const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?
 // fixed, tiny alternation of the cancel verb itself, never a free-form action word, so it stays a
 // closed skeleton like every other entry in this list.
 const CANCEL_VERB = "(?:annuleer(?: het)? maar|annuleren maar|cancel it|cancel that|cancel please)";
+// R32-verify finding V4 (evidence/IUX_r32.md): a "double affirm-word" message, i.e. two DIFFERENT
+// standalone confirm words back to back ("Ja klopt", "Ja ok", "Ja prima", "Yes correct"), is a very
+// common, completely natural way to confirm in both Dutch and English, but previously matched neither
+// HARD_CONFIRM_EXACT (not a single token) nor any HARD_CONFIRM_PATTERNS skeleton (those only covered
+// "confirm-word + pleasantry", never "confirm-word + confirm-word"). CONFIRM_WORD is a DELIBERATE
+// SUBSET of HARD_CONFIRM_EXACT (not the full set), restricted to the words that actually co-occur in
+// the reported gap plus the two natural EN doubles from the same finding, to avoid combinatorially
+// expanding the accepted surface with lower-confidence word pairs. Anchored ^...$ like every other
+// entry here, so a message with real content beyond the two words ("ja klopt, maar toch niet") fails
+// the anchor and correctly falls through to "none" (safe fallback to the existing layers), never a
+// false match; see hardConfirmGate.test.ts for the adversarial regression test proving this.
+const CONFIRM_WORD = "(?:ja|jaa|klopt|ok|oke|oké|okay|prima|akkoord|correct|yes|yep|sure)";
 export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^ja,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^klopt,? ${PLEASANTRY}!?$`, "i"),
@@ -135,6 +147,7 @@ export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^correct,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^${PLEASANTRY},? ja!?$`, "i"),
   new RegExp(`^(?:ja|yes|klopt|akkoord),? ${CANCEL_VERB}!?$`, "i"),
+  new RegExp(`^${CONFIRM_WORD},? ${CONFIRM_WORD}!?$`, "i"),
 ];
 
 export const HARD_REJECT_PATTERNS: readonly RegExp[] = [

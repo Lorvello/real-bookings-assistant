@@ -194,3 +194,60 @@ Deno.test("normalization never touches internal content beyond edges/whitespace"
 // property of the CALLERS, verified live in section 6d of evidence/IUX_r32.md (R22-heritage
 // phantom-booking guard), not of this module. Documented here so a future reader does not
 // mistakenly expect this file to test that property.
+
+// ── 8. R35: "double affirm-word" shape (AFFIRM-CONFIRM-HARDGATE-DOUBLEWORD, filed R32-verify V4) ──
+// Two DIFFERENT standalone confirm words back to back ("Ja klopt", "Ja ok", "Ja prima") is a very
+// common, natural NL/EN confirmation that previously matched neither HARD_CONFIRM_EXACT (not a
+// single token) nor any pre-R35 HARD_CONFIRM_PATTERNS entry (those only covered "confirm-word +
+// pleasantry"). CONFIRM_WORD is a closed, hand-picked SUBSET of HARD_CONFIRM_EXACT; the pattern is
+// anchored ^...$ exactly like every other entry, so it can never match content beyond two words.
+Deno.test("double affirm-word: the exact V4-reported gap phrasings now hard-confirm", () => {
+  const phrasings = [
+    "Ja klopt", "Ja, klopt", "Klopt, ja", "Ja ok", "Ok ja", "Yes ok", "Ja prima",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("double affirm-word: natural EN doubles hard-confirm", () => {
+  assertEquals(classifyHardConfirm("yes correct"), "confirm");
+  assertEquals(classifyHardConfirm("yes okay"), "confirm");
+  assertEquals(classifyHardConfirm("Yes, correct"), "confirm");
+});
+Deno.test("double affirm-word: trailing exclamation and mixed casing still match", () => {
+  assertEquals(classifyHardConfirm("Ja klopt!"), "confirm");
+  assertEquals(classifyHardConfirm("JA KLOPT"), "confirm");
+  assertEquals(classifyHardConfirm("Klopt akkoord"), "confirm");
+});
+Deno.test("double affirm-word: a repeated identical word is also a clean double-confirm", () => {
+  assertEquals(classifyHardConfirm("Ja ja"), "confirm");
+  assertEquals(classifyHardConfirm("Ok ok"), "confirm");
+});
+Deno.test("double affirm-word ADVERSARIAL: real content after the double-word must NOT match", () => {
+  // The exact scenario the task calls out explicitly: a customer walking back their own confirm
+  // in the same message must never be swallowed by the new pattern.
+  const mustStayNone = [
+    "ja klopt, maar toch niet",
+    "Ja klopt maar ik twijfel nog",
+    "klopt, maar wacht even",
+    "ja klopt dat de prijs 50 euro is",
+    "yes correct, but not that date",
+    "ok ja weet je het zeker?",
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none (extra content)`);
+  }
+});
+Deno.test("double affirm-word ADVERSARIAL: a word outside CONFIRM_WORD does not combine", () => {
+  // "goed" alone is not itself an exact-match token (only "helemaal goed"/"is goed" are), so it
+  // must not silently become combinable via the double-word pattern either.
+  assertEquals(classifyHardConfirm("Ja goed"), "none");
+  assertEquals(classifyHardConfirm("Goed ja"), "none");
+});
+Deno.test("double affirm-word: reject side intentionally NOT mirrored (no natural double-reject idiom)", () => {
+  // Documented scope decision (evidence/IUX_r35.md section 2): HARD_REJECT_EXACT has no equally
+  // common natural double-word idiom, so no reject-side pattern was added. Confirm this stays
+  // "none" (falls back to the existing layers) rather than silently becoming a reject.
+  assertEquals(classifyHardConfirm("nee nee"), "none");
+  assertEquals(classifyHardConfirm("no no"), "none");
+});
