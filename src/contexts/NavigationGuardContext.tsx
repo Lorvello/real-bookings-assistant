@@ -24,20 +24,53 @@ import React, { createContext, useCallback, useContext, useRef, useState, ReactN
  * ServiceTypesManager's delete-confirm already uses), and only proceeds if
  * the user chooses to leave. This is purely ADDITIVE: `beforeunload` keeps
  * covering the external/browser-level case unchanged.
+ *
+ * AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53): `guardedNavigate` only
+ * wraps actual `navigate()` calls. R52-verify found a 3rd exit path that
+ * loses an unsaved Weekly-Hours change with zero warning: the calendar
+ * switcher (`CalendarSwitcherSection.tsx` in the sidebar, ALSO
+ * `CalendarSwitcher.tsx` used on the Availability page itself and several
+ * other pages) changes `CalendarContext`'s selected calendar via
+ * `selectCalendar`/`selectAllCalendars`, which is pure React state, NOT a
+ * route change, so it was never routed through `guardedNavigate` and
+ * structurally cannot be under a navigate()-only design. R53's exhaustive
+ * audit (see IUX_r53.md) found the same failure class in two more places
+ * that are also not route changes: the Weekly-Hours/Date-Overrides tab
+ * switch (`AvailabilityTabs.tsx`, pure `activeTab` React state inside
+ * `AvailabilityManager.tsx`, unmounts `DailyAvailability` on tab change) and
+ * the idle-session-expiry auto-redirect (`AvailabilityManager.tsx`'s own
+ * `useEffect` calling `navigate('/login')` directly, bypassing
+ * `DashboardLayout`'s guarded handlers).
+ *
+ * Rather than keep bolting on a narrower `guardedX` wrapper per call site,
+ * `guardedAction` below is the general primitive: any state change or side
+ * effect that would blow away a dirty surface's local state can be wrapped
+ * in it, not just `navigate()` calls. `guardedNavigate` is now a thin alias
+ * of `guardedAction` (kept as a separate export so existing call sites
+ * reading "guardedNavigate" as the navigation-flavoured entry point don't
+ * need to change), so there is still exactly one guard mechanism, one
+ * dialog, one registration API: never a second parallel guard.
  */
 
-type PendingNavigation = () => void;
+type PendingAction = () => void;
 
 interface NavigationGuardContextValue {
   /** Register (or clear, by passing null) the active unsaved-changes guard.
    *  `onDiscard` is called if the user confirms "Leave": it should reset the
    *  dirty local state (mirroring the surface's own Discard button) so the
-   *  navigation that follows doesn't immediately re-trigger the guard. */
+   *  action that follows doesn't immediately re-trigger the guard. */
   setGuard: (guard: { message?: string; onDiscard: () => void } | null) => void;
-  /** Wrap a navigation action (e.g. `() => navigate(href)`). Runs it
-   *  immediately if no guard is active; otherwise shows the confirm dialog
-   *  and only runs it if the user confirms leaving. */
-  guardedNavigate: (action: PendingNavigation) => void;
+  /** Wrap any action that would blow away a dirty surface's local state (a
+   *  route change, a calendar switch, a tab switch, an auth redirect, etc).
+   *  Runs it immediately if no guard is active; otherwise shows the confirm
+   *  dialog and only runs it if the user confirms leaving. This is the
+   *  general primitive; `guardedNavigate` is a thin alias of it kept for the
+   *  navigation call sites that already use that name. */
+  guardedAction: (action: PendingAction) => void;
+  /** Alias of `guardedAction`, kept for navigation call sites (sidebar nav,
+   *  back-to-website, sign-out) that were written against this name in R52.
+   *  Exactly the same function, not a second guard mechanism. */
+  guardedNavigate: (action: PendingAction) => void;
 }
 
 const NavigationGuardContext = createContext<NavigationGuardContextValue | undefined>(undefined);
@@ -56,14 +89,14 @@ interface NavigationGuardProviderProps {
 
 export function NavigationGuardProvider({ children }: NavigationGuardProviderProps) {
   const guardRef = useRef<{ message?: string; onDiscard: () => void } | null>(null);
-  const pendingActionRef = useRef<PendingNavigation | null>(null);
+  const pendingActionRef = useRef<PendingAction | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const setGuard = useCallback((guard: { message?: string; onDiscard: () => void } | null) => {
     guardRef.current = guard;
   }, []);
 
-  const guardedNavigate = useCallback((action: PendingNavigation) => {
+  const guardedAction = useCallback((action: PendingAction) => {
     if (!guardRef.current) {
       action();
       return;
@@ -78,9 +111,9 @@ export function NavigationGuardProvider({ children }: NavigationGuardProviderPro
     setDialogOpen(false);
     pendingActionRef.current = null;
     // Discard first (resets the dirty surface's local state / reverts to
-    // server truth), THEN navigate: mirrors the sticky bar's own Discard
-    // button semantics, so leaving via this dialog behaves identically to
-    // clicking Discard and then navigating.
+    // server truth), THEN run the pending action: mirrors the sticky bar's
+    // own Discard button semantics, so leaving via this dialog behaves
+    // identically to clicking Discard and then navigating/switching/etc.
     guard?.onDiscard();
     action?.();
   }, []);
@@ -91,7 +124,7 @@ export function NavigationGuardProvider({ children }: NavigationGuardProviderPro
   }, []);
 
   return (
-    <NavigationGuardContext.Provider value={{ setGuard, guardedNavigate }}>
+    <NavigationGuardContext.Provider value={{ setGuard, guardedAction, guardedNavigate: guardedAction }}>
       {children}
       <UnsavedChangesNavDialog
         open={dialogOpen}

@@ -7,6 +7,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useCalendars } from '@/hooks/useCalendars';
 import { useUserStatus } from '@/contexts/UserStatusContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { AvailabilityTabs } from './AvailabilityTabs';
 import { AvailabilityContent } from './AvailabilityContent';
 import { AllCalendarsAvailability } from './AllCalendarsAvailability';
@@ -26,13 +27,27 @@ export const AvailabilityManager = () => {
   // separate instance reports loaded while this one has not resolved yet).
   const { calendars, loading: calendarsLoading } = useCalendars();
   const { userStatus, accessControl } = useUserStatus();
-  const [activeTab, setActiveTab] = useState('schedule');
+  const [activeTab, setActiveTabRaw] = useState('schedule');
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  // AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53, exhaustive audit): the
+  // Weekly-Hours <-> Date-Overrides tab switch is pure `activeTab` React
+  // state (see AvailabilityTabs.tsx), NOT a route change, and unmounts
+  // DailyAvailability exactly like the calendar switcher does. Same
+  // guardedAction reuse as the calendar switchers; no new mechanism.
+  const { guardedAction } = useNavigationGuard();
+  const setActiveTab = (tab: string) => guardedAction(() => setActiveTabRaw(tab));
 
   // OPTIMIZED: Single auth check with fast redirect
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login', { replace: true });
+      // AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53, exhaustive audit):
+      // idle-session-expiry (src/contexts/AuthContext.tsx's 30-minute
+      // inactivity signOut()) flips `user` to null, which fires this effect
+      // and would otherwise silently blow past a dirty Weekly-Hours surface.
+      // Routed through guardedAction like every other exit path found in the
+      // audit; `replace: true` is preserved for both the immediate and the
+      // guarded-then-confirmed case.
+      guardedAction(() => navigate('/login', { replace: true }));
     }
   }, [authLoading, user]); // Minimal dependencies
 

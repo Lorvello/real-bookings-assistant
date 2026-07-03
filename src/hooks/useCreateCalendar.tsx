@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarLimits } from '@/hooks/useSubscriptionLimits';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -45,6 +46,12 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
   const { toast } = useToast();
   const { t } = useTranslation('notifications');
   const { refreshCalendars, selectCalendar } = useCalendarContext();
+  // AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53, exhaustive audit):
+  // successfully creating a new calendar auto-selects it, which is the same
+  // "swap the active calendar without going through navigate()" failure
+  // class as the two dropdown switchers, just triggered from the Create
+  // Calendar dialog instead. Same guardedAction reuse.
+  const { guardedAction } = useNavigationGuard();
   const { user } = useAuth();
   const { canCreateMore, currentCount, maxCalendars } = useCalendarLimits();
   const { checkAccess } = useAccessControl();
@@ -351,7 +358,7 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
       await new Promise(resolve => setTimeout(resolve, 200));
       
       console.log('Calendar refresh completed, selecting new calendar');
-      selectCalendar(calendar as any);
+      guardedAction(() => selectCalendar(calendar as any));
 
       // Call success callback if provided
       if (onSuccess) {

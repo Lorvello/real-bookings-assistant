@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Check, ChevronDown, Grid3X3, Calendar, Plus, Edit } from 'lucide-react';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,15 @@ export function CalendarSelector() {
     selectAllCalendars,
     refreshCalendars
   } = useCalendarContext();
-  
+  // AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53, exhaustive audit): this
+  // selector is currently only rendered inside ServiceTypeForm (Settings),
+  // not reachable from /availability today, so it is not a live bypass for
+  // DailyAvailability. Wired anyway for defense-in-depth / consistency with
+  // every other calendar-switching UI, since it is the same underlying
+  // primitive and a future reuse of this component elsewhere would
+  // otherwise silently reopen this exact bug class.
+  const { guardedAction } = useNavigationGuard();
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingCalendar, setEditingCalendar] = useState(null);
@@ -108,7 +117,7 @@ export function CalendarSelector() {
           {calendars.length > 1 && (
             <>
               <DropdownMenuItem
-                onClick={selectAllCalendars}
+                onClick={() => guardedAction(() => selectAllCalendars())}
                 className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
               >
                 <Grid3X3 className="w-3 h-3 text-muted-foreground" />
@@ -134,7 +143,7 @@ export function CalendarSelector() {
           {calendars.map((calendar) => (
             <DropdownMenuItem
               key={calendar.id}
-              onClick={() => selectCalendar(calendar)}
+              onClick={() => guardedAction(() => selectCalendar(calendar))}
               className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
             >
               <div 

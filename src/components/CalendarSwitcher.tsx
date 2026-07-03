@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, ChevronDown, Calendar, Grid3X3, Edit } from 'lucide-react';
@@ -27,6 +28,12 @@ interface CalendarSwitcherProps {
 export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwitcherProps) {
   const { t } = useTranslation('app');
   const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading, refreshCalendars } = useCalendarContext();
+  // AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53): this on-page switcher is
+  // rendered directly on the Availability page (src/pages/Availability.tsx),
+  // above DailyAvailability, so it is an even more direct bypass than the
+  // sidebar's CalendarSwitcherSection. Same guardedAction reuse, no new
+  // mechanism.
+  const { guardedAction } = useNavigationGuard();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingCalendar, setEditingCalendar] = useState(null);
@@ -95,7 +102,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
               {!hideAllCalendarsOption && (
                 <>
                   <DropdownMenuItem
-                    onClick={() => selectAllCalendars()}
+                    onClick={() => guardedAction(() => selectAllCalendars())}
                     className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
                   >
                     <Grid3X3 className="w-3 h-3 text-muted-foreground" />
@@ -125,7 +132,7 @@ export function CalendarSwitcher({ hideAllCalendarsOption = false }: CalendarSwi
                 {calendars.map((calendar) => (
                   <DropdownMenuItem
                     key={calendar.id}
-                    onClick={() => selectCalendar(calendar)}
+                    onClick={() => guardedAction(() => selectCalendar(calendar))}
                     className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group"
                   >
                     <div

@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalendarDialog';
 import { EditCalendarDialog } from '@/components/calendar-switcher/EditCalendarDialog';
 
@@ -22,6 +23,13 @@ interface CalendarSwitcherSectionProps {
 export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSectionProps) {
   const { t } = useTranslation('app');
   const { selectedCalendar, calendars, selectCalendar, selectAllCalendars, viewingAllCalendars, loading, refreshCalendars } = useCalendarContext();
+  // AVAILABILITY-CALENDARSWITCH-STILL-NOOP (IUX R53): switching calendars is
+  // pure CalendarContext state, not a route change, so it was never wired
+  // through NavigationGuardContext's guardedNavigate (navigate()-only) and
+  // silently discarded an unsaved Weekly-Hours change. Reuses the SAME guard
+  // mechanism R52 built (now generalised to guardedAction) rather than a
+  // second parallel guard.
+  const { guardedAction } = useNavigationGuard();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingCalendar, setEditingCalendar] = useState(null);
@@ -88,7 +96,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
             
             {/* All calendars option */}
             <DropdownMenuItem
-              onClick={() => selectAllCalendars()}
+              onClick={() => guardedAction(() => selectAllCalendars())}
               className="flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted"
             >
               <div className="w-3 h-3 bg-muted-foreground rounded-full" />
@@ -121,7 +129,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                 return (
                 <DropdownMenuItem
                   key={calendar.id}
-                  onClick={() => selectCalendar(calendar)}
+                  onClick={() => guardedAction(() => selectCalendar(calendar))}
                   className={`flex items-center space-x-3 p-3 hover:bg-muted focus:bg-muted group ${isActive ? 'bg-primary/[0.06] ring-1 ring-inset ring-primary/20' : ''}`}
                 >
                   <div
