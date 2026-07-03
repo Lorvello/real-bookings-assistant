@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Edit2 } from 'lucide-react';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { GuidedAvailabilityModal } from './GuidedAvailabilityModal';
 import { DailyAvailability } from './DailyAvailability';
 
@@ -25,6 +26,13 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
   } = useDailyAvailabilityManager(onChange || (() => {}));
 
   const { refreshCalendars } = useCalendarContext();
+  // AVAILABILITY-EDITALL-MODAL-UNGUARDED (IUX R54): "Edit All" opens a second
+  // live editing surface (GuidedAvailabilityModal) for the same Weekly-Hours
+  // data as DailyAvailability, sitting directly above it in this card. Route
+  // through the same guardedAction primitive every other calendar-switch/
+  // tab-switch call site already uses (see NavigationGuardContext.tsx), no
+  // new mechanism.
+  const { guardedAction } = useNavigationGuard();
 
   // Auto-create default schedule if calendar exists but no schedule
   useEffect(() => {
@@ -77,7 +85,7 @@ export const AvailabilityOverview: React.FC<AvailabilityOverviewProps> = ({ onCh
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsGuidedModalOpen(true)}
+            onClick={() => guardedAction(() => setIsGuidedModalOpen(true))}
             className="text-muted-foreground hover:text-foreground"
           >
             <Edit2 className="h-4 w-4 mr-2" />
