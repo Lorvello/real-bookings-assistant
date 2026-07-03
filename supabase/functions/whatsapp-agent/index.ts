@@ -19,7 +19,7 @@ import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEs
 import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch } from "./serviceDisambiguationGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -603,6 +603,16 @@ Deno.serve(async (req) => {
     }
     const blockForMissingServiceChoice = isMultiCalendar && calendarsForPrompt
       ? shouldBlockForMissingServiceChoice({ calendars: calendarsForPrompt, inboundTexts })
+      : false;
+    // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): the sibling condition, same guard
+    // module, same wide inbound history. Fires when the customer HAS named a real service that
+    // exists at 2+ calendars with a genuinely different price/duration and no branch has been
+    // named yet (the prompt-only "same service, multiple branches" rule proved flaky against the
+    // live model; see serviceDisambiguationGuard.ts header). Never true at the same time as
+    // blockForMissingServiceChoice by construction (that one requires NO service named; this one
+    // requires a service IS named), but computed independently so tools.ts can check either.
+    const blockForAmbiguousBranch = isMultiCalendar && calendarsForPrompt
+      ? shouldBlockForAmbiguousBranch({ calendars: calendarsForPrompt, inboundTexts })
       : false;
 
     // Booking name, scoped per (calendar_id, phone) to KILL the R3 cross-tenant name bleed:
@@ -1261,7 +1271,7 @@ Deno.serve(async (req) => {
     // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
     // confirmStall retry runAgent call below) now tracks its own preview writes internally and
     // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).

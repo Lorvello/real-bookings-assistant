@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
-import { KIES_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
+import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE } from "./serviceDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -81,6 +81,15 @@ export interface ToolContext {
   // for a multi-calendar business where every branch offers the identical one service (the
   // existing "ask who" tie-break already covers that case correctly).
   blockForMissingServiceChoice?: boolean;
+  // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix, serviceDisambiguationGuard.ts's
+  // shouldBlockForAmbiguousBranch): server-detected, computed once per turn in index.ts from the
+  // SAME wide inbound history as blockForMissingServiceChoice above. true ONLY when the customer
+  // HAS named a real service that exists at 2+ calendars with a genuinely different price and/or
+  // duration, AND no specific branch/calendar has been named yet. Gates the same two call sites
+  // (get_available_slots, book_appointment fresh preview) with the same "refuse to guess, ask"
+  // pattern, replacing the older prompt-only "same service, multiple branches" rule that proved
+  // flaky against the live model (0/6 to 20/20 silent defaults measured across two rounds).
+  blockForAmbiguousBranch?: boolean;
 }
 
 interface UpcomingBooking {
@@ -998,6 +1007,12 @@ export function createTools(
         if (ctx.blockForMissingServiceChoice) {
           return { error: "kies_dienst", message: KIES_DIENST_MESSAGE };
         }
+        // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): a real service WAS named, but it
+        // exists at 2+ calendars with a genuinely different price/duration and no branch has been
+        // named yet. Same refuse-and-ask pattern, checked right after the sibling condition above.
+        if (ctx.blockForAmbiguousBranch) {
+          return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
+        }
         // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
         // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
         const slotCal = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
@@ -1213,6 +1228,12 @@ export function createTools(
           // service ambiguity exists (see ToolContext comment + serviceDisambiguationGuard.ts).
           if (ctx.blockForMissingServiceChoice) {
             return { error: "kies_dienst", message: KIES_DIENST_MESSAGE };
+          }
+          // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): same fresh-preview-only gate as
+          // get_available_slots above, mirrored here so a customer cannot slip a silently wrong
+          // branch/price/duration through by going straight to book_appointment.
+          if (ctx.blockForAmbiguousBranch) {
+            return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
           }
           const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
           if ("needAsk" in bookCal) {

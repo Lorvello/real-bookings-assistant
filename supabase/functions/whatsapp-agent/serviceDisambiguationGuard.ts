@@ -35,7 +35,10 @@
 //   customer who has genuinely never given either signal.
 
 export interface DisambiguationInput {
-  calendars: Array<{ name: string; services: Array<{ name: string }> }>;
+  // price/durationMin are optional (R72 addition): the sibling `shouldBlockForMissingServiceChoice`
+  // check never reads them, only `shouldBlockForAmbiguousBranch` (R72) does, so every existing call
+  // site/test that only passes `{ name }` keeps compiling and behaving byte-identically.
+  calendars: Array<{ name: string; services: Array<{ name: string; price?: number | null; durationMin?: number | null }> }>;
   inboundTexts: string[]; // every inbound (customer) message in this conversation, oldest first
 }
 
@@ -82,5 +85,71 @@ export function shouldBlockForMissingServiceChoice(input: DisambiguationInput): 
   return !namedService && !namedBranch;
 }
 
+// R72 SAME-SERVICE-MULTI-BRANCH extension (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT, sev-2).
+//
+// R71's guard above only covers "customer named NEITHER a service NOR a branch". A sibling,
+// OLDER, prompt-only rule (prompt.ts's <kalenders> block, "same service, multiple branches, ask
+// which branch") was supposed to cover the case where the customer DOES name a real service that
+// happens to exist at 2+ calendars under the same name but with a genuinely different price and/or
+// duration (e.g. "Massage" at EUR60/60min at one branch vs EUR40/45min at another). Confirmed
+// FLAKY (R71-verify: 0/6 one batch, 2/3 another; this round's own independent reproduction: 20/20
+// silently defaulted to one branch with zero disclosure, real different price/duration, same
+// defect SHAPE as R70-3). Rather than a further prompt-only patch attempt on a rule already proven
+// unreliable this round, this extends the SAME deterministic, server-side guard mechanism.
+//
+// WHAT THIS DOES: a service the customer named (by name-substring match, reusing `mentionsAny`)
+// that resolves to 2+ DISTINCT calendars whose price and/or duration for that service name
+// genuinely differ, with no specific branch/calendar named yet, blocks exactly like the sibling
+// condition (same "kies_dienst" tool error, forcing a clarifying "which location" question).
+//
+// FALSE-POSITIVE SAFETY (mirrors the sibling condition's own safety design):
+// - A service offered at only ONE calendar, or at multiple calendars with the IDENTICAL
+//   price+duration everywhere it is offered, never blocks (no real ambiguity to resolve, so a
+//   same-priced multi-branch service proceeds without a needless interruption).
+//   IMPORTANT: this is evaluated PER NAMED SERVICE, not globally. A business can have one service
+//   that is genuinely ambiguous (different price/branch) alongside another that is not; only a
+//   customer who named the AMBIGUOUS one is blocked.
+// - Once the customer has named a specific branch/calendar (by name, the same `mentionsAny`
+//   matcher the sibling condition uses) anywhere in the conversation, this never blocks: the
+//   ambiguity is already resolved.
+// - Never fires for the neither-named case (that is the sibling `shouldBlockForMissingServiceChoice`
+//   condition's own job, kept separate and unmodified) or for a single-calendar tenant.
+function normServiceName(n: string): string {
+  return n.trim().toLowerCase();
+}
+
+// True when the SAME service name appears at 2+ calendars with a genuinely different price
+// and/or duration (the actual customer-facing consequence a silent default would hide).
+function serviceIsAmbiguousAcrossBranches(calendars: DisambiguationInput["calendars"], serviceName: string): boolean {
+  const target = normServiceName(serviceName);
+  const matches = calendars.flatMap((c) =>
+    c.services.filter((s) => normServiceName(s.name) === target).map((s) => ({ price: s.price ?? null, durationMin: s.durationMin ?? null }))
+  );
+  if (matches.length <= 1) return false; // only offered at one calendar: no branch ambiguity
+  const first = matches[0];
+  return matches.some((m) => m.price !== first.price || m.durationMin !== first.durationMin);
+}
+
+// Returns true when the guard should BLOCK for the "service named, but ambiguous across 2+
+// differently-priced/duration calendars, no branch specified" condition.
+export function shouldBlockForAmbiguousBranch(input: DisambiguationInput): boolean {
+  const { calendars, inboundTexts } = input;
+  if (calendars.length <= 1) return false; // single-calendar: never applicable
+  const calendarNames = calendars.map((c) => c.name);
+  if (mentionsAny(inboundTexts, calendarNames)) return false; // branch already named: resolved
+  const allServiceNames = calendars.flatMap((c) => c.services.map((s) => s.name));
+  const distinctServiceNames = [...new Set(allServiceNames.map(normServiceName))];
+  // Which distinct service names did the customer actually mention? Check each individually
+  // (not the whole list at once) so we know WHICH service is in play, not merely THAT one is.
+  const namedServices = distinctServiceNames.filter((name) => mentionsAny(inboundTexts, [name]));
+  if (namedServices.length === 0) return false; // no service named: the sibling condition's job, not this one
+  // Block if ANY service the customer named is itself ambiguous across differently-priced/duration
+  // branches. (A customer who names two services, one ambiguous and one not, should still be asked.)
+  return namedServices.some((name) => serviceIsAmbiguousAcrossBranches(calendars, name));
+}
+
 export const KIES_DIENST_MESSAGE =
   "De klant noemde nog geen specifieke dienst en geen specifieke medewerker/locatie, en dit bedrijf biedt genuinely verschillende diensten per persoon/locatie aan (andere prijs/duur/dienst). Roep get_available_slots of book_appointment NIET aan; vraag EERST kort en menselijk welke dienst de klant wil (bijvoorbeeld \"Waarvoor wil je een afspraak maken?\", eventueel met 2-3 diensten als voorbeeld). Zodra de klant een dienst (of een persoon/locatie) noemt, mag je gewoon doorgaan.";
+
+export const KIES_LOCATIE_MESSAGE =
+  "De klant noemde een dienst die bij meerdere medewerkers/locaties wordt aangeboden met een ECHT andere prijs en/of duur, maar noemde nog geen specifieke medewerker/locatie. Roep get_available_slots of book_appointment NIET aan; vraag EERST kort en menselijk bij wie of waar de klant de afspraak wil (bijvoorbeeld \"bij wie/waar wil je de afspraak?\"), en noem de opties als personen/plekken in natuurlijke taal (nooit \"agenda's\" of technische namen). Zodra de klant een persoon/locatie noemt, mag je gewoon doorgaan.";
