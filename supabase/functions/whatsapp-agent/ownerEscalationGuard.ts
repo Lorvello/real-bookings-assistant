@@ -37,6 +37,37 @@
 // (whose top-level Deno.serve would start a server). index.ts imports `enforceNoOwnerEscalationClaim`;
 // the test imports the internals (OWNER_ESCALATION_CLAIM_RE, looksLikeOwnerEscalationClaim,
 // noOwnerEscalationReply). dash-free of em dashes per house rule.
+//
+// STRUCTURAL REWRITE (IUX R65, closes OWNERESCALATION-VERBLIST-BRITTLE): R64-verify Lens 1 ran 18
+// natural phrasings for this exact claim through the R64 enumerated-verb version and got 16/18 misses
+// ("op de hoogte gebracht", "ingelicht", "laten weten", "bereikt", "geinformeerd", EN "notified",
+// "informed", etc, none of which were in the verb list). This is the SAME failure shape the loop
+// already hit and had to structurally fix twice before (AFFIRM-CONFIRM R22-R32, WHATSAPP-DUPLICATE-
+// CONFIRM-BURST R56-R61): an unbounded natural-language synonym surface cannot be closed by enumerating
+// literal verbs, Dutch alone has too many ways to say "I told him", English doubles the space again.
+// Per Mathew's own standing directive (state file HUMAN-GATES RESOLVED), this round replaces the
+// closed verb ENUMERATION with an open communication-relation SHAPE: match on WORD STEMS (prefixes),
+// not full inflected words, so every conjugation/tense/register of a communication verb is covered by
+// construction instead of needing its own list entry. A stem like "informeer" alone-matches
+// "informeerd", "geinformeerd", "informeren"; "hoor" alone-matches "hoorde", "gehoord", "hoor nog van
+// hem"; "contact" alone-matches "contact gehad", "contact opgenomen", "in contact". This is still a
+// CODE-LEVEL regex guard (not a prompt instruction) and still requires the same AGENT-SUBJECT +
+// OWNER-NOUN anchoring the R64 version used to avoid over-firing (a "the owner heard a noise" style
+// unrelated sentence still needs the owner-noun AND the agent/owner-as-subject shape nearby to match),
+// it just stops closing the net one verb at a time and instead nets the RELATION itself: "I/we" (or
+// "the owner") + any communication-relation stem, physically near the owner noun, in a completed/
+// present-claim tense (never a bare future offer, which stays carved out same as before).
+//
+// Chose the STEM-regex direction over a secondary LLM classification pass (the other candidate
+// structural fix) because: (1) latency: the <3s warm p50 gate is already tight on Groq gpt-oss-20b
+// (observed p50 ~1.5s with a documented 13.7s tail outlier from prefix-cache-miss variance) and a
+// second network round-trip risks compounding exactly that tail, whereas a regex costs microseconds;
+// (2) a second LLM call is itself a NEW prompt-injection surface (a crafted customer message could try
+// to steer the classifier call itself), while a stem-regex has no model in the loop to manipulate;
+// (3) maintainability: the stem approach still needs occasional review (new communication idioms could
+// emerge) but each addition is an order of magnitude cheaper than the enumerated-verb version because
+// one stem covers dozens of inflections at once, so the "17th gap" failure mode is structurally less
+// likely to recur, whereas the literal-verb list guarantees it will.
 
 const B = "(?<![\\p{L}])"; // unicode word-start
 const A = "(?![\\p{L}])"; //  unicode word-end
@@ -45,50 +76,82 @@ const A = "(?![\\p{L}])"; //  unicode word-end
 // entirely ("ik geef dit door aan het systeem") never trips this guard. NL + EN.
 const OWNER_NOUN = "(eigenaar|eigenaresse|baas|manager|ondernemer|owner|manager)";
 
+// OPEN communication-relation STEM set (prefixes, not full words): any token that STARTS with one of
+// these stems counts as "some communication/contact relation occurred", regardless of conjugation,
+// tense, or register. This is the structural replacement for the R64 enumerated verb list. Each stem
+// below is deliberately a PREFIX (no trailing word-boundary marker `A` on the stem itself) so it
+// matches every inflection: "informeer" matches informeerd/geinformeerd/informeren/informeerde;
+// "hoor" matches hoor/hoorde/gehoord/horen; "contact" matches contact/contacten/gecontacteerd;
+// "bericht" matches bericht/berichtje/berichten/berichtte. NL + EN mixed in one alternation.
+const COMM_STEM =
+  "(ge)?(informeer|inform|notif|meld|bericht|gestuur|stuur|contact|kortsluit|kortgesloten|gesprek|" +
+  "gespro|spra|sprak|hoor|hoord|antwoord|reageer|reager|gereageer|gerea|terugkoppel|teruggekoppel|" +
+  "terugbel|teruggebeld|bel(d)?|voorleg|voorgelegd|doorgeef|doorgegeven|doorgestuurd|doorstuur|" +
+  "doorgespeeld|doorspeel|bereik|nagepraat|napraat|besproken|bespreek|overlegd|overleg|gecheckt|check|" +
+  "geappt|app|gevraagd|vraag|weet|wist|laten\\s+weten|let\\.{0,1}\\.{0,1}know|letting\\s+know|know|" +
+  "told|tell|talk|talked|speak|spoke|ask|asked|reach|reached|inform|notif|respond|responded|repl|" +
+  "answer|call|called|text|texted|message|messaged|update|updated|hear|heard|made\\s+aware|awaiting)";
+
+// A single "no sentence-boundary crossing" gap class used everywhere below: excludes `.`, `!`, `?`
+// AND `;`/newline, so two independently-true clauses joined by a semicolon (a common safe-reply shape,
+// "ik heb geen directe informatie van de eigenaar; hij heeft nog niet geantwoord" meaning two SEPARATE
+// facts, not one claim) are never bridged into a false match. Loop-invariant, unrelated to ReDoS
+// (still a plain bounded negated character class, same complexity class as the original `[^.!?]`).
+const G = "[^.!?;\\n]";
+
 // A CLAIM (not a bare referral, not a refusal) that the agent itself performed or is performing a
-// contact/escalation action toward the owner. Anchored on an AGENT-SUBJECT verb ("ik" / "we") + a
-// contact/relay verb, in present-continuous-as-claim OR completed-past form, near the owner noun.
-// NL forms: "ik vraag het (even) aan de eigenaar", "ik geef dit door aan de eigenaar", "ik heb het
-// (even) nagepraat/doorgegeven/gevraagd aan de eigenaar", "de eigenaar heeft (nog) geen antwoord
-// gegeven" (implies a real pending question was actually posed), "ik heb contact gehad met de
-// eigenaar", "ik laat het je weten zodra de eigenaar reageert" is NOT matched (a genuine future offer,
-// no claim of an already-initiated real contact) - only fires on an ALREADY-DOING or ALREADY-DONE claim.
+// contact/escalation action toward the owner, OR that the owner has already communicated back.
+// Anchored on an AGENT-SUBJECT ("ik"/"we"/"I") + an explicit PAST-TENSE auxiliary ("heb"/"hebben"/
+// "have"/"has") or present-claim verb, near a communication-relation STEM, near the owner noun (noun
+// OR the owner-referring pronoun "hij"/"zij"/"hem"/"haar"/"him"/"her"/"them" when the owner was already
+// named earlier in the same reply, matching the R64 "nagepraat...hij heeft nog geen antwoord" shape).
+// Never a bare future offer ("ik laat het je weten zodra de eigenaar reageert" has no heb/have
+// auxiliary + completed-stem pairing and is correctly left alone).
+const OWNER_OR_PRONOUN = `(${OWNER_NOUN}|hij|zij|hem|haar|him|her|them|they)`;
+
 export const OWNER_ESCALATION_CLAIM_RE = new RegExp(
   [
-    // "ik vraag/geef/leg dit (nu/meteen/even) voor aan de eigenaar" (present-tense active claim)
-    `${B}(ik|we|wij)${A}[^.!?]{0,10}${B}(vraag|geef|leg|heb\\s+gevraagd|stuur)${A}[^.!?]{0,40}${B}${OWNER_NOUN}${A}`,
-    // "ik heb het (even) nagepraat/doorgegeven/doorgestuurd/gevraagd/besproken (met de eigenaar)"
-    // (completed-past claim). Owner-noun NOT required here (unchanged from the original): a reply like
-    // "ik heb het nagepraat, maar HIJ heeft nog geen antwoord gegeven" refers to the owner via a pronoun
-    // from context (the customer's own preceding message), not a fresh noun, and must still be caught.
-    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,30}${B}(nagepraat|doorgegeven|doorgestuurd|gestuurd|gevraagd|besproken|overlegd|gecheckt)${A}`,
-    // same verb set, but OWNER-NOUN-ANCHORED at a wider distance. NOTE (corrected during code review):
-    // the line-64 pattern above ALSO already catches the R64 trial-6/6 test-case sentence on its own
-    // once "doorgestuurd" was added to its verb list (heb-to-verb gap there is ~29 chars, under the
-    // 30-char cap above; the owner-noun is not required by line 64 at all). This alternative is NOT
-    // needed for THAT specific sentence; it is kept because it covers a DIFFERENT, wider-gap shape
-    // line 64 cannot: a heb-to-verb gap over 30 chars (e.g. "Ik heb, na er lang over te hebben
-    // nagedacht, doorgestuurd naar de eigenaar", gap ~56 chars), which still needs an owner-noun
-    // anchor nearby to stay precise (an unanchored 60-char cap would be too loose). Both orderings
-    // (verb-before-noun, noun-before-verb) are covered so word order does not matter.
-    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,60}${B}(nagepraat|doorgegeven|doorgestuurd|gestuurd|gevraagd|besproken|overlegd|gecheckt)${A}[^.!?]{0,60}${B}${OWNER_NOUN}${A}`,
-    `${B}(ik|we|wij)${A}[^.!?]{0,6}${B}heb(ben)?${A}[^.!?]{0,20}${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(nagepraat|doorgegeven|doorgestuurd|gestuurd|gevraagd|besproken|overlegd|gecheckt)${A}`,
-    // "de eigenaar heeft (nog) geen antwoord gegeven / heeft gereageerd / zei" (implies a real question
-    // was actually put to a real human and a real reply channel is open)
-    `${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(heeft|had)${A}[^.!?]{0,20}${B}(nog\\s+)?(geen\\s+)?(antwoord|gereageerd|gezegd|teruggekoppeld)${A}`,
-    `${B}${OWNER_NOUN}${A}[^.!?]{0,10}${B}(zei|zegt|antwoordde|reageerde)${A}`,
-    // R64 LIVE GAP (trial 6/6, hard-pressure re-test): "ik kan geen (directe) reactie/antwoord van de
-    // eigenaar ophalen/krijgen/hebben" - phrased as the AGENT's own inability to fetch a reply rather
-    // than the owner's silence, but it still implies a real pending question was posed to a real human
-    // and a real reply channel exists to poll, which is exactly as false as the owner-silence phrasing
-    // above (no such channel exists). Anchored on "geen" + reactie/antwoord + owner-noun + a
-    // fetch/receive verb so a plain "ik heb geen informatie" (unrelated to the owner) never matches.
-    `${B}geen${A}[^.!?]{0,15}${B}(directe\\s+)?(reactie|antwoord|terugkoppeling)${A}[^.!?]{0,20}${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(ophalen|krijgen|gehad|ontvangen)${A}`,
-    // "ik heb contact (gehad) met de eigenaar"
-    `${B}(ik|we|wij)${A}[^.!?]{0,10}${B}(heb(ben)?\\s+)?contact${A}[^.!?]{0,15}${B}(gehad\\s+)?${B}(met\\s+)?${OWNER_NOUN}${A}`,
-    // EN mirrors
-    `${B}(i|we)${A}[^.!?]{0,10}${B}(am\\s+asking|asked|will\\s+let\\s+you\\s+know|have\\s+asked|passed\\s+(this|it)\\s+on|reached\\s+out|talked\\s+to|spoke\\s+(to|with))${A}[^.!?]{0,30}${B}${OWNER_NOUN}${A}`,
-    `${B}${OWNER_NOUN}${A}[^.!?]{0,20}${B}(hasn'?t|has\\s+not|hasn't\\s+yet)${A}[^.!?]{0,15}${B}(replied|responded|answered)${A}`,
+    // AGENT-SUBJECT + "heb(ben)/have/has" + communication-stem, OWNER-NOUN anchored nearby in either
+    // order (covers "ik heb de eigenaar geinformeerd", "ik heb dit gemeld bij de eigenaar", "ik heb het
+    // even nagepraat" + a later pronoun-only owner reference in the SAME clause window). The stem is
+    // NEGATIVE-LOOKBEHIND-GUARDED against an immediately preceding "geen"/"no" (false-positive fix,
+    // R65): "ik heb GEEN antwoord ... over de eigenaar" is a NOUN-OBJECT-OF-LACK statement (the agent
+    // lacks information), not a claim of a completed communication action, and must not match; "ik heb
+    // ... geantwoord aan de eigenaar" (an actual completed-action claim) has no "geen" immediately
+    // before the stem and is unaffected.
+    `${B}(ik|we|wij|i)${A}${G}{0,10}${B}(heb(ben)?|have|has)${A}${G}{0,60}(?<!geen\\s{1,3})(?<!geen\\s\\w{0,12}\\s)(?<!no\\s{1,3})${B}${COMM_STEM}(?!atie${A})${G}{0,40}${B}${OWNER_OR_PRONOUN}${A}`,
+    `${B}(ik|we|wij|i)${A}${G}{0,10}${B}(heb(ben)?|have|has)${A}${G}{0,60}${B}${OWNER_OR_PRONOUN}${A}${G}{0,40}(?<!geen\\s{1,3})(?<!geen\\s\\w{0,12}\\s)(?<!no\\s{1,3})${B}${COMM_STEM}(?!atie${A})`,
+    // AGENT-SUBJECT + present-tense active claim verb OR EN simple-past claim verb (EN has no separate
+    // "heb" auxiliary for simple past: "I notified/informed/updated/texted/called the owner" is a
+    // complete completed-past claim on its own): "ik geef dit door aan de eigenaar", "ik vraag het aan
+    // de eigenaar", "I notified/informed/updated/texted/called/told/passed... the owner"
+    `${B}(ik|we|wij|i)${A}${G}{0,15}${B}(geef|leg|vraag|stuur|bel|app|meld|informeer|notify|notified|ask|asked|tell|told|text|texted|message|messaged|call|called|inform|informed|update|updated|reach|reached|pass(ed)?|let)${A}${G}{0,40}${B}${OWNER_NOUN}${A}${G}{0,15}${B}know${A}`,
+    `${B}(ik|we|wij|i)${A}${G}{0,15}${B}(geef|leg|vraag|stuur|bel|app|meld|informeer|notify|notified|ask|asked|tell|told|text|texted|message|messaged|call|called|inform|informed|update|updated|reach|reached|pass(ed)?)${A}${G}{0,40}${B}${OWNER_NOUN}${A}`,
+    // explicit idiom not reducible to a single stem: "op de hoogte (gebracht/gesteld)", subject may be
+    // the agent OR the owner-noun itself as the sentence subject ("onze eigenaar is hiervan op de
+    // hoogte"); either ordering, owner-noun always required so it never fires on an unrelated topic.
+    `${B}${OWNER_NOUN}${A}${G}{0,20}${B}op\\s+de\\s+hoogte${A}`,
+    `${B}op\\s+de\\s+hoogte${A}${G}{0,30}${B}${OWNER_NOUN}${A}`,
+    // "I'm waiting to hear from / awaiting a reply from the owner" (present-claim pending-reply, no
+    // "heb"/"have" auxiliary needed in this EN progressive form)
+    `${B}(waiting|awaiting)${A}${G}{0,25}${B}(hear|reply|response)${A}${G}{0,25}${B}${OWNER_OR_PRONOUN}${A}`,
+    // OWNER-AS-SUBJECT + explicit "heeft/had/hasn't/has not" auxiliary + communication-stem (implies a
+    // real pending question was actually posed to a real human and a real reply channel is open).
+    // Requires the auxiliary so a bare "geen antwoord ... eigenaar" mention without any verb (e.g. "ik
+    // heb geen antwoord op vragen OVER de eigenaar") cannot match. The "(?!atie)" guard blocks
+    // "informatie" (a NOUN, not the "informeren" VERB) from matching via the "inform" stem (found during
+    // /code-review, R65: "de eigenaar heeft nog geen informatie ontvangen" is an UNRELATED statement
+    // about the owner lacking information, not a claim of a completed reply/response, and must not fire).
+    `${B}${OWNER_NOUN}${A}${G}{0,30}${B}(heeft|had|hasn'?t|has\\s+not)${A}${G}{0,30}${B}(nog\\s+)?(niet\\s+)?(geen\\s+)?${COMM_STEM}(?!atie${A})`,
+    `${B}${OWNER_NOUN}${A}${G}{0,15}${B}(zei|zegt|antwoordde|reageerde|said|replied|responded|answered)${A}`,
+    // "ik hoor nog van hem/de eigenaar" / "I'm waiting to hear back" (present-claim pending-reply form,
+    // still implies a real question was actually posed)
+    `${B}(ik|i)${A}${G}{0,10}${B}(hoor|hear)${A}${G}{0,20}(nog\\s+van|back\\s+from)${A}`,
+    // "ik kan geen (directe) reactie/antwoord van de eigenaar ophalen/krijgen" (R64 hard-pressure gap,
+    // preserved): the agent's own inability to fetch a reply still implies a real pending channel
+    // exists. Requires the fetch/receive VERB (ophalen/krijgen/get/got/...) so a bare "geen antwoord...
+    // eigenaar" mention alone (no verb) does not match, same discipline as the owner-as-subject line.
+    `${B}geen${A}${G}{0,15}${B}(directe\\s+)?(reactie|antwoord|terugkoppeling|response|reply)${A}${G}{0,20}${B}${OWNER_NOUN}${A}${G}{0,20}${B}(ophalen|krijgen|gehad|ontvangen|get|got|receive|received)${A}`,
   ].join("|"),
   "iu",
 );
