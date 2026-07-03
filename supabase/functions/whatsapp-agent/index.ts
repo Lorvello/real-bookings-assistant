@@ -1011,20 +1011,60 @@ Deno.serve(async (req) => {
     // (phone, calendar_id, pending_booking.at) via claim_whatsapp_confirm (20s TTL, self-healing).
     // Only the FIRST concurrent request for this exact proposal wins the claim and proceeds; every
     // sibling gets an immediate deterministic "already processing" reply with NO LLM turn and NO
-    // commit/reschedule attempt of its own. Gated the same as raceLostPreCheck (confirmBook +
-    // a fresh pending_booking with a known `at`); missing/malformed `pbk.at` or an RPC error fails
-    // OPEN (never block a legitimate commit on a transient claim-RPC failure) by simply skipping
-    // the claim and falling through to the pre-existing raceLostPreCheck + normal flow, so this
-    // can only ever make the burst race SAFER, never introduce a new way to block a real booking.
+    // commit/reschedule attempt of its own.
+    //
+    // IUX R59 (AFFIRM-CONFIRM-BURST-WORDLIST-GAP): R58 gated the claim on `confirmBook`, which
+    // itself requires `AFFIRM_RE.test(msgLower)`. R58-verify proved (own DB proof, 0 claim rows
+    // created) that a burst using affirmation wording NOT on that allow-list ("correct", "that's
+    // right", "sounds good") skips the claim block entirely, so it falls straight into an
+    // uncontrolled LLM turn per sibling and can reproduce the original duplicate-reply bug.
+    // Structural fix (matches this loop's R25/R26 "structural over enumeration" precedent, per
+    // the run-spec's explicit direction): decouple the claim from AFFIRM_RE/confirmBook content-
+    // classification. Take a lightweight claim on ANY inbound message while a fresh
+    // `pending_booking` exists (gate = `pendingBookFresh` alone), BEFORE the LLM turn, regardless
+    // of what the message says. Two outcomes:
+    //   - `won === false`: a sibling already holds a live claim for this exact proposal -> this
+    //     request is a duplicate concurrent attempt, short-circuit with the deterministic
+    //     "already processing" reply, exactly as R58. This now fires for ANY wording, not just
+    //     AFFIRM_RE-matching wording, closing the gap.
+    //   - `won === true` but the message is NOT a clean confirm (`!confirmBook`, e.g. a genuine
+    //     question, an unrelated topic, or a day/time-shift/price/hedge/conditional message
+    //     `ambiguousConfirm` already flags as unclean): this is NOT a confirm-burst participant at
+    //     all, just an ordinary message that happens to arrive while a pending_booking is open.
+    //     RELEASE the claim immediately (delete the row) and fall through to the normal flow
+    //     completely unchanged, so a genuine non-confirm message is never delayed or blocked by
+    //     this broader claim (the key risk the run-spec calls out). The claim+release round-trip
+    //     is a single fast Postgres call each, well under the LLM call's cost, so this adds
+    //     negligible latency to the non-confirm path and zero behavioural change to it.
+    // Missing/malformed `pbk.at` or an RPC error fails OPEN on both the claim and the release step
+    // (never block or mis-release on a transient infra hiccup), matching R58's existing posture:
+    // this can only ever make the burst race safer, never introduce a new way to block or corrupt
+    // a real booking.
     let confirmBurstLost = false;
-    if (confirmBook && pbk?.at != null) {
-      const { data: won, error: claimErr } = await supabase.rpc("claim_whatsapp_confirm", {
+    if (pendingBookFresh && pbk?.at != null) {
+      const claimCalendarId = pbk.calendar_id ?? calendar_id;
+      const claimProposalAt = new Date(pbk.at).toISOString();
+      const { data: claimRows, error: claimErr } = await supabase.rpc("claim_whatsapp_confirm", {
         p_phone: phone,
-        p_calendar_id: pbk.calendar_id ?? calendar_id,
-        p_proposal_at: new Date(pbk.at).toISOString(),
+        p_calendar_id: claimCalendarId,
+        p_proposal_at: claimProposalAt,
         p_ttl_seconds: 20,
       });
-      if (!claimErr && won === false) confirmBurstLost = true;
+      const claimRow = Array.isArray(claimRows) ? claimRows[0] as { won?: boolean; claim_id?: string } | undefined : undefined;
+      const won = claimRow?.won;
+      if (!claimErr && won === false) {
+        confirmBurstLost = true;
+      } else if (!claimErr && won === true && !confirmBook && claimRow?.claim_id) {
+        // Not a clean confirm this turn (e.g. a question, or ambiguousConfirm/day-time-shift/
+        // price/hedge/conditional content) -> release immediately so a genuinely new confirm
+        // attempt (this turn's own retry, or a sibling that arrives moments later) is never
+        // blocked by a claim this message never actually earned. Released BY ROW ID (not by key)
+        // so this can never delete a different, newer claim generation for the same key.
+        const { error: releaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", {
+          p_claim_id: claimRow.claim_id,
+        });
+        if (releaseErr) console.error("release_whatsapp_confirm_claim error (fails open, TTL self-heals):", releaseErr);
+      }
     }
     if (confirmBurstLost) {
       const alreadyProcessingReply = customerLanguage != null
@@ -1043,6 +1083,61 @@ Deno.serve(async (req) => {
       }
       return new Response(
         JSON.stringify({ ok: true, reply: alreadyProcessingReply, sent: send.ok, steps: 0, toolCalls: [], confirm_burst_lost: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // IUX R59 (WHATSAPP-CANCEL-DUPLICATE-BURST): the SAME idempotency-claim mechanism, applied to
+    // the cancel path. `confirmCancel` is structurally identical to `confirmBook` (same freshness-
+    // window gate, same AFFIRM_RE/NEGATE_RE/ambiguousConfirm shape) but R58 left it completely
+    // unprotected; R58-verify reproduced a duplicate "Gedaan, je afspraak is geannuleerd." burst
+    // (1/2 own trials) and this round re-reproduced it fresh (1/1, first attempt). Mirrors the
+    // book-path design exactly, scoped to (phone, calendar_id, pending_cancel.at) instead of
+    // pending_booking.at -- a SEPARATE claim key namespace from the book claim above (a customer
+    // could in principle have both a fresh pending_booking AND a fresh pending_cancel from earlier
+    // in the same conversation; keying on the cancel's own `at` timestamp keeps the two claim
+    // families independent, they can never collide on the same claim_key since book/cancel proposal
+    // timestamps are independent clocks). Gated on `pendingFresh` alone (not `confirmCancel`), same
+    // "take on any message, release if not a clean confirm" shape as the book-path fix above, so a
+    // genuine non-confirm message during a pending cancellation (e.g. "wat kost annuleren?", already
+    // excluded from confirmCancel via cancelPolicyQuestion) is never blocked either.
+    let confirmCancelBurstLost = false;
+    if (pendingFresh && pc?.at != null) {
+      const cancelClaimProposalAt = new Date(pc.at).toISOString();
+      const { data: cancelClaimRows, error: cancelClaimErr } = await supabase.rpc("claim_whatsapp_confirm", {
+        p_phone: phone,
+        p_calendar_id: calendar_id,
+        p_proposal_at: cancelClaimProposalAt,
+        p_ttl_seconds: 20,
+      });
+      const cancelClaimRow = Array.isArray(cancelClaimRows) ? cancelClaimRows[0] as { won?: boolean; claim_id?: string } | undefined : undefined;
+      const wonCancel = cancelClaimRow?.won;
+      if (!cancelClaimErr && wonCancel === false) {
+        confirmCancelBurstLost = true;
+      } else if (!cancelClaimErr && wonCancel === true && !confirmCancel && cancelClaimRow?.claim_id) {
+        const { error: releaseCancelErr } = await supabase.rpc("release_whatsapp_confirm_claim", {
+          p_claim_id: cancelClaimRow.claim_id,
+        });
+        if (releaseCancelErr) console.error("release_whatsapp_confirm_claim (cancel) error (fails open, TTL self-heals):", releaseCancelErr);
+      }
+    }
+    if (confirmCancelBurstLost) {
+      const alreadyProcessingCancelReply = customerLanguage != null
+        ? "Got it, I'm already processing your cancellation, one moment please."
+        : "Ik ben je annulering al aan het verwerken, één moment geduld.";
+      const send = await sendWhatsAppText(phone, alreadyProcessingCancelReply);
+      if (conversationId) {
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationId,
+          message_id: send.messageId ?? `agent-${now.getTime()}`,
+          direction: "outbound",
+          message_type: "text",
+          content: alreadyProcessingCancelReply,
+          status: send.ok ? "sent" : "failed",
+        });
+      }
+      return new Response(
+        JSON.stringify({ ok: true, reply: alreadyProcessingCancelReply, sent: send.ok, steps: 0, toolCalls: [], confirm_cancel_burst_lost: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
