@@ -999,6 +999,54 @@ Deno.serve(async (req) => {
     // the measured smooth-UX-rate tradeoff this choice implies.
     const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel && !ambiguousConfirm;
 
+    // IUX R58 (WHATSAPP-DUPLICATE-CONFIRM-BURST): cross-request idempotency CLAIM, taken BEFORE
+    // the race-loss pre-check and BEFORE the LLM turn. Root cause (R56/R56-verify): near-
+    // simultaneous/rapid-fire confirms for the SAME phone's SAME pending_booking each independently
+    // pass raceLostPreCheck below (none has committed yet) and each run a full LLM turn, so a
+    // losing sibling either sends a false-positive "Gelukt!" or, rarer, self-corrects via a
+    // reschedule_appointment call that silently lands on the WRONG time. bookedThisTurn (tools.ts)
+    // is per-HTTP-request-local and cannot see a sibling request; raceLostPreCheck and the DB
+    // exclusion constraint both check "is the slot free," never "did I, this exact proposal,
+    // already get claimed by a sibling." Fix: an atomic DB-level claim scoped to
+    // (phone, calendar_id, pending_booking.at) via claim_whatsapp_confirm (20s TTL, self-healing).
+    // Only the FIRST concurrent request for this exact proposal wins the claim and proceeds; every
+    // sibling gets an immediate deterministic "already processing" reply with NO LLM turn and NO
+    // commit/reschedule attempt of its own. Gated the same as raceLostPreCheck (confirmBook +
+    // a fresh pending_booking with a known `at`); missing/malformed `pbk.at` or an RPC error fails
+    // OPEN (never block a legitimate commit on a transient claim-RPC failure) by simply skipping
+    // the claim and falling through to the pre-existing raceLostPreCheck + normal flow, so this
+    // can only ever make the burst race SAFER, never introduce a new way to block a real booking.
+    let confirmBurstLost = false;
+    if (confirmBook && pbk?.at != null) {
+      const { data: won, error: claimErr } = await supabase.rpc("claim_whatsapp_confirm", {
+        p_phone: phone,
+        p_calendar_id: pbk.calendar_id ?? calendar_id,
+        p_proposal_at: new Date(pbk.at).toISOString(),
+        p_ttl_seconds: 20,
+      });
+      if (!claimErr && won === false) confirmBurstLost = true;
+    }
+    if (confirmBurstLost) {
+      const alreadyProcessingReply = customerLanguage != null
+        ? "Got it, I'm already processing your confirmation, one moment please."
+        : "Ik ben je bevestiging al aan het verwerken, één moment geduld.";
+      const send = await sendWhatsAppText(phone, alreadyProcessingReply);
+      if (conversationId) {
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationId,
+          message_id: send.messageId ?? `agent-${now.getTime()}`,
+          direction: "outbound",
+          message_type: "text",
+          content: alreadyProcessingReply,
+          status: send.ok ? "sent" : "failed",
+        });
+      }
+      return new Response(
+        JSON.stringify({ ok: true, reply: alreadyProcessingReply, sent: send.ok, steps: 0, toolCalls: [], confirm_burst_lost: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // FQ-3 (ATTEMPT 2): SERVER-SIDE, MODEL-INDEPENDENT race-loss pre-check (the guarantee-in-code
     // pattern). FQ-3 attempt-1 (deterministicSlotTaken) only fired when the 20B model itself called
     // book_appointment on the loser commit turn and got a BOOK_RACE_LOSS_ERROR. The verifier proved
