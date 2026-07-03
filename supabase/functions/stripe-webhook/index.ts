@@ -216,7 +216,9 @@ async function handleSubscriptionCreated(
   // reads top-level then item-level and never throws (was a RangeError -> 500 -> no sync).
   const endDateIso = getCurrentPeriodEndISO(subscription);
 
-  // Update users table
+  // Update users table. cancel_at_period_end reset to false: a brand-new subscription
+  // (fresh checkout after a prior cancellation fully lapsed) starts clean, never
+  // inheriting a stale pending-cancel flag from an earlier subscription lifecycle.
   const { error: userError } = await supabase
     .from('users')
     .update({
@@ -225,6 +227,7 @@ async function handleSubscriptionCreated(
       subscription_end_date: endDateIso,
       payment_status: 'paid',
       grace_period_end: null,
+      cancel_at_period_end: false,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -294,8 +297,19 @@ async function handleSubscriptionUpdated(
   // a RangeError on the now-undefined top-level field -> 500 -> subscription never synced).
   const endDateIso = getCurrentPeriodEndISO(subscription);
 
+  // R46 (P9-CANCELSTATE-INVISIBLE): a real portal cancel schedules the cancellation
+  // for period end WITHOUT changing subscription.status (it stays 'active' until the
+  // period genuinely ends and Stripe fires customer.subscription.deleted separately).
+  // cancel_at_period_end / cancel_at / canceled_at are already top-level fields on the
+  // Subscription object already in scope here -- no extra Stripe API call needed.
+  // Treat a pending cancel as subscription_status='canceled' so it reuses the SAME
+  // doctrine-correct canceled_but_active/canceled_and_inactive state machine that
+  // get_user_status_type() already implements for the eventual full deletion, instead
+  // of inventing a parallel status the rest of the app doesn't consult.
+  const cancelPending = subscription.cancel_at_period_end === true;
+
   let subscriptionStatus = 'active';
-  if (subscription.status === 'canceled') {
+  if (subscription.status === 'canceled' || cancelPending) {
     subscriptionStatus = 'canceled';
   } else if (subscription.status === 'past_due') {
     subscriptionStatus = 'missed_payment';
@@ -320,6 +334,7 @@ async function handleSubscriptionUpdated(
       subscription_tier: subscriptionStatus === 'active' ? tier : null,
       subscription_end_date: endDateIso,
       grace_period_end: graceEnd,
+      cancel_at_period_end: cancelPending,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);
@@ -328,7 +343,13 @@ async function handleSubscriptionUpdated(
     console.error("❌ Error updating users table:", userError);
   }
 
-  // Update subscribers table
+  // Update subscribers table. subscribers.subscribed intentionally stays true while a
+  // cancel is only PENDING (Stripe's own subscription.status is still 'active', the
+  // customer keeps full access until period end); it only flips false at genuine
+  // deletion (handleSubscriptionDeleted). get_user_status_type() checks
+  // users.subscription_status='canceled' BEFORE this table's short-circuit (R46
+  // reorder), so a pending cancel is correctly surfaced without touching this table's
+  // existing active-subscriber semantics.
   const { error: subscriberError } = await supabase
     .from('subscribers')
     .update({
@@ -346,10 +367,13 @@ async function handleSubscriptionUpdated(
   await logSecurityEvent(supabase, "subscription_updated", userId, {
     subscription_id: subscription.id,
     status: subscription.status,
+    cancel_at_period_end: cancelPending,
+    cancel_at: subscription.cancel_at ?? null,
+    canceled_at: subscription.canceled_at ?? null,
     tier
   });
 
-  console.log(`✅ Subscription updated for user ${userId}`);
+  console.log(`✅ Subscription updated for user ${userId}${cancelPending ? ' (cancel scheduled for period end)' : ''}`);
 }
 
 async function handleSubscriptionDeleted(
@@ -380,6 +404,7 @@ async function handleSubscriptionDeleted(
     .update({
       subscription_status: 'canceled',
       grace_period_end: null,
+      cancel_at_period_end: true,
       updated_at: new Date().toISOString()
     })
     .eq('id', userId);

@@ -3577,6 +3577,7 @@ export type Database = {
           business_type: string | null
           business_type_other: string | null
           business_whatsapp: string | null
+          cancel_at_period_end: boolean
           cancellation_policy: string | null
           created_at: string | null
           date_of_birth: string | null
@@ -3648,6 +3649,7 @@ export type Database = {
           business_type?: string | null
           business_type_other?: string | null
           business_whatsapp?: string | null
+          cancel_at_period_end?: boolean
           cancellation_policy?: string | null
           created_at?: string | null
           date_of_birth?: string | null
@@ -3719,6 +3721,7 @@ export type Database = {
           business_type?: string | null
           business_type_other?: string | null
           business_whatsapp?: string | null
+          cancel_at_period_end?: boolean
           cancellation_policy?: string | null
           created_at?: string | null
           date_of_birth?: string | null

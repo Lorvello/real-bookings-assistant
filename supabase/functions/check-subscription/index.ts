@@ -174,6 +174,14 @@ serve(async (req) => {
     const hasActiveSub = subscriptions.data.length > 0 && subscriptions.data[0].status === 'active';
     const hasPastDueSub = subscriptions.data.length > 0 && subscriptions.data[0].status === 'past_due';
     const hasIncompletePayment = subscriptions.data.length > 0 && subscriptions.data[0].status === 'incomplete';
+    // R46 (P9-CANCELSTATE-INVISIBLE, same bug family as stripe-webhook's
+    // handleSubscriptionUpdated): Stripe keeps .status='active' for a subscription
+    // whose cancellation is only SCHEDULED (cancel_at_period_end=true); the flag,
+    // not .status, is what signals a pending cancel. Without this, EVERY Settings >
+    // Billing page load (useBillingData -> check-subscription) would silently
+    // overwrite a correctly-written subscription_status='canceled' back to 'active',
+    // reopening the exact bug the webhook fix closed.
+    const cancelPending = hasActiveSub && subscriptions.data[0].cancel_at_period_end === true;
     let subscriptionTier = null;
     let subscriptionEnd = null;
     let paymentStatus = 'unpaid';
@@ -193,9 +201,16 @@ serve(async (req) => {
       paymentStatus = hasActiveSub ? 'paid' : 'unpaid';
       billingCycle = subscription.items.data[0].price.recurring?.interval || 'month';
       
-      // Set correct subscription status
+      // Set correct subscription status. A pending cancel (R46) reuses the SAME
+      // canceled/canceled_but_active state machine get_user_status_type() already
+      // implements, instead of a status the rest of the app doesn't consult.
+      // subscriptionTier / paymentStatus / hasActiveSub-derived fields (used for the
+      // `subscribed` API response + subscribers.subscribed below) intentionally stay
+      // as the "still active" values: the customer keeps full paid access until the
+      // period genuinely ends, only subscription_status changes to make the pending
+      // cancel visible.
       if (hasActiveSub) {
-        subscriptionStatus = 'active';
+        subscriptionStatus = cancelPending ? 'canceled' : 'active';
       } else if (hasPastDueSub) {
         subscriptionStatus = 'missed_payment';
         subscriptionTier = null;
@@ -333,6 +348,10 @@ serve(async (req) => {
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: paymentStatus,
+      // R46: keep the observability column in sync with the same source (Stripe's
+      // cancel_at_period_end) the webhook writes it from, so a billing-page load
+      // never leaves this column stale relative to subscription_status.
+      cancel_at_period_end: cancelPending,
       updated_at: new Date().toISOString(),
     };
     // Clear any stale grace window when the subscription is active or

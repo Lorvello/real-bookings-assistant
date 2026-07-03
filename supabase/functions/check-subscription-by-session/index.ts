@@ -107,6 +107,11 @@ serve(async (req) => {
     });
 
     const hasActiveSub = subscriptions.data.length > 0;
+    // R46 (defensive, same bug class as check-subscription; this function is
+    // confirmed dead code per R44 doctrine, 0 live call sites, but fixed anyway so a
+    // future caller doesn't inherit the same landmine): Stripe keeps .status='active'
+    // for a subscription whose cancellation is only scheduled.
+    const cancelPending = hasActiveSub && subscriptions.data[0].cancel_at_period_end === true;
     let subscriptionTier = null;
     let subscriptionEnd = null;
 
@@ -211,12 +216,15 @@ serve(async (req) => {
       });
     }
 
-    // Update user in database
+    // Update user in database. R46: a pending cancel reuses 'canceled' (the state
+    // get_user_status_type() already knows how to route), not 'active'.
+    const newSubscriptionStatus = hasActiveSub ? (cancelPending ? 'canceled' : 'active') : 'expired';
     const updateResult = await supabaseClient.from("users").update({
-      subscription_status: hasActiveSub ? 'active' : 'expired',
+      subscription_status: newSubscriptionStatus,
       subscription_tier: subscriptionTier,
       subscription_end_date: subscriptionEnd,
       payment_status: hasActiveSub ? 'paid' : 'unpaid',
+      cancel_at_period_end: cancelPending,
       // active/expired never carry a grace window, clear any stale one (same
       // grace-consistency fix as check-subscription / the webhook handlers).
       grace_period_end: null,
@@ -225,7 +233,7 @@ serve(async (req) => {
 
     logStep("Database update", {
       error: updateResult.error,
-      subscription_status: hasActiveSub ? 'active' : 'expired',
+      subscription_status: newSubscriptionStatus,
       subscription_tier: subscriptionTier
     });
 

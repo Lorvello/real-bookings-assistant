@@ -39,6 +39,9 @@ export interface UserProfile {
   last_payment_date?: string;
   payment_status?: 'unpaid' | 'paid' | 'failed' | 'pending';
   grace_period_end?: string;
+  // R46: mirrors Stripe subscription.cancel_at_period_end; system-managed
+  // (stripe-webhook only), see guard_users_subscription_columns.
+  cancel_at_period_end?: boolean;
   qr_code_data?: string;
   password_added?: boolean;
   created_at: string;
