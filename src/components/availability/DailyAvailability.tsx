@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AvailabilityDayRow } from './AvailabilityDayRow';
 import { useDailyAvailabilityManager } from '@/hooks/useDailyAvailabilityManager';
-import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SettingsSaveBar } from '@/components/settings/SettingsSaveBar';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 
 interface DailyAvailabilityProps {
   onChange: () => void;
@@ -19,7 +19,8 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     defaultCalendar,
     defaultSchedule,
     syncToDatabase,
-    createDefaultSchedule
+    createDefaultSchedule,
+    refreshAvailability
   } = useDailyAvailabilityManager(onChange);
 
   const { toast } = useToast();
@@ -27,7 +28,15 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [changedDays, setChangedDays] = useState<Set<string>>(new Set());
+  const [justSaved, setJustSaved] = useState(false);
+  const justSavedTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const initialLoadRef = useRef(true);
+
+  // AVAILABILITY-WEEKLYHOURS-SAVE-NOOP (IUX R47/R51): warn before an external/browser
+  // navigation drops an unsaved toggle, same guard as every other SettingsSaveBar surface.
+  useUnsavedChangesWarning(hasUnsavedChanges);
+
+  useEffect(() => () => clearTimeout(justSavedTimerRef.current), []);
 
   // Track changes after initial load
   useEffect(() => {
@@ -172,7 +181,10 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
       
       setHasUnsavedChanges(false);
       setChangedDays(new Set());
-      
+      setJustSaved(true);
+      clearTimeout(justSavedTimerRef.current);
+      justSavedTimerRef.current = setTimeout(() => setJustSaved(false), 2000);
+
       toast({
         title: t('availPage.toast.saved.title', 'Saved'),
         description: t('availPage.toast.saved.description', 'Your availability has been updated.'),
@@ -189,6 +201,16 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     } finally {
       setIsSaving(false);
     }
+  };
+
+  // Discard: re-fetch the persisted rules from the database, which re-derives
+  // "availability" via the existing availabilityFromRules effect in the hook
+  // (no separate "original snapshot" bookkeeping needed), matching Settings'
+  // discard-reverts-to-server-truth behavior.
+  const handleDiscard = async () => {
+    setHasUnsavedChanges(false);
+    setChangedDays(new Set());
+    await refreshAvailability();
   };
 
   const toggleDropdown = (dropdownId: string) => {
@@ -266,22 +288,24 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
           );
         })}
       </div>
-      
-      {/* Save Button */}
-      <div className="flex justify-end pt-4 border-t border-white/[0.06]">
-        <Button
-          onClick={handleSave}
-          disabled={!hasUnsavedChanges || isSaving}
-          className="min-w-[120px]"
-        >
-          {isSaving ? (
-            <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
-          )}
-          {isSaving ? t('availPage.button.saving', 'Saving...') : t('availPage.button.save', 'Save')}
-        </Button>
-      </div>
+
+      {/* AVAILABILITY-WEEKLYHOURS-SAVE-NOOP (IUX R47/R51): the old Save affordance was a
+          static inline button at the end of the 7-day list, below the fold as soon as an
+          owner toggled a day near the top. Toggling then navigating away without scrolling
+          down to click it was a genuine silent no-op (confirmed via a direct DB query
+          bypassing all client cache). Switched to the SAME floating/sticky SettingsSaveBar
+          every other surface (Operations/AI Knowledge/Users tabs) already uses, so the save
+          affordance is always reachable regardless of scroll position, and it is now
+          impossible to lose a toggle without at least seeing the pill. */}
+      <SettingsSaveBar
+        dirty={hasUnsavedChanges}
+        saving={isSaving}
+        justSaved={justSaved}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        label={t('availPage.saveBar.unsavedChanges', 'Unsaved changes')}
+        saveLabel={t('availPage.button.save', 'Save')}
+      />
     </div>
   );
 };

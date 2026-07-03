@@ -97,6 +97,9 @@
       "weeklyHours": "Wekelijkse uren",
       "timezone": "Tijdzone"
     },
+    "saveBar": {
+      "unsavedChanges": "Niet-opgeslagen wijzigingen"
+    },
     "loading": {
       "settingUp": "Beschikbaarheid instellen...",
       "loading": "Beschikbaarheid laden...",
