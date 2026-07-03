@@ -369,6 +369,14 @@ Deno.serve(async (req) => {
   // FQ-B-ERRLEAK: the raw inbound text, hoisted so the catch can language-detect the graceful
   // fallback even when the throw happened mid-run (after the message was parsed).
   let fallbackMessage: string | null = null;
+  // IUX R61: hoisted so the catch block below can best-effort release any confirm-burst claim
+  // this request is holding if the turn throws mid-flight (e.g. the model's own tool-call
+  // validation error, a known ~1/3-of-book-commit-turns gpt-oss-20b failure mode per FQ-B-ERRLEAK
+  // above) BEFORE reaching the normal post-hoc release site, so a thrown turn does not needlessly
+  // hold the claim for the full 20s TTL when the real outcome (no commit happened) is already
+  // knowable at the moment of the throw. Same hoisting pattern as phoneForFallback/fallbackMessage.
+  let bookClaimIdForFallback: string | undefined;
+  let cancelClaimIdForFallback: string | undefined;
 
   try {
     const { phone, calendar_id, message, contact_name } = await req.json();
@@ -1013,34 +1021,35 @@ Deno.serve(async (req) => {
     // sibling gets an immediate deterministic "already processing" reply with NO LLM turn and NO
     // commit/reschedule attempt of its own.
     //
-    // IUX R59 (AFFIRM-CONFIRM-BURST-WORDLIST-GAP): R58 gated the claim on `confirmBook`, which
-    // itself requires `AFFIRM_RE.test(msgLower)`. R58-verify proved (own DB proof, 0 claim rows
-    // created) that a burst using affirmation wording NOT on that allow-list ("correct", "that's
-    // right", "sounds good") skips the claim block entirely, so it falls straight into an
-    // uncontrolled LLM turn per sibling and can reproduce the original duplicate-reply bug.
-    // Structural fix (matches this loop's R25/R26 "structural over enumeration" precedent, per
-    // the run-spec's explicit direction): decouple the claim from AFFIRM_RE/confirmBook content-
-    // classification. Take a lightweight claim on ANY inbound message while a fresh
-    // `pending_booking` exists (gate = `pendingBookFresh` alone), BEFORE the LLM turn, regardless
-    // of what the message says. Two outcomes:
-    //   - `won === false`: a sibling already holds a live claim for this exact proposal -> this
-    //     request is a duplicate concurrent attempt, short-circuit with the deterministic
-    //     "already processing" reply, exactly as R58. This now fires for ANY wording, not just
-    //     AFFIRM_RE-matching wording, closing the gap.
-    //   - `won === true` but the message is NOT a clean confirm (`!confirmBook`, e.g. a genuine
-    //     question, an unrelated topic, or a day/time-shift/price/hedge/conditional message
-    //     `ambiguousConfirm` already flags as unclean): this is NOT a confirm-burst participant at
-    //     all, just an ordinary message that happens to arrive while a pending_booking is open.
-    //     RELEASE the claim immediately (delete the row) and fall through to the normal flow
-    //     completely unchanged, so a genuine non-confirm message is never delayed or blocked by
-    //     this broader claim (the key risk the run-spec calls out). The claim+release round-trip
-    //     is a single fast Postgres call each, well under the LLM call's cost, so this adds
-    //     negligible latency to the non-confirm path and zero behavioural change to it.
-    // Missing/malformed `pbk.at` or an RPC error fails OPEN on both the claim and the release step
-    // (never block or mis-release on a transient infra hiccup), matching R58's existing posture:
-    // this can only ever make the burst race safer, never introduce a new way to block or corrupt
-    // a real booking.
+    // IUX R61 (structural fix, replaces R59+R60's pre-turn release heuristics; mandated by the
+    // orchestrator after R58->R59->R60 each traded one pre-turn-classification gap for a different,
+    // narrower one -- AFFIRM_RE-only -> hardConfirm-vs-confirmBook mismatch -> hardConfirm-vs-
+    // AFFIRM_RE over-hold, see _INFINITE_UX_STATE.md WHATSAPP-DUPLICATE-CONFIRM-BURST /
+    // HARD-CONFIRM-RELEASE-OVERHOLD-GAP). The root problem across all 3 prior release conditions
+    // (`!confirmBook`, then `!hardConfirm`) was the SAME shape: each GUESSES, from the inbound
+    // message's wording alone and BEFORE the LLM turn runs, whether this request will end up
+    // committing. That guess can only ever be a proxy for the true fact ("did this turn's tool
+    // calls actually commit a mutation"), and every proxy tried so far has had its own edge cases
+    // where the guess and the model's real turn-outcome disagree in either direction (a duplicate
+    // commit when the guess said "won't commit", or an over-hold when the guess said "will commit"
+    // but the turn never does). Eliminating the guess entirely closes the whole class by
+    // construction: the claim is taken here (unchanged), but is no longer released anywhere in
+    // this pre-LLM block. It is held for the FULL duration of this turn's processing (primary
+    // runAgent call + any stall-retry) and released exactly ONCE, post-hoc, right before the reply
+    // is sent (see the single release call after the retry-adopt block below), keyed off
+    // `isCommittedMutation` applied to `result.toolCalls` -- the SAME deterministic function
+    // tools.ts's actual commit gate and this file's own `committed`/reply-templating logic already
+    // trust as the authoritative "did a real commit happen" fact. This is not "release only on
+    // commit": it releases the SAME way regardless of whether the winning turn committed, previewed,
+    // answered a question, or errored, because by the time we know the outcome we no longer need to
+    // ask "should this claim still block a sibling" -- either the mutation landed (so a duplicate
+    // sibling attempt for the SAME proposal is caught by tools.ts's OWN commit gate / the
+    // bookings_no_overlap constraint / bookedThisTurn, and pending_booking is cleared, so nothing
+    // is lost by freeing the claim key) or it did not (so there is no reason left to hold the key
+    // at all). The `won === false` short-circuit below is UNCHANGED (still the same deterministic
+    // "already processing" reply, still zero LLM steps for a genuine duplicate concurrent request).
     let confirmBurstLost = false;
+    let bookClaimId: string | undefined;
     if (pendingBookFresh && pbk?.at != null) {
       const claimCalendarId = pbk.calendar_id ?? calendar_id;
       const claimProposalAt = new Date(pbk.at).toISOString();
@@ -1054,29 +1063,14 @@ Deno.serve(async (req) => {
       const won = claimRow?.won;
       if (!claimErr && won === false) {
         confirmBurstLost = true;
-      } else if (!claimErr && won === true && !hardConfirm && claimRow?.claim_id) {
-        // IUX R60 (HARD-CONFIRM-EXACT-CLAIM-GAP): release used to gate on `!confirmBook`, the
-        // SERVER's narrow AFFIRM_RE-based classification. But tools.ts's actual commit gate
-        // (line ~1161) AND-requires `ctx.hardConfirm === true` (hardConfirmGate.ts's WIDER
-        // HARD_CONFIRM_EXACT/HARD_CONFIRM_PATTERNS classification), which the model's own
-        // independent attestation path (args.confirmed + only_confirming_previous) can satisfy
-        // even when confirmBook is false (e.g. "correct"/"that's right"/"sounds good" are in
-        // HARD_CONFIRM_EXACT but not AFFIRM_RE). Releasing on `!confirmBook` let those siblings
-        // go free before their LLM turn, so a tight burst could still have multiple siblings each
-        // independently commit via hardConfirm. Gating on `!hardConfirm` instead means: any
-        // wording able to reach the model's own commit path also necessarily holds the claim
-        // through that path, closing the gap at its source. `hardConfirm` is computed above
-        // (line ~958), unconditionally every turn, before this block runs, so no reordering was
-        // needed, only swapping which boolean the release trusts. Not a clean hard-confirm this
-        // turn (e.g. a question, or content ambiguousConfirm/day-time-shift/price/hedge flags,
-        // which are also never in HARD_CONFIRM_EXACT) -> release immediately so a genuinely new
-        // confirm attempt (this turn's own retry, or a sibling that arrives moments later) is
-        // never blocked by a claim this message never actually earned. Released BY ROW ID (not by
-        // key) so this can never delete a different, newer claim generation for the same key.
-        const { error: releaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", {
-          p_claim_id: claimRow.claim_id,
-        });
-        if (releaseErr) console.error("release_whatsapp_confirm_claim error (fails open, TTL self-heals):", releaseErr);
+      } else if (!claimErr && won === true && claimRow?.claim_id) {
+        // Held (not released) here by design; released post-hoc below once this turn's real
+        // outcome is known. Missing/malformed pbk.at or an RPC error fails OPEN (no claim id
+        // captured -> nothing to release later, matching the pre-existing fail-open posture: this
+        // can only ever make the burst race safer, never introduce a new way to block or corrupt a
+        // real booking).
+        bookClaimId = claimRow.claim_id;
+        bookClaimIdForFallback = claimRow.claim_id;
       }
     }
     if (confirmBurstLost) {
@@ -1114,7 +1108,12 @@ Deno.serve(async (req) => {
     // "take on any message, release if not a clean confirm" shape as the book-path fix above, so a
     // genuine non-confirm message during a pending cancellation (e.g. "wat kost annuleren?", already
     // excluded from confirmCancel via cancelPolicyQuestion) is never blocked either.
+    // IUX R61 (structural fix, mirrors the book-path block above): the claim is taken here
+    // unchanged, but no longer released via any pre-turn wording guess (`!confirmCancel` in R59,
+    // `!hardConfirm` in R60). Held for the full turn duration, released post-hoc below alongside
+    // the book-path claim, keyed off this turn's actual `isCommittedMutation` outcome.
     let confirmCancelBurstLost = false;
+    let cancelClaimId: string | undefined;
     if (pendingFresh && pc?.at != null) {
       const cancelClaimProposalAt = new Date(pc.at).toISOString();
       const { data: cancelClaimRows, error: cancelClaimErr } = await supabase.rpc("claim_whatsapp_confirm", {
@@ -1127,15 +1126,9 @@ Deno.serve(async (req) => {
       const wonCancel = cancelClaimRow?.won;
       if (!cancelClaimErr && wonCancel === false) {
         confirmCancelBurstLost = true;
-      } else if (!cancelClaimErr && wonCancel === true && !hardConfirm && cancelClaimRow?.claim_id) {
-        // IUX R60 (HARD-CONFIRM-EXACT-CLAIM-GAP): same fix as the book-path block above, mirrored
-        // here. cancel_appointment's own commit gate (tools.ts line ~1615) also AND-requires
-        // ctx.hardConfirm === true, so the release must trust the same wider signal, not the
-        // narrower `confirmCancel`.
-        const { error: releaseCancelErr } = await supabase.rpc("release_whatsapp_confirm_claim", {
-          p_claim_id: cancelClaimRow.claim_id,
-        });
-        if (releaseCancelErr) console.error("release_whatsapp_confirm_claim (cancel) error (fails open, TTL self-heals):", releaseCancelErr);
+      } else if (!cancelClaimErr && wonCancel === true && cancelClaimRow?.claim_id) {
+        cancelClaimId = cancelClaimRow.claim_id;
+        cancelClaimIdForFallback = cancelClaimRow.claim_id;
       }
     }
     if (confirmCancelBurstLost) {
@@ -1189,6 +1182,15 @@ Deno.serve(async (req) => {
       if (!preErr && stillValid === false) raceLostPreCheck = true;
     }
     if (raceLostPreCheck) {
+      // IUX R61: this request holds the book claim (taken above) but is about to short-circuit
+      // return WITHOUT ever reaching the primary runAgent call / the post-hoc release site below.
+      // Release it here explicitly so a race-loss reply never leaves a live claim sitting until
+      // TTL self-heal for no reason (the outcome -- lost the race, no commit attempted by THIS
+      // request -- is already fully known at this point).
+      if (bookClaimId) {
+        const { error: raceLossReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimId });
+        if (raceLossReleaseErr) console.error("release_whatsapp_confirm_claim (book, race-loss) error (fails open, TTL self-heals):", raceLossReleaseErr);
+      }
       const slotTakenReply = sanitizeReply(
         deterministicSlotTaken(
           [{ name: "book_appointment", result: { error: "niet_beschikbaar" } }],
@@ -1477,6 +1479,31 @@ Deno.serve(async (req) => {
       }
     }
 
+    // IUX R61 (WHATSAPP-DUPLICATE-CONFIRM-BURST, structural fix, single post-hoc release site for
+    // BOTH the book-claim and cancel-claim held above): `result` is now final (primary turn, or the
+    // adopted stall-retry) and its real outcome is knowable via the SAME deterministic
+    // `isCommittedMutation` check the commit-templating logic just below also relies on -- no
+    // pre-turn wording guess involved. Release whichever claim(s) this request is holding
+    // UNCONDITIONALLY here, regardless of whether this turn committed, previewed, answered a
+    // question, or errored: once the real outcome is known there is no remaining reason to hold the
+    // key. A genuine commit already clears pending_booking/pending_cancel via tools.ts, so a
+    // late-arriving sibling for the SAME proposal can no longer even re-derive a matching claim key
+    // (pendingBookFresh/pendingFresh will no longer see that proposal); a non-commit outcome means
+    // the proposal is still live and a subsequent genuine confirm attempt (this same customer's next
+    // message, or a sibling that arrives after this response) must be free to claim immediately, not
+    // wait out the 20s TTL. Released BY ROW ID (never by key), so this can never delete a different,
+    // newer claim generation for the same key (mirrors R59/R60's own release-by-id safety property).
+    // Best-effort: a release RPC error here fails open (logged, not thrown) -- the 20s TTL self-heals
+    // any claim this call could not clear, matching every prior round's fail-open posture.
+    if (bookClaimId) {
+      const { error: bookReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimId });
+      if (bookReleaseErr) console.error("release_whatsapp_confirm_claim (book, post-hoc) error (fails open, TTL self-heals):", bookReleaseErr);
+    }
+    if (cancelClaimId) {
+      const { error: cancelReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: cancelClaimId });
+      if (cancelReleaseErr) console.error("release_whatsapp_confirm_claim (cancel, post-hoc) error (fails open, TTL self-heals):", cancelReleaseErr);
+    }
+
     // B1: on a turn that COMMITTED a book/cancel/reschedule, the confirmation is deterministic
     // (NL/EN template from the tool result). The PRIMARY runAgent call already skipped call 2
     // (stopOnToolResult), and even when a stall-retry composed prose we override it so a committed
@@ -1667,6 +1694,22 @@ Deno.serve(async (req) => {
     // return ONLY a generic, leak-free body. No internal error string, no schema, no stack ever
     // crosses the boundary to the end-client.
     console.error("whatsapp-agent error:", e);
+    // IUX R61: best-effort release of any confirm-burst claim held at throw-time. The turn threw
+    // before reaching the normal post-hoc release site, so without this the claim would otherwise
+    // sit until the 20s TTL self-heals purely because of an error, not because holding it longer
+    // was ever intentional. Release-by-id is a harmless no-op if the row is already gone (e.g. the
+    // throw happened AFTER the normal release already ran); never throws itself, never blocks the
+    // fallback reply below.
+    if (bookClaimIdForFallback) {
+      try {
+        await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimIdForFallback });
+      } catch (_) { /* best-effort only, TTL self-heals regardless */ }
+    }
+    if (cancelClaimIdForFallback) {
+      try {
+        await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: cancelClaimIdForFallback });
+      } catch (_) { /* best-effort only, TTL self-heals regardless */ }
+    }
     // Localize the fallback best-effort from the raw inbound (we may have thrown before
     // customerLanguage was computed). null => Dutch default.
     let fallbackLang: string | null = null;
