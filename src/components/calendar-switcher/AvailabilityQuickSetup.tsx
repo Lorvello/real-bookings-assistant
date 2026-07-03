@@ -92,6 +92,7 @@ export function AvailabilityQuickSetup({ availability, onChange }: AvailabilityQ
               checked={availability[day.key]?.enabled ?? false}
               onCheckedChange={() => toggleDay(day.key)}
               className="data-[state=checked]:bg-primary shrink-0"
+              aria-label={t('calPage.availability.dayToggleAriaLabel', '{{dayName}} open', { dayName: day.fullLabel })}
             />
             <span className="w-10 shrink-0 text-sm font-medium text-foreground">
               {dayLabels[day.key] ?? day.label}

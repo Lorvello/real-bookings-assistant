@@ -36,14 +36,18 @@ export const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ data, size = 160 }
   if (!data) return null;
 
   return (
-    <section aria-label={t('profilePage.qrCode.ariaLabel', 'QR code')} className="flex flex-col md:flex-row items-center gap-4">
+    <section aria-label={t('profilePage.qrCode.ariaLabel', 'QR code')} className="flex flex-col md:flex-row items-center md:items-start gap-4">
       {/* Single white QR tile sitting directly on the section card (no redundant
           surface-raised frame around it, since the section already provides the card).
           The white padding doubles as the QR quiet-zone for reliable scanning. */}
       <div ref={containerRef} className="w-fit rounded-xl bg-white p-3">
         <QRCode value={data} size={size} />
       </div>
-      <div className="flex flex-col gap-2 w-full md:w-auto">
+      {/* md:items-start + a small top nudge aligns the button+hint block with the
+          QR tile's top edge instead of floating mid-height against the taller
+          tile (R34 polish: was items-center on the section, visually unbalanced
+          on desktop where the QR is much taller than this column). */}
+      <div className="flex flex-col gap-2 w-full md:w-auto md:pt-3">
         <Button type="button" variant="secondary" onClick={handleDownload}>
           <Download aria-hidden="true" className="mr-2 h-4 w-4" />
           {t('profilePage.qrCode.downloadButton', 'Download QR (SVG)')}

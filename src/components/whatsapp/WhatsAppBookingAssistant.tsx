@@ -6,7 +6,7 @@ import { useWhatsAppSettings } from '@/hooks/useWhatsAppSettings';
 import { WhatsAppWelcomeMessage } from '@/components/whatsapp/WhatsAppWelcomeMessage';
 import { supabase } from '@/integrations/supabase/client';
 import QRCodeSVG from 'react-qr-code';
-import { Download, Copy, Check } from 'lucide-react';
+import { Download, Copy, Check, QrCode } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface WhatsAppBookingAssistantProps {
@@ -100,7 +100,8 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
       <div className="max-w-[1400px] mx-auto">
         <Card className="bg-card rounded-xl">
           <CardContent className="p-6 sm:p-12">
-            <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex flex-col items-center justify-center gap-3 min-h-[400px]">
+              <div className="w-8 h-8 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" aria-hidden="true" />
               <div className="text-sm text-muted-foreground">{t('waPage.loading', 'Loading...')}</div>
             </div>
           </CardContent>
@@ -110,7 +111,7 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto">
+    <div className="max-w-[1400px] mx-auto fade-up">
       {/* Main Grid: 70/30 split */}
       <div className="grid lg:grid-cols-[70%_30%] gap-6">
         
@@ -131,7 +132,10 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
               ) : whatsappLink && (qrExists || imgBroken) ? (
                 <QRCodeSVG value={whatsappLink} size={400} className="w-full h-auto max-w-[400px]" />
               ) : (
-                <div className="w-full max-w-[400px] aspect-square bg-muted rounded-lg flex items-center justify-center">
+                <div className="w-full max-w-[400px] aspect-square bg-muted rounded-lg flex flex-col items-center justify-center gap-3 px-6 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/[0.10] text-accent-foreground">
+                    <QrCode className="h-6 w-6" aria-hidden="true" />
+                  </span>
                   <span className="text-muted-foreground text-sm">{t('waPage.qr.placeholder', 'QR code will appear here')}</span>
                 </div>
               )}

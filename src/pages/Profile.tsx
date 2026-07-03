@@ -81,7 +81,7 @@ const ReadOnlyField: React.FC<{
 );
 
 const Profile = () => {
-  const { t } = useTranslation('appPages');
+  const { t, i18n } = useTranslation('appPages');
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
@@ -118,9 +118,13 @@ const Profile = () => {
   }
 
   const createdAt = new Date(user.created_at);
+  // R34: was hardcoded 'en-GB' regardless of the active app language (same
+  // hardcoded-locale bug class as the R20 Calendar fix); now follows the
+  // active i18n language (only 'en'/'nl' are supported, see i18n/index.ts).
+  const dateLocale = i18n.language === 'nl' ? 'nl-NL' : 'en-GB';
   const accountCreated = Number.isNaN(createdAt.getTime())
     ? t('profilePage.field.accountCreated.notAvailable', 'Not available')
-    : createdAt.toLocaleDateString('en-GB', {
+    : createdAt.toLocaleDateString(dateLocale, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -130,7 +134,7 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-background min-h-full p-3 md:p-8">
+      <div className="bg-background min-h-full p-3 md:p-8 fade-up">
         <div className="mb-4 md:mb-8">
           <div className="surface-raised rounded-2xl p-3 md:p-6">
             <h1 className="text-lg md:text-3xl font-semibold tracking-[-0.02em] text-foreground mb-1 md:mb-2">
@@ -153,7 +157,13 @@ const Profile = () => {
 
           <SettingsSection title={t('profilePage.section.qrCode.title', 'Your QR code')} icon={QrCode}>
             {profileLoading ? (
-              <div className="h-40 bg-background/60 border border-white/[0.08] rounded-lg animate-pulse" />
+              <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                <div className="h-40 w-40 shrink-0 bg-background/60 border border-white/[0.08] rounded-xl animate-pulse" />
+                <div className="flex flex-col gap-2">
+                  <div className="h-9 w-40 bg-background/60 border border-white/[0.08] rounded-md animate-pulse" />
+                  <div className="h-3 w-56 bg-background/60 rounded animate-pulse" />
+                </div>
+              </div>
             ) : (
               <QRCodeDisplay data={qrValue} />
             )}

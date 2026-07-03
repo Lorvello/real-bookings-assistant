@@ -714,7 +714,8 @@
       "friday": "vr",
       "saturday": "za",
       "sunday": "zo",
-      "closed": "Gesloten"
+      "closed": "Gesloten",
+      "dayToggleAriaLabel": "{{dayName}} open"
     },
     "dayCell": {
       "empty": "Geen afspraken",
