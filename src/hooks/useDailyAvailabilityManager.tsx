@@ -71,8 +71,30 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
   
   const { schedules } = useAvailabilitySchedules(defaultCalendar?.id);
   const defaultSchedule = schedules.find(s => s.is_default) || schedules[0];
-  
-  const { rules, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
+
+  const { rules, loading: rulesLoading, createRule, updateRule, deleteRule, syncingRules, refetch: refreshRules } = useAvailabilityRules(defaultSchedule?.id);
+
+  // R70-2/R73 fix: a calendar switch changes `defaultSchedule.id` synchronously
+  // (CalendarContext.selectCalendar sets the new calendar object in one update,
+  // it never nulls the selection first), so `rules` briefly still holds the
+  // PREVIOUS schedule's rows while useAvailabilityRules fetches the new
+  // schedule's rows in the background (it does not clear `rules` to [] before
+  // that fetch). `rulesLoading` is true for that entire in-flight window,
+  // for the schedule id currently being requested. Track whether the loading
+  // window we are inside belongs to a genuine schedule-id change (a real
+  // switch) vs the very first mount, so the render layer can show a neutral
+  // skeleton ONLY while the data on screen might not match `defaultSchedule`.
+  const lastResolvedScheduleIdRef = useRef<string | undefined>();
+  useEffect(() => {
+    if (!rulesLoading && defaultSchedule?.id) {
+      lastResolvedScheduleIdRef.current = defaultSchedule.id;
+    }
+  }, [rulesLoading, defaultSchedule?.id]);
+  // True only while the rules on screen do not yet correspond to the
+  // currently-selected schedule: either the initial load, or a fetch for a
+  // schedule id different from the last one we finished resolving.
+  const isResolvingCurrentSchedule =
+    rulesLoading && defaultSchedule?.id !== lastResolvedScheduleIdRef.current;
 
   // OPTIMIZED: Single change notification to prevent cascading updates
   const prevScheduleIdRef = useRef<string | undefined>();
@@ -85,20 +107,14 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     }
   }, [defaultSchedule?.id]); // Removed onChange dependency to prevent loops
 
-  const [availability, setAvailability] = useState<Record<string, DayAvailability>>(() => {
-    const initial: Record<string, DayAvailability> = {};
-    DAYS.forEach(day => {
-      initial[day.key] = {
-        enabled: !day.isWeekend,
-        timeBlocks: [{
-          id: `${day.key}-1`,
-          startTime: '08:00',
-          endTime: '19:00'
-        }]
-      };
-    });
-    return initial;
-  });
+  // R70-2/R73 fix: this used to seed a hardcoded 08:00-19:00 guess so the
+  // first render always had *something* to show. That guess could render
+  // before the real data arrived (or reappear mid-switch, see
+  // isResolvingCurrentSchedule above) and be mistaken for genuine saved
+  // hours. Seed empty instead; DailyAvailability renders a neutral loading
+  // skeleton whenever `isResolvingCurrentSchedule` is true rather than ever
+  // showing this placeholder shape as if it were real data.
+  const [availability, setAvailability] = useState<Record<string, DayAvailability>>({});
 
   const [pendingUpdates, setPendingUpdates] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState<Set<string>>(new Set());
@@ -150,10 +166,19 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     return result;
   }, [rules]);
 
-  // Update local state when rules change
+  // Update local state when rules change. R70-2/R73 fix: skip this commit
+  // while `rules` is still resolving for the CURRENT schedule (see
+  // isResolvingCurrentSchedule above) - during that window `rules` (and
+  // therefore availabilityFromRules) reflects either the previous schedule's
+  // rows or a not-yet-populated placeholder, neither of which is real data
+  // for the schedule the UI now claims to show. DailyAvailability renders a
+  // loading skeleton for that same window instead, so nothing is committed
+  // to `availability` (and nothing renders) until the fetch that matches
+  // `defaultSchedule.id` has actually resolved.
   useEffect(() => {
+    if (isResolvingCurrentSchedule) return;
     setAvailability(availabilityFromRules);
-  }, [availabilityFromRules]);
+  }, [availabilityFromRules, isResolvingCurrentSchedule]);
 
   // Cleanup function voor duplicaten
   const cleanupDuplicates = async (scheduleId: string, dayOfWeek: number) => {
@@ -380,6 +405,11 @@ export const useDailyAvailabilityManager = (onChange: () => void, calendarId?: s
     syncToDatabase,
     createDefaultSchedule,
     refreshAvailability: refreshRules,
-    forceRefresh
+    forceRefresh,
+    // R70-2/R73 fix: true while the displayed schedule may not yet match
+    // `defaultSchedule` (initial load or mid-calendar-switch). Consumers
+    // should render a loading skeleton, never the (possibly stale or
+    // placeholder) `availability` value, while this is true.
+    isResolvingSchedule: isResolvingCurrentSchedule
   };
 };

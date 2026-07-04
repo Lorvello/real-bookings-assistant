@@ -103,7 +103,8 @@
     "loading": {
       "settingUp": "Beschikbaarheid instellen...",
       "loading": "Beschikbaarheid laden...",
-      "general": "Laden..."
+      "general": "Laden...",
+      "weeklyHours": "Wekelijkse uren laden"
     },
     "overrides": {
       "heading": "Schema-uitzonderingen",

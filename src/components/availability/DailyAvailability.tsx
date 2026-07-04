@@ -21,7 +21,8 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     defaultSchedule,
     syncToDatabase,
     createDefaultSchedule,
-    refreshAvailability
+    refreshAvailability,
+    isResolvingSchedule
   } = useDailyAvailabilityManager(onChange);
 
   const { toast } = useToast();
@@ -281,6 +282,28 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
     );
   }
 
+  // R70-2/R73 fix: while the rules for the CURRENTLY selected schedule are
+  // still resolving (initial load, or a calendar switch whose fetch has not
+  // landed yet), `availability` may still hold the previous calendar's real
+  // values or be empty. Never show that as if it were this calendar's saved
+  // hours - render a neutral shimmer skeleton instead (same shape/utility
+  // classes as AvailabilityManager's outer loadingSkeleton) until the fetch
+  // that matches `defaultSchedule.id` actually resolves.
+  if (isResolvingSchedule) {
+    return (
+      <div className="space-y-2" role="status" aria-label={t('availPage.loading.weeklyHours', 'Loading weekly hours')}>
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="flex items-center gap-4 px-2 py-4">
+            <div className="shimmer h-5 w-9 rounded-full bg-white/[0.06]" />
+            <div className="shimmer h-4 w-20 rounded bg-white/[0.05]" />
+            <div className="shimmer ml-auto h-8 w-24 rounded-md bg-white/[0.05]" />
+            <div className="shimmer h-8 w-24 rounded-md bg-white/[0.05]" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="stagger-fade divide-y divide-white/[0.06]">
@@ -288,7 +311,12 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
           const dayAvailability = availability[day.key];
           const dayKey = day.key;
           const hasPendingUpdates = changedDays.has(dayKey);
-          
+
+          // Defensive: isResolvingSchedule already gates this whole branch out
+          // while data may be missing/stale, but never render a crash if a
+          // future caller reaches here before `availability` is fully seeded.
+          if (!dayAvailability) return null;
+
           return (
             <AvailabilityDayRow
               key={day.key}
