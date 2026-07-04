@@ -47,8 +47,20 @@ export const useTeamInvitations = (calendarId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      
-      setInvitations((data || []) as TeamInvitation[]);
+
+      // Derive actual expiry from expires_at at read time rather than trusting the stored
+      // `status` column, which is only ever flipped from 'pending' to 'expired' by a client-side
+      // interval (see cleanupExpiredInvitations below) or the server cron. Neither is guaranteed to
+      // have run yet for a given session, so display must not depend on either: a row whose
+      // expires_at has already passed is shown as expired immediately, in any session, on first load.
+      const withDerivedExpiry = (data || []).map((inv: any) => {
+        if (inv.status === 'pending' && new Date(inv.expires_at).getTime() <= Date.now()) {
+          return { ...inv, status: 'expired' as const };
+        }
+        return inv;
+      });
+
+      setInvitations(withDerivedExpiry as TeamInvitation[]);
     } catch (error) {
       console.error('Error fetching invitations:', error);
       toast({
@@ -131,6 +143,11 @@ export const useTeamInvitations = (calendarId?: string) => {
 
   const cleanupExpiredInvitations = async () => {
     try {
+      // Best-effort write-through of the stored `status` column while this tab happens to be
+      // open. NOT relied upon for correctness: display already derives real expiry from
+      // expires_at in fetchInvitations above, and a server-side pg_cron job
+      // ('cleanup-expired-invitations', see supabase/migrations) keeps the stored column
+      // coherent even when no owner has this tab open at all.
       await supabase.rpc('cleanup_expired_invitations');
       fetchInvitations();
     } catch (error) {
@@ -140,10 +157,10 @@ export const useTeamInvitations = (calendarId?: string) => {
 
   useEffect(() => {
     fetchInvitations();
-    
+
     // Set up periodic cleanup of expired invitations
     const cleanup = setInterval(cleanupExpiredInvitations, 60000); // Every minute
-    
+
     return () => clearInterval(cleanup);
   }, [calendarId]);
 
