@@ -17,6 +17,7 @@ import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
 import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
+import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch } from "./serviceDisambiguationGuard.ts";
@@ -1660,22 +1661,58 @@ Deno.serve(async (req) => {
         // MEANING rather than its wording. Skipped when the regex guard already rewrote replyText to
         // the fixed safe-fallback template (that string is a reviewed constant, never model output,
         // so it can never itself be a false claim -- no need to spend a network round-trip on it).
-        if (replyText === replyBeforeOwnerGuard) {
-          // R67: majority-vote (2 parallel calls, 3rd tie-breaker only on disagreement) replaces the
-          // single-call classifier to address measured temp-0 non-determinism in Groq's low-effort MoE
-          // routing (see ownerEscalationClassifier.ts header + IUX_r67.md STEP 4). Same latency in the
-          // common (agreeing) case since the first 2 calls run in parallel.
-          const clf = await classifyOwnerEscalationClaimRobust(replyText, Deno.env.get("GROQ_API_KEY"));
+        //
+        // P12 FAMILY GENERALIZED GUARD (IUX R94, businessDataGuard.ts): rather than adding a 6th/7th/
+        // 8th narrow shape-specific guard for each newly-found hallucination topic (fake deposit
+        // rationale, fee-legitimization, fake refund-policy invention, active-override contradiction,
+        // all found R82), a single BROAD classification pass judges the SAME replyText against a
+        // compact real business_data summary: "does this claim assert a policy/fee/discount/refund/
+        // fact NOT actually supported by business_data". Fired in PARALLEL with the owner-escalation
+        // classifier above (Promise.all, wall-clock bounded by the slower of the two, not their sum)
+        // whenever EITHER of them still has real classification work to do (i.e. whenever the regex
+        // guard has not already rewritten replyText to its fixed fallback template). See
+        // businessDataGuard.ts header for the full design rationale.
+        const skipOwnerClassifier = replyText !== replyBeforeOwnerGuard;
+        const replyBeforeGroundingGuard = replyText;
+        const groundingSummary = buildGroundingSummary({
+          businessData,
+          services: priceCheckServices,
+          refundDisposition,
+          calendars: calendarsForPrompt,
+        });
+        const [ownerClf, groundingClf] = await Promise.all([
+          skipOwnerClassifier
+            ? Promise.resolve(null)
+            : classifyOwnerEscalationClaimRobust(replyText, Deno.env.get("GROQ_API_KEY")),
+          classifyBusinessDataGroundingRobust(replyText, groundingSummary, Deno.env.get("GROQ_API_KEY")),
+        ]);
+        if (ownerClf) {
           console.log(
-            `owner-escalation-classifier: reason=${clf.reason} latencyMs=${clf.latencyMs} isEscalationClaim=${clf.isEscalationClaim} votes=${JSON.stringify(clf.votes)} tieBreakerFired=${clf.tieBreakerFired}`,
+            `owner-escalation-classifier: reason=${ownerClf.reason} latencyMs=${ownerClf.latencyMs} isEscalationClaim=${ownerClf.isEscalationClaim} votes=${JSON.stringify(ownerClf.votes)} tieBreakerFired=${ownerClf.tieBreakerFired}`,
           );
-          if (clf.isEscalationClaim) {
+          if (ownerClf.isEscalationClaim) {
             replyText = noOwnerEscalationReply(customerLanguage, ownerPhone, ownerEmail);
             console.warn(
               `owner-escalation-classifier: rewrote a fabricated owner-contact claim missed by the regex guard:`,
               JSON.stringify(replyBeforeOwnerGuard),
             );
           }
+        }
+        console.log(
+          `business-data-guard: reason=${groundingClf.reason} latencyMs=${groundingClf.latencyMs} isUngroundedClaim=${groundingClf.isUngroundedClaim} votes=${JSON.stringify(groundingClf.votes)}`,
+        );
+        // Only rewrite for the grounding guard if NEITHER the regex owner-escalation guard NOR the
+        // owner-escalation classifier already rewrote this turn (either of those rewrites is a more
+        // specific/severe category AND is itself always a reviewed, grounded-safe constant, so
+        // re-rewriting on top of either would be pointless at best; found + fixed during R94's own
+        // code-review pass: checking replyText === replyBeforeGroundingGuard alone missed the case
+        // where the REGEX guard, not the classifier, had already fired before this block ran).
+        if (groundingClf.isUngroundedClaim && replyText === replyBeforeGroundingGuard && !skipOwnerClassifier) {
+          console.warn(
+            `business-data-guard: rewrote an ungrounded business-fact/policy claim:`,
+            JSON.stringify(replyBeforeGroundingGuard),
+          );
+          replyText = noUngroundedClaimReply(customerLanguage, ownerPhone, ownerEmail);
         }
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
