@@ -117,7 +117,16 @@ export const validatePassword = (password: string): PasswordValidationResult => 
   // contradict the inline error. The length bonus point can otherwise push an
   // otherwise-strong-but-no-symbol password to 5. This does not weaken the
   // requirements; it only aligns the visual signal with isValid.
-  const cappedScore = isValid ? Math.min(5, score) : Math.min(4, score);
+  //
+  // IUX R83: the original cap (4, "Good") still let a blocked password read
+  // as "Good" in blue directly above/below its own red blocking error (e.g.
+  // a password that only trips the sequential-characters penalty keeps every
+  // mandatory point and lands at raw 5, capped to 4). "Good" reads as a pass
+  // to a user scanning colors, so any invalid password is now capped at 3
+  // ("Fair", yellow) -- still visibly distinct from a genuinely fair-but-weak
+  // valid password's own path to that tier, but never contradicts a live
+  // blocking error with a passing-sounding label.
+  const cappedScore = isValid ? Math.min(5, score) : Math.min(3, score);
 
   return {
     isValid,
