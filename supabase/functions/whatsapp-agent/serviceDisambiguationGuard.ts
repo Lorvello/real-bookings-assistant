@@ -202,10 +202,35 @@ export const KIES_LOCATIE_MESSAGE =
 // - The recency window (default 4 messages, tunable) means a service mentioned many turns earlier
 //   and since resolved/booked/abandoned cannot leak into blocking an unrelated later reschedule.
 
+// R98 STRUCTURAL FIX (3rd distinct bug in this exact function across R95/R96/R97-verify; see
+// header comment above the R96 section for the full history). R97-verify found: the early-break
+// condition treated ANY message mentioning the current service as "the customer re-confirming",
+// including the AGENT'S OWN confused outbound replies (e.g. "Ik zie dat je al een Standaard
+// Afspraak hebt... wil je die verzetten?"), which broke the scan before it reached the customer's
+// real, earlier, distinct-service request. Point-patching just that one `if` was rejected in favor
+// of a CONTRACT change: the function no longer accepts a flat, direction-erased `string[]` under a
+// misleading name. It now takes `recentMessages: RecencyWindowMessage[]`, each row tagged with its
+// real `direction`, so ANY future "did the CUSTOMER say X" logic added to this function is
+// structurally forced to filter by direction rather than being able to silently reintroduce a
+// direction-blind read (the exact mistake this bug was). The two existing uses of the window are
+// kept deliberately asymmetric, per the audit above:
+// - the FORWARD "was a distinct service raised at all" scan stays direction-agnostic on purpose
+//   (an agent's own echo of the distinct service name during a disambiguation exchange is valid
+//   antecedent evidence the customer is still discussing it -- this is R96's own
+//   R96-SELFTEST GAP fix and must not regress);
+// - the "stop scanning, customer is re-confirming the CURRENT service" break is now filtered to
+//   `direction === "inbound"` ONLY, by the data shape itself, not by an ad hoc condition that can
+//   be lost again in a future edit.
+export type RecencyWindowDirection = "inbound" | "outbound";
+export interface RecencyWindowMessage {
+  direction: RecencyWindowDirection;
+  content: string;
+}
+
 export interface RescheduleDistinctServiceInput {
   allServiceNames: string[]; // every distinct configured service name across the relevant calendar(s)
   currentServiceName: string | null; // the booking's OWN current service name (or null if unknown)
-  recentInboundTexts: string[]; // the last few inbound (customer) messages, oldest first, THIS turn last
+  recentMessages: RecencyWindowMessage[]; // last few messages BOTH directions, oldest first, THIS turn last
   modelSuppliedServiceId: boolean; // true if reschedule_appointment's call included service_type_id
 }
 
@@ -230,7 +255,7 @@ function mentionsDistinguishing(text: string, name: string, excludeWords: Set<st
 // Returns the distinct, different-from-current service name the customer named most recently in
 // the recency window, or null if none (safe default: guard does not fire).
 export function findDistinctServiceForReschedule(input: RescheduleDistinctServiceInput): string | null {
-  const { allServiceNames, currentServiceName, recentInboundTexts, modelSuppliedServiceId } = input;
+  const { allServiceNames, currentServiceName, recentMessages, modelSuppliedServiceId } = input;
   if (modelSuppliedServiceId) return null; // an explicit, reviewed switch: not this guard's concern
   const current = currentServiceName ? normServiceName(currentServiceName) : null;
   const distinctNames = [...new Set(allServiceNames.map(normServiceName))].filter((n) => n !== current);
@@ -242,20 +267,30 @@ export function findDistinctServiceForReschedule(input: RescheduleDistinctServic
   // Scan the recency window NEWEST-FIRST so the customer's MOST RECENT naming wins if they
   // mentioned more than one distinct service across the window (their latest statement is the
   // one actually in play this turn).
-  for (let i = recentInboundTexts.length - 1; i >= 0; i--) {
-    const text = recentInboundTexts[i];
+  for (let i = recentMessages.length - 1; i >= 0; i--) {
+    const msg = recentMessages[i];
+    // FORWARD scan (was a distinct service raised at all): stays direction-agnostic BY DESIGN.
+    // An agent's own echo of the distinct service's name during a disambiguation exchange (R96's
+    // R96-SELFTEST GAP fix) is valid antecedent evidence the customer is still discussing that
+    // service, so both inbound and outbound rows are checked here, unchanged from before.
     for (const name of distinctNames) {
-      if (mentionsDistinguishing(text, name, currentWords)) {
+      if (mentionsDistinguishing(msg.content, name, currentWords)) {
         // Return the ORIGINAL-cased configured name (not the normalized form) for use in the
         // customer-facing redirect message.
         const original = allServiceNames.find((n) => normServiceName(n) === name);
         return original ?? name;
       }
     }
-    // Stop scanning further back once we hit a message that also mentions the CURRENT service by
-    // name: that is the customer re-confirming/discussing the existing booking, not introducing a
-    // new one, so an even-earlier distinct-service mention should not leak through past it.
-    if (current && currentServiceName && mentionsAny([text], [currentServiceName])) break;
+    // R98 STRUCTURAL FIX (3rd bug in this function across R95/R96/R97-verify): stop scanning
+    // further back once we hit an INBOUND (customer) message that also mentions the CURRENT
+    // service by name -- that is the CUSTOMER re-confirming/discussing the existing booking, not
+    // introducing a new one, so an even-earlier distinct-service mention should not leak through
+    // past it. An OUTBOUND (agent) message mentioning the current service (e.g. the agent's own
+    // confused "Ik zie dat je al een Standaard Afspraak hebt... wil je die verzetten?") is NOT
+    // customer intent and must NEVER break the scan; the `direction === "inbound"` guard makes
+    // this structurally enforced by the data shape, not by a condition that can be silently lost
+    // in a future edit the way the pre-R98 code was.
+    if (msg.direction === "inbound" && current && currentServiceName && mentionsAny([msg.content], [currentServiceName])) break;
   }
   return null;
 }

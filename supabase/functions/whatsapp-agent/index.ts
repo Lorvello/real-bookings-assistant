@@ -20,7 +20,7 @@ import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.
 import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -687,7 +687,13 @@ Deno.serve(async (req) => {
     // R97 (T3-LATENCY fix): derived from `sharedMsgsDesc` (the 12-row both-directions fetch above)
     // instead of its own dedicated 6-row round-trip, this round's 6-row need being a strict subset
     // (same conversation_id, same DESC order, same columns available). Zero extra query.
-    let recentInboundTexts: string[] = [String(message ?? "")];
+    // R98 STRUCTURAL FIX: this window is now built as DIRECTION-TAGGED rows
+    // (`RecencyWindowMessage[]`), not a flat `string[]`, so `findDistinctServiceForReschedule`
+    // can never again lose track of which message came from the customer vs the agent (the exact
+    // bug R97-verify found: the guard's own break condition treated an agent reply as if the
+    // customer said it). Every row's `direction` is carried straight from the DB query below,
+    // never inferred or defaulted.
+    let recentMessages: RecencyWindowMessage[] = [{ direction: "inbound", content: String(message ?? "") }];
     if (conversationId) {
       const rows = sharedMsgsDesc.slice(0, 6);
       // R97 (DOUBLE-COUNTED-CURRENT-MESSAGE fix): process_whatsapp_message (the real webhook path,
@@ -704,10 +710,15 @@ Deno.serve(async (req) => {
       // call pattern produced this request).
       const newest = rows[0];
       const newestIsCurrentInbound = !!newest && newest.direction === "inbound" && (newest.content ?? "") === String(message ?? "");
-      const priorTexts = rows.map((m) => m.content ?? "").reverse();
-      recentInboundTexts = newestIsCurrentInbound
-        ? priorTexts
-        : [...priorTexts, String(message ?? "")];
+      const priorMessages: RecencyWindowMessage[] = rows
+        .map((m) => ({
+          direction: (m.direction === "inbound" ? "inbound" : "outbound") as RecencyWindowDirection,
+          content: m.content ?? "",
+        }))
+        .reverse();
+      recentMessages = newestIsCurrentInbound
+        ? priorMessages
+        : [...priorMessages, { direction: "inbound", content: String(message ?? "") }];
     }
     // allServiceNames: every distinct configured service name reachable this turn. Single-calendar
     // (the common case) → this calendar's own <services>; multi-calendar → the whole <kalenders>
@@ -721,7 +732,7 @@ Deno.serve(async (req) => {
       ? findDistinctServiceForReschedule({
         allServiceNames: allServiceNamesForReschedule,
         currentServiceName: upcomingBookingServiceName,
-        recentInboundTexts,
+        recentMessages,
         modelSuppliedServiceId: false, // re-checked per-call against args.service_type_id in tools.ts
       })
       : null;

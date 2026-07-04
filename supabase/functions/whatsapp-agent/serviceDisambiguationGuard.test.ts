@@ -3,7 +3,13 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+
+// R98 helper: build an all-inbound recency window from plain strings (the common case for tests
+// that only care about customer messages, matching the pre-R98 test convention).
+function inbound(...texts: string[]): RecencyWindowMessage[] {
+  return texts.map((content) => ({ direction: "inbound" as const, content }));
+}
 
 const THREE_BRANCH = [
   { name: "R71 Centrum", services: [{ name: "Knipbeurt Dames" }] },
@@ -233,7 +239,7 @@ Deno.test("R96 blocks: customer just named a distinct service, no model-supplied
     findDistinctServiceForReschedule({
       allServiceNames: TWO_SERVICES,
       currentServiceName: "Standaard Afspraak",
-      recentInboundTexts: ["En nu ook nog de Speciale Afspraak graag, wanneer kan dat deze week?"],
+      recentMessages: inbound("En nu ook nog de Speciale Afspraak graag, wanneer kan dat deze week?"),
       modelSuppliedServiceId: false,
     }),
     "Speciale Afspraak",
@@ -245,7 +251,7 @@ Deno.test("R96 does not block: genuine same-service reschedule, no new service e
     findDistinctServiceForReschedule({
       allServiceNames: TWO_SERVICES,
       currentServiceName: "Standaard Afspraak",
-      recentInboundTexts: ["kan het een uur later, om 10:00?"],
+      recentMessages: inbound("kan het een uur later, om 10:00?"),
       modelSuppliedServiceId: false,
     }),
     null,
@@ -257,7 +263,7 @@ Deno.test("R96 does not block: model explicitly supplied service_type_id (a revi
     findDistinctServiceForReschedule({
       allServiceNames: TWO_SERVICES,
       currentServiceName: "Standaard Afspraak",
-      recentInboundTexts: ["en nu de Speciale Afspraak graag"],
+      recentMessages: inbound("en nu de Speciale Afspraak graag"),
       modelSuppliedServiceId: true,
     }),
     null,
@@ -269,7 +275,7 @@ Deno.test("R96 does not block: only one service exists (nothing to confuse)", ()
     findDistinctServiceForReschedule({
       allServiceNames: ["Standaard Afspraak"],
       currentServiceName: "Standaard Afspraak",
-      recentInboundTexts: ["kan het een uur later"],
+      recentMessages: inbound("kan het een uur later"),
       modelSuppliedServiceId: false,
     }),
     null,
@@ -281,10 +287,10 @@ Deno.test("R96 does not block: a distinct service was named MANY turns ago, curr
     findDistinctServiceForReschedule({
       allServiceNames: TWO_SERVICES,
       currentServiceName: "Standaard Afspraak",
-      recentInboundTexts: [
+      recentMessages: inbound(
         "ik had ooit gevraagd naar de Speciale Afspraak maar toen niet geboekt",
         "kan mijn Standaard Afspraak een uur later, om 10:00?",
-      ],
+      ),
       modelSuppliedServiceId: false,
     }),
     null,
@@ -296,7 +302,7 @@ Deno.test("R96 blocks: EN phrasing, distinct service named most recently", () =>
     findDistinctServiceForReschedule({
       allServiceNames: TWO_SERVICES,
       currentServiceName: "Standaard Afspraak",
-      recentInboundTexts: ["also book me the Speciale Afspraak, what times work?"],
+      recentMessages: inbound("also book me the Speciale Afspraak, what times work?"),
       modelSuppliedServiceId: false,
     }),
     "Speciale Afspraak",
@@ -308,7 +314,178 @@ Deno.test("R96 does not block: no distinct service names configured (defensive e
     findDistinctServiceForReschedule({
       allServiceNames: [],
       currentServiceName: null,
-      recentInboundTexts: ["kan het een uur later"],
+      recentMessages: inbound("kan het een uur later"),
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+// ── R98 DIRECTION-CONFUSION regression suite (3rd bug in this function, R97-verify finding) ──
+// Pins the exact bug: the early-break must ONLY fire on an INBOUND (customer) message mentioning
+// the current service. An OUTBOUND (agent) message mentioning the current service must NEVER
+// break the scan, even when it is the newest message in the window and even when it separates the
+// customer's real distinct-service request from the rest of the window.
+
+Deno.test("R98-1 blocks: agent's own confused reply mentions current service, must not break before reaching customer's real request (the exact R97-verify shape)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "Kan ik ook een Speciale Afspraak boeken, zelfde dag graag?" },
+        { direction: "outbound", content: "Schikt 12:30 of 13:00?" },
+        { direction: "inbound", content: "Oke doe dan 12:30" },
+        { direction: "outbound", content: "Ik zie dat je al een Standaard Afspraak hebt op 12:00. Wil je die verzetten of een tweede afspraak maken?" },
+        { direction: "inbound", content: "Ja klopt" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-2 blocks: agent mentions distinct service in its OWN reply BEFORE customer confirms (agent echo must still count as antecedent, per R96-SELFTEST GAP)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "wat kan er nog bij vandaag" },
+        { direction: "outbound", content: "Wil je de Speciale Afspraak voor dezelfde persoon of iemand anders?" },
+        { direction: "inbound", content: "zelfde persoon" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-3 blocks: multiple back-and-forth confusions, agent repeatedly mentions current service, customer's distinct request survives at the far end of the window", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "kan er ook nog een Speciale Afspraak bij?" },
+        { direction: "outbound", content: "Je hebt al een Standaard Afspraak, bedoel je die verzetten?" },
+        { direction: "inbound", content: "nee gewoon erbij" },
+        { direction: "outbound", content: "oke, en je Standaard Afspraak blijft dan gewoon staan?" },
+        { direction: "inbound", content: "ja" },
+        { direction: "outbound", content: "voor je Standaard Afspraak, welke tijd wil je?" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-4 blocks: long conversation, many agent replies mentioning EITHER service, customer's real distinct request is the oldest message still in-window", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "ik wil ook een Speciale Afspraak" },
+        { direction: "outbound", content: "voor de Speciale Afspraak, welke dag komt uit?" },
+        { direction: "inbound", content: "deze week nog" },
+        { direction: "outbound", content: "en klopt het dat je Standaard Afspraak blijft staan?" },
+        { direction: "inbound", content: "ja" },
+        { direction: "outbound", content: "top, dan kijk ik naar tijden voor je Standaard Afspraak" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-5 does not block: customer THEMSELVES re-confirms the current service most recently, no distinct service anywhere (genuine same-service reschedule, must still work)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "outbound", content: "Wil je je Standaard Afspraak verzetten naar een andere tijd?" },
+        { direction: "inbound", content: "ja, mijn Standaard Afspraak graag een uur later" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R98-6 does not block: customer genuinely re-confirms current service AFTER an earlier, now-stale, distinct-service mention (customer's own re-confirmation is real evidence and must still gate)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "ik had ooit gevraagd naar de Speciale Afspraak maar toen niet geboekt" },
+        { direction: "outbound", content: "geen probleem, waar kan ik je mee helpen?" },
+        { direction: "inbound", content: "kan mijn Standaard Afspraak een uur later, om 10:00?" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R98-7 blocks: agent's confused reply is the ONLY message in the window besides the customer's request (2-message window, agent reply newest)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "en ook nog een Speciale Afspraak graag" },
+        { direction: "outbound", content: "Ik zie een bestaande Standaard Afspraak, zal ik die verplaatsen?" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-8 blocks: agent's confused reply mentions current service AND asks about the distinct one in the SAME message (still must not count as customer re-confirmation)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "kan er een Speciale Afspraak bij, zelfde dag" },
+        { direction: "outbound", content: "Je hebt al een Standaard Afspraak, wil je in plaats daarvan de Speciale Afspraak, of allebei?" },
+        { direction: "inbound", content: "allebei graag" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-9 blocks: EN phrasing, agent's own confused reply in English mentions current service, must not break before customer's real request", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "inbound", content: "can I also book the Speciale Afspraak, same day?" },
+        { direction: "outbound", content: "I see you already have a Standaard Afspraak, do you want to move that instead?" },
+        { direction: "inbound", content: "no just add it" },
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R98-10 does not block: agent's confused reply mentions current service, customer's OWN most recent message ALSO re-confirms current service (genuine dead-end, no distinct request survives)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentMessages: [
+        { direction: "outbound", content: "Ik zie een bestaande Standaard Afspraak, zal ik die verplaatsen?" },
+        { direction: "inbound", content: "ja graag, mijn Standaard Afspraak een uur later" },
+      ],
       modelSuppliedServiceId: false,
     }),
     null,
