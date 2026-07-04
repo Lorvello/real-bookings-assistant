@@ -251,3 +251,42 @@ Deno.test("double affirm-word: reject side intentionally NOT mirrored (no natura
   assertEquals(classifyHardConfirm("nee nee"), "none");
   assertEquals(classifyHardConfirm("no no"), "none");
 });
+
+// ── 9. R74: "affirm-word + that's-correct-family (+ optional pleasantry)" shape ────────────────
+// Found + live-reproduced during IUX R74's CONFIRM-TURN-CONTEXT-LOSS discovery pass (evidence/
+// IUX_r74.md section 4): 4/4 distinct natural confirm phrasings NOT on the pre-existing allow-list
+// each stalled the confirm turn live (agent silently re-previewed instead of committing). These are
+// the exact live-reproduced phrasings plus the same closed skeleton's natural variants.
+Deno.test("R74: the exact live-reproduced stall phrasings now hard-confirm", () => {
+  const phrasings = [
+    "Yes that's correct, thanks",
+    "yes that's correct",
+    "Ja dat klopt",
+    "Klinkt goed, bedankt",
+    "Ja, dat is helemaal correct",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("R74: natural EN/NL variants of the correctness-clause skeleton hard-confirm", () => {
+  const phrasings = [
+    "yeah that works", "yes that's right, thanks!", "That's correct", "That's correct, thanks!",
+    "Sounds good", "Klinkt perfect", "Dat klopt", "Is correct", "Helemaal correct",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("R74 ADVERSARIAL: real content beyond the correctness-clause skeleton must NOT match", () => {
+  const mustStayNone = [
+    "yes that's correct but can it be an hour later",
+    "ja dat klopt, maar toch niet",
+    "that's correct, except the name is wrong",
+    "yes that's right, or is it?",
+    "klinkt goed maar ik twijfel nog",
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none (extra content)`);
+  }
+});

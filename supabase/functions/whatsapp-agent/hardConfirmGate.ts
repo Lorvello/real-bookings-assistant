@@ -129,6 +129,20 @@ const CANCEL_VERB = "(?:annuleer(?: het)? maar|annuleren maar|cancel it|cancel t
 // the anchor and correctly falls through to "none" (safe fallback to the existing layers), never a
 // false match; see hardConfirmGate.test.ts for the adversarial regression test proving this.
 const CONFIRM_WORD = "(?:ja|jaa|klopt|ok|oke|oké|okay|prima|akkoord|correct|yes|yep|sure)";
+// R74 (CONFIRM-TURN-CONTEXT-LOSS): a bare affirm word ("ja"/"yes") FOLLOWED BY a "that's
+// correct"-family clause is a genuinely common, unambiguous confirm shape distinct from either
+// CONFIRM_WORD-alone (a single bare token) or the existing "confirm-word + pleasantry" skeletons
+// (those never covered "affirm-word + a full correctness clause"). Live-reproduced this round:
+// "Yes that's correct, thanks" classified "none" and stalled the confirm turn (evidence/IUX_r74.md
+// section 4, trial 2). CORRECTNESS_CLAUSE is a small, closed, hand-picked alternation of the
+// natural NL/EN ways to say "that is correct", never a free-form wildcard; PREFIX_AFFIRM is
+// restricted to the same closed bare-word set already trusted standalone elsewhere in this file.
+// Anchored ^...$ like every other entry, so any extra content beyond this fixed skeleton (a
+// correction, hedge, question, etc.) still falls through to "none", proven by the adversarial
+// tests in hardConfirmGate.test.ts section 9.
+const PREFIX_AFFIRM = "(?:ja|jaa|yes|yeah|yep|klopt|ok|oke|oké|okay)";
+const CORRECTNESS_CLAUSE =
+  "(?:dat klopt|dat is correct|dat is juist|is correct|that'?s correct|that'?s right|that is correct|that is right|that works|klinkt goed|sounds good|dat klopt helemaal|dat is helemaal correct|helemaal correct|klinkt perfect)";
 export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^ja,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^klopt,? ${PLEASANTRY}!?$`, "i"),
@@ -148,6 +162,8 @@ export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^${PLEASANTRY},? ja!?$`, "i"),
   new RegExp(`^(?:ja|yes|klopt|akkoord),? ${CANCEL_VERB}!?$`, "i"),
   new RegExp(`^${CONFIRM_WORD},? ${CONFIRM_WORD}!?$`, "i"),
+  new RegExp(`^${PREFIX_AFFIRM},? ${CORRECTNESS_CLAUSE}(?:,? ${PLEASANTRY})?!?$`, "i"),
+  new RegExp(`^${CORRECTNESS_CLAUSE}(?:,? ${PLEASANTRY})?!?$`, "i"),
 ];
 
 export const HARD_REJECT_PATTERNS: readonly RegExp[] = [
