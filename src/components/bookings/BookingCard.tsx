@@ -82,7 +82,13 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="grid md:grid-cols-2 gap-4">
-          {/* Customer Info — an initial-avatar leads the row (MEGA_PLAN §2.B) */}
+          {/* Customer Info: an initial-avatar leads the row (MEGA_PLAN §2.B).
+              The name is the appointment ATTENDEE. This product's data model has one
+              customer_name field shared between "who the appointment is for" and
+              "who we message on WhatsApp", so a small "For" caption disambiguates at
+              a glance (IUX R77, P14-DASHBOARD-NO-ATTENDEE-LABEL). Phone keeps its own
+              icon and row directly below, already visually distinct enough to double
+              as the same-name-different-phone disambiguator. */}
           <div className="space-y-2">
             <div className="flex items-center gap-2.5 text-foreground">
               <span
@@ -91,7 +97,12 @@ export function BookingCard({ booking, onBookingClick }: BookingCardProps) {
               >
                 {initials(booking.customer_name)}
               </span>
-              <span className="font-medium">{booking.customer_name}</span>
+              <span className="min-w-0">
+                <span className="block text-[11px] leading-tight text-muted-foreground">
+                  {t('bookPage.cardForLabel', 'For')}
+                </span>
+                <span className="font-medium">{booking.customer_name}</span>
+              </span>
             </div>
             <div className="flex items-center gap-2 text-foreground text-sm min-w-0">
               <Mail aria-hidden="true" className="w-4 h-4 text-muted-foreground shrink-0" />

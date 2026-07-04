@@ -230,6 +230,13 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
               <div>
+                {/* Attendee name: this product's data model has one customer_name field
+                    shared between "who the appointment is for" and "who we message on
+                    WhatsApp", so a small "For" caption disambiguates at a glance
+                    (IUX R77, P14-DASHBOARD-NO-ATTENDEE-LABEL). */}
+                <div className="text-[11px] leading-tight text-muted-foreground">
+                  {t('calPage.bookingDetail.customerSection.forLabel', 'For')}
+                </div>
                 <div className="font-semibold text-foreground mb-1 text-xs sm:text-sm">
                   {booking.customer_name}
                 </div>
@@ -242,8 +249,11 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
               </div>
               {booking.customer_phone && (
                 <div>
-                  <div className="flex items-center gap-1 sm:gap-2 text-muted-foreground text-xs sm:text-sm">
-                    <Phone className="w-2 h-2 sm:w-3 sm:h-3" />
+                  <div className="text-[11px] leading-tight text-muted-foreground">
+                    {t('calPage.bookingDetail.customerSection.contactLabel', 'Contact')}
+                  </div>
+                  <div className="flex items-center gap-1 sm:gap-2 text-foreground text-xs sm:text-sm">
+                    <Phone className="w-2 h-2 sm:w-3 sm:h-3 text-muted-foreground" />
                     <span className="tabular-nums">{booking.customer_phone}</span>
                   </div>
                 </div>
