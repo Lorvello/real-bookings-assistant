@@ -90,6 +90,18 @@ export interface ToolContext {
   // pattern, replacing the older prompt-only "same service, multiple branches" rule that proved
   // flaky against the live model (0/6 to 20/20 silent defaults measured across two rounds).
   blockForAmbiguousBranch?: boolean;
+  // R76 (RENAME-HIJACK-CROSSTHIRDPARTY fix): server-detected, computed once per turn in index.ts,
+  // mirroring confirmRename exactly (same AFFIRM_RE/NEGATE_RE/ambiguousConfirm/15-minute-freshness
+  // pattern) but keyed off a NEW pending_rename_verification context marker instead of
+  // pending_rename. update_booking_name's PREVIEW phase stores that marker when it detects a
+  // cross-identity rename risk (2+ bookings under this phone, current name differs from the
+  // proposed new name) and refuses to proceed; only when the CUSTOMER'S OWN raw reply to THAT
+  // specific verification question is server-detected as a clean affirm does this flip true,
+  // letting the SAME preview call re-run and continue past the guard. Never set by the model
+  // itself (no args field for this), same reasoning as confirmBook/confirmCancel/confirmRename:
+  // a small model's own self-attestation about a safety question is not a safe transaction
+  // boundary, only a raw-message server classification is.
+  confirmRenameVerification?: boolean;
 }
 
 interface UpcomingBooking {
@@ -99,6 +111,9 @@ interface UpcomingBooking {
   service_type_id: string;
   calendar_id: string; // which of the owner's calendars this booking lives in (A2)
   service_types?: { name?: string } | null;
+  // R76: carried so update_booking_name's cross-identity guard can compare the target booking's
+  // OWN current name against other bookings' names under the same phone without a second query.
+  customer_name?: string | null;
 }
 
 // A2: resolve the calendar a booking/availability action targets, from the owner's allowlist.
@@ -142,10 +157,10 @@ async function resolveTarget(
   ctx: ToolContext,
   matchStart?: string,
   matchTime?: string,
-): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean }> {
+): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean; totalCandidates?: number }> {
   const { data } = await supabase
     .from("bookings")
-    .select("id, status, start_time, service_type_id, calendar_id, service_types(name)")
+    .select("id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name")
     .eq("customer_phone", ctx.phone)
     // A2: search the customer's bookings across the owner's WHOLE calendar allowlist, not just
     // the entry calendar, so "cancel/move my appointment" finds it wherever it lives. The action
@@ -156,7 +171,13 @@ async function resolveTarget(
     .order("start_time", { ascending: true })
     .limit(5);
   const list = ((data as UpcomingBooking[]) ?? []);
-  if (list.length === 0) return { none: true };
+  // R76 (RENAME-HIJACK-CROSSTHIRDPARTY): the raw candidate count BEFORE any hint-narrowing, so a
+  // caller can tell "only one booking exists at all" apart from "a hint narrowed several down to
+  // one" (update_booking_name's cross-identity guard needs exactly this distinction, see its own
+  // comment). Purely additive field; every existing caller (cancel/reschedule) ignores it, so
+  // their behaviour is byte-identical.
+  const totalCandidates = list.length;
+  if (list.length === 0) return { none: true, totalCandidates: 0 };
   // Normalise a customer-named clock time ("14:00", "14.00", "2 uur") to HH:MM.
   const wantTime = (() => {
     const m = String(matchTime ?? "").trim().match(/^(\d{1,2})[:.](\d{2})/);
@@ -188,12 +209,12 @@ async function resolveTarget(
       const wl = nlTimeOnly(matchStart!).slice(0, 5);
       apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wl);
     }
-    if (hits.length === 1) return { booking: hits[0] };
-    if (hits.length > 1) return { ambiguous: hits };
+    if (hits.length === 1) return { booking: hits[0], totalCandidates };
+    if (hits.length > 1) return { ambiguous: hits, totalCandidates };
     // no hint matched anything -> fall through to the generic single/ambiguous handling
   }
-  if (list.length === 1) return { booking: list[0] };
-  return { ambiguous: list };
+  if (list.length === 1) return { booking: list[0], totalCandidates };
+  return { ambiguous: list, totalCandidates };
 }
 
 // --- get_business_data formatting helpers -------------------------------------
@@ -870,6 +891,7 @@ export function createTools(
       description:
         "Wijzigt ALLEEN de naam op een BESTAANDE, al bevestigde afspraak van deze klant (bv. verkeerd gespeld, of per ongeluk onder iemand anders' naam geboekt). GEEN nieuwe boeking, GEEN dag/tijd/dienst-wijziging (gebruik daarvoor reschedule_appointment). Twee stappen, zoals annuleren: " +
         "STAP 1 (preview): roep aan met new_name = de nieuwe naam die de klant noemt. De tool wijzigt NIETS en geeft 'needs_confirmation' terug met de HUIDIGE naam + de voorgestelde nieuwe naam; lees dat kort terug en vraag of het klopt. Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' terug; geef bij de volgende aanroep match_time = de kloktijd van de bedoelde afspraak mee. " +
+        "Staan er MEERDERE afspraken onder dit nummer EN wijkt de huidige naam op de gevonden afspraak echt af van de nieuwe naam? Dan geeft de tool 'naam_verificatie_nodig' terug: vraag de klant EXPLICIET of precies DIE afspraak (met de genoemde huidige naam) hernoemd moet worden, en wacht op het antwoord; roep GEEN tool aan in diezelfde beurt. Het systeem herkent zelf of het volgende bericht van de klant dit bevestigt. " +
         "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan met confirmed:true + only_confirming_previous. only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG ander signaal bevat. Twijfel je: false.",
       parameters: {
         type: "object",
@@ -1358,7 +1380,20 @@ export function createTools(
         // corrected name), not the stale pendingBook name, so the re-preview reflects the
         // correction the customer just stated.
         const rawName = String(((committing) ? pendingBook!.customer_name : args.customer_name) ?? "").trim();
-        const nameMissing = rawName === "" || rawName.toLowerCase() === "privé" || rawName.toLowerCase() === "prive";
+        // R76 (BOOKAPPT-NAME-GATE-MISSING, sev-2, PREEMPT): identical junk-placeholder bug R75
+        // fixed in update_lead (a value like "?"/"???" -- non-empty, not "Privé", but containing
+        // NO letters at all -- satisfying a schema-required string field the small model fills
+        // with SOMETHING rather than skip the call) lived unfixed in THIS sibling gate. Live-
+        // reproduced: a fresh phone produced an ACTUAL CONFIRMED BOOKING ROW with
+        // customer_name = "???" (R75-verify's independent repro landed a different instance,
+        // id c47eca22; this round's own repro landed c526c123). R75's fix only ever touched the
+        // whatsapp_contacts.first_name write in update_lead; it never reached this tool's own
+        // gate, so real booking rows kept corrupting. Same bar, same helper: a real name needs at
+        // least one Unicode letter; punctuation/digits-only counts as missing, same as an empty
+        // string, and falls through to the SAME "naam_ontbreekt" ask-again path below (no new
+        // behaviour branch, just a wider missing-name definition).
+        const looksLikeName = (n: string) => /\p{L}/u.test(n);
+        const nameMissing = rawName === "" || rawName.toLowerCase() === "privé" || rawName.toLowerCase() === "prive" || !looksLikeName(rawName);
         const refused = nameMissing && bookCtx.name_refused === true;
         if (nameMissing && !refused) {
           return {
@@ -2091,38 +2126,183 @@ export function createTools(
         }
 
         // PREVIEW phase (default; also where a stray confirmed:true WITHOUT a preview lands).
-        const newNameRaw = String(args.new_name ?? "").trim();
+        // R76: when the customer's OWN raw reply to OUR verification question was just
+        // server-detected as a clean affirm (ctx.confirmRenameVerification), resolve the target
+        // and new_name from the STORED pending_rename_verification marker rather than re-running
+        // resolveTarget()/reading args.new_name fresh. A bare "ja"/"klopt" reply carries no
+        // date/time hint at all, so a fresh resolveTarget() call would (correctly, on its own
+        // narrow terms) find the SAME 2+ bookings ambiguous again and loop forever asking a
+        // question the customer just answered. The marker already pins the EXACT booking_id +
+        // new_name this verification question was about, so reusing it here is safe (it was
+        // itself only ever stored after resolveTarget found this one specific target) and is
+        // the only way this confirm turn can ever complete without the model resupplying a
+        // date/time hint it has no reason to repeat.
+        const pendingVerification = renameCtx.pending_rename_verification as
+          { booking_id?: string; current_name?: string | null; new_name?: string; start_time?: string; at?: number } | undefined;
+        // R76 hardening: if the model's OWN args.new_name this turn is present AND differs from
+        // what the verification marker stored, treat this as the customer stating a CORRECTION
+        // alongside their reply (e.g. "ja klopt, maar dan Karim de Vries"), never silently keep
+        // the stale marker's name. Only trust the marker's stored new_name when args.new_name is
+        // either absent or matches it exactly (the expected shape of a bare "ja"/"klopt" reply,
+        // which carries no name at all). Without this a customer correcting the name IN THE SAME
+        // breath as confirming could have the WRONG (earlier-proposed) name silently committed.
+        const argsNewNameRaw = String(args.new_name ?? "").trim();
+        const verificationNewNameMatches = !argsNewNameRaw ||
+          argsNewNameRaw.toLowerCase() === String(pendingVerification?.new_name ?? "").trim().toLowerCase();
+        const usingVerifiedTarget = ctx.confirmRenameVerification === true && !!pendingVerification?.booking_id && verificationNewNameMatches;
+        const newNameRaw = usingVerifiedTarget
+          ? String(pendingVerification!.new_name ?? "").trim()
+          : String(args.new_name ?? "").trim();
         if (!isRealName(newNameRaw)) {
           return { error: "naam_ontbreekt", message: "Welke naam moet er op de afspraak komen te staan?" };
         }
-        const renameMatchTime = args.match_time
-          ? String(args.match_time)
-          : (!args.match_start_time ? extractClockTimes(ctx.userMessage ?? "")[0] : undefined);
-        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, renameMatchTime);
-        if (target.none) {
-          return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om de naam op te wijzigen." };
+        let b: UpcomingBooking;
+        // totalCandidatesNow: how many upcoming bookings this phone holds, for the cross-identity
+        // guard below. When usingVerifiedTarget, this turn never calls resolveTarget() (see above),
+        // so there is no fresh count to read; the multi-booking fact was already established the
+        // FIRST time this exact marker was created (a marker is only ever written when
+        // totalCandidates was >= 2, see the guard below), so it is safe to carry that fact forward
+        // to this immediate confirm turn as a fixed 2 (never compared against anything but ">= 2").
+        let totalCandidatesNow: number | undefined;
+        if (usingVerifiedTarget) {
+          const { data: verifiedRow } = await supabase
+            .from("bookings")
+            .select("id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name")
+            .eq("id", pendingVerification!.booking_id!)
+            .maybeSingle();
+          const vb = verifiedRow as UpcomingBooking | null;
+          const vbStatus = (verifiedRow as { status?: string } | null)?.status;
+          if (
+            !vb || vb.customer_name?.trim().toLowerCase() !== (pendingVerification!.current_name ?? "").trim().toLowerCase() ||
+            !vbStatus || !["confirmed", "pending"].includes(vbStatus)
+          ) {
+            // Race/staleness: the booking vanished, was cancelled, or its name changed since the
+            // verification question was asked (a concurrent turn beat this one). Refuse to guess;
+            // clear the stale marker and make the model re-establish the target from scratch.
+            if (ctx.conversationId) {
+              const { pending_rename_verification: _dropStale, ...restStale } = renameCtx;
+              await supabase.from("whatsapp_conversations").update({ context: restStale }).eq("id", ctx.conversationId);
+            }
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
+          b = vb;
+          totalCandidatesNow = 2;
+        } else {
+          const renameMatchTime = args.match_time
+            ? String(args.match_time)
+            : (!args.match_start_time ? extractClockTimes(ctx.userMessage ?? "")[0] : undefined);
+          const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, renameMatchTime);
+          if (target.none) {
+            return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om de naam op te wijzigen." };
+          }
+          if (target.ambiguous) {
+            return {
+              error: "meerdere_afspraken",
+              message: "Je hebt meerdere aankomende afspraken staan.",
+              guidance: "Vraag kort welke van deze afspraken de klant de naam op wil wijzigen.",
+              appointments: target.ambiguous.map((bb) => ({ service: bb.service_types?.name ?? null, when: nlWhen(bb.start_time), start_time: bb.start_time })),
+            };
+          }
+          b = target.booking!;
+          totalCandidatesNow = target.totalCandidates;
         }
-        if (target.ambiguous) {
-          return {
-            error: "meerdere_afspraken",
-            message: "Je hebt meerdere aankomende afspraken staan.",
-            guidance: "Vraag kort welke van deze afspraken de klant de naam op wil wijzigen.",
-            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
-          };
-        }
-        const b = target.booking!;
         const { data: currentRow } = await supabase.from("bookings").select("customer_name").eq("id", b.id).maybeSingle();
         const currentName = (currentRow as { customer_name?: string } | null)?.customer_name ?? null;
         if (currentName && currentName.trim().toLowerCase() === newNameRaw.toLowerCase()) {
           // No-op: already that name. Friendly short-circuit, no DB write, no pending marker.
           return { ok: true, no_change: true, message: `De afspraak staat al onder de naam ${currentName}.` };
         }
+        // R76 (RENAME-HIJACK-CROSSTHIRDPARTY, sev-2, PREEMPT): deterministic, code-level guard,
+        // NOT a prompt nudge (this bug class has repeatedly proven prompt-only steering
+        // unreliable against the small model, see OWNERESCALATION-VERBLIST-BRITTLE/AFFIRM-CONFIRM
+        // history). Live-reproduced this round: a customer who booked for a third party ("Willem"),
+        // then asked for a SEPARATE booking for themselves while explicitly saying "do NOT change
+        // that [Willem] appointment", still got update_booking_name called AGAINST Willem's own
+        // real confirmed booking, previewing (and, in an isolated trial, actually COMMITTING) a
+        // rename to the customer's own name. This silently destroyed the correct attendee identity,
+        // exactly matching R75-verify's own repro. The model's own judgment about "which booking
+        // did the customer mean" (and, this round's own extended testing found, its judgment about
+        // whether the customer even WANTS a rename at all, mentioning the current holder's name
+        // is NOT the same thing as asking to change it, see below) is not a safe transaction
+        // boundary here, same lesson as the book/cancel commit gates. This makes the guarantee
+        // structural instead:
+        //
+        // A rename request is CROSS-IDENTITY RISK (must refuse the PREVIEW itself, every time,
+        // and force one extra explicit round-trip) when BOTH of:
+        //   1. totalCandidates >= 2: the phone genuinely holds MULTIPLE upcoming bookings (the
+        //      exact multi-attendee/multi-booking shape this bug needs; a customer with only ONE
+        //      booking on file can never hit this branch, so the single-booking self-rename case,
+        //      the common case, stays completely friction-free, matching the round's MUST STILL
+        //      WORK requirement).
+        //   2. currentName is a REAL, distinct name (not empty/"Privé") that is DIFFERENT from
+        //      newNameRaw (a genuine identity change, not a spelling correction of the same person
+        //      confirming their own booking already under a placeholder).
+        // Deliberately does NOT carve out "the customer already mentioned the current name" as
+        // safe: this round's own live testing proved that carve-out UNSAFE (the customer can name
+        // the current holder, e.g. "that is Willem's appointment", in the very same breath as
+        // explicitly saying NOT to touch it; mentioning a name is not the same fact as requesting a
+        // rename of that name, and the model cannot be trusted to tell the two apart reliably any
+        // more than it can be trusted on the book/cancel commit question). So instead of trying to
+        // read INTENT out of the triggering message (unbounded natural language, the exact trap
+        // R23-R32's ambiguousConfirm/hardConfirm history already teaches us not to reach for),
+        // this ALWAYS inserts one extra, cheap, deterministic verification turn that names the
+        // CURRENT holder explicitly and requires the customer's OWN reply to affirm it, mirroring
+        // resolveBookingCalendar/serviceDisambiguationGuard's "refuse to guess, ask" pattern: never
+        // silently proceed on an inference, ask a question whose answer removes the ambiguity by
+        // construction. Because this only fires when totalCandidates>=2 AND a real cross-identity
+        // change is proposed, a customer with one booking, or a same-person spelling correction
+        // (Willem's own booking, "Willem" -> "Willem Bakker"), never sees this extra turn: normal
+        // single-booking self-rename stays exactly as smooth as before this fix.
+        const isDifferentRealName = isRealName(currentName) && currentName!.trim().toLowerCase() !== newNameRaw.toLowerCase();
+        const crossIdentityRisk = (totalCandidatesNow ?? 0) >= 2 && isDifferentRealName;
+        // ctx.confirmRenameVerification: SERVER-detected (index.ts, mirrors confirmRename exactly:
+        // a fresh pending_rename_verification marker + AFFIRM_RE + !NEGATE_RE + !ambiguousConfirm),
+        // NOT a model-supplied arg. First attempt at this guard (see round evidence) tried a new
+        // model-supplied boolean (confirmed_current_name_matches) the small model had to set
+        // itself; live testing found it unreliable (the model kept re-asking the verification
+        // question instead of ever passing the flag, exactly the "small model can't reliably
+        // self-issue a structural attestation" gap R22-R40's server-forced confirmBook/confirmCancel/
+        // confirmRename signals already exist to close). Rebuilt to follow that SAME established
+        // pattern instead: this branch stores its own pending marker below when it refuses, and
+        // the NEXT turn's deterministic server signal (computed BEFORE the model ever runs, from
+        // the raw customer reply to OUR OWN verification question) is what's allowed to release it,
+        // never the model's own judgement about what it just heard.
+        if (crossIdentityRisk && ctx.confirmRenameVerification !== true) {
+          const verifyAt = Date.now();
+          if (ctx.conversationId) {
+            await supabase
+              .from("whatsapp_conversations")
+              .update({ context: { ...renameCtx, pending_rename_verification: { booking_id: b.id, current_name: currentName, new_name: newNameRaw, start_time: b.start_time, at: verifyAt } } })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: currentName,
+            message:
+              `Er staan meerdere afspraken onder dit nummer. De afspraak die ik vond staat op naam van ${currentName}. ` +
+              `Vraag de klant EXPLICIET te bevestigen dat de afspraak van ${currentName} (dienst ${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) ` +
+              `echt hernoemd moet worden naar "${newNameRaw}", en niet een andere afspraak of persoon bedoeld is. ` +
+              "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
+              "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: wijzig niets en vraag om verduidelijking.",
+            guidance: "NIETS gewijzigd. Veiligheidscheck: meerdere afspraken op dit nummer, dit zou een ANDERE persoon se afspraak hernoemen. Stel de vraag en wacht op het antwoord.",
+          };
+        }
+        // Past the cross-identity guard (either it never applied, or the customer's own prior-turn
+        // reply just cleared it via ctx.confirmRenameVerification): always strip any leftover
+        // pending_rename_verification from the base context object before storing the real
+        // pending_rename below, so a stale verification marker from THIS or an earlier attempt can
+        // never leak into (and confuse) a later, unrelated rename in this same conversation.
+        const { pending_rename_verification: _dropV, ...renameCtxClean } = renameCtx;
         const renamePreviewAt = Date.now();
         lastSelfWrittenRenameAt = renamePreviewAt;
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...renameCtx, pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt } } })
+            .update({ context: { ...renameCtxClean, pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt } } })
             .eq("id", ctx.conversationId);
         }
         return {

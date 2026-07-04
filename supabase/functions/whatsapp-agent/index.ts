@@ -1025,6 +1025,20 @@ Deno.serve(async (req) => {
     const pendingRenameFresh = !!pr && (typeof pr.at !== "number" || (Date.now() - pr.at) < 15 * 60 * 1000);
     const confirmRename = pendingRenameFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
 
+    // R76 (RENAME-HIJACK-CROSSTHIRDPARTY fix): SAME deterministic server-detection pattern as
+    // confirmRename directly above, keyed off a SEPARATE pending_rename_verification marker
+    // update_booking_name's own cross-identity guard writes (tools.ts). Kept as its own marker
+    // (not reusing pending_rename) because the two answer DIFFERENT questions: pending_rename asks
+    // "do you confirm this exact rename", pending_rename_verification asks "is this really the
+    // booking/person you meant" (a customer could in principle be mid-flow on one while a stale
+    // instance of the other still lingers, and conflating them would let an affirm meant for one
+    // question silently release the other). ambiguousConfirm is still ANDed in (same false-positive
+    // protection: a day/time-shift, price question, trailing "?", or hedge word never counts as a
+    // clean affirm here either, exact same reasoning as every sibling confirm* signal in this file).
+    const prv = convContext.pending_rename_verification as { at?: number } | undefined;
+    const pendingRenameVerificationFresh = !!prv && (typeof prv.at !== "number" || (Date.now() - prv.at) < 15 * 60 * 1000);
+    const confirmRenameVerification = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
     // proposal, NO insert), so an accidental immediate booking is impossible and the customer
@@ -1271,7 +1285,7 @@ Deno.serve(async (req) => {
     // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
     // confirmStall retry runAgent call below) now tracks its own preview writes internally and
     // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
