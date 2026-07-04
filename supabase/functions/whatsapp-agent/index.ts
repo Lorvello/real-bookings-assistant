@@ -616,17 +616,65 @@ Deno.serve(async (req) => {
     // more than 40 total rows in a conversation with interleaved outbound messages) are not a
     // strict subset of this 12-row fetch, and changing them risks silently weakening R71/R72's
     // guard behavior, which this round must not touch.
-    let sharedMsgsDesc: Array<{ direction: string; content: string | null; created_at: string }> = [];
+    let sharedMsgsDesc: Array<{ direction: string; content: string | null; created_at: string; meta_timestamp: string | null }> = [];
     if (conversationId) {
       const { data: msgs } = await supabase
         .from("whatsapp_messages")
-        .select("direction, content, created_at")
+        .select("direction, content, created_at, meta_timestamp")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: false })
         .limit(12);
-      sharedMsgsDesc = (msgs as Array<{ direction: string; content: string | null; created_at: string }>) ?? [];
+      sharedMsgsDesc = (msgs as Array<{ direction: string; content: string | null; created_at: string; meta_timestamp: string | null }>) ?? [];
     }
-    const history: Array<{ direction: string; content: string | null }> = sharedMsgsDesc.slice().reverse();
+    // IUX R100 (F-R79-2 fix): sharedMsgsDesc is fetched in created_at (DB insert) order, which
+    // is what a flaky connection or two fast customer messages can scramble relative to the
+    // customer's true send order (Meta's own message.timestamp, now persisted as
+    // meta_timestamp). Detect true out-of-order arrival: walking oldest-to-newest by created_at,
+    // if any inbound row's own meta_timestamp is EARLIER than the meta_timestamp of the row
+    // immediately before it, that row was actually sent earlier than it was inserted, a clear
+    // out-of-order signal. When that happens (and only then), re-sort this small window by
+    // meta_timestamp (rows with no meta_timestamp keep their created_at position via a stable
+    // sort key equal to their own created_at) so the LLM sees the customer's true intended
+    // order instead of DB-arrival order. In the overwhelming common case (in-order delivery, or
+    // rows predating this fix with meta_timestamp NULL) no divergence is found and the order is
+    // byte-identical to before this change.
+    const ascByCreatedAt = sharedMsgsDesc.slice().reverse();
+    // Walk oldest-to-newest by created_at, tracking the LAST KNOWN meta_timestamp seen so far
+    // (skipping rows with no meta_timestamp, e.g. outbound rows or rows predating this fix,
+    // rather than only comparing strictly-adjacent rows). This correctly catches an out-of-order
+    // inbound row even when an outbound row without a meta_timestamp sits between it and the
+    // last real inbound timestamp in created_at order (the exact live shape: msg2 inbound, then
+    // an outbound reply with no meta_timestamp, then msg1 inbound arriving out of true order).
+    let outOfOrderDetected = false;
+    let lastKnownTs: number | null = null;
+    for (const row of ascByCreatedAt) {
+      if (!row.meta_timestamp) continue;
+      const curTs = new Date(row.meta_timestamp).getTime();
+      if (lastKnownTs !== null && curTs < lastKnownTs) {
+        outOfOrderDetected = true;
+        break;
+      }
+      lastKnownTs = curTs;
+    }
+    // IMPORTANT: re-sort ONLY the ORDER of this already-fixed 12-row set, never change WHICH
+    // rows are in it. An earlier version of this fix re-sorted THEN sliced the last N rows,
+    // which could let a row with a stale meta_timestamp (e.g. the CURRENT turn's own
+    // just-inserted message, delayed in true send-time but newest by created_at) sort to the
+    // front and fall OUT of a trailing slice, silently evicting it from the window, a strictly
+    // worse regression than the bug this fix targets. Sorting in place on the fixed-size array
+    // (same 12 elements, same downstream .slice(-6) origin below) guarantees the row-SET is
+    // always identical to pre-fix behavior; only the sequence within it can change.
+    const sharedMsgsAsc = outOfOrderDetected
+      ? ascByCreatedAt.slice().sort((a, b) => {
+        const aKey = new Date(a.meta_timestamp ?? a.created_at).getTime();
+        const bKey = new Date(b.meta_timestamp ?? b.created_at).getTime();
+        return aKey - bKey;
+      })
+      : ascByCreatedAt;
+    if (outOfOrderDetected) {
+      console.log(`R100 out-of-order arrival detected (conversation ${conversationId}), re-sorted window by meta_timestamp.`);
+    }
+    const history: Array<{ direction: string; content: string | null }> = sharedMsgsAsc;
 
     // R71 (R70-3 fix): compute once per turn whether the customer has EVER named a specific
     // service or a specific calendar/branch, ANYWHERE in this conversation, + this turn's
@@ -695,7 +743,6 @@ Deno.serve(async (req) => {
     // never inferred or defaulted.
     let recentMessages: RecencyWindowMessage[] = [{ direction: "inbound", content: String(message ?? "") }];
     if (conversationId) {
-      const rows = sharedMsgsDesc.slice(0, 6);
       // R97 (DOUBLE-COUNTED-CURRENT-MESSAGE fix): process_whatsapp_message (the real webhook path,
       // and this loop's own RPC-then-invoke testpad pattern) INSERTS the current turn's inbound row
       // BEFORE invoking this function, so the newest row this window already IS the current
@@ -707,15 +754,45 @@ Deno.serve(async (req) => {
       // fetch in that case. Handle both correctly without guessing which path produced this call:
       // only append the current message when the window's own newest row is not ALREADY that same
       // inbound text (textual identity, not array-position, so it is correct regardless of which
-      // call pattern produced this request).
-      const newest = rows[0];
-      const newestIsCurrentInbound = !!newest && newest.direction === "inbound" && (newest.content ?? "") === String(message ?? "");
-      const priorMessages: RecencyWindowMessage[] = rows
-        .map((m) => ({
-          direction: (m.direction === "inbound" ? "inbound" : "outbound") as RecencyWindowDirection,
-          content: m.content ?? "",
-        }))
-        .reverse();
+      // call pattern produced this request). "Newest" here is always by created_at (raw
+      // sharedMsgsDesc), never by the R100 meta_timestamp re-sort below: the current message was
+      // JUST inserted, so it is always the true latest INSERT regardless of its own send-time.
+      const newestByCreatedAt = sharedMsgsDesc[0];
+      const newestIsCurrentInbound = !!newestByCreatedAt && newestByCreatedAt.direction === "inbound" && (newestByCreatedAt.content ?? "") === String(message ?? "");
+      // IUX R100 (F-R79-2 fix): select the SAME 6-row SET the pre-fix code selected (the 6
+      // newest by created_at, i.e. ascByCreatedAt's own last 6, byte-identical to the old
+      // sharedMsgsDesc.slice(0,6) selection), THEN re-sort only WITHIN that fixed subset by
+      // meta_timestamp when a divergence exists inside it specifically. Deliberately does NOT
+      // reuse sharedMsgsAsc's own global re-sort-then-slice: re-sorting the full 12-row set
+      // before slicing the last 6 could push a row with a stale meta_timestamp (e.g. the
+      // CURRENT turn's own just-inserted message, delayed in true send-time but newest by
+      // created_at) out of the trailing window entirely, silently evicting it, a worse
+      // regression than the bug this fix targets. Selecting the set by created_at first and
+      // reordering second guarantees the row-SET is always identical to pre-fix behavior; only
+      // the sequence within it can change.
+      const rowsByCreatedAt = ascByCreatedAt.slice(-6);
+      let windowOutOfOrder = false;
+      let windowLastKnownTs: number | null = null;
+      for (const row of rowsByCreatedAt) {
+        if (!row.meta_timestamp) continue;
+        const curTs = new Date(row.meta_timestamp).getTime();
+        if (windowLastKnownTs !== null && curTs < windowLastKnownTs) {
+          windowOutOfOrder = true;
+          break;
+        }
+        windowLastKnownTs = curTs;
+      }
+      const rowsAsc = windowOutOfOrder
+        ? rowsByCreatedAt.slice().sort((a, b) => {
+          const aKey = new Date(a.meta_timestamp ?? a.created_at).getTime();
+          const bKey = new Date(b.meta_timestamp ?? b.created_at).getTime();
+          return aKey - bKey;
+        })
+        : rowsByCreatedAt;
+      const priorMessages: RecencyWindowMessage[] = rowsAsc.map((m) => ({
+        direction: (m.direction === "inbound" ? "inbound" : "outbound") as RecencyWindowDirection,
+        content: m.content ?? "",
+      }));
       recentMessages = newestIsCurrentInbound
         ? priorMessages
         : [...priorMessages, { direction: "inbound", content: String(message ?? "") }];

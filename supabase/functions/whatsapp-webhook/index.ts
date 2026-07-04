@@ -357,6 +357,18 @@ serve(async (req) => {
             const message = messages[0];
             const contact = contacts[0];
             const messageText = message.text?.body || '';
+            // IUX R100 (F-R79-2 fix): Meta sends the customer's TRUE send time as
+            // message.timestamp (unix seconds, string). Previously read nowhere and
+            // discarded, history was ordered purely by DB insert time, so an
+            // out-of-order-delivered message (flaky connection, or two fast customer
+            // messages arriving reversed) could not be distinguished from a normal one.
+            // Parsed defensively: an absent/non-numeric value yields null, never throws,
+            // and process_whatsapp_message's new param defaults to NULL either way.
+            const metaTimestampRaw = message.timestamp;
+            const metaTimestampSeconds = metaTimestampRaw != null ? Number(metaTimestampRaw) : NaN;
+            const messageTimestampIso = Number.isFinite(metaTimestampSeconds)
+              ? new Date(metaTimestampSeconds * 1000).toISOString()
+              : null;
 
             // 1. Resolve owner user_id + calendar_id: via tracking-code, anders via bestaande conversatie
             let ownerId: string | null = null;
@@ -458,6 +470,7 @@ serve(async (req) => {
                 p_message_id: message.id,
                 p_message_content: messageText,
                 p_calendar_id: calendarId,
+                p_message_timestamp: messageTimestampIso,
               });
               if (pwmErr) console.error('process_whatsapp_message faalde:', pwmErr);
               else if ((pwmData as { success?: boolean } | null)?.success === false)
