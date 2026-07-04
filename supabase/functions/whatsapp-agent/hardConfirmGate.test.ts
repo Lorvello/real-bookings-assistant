@@ -393,3 +393,46 @@ Deno.test("R81 ADVERSARIAL: extra content beyond the new bare-clause-plus-cancel
     assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none (extra/unrelated content)`);
   }
 });
+
+// ── 12. R84: STRUCTURAL fix, shared BASE_AFFIRM_WORDS closes the whole drift class ──────────────
+// R74 found the cancel-side gap while fixing booking; R78 fixed 12 phrasings but left "ok/oke/okay"
+// missing from CANCEL_PREFIX_AFFIRM; R81 fixed those but its verifier found "prima/top/correct/
+// inderdaad/perfect" were ALSO already trusted standalone elsewhere in this file yet never
+// propagated to CANCEL_PREFIX_AFFIRM. R84 replaces the two independently-typed-out word lists with
+// one shared BASE_AFFIRM_WORDS array that both PREFIX_AFFIRM and CANCEL_PREFIX_AFFIRM build from.
+// This test enumerates EVERY word in BASE_AFFIRM_WORDS (the full closed set both sides now share)
+// and proves each one hard-confirms a cancel via "<word>, annuleer maar", closing the whole class
+// by construction rather than re-patching the 5 already-named instances only.
+Deno.test("R84 STRUCTURAL: every BASE_AFFIRM_WORDS member now hard-confirms a cancel (whole class, not just the 5 known-missing)", () => {
+  const baseAffirmWords = [
+    "ja", "jaa", "yes", "yeah", "yep", "klopt", "ok", "oke", "oké", "okay", "akkoord", "zeker",
+    "sure", "prima", "top", "correct", "inderdaad", "perfect",
+  ];
+  for (const w of baseAffirmWords) {
+    const msg = `${w}, annuleer maar`;
+    assertEquals(classifyHardConfirm(msg), "confirm", `expected "${msg}" to hard-confirm (shared-base word "${w}")`);
+  }
+});
+Deno.test("R84 STRUCTURAL: the 3 verifier-named previously-missing words (prima/top/correct/inderdaad/perfect) now hard-confirm cancel", () => {
+  const previouslyMissing = ["prima", "top", "correct", "inderdaad", "perfect"];
+  for (const w of previouslyMissing) {
+    assertEquals(classifyHardConfirm(`${w}, annuleer maar`), "confirm", `expected "${w}" to now hard-confirm cancel`);
+    assertEquals(classifyHardConfirm(`${w}, cancel it`), "confirm", `expected "${w}" (EN verb) to now hard-confirm cancel`);
+  }
+});
+Deno.test("R84 STRUCTURAL: booking-side prefix chain (affirm + correctness clause) unaffected by the shared-base refactor", () => {
+  // PREFIX_AFFIRM's alternation string changed (now built from BASE_AFFIRM_WORDS) but must remain a
+  // strict superset of its pre-R84 members, so every pre-existing booking-confirm phrasing still works.
+  assertEquals(classifyHardConfirm("Yes that's correct, thanks"), "confirm");
+  assertEquals(classifyHardConfirm("Ja, dat klopt"), "confirm");
+});
+Deno.test("R84 ADVERSARIAL: extra content after a shared-base word plus cancel verb still stays none", () => {
+  const mustStayNone = [
+    "Prima, annuleer maar, maar ik twijfel nog",
+    "Top, annuleer maar, tenzij het gratis is",
+    "Correct, boek maar", // wrong verb entirely (booking verb, not cancel), must not cross-fire
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none`);
+  }
+});

@@ -141,30 +141,42 @@ const CANCEL_VERB =
 // the anchor and correctly falls through to "none" (safe fallback to the existing layers), never a
 // false match; see hardConfirmGate.test.ts for the adversarial regression test proving this.
 const CONFIRM_WORD = "(?:ja|jaa|klopt|ok|oke|oké|okay|prima|akkoord|correct|yes|yep|sure)";
-// R74 (CONFIRM-TURN-CONTEXT-LOSS): a bare affirm word ("ja"/"yes") FOLLOWED BY a "that's
-// correct"-family clause is a genuinely common, unambiguous confirm shape distinct from either
-// CONFIRM_WORD-alone (a single bare token) or the existing "confirm-word + pleasantry" skeletons
-// (those never covered "affirm-word + a full correctness clause"). Live-reproduced this round:
-// "Yes that's correct, thanks" classified "none" and stalled the confirm turn (evidence/IUX_r74.md
-// section 4, trial 2). CORRECTNESS_CLAUSE is a small, closed, hand-picked alternation of the
-// natural NL/EN ways to say "that is correct", never a free-form wildcard; PREFIX_AFFIRM is
-// restricted to the same closed bare-word set already trusted standalone elsewhere in this file.
-// Anchored ^...$ like every other entry, so any extra content beyond this fixed skeleton (a
-// correction, hedge, question, etc.) still falls through to "none", proven by the adversarial
-// tests in hardConfirmGate.test.ts section 9.
-const PREFIX_AFFIRM = "(?:ja|jaa|yes|yeah|yep|klopt|ok|oke|oké|okay)";
-// R78 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE fix): widened to include "zeker" ("Zeker, annuleer het"
-// live-reproduced, evidence/IUX_r78.md trial 7), a genuinely common standalone-confirm affirm word.
-// Kept as a SEPARATE constant from PREFIX_AFFIRM (not merged into it) since this round's live
-// evidence only covers "zeker"/"sure" in the cancel-confirm shape, following this file's own
-// discipline of only widening a set as far as live/static evidence actually supports.
-// R81 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing gap 1): bare "ok"/"oke"/"okay" was missing here
-// even though all three spellings are already trusted standalone elsewhere in this same file
-// (HARD_CONFIRM_EXACT, PREFIX_AFFIRM, CONFIRM_WORD, and even inside CANCEL_INTERJECTION as an
-// interjection slot, just never as the LEAD affirm word for a cancel). Live-reproduced gap
-// (evidence/IUX_r81.md section 3): "Ok, cancel that" / "Oke, cancel it" / "Okay, cancel it" all
-// stalled. Added for consistency with the rest of the file's spelling set, same closed alternation.
-const CANCEL_PREFIX_AFFIRM = "(?:ja|jaa|yes|yeah|yep|klopt|akkoord|zeker|sure|ok|oke|oké|okay)";
+// R84 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, STRUCTURAL fix, closing round): R74/R78/R81 each found a
+// "word X is already trusted as a standalone confirm elsewhere in this file but was never
+// propagated to the cancel-confirm prefix set" gap, three rounds running (zeker/sure in R78, then
+// ok/oke/okay in R81, then prima/top/correct/inderdaad/perfect found live by R81-verify). Root
+// cause: PREFIX_AFFIRM (booking-side prefix) and CANCEL_PREFIX_AFFIRM (cancel-side prefix) were
+// maintained as TWO SEPARATE, independently-typed-out word alternations, so a word trusted on one
+// side was never automatically trusted on the other. STRUCTURAL FIX: a single shared base array,
+// BASE_AFFIRM_WORDS, holds every bare word already trusted as a standalone confirm anywhere in
+// this file (the union of the pre-R84 PREFIX_AFFIRM + CANCEL_PREFIX_AFFIRM content, plus the
+// single-word HARD_CONFIRM_EXACT/CONFIRM_WORD members this round's verifier flagged as
+// still-missing). Both PREFIX_AFFIRM and CANCEL_PREFIX_AFFIRM now BUILD FROM this one array
+// (spread + join) instead of typing out their own alternation, so any word added to the shared
+// base is automatically trusted as a lead-in for BOTH a booking-confirm AND a cancel-confirm, by
+// construction, with no manual propagation step left to ever forget. Two small, explicit (today
+// EMPTY) extension arrays, PREFIX_AFFIRM_EXTRA / CANCEL_PREFIX_AFFIRM_EXTRA, preserve the ability
+// to add a genuinely ONE-SIDED word later (a word safe as a booking lead-in but not yet evidenced
+// for cancel, or vice versa) without smuggling it into the shared base and silently granting it to
+// the other side too; every word this file trusted before R84 turned out to belong in the shared
+// base, so both extension arrays start empty. This is purely a maintenance/derivation change: the
+// resulting PREFIX_AFFIRM and CANCEL_PREFIX_AFFIRM alternation strings are supersets of their
+// pre-R84 values (every pre-existing member preserved), so no existing accepted phrasing regresses.
+const BASE_AFFIRM_WORDS = [
+  "ja", "jaa", "yes", "yeah", "yep", "klopt", "ok", "oke", "oké", "okay", "akkoord", "zeker", "sure",
+  "prima", "top", "correct", "inderdaad", "perfect",
+] as const;
+// Booking-only extra words (beyond the shared base), for a future word evidenced as safe for
+// booking-confirm but NOT yet for cancel-confirm. Empty today: every pre-R84 PREFIX_AFFIRM member
+// is already in BASE_AFFIRM_WORDS.
+const PREFIX_AFFIRM_EXTRA: readonly string[] = [];
+// Cancel-only extra words (beyond the shared base), for a future word evidenced as safe for
+// cancel-confirm but NOT yet for booking-confirm. Empty today: "zeker"/"sure" (R78) and
+// "ok"/"oke"/"okay" (R81) turned out to be safe on both sides, so they now live in the shared base
+// instead of here.
+const CANCEL_PREFIX_AFFIRM_EXTRA: readonly string[] = [];
+const PREFIX_AFFIRM = `(?:${[...BASE_AFFIRM_WORDS, ...PREFIX_AFFIRM_EXTRA].join("|")})`;
+const CANCEL_PREFIX_AFFIRM = `(?:${[...BASE_AFFIRM_WORDS, ...CANCEL_PREFIX_AFFIRM_EXTRA].join("|")})`;
 // A tiny, closed, optional interjection slot ("Ja hoor", "Yeah okay") that can sit between the
 // affirm word and the cancel verb in genuinely common casual Dutch/English. Fixed alternation only,
 // never a wildcard; live-reproduced gap: "Ja hoor, annuleer maar" (evidence/IUX_r78.md trial 2).
