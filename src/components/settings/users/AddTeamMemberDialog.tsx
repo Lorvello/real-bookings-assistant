@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserPlus } from 'lucide-react';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,8 @@ interface CalendarOption {
   name: string;
   is_default?: boolean;
 }
+
+const inviteEmailSchema = z.string().trim().email();
 
 interface AddTeamMemberDialogProps {
   open: boolean;
@@ -67,6 +70,22 @@ export function AddTeamMemberDialog({
   const resolvedCalendarId =
     calendarId || (calendars.find((c) => c.is_default) || calendars[0])?.id || '';
 
+  // Client-side email-format check so a mistyped address is caught before it ever
+  // reaches the invite edge function; without this, a bad address surfaced a raw
+  // provider error ("Failed to send email: Invalid `to` field...") straight to the
+  // owner. Only shown once the field has been touched, so it never flashes on open.
+  const [emailTouched, setEmailTouched] = useState(false);
+  useEffect(() => {
+    if (!open) setEmailTouched(false);
+  }, [open]);
+  const emailError = useMemo(() => {
+    if (!emailTouched || !email.trim()) return null;
+    return inviteEmailSchema.safeParse(email).success
+      ? null
+      : t('settings.users.fields.inviteEmail.invalid', 'Enter a valid email address.');
+  }, [emailTouched, email, t]);
+  const isEmailValid = email.trim().length > 0 && inviteEmailSchema.safeParse(email).success;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
@@ -99,14 +118,20 @@ export function AddTeamMemberDialog({
               />
             </SettingsField>
 
-            <SettingsField label={t('settings.users.fields.inviteEmail.label', 'Email address')} htmlFor="invite-email">
+            <SettingsField
+              label={t('settings.users.fields.inviteEmail.label', 'Email address')}
+              htmlFor="invite-email"
+              error={emailError ?? undefined}
+            >
               <Input
                 id="invite-email"
                 type="email"
                 value={email}
                 onChange={(e) => onEmailChange(e.target.value)}
+                onBlur={() => setEmailTouched(true)}
                 placeholder="jane@example.com"
                 autoComplete="off"
+                aria-invalid={!!emailError}
                 required
               />
             </SettingsField>
@@ -136,8 +161,8 @@ export function AddTeamMemberDialog({
             htmlFor="invite-role"
             description={
               role === 'editor'
-                ? t('settings.users.fields.inviteRole.descriptionEditor', 'Editors can manage bookings and settings.')
-                : t('settings.users.fields.inviteRole.descriptionViewer', 'Viewers can only view bookings.')
+                ? t('settings.users.fields.inviteRole.descriptionEditor', 'Editors are intended to manage bookings and settings. This permission level is still being rolled out, so for now their access matches Viewer.')
+                : t('settings.users.fields.inviteRole.descriptionViewer', 'Viewers can view bookings.')
             }
           >
             <Select value={role} onValueChange={(v: 'editor' | 'viewer') => onRoleChange(v)}>
@@ -155,7 +180,14 @@ export function AddTeamMemberDialog({
             <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
               {t('settings.users.buttons.cancel', 'Cancel')}
             </Button>
-            <Button onClick={onSubmit} loading={submitting} disabled={submitting || !name.trim() || !email.trim()}>
+            <Button
+              onClick={() => {
+                setEmailTouched(true);
+                if (isEmailValid) onSubmit();
+              }}
+              loading={submitting}
+              disabled={submitting || !name.trim() || !email.trim() || !isEmailValid}
+            >
               {t('settings.users.buttons.sendInvite', 'Send invite')}
             </Button>
           </div>

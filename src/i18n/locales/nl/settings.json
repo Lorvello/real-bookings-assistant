@@ -672,7 +672,8 @@
           "label": "Volledige naam"
         },
         "inviteEmail": {
-          "label": "E-mailadres"
+          "label": "E-mailadres",
+          "invalid": "Voer een geldig e-mailadres in."
         },
         "inviteCalendar": {
           "label": "Agenda",
@@ -681,8 +682,8 @@
         },
         "inviteRole": {
           "label": "Rol",
-          "descriptionEditor": "Bewerkers kunnen boekingen en instellingen beheren.",
-          "descriptionViewer": "Bekijkers kunnen boekingen alleen bekijken."
+          "descriptionEditor": "Bewerkers zijn bedoeld om boekingen en instellingen te beheren. Dit rechtenniveau wordt nog uitgerold, dus voorlopig komt hun toegang overeen met Bekijker.",
+          "descriptionViewer": "Bekijkers kunnen boekingen bekijken."
         }
       },
       "aria": {
