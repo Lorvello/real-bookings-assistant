@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
-import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE } from "./serviceDisambiguationGuard.ts";
+import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE } from "./serviceDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -102,6 +102,25 @@ export interface ToolContext {
   // a small model's own self-attestation about a safety question is not a safe transaction
   // boundary, only a raw-message server classification is.
   confirmRenameVerification?: boolean;
+  // R96 (RESCHEDULE-HIJACK fix, R95-1, serviceDisambiguationGuard.ts's
+  // findDistinctServiceForReschedule): server-computed once per turn in index.ts from the last
+  // few inbound messages (recency-windowed, see the guard module's own reasoning). Non-null ONLY
+  // when the customer's most recent message(s) name a real, distinct, configured service that
+  // differs from the TARGET booking's own current service, so reschedule_appointment's handler
+  // can refuse to silently keep the old service while only moving the time (R95-1's exact
+  // failure). Holds the distinct service NAME (for the redirect message), or undefined/null when
+  // the guard does not apply (the overwhelming common case: a genuine same-service reschedule).
+  distinctServiceForReschedule?: string | null;
+  // R96 (SILENT-DROP-ON-MULTI-SERVICE follow-up hardening): server-detected, computed once per
+  // turn in index.ts from the RAW customer message (ABANDON_PREVIOUS_PREVIEW_RE), independent of
+  // whether the model itself sets book_appointment's own args.abandon_previous_preview flag
+  // (live-proven unreliable: the small model repeatedly failed to discover/use that new
+  // parameter). true when the customer's current message explicitly says to drop/forget/skip the
+  // earlier, still-uncommitted preview. Consulted ONLY by book_appointment's own
+  // "vorige_boeking_nog_open" guard, and ONLY when a genuine pending_booking for a DIFFERENT
+  // service already exists, so it can never fire outside that narrow, already-safety-checked
+  // precondition.
+  abandonPreviousPreview?: boolean;
 }
 
 interface UpcomingBooking {
@@ -114,6 +133,13 @@ interface UpcomingBooking {
   // R76: carried so update_booking_name's cross-identity guard can compare the target booking's
   // OWN current name against other bookings' names under the same phone without a second query.
   customer_name?: string | null;
+}
+
+// R96: trivial local normalizer (trim + lowercase), mirroring serviceDisambiguationGuard.ts's own
+// internal (unexported) normServiceName, used ONLY to compare a service NAME string ctx already
+// carries (never re-implements any guard logic, just a case/whitespace-insensitive string compare).
+function normServiceNameLocal(n: string): string {
+  return n.trim().toLowerCase();
 }
 
 // A2: resolve the calendar a booking/availability action targets, from the owner's allowlist.
@@ -800,6 +826,7 @@ export function createTools(
           customer_vat_id: { type: "string", description: "OPTIONEEL en alleen voor een AFSTANDS-/DIGITALE dienst: het EU-btw-nummer van de klant als die als BEDRIJF boekt (bv. NL123456789B01, DE123456789). Laat WEG als de klant particulier is of geen nummer heeft, en bij een in_person dienst. Verzin nooit een nummer." },
           calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview." },
           confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
+          abandon_previous_preview: { type: "boolean", description: "Alleen op true zetten als er nog een NIET-bevestigde vorige preview open staat (het systeem vroeg je dat net) EN de klant zojuist EXPLICIET zei die te laten vervallen/vergeten/annuleren ten gunste van deze nieuwe dienst. Zet dit NOOIT zomaar zelf; alleen na een expliciete klant-uitspraak daarover." },
         },
         // R26: service_type_id/customer_name are NOT schema-required anymore (were previously).
         // Root cause found live during this round's own latency testing: a hard JSON-schema
@@ -1318,11 +1345,27 @@ export function createTools(
           }
           if ("unavailable" in r) {
             // IDEMPOTENCY: a book_appointment re-fire AFTER a successful commit lands on
-            // the slot now occupied by the customer's OWN just-made booking → never tell
+            // the slot now occupied by the customer's OWN just-made booking, so never tell
             // them "niet vrij". If this customer already holds an active booking at the
             // requested local time on this calendar that day, acknowledge it as already
-            // booked. (Bookable hours are 09–17 local = 07–16 UTC, so the booking's UTC
-            // day equals its local day — a UTC day-window matches correctly.)
+            // booked. (Bookable hours are 09-17 local = 07-16 UTC, so the booking's UTC
+            // day equals its local day, so a UTC day-window matches correctly.)
+            // R96 (PHANTOM-SUCCESS fix, compound of R95-1/NEW-1, live-reproduced this round,
+            // evidence/IUX_r96.md section 3): this echo was scoped ONLY by phone + calendar +
+            // day + clock-time, with NO check on service_type_id. A customer booking a SECOND,
+            // DISTINCT service that happens to land on the exact same clock-time-of-day as their
+            // FIRST, already-confirmed, DIFFERENT service (a realistic collision: "same time
+            // next day" is a common ask) matched this echo, which returned the FIRST booking's
+            // own id/start_time/when as if it were the SECOND service's real commit. The
+            // customer was told "Gelukt!" for a service that was never created, while the
+            // existing booking for the OTHER service sat untouched, only for a LATER confirm
+            // turn to then reschedule/corrupt it once the model's confused state caught up
+            // (DB-proven: the single existing row's service_type_id was silently overwritten by
+            // a subsequent reschedule_appointment call in the same conversation). FIX: this
+            // idempotency echo must only ever match a PRIOR booking of the SAME requested
+            // service_type_id; a different service at the same clock-time is a genuine distinct
+            // request and must fall through to the normal "niet_beschikbaar" / new-preview path,
+            // never be echoed as if it were already booked.
             const wantM = String(args.time).trim().match(/^(\d{1,2}):(\d{2})/);
             if (wantM) {
               const want = `${wantM[1].padStart(2, "0")}:${wantM[2]}`;
@@ -1330,9 +1373,10 @@ export function createTools(
               const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
               const { data: ownSameDay } = await supabase
                 .from("bookings")
-                .select("id, start_time")
+                .select("id, start_time, service_type_id")
                 .eq("customer_phone", ctx.phone)
                 .eq("calendar_id", calId)
+                .eq("service_type_id", serviceId)
                 .in("status", ["confirmed", "pending"])
                 .gte("start_time", dayStart)
                 .lt("start_time", dayEnd);
@@ -1348,7 +1392,7 @@ export function createTools(
                   booking_id: m.id,
                   start_time: m.start_time,
                   when: nlWhen(m.start_time),
-                  message: "Deze afspraak staat al geboekt — bevestig dat kort en bied verder hulp aan.",
+                  message: "Deze afspraak staat al geboekt (zelfde dienst, zelfde tijd). Bevestig dat kort en bied verder hulp aan.",
                 };
               }
             }
@@ -1532,6 +1576,50 @@ export function createTools(
         // commit above), re-storing the SAME validated slot/service with the CORRECTED name and
         // asking the customer to confirm again, rather than silently committing the stale name.
         if (!committing) {
+          // R96 (SILENT-DROP-ON-MULTI-SERVICE fix, NEW-2, CROSS-TURN guard). The "een_per_keer"
+          // guard right below only blocks a SECOND preview within the SAME turn. NEW-2
+          // (live-reproduced, evidence/IUX_r96.md): a customer names 2 distinct services in one
+          // message; the FIRST gets previewed this turn; on a LATER turn, if the model previews
+          // the SECOND service (whether because the customer's confirm of the first carried extra
+          // content, or the model simply moved on) WITHOUT the first ever having been committed or
+          // explicitly abandoned, this branch used to silently OVERWRITE pending_booking with the
+          // second proposal: the first's still-pending confirmation vanishes with no DB trace and
+          // no disclosure. Fix: refuse a genuinely NEW preview (a different service_type_id than
+          // the one already pending) while an EARLIER preview is still fresh and uncommitted, and
+          // make the model explicitly ask the customer whether to keep, replace, or abandon the
+          // first before starting a second. Never fires for: a namePreviewOnly re-preview (SAME
+          // service, already excluded below since it is gated on !namePreviewOnly), a re-preview
+          // of the SAME pending service_type_id (a legitimate correction, e.g. a different time
+          // for the SAME service), or when no pending_booking exists at all (the common
+          // single-service case, byte-identical behaviour).
+          // CODE-REVIEW FIX (R96, live-reproduced: phone 316000003432): the FIRST version of this
+          // guard had no way to ever RESOLVE itself once the customer explicitly chose to abandon
+          // the earlier preview, since clearPendingBook() only ran on a real commit -- every
+          // subsequent book_appointment attempt for the new service re-hit this SAME guard
+          // forever, even after the customer clearly said to drop the old one. Fix: accept
+          // args.abandon_previous_preview === true (the model sets this ONLY after an explicit
+          // customer statement to that effect, per the tool's own schema description) as the
+          // signal to clear the stale pending_booking and proceed with THIS preview in the same
+          // call, mirroring how confirm_second_booking already lets the model unlock a
+          // deliberately-reviewed exception to a safety default rather than being stuck forever.
+          if (!namePreviewOnly && pendingBook?.start_time && pendingBook.service_type_id && pendingBook.service_type_id !== serviceId) {
+            if (args.abandon_previous_preview === true || ctx.abandonPreviousPreview === true) {
+              await clearPendingBook();
+              bookCtx = { ...bookCtx, pending_booking: undefined };
+            } else {
+              const { data: pendingSvcRow } = await supabase
+                .from("service_types").select("name").eq("id", pendingBook.service_type_id).maybeSingle();
+              const pendingSvcName = (pendingSvcRow as { name?: string } | null)?.name ?? "de vorige dienst";
+              return {
+                error: "vorige_boeking_nog_open",
+                message:
+                  `Er staat nog een NIET-bevestigde afspraak-preview open voor "${pendingSvcName}" (${nlWhen(pendingBook.start_time)}). ` +
+                  "Roep book_appointment NIET aan voor de nieuwe dienst voordat dit is opgelost. Vraag de klant kort: wil je EERST de vorige afspraak " +
+                  `("${pendingSvcName}", ${nlWhen(pendingBook.start_time)}) bevestigen, of wil je die laten vervallen en in plaats daarvan de nieuwe dienst boeken? ` +
+                  "Bevestigt de klant de vorige? Roep book_appointment opnieuw aan zonder nieuwe gegevens (net als een gewone bevestiging). Wil de klant 'm laten vervallen? Roep book_appointment dan opnieuw aan met abandon_previous_preview:true om de nieuwe dienst te boeken.",
+              };
+            }
+          }
           // Compound-request guard: only ONE pending_booking can be held at a time, so a
           // second preview in the same turn would silently drop the first while the model
           // claims both are booked. Refuse it and make the model book sequentially.
@@ -1854,6 +1942,35 @@ export function createTools(
         }
         const b = target.booking!;
 
+        // R96 (RESCHEDULE-HIJACK fix, R95-1): the customer's own recent words name a DIFFERENT,
+        // distinct configured service than this booking's own current service, AND the model did
+        // NOT itself supply an explicit service_type_id (a conscious, reviewed switch, which stays
+        // allowed). Refuse to silently keep the old service while moving only the time; redirect
+        // the model to ask whether this is a second, additional appointment (book_appointment +
+        // confirm_second_booking) or a genuine same-slot service swap (cancel + rebook). Computed
+        // server-side in index.ts (ctx.distinctServiceForReschedule), never model-controlled, same
+        // pattern as blockForMissingServiceChoice/blockForAmbiguousBranch above.
+        // CODE-REVIEW FIX (R96): ctx.distinctServiceForReschedule is precomputed in index.ts from
+        // the customer's SINGLE next-upcoming booking on the ENTRY calendar only, before this
+        // handler has resolved WHICH of the customer's (possibly several) upcoming bookings `b`
+        // actually is. Trusting that precomputed guess blindly could false-positive-block a
+        // genuine same-service reschedule when the real target `b` (just resolved above, possibly
+        // via match_time/match_start_time disambiguation, possibly on a different calendar) has a
+        // DIFFERENT current service than the precomputed guess assumed. Re-derive the comparison
+        // against `b`'s OWN real current service name here, so the guard only ever fires when the
+        // ACTUAL target booking's service genuinely differs from what the customer just named.
+        const targetCurrentServiceName = b.service_types?.name ?? null;
+        const distinctVsRealTarget = ctx.distinctServiceForReschedule &&
+          normServiceNameLocal(ctx.distinctServiceForReschedule) !== normServiceNameLocal(targetCurrentServiceName ?? "")
+          ? ctx.distinctServiceForReschedule
+          : null;
+        if (!args.service_type_id && distinctVsRealTarget) {
+          return {
+            error: "andere_dienst_verzet",
+            message: RESCHEDULE_DISTINCT_SERVICE_MESSAGE(distinctVsRealTarget),
+          };
+        }
+
         // R48: resolve which calendar this reschedule targets. Default = the booking's OWN
         // current calendar (unchanged behaviour). Only in multi-calendar mode, and only when the
         // model gave a resolvable hint (a service_type_id that maps to a DIFFERENT calendar, or an
@@ -1999,6 +2116,10 @@ export function createTools(
           : null;
         return {
           ok: true,
+          // R96 (PHANTOM-SUCCESS fix, NEW-1): booking_id is the row this reschedule actually moved,
+          // so a caller can verify the claimed outcome against a real, identifiable row instead of
+          // trusting `ok:true` alone. Purely additive (every existing caller ignores unknown fields).
+          booking_id: b.id,
           rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart },
           ...(switchedCalendar ? { new_agenda: switchedCalendar } : {}),
         };

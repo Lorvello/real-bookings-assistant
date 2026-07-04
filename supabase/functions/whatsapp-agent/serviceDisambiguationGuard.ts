@@ -153,3 +153,112 @@ export const KIES_DIENST_MESSAGE =
 
 export const KIES_LOCATIE_MESSAGE =
   "De klant noemde een dienst die bij meerdere medewerkers/locaties wordt aangeboden met een ECHT andere prijs en/of duur, maar noemde nog geen specifieke medewerker/locatie. Roep get_available_slots of book_appointment NIET aan; vraag EERST kort en menselijk bij wie of waar de klant de afspraak wil (bijvoorbeeld \"bij wie/waar wil je de afspraak?\"), en noem de opties als personen/plekken in natuurlijke taal (nooit \"agenda's\" of technische namen). Zodra de klant een persoon/locatie noemt, mag je gewoon doorgaan.";
+
+// R96 RESCHEDULE-VS-SECOND-SERVICE GUARD (RESCHEDULE-HIJACK, sev-2, PREEMPT, R95-1).
+//
+// R95-1 (live-reproduced, evidence/IUX_r95.md + IUX_r96.md): a customer who already has an
+// upcoming booking, and then names a SECOND, genuinely DIFFERENT service in natural phrasing
+// ("en nu ook nog de Speciale Afspraak graag" / "also book me the Special appointment"), could
+// make the model call reschedule_appointment instead of book_appointment. reschedule_appointment
+// silently keeps the EXISTING booking's own service_type_id (prompt.ts's own guidance literally
+// tells the model "the service normally stays the same, don't ask again" for a reschedule) while
+// only moving the TIME -- so the customer's actual request (a second distinct service) is never
+// fulfilled, no row for it is ever created, and nothing discloses this. Root cause identified by
+// R95-verify: prompt.ts's reschedule-trigger rule ("an existing booking + a new time is ALWAYS
+// reschedule_appointment, NEVER book_appointment") has no carve-out for "the new time is for a
+// DIFFERENT service than the existing booking's own service". Prompt-only instructions were not
+// the fix this loop settled on for the sibling R70-3/R71/R72/R76 findings (the model's own
+// tool-choice judgment on a high-stakes decision proved unreliable under natural phrasing
+// variance), so this closes it the SAME way: a deterministic, server-side, code-level block.
+//
+// WHAT THIS DOES: computes, from the customer's inbound conversation history, which service
+// NAMES (by exact configured name substring/word match, reusing the same `mentionsAny` matcher
+// serviceDisambiguationGuard already trusts) the customer has mentioned, restricted to a SMALL
+// recency window (the current turn's message plus a few immediately preceding turns) so an
+// service named far earlier in a long, unrelated conversation does not spuriously re-trigger this
+// guard on an unrelated later reschedule. If the MOST RECENTLY named service (in that recency
+// window) is a real, distinct, configured service name that does NOT match the target booking's
+// OWN current service name, AND the model's reschedule_appointment call did not itself supply a
+// service_type_id (an intentional same-calendar service switch, which stays allowed, see below),
+// the guard blocks and redirects to book_appointment's confirm_second_booking path -- mirroring
+// how the existing book_appointment duplicate-guard (tools.ts ~1436) already phrases this exact
+// disambiguation for its OWN entrypoint. reschedule_appointment gains the identical guarantee at
+// ITS entrypoint, closing the specific gap R95-1 exploited.
+//
+// FALSE-POSITIVE SAFETY:
+// - A genuine reschedule of the SAME service (the overwhelmingly common case: "kan het een uur
+//   later?", no new service ever named) never blocks: `namedDistinctService` is null when no
+//   service name other than the booking's own appears in the recency window.
+// - A DELIBERATE same-calendar service switch via reschedule_appointment (prompt.ts's own
+//   documented "ALLEEN bij meerdere agenda's ... wil de klant naar een ANDERE medewerker/locatie
+//   verzetten" path, and the sibling single-calendar "wil de klant een ANDERE dienst i.p.v. alleen
+//   een andere tijd" instruction, which tells the model to cancel+rebook) is NOT this guard's
+//   concern: this guard only fires when the model calls reschedule_appointment WITHOUT an explicit
+//   service_type_id AND the customer's own words point at a different service than the booking's
+//   current one -- i.e. exactly the shape where the model is about to silently keep the OLD
+//   service while the customer asked for a NEW one. If the model explicitly resolved and passed a
+//   service_type_id (a conscious switch decision, already reviewed by the model), this guard does
+//   not second-guess that call; only the "silently defaults to the old service" shape is blocked.
+// - The recency window (default 4 messages, tunable) means a service mentioned many turns earlier
+//   and since resolved/booked/abandoned cannot leak into blocking an unrelated later reschedule.
+
+export interface RescheduleDistinctServiceInput {
+  allServiceNames: string[]; // every distinct configured service name across the relevant calendar(s)
+  currentServiceName: string | null; // the booking's OWN current service name (or null if unknown)
+  recentInboundTexts: string[]; // the last few inbound (customer) messages, oldest first, THIS turn last
+  modelSuppliedServiceId: boolean; // true if reschedule_appointment's call included service_type_id
+}
+
+// Word-level match restricted to a name's DISTINGUISHING words only (excludes any word the name
+// shares with `excludeWords`, e.g. two services that both happen to contain the generic word
+// "Afspraak"). Without this exclusion, `mentionsAny`'s generic word-splitting would treat a message
+// naming ONLY the current service ("mijn Standaard Afspraak") as ALSO naming a distinct service
+// ("Speciale Afspraak") purely because both names share the word "Afspraak", a real false-positive
+// this guard's own test suite caught. Falls back to a full-name substring check first (the common,
+// unambiguous case), then to word-level matching using ONLY the distinguishing words.
+function mentionsDistinguishing(text: string, name: string, excludeWords: Set<string>): boolean {
+  const lower = text.toLowerCase();
+  const trimmedName = name.trim().toLowerCase();
+  if (trimmedName.length >= 2 && lower.includes(trimmedName)) return true;
+  const words = trimmedName
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !GENERIC_NAME_WORDS.has(w) && !excludeWords.has(w));
+  if (words.length === 0) return false; // every word is shared/generic: no safe distinguishing word to match on
+  return words.some((word) => new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(lower));
+}
+
+// Returns the distinct, different-from-current service name the customer named most recently in
+// the recency window, or null if none (safe default: guard does not fire).
+export function findDistinctServiceForReschedule(input: RescheduleDistinctServiceInput): string | null {
+  const { allServiceNames, currentServiceName, recentInboundTexts, modelSuppliedServiceId } = input;
+  if (modelSuppliedServiceId) return null; // an explicit, reviewed switch: not this guard's concern
+  const current = currentServiceName ? normServiceName(currentServiceName) : null;
+  const distinctNames = [...new Set(allServiceNames.map(normServiceName))].filter((n) => n !== current);
+  if (distinctNames.length === 0) return null; // only one service exists (or matches current): nothing to confuse
+  // Words the CURRENT service's own name contributes (e.g. "afspraak") must never, by themselves,
+  // count as evidence of a DIFFERENT service being named; every distinct-name word check below
+  // excludes them.
+  const currentWords = new Set(current ? current.split(/\s+/).filter((w) => w.length >= 3) : []);
+  // Scan the recency window NEWEST-FIRST so the customer's MOST RECENT naming wins if they
+  // mentioned more than one distinct service across the window (their latest statement is the
+  // one actually in play this turn).
+  for (let i = recentInboundTexts.length - 1; i >= 0; i--) {
+    const text = recentInboundTexts[i];
+    for (const name of distinctNames) {
+      if (mentionsDistinguishing(text, name, currentWords)) {
+        // Return the ORIGINAL-cased configured name (not the normalized form) for use in the
+        // customer-facing redirect message.
+        const original = allServiceNames.find((n) => normServiceName(n) === name);
+        return original ?? name;
+      }
+    }
+    // Stop scanning further back once we hit a message that also mentions the CURRENT service by
+    // name: that is the customer re-confirming/discussing the existing booking, not introducing a
+    // new one, so an even-earlier distinct-service mention should not leak through past it.
+    if (current && currentServiceName && mentionsAny([text], [currentServiceName])) break;
+  }
+  return null;
+}
+
+export const RESCHEDULE_DISTINCT_SERVICE_MESSAGE = (distinctService: string) =>
+  `De klant noemde zojuist "${distinctService}", een ANDERE dienst dan de dienst van de bestaande afspraak. Roep reschedule_appointment NIET aan (dat zou stilzwijgend de dienst van de bestaande afspraak ongewijzigd laten en alleen de tijd verzetten, zonder de gevraagde "${distinctService}" ooit te boeken). Vraag kort: is dit een AANVULLENDE, tweede afspraak naast de bestaande (roep dan book_appointment aan met confirm_second_booking:true), of wil de klant de bestaande afspraak ECHT vervangen door "${distinctService}" (annuleer dan de oude en boek de nieuwe dienst opnieuw)? Verzin dit niet zelf; vraag het de klant.`;

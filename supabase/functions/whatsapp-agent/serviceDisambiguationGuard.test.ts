@@ -3,7 +3,7 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule } from "./serviceDisambiguationGuard.ts";
 
 const THREE_BRANCH = [
   { name: "R71 Centrum", services: [{ name: "Knipbeurt Dames" }] },
@@ -219,5 +219,98 @@ Deno.test("R72 blocks: one of two named services is ambiguous, the other is not"
       inboundTexts: ["ik wil een manicure of een massage boeken"],
     }),
     true,
+  );
+});
+
+// ── R96 RESCHEDULE-HIJACK guard (findDistinctServiceForReschedule) ──────────
+// Pins R95-1's exact live-reproduced shape: a customer with an existing "Standaard Afspraak"
+// booking names the DISTINCT "Speciale Afspraak" and gives a time, without the model itself
+// resolving/passing a service_type_id.
+const TWO_SERVICES = ["Speciale Afspraak", "Standaard Afspraak"];
+
+Deno.test("R96 blocks: customer just named a distinct service, no model-supplied service_type_id", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentInboundTexts: ["En nu ook nog de Speciale Afspraak graag, wanneer kan dat deze week?"],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R96 does not block: genuine same-service reschedule, no new service ever named", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentInboundTexts: ["kan het een uur later, om 10:00?"],
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R96 does not block: model explicitly supplied service_type_id (a reviewed switch)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentInboundTexts: ["en nu de Speciale Afspraak graag"],
+      modelSuppliedServiceId: true,
+    }),
+    null,
+  );
+});
+
+Deno.test("R96 does not block: only one service exists (nothing to confuse)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: ["Standaard Afspraak"],
+      currentServiceName: "Standaard Afspraak",
+      recentInboundTexts: ["kan het een uur later"],
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R96 does not block: a distinct service was named MANY turns ago, current turn re-confirms existing service", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentInboundTexts: [
+        "ik had ooit gevraagd naar de Speciale Afspraak maar toen niet geboekt",
+        "kan mijn Standaard Afspraak een uur later, om 10:00?",
+      ],
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R96 blocks: EN phrasing, distinct service named most recently", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: TWO_SERVICES,
+      currentServiceName: "Standaard Afspraak",
+      recentInboundTexts: ["also book me the Speciale Afspraak, what times work?"],
+      modelSuppliedServiceId: false,
+    }),
+    "Speciale Afspraak",
+  );
+});
+
+Deno.test("R96 does not block: no distinct service names configured (defensive empty case)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: [],
+      currentServiceName: null,
+      recentInboundTexts: ["kan het een uur later"],
+      modelSuppliedServiceId: false,
+    }),
+    null,
   );
 });

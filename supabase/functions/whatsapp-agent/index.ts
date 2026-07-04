@@ -11,7 +11,7 @@ import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from ".
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
-import { enforceNoFalseConfirmation } from "./confirmationGuard.ts";
+import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
@@ -20,7 +20,7 @@ import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.
 import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule } from "./serviceDisambiguationGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -354,6 +354,33 @@ function isCommittedMutation(name: string, result: unknown): boolean {
   return false;
 }
 
+// R96 (PHANTOM-SUCCESS-ZERO-MUTATION fix, NEW-1, structural backstop). `deterministicConfirmation`
+// ALREADY templates the customer-facing success line directly FROM this turn's own tool-call
+// result (never from free model prose) whenever `isCommittedMutation` is true, and
+// `enforceNoFalseConfirmation` ALREADY strips a hallucinated claim on the model-prose branch when
+// NO mutation committed at all. Both are sound for the cases this codebase's own architecture can
+// trace. This function is the belt-and-suspenders THIRD layer the loop's own doctrine calls for on
+// a booking-integrity finding of this severity (mirrors R61's `isCommittedMutation`-keyed design,
+// "verify the claimed outcome matches the real outcome" applied one level deeper): it extracts the
+// row identity (booking_id) THIS TURN's committed mutation actually claims, so the caller can
+// cross-check it against a real DB row before ever shipping the reply, closing the gap even if a
+// FUTURE change to the retry/adoption logic, a provider-format quirk, or an as-yet-unknown model
+// failure mode ever produced a `committed===true` match whose underlying tool result did not
+// correspond to a real row (the exact "told success, zero DB trace" shape NEW-1 described). Returns
+// null when no committed mutation exists this turn (nothing to verify) or the tool result carries
+// no identifiable booking_id (update_booking_name's rename result has no booking_id field, so it is
+// out of scope for this check; its own hardConfirm/ambiguousConfirm/cleanlyConfirmed gate stack is
+// unaffected and unchanged).
+function committedMutationBookingId(toolCalls: { name: string; result: unknown }[]): string | null {
+  for (let i = toolCalls.length - 1; i >= 0; i--) {
+    const t = toolCalls[i];
+    if (!isCommittedMutation(t.name, t.result)) continue;
+    const r = t.result as Record<string, unknown>;
+    if (typeof r.booking_id === "string" && r.booking_id) return r.booking_id;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -408,7 +435,7 @@ Deno.serve(async (req) => {
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
     // They are now batched into 3 dependency phases so independent reads run in parallel.
     // Phase 1 — everything that needs only (calendar_id, phone):
-    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours, psRes, dateOverrides] = await Promise.all([
+    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours, psRes, dateOverrides, upcomingBRes] = await Promise.all([
       supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
       // Only ACTIVE, non-deleted services — otherwise a service the owner removed/deactivated
       // in the dashboard stays in <services> and the agent keeps offering + booking it via
@@ -452,6 +479,16 @@ Deno.serve(async (req) => {
       // of silently falling back to the recurring day-of-week status. Independent of
       // (user_id, contact_id), belongs in this phase.
       getCalendarDateOverrides(supabase, calendar_id, hintFromISO, hintToISO),
+      // R96 (RESCHEDULE-HIJACK fix, R95-1): the customer's own NEXT UPCOMING booking on this
+      // calendar (scoped exactly like tools.ts's resolveTarget's own single-calendar case; the
+      // rare multi-calendar cross-calendar case is covered too since findDistinctServiceForReschedule
+      // only needs the LIKELY target's current service name to detect a mismatch, and a wrong guess
+      // here only ever fails safe -- see the guard module's own false-positive-safety reasoning).
+      // Independent of (user_id, contact_id), belongs in this phase; single extra indexed read.
+      supabase.from("bookings").select("service_types(name)")
+        .eq("customer_phone", phone).eq("calendar_id", calendar_id)
+        .in("status", ["confirmed", "pending"]).gt("start_time", new Date().toISOString())
+        .order("start_time", { ascending: true }).limit(1).maybeSingle(),
     ]);
 
     const cal = calRes.data;
@@ -615,6 +652,53 @@ Deno.serve(async (req) => {
     const blockForAmbiguousBranch = isMultiCalendar && calendarsForPrompt
       ? shouldBlockForAmbiguousBranch({ calendars: calendarsForPrompt, inboundTexts })
       : false;
+
+    // R96 (RESCHEDULE-HIJACK fix, R95-1): a SMALL, deliberately narrow recency window (this
+    // turn's message + the last few messages BOTH directions), unlike the wide 40-message
+    // inbound-only window above (which is multi-calendar-only and answers a different question:
+    // "has a service EVER been named in this whole conversation"). This guard asks a
+    // recency-sensitive question ("did the customer JUST now name a different service than their
+    // existing booking"), so a stale mention from many turns ago must not leak in (see
+    // serviceDisambiguationGuard.ts's own false-positive reasoning). Runs for EVERY tenant
+    // (single- or multi-calendar), since R95-1 was reproduced on a single-calendar tenant.
+    // R96-SELFTEST GAP (found by this round's OWN post-fix live testing, evidence/IUX_r96.md
+    // section 2): an inbound-ONLY window missed the case where a short disambiguation
+    // back-and-forth ("wil je de Speciale Afspraak voor dezelfde persoon of iemand anders?" ->
+    // "zelfde persoon") means the customer's OWN words no longer repeat the distinct service's
+    // name, even though the conversation is clearly still about it. Fix: include BOTH directions
+    // (the agent's own immediately-preceding question already names the service under
+    // discussion, exactly the antecedent a real receptionist would remember) and widen the
+    // window from 3 to 6 messages so a short multi-turn disambiguation exchange survives it.
+    // Still cheap (1 column, tiny limit, no join).
+    let recentInboundTexts: string[] = [String(message ?? "")];
+    if (conversationId) {
+      const { data: recentMsgs } = await supabase
+        .from("whatsapp_messages")
+        .select("content")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      recentInboundTexts = [
+        ...((recentMsgs as Array<{ content: string | null }> | null) ?? []).map((m) => m.content ?? "").reverse(),
+        String(message ?? ""),
+      ];
+    }
+    // allServiceNames: every distinct configured service name reachable this turn. Single-calendar
+    // (the common case) → this calendar's own <services>; multi-calendar → the whole <kalenders>
+    // allowlist (a customer's existing booking could be on any of the owner's calendars).
+    const allServiceNamesForReschedule = isMultiCalendar && calendarsForPrompt
+      ? calendarsForPrompt.flatMap((c) => c.services.map((s) => s.name))
+      : services.map((s) => s.name);
+    const upcomingBookingServiceName =
+      (upcomingBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
+    const distinctServiceForReschedule = allServiceNamesForReschedule.length > 1
+      ? findDistinctServiceForReschedule({
+        allServiceNames: allServiceNamesForReschedule,
+        currentServiceName: upcomingBookingServiceName,
+        recentInboundTexts,
+        modelSuppliedServiceId: false, // re-checked per-call against args.service_type_id in tools.ts
+      })
+      : null;
 
     // Booking name, scoped per (calendar_id, phone) to KILL the R3 cross-tenant name bleed:
     // the source of truth is THIS conversation's context (booking_name / name_refused),
@@ -997,6 +1081,28 @@ Deno.serve(async (req) => {
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/
     // confirmCancel computed from it right below. R23 only fixed the latter; R24 closes the former.
     const ambiguousConfirm = notCleanConfirm(msgLower);
+    // R96 (SILENT-DROP-ON-MULTI-SERVICE fix, follow-up hardening after this round's own live
+    // testing, evidence/IUX_r96.md section 6): the "vorige_boeking_nog_open" guard (tools.ts)
+    // originally relied ONLY on the model self-setting args.abandon_previous_preview:true, but a
+    // live repro (phone 316000003432/433) showed the small model reliably fails to discover/use
+    // that brand-new parameter even when the tool's own error message spells it out by name,
+    // instead retrying with the wrong tool (cancel_appointment) or omitting the flag, getting
+    // stuck in the SAME refusal turn after turn. Per this loop's own doctrine (a high-stakes
+    // tool-choice decision the model gets wrong needs a DETERMINISTIC server-side signal, not a
+    // new prompt/schema field the model must reliably discover), this mirrors confirmBook's own
+    // AFFIRM_RE-based detection: a customer message that explicitly says to drop/forget/skip the
+    // earlier preview is detected here, from the RAW message, independent of whether the model's
+    // own args ever set the flag. NL: "laat maar vervallen/zitten", "vergeet die/de vorige maar",
+    // "sla die over", "die hoeft niet meer". EN: "let it lapse/go", "forget the previous one",
+    // "skip that one", "never mind the first one", "drop the other one". Deliberately does NOT
+    // require an affirm word (a customer may say this standalone), and is only ever CONSULTED by
+    // tools.ts's own guard when a genuine pending_booking for a DIFFERENT service already exists,
+    // so it can never fire on an unrelated message that merely happens to contain "vergeet"/
+    // "forget" in some other context (the guard's own precondition, not this regex, is the safety
+    // boundary here, matching every other confirm* signal's own design in this file).
+    const ABANDON_PREVIOUS_PREVIEW_RE =
+      /\b(laat\s+(?:die|de|het)?\s*(?:vorige|eerste)?\s*(?:maar\s+)?(?:vervallen|zitten|schieten)|vergeet\s+(?:die|de)\s+(?:vorige|eerste)\s+maar|sla\s+(?:die|de)\s+(?:vorige|eerste)?\s*(?:maar\s+)?over|die\s+hoeft\s+niet\s+meer|let\s+it\s+(?:lapse|go)|forget\s+the\s+(?:previous|first|other)\s+one|skip\s+that\s+one|never\s?mind\s+the\s+(?:first|previous|other)\s+one|drop\s+the\s+(?:other|first|previous)\s+one)\b/i;
+    const abandonPreviousPreview = ABANDON_PREVIOUS_PREVIEW_RE.test(msgLower);
     // R32 (2nd AFFIRM-CONFIRM taste-fork): the THIRD, purely structural gate. Computed here,
     // before the LLM ever runs, from the RAW (not lowercased/pre-processed) customer message via
     // ./hardConfirmGate.ts, which does its own bounded normalization. Deliberately independent of
@@ -1286,7 +1392,7 @@ Deno.serve(async (req) => {
     // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
     // confirmStall retry runAgent call below) now tracks its own preview writes internally and
     // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -1573,6 +1679,24 @@ Deno.serve(async (req) => {
     const committed = result.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
     if (committed) {
       replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || replyText;
+      // R96 (PHANTOM-SUCCESS-ZERO-MUTATION fix, NEW-1): verify the claimed commit against a real
+      // row in the database THIS SAME TURN, before the reply ships. Single cheap indexed lookup
+      // (id + status only), only ever runs on an already-rare commit turn (never on the far more
+      // common preview/info turns), so the latency budget (<3s gate) is unaffected in practice.
+      // Fails CLOSED: a missing/errored/cancelled row means the reply is rewritten to an honest
+      // "let me sort that out" line rather than ever shipping an unverified success claim,
+      // regardless of what produced the mismatch (this is deliberately a structural backstop, not
+      // a diagnosis of one specific root cause, matching R61's own belt-and-suspenders posture).
+      const verifyId = committedMutationBookingId(result.toolCalls);
+      if (verifyId) {
+        const { data: verifyRow } = await supabase
+          .from("bookings").select("id, status").eq("id", verifyId).maybeSingle();
+        const rowOk = !!verifyRow && (verifyRow as { status?: string }).status !== "cancelled";
+        if (!rowOk) {
+          console.error(`[phantom-success-guard] commit claimed but no matching live row for booking_id=${verifyId}; rewriting to honest reply`);
+          replyText = noFalseConfirmReply(customerLanguage);
+        }
+      }
     } else {
       // ITEM 12: on a successful booking PREVIEW turn, OVERRIDE the model's prose read-back with the
       // server-templated one so the date the customer confirms is exactly the slot stored in
