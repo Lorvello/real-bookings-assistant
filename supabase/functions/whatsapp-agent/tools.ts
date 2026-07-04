@@ -1051,6 +1051,20 @@ export function createTools(
       case "update_lead": {
         const first = String(args.first_name ?? "").trim();
         const refused = args.name_refused === true;
+        // R75 (T1, third-party-booker persona): live-reproduced the small model calling
+        // update_lead with a junk placeholder like "?" (no letters at all) when a booking
+        // turn had no real name in it yet, because first_name is a schema-required string
+        // and the model filled it with SOMETHING rather than skip the call. That placeholder
+        // then silently overwrote the real WhatsApp-derived name on the GLOBAL, cross-tenant
+        // whatsapp_contacts.first_name (used by the owner dashboard contacts list), clobbering
+        // a real name like "Sarah" with "?". Guard: a real name needs at least one letter;
+        // anything else (empty, punctuation-only, digits-only) is treated as no name given,
+        // same bar as the existing isRealName() helper used elsewhere in this file for the
+        // rename/rebook name-change checks.
+        const looksLikeName = (n: string) => /\p{L}/u.test(n);
+        if (!refused && first && !looksLikeName(first)) {
+          return { ok: true };
+        }
         // Keep the global contacts row updated for the dashboard contacts list (display only).
         const update: Record<string, unknown> = { first_name: first || "Privé" };
         if (args.last_name) update.last_name = String(args.last_name);
@@ -1397,7 +1411,7 @@ export function createTools(
         if (!committing && !namePreviewOnly && args.confirm_second_booking !== true) {
           const { data: existing } = await supabase
             .from("bookings")
-            .select("start_time")
+            .select("start_time, customer_name")
             .eq("customer_phone", ctx.phone)
             // A2: scope the duplicate check to the TARGET calendar, so a legitimate booking with a
             // different staff member/location is not falsely blocked by an appointment elsewhere.
@@ -1408,12 +1422,23 @@ export function createTools(
             .limit(1)
             .maybeSingle();
           if (existing) {
+            // R75 (T1, third-party-booker persona): the same WhatsApp phone can hold bookings
+            // for DIFFERENT attendees (a parent booking for several kids, an assistant booking
+            // for several colleagues). This guard used to say ONLY "de klant heeft al een
+            // afspraak", which the model then relayed as if it were about whoever is CURRENTLY
+            // being booked. Live-reproduced: booking a 2nd appointment for "Tom" wrongly said
+            // "Tom, je hebt al een afspraak" about a booking that was actually under "Emma"'s
+            // name. Passing the EXISTING booking's own customer_name back lets the model state
+            // correctly whose booking it found, instead of assuming phone equals attendee.
+            const existingName = (existing as { start_time: string; customer_name?: string | null }).customer_name;
+            const existingNameNote = existingName && existingName !== "Privé" ? ` (op naam ${existingName})` : "";
             return {
               error: "bestaande_afspraak",
               message:
-                `De klant heeft al een aankomende afspraak op ${nlWhen((existing as { start_time: string }).start_time)}. ` +
-                "Wil de klant een ANDER tijdstip? Gebruik reschedule_appointment (NIET book_appointment — dat maakt een tweede afspraak). " +
-                "Alleen als de klant ECHT een losse, extra afspraak ernaast wil: roep book_appointment opnieuw aan met confirm_second_booking=true.",
+                `Er is al een aankomende afspraak op ${nlWhen((existing as { start_time: string }).start_time)}${existingNameNote} onder dit WhatsApp-nummer. ` +
+                "Is dat DEZELFDE persoon als degene die nu geboekt wordt? Gebruik dan reschedule_appointment, niet book_appointment (dat maakt een tweede afspraak). " +
+                "Is de nieuwe boeking voor een ANDERE naam of persoon (bv. een ander kind, een collega)? Dan is dit een terechte extra afspraak: roep book_appointment opnieuw aan met confirm_second_booking=true. " +
+                "Twijfel je wie de bestaande afspraak hierboven is? Vraag het kort na in plaats van te raden.",
             };
           }
         }
