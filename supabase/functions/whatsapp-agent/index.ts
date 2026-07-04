@@ -602,8 +602,21 @@ Deno.serve(async (req) => {
     const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
     const convContext: Record<string, unknown> = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
 
-    // Phase 3 — message history (needs conversation_id).
-    let history: Array<{ direction: string; content: string | null }> = [];
+    // Phase 3, message history (needs conversation_id).
+    // R97 (T3-LATENCY fix): this 12-row both-directions fetch and R96's own 6-row both-directions
+    // recency fetch further below used to be TWO separate sequential `whatsapp_messages`
+    // round-trips per turn, on EVERY turn (not just rare commit turns), for the same
+    // conversation_id, same columns, same DESC order, the 6-row window being a strict subset of
+    // this 12-row one. That 2nd, R96-added round-trip is a likely driver of the p50 regression
+    // this round investigates (evidence/IUX_r96_verify.md LATENCY section). Fetch ONCE here
+    // (12 rows, both directions) and derive R96's 6-row view from this same in-memory result
+    // below, zero extra round-trip, identical data either consumer would have seen before.
+    // R71's OWN separate 40-row inbound-only query further below is deliberately left as its own
+    // round-trip (not folded in here): its row-count semantics (40 INBOUND rows, which can span
+    // more than 40 total rows in a conversation with interleaved outbound messages) are not a
+    // strict subset of this 12-row fetch, and changing them risks silently weakening R71/R72's
+    // guard behavior, which this round must not touch.
+    let sharedMsgsDesc: Array<{ direction: string; content: string | null; created_at: string }> = [];
     if (conversationId) {
       const { data: msgs } = await supabase
         .from("whatsapp_messages")
@@ -611,8 +624,9 @@ Deno.serve(async (req) => {
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: false })
         .limit(12);
-      history = ((msgs as Array<{ direction: string; content: string | null; created_at: string }>) ?? []).reverse();
+      sharedMsgsDesc = (msgs as Array<{ direction: string; content: string | null; created_at: string }>) ?? [];
     }
+    const history: Array<{ direction: string; content: string | null }> = sharedMsgsDesc.slice().reverse();
 
     // R71 (R70-3 fix): compute once per turn whether the customer has EVER named a specific
     // service or a specific calendar/branch, ANYWHERE in this conversation, + this turn's
@@ -670,18 +684,30 @@ Deno.serve(async (req) => {
     // discussion, exactly the antecedent a real receptionist would remember) and widen the
     // window from 3 to 6 messages so a short multi-turn disambiguation exchange survives it.
     // Still cheap (1 column, tiny limit, no join).
+    // R97 (T3-LATENCY fix): derived from `sharedMsgsDesc` (the 12-row both-directions fetch above)
+    // instead of its own dedicated 6-row round-trip, this round's 6-row need being a strict subset
+    // (same conversation_id, same DESC order, same columns available). Zero extra query.
     let recentInboundTexts: string[] = [String(message ?? "")];
     if (conversationId) {
-      const { data: recentMsgs } = await supabase
-        .from("whatsapp_messages")
-        .select("content")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: false })
-        .limit(6);
-      recentInboundTexts = [
-        ...((recentMsgs as Array<{ content: string | null }> | null) ?? []).map((m) => m.content ?? "").reverse(),
-        String(message ?? ""),
-      ];
+      const rows = sharedMsgsDesc.slice(0, 6);
+      // R97 (DOUBLE-COUNTED-CURRENT-MESSAGE fix): process_whatsapp_message (the real webhook path,
+      // and this loop's own RPC-then-invoke testpad pattern) INSERTS the current turn's inbound row
+      // BEFORE invoking this function, so the newest row this window already IS the current
+      // message. Manually appending `message` again after that duplicated it, shrinking the
+      // effective window by one real prior message and evicting exactly the message that mattered
+      // most in an availability-conflict-retry shape (evidence/IUX_r96_verify.md). A DIRECT invoke
+      // of this function that skips the RPC (the step-card's OTHER documented testpad shape) never
+      // persists the inbound row at all, so the current message would be genuinely absent from the
+      // fetch in that case. Handle both correctly without guessing which path produced this call:
+      // only append the current message when the window's own newest row is not ALREADY that same
+      // inbound text (textual identity, not array-position, so it is correct regardless of which
+      // call pattern produced this request).
+      const newest = rows[0];
+      const newestIsCurrentInbound = !!newest && newest.direction === "inbound" && (newest.content ?? "") === String(message ?? "");
+      const priorTexts = rows.map((m) => m.content ?? "").reverse();
+      recentInboundTexts = newestIsCurrentInbound
+        ? priorTexts
+        : [...priorTexts, String(message ?? "")];
     }
     // allServiceNames: every distinct configured service name reachable this turn. Single-calendar
     // (the common case) → this calendar's own <services>; multi-calendar → the whole <kalenders>
@@ -1689,11 +1715,20 @@ Deno.serve(async (req) => {
       // a diagnosis of one specific root cause, matching R61's own belt-and-suspenders posture).
       const verifyId = committedMutationBookingId(result.toolCalls);
       if (verifyId) {
+        // R97 (sibling gap, cancel_appointment now carries booking_id too): a cancellation's OWN
+        // correct post-mutation status IS "cancelled", so the book/reschedule expectation
+        // (status !== "cancelled" means ok) would incorrectly flag every real, successful
+        // cancellation as a phantom and rewrite it to a false "let me sort that out" reply -- the
+        // exact inverse defect. Branch the expected status on which tool actually committed this
+        // turn: a cancel commit is verified as real when the row exists AND is cancelled; a
+        // book/reschedule commit is verified as real when the row exists AND is NOT cancelled.
+        const cancelCommitted = result.toolCalls.some((t) => t.name === "cancel_appointment" && isCommittedMutation(t.name, t.result));
         const { data: verifyRow } = await supabase
           .from("bookings").select("id, status").eq("id", verifyId).maybeSingle();
-        const rowOk = !!verifyRow && (verifyRow as { status?: string }).status !== "cancelled";
+        const status = (verifyRow as { status?: string } | null)?.status;
+        const rowOk = !!verifyRow && (cancelCommitted ? status === "cancelled" : status !== "cancelled");
         if (!rowOk) {
-          console.error(`[phantom-success-guard] commit claimed but no matching live row for booking_id=${verifyId}; rewriting to honest reply`);
+          console.error(`[phantom-success-guard] commit claimed but no matching live row for booking_id=${verifyId} (expected cancelled=${cancelCommitted}); rewriting to honest reply`);
           replyText = noFalseConfirmReply(customerLanguage);
         }
       }

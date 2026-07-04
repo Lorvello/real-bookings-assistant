@@ -1849,7 +1849,15 @@ export function createTools(
           }).eq("id", b.id);
           if (error) return { error: error.message };
           await clearPending();
-          return { ok: true, cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time } };
+          return {
+            ok: true,
+            // R97 (sibling fix to R96's PHANTOM-SUCCESS backstop, NEW-1): booking_id is the row this
+            // cancellation actually mutated, so committedMutationBookingId can verify the claimed
+            // outcome against a real DB row for cancellations too, matching book_appointment and
+            // reschedule_appointment. Purely additive (every existing caller ignores unknown fields).
+            booking_id: b.id,
+            cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time },
+          };
         }
 
         // PREVIEW phase (default; also where a stray confirmed:true WITHOUT a preview lands, so an
