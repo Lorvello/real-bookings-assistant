@@ -42,8 +42,18 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: "border bg-background text-foreground",
+        // R99: was a fully-opaque `bg-destructive` solid red block, the one place
+        // in the app that broke the established translucent-tint severity idiom
+        // (see the AI Knowledge tab's "Required to finish setup" banner:
+        // border-warning/30 bg-warning/[0.08] + a -foreground label color, never
+        // a solid fill). Reads as a jarring native browser alert next to every
+        // other card/banner's frosted, low-opacity treatment. Switched to the
+        // same idiom: a subtle destructive-tinted translucent background + a
+        // soft border, backdrop-blurred like `.glass`, keeping --destructive-on's
+        // text color (already proven ~6.6:1 AA on a dark card, unchanged here)
+        // so contrast is not weakened, just the surface fill.
         destructive:
-          "destructive group border-destructive bg-destructive text-destructive-on",
+          "destructive group border-destructive/30 bg-destructive/75 text-destructive-on backdrop-blur-xl",
       },
     },
     defaultVariants: {
