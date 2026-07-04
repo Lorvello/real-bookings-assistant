@@ -290,3 +290,53 @@ Deno.test("R74 ADVERSARIAL: real content beyond the correctness-clause skeleton 
     assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none (extra content)`);
   }
 });
+
+// ── 10. R78: CANCEL-CONFIRM-PATTERNLIST-BRITTLE fix (sibling of R74, filed by R74-verify) ──────
+// Found + live-reproduced during IUX R78 (evidence/IUX_r78.md section 3): 7/7 natural cancel-confirm
+// phrasings one word/shape off the pre-existing CANCEL_VERB skeleton each stalled the cancel-confirm
+// turn live (identical re-preview instead of committing the cancellation). These are the exact
+// live-reproduced phrasings plus the same closed skeleton's natural variants.
+Deno.test("R78: the exact live-reproduced cancel-confirm stall phrasings now hard-confirm", () => {
+  const phrasings = [
+    "Ja, annuleer die maar",
+    "Ja hoor, annuleer maar",
+    "Yes please cancel it",
+    "Ja, dat klopt, annuleer maar",
+    "Yeah cancel it please",
+    "Ja, klopt, annuleer die maar",
+    "Zeker, annuleer het",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("R78: natural EN/NL variants of the widened cancel-verb skeleton hard-confirm", () => {
+  const phrasings = [
+    "Ja, annuleer dat maar", "Ja, annuleer hem maar", "Yes cancel that", "Sure, cancel please",
+    "yes please cancel that", "Klopt, annuleer die maar", "Akkoord, annuleer het",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("R78 ADVERSARIAL: real content beyond the widened cancel-verb skeleton must NOT match", () => {
+  const mustStayNone = [
+    "ja, annuleer die andere maar",
+    "yeah cancel it but not the other one",
+    "zeker, annuleer het morgen pas",
+    "ja, annuleer die maar, of toch niet",
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none (extra content)`);
+  }
+});
+Deno.test("R78: bare 'annuleer het maar' (no affirm prefix) is still a reject, not a confirm", () => {
+  assertEquals(classifyHardConfirm("annuleer het maar"), "reject");
+});
+Deno.test("R78: bare 'annuleer het' alone (no affirm prefix) stays 'none', not a false confirm", () => {
+  // "annuleer het" alone is NOT in HARD_REJECT_EXACT (only "annuleer"/"annuleren"/"annuleer maar"/
+  // "annuleer het maar" are); it is also not a HARD_CONFIRM_PATTERNS member without an affirm-word
+  // prefix, so it must fall through to "none" (safe: existing ambiguousConfirm/AFFIRM_RE layers
+  // handle it), never silently promoted to either extreme by this widening.
+  assertEquals(classifyHardConfirm("annuleer het"), "none");
+});
