@@ -340,3 +340,56 @@ Deno.test("R78: bare 'annuleer het' alone (no affirm prefix) stays 'none', not a
   // handle it), never silently promoted to either extreme by this widening.
   assertEquals(classifyHardConfirm("annuleer het"), "none");
 });
+
+// ── 11. R81: CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing the 2 narrow gaps R78-verify found ────
+// Live-reproduced during IUX R81 (evidence/IUX_r81.md section 3): bare "ok"/"oke"/"okay" was
+// missing from CANCEL_PREFIX_AFFIRM (fix 1), and a bare correctness-clause with no leading affirm
+// word did not chain into the cancel pattern (fix 2).
+Deno.test("R81 fix 1: bare ok/oke/okay as the lead affirm word now hard-confirm a cancel", () => {
+  const phrasings = [
+    "Ok, cancel that",
+    "Oke, cancel it",
+    "Okay, cancel it",
+    "Ok cancel that",
+    "Oke cancel it",
+    "Ok, annuleer maar",
+    "Okay cancel please",
+    "Oke, annuleer die maar",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("R81 fix 2: a bare correctness-clause with no leading affirm word chains into cancel", () => {
+  const phrasings = [
+    "Klopt helemaal, annuleer maar",
+    "Klopt helemaal, annuleer het",
+    "Dat klopt helemaal, annuleer die maar",
+    "That's correct, cancel that",
+    "Klinkt perfect, annuleer het",
+  ];
+  for (const p of phrasings) {
+    assertEquals(classifyHardConfirm(p), "confirm", `expected "${p}" to hard-confirm`);
+  }
+});
+Deno.test("R81: 'klopt helemaal' bare-clause standalone (booking side) still hard-confirms unweakened", () => {
+  assertEquals(classifyHardConfirm("Klopt helemaal"), "confirm");
+  assertEquals(classifyHardConfirm("Klopt helemaal!"), "confirm");
+});
+Deno.test("R81 ADVERSARIAL: a bare cancel verb with NO correctness clause stays on the reject path", () => {
+  // Widening CORRECTNESS_CLAUSE / adding a bare-clause-alone cancel pattern must never let a plain
+  // "annuleer maar" (no clause at all) slip into the new pattern; it has no clause to match, so it
+  // must stay on the pre-existing HARD_REJECT_EXACT path exactly as before this round's diff.
+  assertEquals(classifyHardConfirm("Annuleer maar"), "reject");
+  assertEquals(classifyHardConfirm("Annuleer het maar"), "reject");
+});
+Deno.test("R81 ADVERSARIAL: extra content beyond the new bare-clause-plus-cancel skeleton stays none", () => {
+  const mustStayNone = [
+    "Klopt helemaal, maar ik heb toch liever iets anders",
+    "Klopt helemaal, dat is een goed idee, annuleer maar",
+    "Klopt helemaal, boek maar",
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none (extra/unrelated content)`);
+  }
+});

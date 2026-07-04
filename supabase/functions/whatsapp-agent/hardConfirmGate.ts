@@ -158,13 +158,26 @@ const PREFIX_AFFIRM = "(?:ja|jaa|yes|yeah|yep|klopt|ok|oke|oké|okay)";
 // Kept as a SEPARATE constant from PREFIX_AFFIRM (not merged into it) since this round's live
 // evidence only covers "zeker"/"sure" in the cancel-confirm shape, following this file's own
 // discipline of only widening a set as far as live/static evidence actually supports.
-const CANCEL_PREFIX_AFFIRM = "(?:ja|jaa|yes|yeah|yep|klopt|akkoord|zeker|sure)";
+// R81 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing gap 1): bare "ok"/"oke"/"okay" was missing here
+// even though all three spellings are already trusted standalone elsewhere in this same file
+// (HARD_CONFIRM_EXACT, PREFIX_AFFIRM, CONFIRM_WORD, and even inside CANCEL_INTERJECTION as an
+// interjection slot, just never as the LEAD affirm word for a cancel). Live-reproduced gap
+// (evidence/IUX_r81.md section 3): "Ok, cancel that" / "Oke, cancel it" / "Okay, cancel it" all
+// stalled. Added for consistency with the rest of the file's spelling set, same closed alternation.
+const CANCEL_PREFIX_AFFIRM = "(?:ja|jaa|yes|yeah|yep|klopt|akkoord|zeker|sure|ok|oke|oké|okay)";
 // A tiny, closed, optional interjection slot ("Ja hoor", "Yeah okay") that can sit between the
 // affirm word and the cancel verb in genuinely common casual Dutch/English. Fixed alternation only,
 // never a wildcard; live-reproduced gap: "Ja hoor, annuleer maar" (evidence/IUX_r78.md trial 2).
 const CANCEL_INTERJECTION = "(?:hoor|oke|ok)?";
+// R81 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing gap 2): added the bare "klopt helemaal" member
+// (no leading "dat"). It previously only existed as its OWN separate standalone
+// `^klopt helemaal!?$` pattern entry below, never as a member of this shared alternation, so it
+// could not chain with CANCEL_VERB. Live-reproduced gap: "Klopt helemaal, annuleer maar" /
+// "Klopt helemaal, annuleer het" (evidence/IUX_r81.md section 3). Purely additive: every existing
+// use of CORRECTNESS_CLAUSE (the R74 booking chain, the bare-clause-alone booking pattern, the R78
+// cancel chain) only gains one more accepted member, never loses one.
 const CORRECTNESS_CLAUSE =
-  "(?:dat klopt|dat is correct|dat is juist|is correct|that'?s correct|that'?s right|that is correct|that is right|that works|klinkt goed|sounds good|dat klopt helemaal|dat is helemaal correct|helemaal correct|klinkt perfect)";
+  "(?:dat klopt|dat is correct|dat is juist|is correct|that'?s correct|that'?s right|that is correct|that is right|that works|klinkt goed|sounds good|dat klopt helemaal|dat is helemaal correct|helemaal correct|klopt helemaal|klinkt perfect)";
 export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   new RegExp(`^ja,? ${PLEASANTRY}!?$`, "i"),
   new RegExp(`^klopt,? ${PLEASANTRY}!?$`, "i"),
@@ -198,6 +211,17 @@ export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   // CANCEL_VERB alternations already defined above, just chained; still a single fixed skeleton,
   // no wildcard, anchored ^...$.
   new RegExp(`^${PREFIX_AFFIRM},? (?:${CORRECTNESS_CLAUSE}|${CONFIRM_WORD}),? ${CANCEL_VERB}!?$`, "i"),
+  // R81 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing gap 2): a bare correctness-clause with NO
+  // leading affirm word, chained directly into the cancel verb ("Klopt helemaal, annuleer maar"),
+  // live-reproduced (evidence/IUX_r81.md section 3): the chained pattern above always required
+  // PREFIX_AFFIRM before the clause/word, and no bare-clause-alone cancel entry existed anywhere
+  // in this list, unlike the booking side which already has one (see the bare CORRECTNESS_CLAUSE
+  // entry near the end of this list). Direct mirror of that existing booking-side entry, reusing
+  // the same closed CORRECTNESS_CLAUSE and CANCEL_VERB alternations, no new wildcard, anchored
+  // ^...$ like every other entry. A bare cancel verb with NO correctness clause at all (e.g. a
+  // standalone "annuleer maar") still cannot match this pattern, so it correctly stays on the
+  // existing HARD_REJECT_EXACT path, proven by an adversarial boundary test.
+  new RegExp(`^${CORRECTNESS_CLAUSE},? ${CANCEL_VERB}!?$`, "i"),
   new RegExp(`^${CONFIRM_WORD},? ${CONFIRM_WORD}!?$`, "i"),
   new RegExp(`^${PREFIX_AFFIRM},? ${CORRECTNESS_CLAUSE}(?:,? ${PLEASANTRY})?!?$`, "i"),
   new RegExp(`^${CORRECTNESS_CLAUSE}(?:,? ${PLEASANTRY})?!?$`, "i"),
