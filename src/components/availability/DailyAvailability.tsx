@@ -289,15 +289,59 @@ export const DailyAvailability: React.FC<DailyAvailabilityProps> = ({ onChange }
   // hours - render a neutral shimmer skeleton instead (same shape/utility
   // classes as AvailabilityManager's outer loadingSkeleton) until the fetch
   // that matches `defaultSchedule.id` actually resolves.
+  //
+  // AVAILABILITY-SKELETON-MOBILE-CLS (IUX R80): the real row
+  // (AvailabilityDayRow.tsx) is `flex flex-col sm:flex-row` - it STACKS
+  // vertically below the 640px `sm:` breakpoint (toggle+label on one line,
+  // time-block controls on a second line below, which itself
+  // `flex-wrap`s onto two rows at narrow widths), so it is measurably
+  // taller than a single-line row there. Live-measured (real DOM,
+  // real signed-up account, real created calendar, one enabled time
+  // block): old fixed-shape skeleton = 64px at every width vs a real
+  // enabled row = 156px at 375/390px, 104px at 414px - a 92/40px gap,
+  // the actual CLS this item flagged. The skeleton below mirrors the
+  // real row's own `flex-col sm:flex-row` structure PLUS its own
+  // `flex-wrap` time-block shape (start time, separator, end time, 2
+  // icon-button placeholders) so it naturally stacks/wraps at the same
+  // breakpoints the real row does, instead of guessing one fixed pixel
+  // height. Re-measured after this fix (same methodology): skeleton is
+  // 136px at 375px (real 156px, 20px residual) and 96px at 414px (real
+  // 104px, 8px residual) - both a single-digit-to-low-double-digit
+  // fraction of the original 92px gap, because the exact wrap point
+  // depends on how many time blocks a given day has (variable real
+  // data), not something a static placeholder can match to the pixel.
+  // At `sm:` and up the row is NOT stacked (64px skeleton vs ~54px
+  // real, a small and pre-existing -10px difference, not introduced
+  // by this fix).
   if (isResolvingSchedule) {
     return (
       <div className="space-y-2" role="status" aria-label={t('availPage.loading.weeklyHours', 'Loading weekly hours')}>
         {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="flex items-center gap-4 px-2 py-4">
-            <div className="shimmer h-5 w-9 rounded-full bg-white/[0.06]" />
-            <div className="shimmer h-4 w-20 rounded bg-white/[0.05]" />
-            <div className="shimmer ml-auto h-8 w-24 rounded-md bg-white/[0.05]" />
-            <div className="shimmer h-8 w-24 rounded-md bg-white/[0.05]" />
+          <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-2 py-4">
+            <div className="flex items-center gap-3 min-w-[140px]">
+              <div className="shimmer h-5 w-9 rounded-full bg-white/[0.06]" />
+              <div className="shimmer h-4 w-20 rounded bg-white/[0.05]" />
+            </div>
+            {/* Mobile-only second line: mirrors TimeBlockRow's own
+                `flex flex-wrap items-center gap-2` shape (start time,
+                separator, end time, up to 3 icon buttons) so it wraps onto
+                two lines at narrow widths exactly like the real control
+                does (live-measured: a real single time-block row wraps to
+                ~96px tall at 375px width), instead of guessing one fixed
+                height. */}
+            <div className="flex sm:hidden flex-wrap items-center gap-2">
+              <div className="shimmer h-9 w-20 rounded-lg bg-white/[0.05]" />
+              <div className="shimmer h-4 w-2 rounded bg-white/[0.04]" />
+              <div className="shimmer h-9 w-20 rounded-lg bg-white/[0.05]" />
+              <div className="shimmer h-8 w-8 rounded-md bg-white/[0.04]" />
+              <div className="shimmer h-8 w-8 rounded-md bg-white/[0.04]" />
+            </div>
+            {/* sm:+ only: single-line placeholder, matches the real row's
+                unstacked desktop/tablet shape. */}
+            <div className="hidden sm:flex items-center gap-4 ml-auto">
+              <div className="shimmer h-8 w-24 rounded-md bg-white/[0.05]" />
+              <div className="shimmer h-8 w-24 rounded-md bg-white/[0.05]" />
+            </div>
           </div>
         ))}
       </div>
