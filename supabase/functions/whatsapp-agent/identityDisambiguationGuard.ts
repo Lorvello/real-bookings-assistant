@@ -216,6 +216,113 @@ export function crossIdentityActionRisk(
   return nameMismatch(targetCustomerName, knownSelfName);
 }
 
+// R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, live-reproduced 6/6 deterministic on the S6
+// testpad, e.g. phone 31600001701/31600001702): book_appointment's commit gate (tools.ts) calls
+// crossIdentityActionRisk the SAME way cancel/reschedule/rename do, comparing the PENDING
+// PREVIEW's own customer_name against ctx.knownSelfName. That comparison is safe for cancel/
+// reschedule/rename because their `targetCustomerName` always comes from a REAL, independent
+// bookings-table row (resolveTarget()'s `b.customer_name`), i.e. a genuine fact about someone who
+// might be a different real person than whoever is currently texting. book_appointment's own
+// pending_booking.customer_name is structurally NOT that: on a brand-new customer's very first
+// message, it is populated straight from THIS SAME conversation's own args.customer_name (see
+// tools.ts's rawName/customerName derivation), i.e. it is simply what the CURRENT speaker just
+// said about themselves. ctx.knownSelfName (index.ts's knownName) is null in that exact shape not
+// because a genuine OTHER identity is on file, but because nothing has EVER been captured into
+// convContext.booking_name yet (booking_name is only ever written by a SEPARATE update_lead tool
+// call the model makes at its own discretion, which live testing shows it routinely skips when
+// the name arrives bundled with the booking request itself, see evidence). nameMismatch's own
+// documented behaviour (null self vs ANY real target name = mismatch) is exactly right for
+// cancel/reschedule/rename's real-third-party-row case; for book_appointment it produces a
+// deterministic false positive on the single most common first-contact phrasing ("Hoi, ik ben
+// Chris, boek ... vrijdag 13:00"), forcing an unresolvable naam_verificatie_nodig loop (see
+// crossIdentityBookVerificationBypass below for why it never actually resolves either).
+//
+// FIX: book_appointment gets its OWN risk predicate, requiring one more condition beyond
+// nameMismatch before it fires: genuine PRIOR IDENTITY EVIDENCE must exist for this phone, either
+// (a) a real booking already exists for this phone under this business (any calendar in the
+// owner's allowlist, any status/time, even a past/cancelled booking is proof a DIFFERENT real
+// person may have used this phone before), or (b) ctx.knownSelfName is itself a REAL, actually-
+// established name (not null) that conflicts with the preview's name (the genuine "phone handed to
+// someone else between preview and confirm" shape R107 was built for). When NEITHER holds:
+// nobody has ever booked on this phone before AND nothing has ever been captured about who is
+// texting, the preview's name cannot be anyone but the current speaker's own self-declared
+// identity, so there is nothing to be in conflict WITH, and the guard must not fire. This never
+// weakens the real R101/R107 protection: a genuine shared-phone case always has EITHER a real
+// prior booking (satisfying condition a) OR an already-established knownSelfName from an earlier
+// turn in the SAME conversation (satisfying condition b) by the time a second, conflicting name
+// shows up; it is only the impossible-to-satisfy "null vs the name I just gave you, in the exact
+// message that gave it" case that this additionally excludes.
+export function crossIdentityBookRisk(
+  targetCustomerName: string | null | undefined,
+  knownSelfName: string | null | undefined,
+  priorRealIdentityExists: boolean,
+): boolean {
+  if (!nameMismatch(targetCustomerName, knownSelfName)) return false;
+  // A mismatch against a REAL, already-established knownSelfName is always a genuine risk,
+  // independent of prior-booking history (the phone-handoff-mid-flow shape: the SAME conversation
+  // already told us who is texting, via an earlier update_lead call or an earlier real booking on
+  // file, and THIS preview's name now conflicts with that). nameMismatch only reaches this line
+  // with a real target name, so isRealName(knownSelfName) alone decides whether the mismatch is
+  // against a genuine established identity or against nothing (null) at all.
+  if (isRealName(knownSelfName)) return true;
+  // knownSelfName is null: the ONLY remaining question is whether a genuine OTHER identity could
+  // exist on this phone at all. No prior real booking under this business, on any calendar, ever
+  // -> the preview's name is definitionally the current speaker's own self-declared name, not a
+  // third party; no risk. A prior real booking existing (even under the SAME name, even long
+  // expired/cancelled) means a genuine identity is already on file for this phone that this
+  // conversation simply has not re-confirmed yet this turn, so the mismatch stays live.
+  return priorRealIdentityExists;
+}
+
+// R120 (continued): the customer's OWN current message explicitly names the SAME person the
+// pending preview already has, the strongest, most specific evidence of genuine intent this
+// codebase has (stronger than a bare "ja", which hardConfirmGate.ts's finite allow-list otherwise
+// requires): reuses the exact containsWholeWord/firstNameToken matcher identityVerificationResolved
+// already trusts for releasing a naam_verificatie_nodig marker. Exposed as its own named predicate
+// so tools.ts's commit gate can accept EITHER ctx.hardConfirm's generic bare-affirm allow-list OR
+// this narrower, equally-deterministic "explicitly named the target" signal, instead of requiring
+// the customer to somehow satisfy a bare-affirm pattern AND restate a name in the same breath (a
+// structural catch-22 live-reproduced on the S6 testpad: "Ja, echt boeken voor Chris" fails
+// hardConfirm's finite allow-list on the extra content, but a bare "ja" alone can never satisfy
+// identityVerificationResolved's name-match requirement, so NEITHER path alone can ever resolve a
+// real verification question once one has fired). Deliberately requires the SAME clean-affirm
+// signals (AFFIRM_RE/!NEGATE_RE/!ambiguousConfirm) the rest of this file's release logic already
+// requires, via the caller passing ctx.confirmBookVerification (computed in index.ts exactly like
+// confirmCancelVerification/confirmRescheduleVerification): this function only adds the "which
+// hard-gate-shaped commit is this allowed to satisfy" wiring, it does not relax any existing
+// affirm-cleanliness check.
+export function crossIdentityBookVerificationBypass(confirmBookVerification: boolean | undefined): boolean {
+  return confirmBookVerification === true;
+}
+
+// R120 (continued, closes the SECOND half of the catch-22): crossIdentityBookVerificationBypass
+// only ever helps AFTER a naam_verificatie_nodig marker has already fired once. Live-reproduced on
+// the S6 testpad, phone 31600001703: on the common, NEVER-at-risk path (crossIdentityBookRisk
+// correctly returns false, no marker is ever written), a customer who bundles their own
+// confirmation with their own name in one message ("Ja, echt boeken voor Chris") still fails
+// ctx.hardConfirm's finite bare-affirm allow-list on the extra content, and falls through to a
+// silent re-preview instead of committing (a bare "ja" on the VERY NEXT turn does correctly commit,
+// so this is not a re-opened deadlock, just an avoidable extra round-trip on an already-
+// unambiguous message). Same underlying insight as the verification-bypass above, generalized: a
+// message that is a clean affirm (AFFIRM_RE/!NEGATE_RE/!ambiguousConfirm, the SAME cleanliness bar
+// every commit-driving signal in this codebase already requires) AND explicitly names the SAME
+// person the still-pending preview already has, is at least as strong evidence of genuine confirm
+// intent as a bare "ja" on hardConfirmGate.ts's own allow-list; there is no real ambiguity left to
+// protect against by making the customer say it twice. Reuses the exact containsWholeWord/
+// firstNameToken matcher every other name-match check in this file already trusts. Deliberately
+// narrow: only ever consulted by book_appointment's own commit gate, only ever compared against
+// THIS SAME turn's own still-pending preview (never a marker, never a different booking), so it
+// can never be satisfied by an unrelated message naming an unrelated person.
+export function messageNamesPendingBookOwner(
+  pendingCustomerName: string | null | undefined,
+  rawMessage: string | undefined | null,
+): boolean {
+  if (!isRealName(pendingCustomerName)) return false;
+  const token = firstNameToken(String(pendingCustomerName));
+  if (!token || token.length < 2) return false;
+  return containsWholeWord(String(rawMessage ?? ""), token);
+}
+
 // R109 (MARKER-RELEASE-HAS-NO-SPEAKER-IDENTITY-CHECK fix, closes the gap R107's own verify round
 // found in book_appointment and generalizes it to cancel/reschedule's pre-existing markers, which
 // share the identical release-gate shape and were never adversarially tested for this specific

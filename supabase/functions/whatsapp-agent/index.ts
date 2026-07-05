@@ -13,7 +13,7 @@ import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceRescheduleAmbiguityDisclosure, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -608,6 +608,22 @@ Deno.serve(async (req) => {
       calendars.unshift({ id: calendar_id, name: "Agenda" });
     }
     const isMultiCalendar = calendars.length > 1;
+
+    // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, see identityDisambiguationGuard.ts's
+    // crossIdentityBookRisk for the full root-cause/design reasoning): does THIS phone have ANY
+    // real booking on file anywhere in the owner's calendar allowlist (any status, any time)?
+    // Scoped exactly like tools.ts's resolveTarget() (phone + the whole calendars allowlist, never
+    // just the single entry calendar_id, so a customer known on a DIFFERENT one of the owner's
+    // calendars still correctly counts as a genuine prior identity). This is the ONLY new query
+    // this fix adds (a single indexed head-count check, `limit(1)` + `head:true`, cheapest
+    // possible existence check); every other read in this function is unchanged. Used ONLY to
+    // distinguish "a genuine other identity could already be on file for this phone" (any prior
+    // booking, even cancelled/expired, is proof someone has used this phone with this business
+    // before) from "this is this phone's first-ever contact" (nothing to be in conflict with).
+    const { count: priorBookingCount } = await supabase
+      .from("bookings").select("id", { count: "exact", head: true })
+      .eq("customer_phone", phone).in("calendar_id", calendars.map((c) => c.id));
+    const priorRealBookingExists = (priorBookingCount ?? 0) > 0;
 
     // Per-calendar services for the prompt's <kalenders> block, ONLY when multi-calendar
     // (single-calendar path stays byte-identical: zero extra queries, no block). One query
@@ -1477,9 +1493,23 @@ Deno.serve(async (req) => {
     // commit uses the SERVER-STORED exact start_time, which also kills the model's
     // time-reconstruction bug (it once booked 12:00 for a confirmed 10:00).
     const pbk = convContext.pending_booking as
-      { at?: number; service_type_id?: string; start_time?: string; end_time?: string; calendar_id?: string } | undefined;
+      { at?: number; service_type_id?: string; start_time?: string; end_time?: string; calendar_id?: string; customer_name?: string | null } | undefined;
     const pendingBookFresh = !!pbk && (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
     const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(msgLower);
+    // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, closes the SECOND half of the
+    // catch-22 identityDisambiguationGuard.ts's messageNamesPendingBookOwner documents): on the
+    // common NEVER-at-risk path (no naam_verificatie_nodig marker ever fires), a customer who
+    // bundles their own confirmation with their own name in the SAME message ("Ja, echt boeken voor
+    // Chris") still fails ctx.hardConfirm's finite bare-affirm allow-list on the extra content and
+    // falls through to an avoidable re-preview (live-reproduced on the S6 testpad, phone
+    // 31600001703). SAME cleanliness bar as every other confirm* signal here (AFFIRM_RE/!NEGATE_RE/
+    // !ambiguousConfirm, plus pendingBookFresh so this can never fire without a real fresh preview
+    // to confirm), PLUS the customer's raw message must explicitly name the SAME person the
+    // still-pending preview already has. Threaded through as its own ctx flag so tools.ts's commit
+    // gate can accept it as an alternative to ctx.hardConfirm, exactly parallel to how
+    // confirmBookVerification is threaded through for the marker case.
+    const confirmBookOwnerRestated = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      messageNamesPendingBookOwner(pbk?.customer_name ?? null, String(message));
     // R118 (GAP 3, PENDING-BOOKING-NO-EXPIRY fix, live-reproduced on the S6 testpad): a booking
     // preview is offered, the customer asks something unrelated in between, gets an answer, then
     // sends an unrelated LATER "Ja" (plausibly meaning something else entirely, e.g. "yes, good to
@@ -1760,7 +1790,7 @@ Deno.serve(async (req) => {
     // convContext.booking_name via update_lead, else the WhatsApp profile display name). Threaded
     // through as knownSelfName so cancel/reschedule's cross-identity guard can detect when a
     // resolved target booking's own name differs from what THIS speaker has said about themselves.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower) });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -1837,7 +1867,14 @@ Deno.serve(async (req) => {
     // BLOCKER, intermittent in the multi-booking path). Force the cancel via a nudge. The two-phase
     // commit re-resolves the SERVER-stored pending_cancel, so a nudge can only ever cancel the
     // correct booking, never the wrong one.
-    const cancelCommitMissed = confirmCancel && !succeededMutation;
+    // R120 (MILDER-SYMPTOM fix, cancel side): ALSO widened to confirmCancelVerification, mirroring
+    // bookCommitMissed's own widening (identityDisambiguationGuard.ts / tools.ts's cancelVerifiedBypass
+    // has the full root-cause reasoning). Live-reproduced: once cancel's own naam_verificatie_nodig
+    // fires, a resolving reply naming the target ("Ja, echt annuleren voor Erik") needs the SAME
+    // forcing nudge as any other missed commit, since tools.ts's own gate no longer depends on the
+    // model's args.confirmed/only_confirming_previous attestation for this path, but the tool still
+    // needs to be CALLED at least once for that gate to run.
+    const cancelCommitMissed = (confirmCancel || confirmCancelVerification) && !succeededMutation;
 
     // ITEM 12, Book-commit-missed (mirrors cancelCommitMissed): the customer AFFIRMED a fresh
     // pending booking (server-detected confirmBook) but no booking SUCCEEDED this turn. The model
@@ -1853,10 +1890,26 @@ Deno.serve(async (req) => {
     // model to improvise a confused reply ("Wat is je naam?", reproduced reliably). Suppress the
     // pointless nudge here; reply-assembly then templates an honest reply (deterministicSlotTaken),
     // so the no-double-book guarantee in code is matched by a clean customer-facing outcome.
-    const slotTakenOnCommit = confirmBook && result.toolCalls.some(
+    const slotTakenOnCommit = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && result.toolCalls.some(
       (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
         BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
-    const bookCommitMissed = confirmBook && !succeededMutation && !slotTakenOnCommit;
+    // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, model-attestation-reliability
+    // half): live-reproduced on the S6 testpad (phone 31600001716) that even AFTER tools.ts's own
+    // gate correctly accepts ctx.confirmBookVerification/ctx.confirmBookOwnerRestated as an
+    // alternative to ctx.hardConfirm (identityDisambiguationGuard.ts's crossIdentityBookVerification
+    // Bypass/messageNamesPendingBookOwner), the model itself does not reliably re-issue the
+    // book_appointment tool call with confirmed:true on the turn that resolves a naam_verificatie_
+    // nodig question: it re-drafts a fresh preview instead (the exact "small model doesn't reliably
+    // re-issue the tool call with the right commit-attestation fields" risk this round's own task
+    // description called out). bookCommitMissed's retry-nudge mechanism already exists for exactly
+    // this class of failure (confirmBook), but was never widened to the TWO NEW server-computed
+    // signals this round adds, so a genuine, already-server-verified resolution of the identity
+    // question silently fell back to an infinite re-preview loop with NO forcing nudge at all. This
+    // is pure ADDITIVE widening of the SAME existing mechanism, not a new one: the nudge text below
+    // still only ever forces the SAME deterministic, server-stored-slot commit tools.ts's own gate
+    // already independently re-verifies, so this can never force a wrong or premature booking, only
+    // a booking that was already safe to make.
+    const bookCommitMissed = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && !succeededMutation && !slotTakenOnCommit;
 
     // R40: Rename-commit-missed (mirrors cancelCommitMissed exactly). The customer AFFIRMED a
     // pending name-change (server-detected confirmRename) but no rename SUCCEEDED this turn (the
@@ -1933,10 +1986,37 @@ Deno.serve(async (req) => {
       // args.only_confirming_previous === true AND !ctx.ambiguousConfirm AND a stored
       // pendingBook/pending to ever commit (tools.ts's committing/cancel-commit gates), so this
       // wording change can only ever make a wrong commit LESS likely, never more.
-      const nudgeText = cancelCommitMissed
+      // R120 (MILDER-SYMPTOM fix, cancel side): a DEDICATED nudge for confirmCancelVerification,
+      // parallel to book's own dedicated branch above, so the model is told explicitly that the
+      // name in this turn's message IS the resolution, not new doubt to re-litigate.
+      const nudgeText = confirmCancelVerification
+        ? "[systeem] De klant heeft zojuist bevestigd dat de afspraak echt van de genoemde naam is en geannuleerd moet worden (dit is server-side al geverifieerd, de naam in het bericht is de bevestiging, GEEN nieuwe twijfel), maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true EN only_confirming_previous:true, in DEZELFDE aanroep. Vraag niets extra's, verifieer de naam niet nogmaals, en zeg NOOIT dat er geannuleerd is voordat de tool 'ok' teruggaf."
+        : cancelCommitMissed
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd, vraag, voorwaarde, twijfel, afwijzing/ontevredenheid in welke vorm dan ook). Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
         : renameCommitMissed
         ? "[systeem] De klant bevestigde de zojuist voorgestelde naamswijziging op de afspraak, maar je hebt update_booking_name niet (geslaagd) aangeroepen, dus de naam is nog NIET gewijzigd. Roep NU update_booking_name aan met BEIDE velden confirmed:true EN only_confirming_previous samen in DEZELFDE aanroep. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil. Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Geef new_name NIET opnieuw door: het systeem gebruikt de in de preview opgeslagen naam. Antwoord met het resultaat."
+        // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, model-attestation-reliability half,
+        // continued): a DEDICATED nudge text for the confirmBookVerification/confirmBookOwnerRestated
+        // shape, deliberately WITHOUT the generic bookCommitMissed text's "andere naam" caveat below.
+        // Live-reproduced on the S6 testpad (phone 31600001718): reusing the generic text here
+        // actively backfires, because that text explicitly instructs the model to treat ANY name
+        // mention as a signal only_confirming_previous should be false ("andere naam" in its own
+        // caveat list) -- exactly backwards for THIS specific shape, where the customer naming the
+        // target person IS the confirmation signal (it is what resolved the naam_verificatie_nodig
+        // question in the first place), not a contradiction of it. NOTE: tools.ts's own committing
+        // gate (identityDisambiguationGuard.ts's crossIdentityBookVerificationBypass /
+        // messageNamesPendingBookOwner, wired as ctx.confirmBookVerification/confirmBookOwnerRestated)
+        // no longer actually REQUIRES args.confirmed/only_confirming_previous from the model on this
+        // exact path at all (live-tested: even this dedicated nudge text did not reliably land the
+        // model's own attestation 3 retries running, so the commit gate was made fully deterministic
+        // instead, per this codebase's own established doctrine that prompt-only steering does not
+        // hold at this model's scale). This nudge text is kept purely as a DEFENSIVE retry-trigger
+        // for the shape where the model calls NO tool at all this turn (book_appointment still needs
+        // to be CALLED at least once for the server-side gate to ever run); asking it to also set
+        // confirmed:true/only_confirming_previous:true is harmless (server ignores both on this path)
+        // and gives a clear, safe instruction if the model happens to comply.
+        : (confirmBookVerification || confirmBookOwnerRestated)
+        ? "[systeem] De klant heeft zojuist bevestigd dat de afspraak echt voor de genoemde naam geboekt moet worden (dit is server-side al geverifieerd, de naam in het bericht is de bevestiging, GEEN nieuwe twijfel), maar je hebt book_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geboekt. Roep NU book_appointment aan met confirmed:true EN only_confirming_previous:true, in DEZELFDE aanroep. Geef customer_name NIET opnieuw door: het systeem gebruikt de al opgeslagen naam uit de preview. Vraag niets extra's, verifieer de naam niet nogmaals, en zeg NOOIT dat er geboekt is voordat de tool 'ok' teruggaf."
         : bookCommitMissed
         ? "[systeem] De klant bevestigde de zojuist voorgestelde afspraak, maar je hebt book_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS geboekt. Roep NU book_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd/dag, vraag, voorwaarde, andere naam, twijfel, of een afwijzing/ontevredenheid in welke vorm dan ook, ook als er geen concreet alternatief genoemd wordt). Twijfel je: false, dan vraagt het systeem gewoon nogmaals, veiliger dan verkeerd boeken. Het systeem gebruikt bij confirmed:true het in de preview opgeslagen tijdslot: geef de datum of tijd NIET opnieuw door en bereken niets na. Vraag niets extra's en zeg NOOIT dat er geboekt is voordat de tool 'ok' teruggaf."
         : reschedStall

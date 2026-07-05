@@ -5,6 +5,8 @@
 import { assertEquals } from "jsr:@std/assert";
 import {
   crossIdentityActionRisk,
+  crossIdentityBookRisk,
+  crossIdentityBookVerificationBypass,
   crossIdentityRenameRisk,
   enforceAppointmentNameDisclosure,
   enforceVerificationGateDisclosure,
@@ -13,6 +15,7 @@ import {
   identityVerificationResolved,
   isRealName,
   mentionsOwnAppointmentClaim,
+  messageNamesPendingBookOwner,
   nameSuffix,
   type NamedCandidate,
 } from "./identityDisambiguationGuard.ts";
@@ -275,6 +278,67 @@ Deno.test("crossIdentityActionRisk: book_appointment shape, pending preview name
 Deno.test("crossIdentityActionRisk: book_appointment shape, pending preview has no real name -> no risk (common placeholder case)", () => {
   assertEquals(crossIdentityActionRisk(undefined, "Privé", "Bob"), false);
   assertEquals(crossIdentityActionRisk(undefined, null, "Bob"), false);
+});
+
+// ── R120: crossIdentityBookRisk (book_appointment's OWN risk predicate, closes the live-
+// reproduced 6/6 deterministic first-message false positive; see identityDisambiguationGuard.ts's
+// own header comment for the full root-cause reasoning). ──────────────────────────────────────
+Deno.test("crossIdentityBookRisk: brand-new phone, first-ever message, name self-supplied this turn -> NO risk (the exact deadlock repro shape)", () => {
+  // knownSelfName null (nothing ever captured) AND no prior real booking on file at all: the
+  // preview's name is definitionally the current speaker's own self-declared name.
+  assertEquals(crossIdentityBookRisk("Chris", null, false), false);
+});
+
+Deno.test("crossIdentityBookRisk: a real prior booking exists on this phone -> RISK still fires even with null knownSelfName (genuine shared-phone protection preserved)", () => {
+  assertEquals(crossIdentityBookRisk("Chris", null, true), true);
+});
+
+Deno.test("crossIdentityBookRisk: knownSelfName already a REAL established name that conflicts -> RISK fires regardless of prior-booking history (phone-handoff-mid-flow shape, R107's original concern)", () => {
+  assertEquals(crossIdentityBookRisk("Chris", "Bob", false), true);
+  assertEquals(crossIdentityBookRisk("Chris", "Bob", true), true);
+});
+
+Deno.test("crossIdentityBookRisk: preview name matches the speaker's own established name -> no risk regardless of prior-booking history", () => {
+  assertEquals(crossIdentityBookRisk("Chris", "Chris", false), false);
+  assertEquals(crossIdentityBookRisk("Chris", "Chris", true), false);
+  assertEquals(crossIdentityBookRisk("chris", "CHRIS", true), false);
+});
+
+Deno.test("crossIdentityBookRisk: preview has no real name (placeholder) -> no risk", () => {
+  assertEquals(crossIdentityBookRisk("Privé", null, true), false);
+  assertEquals(crossIdentityBookRisk(null, null, true), false);
+});
+
+// ── R120: crossIdentityBookVerificationBypass ───────────────────────────────────────────────
+Deno.test("crossIdentityBookVerificationBypass: true only when confirmBookVerification is exactly true", () => {
+  assertEquals(crossIdentityBookVerificationBypass(true), true);
+  assertEquals(crossIdentityBookVerificationBypass(false), false);
+  assertEquals(crossIdentityBookVerificationBypass(undefined), false);
+});
+
+// ── R120: messageNamesPendingBookOwner (the marker-FREE catch-22 fix) ───────────────────────
+Deno.test("messageNamesPendingBookOwner: message explicitly names the pending preview's own customer_name -> true", () => {
+  assertEquals(messageNamesPendingBookOwner("Chris", "Ja, echt boeken voor Chris"), true);
+  assertEquals(messageNamesPendingBookOwner("Chris", "Ja klopt, boek het echt voor Chris alsjeblieft"), true);
+});
+
+Deno.test("messageNamesPendingBookOwner: bare affirm with no name at all -> false (must not accidentally satisfy)", () => {
+  assertEquals(messageNamesPendingBookOwner("Chris", "Ja"), false);
+  assertEquals(messageNamesPendingBookOwner("Chris", "Klopt"), false);
+});
+
+Deno.test("messageNamesPendingBookOwner: near-identical name does not satisfy (Chris vs Christiaan/Christel)", () => {
+  assertEquals(messageNamesPendingBookOwner("Chris", "Ja, voor Christiaan"), false);
+  assertEquals(messageNamesPendingBookOwner("Christel", "Ja, voor Chris"), false);
+});
+
+Deno.test("messageNamesPendingBookOwner: no real pending name (placeholder) -> false", () => {
+  assertEquals(messageNamesPendingBookOwner("Privé", "Ja, echt boeken"), false);
+  assertEquals(messageNamesPendingBookOwner(null, "Ja, echt boeken"), false);
+});
+
+Deno.test("messageNamesPendingBookOwner: unrelated message content naming someone else entirely -> false", () => {
+  assertEquals(messageNamesPendingBookOwner("Chris", "Nee, boek het voor Sanne"), false);
 });
 
 // ── R107: BARE_MY_APPOINTMENT_RE / mentionsOwnAppointmentClaim widened coverage ──────────────

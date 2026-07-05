@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
+import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -186,6 +186,27 @@ export interface ToolContext {
   // copy of that regex). Only consulted when pendingBookInterveningExchange is true; irrelevant
   // (and never blocks anything) otherwise.
   messageRestatesDayTime?: boolean;
+  // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, see identityDisambiguationGuard.ts's
+  // crossIdentityBookRisk for the full root-cause/design reasoning): true when this phone has AT
+  // LEAST ONE real booking on file anywhere in the owner's calendar allowlist (any status, any
+  // time, computed once in index.ts from a single indexed query, same scope resolveTarget() itself
+  // searches). Used ONLY to distinguish "a genuine other identity could already be on file for
+  // this phone" from "this is this phone's very first-ever contact with this business", so
+  // book_appointment's own cross-identity guard does not false-fire on a brand-new customer's
+  // first message (where the preview's name is simply what the current speaker just said about
+  // themselves, never a third party).
+  priorRealBookingExists?: boolean;
+  // R120 (continued): server-detected (index.ts, mirrors confirmBookVerification's own shape:
+  // pendingBookFresh + AFFIRM_RE + !NEGATE_RE + !ambiguousConfirm), true when THIS turn's raw
+  // message is a clean affirm that ALSO explicitly names the SAME person the still-pending preview
+  // already has (identityDisambiguationGuard.ts's messageNamesPendingBookOwner), with NO prior
+  // naam_verificatie_nodig marker required. Closes the second half of the catch-22
+  // crossIdentityBookVerificationBypass's own header documents: on the common never-at-risk path,
+  // a message that bundles a clean affirm with the customer's own name in one breath ("Ja, echt
+  // boeken voor Chris") still fails ctx.hardConfirm's finite bare-affirm allow-list, and this flag
+  // is the deterministic alternative that lets book_appointment's commit gate accept it directly
+  // instead of forcing an avoidable extra re-preview round-trip.
+  confirmBookOwnerRestated?: boolean;
 }
 
 interface UpcomingBooking {
@@ -1482,6 +1503,43 @@ export function createTools(
         const noPriorTurnProposal = ctx.confirmBook !== true;
         const previewIsSelfWritten = noPriorTurnProposal &&
           typeof pendingBook?.at === "number" && pendingBook.at === lastSelfWrittenBookAt;
+        // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, FULL model-attestation
+        // bypass): ctx.hardConfirm's finite bare-affirm allow-list (hardConfirmGate.ts) and a
+        // genuine naam_verificatie_nodig-resolving reply are STRUCTURALLY exclusive of each other:
+        // hardConfirm only accepts a bare "ja"/"klopt"-shaped message with no extra content, while
+        // resolving a cross-identity verification question requires the customer's message to
+        // explicitly name the target ("Ja, echt boeken voor Chris"), which is real EXTRA content
+        // and therefore, by design, never a hardConfirm member. Live-reproduced on the S6 testpad
+        // (phone 31600001719/31600001720): once naam_verificatie_nodig has fired, NEITHER a bare
+        // "ja" (fails identityVerificationResolved's name-match) NOR an explicit name-restatement
+        // (fails hardConfirm's allow-list) can ever commit via hardConfirm/cleanlyConfirmed alone.
+        // A first attempt at this fix only substituted for hardConfirm (leaving args.confirmed/
+        // args.only_confirming_previous still required from the MODEL) and added a dedicated
+        // system nudge instructing the model to set both fields explicitly; live-tested this round,
+        // even a nudge written SPECIFICALLY for this shape ("the name is the confirmation, not new
+        // doubt, set only_confirming_previous:true") did not reliably land: the model repeated
+        // fresh-preview calls 3 turns running instead of ever attesting cleanly, consistent with
+        // this codebase's own established, hard-won lesson (documented at the top of
+        // identityDisambiguationGuard.ts: "prompt-only steering has repeatedly proven unreliable
+        // against this model at this scale... a small model's inference... is not a safe
+        // transaction boundary; only a raw-message, code-level check is"). FIX (this round, final
+        // shape): ctx.confirmBookVerification / ctx.confirmBookOwnerRestated are EACH ALREADY a
+        // complete, deterministic, code-level commit signal in their own right (index.ts computes
+        // both from the raw customer message: a clean affirm via AFFIRM_RE/!NEGATE_RE, PLUS
+        // !ambiguousConfirm's day/time/price/hedge/conditional/vague-preference/rejection screen,
+        // PLUS an explicit whole-word match of the pending preview's own customer_name). This is
+        // STRICTLY MORE evidence of genuine confirm intent than the generic ctx.confirmBook path
+        // requires (which only needs a bare affirm, no name-match at all), so trusting it exactly
+        // as fully as ctx.confirmBook is trusted (substituting for BOTH the args.confirmed arm AND
+        // cleanlyConfirmed, not just hardConfirm) is consistent with this file's own existing risk
+        // bar, not a lower one. Scoped identically to ctx.confirmBook's own binding discipline: only
+        // ever true when a fresh, still-pending preview exists for THIS EXACT booking (the marker-
+        // bound check below re-verifies pending_book_verification's own start_time/customer_name
+        // match THIS pendingBook before crossIdentityBookRisk is even re-evaluated; the marker-free
+        // twin is computed directly against THIS turn's own still-pending pbk in index.ts), so
+        // neither can ever be satisfied by an unrelated message, an unrelated preview, or a stale
+        // marker left over from a different booking.
+        const verifiedBypass = crossIdentityBookVerificationBypass(ctx.confirmBookVerification) || ctx.confirmBookOwnerRestated === true;
         // R118 (GAP 3 fix): applies to BOTH commit arms (the server-forced ctx.confirmBook AND the
         // model's own self-issued args.confirmed), same "close every arm of the OR" discipline
         // R24 already established for ctx.ambiguousConfirm. Without this, a genuine intervening
@@ -1490,8 +1548,23 @@ export function createTools(
         // previous:true on a bare "ja", exactly the live-reproduced GAP 3 shape. Live-reproduced
         // exploit confirmed this was reachable via the args.confirmed arm even though ctx.confirmBook
         // itself was already correctly gated.
-        const bookInterveningBlock = ctx.pendingBookInterveningExchange === true && ctx.messageRestatesDayTime !== true;
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time && !previewIsSelfWritten && !bookInterveningBlock;
+        // R120 (continued): ALSO exempted by verifiedBypass. Live-reproduced on the S6 testpad
+        // (phone 31600001722): the customer's turn-2 bare "ja" (answering the naam_verificatie_nodig
+        // question, itself an intervening exchange relative to the ORIGINAL preview) legitimately
+        // makes pendingBookInterveningExchange true by turn 3, and "Ja, echt voor Nora" carries no
+        // day/time restatement, so GAP 3's own bar was never met, blocking the genuine resolution
+        // this round otherwise fixed. An explicit, code-verified match of the pending preview's own
+        // target name is AT LEAST as strong a "the customer is still talking about THIS specific
+        // proposal, not a stale abandoned one" signal as a day/time restatement (GAP 3's own bar):
+        // it can only be true when the message names the EXACT person the still-pending preview
+        // already has, which is impossible to satisfy by accident or for an unrelated abandoned
+        // proposal. Exempting it here does not reopen GAP 3's own exploit (a context-free bare "ja"
+        // with nothing else): that shape still yields verifiedBypass===false unless a fresh,
+        // still-bound pending_book_verification marker's OWN prior turn already required a name
+        // match to reach this point.
+        const bookInterveningBlock = ctx.pendingBookInterveningExchange === true && ctx.messageRestatesDayTime !== true && !verifiedBypass;
+        const committing = ((args.confirmed === true || ctx.confirmBook === true) && cleanlyConfirmed && ctx.hardConfirm === true || verifiedBypass) &&
+          !ctx.ambiguousConfirm && !nameChanged && !!pendingBook?.start_time && !previewIsSelfWritten && !bookInterveningBlock;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
         // rather than falling through to the generic fresh-preview path, which would expect
@@ -1940,11 +2013,22 @@ export function createTools(
         // ever reached; this guard covers the complementary "no new name supplied at all" shape
         // nameChanged cannot see). totalCandidates is not applicable here the way it is for
         // cancel/reschedule's resolveTarget (there is no candidate list to disambiguate, a
-        // pending_booking is a single stored proposal), so it is passed as undefined, matching
-        // crossIdentityActionRisk's own documented "not currently gated on" parameter.
+        // pending_booking is a single stored proposal).
+        // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix): swapped the plain crossIdentityActionRisk
+        // (shared with cancel/reschedule/rename, whose targetCustomerName is always a REAL,
+        // independent bookings-table row) for crossIdentityBookRisk, book_appointment's own variant
+        // (identityDisambiguationGuard.ts has the full root-cause/design reasoning). The pending
+        // preview's customer_name is NEVER an independent third-party fact the way a real DB row
+        // is; on a brand-new customer's first-ever message it is simply what THIS SAME conversation
+        // just said about itself. crossIdentityBookRisk additionally requires genuine prior-
+        // identity evidence (ctx.priorRealBookingExists, or knownSelfName already being a REAL
+        // established name) before treating a null-self-vs-any-name shape as a risk, closing the
+        // deterministic false positive live-reproduced 6/6 on the S6 testpad, without weakening the
+        // genuine R107 phone-handoff-mid-flow protection (a real prior booking or an already-
+        // established knownSelfName still fires exactly as before).
         if (
           committing &&
-          crossIdentityActionRisk(undefined, pendingBook?.customer_name, ctx.knownSelfName) &&
+          crossIdentityBookRisk(pendingBook?.customer_name, ctx.knownSelfName, ctx.priorRealBookingExists === true) &&
           // R107: the marker must point at THIS EXACT pending preview (start_time + name), same
           // binding discipline as cancel's pendingCancelVerification?.booking_id === b.id, so a
           // stale verification marker left over from a DIFFERENT, earlier preview can never
@@ -2141,7 +2225,28 @@ export function createTools(
         const noPriorTurnCancelProposal = ctx.confirmCancel !== true;
         const cancelPreviewIsSelfWritten = noPriorTurnCancelProposal &&
           typeof pending?.at === "number" && pending.at === lastSelfWrittenCancelAt;
-        if ((confirmed || ctx.confirmCancel === true) && !ctx.ambiguousConfirm && cleanlyConfirmedCancel && ctx.hardConfirm === true && pending?.start_time && !cancelPreviewIsSelfWritten) {
+        // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, MILDER-SYMPTOM half, applied to
+        // cancel_appointment): the task's own root-cause check confirmed the IDENTICAL mechanism
+        // live-reproduced here (phone 31600002010): ctx.hardConfirm's finite bare-affirm allow-list
+        // and a genuine naam_verificatie_nodig-resolving reply are structurally exclusive (hardConfirm
+        // only accepts a bare "ja"/"klopt" with no extra content; resolving cancel's own cross-
+        // identity verification question requires the customer's message to explicitly name the
+        // target, "Ja, echt annuleren voor Erik", which is real extra content and therefore never a
+        // hardConfirm member). The outer commit gate below required ctx.hardConfirm UNCONDITIONALLY,
+        // so once cancel_appointment's own naam_verificatie_nodig fired, the code never even reached
+        // the crossIdentityActionRisk/pendingCancelVerification release check at all -- this milder
+        // symptom under-commits (never over-commits, so no safety hole, matches the task's own
+        // characterization), but genuinely never resolves without this fix, same as the book-side
+        // deadlock. Fix: ctx.confirmCancelVerification (index.ts, identical shape to
+        // confirmBookVerification: a fresh pending_cancel_verification marker + AFFIRM_RE/!NEGATE_RE/
+        // !ambiguousConfirm + identityVerificationResolved's own explicit name-match requirement) is
+        // STRICTLY MORE evidence of genuine cancel intent than the generic hardConfirm bar requires,
+        // so it is trusted as a full substitute for the (args.confirmed/only_confirming_previous/
+        // hardConfirm) bundle here too, mirroring book_appointment's own final fix shape exactly (a
+        // prompt-nudge-only attempt was already proven unreliable on the book side; this goes
+        // straight to the deterministic bypass without repeating that dead end).
+        const cancelVerifiedBypass = ctx.confirmCancelVerification === true;
+        if (((confirmed || ctx.confirmCancel === true) && cleanlyConfirmedCancel && ctx.hardConfirm === true || cancelVerifiedBypass) && !ctx.ambiguousConfirm && pending?.start_time && !cancelPreviewIsSelfWritten) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();
