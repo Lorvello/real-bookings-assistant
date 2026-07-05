@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
-import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
+import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
 import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, takeoverVerificationResolution } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
@@ -1907,24 +1907,43 @@ export function createTools(
             .limit(1)
             .maybeSingle();
           if (existing) {
-            // R75 (T1, third-party-booker persona): the same WhatsApp phone can hold bookings
-            // for DIFFERENT attendees (a parent booking for several kids, an assistant booking
-            // for several colleagues). This guard used to say ONLY "de klant heeft al een
-            // afspraak", which the model then relayed as if it were about whoever is CURRENTLY
-            // being booked. Live-reproduced: booking a 2nd appointment for "Tom" wrongly said
-            // "Tom, je hebt al een afspraak" about a booking that was actually under "Emma"'s
-            // name. Passing the EXISTING booking's own customer_name back lets the model state
-            // correctly whose booking it found, instead of assuming phone equals attendee.
             const existingName = (existing as { start_time: string; customer_name?: string | null }).customer_name;
-            const existingNameNote = existingName && existingName !== "Privé" ? ` (op naam ${existingName})` : "";
-            return {
-              error: "bestaande_afspraak",
-              message:
-                `Er is al een aankomende afspraak op ${nlWhen((existing as { start_time: string }).start_time)}${existingNameNote} onder dit WhatsApp-nummer. ` +
-                "Is dat DEZELFDE persoon als degene die nu geboekt wordt? Gebruik dan reschedule_appointment, niet book_appointment (dat maakt een tweede afspraak). " +
-                "Is de nieuwe boeking voor een ANDERE naam of persoon (bv. een ander kind, een collega)? Dan is dit een terechte extra afspraak: roep book_appointment opnieuw aan met confirm_second_booking=true. " +
-                "Twijfel je wie de bestaande afspraak hierboven is? Vraag het kort na in plaats van te raden.",
-            };
+            // R140 (SERVICE-SWITCH-DEAD-END fix): this guard's own question ("is this a reschedule
+            // of the existing booking, or a genuine second one?") was ALREADY answered the moment
+            // a fresh pending_booking preview was created under a real name genuinely distinct from
+            // the existing booking's own customer_name -- that ONLY happens via the
+            // confirm_second_booking/abandon_previous_preview paths this exact guard already gates,
+            // so re-litigating it on every later correction turn for that already-established
+            // second booking (rather than falling through to the service/time preview logic below,
+            // which is what actually resolves a same-flow correction like a service switch) is
+            // itself the dead-end this round closed. Skip re-asking ONLY when a fresh pending_booking
+            // already exists, under a real name, that differs from the existing booking's own real
+            // name -- the exact fact this guard's own success path already established; a
+            // same-named pending preview (genuinely ambiguous: could still be a reschedule-in-
+            // disguise) is untouched and still asks as before.
+            const hasEstablishedSecondBookingPreview = !!pendingBook?.start_time &&
+              isRealNameShared(pendingBook?.originator_name) &&
+              isRealNameShared(existingName) &&
+              String(pendingBook!.originator_name).trim().toLowerCase() !== String(existingName).trim().toLowerCase();
+            if (!hasEstablishedSecondBookingPreview) {
+              // R75 (T1, third-party-booker persona): the same WhatsApp phone can hold bookings
+              // for DIFFERENT attendees (a parent booking for several kids, an assistant booking
+              // for several colleagues). This guard used to say ONLY "de klant heeft al een
+              // afspraak", which the model then relayed as if it were about whoever is CURRENTLY
+              // being booked. Live-reproduced: booking a 2nd appointment for "Tom" wrongly said
+              // "Tom, je hebt al een afspraak" about a booking that was actually under "Emma"'s
+              // name. Passing the EXISTING booking's own customer_name back lets the model state
+              // correctly whose booking it found, instead of assuming phone equals attendee.
+              const existingNameNote = existingName && existingName !== "Privé" ? ` (op naam ${existingName})` : "";
+              return {
+                error: "bestaande_afspraak",
+                message:
+                  `Er is al een aankomende afspraak op ${nlWhen((existing as { start_time: string }).start_time)}${existingNameNote} onder dit WhatsApp-nummer. ` +
+                  "Is dat DEZELFDE persoon als degene die nu geboekt wordt? Gebruik dan reschedule_appointment, niet book_appointment (dat maakt een tweede afspraak). " +
+                  "Is de nieuwe boeking voor een ANDERE naam of persoon (bv. een ander kind, een collega)? Dan is dit een terechte extra afspraak: roep book_appointment opnieuw aan met confirm_second_booking=true. " +
+                  "Twijfel je wie de bestaande afspraak hierboven is? Vraag het kort na in plaats van te raden.",
+              };
+            }
           }
         }
 
@@ -2180,13 +2199,36 @@ export function createTools(
           // call, mirroring how confirm_second_booking already lets the model unlock a
           // deliberately-reviewed exception to a safety default rather than being stuck forever.
           if (!namePreviewOnly && pendingBook?.start_time && pendingBook.service_type_id && pendingBook.service_type_id !== serviceId) {
-            if (args.abandon_previous_preview === true || ctx.abandonPreviousPreview === true) {
+            const { data: pendingSvcRow } = await supabase
+              .from("service_types").select("name").eq("id", pendingBook.service_type_id).maybeSingle();
+            const pendingSvcName = (pendingSvcRow as { name?: string } | null)?.name ?? "de vorige dienst";
+            // R140 (SERVICE-SWITCH-DEAD-END fix): a customer correcting the STILL-PENDING preview's
+            // own service ("wacht, ik wil toch de Speciale Afspraak voor de tweede afspraak") is
+            // giving the exact same "replace the earlier preview" instruction abandon_previous_preview
+            // already handles, just phrased as a SWITCH rather than a bare "drop it". Detected the
+            // same deterministic, server-side way R96 already detects the "drop it" phrasing
+            // (ABANDON_PREVIOUS_PREVIEW_RE in index.ts, proven necessary because the small model
+            // routinely fails to discover/set the model-supplied flag): does THIS turn's raw message
+            // name a real, distinct, configured service, different from the PENDING preview's own
+            // stored service? If the newly-resolved serviceId for THIS call matches that named
+            // service, the switch is genuine and unambiguous, so it is treated exactly like an
+            // explicit abandon-and-replace.
+            const switchTarget = findServiceSwitchForPendingPreview({
+              allServiceNames: ctx.allServiceNamesForAmbiguity ?? [],
+              pendingServiceName: pendingSvcName,
+              currentMessage: ctx.userMessage ?? "",
+            });
+            let newServiceMatchesNamedSwitch = false;
+            if (switchTarget) {
+              const { data: newSvcRow } = await supabase
+                .from("service_types").select("name").eq("id", serviceId).maybeSingle();
+              const newSvcName = (newSvcRow as { name?: string } | null)?.name ?? "";
+              newServiceMatchesNamedSwitch = normServiceNameLocal(switchTarget) === normServiceNameLocal(newSvcName);
+            }
+            if (args.abandon_previous_preview === true || ctx.abandonPreviousPreview === true || newServiceMatchesNamedSwitch) {
               await clearPendingBook();
               bookCtx = { ...bookCtx, pending_booking: undefined };
             } else {
-              const { data: pendingSvcRow } = await supabase
-                .from("service_types").select("name").eq("id", pendingBook.service_type_id).maybeSingle();
-              const pendingSvcName = (pendingSvcRow as { name?: string } | null)?.name ?? "de vorige dienst";
               return {
                 error: "vorige_boeking_nog_open",
                 message:

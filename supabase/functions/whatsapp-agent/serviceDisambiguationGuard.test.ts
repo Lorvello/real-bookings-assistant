@@ -3,7 +3,7 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
 
 // R98 helper: build an all-inbound recency window from plain strings (the common case for tests
 // that only care about customer messages, matching the pre-R98 test convention).
@@ -665,4 +665,89 @@ Deno.test("R113-7 rewrites: a tool-call-relayed refusal message the model paraph
 Deno.test("R113-8 no-op: single-service catalog, guard effective, reply already mentions the service's own (only) word", () => {
   const reply = "Ik boek de knipbeurt in, voor welke dag wil je?";
   assertEquals(enforceReturningServiceDisclosure(reply, true, "Knipbeurt", ["Knipbeurt"]), reply);
+});
+
+// ── R140 (SERVICE-SWITCH-DEAD-END fix): findServiceSwitchForPendingPreview ─────────────────────
+// Live-reproduced shape: a customer with an uncommitted SECOND pending_booking preview tries to
+// switch that preview's own service to a different, real, configured one.
+
+Deno.test("R140-1 finds the switch: 'wacht, ik wil toch de Standaard Afspraak voor die tweede afspraak van Jan'", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: AFSPRAAK_SERVICES,
+    pendingServiceName: "Speciale Afspraak",
+    currentMessage: "Wacht, ik wil toch de Standaard Afspraak voor die tweede afspraak van Jan",
+  });
+  assertEquals(out, "Standaard Afspraak");
+});
+
+Deno.test("R140-2 finds the switch: EN phrasing", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: AFSPRAAK_SERVICES,
+    pendingServiceName: "Standaard Afspraak",
+    currentMessage: "Actually, change the second appointment to the Speciale Afspraak instead",
+  });
+  assertEquals(out, "Speciale Afspraak");
+});
+
+Deno.test("R140-3 no switch: customer only re-confirms the PENDING preview's own current service", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: AFSPRAAK_SERVICES,
+    pendingServiceName: "Speciale Afspraak",
+    currentMessage: "Ja, de Speciale Afspraak klopt, graag bevestigen",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R140-4 no switch: message names neither service at all (bare confirm)", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: AFSPRAAK_SERVICES,
+    pendingServiceName: "Speciale Afspraak",
+    currentMessage: "Ja klopt",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R140-5 no switch: only one service exists (nothing to switch to)", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: ["Knipbeurt"],
+    pendingServiceName: "Knipbeurt",
+    currentMessage: "Ik wil toch iets anders",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R140-6 still resolves with pendingServiceName null (defensive): message names exactly one configured service", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: ["Standaard Afspraak"],
+    pendingServiceName: null,
+    currentMessage: "Ik wil de Standaard Afspraak",
+  });
+  assertEquals(out, "Standaard Afspraak");
+});
+
+Deno.test("R140-7 finds the switch by distinguishing word only, avoiding the shared 'Afspraak' word false-positive", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: AFSPRAAK_SERVICES,
+    pendingServiceName: "Standaard Afspraak",
+    currentMessage: "verander de tweede afspraak naar Speciale alsjeblieft",
+  });
+  assertEquals(out, "Speciale Afspraak");
+});
+
+Deno.test("R140-8 no switch: message mentions the shared generic word 'afspraak' only, no distinguishing word for either service", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: AFSPRAAK_SERVICES,
+    pendingServiceName: "Speciale Afspraak",
+    currentMessage: "ik wil gewoon een afspraak veranderen",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R140-9 no switch: empty allServiceNames (defensive)", () => {
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: [],
+    pendingServiceName: "Speciale Afspraak",
+    currentMessage: "Ik wil de Standaard Afspraak",
+  });
+  assertEquals(out, null);
 });

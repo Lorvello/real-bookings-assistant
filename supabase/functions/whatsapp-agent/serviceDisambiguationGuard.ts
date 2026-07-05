@@ -241,7 +241,7 @@ export interface RescheduleDistinctServiceInput {
 // ("Speciale Afspraak") purely because both names share the word "Afspraak", a real false-positive
 // this guard's own test suite caught. Falls back to a full-name substring check first (the common,
 // unambiguous case), then to word-level matching using ONLY the distinguishing words.
-function mentionsDistinguishing(text: string, name: string, excludeWords: Set<string>): boolean {
+export function mentionsDistinguishing(text: string, name: string, excludeWords: Set<string>): boolean {
   const lower = text.toLowerCase();
   const trimmedName = name.trim().toLowerCase();
   if (trimmedName.length >= 2 && lower.includes(trimmedName)) return true;
@@ -297,6 +297,72 @@ export function findDistinctServiceForReschedule(input: RescheduleDistinctServic
 
 export const RESCHEDULE_DISTINCT_SERVICE_MESSAGE = (distinctService: string) =>
   `De klant noemde zojuist "${distinctService}", een ANDERE dienst dan de dienst van de bestaande afspraak. Roep reschedule_appointment NIET aan (dat zou stilzwijgend de dienst van de bestaande afspraak ongewijzigd laten en alleen de tijd verzetten, zonder de gevraagde "${distinctService}" ooit te boeken). Vraag kort: is dit een AANVULLENDE, tweede afspraak naast de bestaande (roep dan book_appointment aan met confirm_second_booking:true), of wil de klant de bestaande afspraak ECHT vervangen door "${distinctService}" (annuleer dan de oude en boek de nieuwe dienst opnieuw)? Verzin dit niet zelf; vraag het de klant.`;
+
+// R140 PENDING-SECOND-BOOKING SERVICE-SWITCH GUARD (closes the SERVICE-SWITCH-DEAD-END, sev-3,
+// filed by R129's own adversarial verify).
+//
+// ROOT CAUSE (live-reproduced, S6 testpad, fresh fixture phone, real deployed whatsapp-agent):
+// with a first booking (A) already confirmed, and a second, genuinely distinct booking (B)
+// already mid-flow as an uncommitted pending_booking preview (the R75/confirm_second_booking
+// path), a customer who then tries to switch B's OWN service to a different one ("wacht, ik wil
+// toch de Speciale Afspraak voor de tweede afspraak") got stuck in a conversational dead-end: the
+// model re-calls book_appointment with the new service but WITHOUT confirm_second_booking:true
+// (it is not, in its own mind, starting a brand-new THIRD booking, it is correcting the
+// already-agreed second one). This re-triggers the R75 "bestaande_afspraak" duplicate guard
+// against booking A, a guard whose own question ("is this a reschedule of the existing booking,
+// or a genuine second one?") was ALREADY answered the moment pending_booking B was created. The
+// model, unable to resolve the resulting repeated disambiguation, degrades into
+// cancel_appointment/update_booking_name flailing and finally a generic "contact us directly"
+// reply, never reaching book_appointment's own "vorige_boeking_nog_open" service-switch logic at
+// all. FAILS SAFE throughout (booking A's own row is never touched by this guard's own mechanism,
+// and B's stuck preview never writes a wrong-duration/duplicate row), but it is a genuine,
+// reproducible dead-end.
+//
+// FIX SHAPE (two parts, both additive, no existing guard weakened):
+// 1. hasEstablishedSecondBookingPreview (tools.ts) lets the R75 duplicate-guard recognize "this
+//    fresh pending_booking already IS the reviewed, established second booking" (its
+//    originator_name is a real name, genuinely distinct from the existing real booking's own
+//    customer_name, exactly the fact confirm_second_booking/abandon_previous_preview already
+//    proved true when B was first created) and skip re-asking its own already-answered question,
+//    falling through instead to the existing service/time preview logic below it.
+// 2. This function, findServiceSwitchForPendingPreview, mirrors findDistinctServiceForReschedule
+//    (same mentionsDistinguishing matcher, same "a real, distinct, configured service name was
+//    just named" signal) but answers the SIBLING question for a still-uncommitted PREVIEW rather
+//    than a committed booking: does the CUSTOMER'S CURRENT message name a real configured service
+//    different from pending_booking B's own currently-stored service? If so, tools.ts's
+//    "vorige_boeking_nog_open" guard treats this exactly like an explicit abandon-and-replace
+//    (clearing the stale preview and re-previewing under the NEW service), without requiring the
+//    model to discover/set abandon_previous_preview itself (proven unreliable for the sibling
+//    "drop it" case by R96; the same unreliability applies here to a "switch it" statement).
+//
+// FALSE-POSITIVE SAFETY:
+// - Only ever consulted by tools.ts when a fresh pending_booking already exists for a DIFFERENT
+//   service_type_id than the one this turn's book_appointment call resolved to (the exact same
+//   precondition the sibling "vorige_boeking_nog_open" guard itself already requires). Never
+//   fires outside that narrow, already-safety-checked shape.
+// - A message that only re-confirms the PENDING preview's OWN current service name (no distinct
+//   service named) returns null: a plain "ja, die klopt" never falsely triggers a switch.
+// - Reuses the exact same distinguishing-word matcher as the reschedule-hijack guard, so a shared
+//   generic word across two service names ("Standaard Afspraak" / "Speciale Afspraak" both
+//   containing "Afspraak") can never, by itself, count as naming a distinct service.
+export function findServiceSwitchForPendingPreview(input: {
+  allServiceNames: string[]; // every distinct configured service name across the relevant calendar(s)
+  pendingServiceName: string | null; // pending_booking B's OWN currently-stored service name
+  currentMessage: string; // this turn's raw customer message
+}): string | null {
+  const { allServiceNames, pendingServiceName, currentMessage } = input;
+  const pending = pendingServiceName ? normServiceName(pendingServiceName) : null;
+  const distinctNames = [...new Set(allServiceNames.map(normServiceName))].filter((n) => n !== pending);
+  if (distinctNames.length === 0) return null; // only one service exists (or matches pending): nothing to switch to
+  const pendingWords = new Set(pending ? pending.split(/\s+/).filter((w) => w.length >= 3) : []);
+  for (const name of distinctNames) {
+    if (mentionsDistinguishing(currentMessage, name, pendingWords)) {
+      const original = allServiceNames.find((n) => normServiceName(n) === name);
+      return original ?? name;
+    }
+  }
+  return null;
+}
 
 // R111 RETURNING-SERVICE-DEFAULT-BLEED GUARD (the "never silently assume the returning customer's
 // last service/date" guarantee, in CODE not prompt; closes R107-RETURNING-DEFAULT-BLEED).
