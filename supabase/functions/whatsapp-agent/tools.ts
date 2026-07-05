@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, extractStatedNameForBooking, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
+import { crossIdentityActionRisk, extractStatedNameForBooking, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -201,7 +201,7 @@ async function resolveTarget(
   ctx: ToolContext,
   matchStart?: string,
   matchTime?: string,
-): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean; totalCandidates?: number }> {
+): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean; totalCandidates?: number; multipleNamesStated?: boolean }> {
   const { data } = await supabase
     .from("bookings")
     .select("id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name")
@@ -222,6 +222,15 @@ async function resolveTarget(
   // their behaviour is byte-identical.
   const totalCandidates = list.length;
   if (list.length === 0) return { none: true, totalCandidates: 0 };
+  const namedCandidates = list.map((b) => ({ id: b.id, customerName: b.customer_name ?? null }));
+  // R103 (GAP 2 fix): does THIS turn's raw message name 2+ of this phone's OWN distinct real
+  // candidate names (e.g. "niet Dennis, ik bedoelde Ellen")? Computed once here (same candidate
+  // list extractStatedNameForBooking below already scans) so every caller (cancel/reschedule) can
+  // use it to invalidate a stale pending_*_verification marker from a PRIOR turn, instead of
+  // silently re-anchoring on whichever candidate that older marker happened to name. See
+  // identityDisambiguationGuard.ts's hasMultipleDistinctNamesStated doc comment for the full
+  // reasoning (live-reproduced R103: a stale marker otherwise sits unchanged across this turn).
+  const multipleNamesStated = hasMultipleDistinctNamesStated(namedCandidates, ctx.userMessage);
   // R102 (shared-phone identity fix): a customer-STATED name is the STRONGEST possible hint,
   // stronger than a time/date echo, because it directly answers "which PERSON's booking do you
   // mean" rather than "which slot". Checked FIRST, before any time/date narrowing, using the
@@ -230,13 +239,10 @@ async function resolveTarget(
   // candidate; two distinct names mentioned, or none, falls through to the existing hint chain
   // unaffected (byte-identical behaviour for every conversation that never names a specific
   // person, which is the overwhelming common single-attendee case).
-  const statedNameId = extractStatedNameForBooking(
-    list.map((b) => ({ id: b.id, customerName: b.customer_name ?? null })),
-    ctx.userMessage,
-  );
+  const statedNameId = extractStatedNameForBooking(namedCandidates, ctx.userMessage);
   if (statedNameId) {
     const named = list.find((b) => b.id === statedNameId);
-    if (named) return { booking: named, totalCandidates };
+    if (named) return { booking: named, totalCandidates, multipleNamesStated };
   }
   // Normalise a customer-named clock time ("14:00", "14.00", "2 uur") to HH:MM.
   const wantTime = (() => {
@@ -269,12 +275,12 @@ async function resolveTarget(
       const wl = nlTimeOnly(matchStart!).slice(0, 5);
       apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wl);
     }
-    if (hits.length === 1) return { booking: hits[0], totalCandidates };
-    if (hits.length > 1) return { ambiguous: hits, totalCandidates };
+    if (hits.length === 1) return { booking: hits[0], totalCandidates, multipleNamesStated };
+    if (hits.length > 1) return { ambiguous: hits, totalCandidates, multipleNamesStated };
     // no hint matched anything -> fall through to the generic single/ambiguous handling
   }
-  if (list.length === 1) return { booking: list[0], totalCandidates };
-  return { ambiguous: list, totalCandidates };
+  if (list.length === 1) return { booking: list[0], totalCandidates, multipleNamesStated };
+  return { ambiguous: list, totalCandidates, multipleNamesStated };
 }
 
 // --- get_business_data formatting helpers -------------------------------------
@@ -1982,6 +1988,17 @@ export function createTools(
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te annuleren." };
         }
         if (target.ambiguous) {
+          // R103 (GAP 2 fix): this turn's own message named 2+ distinct real candidates (the
+          // exact rapid-name-correction shape), so any pending_cancel_verification marker left
+          // over from a PRIOR turn is now stale (it answered a DIFFERENT, earlier question, about
+          // whichever single candidate that older turn happened to name). Drop it here too, not
+          // just in the resolved-single-booking branch below: live-reproduced (R103), the
+          // disambiguation path is reached FIRST whenever 2+ names are mentioned together, so this
+          // is the actual point the stale marker must be invalidated, or it keeps sitting in the DB
+          // unconsumed across every subsequent disambiguation turn.
+          if (target.multipleNamesStated && pendingCancelVerification && ctx.conversationId) {
+            await clearPendingCancelVerification(cancelCtx);
+          }
           // R102 (shared-phone identity fix, verify-round finding 2, "Anne"/"Anna" collision):
           // ALWAYS disclose whose name each candidate is under (nameSuffix renders nothing for a
           // placeholder/no-name booking, so the common single-attendee-under-one-real-name case is
@@ -2012,7 +2029,18 @@ export function createTools(
         // phone). Deterministic, code-level, not a prompt nudge: mirrors the ALREADY-PROVEN R76
         // rename guard rather than trusting the model's own judgement about whose booking this is.
         const cancelCrossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName);
-        const alreadyVerifiedThisBooking = ctx.confirmCancelVerification === true &&
+        // R103 (GAP 2 fix, STALE-VERIFICATION-MARKER-ON-RAPID-NAME-CORRECTION): a pending
+        // pending_cancel_verification marker from a PRIOR turn only ever answers "is THIS ONE,
+        // SPECIFIC, already-named booking really the one to cancel". The moment the CURRENT
+        // message itself names 2+ distinct real candidates (target.multipleNamesStated, e.g. "nee
+        // wacht, niet Dennis, ik bedoelde Ellen's afspraak"), that prior question is no longer what
+        // is being answered: the customer is actively re-disambiguating between two people THIS
+        // turn, live-reproduced to otherwise leave the OLD marker (still pointing at whichever name
+        // the FIRST message used, e.g. Dennis) sitting unconsumed and stuck. Treat the marker as
+        // STALE in that case: never let it satisfy alreadyVerifiedThisBooking (so a same-turn
+        // affirm can never silently reuse it against the wrong person), and drop it below so the
+        // next turn re-disambiguates fresh from scratch rather than re-anchoring on a dead id.
+        const alreadyVerifiedThisBooking = !target.multipleNamesStated && ctx.confirmCancelVerification === true &&
           pendingCancelVerification?.booking_id === b.id;
         if (cancelCrossIdentityRisk && !alreadyVerifiedThisBooking) {
           const verifyAt = Date.now();
@@ -2034,11 +2062,12 @@ export function createTools(
           };
         }
         // Strip any pending_cancel_verification from the base object used below (whether it was
-        // just consumed above, or never applied at all), so a stale marker can never leak into
-        // (and confuse) a later, unrelated cancel in this same conversation. Mirrors
-        // update_booking_name's identical renameCtxClean pattern.
+        // just consumed above, or never applied at all, or invalidated as stale by
+        // multipleNamesStated just above), so a stale marker can never leak into (and confuse) a
+        // later, unrelated cancel in this same conversation. Mirrors update_booking_name's
+        // identical renameCtxClean pattern.
         const { pending_cancel_verification: _dropCV, ...cancelCtxClean } = cancelCtx;
-        if (alreadyVerifiedThisBooking && ctx.conversationId) {
+        if ((alreadyVerifiedThisBooking || (target.multipleNamesStated && pendingCancelVerification)) && ctx.conversationId) {
           await clearPendingCancelVerification(cancelCtx);
         }
 
@@ -2108,6 +2137,21 @@ export function createTools(
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
         }
         if (target.ambiguous) {
+          // R103 (GAP 2 fix, mirrors the SAME fix just added to cancel_appointment's ambiguous
+          // branch above): this turn's message names 2+ distinct real candidates, so any
+          // pending_reschedule_verification marker from a PRIOR turn is now stale (it answered a
+          // DIFFERENT, earlier question about whichever single candidate that older turn named).
+          // Drop it here, at the FIRST point 2+ names are detected, so it never lingers unconsumed
+          // across a re-disambiguation (live-reproduced R103 stuck-loop shape).
+          if (target.multipleNamesStated && ctx.conversationId) {
+            const { data: rvConv } = await supabase
+              .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+            const rvCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+            if (rvCtx.pending_reschedule_verification) {
+              const { pending_reschedule_verification: _dropAmbigRV, ...restAmbigV } = rvCtx;
+              await supabase.from("whatsapp_conversations").update({ context: restAmbigV }).eq("id", ctx.conversationId);
+            }
+          }
           // R102 (shared-phone identity fix, verify-round finding 2): ALWAYS disclose whose name
           // each candidate is under, same reasoning as cancel_appointment's identical fix above.
           return {
@@ -2135,18 +2179,36 @@ export function createTools(
         // single-booking-on-this-phone case (totalCandidates<2 short-circuits immediately below,
         // matching cancel/rename's identical frictionless-common-case guarantee).
         const rescheduleCrossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName);
-        if (rescheduleCrossIdentityRisk && !(ctx.confirmRescheduleVerification === true)) {
+        // R103 (GAP 2 fix, mirrors the SAME fix on cancel_appointment above): read any existing
+        // pending_reschedule_verification marker ONCE here (reused below for both the risk-gate
+        // check and the args-restore branch, avoiding a second round-trip) so it can be checked
+        // against the FRESHLY resolved `b`. The previous code only checked
+        // ctx.confirmRescheduleVerification (a pure boolean, computed from AFFIRM_RE/NEGATE_RE
+        // regardless of WHICH booking the marker or this turn's resolved target actually refers
+        // to), so a stale marker from a prior turn could silently skip re-verification for a
+        // DIFFERENT freshly-resolved b. Also invalidated when this turn's own message names 2+
+        // distinct candidates (multipleNamesStated): the customer is actively re-disambiguating, so
+        // any prior marker's implicit "already OK'd" no longer applies, exactly the live-reproduced
+        // R103 stuck-loop shape.
+        let reschedCtx: Record<string, unknown> = {};
+        if (ctx.conversationId) {
+          const { data: rvConv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+        }
+        const existingReschedVerification = reschedCtx.pending_reschedule_verification as
+          { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+        const rescheduleAlreadyVerifiedThisBooking = !target.multipleNamesStated &&
+          ctx.confirmRescheduleVerification === true &&
+          existingReschedVerification?.booking_id === b.id;
+        if (rescheduleCrossIdentityRisk && !rescheduleAlreadyVerifiedThisBooking) {
           const verifyAt = Date.now();
-          let baseCtx: Record<string, unknown> = {};
           if (ctx.conversationId) {
-            const { data: conv } = await supabase
-              .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-            baseCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
             await supabase
               .from("whatsapp_conversations")
               .update({
                 context: {
-                  ...baseCtx,
+                  ...reschedCtx,
                   pending_reschedule_verification: {
                     booking_id: b.id,
                     new_date: args.date ?? null,
@@ -2178,13 +2240,12 @@ export function createTools(
         // stored marker rather than trusting the model to resupply it on a bare "ja klopt" reply
         // (which carries no date/time at all), same reasoning as update_booking_name's
         // pending_rename_verification consumption.
-        if (ctx.confirmRescheduleVerification === true) {
-          const { data: convV } = ctx.conversationId
-            ? await supabase.from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle()
-            : { data: null as { context?: Record<string, unknown> } | null };
-          const vctx = ((convV as { context?: Record<string, unknown> } | null)?.context) ?? {};
-          const prv = vctx.pending_reschedule_verification as
-            { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+        // R103: reuses reschedCtx/existingReschedVerification read once above (was a second
+        // redundant read before this fix); STALE-invalidated the identical way (multipleNamesStated
+        // or a booking_id mismatch means prv below simply won't match b.id, so nothing is restored).
+        if (ctx.confirmRescheduleVerification === true && !target.multipleNamesStated) {
+          const vctx = reschedCtx;
+          const prv = existingReschedVerification;
           if (prv?.booking_id === b.id) {
             if (prv.new_date) args.date = prv.new_date;
             if (prv.new_time) args.time = prv.new_time;
@@ -2197,6 +2258,16 @@ export function createTools(
               await supabase.from("whatsapp_conversations").update({ context: restV }).eq("id", ctx.conversationId);
             }
           }
+        }
+        // R103 (GAP 2 fix, explicit stale-marker cleanup, mirrors cancel_appointment's identical
+        // cleanup above): a message naming 2+ distinct candidates always invalidates whatever
+        // pending_reschedule_verification marker predates it, whether or not the cross-identity
+        // gate re-fired for the freshly-resolved b just above (a same-person re-disambiguation that
+        // lands on a booking with NO cross-identity risk at all must still not leave the old
+        // marker sitting there to confuse a later, unrelated reschedule in this same conversation).
+        if (target.multipleNamesStated && existingReschedVerification && ctx.conversationId) {
+          const { pending_reschedule_verification: _dropStaleRV, ...restStaleV } = reschedCtx;
+          await supabase.from("whatsapp_conversations").update({ context: restStaleV }).eq("id", ctx.conversationId);
         }
 
         // R96 (RESCHEDULE-HIJACK fix, R95-1): the customer's own recent words name a DIFFERENT,

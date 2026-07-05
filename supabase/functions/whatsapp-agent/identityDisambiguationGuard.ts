@@ -124,6 +124,37 @@ export function extractStatedNameForBooking(
   return [...matchedIds][0];
 }
 
+// R103 (GAP 2, STALE-VERIFICATION-MARKER-ON-RAPID-NAME-CORRECTION fix): the SAME 2+-distinct-name
+// detection extractStatedNameForBooking already performs internally (then discards, returning null
+// for both the "0 names" and "2+ names" cases), exposed as its own named signal. Live-reproduced
+// (R103): when a customer corrects themselves mid-flow ("nee wacht, niet Dennis, ik bedoelde
+// Ellen's afspraak" / "ja graag ellen dennis"), this is true, and MUST invalidate any
+// pending_cancel_verification/pending_reschedule_verification marker left over from a PRIOR turn
+// (which still points at whichever candidate the FIRST message named, e.g. Dennis) rather than
+// letting that stale marker's identity silently carry forward into this turn's re-disambiguation.
+// Deliberately independent of extractStatedNameForBooking's own return value: a caller cannot
+// distinguish "0 names" from "2+ names" from a bare null, but the two cases need OPPOSITE
+// marker-handling (0 names: the stale marker may still be exactly what's being answered, keep it;
+// 2+ names: the marker is now stale, drop it and re-disambiguate fresh from this message).
+export function hasMultipleDistinctNamesStated(
+  candidates: NamedCandidate[],
+  rawMessage: string | undefined | null,
+): boolean {
+  const msg = String(rawMessage ?? "");
+  if (!msg.trim()) return false;
+  const seenNames = new Set<string>();
+  for (const c of candidates) {
+    if (!isRealName(c.customerName)) continue;
+    const name = String(c.customerName).trim();
+    const token = firstNameToken(name);
+    if (!token || token.length < 2) continue;
+    if (containsWholeWord(msg, token)) {
+      seenNames.add(normName(name));
+    }
+  }
+  return seenNames.size > 1;
+}
+
 // Disambiguation-list rendering: ALWAYS includes each candidate's own name when it is a real,
 // distinct name, so "who is whose" is disclosed before any pick is made (closes R101-3/finding-2's
 // silent-collision gap independent of whether the cross-identity verification gate below also

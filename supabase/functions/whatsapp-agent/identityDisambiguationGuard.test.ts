@@ -8,6 +8,7 @@ import {
   crossIdentityRenameRisk,
   enforceAppointmentNameDisclosure,
   extractStatedNameForBooking,
+  hasMultipleDistinctNamesStated,
   isRealName,
   nameSuffix,
   type NamedCandidate,
@@ -57,6 +58,47 @@ Deno.test("extractStatedNameForBooking: BOTH distinct names mentioned -> ambiguo
     extractStatedNameForBooking(SANNE_TIM, "is dit de afspraak van Sanne of van Tim?"),
     null,
   );
+});
+
+// ── hasMultipleDistinctNamesStated: the R103 GAP 2 stale-marker-invalidation signal ──────────
+const DENNIS_ELLEN: NamedCandidate[] = [
+  { id: "b-dennis", customerName: "Dennis" },
+  { id: "b-ellen", customerName: "Ellen" },
+];
+
+Deno.test("hasMultipleDistinctNamesStated: rapid name-correction naming BOTH people -> true (R103 live-repro shape)", () => {
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "nee wacht, niet Dennis, ik bedoelde Ellen's afspraak"), true);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "ja graag ellen dennis"), true);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "is het Dennis of Ellen?"), true);
+});
+
+Deno.test("hasMultipleDistinctNamesStated: only ONE candidate name mentioned -> false (common single-name case)", () => {
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "Ellen"), false);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "cancel Dennis's appointment"), false);
+});
+
+Deno.test("hasMultipleDistinctNamesStated: no candidate name mentioned -> false (bare 'ja'/'welke afspraak')", () => {
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "Ja"), false);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "Welke afspraak bedoel je?"), false);
+});
+
+Deno.test("hasMultipleDistinctNamesStated: 2 candidates sharing the SAME real name -> false (not genuinely 2 distinct people)", () => {
+  const twoAnnas: NamedCandidate[] = [
+    { id: "b1", customerName: "Anna" },
+    { id: "b2", customerName: "Anna" },
+  ];
+  assertEquals(hasMultipleDistinctNamesStated(twoAnnas, "annuleer de afspraak van Anna"), false);
+});
+
+Deno.test("hasMultipleDistinctNamesStated: near-identical names (Anne/Anna) both mentioned -> true, never silently collapsed", () => {
+  assertEquals(hasMultipleDistinctNamesStated(ANNE_ANNA, "is dit die van Anne of van Anna?"), true);
+});
+
+Deno.test("hasMultipleDistinctNamesStated: empty/whitespace message -> false", () => {
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, ""), false);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, "   "), false);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, null), false);
+  assertEquals(hasMultipleDistinctNamesStated(DENNIS_ELLEN, undefined), false);
 });
 
 Deno.test("extractStatedNameForBooking: whole-word only, no substring false-positive", () => {

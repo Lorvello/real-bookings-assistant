@@ -270,18 +270,39 @@ function deterministicConfirmation(
     // only when it actually changed calendar). Mention it here too, so this Groq-empty-text
     // fallback path stays as complete as the model's own normal composed reply.
     const newAgenda = typeof resched.new_agenda === "string" ? resched.new_agenda : null;
+    // R103 (GAP 1 fix): reschedule_appointment's own ok:true result ALREADY carries
+    // rescheduled.customer_name whenever a real, distinct name is on file (see tools.ts's own
+    // R102 comment near its reschedule commit), specifically so this final reply can name whose
+    // appointment it is instead of a generic "je afspraak". This function is the SAME deterministic,
+    // code-level template that ALWAYS overrides the model's own text on a committed turn (index.ts's
+    // `committed` branch calls this unconditionally), so the name was previously being silently
+    // dropped here even though the data was already present and the identity-verification QUESTION
+    // one turn earlier correctly named it. Mirrors the enforceAppointmentNameDisclosure backstop
+    // pattern (deterministic rewrite from real data, not a prompt instruction) rather than trusting
+    // the model to re-state a name it never even sees rendered into this template.
+    const reName = typeof resched.rescheduled.customer_name === "string" && resched.rescheduled.customer_name.trim()
+      ? resched.rescheduled.customer_name.trim()
+      : null;
     if (newAgenda) {
       return en
-        ? `Done, your appointment is now on ${reWhen} with ${newAgenda}.`
-        : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`;
+        ? (reName ? `Done, ${reName}'s appointment is now on ${reWhen} with ${newAgenda}.` : `Done, your appointment is now on ${reWhen} with ${newAgenda}.`)
+        : (reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen} bij ${newAgenda}.` : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`);
     }
     return en
-      ? `Done, your appointment is now on ${reWhen}.`
-      : `Gedaan, je afspraak staat nu op ${reWhen}.`;
+      ? (reName ? `Done, ${reName}'s appointment is now on ${reWhen}.` : `Done, your appointment is now on ${reWhen}.`)
+      : (reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen}.` : `Gedaan, je afspraak staat nu op ${reWhen}.`);
   }
   const cancel = okResult("cancel_appointment");
   if (cancel?.cancelled) {
-    return en ? `Done, your appointment has been cancelled.` : `Gedaan, je afspraak is geannuleerd.`;
+    // R103 (GAP 1 fix, same reasoning as reschedule above): cancel_appointment's own ok:true result
+    // already carries cancelled.customer_name (tools.ts's own R102 comment near its cancel commit),
+    // added specifically so this reply could disclose it; this template simply never read the field.
+    const cancelName = typeof cancel.cancelled.customer_name === "string" && cancel.cancelled.customer_name.trim()
+      ? cancel.cancelled.customer_name.trim()
+      : null;
+    return en
+      ? (cancelName ? `Done, ${cancelName}'s appointment has been cancelled.` : `Done, your appointment has been cancelled.`)
+      : (cancelName ? `Gedaan, de afspraak van ${cancelName} is geannuleerd.` : `Gedaan, je afspraak is geannuleerd.`);
   }
   // R40: update_booking_name commit. no_change (name was already that) is deliberately NOT
   // handled here: it never satisfies isCommittedMutation (no r.renamed), so stopOnToolResult
