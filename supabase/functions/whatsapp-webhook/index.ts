@@ -410,10 +410,18 @@ serve(async (req) => {
               const { data: ct } = await supabaseClient
                 .from('whatsapp_contacts').select('id').eq('phone_number', contact.wa_id).maybeSingle();
               if (ct?.id) {
+                // R135: filter out soft-deleted calendars from the ambiguity check. Without
+                // this, a customer with exactly ONE active tenant plus stale history at a
+                // since-closed (is_deleted=true) tenant would show 2 distinct owners here and
+                // incorrectly trip the fail-closed ambiguity path below, even though there is
+                // really only one active tenant this customer could mean. calendars!inner
+                // still requires the join to exist (calendar_id not null); adding is_deleted
+                // just excludes rows whose calendar has since been soft-deleted.
                 const { data: convs } = await supabaseClient
                   .from('whatsapp_conversations')
-                  .select('calendar_id, calendars!inner(user_id)')
+                  .select('calendar_id, calendars!inner(user_id, is_deleted)')
                   .eq('contact_id', ct.id)
+                  .eq('calendars.is_deleted', false)
                   .order('last_message_at', { ascending: false });
                 const rows = (convs as Array<{ calendar_id: string; calendars: { user_id: string } }> | null) ?? [];
                 const distinctOwners = new Set(rows.map((r) => r.calendars?.user_id).filter(Boolean));

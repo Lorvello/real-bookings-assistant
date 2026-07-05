@@ -54,9 +54,11 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
     });
   };
 
-  // Use contact_id for fetching messages
+  // Use contact_id + calendarId for fetching messages (R135: contact_id alone is shared across
+  // tenants for a shared phone number, calendarId scopes the transcript to THIS tenant only).
   const { data: messages, isLoading: messagesLoading } = useWhatsAppMessages(
-    contact.contact_id || ''
+    contact.contact_id || '',
+    calendarId
   );
 
   const displayName = contact.display_name ||

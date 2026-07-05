@@ -10,9 +10,9 @@ interface WhatsAppMessage {
   status: string;
 }
 
-export function useWhatsAppMessages(contactId: string) {
+export function useWhatsAppMessages(contactId: string, calendarId?: string) {
   return useQuery({
-    queryKey: ['whatsapp-messages', contactId],
+    queryKey: ['whatsapp-messages', contactId, calendarId],
     queryFn: async (): Promise<WhatsAppMessage[]> => {
       if (!contactId) return [];
 
@@ -20,10 +20,21 @@ export function useWhatsAppMessages(contactId: string) {
       // there with direction + content + status), linked via conversation_id. `whatsapp_conversations`
       // is ONE row per (calendar, contact); its legacy `message`/`From` columns are stale n8n data,
       // NOT the message history. So: resolve this contact's conversation(s), then load their messages.
-      const { data: convs, error: convErr } = await supabase
+      //
+      // R135: contact_id alone is NOT tenant-scoped. whatsapp_contacts is a GLOBAL table keyed
+      // by phone_number, shared across every tenant that phone has ever talked to, so the same
+      // contact_id can have a whatsapp_conversations row under multiple different calendars. A
+      // contact_id-only lookup here would pull in another tenant's message transcript for a
+      // shared phone number. calendar_id must be filtered too, matching the R134/R135 pattern
+      // used by the sibling hooks.
+      let query = supabase
         .from('whatsapp_conversations')
         .select('id')
         .eq('contact_id', contactId);
+      if (calendarId) {
+        query = query.eq('calendar_id', calendarId);
+      }
+      const { data: convs, error: convErr } = await query;
       if (convErr) throw convErr;
 
       const conversationIds = (convs ?? []).map((c) => c.id);

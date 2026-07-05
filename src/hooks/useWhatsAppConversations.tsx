@@ -1,63 +1,16 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { WhatsAppConversation } from '@/types/whatsapp';
-import { useWhatsAppConversationUpdates } from './useWhatsAppConversationUpdates';
 
-
-export function useWhatsAppConversations(calendarId: string) {
-  // Set up real-time updates
-  useWhatsAppConversationUpdates(calendarId);
-
-  return useQuery({
-    queryKey: ['whatsapp-conversations', calendarId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('whatsapp_conversations')
-        .select(`
-          *,
-          whatsapp_contact_overview:whatsapp_contacts!whatsapp_conversations_contact_id_fkey (
-            contact_id:id,
-            phone_number,
-            display_name,
-            first_name,
-            last_name,
-            contact_created_at:created_at
-          )
-        `)
-        .eq('calendar_id', calendarId)
-        .order('last_message_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      return data || [];
-    },
-    enabled: !!calendarId,
-  });
-}
-
-export function useCreateWhatsAppConversation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (conversation: Partial<WhatsAppConversation>) => {
-      const { data, error } = await supabase
-        .from('whatsapp_conversations')
-        .insert([conversation])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['whatsapp-conversations', data.calendar_id] 
-      });
-    },
-  });
-}
+// R135 hygiene: the unscoped useWhatsAppConversations(calendarId) query hook, plus
+// useCreateWhatsAppConversation and useUpdateConversationStatus, had zero live consumers
+// (their only callers, ContactSidebar.tsx and ConversationsList.tsx, were themselves dead
+// components with no importers anywhere in the app). Removed rather than fixed, per the
+// "prefer correctness over reusing a fundamentally global data source" guidance: the query
+// hook read the same unscoped whatsapp_contacts join first_name/last_name pattern R134/R135
+// fixed elsewhere, so keeping it around as unreferenced dead code was itself a latent
+// cross-tenant-bleed trap for a future caller. useCloseConversation is the one export here
+// with a live consumer (ConversationDetailPanel.tsx) and is kept as-is.
 
 // Close all of a contact's conversation(s) from the operator inbox. The
 // whatsapp_contact_overview is a materialized view, so we refresh it after the
@@ -80,35 +33,6 @@ export function useCloseConversation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-contact-overview'] });
       queryClient.invalidateQueries({ queryKey: ['whatsapp-conversations'] });
-    },
-  });
-}
-
-export function useUpdateConversationStatus() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ 
-      conversationId, 
-      status 
-    }: { 
-      conversationId: string; 
-      status: WhatsAppConversation['status'];
-    }) => {
-      const { data, error } = await supabase
-        .from('whatsapp_conversations')
-        .update({ status })
-        .eq('id', conversationId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['whatsapp-conversations', data?.calendar_id] 
-      });
     },
   });
 }
