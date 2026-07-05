@@ -11,15 +11,11 @@ import {
   enforceAppointmentNameDisclosure,
   enforceVerificationGateDisclosure,
   extractStatedNameForBooking,
-  hasCorrectionMarker,
   hasMultipleDistinctNamesStated,
   identityVerificationResolved,
-  isConfirmShapedMessage,
   isRealName,
   mentionsOwnAppointmentClaim,
   messageNamesPendingBookOwner,
-  namesAreSimilar,
-  nameSimilarity,
   nameSuffix,
   previewTakeoverRisk,
   takeoverVerificationResolution,
@@ -458,125 +454,59 @@ Deno.test("enforceVerificationGateDisclosure: uses the MOST RECENT naam_verifica
   assertEquals(result.includes("Oude Eigenaar"), true);
 });
 
-// ── R122 nameSimilarity / namesAreSimilar / hasCorrectionMarker ────────────────────────────────
-// (STRUCTURAL FAIL-CLOSED REDESIGN's own computed-similarity building blocks, see
-// identityDisambiguationGuard.ts's R122 header comment for the full corpus/threshold reasoning.)
-Deno.test("nameSimilarity: identical names -> 1", () => {
-  assertEquals(nameSimilarity("Anna", "Anna"), 1);
-  assertEquals(nameSimilarity("anna", "ANNA"), 1); // case-insensitive
-});
+// ── R123 previewTakeoverRisk: UNCONDITIONAL FAIL-CLOSED, no heuristic bypass of any kind ───────
+// (R121 introduced the marker; R122 added a fail-closed default with a correction-marker +
+// computed-similarity narrowing escape hatch; THIS ROUND removes that narrowing entirely after
+// live-reproducing with DB proof on the S6 testpad, fresh fixtures 316000020001/316000020002,
+// that R122's own escape hatch is itself exploitable: ordinary, genuinely-distinct short real
+// names -- Erik/Derek, Anna/Hanna, Marco/Mario, Tom/Tim, Jack/Zack -- score above ANY similarity
+// threshold that would also admit genuine typo-fixes, so a correction-marker word plus one of
+// these pairs silently defeated R122's whole mechanism, committing a real booking under a
+// stranger's name with zero verification. See identityDisambiguationGuard.ts's R123 header
+// comment for the full reasoning on why this whole heuristic category -- shape, word list, or
+// computed score -- is fundamentally unfixable and was removed rather than tuned again.)
 
-Deno.test("nameSimilarity: genuine typo/near-identical pairs score high", () => {
-  assertEquals(nameSimilarity("Anna", "Ana"), 0.75);
-  assertEquals(nameSimilarity("Anne", "Anna"), 0.75);
-});
-
-Deno.test("nameSimilarity: completely dissimilar names score 0 (R121-verify exploit #2 pair)", () => {
-  assertEquals(nameSimilarity("Nora", "Otto"), 0);
-  assertEquals(nameSimilarity("Anna", "Bram"), 0);
-});
-
-Deno.test("nameSimilarity: threshold boundary pair (Chris/Christiaan) sits exactly at 0.5", () => {
-  assertEquals(nameSimilarity("Chris", "Christiaan"), 0.5);
-});
-
-Deno.test("namesAreSimilar: boundary is inclusive (>=), threshold pair passes", () => {
-  assertEquals(namesAreSimilar("Chris", "Christiaan"), true);
-  assertEquals(namesAreSimilar("Anna", "Ana"), true);
-  assertEquals(namesAreSimilar("Nora", "Otto"), false);
-});
-
-Deno.test("namesAreSimilar: NOT a hardcoded word list, generalizes to unseen pairs via computed distance", () => {
-  // Neither "Sanne"/"Sanna" nor "Willem"/"Wilem" appear anywhere in this codebase's history; a
-  // computed edit-distance measure handles them without a new pair being enumerated anywhere.
-  assertEquals(namesAreSimilar("Sanne", "Sanna"), true);
-  assertEquals(namesAreSimilar("Willem", "Wilem"), true);
-  assertEquals(namesAreSimilar("Piet", "Klaas"), false);
-});
-
-Deno.test("hasCorrectionMarker: recognizes NL+EN correction-signaling vocabulary", () => {
-  assertEquals(hasCorrectionMarker("Nee wacht, doe het voor Otto"), true);
-  assertEquals(hasCorrectionMarker("sorry, ik bedoelde Ana"), true);
-  assertEquals(hasCorrectionMarker("actually, I meant Chris"), true);
-  assertEquals(hasCorrectionMarker("voor Ana ipv Anna"), true);
-});
-
-Deno.test("hasCorrectionMarker: an imperative phrasing with no correction wording is NOT a marker (R121-verify exploit #1 shape)", () => {
-  assertEquals(hasCorrectionMarker("Zet maar op Bram"), false);
-  assertEquals(hasCorrectionMarker("Kan dit voor Bram?"), false);
-  assertEquals(hasCorrectionMarker("Doe maar Bram"), false);
-});
-
-Deno.test("hasCorrectionMarker: empty/whitespace-only message is not a marker", () => {
-  assertEquals(hasCorrectionMarker(""), false);
-  assertEquals(hasCorrectionMarker(null), false);
-  assertEquals(hasCorrectionMarker(undefined), false);
-});
-
-// ── R121 previewTakeoverRisk / isConfirmShapedMessage / takeoverVerificationResolution ─────────
-// (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, live-reproduced with DB proof on the S6 testpad, fresh
-// fixture 31600001806, "Variation-E": Person A previews under "Anna", never confirms; Person B,
-// same phone, sends "Ja, echt boeken voor Bram" before Anna ever confirms; nameChanged re-previews
-// under "Bram" with ZERO identity check (crossIdentityBookRisk is never consulted on a re-preview);
-// a same-turn update_lead then establishes knownSelfName="Bram", so the next bare "ja" commits
-// clean under Bram with no verification ever shown to anyone.)
-
-Deno.test("isConfirmShapedMessage: the exact Variation-E exploit message is confirm-shaped", () => {
-  assertEquals(isConfirmShapedMessage("Ja, echt boeken voor Bram"), true);
-  assertEquals(isConfirmShapedMessage("Klopt, maar dan voor Iris"), true);
-});
-
-Deno.test("isConfirmShapedMessage: a genuine same-speaker typo correction is NOT confirm-shaped", () => {
-  assertEquals(isConfirmShapedMessage("Nee wacht, Ana niet Anna"), false);
-  assertEquals(isConfirmShapedMessage("nee, ik bedoel Ana"), false);
-});
-
-Deno.test("isConfirmShapedMessage: empty/whitespace-only message is not confirm-shaped", () => {
-  assertEquals(isConfirmShapedMessage(""), false);
-  assertEquals(isConfirmShapedMessage(null), false);
-  assertEquals(isConfirmShapedMessage(undefined), false);
-});
-
-Deno.test("previewTakeoverRisk: the exact Variation-E shape -> RISK (originator Anna, new candidate Bram, confirm-shaped message)", () => {
+Deno.test("previewTakeoverRisk: the exact Variation-E shape -> RISK (originator Anna, new candidate Bram)", () => {
   assertEquals(previewTakeoverRisk("Anna", "Bram", "Ja, echt boeken voor Bram"), true);
 });
 
-Deno.test("previewTakeoverRisk (R122): a genuine same-speaker typo correction -> NO risk (correction marker + high similarity)", () => {
-  assertEquals(previewTakeoverRisk("Anna", "Ana", "Nee wacht, Ana niet Anna"), false);
+Deno.test("previewTakeoverRisk (R123): a genuine same-speaker typo correction now ALSO requires verification -- one extra confirm turn is the accepted, deliberate cost", () => {
+  // Under R122 this used to auto-release (correction marker + high similarity). R123 removes
+  // that narrowing unconditionally: even an honest "nee wacht, Ana niet Anna" now requires the
+  // explicit takeoverVerificationResolution/identityVerificationResolved confirmation turn like
+  // every other name-conflicting re-preview. This is EXPECTED and ACCEPTABLE friction, not a
+  // regression (see the mandate: "this friction is EXPECTED and ACCEPTABLE").
+  assertEquals(previewTakeoverRisk("Anna", "Ana", "Nee wacht, Ana niet Anna"), true);
 });
 
-Deno.test("previewTakeoverRisk (R122): negate-shaped message naming a DISSIMILAR person -> RISK (R121-verify exploit #2, live-reproduced Nora->Otto)", () => {
-  // R121's own design UNCONDITIONALLY trusted any NEGATE-shaped re-preview as a same-speaker
-  // typo-fix, with no check the new name resembles the original at all. Live-reproduced: this
-  // committed "Otto" over an "Nora" preview with ZERO verification. Otto shares no meaningful
-  // similarity with Nora, so this must now trigger verification despite the negate-shaped wording.
+Deno.test("previewTakeoverRisk (R123): negate-shaped message naming a dissimilar person -> RISK (R121-verify exploit #2, Nora->Otto)", () => {
   assertEquals(previewTakeoverRisk("Nora", "Otto", "Nee wacht, doe het voor Otto"), true);
 });
 
-Deno.test("previewTakeoverRisk (R122): imperative phrasing outside the affirm/negate token lists -> RISK (R121-verify exploit #1)", () => {
-  // R121's own design skipped the whole check on any phrasing that satisfied neither AFFIRM_RE
-  // nor NEGATE_RE. Live-reproduced: "Zet maar op Bram" bypassed the guard entirely and committed
-  // silently over an "Anna" preview. No correction marker is present, so this now fails closed.
+Deno.test("previewTakeoverRisk (R123): imperative phrasing outside any affirm/negate shape -> RISK (R121-verify exploit #1)", () => {
   assertEquals(previewTakeoverRisk("Anna", "Bram", "Zet maar op Bram"), true);
   assertEquals(previewTakeoverRisk("Anna", "Bram", "Kan dit voor Bram?"), true);
   assertEquals(previewTakeoverRisk("Anna", "Bram", "Doe maar Bram"), true);
 });
 
-Deno.test("previewTakeoverRisk (R122): imperative phrasing naming a SIMILAR/nickname variant is still flagged (reasoned design choice: imperative wording alone never proves same-speaker intent)", () => {
-  // A stricter fail-closed design deliberately does NOT grant imperative phrasing a pass even
-  // when the new name is similar to the original: wording alone (with no explicit correction
-  // marker) is exactly as available to a genuine second person taking over politely as to the
-  // original speaker correcting themselves, so it earns no special trust. Only the marker+
-  // similarity combination narrows the fail-closed default.
-  assertEquals(previewTakeoverRisk("Anna", "Ana", "Zet maar op Ana"), true);
+Deno.test("previewTakeoverRisk (R123): the R122-live-proven exploit pairs ALL now flag risk regardless of correction wording", () => {
+  // Erik/Derek 0.6, Anna/Hanna 0.8, Marco/Mario 0.8, Tom/Tim 0.67, Jack/Zack 0.75 under R122's own
+  // 0.5 threshold -- all scored "similar enough" to auto-release with a correction marker present,
+  // and all were live-reproduced (this round: Erik->Derek, Anna->Hanna) as real committed
+  // wrong-name bookings with zero verification. Every one must now flag risk, unconditionally.
+  assertEquals(previewTakeoverRisk("Erik", "Derek", "nee wacht, ik bedoel Derek"), true);
+  assertEquals(previewTakeoverRisk("Anna", "Hanna", "sorry, het is voor Hanna"), true);
+  assertEquals(previewTakeoverRisk("Marco", "Mario", "nee toch niet, Mario"), true);
+  assertEquals(previewTakeoverRisk("Tom", "Tim", "actually, it's Tim"), true);
+  assertEquals(previewTakeoverRisk("Jack", "Zack", "sorry ik bedoel Zack"), true);
 });
 
-Deno.test("previewTakeoverRisk (R122): correction marker present but name is DISSIMILAR -> still RISK (marker alone never suffices)", () => {
+Deno.test("previewTakeoverRisk (R123): correction marker present but name is dissimilar -> RISK (unchanged, was already true under R122)", () => {
   assertEquals(previewTakeoverRisk("Anna", "Otto", "Nee wacht, toch maar Otto"), true);
 });
 
-Deno.test("previewTakeoverRisk (R122): affirm-shaped message naming a similar/nickname variant with a correction marker present -> frictionless", () => {
-  assertEquals(previewTakeoverRisk("Christiaan", "Chris", "Nee sorry, gewoon Chris"), false);
+Deno.test("previewTakeoverRisk (R123): full-name-vs-short-name pair (Christiaan/Chris) now ALSO requires verification", () => {
+  assertEquals(previewTakeoverRisk("Christiaan", "Chris", "Nee sorry, gewoon Chris"), true);
 });
 
 Deno.test("previewTakeoverRisk: no originator_name on file yet (pre-fix in-flight preview) -> NO risk, conservative skip", () => {
@@ -592,11 +522,13 @@ Deno.test("previewTakeoverRisk: new candidate has no real name (placeholder) -> 
   assertEquals(previewTakeoverRisk("Anna", "Privé", "Ja, boek maar zonder naam"), false);
 });
 
-Deno.test("previewTakeoverRisk (R122): a non-affirm-shaped correction marker + genuinely similar name stays frictionless", () => {
-  // "ipv" ("in plaats van"/"instead of") is a correction marker, and Ana~Anna is similar: stays
-  // frictionless under the R122 fail-closed redesign (marker present AND similarity above
-  // threshold is the only path that suppresses the fail-closed default).
-  assertEquals(previewTakeoverRisk("Anna", "Ana", "voor Ana ipv Anna"), false);
+Deno.test("previewTakeoverRisk (R123): rawMessage content is never consulted -- identical name-pair risk regardless of wording", () => {
+  // No message shape, word, or phrasing can ever change the verdict now: only the name-pair
+  // comparison (nameMismatch against originator_name) drives the result.
+  assertEquals(previewTakeoverRisk("Anna", "Ana", "voor Ana ipv Anna"), true);
+  assertEquals(previewTakeoverRisk("Anna", "Ana", ""), true);
+  assertEquals(previewTakeoverRisk("Anna", "Ana", null), true);
+  assertEquals(previewTakeoverRisk("Anna", "Ana", undefined), true);
 });
 
 Deno.test("takeoverVerificationResolution: message names the PROPOSED new name -> confirmed_new", () => {
