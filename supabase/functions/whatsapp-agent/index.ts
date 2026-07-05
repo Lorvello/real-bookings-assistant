@@ -968,11 +968,29 @@ Deno.serve(async (req) => {
       } | null;
       const manualRefund = ps?.refund_policy_text;
       const hasManualRefund = typeof manualRefund === "string" && manualRefund.trim();
+      // R82-VERIFY-1 fix (FAKE-DEPOSIT-RATIONALE): paymentActuallyRequired mirrors tools.ts's
+      // OWN authoritative gate for "does this calendar actually collect up-front payment"
+      // (secure_payments_enabled AND payment_required_for_booking, see the book_appointment
+      // guard in tools.ts). Root cause found live on a fresh fixture tenant with BOTH flags
+      // false (no deposit/payment configured at all): allowed_payment_timing defaults to
+      // ["pay_now"] and payment_deadline_hours defaults to 24 on EVERY payment_settings row
+      // (set at calendar-creation time), independent of whether payment collection is switched
+      // on. The derived-sentence branch below used to read ONLY allowed_payment_timing/
+      // payment_deadline_hours, so it asserted "Betaling gaat vooraf online... binnen 24 uur"
+      // into businessData.refund_policy as if it were REAL ground truth even on a tenant that
+      // never enabled payments. businessDataGuard.ts's classifier then (correctly, given what
+      // it was told) scored the model's "we vragen een aanbetaling omdat..." reply as GROUNDED,
+      // since the fabricated-sounding claim was, per the summary it was handed, actually
+      // present in business_data. This was never a classifier/prompt gap: the ground truth
+      // itself was wrong upstream. Fix: gate the entire derived-timing sentence on
+      // paymentActuallyRequired, the same authoritative flag pair tools.ts's booking gate uses,
+      // so "payment upfront required" is only ever asserted when it is actually true.
+      const paymentActuallyRequired = !!(ps?.secure_payments_enabled && ps?.payment_required_for_booking);
       if (hasManualRefund) {
         // A hand-written refund policy always wins, used verbatim.
         businessData.refund_policy = (manualRefund as string).trim();
         refundDisposition = classifyRefundDisposition(manualRefund as string);
-      } else if (ps) {
+      } else if (ps && paymentActuallyRequired) {
         // Derive a human sentence from the structured Pay&Book settings. allowed_payment_timing
         // is a jsonb array of: pay_now (vooruit/online), pay_on_site (op locatie). Only describe
         // a deadline when up-front online payment is actually offered (pay_now present).
@@ -1000,6 +1018,10 @@ Deno.serve(async (req) => {
         // stays "unknown": the prompt then sends a refund question to direct contact rather than
         // letting the model guess a money-back outcome from the timing sentence.
       }
+      // When payment is NOT actually required (the common trial/free-tier default state), no
+      // refund/payment-timing line is injected at all: businessData.refund_policy stays unset,
+      // so any reply asserting an upfront-payment/deposit requirement or rationale is correctly
+      // judged UNGROUNDED by businessDataGuard.ts's classifier against real ground truth.
     }
 
     // Cancellation/reschedule policy ANSWER inject. The agent already ENFORCES the deadline
