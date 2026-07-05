@@ -216,6 +216,58 @@ export function crossIdentityActionRisk(
   return nameMismatch(targetCustomerName, knownSelfName);
 }
 
+// R109 (MARKER-RELEASE-HAS-NO-SPEAKER-IDENTITY-CHECK fix, closes the gap R107's own verify round
+// found in book_appointment and generalizes it to cancel/reschedule's pre-existing markers, which
+// share the identical release-gate shape and were never adversarially tested for this specific
+// weakness before): the pending_book_verification / pending_cancel_verification /
+// pending_reschedule_verification markers in index.ts release PURELY on marker-freshness (15-min
+// TTL) plus AFFIRM_RE/NEGATE_RE/ambiguousConfirm on the CURRENT message, with ZERO check on WHO is
+// sending the affirming reply. Live-reproduced exploit: a cross-identity mismatch correctly blocks
+// the FIRST bare "ja" (R107's fix working as intended), but a SECOND bare "ja" from the exact SAME
+// wrong speaker (no new name, no new information at all) silently releases the marker and
+// commits/executes under the stale wrong identity, on all three action types.
+//
+// FIX SHAPE: a marker's whole purpose is to answer ONE specific question: "is this REALLY
+// <target customer_name>'s appointment?" (see the naam_verificatie_nodig `message` text in
+// tools.ts, always phrased exactly this way). The only answer that genuinely RESOLVES that
+// question, as opposed to merely repeating a generic affirm word, is one where the customer's OWN
+// reply actually names the target person. This reuses the SAME strict, non-fuzzy whole-word name
+// matcher (containsWholeWord/firstNameToken) already proven in extractStatedNameForBooking, so
+// "Anne" can never satisfy "Anna"'s verification the same way it can never satisfy her
+// disambiguation match. A bare "ja"/"klopt"/"yes", with no new information at all, can NEVER
+// satisfy this, structurally, no matter how many times it's repeated: it is not an affirm-word
+// enumeration problem (a 2nd/3rd regex-widening pass, explicitly rejected by this round's own
+// scope), it is a presence-of-the-actual-name check.
+//
+// The SECOND way a marker may legitimately release: the conversation's OWN knownSelfName has
+// genuinely come to match the target's name since the marker was set (the true owner of the
+// booking steps in, this turn or a later one, and states their real name, which independently
+// updates knownSelfName via the SAME booking_name-capture mechanism book_appointment/update_lead
+// already use as the tenant-scoped identity source; see index.ts's scopedName/knownName). This is
+// the "situation genuinely changed" half of the fix: once the CURRENT turn's own identity signal
+// no longer conflicts with the target, crossIdentityActionRisk itself would no longer flag a FRESH
+// call, so honoring a release here is consistent, not a special case.
+//
+// Neither path can ever be satisfied by silently repeating the same affirm word from the same
+// unresolved identity: the customer must actually do one of the two things a real receptionist
+// would require, namely say who the appointment is really for, or have the real owner confirm.
+export function identityVerificationResolved(
+  targetCustomerName: string | null | undefined,
+  knownSelfNameAtRelease: string | null | undefined,
+  rawMessage: string | undefined | null,
+): boolean {
+  // The mismatch that triggered the marker is no longer present at all: the current turn's own
+  // identity signal now matches the target (the real owner has stepped in and been recognized).
+  if (!nameMismatch(targetCustomerName, knownSelfNameAtRelease)) return true;
+  // Otherwise, the ONLY way to resolve a STILL-mismatched identity is for this turn's own raw
+  // message to explicitly name the target person by their real, distinct (first-token) name,
+  // never a bare affirm word, never inferred, never fuzzy-matched.
+  if (!isRealName(targetCustomerName)) return false;
+  const token = firstNameToken(String(targetCustomerName));
+  if (!token || token.length < 2) return false;
+  return containsWholeWord(String(rawMessage ?? ""), token);
+}
+
 // R102 DETERMINISTIC DISCLOSURE BACKSTOP for get_my_appointments (mirrors this codebase's own
 // established pattern, e.g. refundGuard.ts/priceGuard.ts: a hard correctness guarantee belongs in
 // CODE, not in trusting the model to follow a prompt instruction). Live-tested this round: even

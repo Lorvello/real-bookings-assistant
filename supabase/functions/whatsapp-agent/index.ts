@@ -13,7 +13,7 @@ import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, mentionsOwnAppointmentClaim, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -242,6 +242,7 @@ function deterministicPreview(
 function deterministicConfirmation(
   toolCalls: { name: string; result: unknown }[],
   customerLanguage: string | null,
+  knownSelfName?: string | null,
 ): string | null {
   const okResult = (name: string): Record<string, any> | null => {
     for (let i = toolCalls.length - 1; i >= 0; i--) {
@@ -256,10 +257,30 @@ function deterministicConfirmation(
   const book = okResult("book_appointment");
   if (book) {
     const bookWhen = en ? enWhen(book.start_time, book.when) : book.when;
+    // R110 (IDEMPOTENT-REBOOK-DISCLOSURE-BYPASS fix): book_appointment's own ok:true result now
+    // carries customer_name whenever the tool result is an ALREADY-COMMITTED slot echo (a fresh
+    // preview never sets it; see tools.ts's R110 comment on the idempotent-hit branch). This is the
+    // SAME disclosure test isRealName/nameMismatch already run everywhere else in this codebase
+    // (identityDisambiguationGuard.ts): a real, distinct customer_name that differs from the
+    // CURRENT speaker's own knownSelfName means this turn's speaker is not who the booking is
+    // actually under, so the reply must say whose booking it is instead of a bare "Gelukt!" that
+    // reads as if it belongs to whoever is texting right now. Mirrors cancel/reschedule's own R102
+    // customer_name-in-reply pattern exactly; this was the ONE mutation-commit reply path that
+    // never ran any disclosure check at all (deterministicConfirmation/isCommittedMutation bypassed
+    // enforceAppointmentNameDisclosure/enforceNoFalseConfirmation entirely, since neither is ever
+    // called on this template branch).
+    const bookName = typeof book.customer_name === "string" && book.customer_name.trim() ? book.customer_name.trim() : null;
+    const selfMatches = !bookName || (typeof knownSelfName === "string" && knownSelfName.trim() &&
+      knownSelfName.trim().toLowerCase() === bookName.toLowerCase());
     if (book.payment_url) {
       return en
         ? `Your spot is reserved for ${bookWhen}. Please complete the payment here to confirm: ${book.payment_url}`
         : `Je plek is gereserveerd voor ${bookWhen}. Rond de betaling af via deze link om te bevestigen: ${book.payment_url}`;
+    }
+    if (bookName && !selfMatches) {
+      return en
+        ? `That appointment for ${bookWhen} is already booked, under the name ${bookName}. 🎉`
+        : `Die afspraak voor ${bookWhen} staat al geboekt, op naam van ${bookName}. 🎉`;
     }
     return en ? `Done! You're booked for ${bookWhen}. 🎉` : `Gelukt! Je staat genoteerd voor ${bookWhen}. 🎉`;
   }
@@ -1289,21 +1310,37 @@ Deno.serve(async (req) => {
     // pending_cancel_verification / reschedule_appointment's own pending_reschedule_verification
     // markers (tools.ts). Only the customer's OWN raw reply to OUR verification question can
     // release either guard, never the model's own judgement.
-    const pcv = convContext.pending_cancel_verification as { at?: number } | undefined;
+    //
+    // R109 (MARKER-RELEASE-HAS-NO-SPEAKER-IDENTITY-CHECK fix): AFFIRM_RE/NEGATE_RE/ambiguousConfirm
+    // alone answer "is this an affirming message", never "is it the SAME identity conflict already
+    // resolved, or does it still need resolving". Live-reproduced: a SECOND bare "ja" from the exact
+    // same wrong speaker (zero new information) used to silently release the marker. Each release
+    // now ALSO requires identityVerificationResolved against the marker's OWN stored target name,
+    // re-checked against THIS turn's raw message and THIS turn's current knownName (see
+    // identityDisambiguationGuard.ts's doc comment for the full mechanism). A bare repeated affirm
+    // can never satisfy this; the customer must actually name the target person, or the real owner
+    // must be the one now recognized as speaking.
+    const pcv = convContext.pending_cancel_verification as { current_name?: string | null; at?: number } | undefined;
     const pendingCancelVerificationFresh = !!pcv && (typeof pcv.at !== "number" || (Date.now() - pcv.at) < 15 * 60 * 1000);
-    const confirmCancelVerification = pendingCancelVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const confirmCancelVerification = pendingCancelVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      identityVerificationResolved(pcv?.current_name ?? null, knownName, String(message));
 
-    const prsv = convContext.pending_reschedule_verification as { at?: number } | undefined;
+    const prsv = convContext.pending_reschedule_verification as { current_name?: string | null; at?: number } | undefined;
     const pendingRescheduleVerificationFresh = !!prsv && (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
-    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      identityVerificationResolved(prsv?.current_name ?? null, knownName, String(message));
 
     // R107 (BOOK-COMMIT-IDENTITY-GAP fix): SAME deterministic server-detection pattern as
     // confirmCancelVerification/confirmRescheduleVerification directly above, keyed off
     // book_appointment's own pending_book_verification marker (tools.ts). Only the customer's OWN
     // raw reply to OUR cross-identity verification question is allowed to release this guard.
-    const pbv = convContext.pending_book_verification as { at?: number } | undefined;
+    // R109: same identityVerificationResolved requirement as above, closing the identical gap on
+    // book_appointment's own marker (live-reproduced: a second bare "ja" silently committed the
+    // preview under the stale wrong name here too).
+    const pbv = convContext.pending_book_verification as { customer_name?: string | null; at?: number } | undefined;
     const pendingBookVerificationFresh = !!pbv && (typeof pbv.at !== "number" || (Date.now() - pbv.at) < 15 * 60 * 1000);
-    const confirmBookVerification = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const confirmBookVerification = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      identityVerificationResolved(pbv?.customer_name ?? null, knownName, String(message));
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
@@ -1842,7 +1879,7 @@ Deno.serve(async (req) => {
     let replyText = (result.text || "").trim();
     const committed = result.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
     if (committed) {
-      replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || replyText;
+      replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || replyText;
       // R96 (PHANTOM-SUCCESS-ZERO-MUTATION fix, NEW-1): verify the claimed commit against a real
       // row in the database THIS SAME TURN, before the reply ships. Single cheap indexed lookup
       // (id + status only), only ever runs on an already-rare commit turn (never on the far more
@@ -1887,7 +1924,7 @@ Deno.serve(async (req) => {
         replyText = preview;
       } else if (!replyText) {
         const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
-        if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage) || "";
+        if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || "";
       } else {
         // P0-1: model-prose reply (not a committed mutation, not a server-templated preview).
         // Enforce the "no fabricated time" guarantee: any clock time the reply OFFERS must come

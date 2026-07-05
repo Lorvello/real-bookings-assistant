@@ -1467,9 +1467,16 @@ export function createTools(
               const want = `${wantM[1].padStart(2, "0")}:${wantM[2]}`;
               const dayStart = `${args.date}T00:00:00Z`;
               const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
+              // R110 (IDEMPOTENT-REBOOK-DISCLOSURE-BYPASS fix): customer_name is now selected too,
+              // so this idempotent echo's own result can carry it back to index.ts's
+              // deterministicConfirmation, the SAME field cancel/reschedule's own ok:true results
+              // already carry for exactly this reason (see R102/R103 comments on those branches
+              // below). Without it, a re-invocation from a DIFFERENT identity on this shared phone
+              // hitting this exact echo told them "Gelukt!" with zero disclosure of whose booking
+              // it actually is, even though no duplicate row was ever created.
               const { data: ownSameDay } = await supabase
                 .from("bookings")
-                .select("id, start_time, service_type_id")
+                .select("id, start_time, service_type_id, customer_name")
                 .eq("customer_phone", ctx.phone)
                 .eq("calendar_id", calId)
                 .eq("service_type_id", serviceId)
@@ -1481,13 +1488,16 @@ export function createTools(
               );
               if (mine) {
                 await clearPendingBook();
-                const m = mine as { id: string; start_time: string };
+                const m = mine as { id: string; start_time: string; customer_name: string | null };
                 return {
                   ok: true,
                   already_booked: true,
                   booking_id: m.id,
                   start_time: m.start_time,
                   when: nlWhen(m.start_time),
+                  // R110: same isRealNameShared gate cancel/reschedule already use, so a
+                  // placeholder/no-name booking renders no field, unaffected common-case behaviour.
+                  customer_name: isRealNameShared(m.customer_name) ? m.customer_name : null,
                   message: "Deze afspraak staat al geboekt (zelfde dienst, zelfde tijd). Bevestig dat kort en bied verder hulp aan.",
                 };
               }
@@ -2283,7 +2293,7 @@ export function createTools(
           reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const existingReschedVerification = reschedCtx.pending_reschedule_verification as
-          { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+          { booking_id?: string; current_name?: string | null; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
         const rescheduleAlreadyVerifiedThisBooking = !target.multipleNamesStated &&
           ctx.confirmRescheduleVerification === true &&
           existingReschedVerification?.booking_id === b.id;
@@ -2297,6 +2307,11 @@ export function createTools(
                   ...reschedCtx,
                   pending_reschedule_verification: {
                     booking_id: b.id,
+                    // R109: the target booking's OWN customer_name, so index.ts's
+                    // identityVerificationResolved can re-check on RELEASE whether this turn's raw
+                    // message actually names this specific person (mirrors cancel's own
+                    // pending_cancel_verification.current_name, added by this same fix).
+                    current_name: b.customer_name,
                     new_date: args.date ?? null,
                     new_time: args.time ?? null,
                     new_start_time: args.start_time ?? null,

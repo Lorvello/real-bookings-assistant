@@ -9,6 +9,7 @@ import {
   enforceAppointmentNameDisclosure,
   extractStatedNameForBooking,
   hasMultipleDistinctNamesStated,
+  identityVerificationResolved,
   isRealName,
   mentionsOwnAppointmentClaim,
   nameSuffix,
@@ -305,4 +306,36 @@ Deno.test("enforceAppointmentNameDisclosure: bare possessive phrasing WITHOUT th
     null,
   );
   assertEquals(out.includes("Alice"), true);
+});
+
+// ── identityVerificationResolved (R109 MARKER-RELEASE-HAS-NO-SPEAKER-IDENTITY-CHECK fix) ────────
+Deno.test("identityVerificationResolved: a bare repeated affirm with zero new info NEVER resolves a still-mismatched marker (the exact live exploit shape)", () => {
+  // "Klaas Bakker"'s preview, speaker still known as "Piet", speaker just repeats "ja".
+  assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "ja"), false);
+  assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "Ja, klopt"), false);
+  assertEquals(identityVerificationResolved("Emma Jansen", "Bram", "ja graag"), false);
+});
+
+Deno.test("identityVerificationResolved: the customer explicitly naming the target person BY NAME resolves it", () => {
+  assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "Ja, dat klopt, het is voor Klaas"), true);
+  assertEquals(identityVerificationResolved("Emma Jansen", "Bram", "Ja, Emma's afspraak inderdaad"), true);
+});
+
+Deno.test("identityVerificationResolved: near-identical name does NOT satisfy the check (Anne must never resolve Anna's verification)", () => {
+  assertEquals(identityVerificationResolved("Anna", "Piet", "Ja, dat klopt, voor Anne"), false);
+});
+
+Deno.test("identityVerificationResolved: knownSelfName now genuinely matching the target resolves it (the real owner stepped in)", () => {
+  // The mismatch that triggered the marker no longer exists at release time: knownSelfName caught
+  // up to the target's real name (e.g. the true owner is now the one recognized as speaking).
+  assertEquals(identityVerificationResolved("Klaas Bakker", "Klaas Bakker", "ja"), true);
+});
+
+Deno.test("identityVerificationResolved: no real target name on the marker -> nothing to verify, resolves trivially", () => {
+  assertEquals(identityVerificationResolved(null, "Piet", "ja"), true);
+  assertEquals(identityVerificationResolved("Privé", "Piet", "ja"), true);
+});
+
+Deno.test("identityVerificationResolved: unrelated message content does not accidentally satisfy it", () => {
+  assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "Ok doe donderdag maar"), false);
 });
