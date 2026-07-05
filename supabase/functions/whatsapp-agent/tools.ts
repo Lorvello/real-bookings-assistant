@@ -139,6 +139,10 @@ export interface ToolContext {
   confirmCancelVerification?: boolean;
   // R102: same idea, for reschedule_appointment's own pending_reschedule_verification marker.
   confirmRescheduleVerification?: boolean;
+  // R107: same idea, for book_appointment's own pending_book_verification marker (BOOK-COMMIT-
+  // IDENTITY-GAP fix, see the guard's own comment in the book_appointment case for the full
+  // root-cause reasoning).
+  confirmBookVerification?: boolean;
 }
 
 interface UpcomingBooking {
@@ -303,7 +307,11 @@ function nlTimeOnly(iso: string): string {
   return new Date(iso).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: NL_TZ });
 }
 // e.g. "2026-06-23T12:00:00+00:00" -> "dinsdag 23 juni 14:00"
-function nlWhen(iso: string): string {
+// R107: exported so index.ts's NO-FRESH-TOOL-CALL disclosure fallback (see
+// identityDisambiguationGuard.ts's mentionsOwnAppointmentClaim) can format its own re-queried
+// appointment rows into the SAME "when" string shape get_my_appointments itself already produces,
+// rather than a second, divergent formatter.
+export function nlWhen(iso: string): string {
   const d = new Date(iso);
   const date = d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: NL_TZ });
   return `${date} ${nlTimeOnly(iso)}`;
@@ -1249,9 +1257,21 @@ export function createTools(
           { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
-          const { pending_booking: _drop, ...rest } = bookCtx;
+          // R107: also drop any pending_book_verification marker here. It only ever answers "is
+          // THIS preview's name really who it should be booked under"; once the preview is either
+          // committed (booking now exists) or abandoned/replaced (a new preview overwrites it), a
+          // leftover marker from before has nothing left to verify and must not silently carry
+          // forward onto an unrelated future preview (same stale-marker reasoning as R103's
+          // hasMultipleDistinctNamesStated fix for cancel/reschedule).
+          const { pending_booking: _drop, pending_book_verification: _dropV, ...rest } = bookCtx;
           await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
         };
+        // R107: the SAME cross-identity verification marker shape as R102's
+        // pending_cancel_verification/pending_reschedule_verification, generalized to
+        // book_appointment's own commit. Read here (once, top of the tool) so the commit gate below
+        // can see it without a second query.
+        const pendingBookVerification = bookCtx.pending_book_verification as
+          { start_time?: string; customer_name?: string | null; at?: number } | undefined;
         // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-NAME, sev-3): a name-correction stated on the SAME
         // turn as the confirmation ("Klopt, maar dan voor Iris" on a Dana preview) was silently
         // swallowed: the commit always sourced customer_name from the STORED pendingBook proposal
@@ -1736,6 +1756,72 @@ export function createTools(
             start_time: start,
             proposal: { service: svcName, when: nlWhen(start), customer_name: customerName === "Privé" ? null : customerName },
             message: "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
+          };
+        }
+
+        // R107 (BOOK-COMMIT-IDENTITY-GAP fix): the SAME crossIdentityActionRisk guard R102 already
+        // wired into cancel_appointment/reschedule_appointment's commit paths, extended to
+        // book_appointment's own commit. ROOT CAUSE this closes (live-reproduced, evidence/
+        // IUX_r107.md): the ONLY identity signal book_appointment's commit ever consulted was
+        // nameChanged, which is gated on the MODEL choosing to pass args.customer_name THIS turn,
+        // and prompt.ts explicitly tells the model that field is NOT required on a confirm turn
+        // ("Bij de bevestig-aanroep (confirmed:true) niet verplicht"). A bare, unconditional "ja"
+        // reply from a DIFFERENT speaker than whoever the pending preview was named for (the exact
+        // R101 shared-phone shape: phone reassigned/handed to someone else mid-flow, PREVIEW never
+        // committed) silently committed under the PREVIEW's stale name, with zero identity check,
+        // because nameChanged can only ever fire when the model resupplies a conflicting name, which
+        // it structurally never does on a clean confirm turn. Fix: run the SAME nameMismatch test
+        // cancel/reschedule already run at COMMIT time (not preview time, since a preview never
+        // inserts, so there is nothing to protect yet), comparing the PENDING PREVIEW's own
+        // customer_name against ctx.knownSelfName (identical signal cancel/reschedule use: the
+        // tenant-scoped name this conversation has on file for whoever is CURRENTLY texting, via
+        // update_lead's booking_name, else the WhatsApp profile display name; null when nothing is
+        // known yet, in which case nameMismatch still fires on any real stored name, the exact
+        // R101-1 "second, unnamed person" trigger shape). Deliberately UNCONDITIONAL: never gated on
+        // whether the model happened to pass customer_name this turn (that was exactly the
+        // structural hole), and independent of nameChanged (nameChanged already blocks and
+        // re-previews its own distinct shape, a model-supplied conflicting name, before this code is
+        // ever reached; this guard covers the complementary "no new name supplied at all" shape
+        // nameChanged cannot see). totalCandidates is not applicable here the way it is for
+        // cancel/reschedule's resolveTarget (there is no candidate list to disambiguate, a
+        // pending_booking is a single stored proposal), so it is passed as undefined, matching
+        // crossIdentityActionRisk's own documented "not currently gated on" parameter.
+        if (
+          committing &&
+          crossIdentityActionRisk(undefined, pendingBook?.customer_name, ctx.knownSelfName) &&
+          // R107: the marker must point at THIS EXACT pending preview (start_time + name), same
+          // binding discipline as cancel's pendingCancelVerification?.booking_id === b.id, so a
+          // stale verification marker left over from a DIFFERENT, earlier preview can never
+          // silently authorize a brand new one it never actually verified.
+          !(
+            ctx.confirmBookVerification === true &&
+            pendingBookVerification?.start_time === pendingBook?.start_time &&
+            pendingBookVerification?.customer_name === pendingBook?.customer_name
+          )
+        ) {
+          const verifyAt = Date.now();
+          if (ctx.conversationId) {
+            await supabase
+              .from("whatsapp_conversations")
+              .update({
+                context: {
+                  ...bookCtx,
+                  pending_book_verification: {
+                    start_time: pendingBook!.start_time,
+                    customer_name: pendingBook!.customer_name,
+                    at: verifyAt,
+                  },
+                },
+              })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: pendingBook!.customer_name,
+            message:
+              `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.customer_name}. ` +
+              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${pendingBook!.customer_name} is die geboekt moet worden.`,
+            guidance: "NOG NIETS geboekt. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
           };
         }
 

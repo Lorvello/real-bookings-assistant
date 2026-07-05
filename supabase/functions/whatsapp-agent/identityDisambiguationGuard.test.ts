@@ -10,6 +10,7 @@ import {
   extractStatedNameForBooking,
   hasMultipleDistinctNamesStated,
   isRealName,
+  mentionsOwnAppointmentClaim,
   nameSuffix,
   type NamedCandidate,
 } from "./identityDisambiguationGuard.ts";
@@ -250,4 +251,58 @@ Deno.test("enforceAppointmentNameDisclosure: English reply rewritten in English"
   );
   assertEquals(out.includes("Sanne"), true);
   assertEquals(/your appointment\b/i.test(out.replace(/under the name/i, "")), false);
+});
+
+// ── R107: crossIdentityActionRisk applied to book_appointment's own commit shape ─────────────
+// (book_appointment has no candidate LIST the way cancel/reschedule's resolveTarget does; a
+// pending_booking is a single stored preview, so totalCandidates is always passed undefined,
+// matching tools.ts's own call site. These pin the exact book-commit repro shapes.)
+Deno.test("crossIdentityActionRisk: book_appointment shape, pending preview name differs from unnamed speaker -> RISK (R107 exact exploit shape)", () => {
+  assertEquals(crossIdentityActionRisk(undefined, "Alice", null), true);
+});
+
+Deno.test("crossIdentityActionRisk: book_appointment shape, pending preview name differs from a DIFFERENT named speaker -> RISK", () => {
+  assertEquals(crossIdentityActionRisk(undefined, "Alice", "Bob"), true);
+});
+
+Deno.test("crossIdentityActionRisk: book_appointment shape, pending preview name MATCHES the speaker -> no risk (genuine same-person confirm stays smooth)", () => {
+  assertEquals(crossIdentityActionRisk(undefined, "Alice", "Alice"), false);
+  assertEquals(crossIdentityActionRisk(undefined, "alice", "ALICE"), false);
+});
+
+Deno.test("crossIdentityActionRisk: book_appointment shape, pending preview has no real name -> no risk (common placeholder case)", () => {
+  assertEquals(crossIdentityActionRisk(undefined, "Privé", "Bob"), false);
+  assertEquals(crossIdentityActionRisk(undefined, null, "Bob"), false);
+});
+
+// ── R107: BARE_MY_APPOINTMENT_RE / mentionsOwnAppointmentClaim widened coverage ──────────────
+// (DISCLOSURE-BACKSTOP-COVERAGE-GAP fix: the original regex required the literal word
+// "afspraak(en)"/"appointment(s)"; these pin the natural phrasings that bypassed it before.)
+Deno.test("mentionsOwnAppointmentClaim: original literal-word shape still caught (no regression)", () => {
+  assertEquals(mentionsOwnAppointmentClaim("Je afspraak is donderdag 9 juli om 10:00."), true);
+  assertEquals(mentionsOwnAppointmentClaim("Your appointment is Thursday at 10."), true);
+  assertEquals(mentionsOwnAppointmentClaim("Je hebt twee afspraken staan."), true);
+});
+
+Deno.test("mentionsOwnAppointmentClaim: bare possessive phrasings WITHOUT the literal word now caught (the diagnosed bypass)", () => {
+  assertEquals(mentionsOwnAppointmentClaim("Je staat op maandag 10:00 ingepland."), true);
+  assertEquals(mentionsOwnAppointmentClaim("Je bent ingepland op donderdag 14:00."), true);
+  assertEquals(mentionsOwnAppointmentClaim("Jouw moment is vrijdag 14:00."), true);
+  assertEquals(mentionsOwnAppointmentClaim("You're booked in for Monday at 10."), true);
+  assertEquals(mentionsOwnAppointmentClaim("Your slot is scheduled for Monday."), true);
+});
+
+Deno.test("mentionsOwnAppointmentClaim: unrelated reply text -> false (no over-firing)", () => {
+  assertEquals(mentionsOwnAppointmentClaim("Ik kon geen afspraken vinden voor je."), false);
+  assertEquals(mentionsOwnAppointmentClaim("Welkom bij ons bedrijf!"), false);
+  assertEquals(mentionsOwnAppointmentClaim(""), false);
+});
+
+Deno.test("enforceAppointmentNameDisclosure: bare possessive phrasing WITHOUT the literal word still gets rewritten (bypass shape closed)", () => {
+  const out = enforceAppointmentNameDisclosure(
+    "Je staat op maandag 10:00 ingepland.",
+    [{ service: "Testafspraak", when: "maandag 6 juli 10:00", customer_name: "Alice" }],
+    null,
+  );
+  assertEquals(out.includes("Alice"), true);
 });

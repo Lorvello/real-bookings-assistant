@@ -236,7 +236,34 @@ export interface AppointmentForDisclosure {
   when: string;
   customer_name?: string | null;
 }
-const BARE_MY_APPOINTMENT_RE = /\b(je|jouw)\b[^.!?]{0,15}\bafspra(a?k|ken)\b|\byour\b[^.!?]{0,15}\bappointments?\b/i;
+// R107 (DISCLOSURE-BACKSTOP-COVERAGE-GAP fix): the ORIGINAL regex only matched a bare "je/jouw
+// ... afspra(a)k(en)" or "your ... appointment(s)" phrase, i.e. it REQUIRED the literal word
+// "afspraak(en)"/"appointment(s)" to appear. Live-diagnosed gap: gpt-oss-20b routinely answers a
+// get_my_appointments question WITHOUT ever using that word at all, e.g. "je staat op maandag
+// 10:00 ingepland", "je bent ingepland op donderdag", "jouw moment is vrijdag 14:00", "you're
+// booked in for Monday at 10". Every one of these is the EXACT same undisclosed-possessive shape
+// the backstop exists to catch (a "je/jouw"/"your" claim of ownership over a booking that may not
+// be the current speaker's own), just phrased without the trigger word, so they silently bypassed
+// the whole mechanism. Widened to a SECOND alternative: any "je/jouw"/"your"/"you're" possessive
+// reference followed (within a short window, allowing a day/time/prepositional phrase in between)
+// by a scheduling verb/participle (staat/bent/zit + ingepland/gepland/ingeboekt, "moment is", or EN
+// "booked (in)"/"scheduled"), independent of whether "afspraak"/"appointment" ever appears. Kept as
+// an OR alongside the original literal-word pattern (byte-identical behaviour preserved for every
+// case the original already caught); this only ADDS coverage, never narrows it.
+const BARE_MY_APPOINTMENT_RE =
+  /\b(je|jouw)\b[^.!?]{0,15}\bafspra(a?k|ken)\b|\byour\b[^.!?]{0,15}\bappointments?\b|\b(je|jouw)\b[^.!?]{0,10}\b(staat|bent|zit)\b[^.!?]{0,30}\b(ingepland|gepland|ingeboekt)\b|\bjouw\b[^.!?]{0,10}\bmoment\b[^.!?]{0,10}\bis\b|\b(you'?re|your)\b[^.!?]{0,20}\b(booked( in)?|scheduled)\b/i;
+// R107 (NO-FRESH-TOOL-CALL coverage gap): exposes the exact same "does this reply claim a bare
+// possessive booking" test the rewrite path below already gates on, as its OWN named predicate, so
+// a caller (index.ts) can decide whether to run a FALLBACK DB re-check when get_my_appointments was
+// NOT called this turn at all (the model answered a follow-up purely from its own prior-turn
+// context memory, e.g. "en hoe laat ook alweer?" after an earlier get_my_appointments turn). Without
+// this, the whole disclosure mechanism (model-prompted AND deterministic) is structurally never
+// invoked on such a turn, since enforceAppointmentNameDisclosure only ever runs against THIS turn's
+// fresh tool result. Deliberately the SAME regex, not a new one: the risk shape (a bare "je/jouw
+// afspraak"-style ownership claim) is identical whether or not a tool ran this turn.
+export function mentionsOwnAppointmentClaim(replyText: string): boolean {
+  return !!replyText && BARE_MY_APPOINTMENT_RE.test(replyText);
+}
 export function enforceAppointmentNameDisclosure(
   replyText: string,
   appointments: AppointmentForDisclosure[] | undefined,

@@ -8,12 +8,12 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours } from "./tools.ts";
+import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, mentionsOwnAppointmentClaim, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -1297,6 +1297,14 @@ Deno.serve(async (req) => {
     const pendingRescheduleVerificationFresh = !!prsv && (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
     const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
 
+    // R107 (BOOK-COMMIT-IDENTITY-GAP fix): SAME deterministic server-detection pattern as
+    // confirmCancelVerification/confirmRescheduleVerification directly above, keyed off
+    // book_appointment's own pending_book_verification marker (tools.ts). Only the customer's OWN
+    // raw reply to OUR cross-identity verification question is allowed to release this guard.
+    const pbv = convContext.pending_book_verification as { at?: number } | undefined;
+    const pendingBookVerificationFresh = !!pbv && (typeof pbv.at !== "number" || (Date.now() - pbv.at) < 15 * 60 * 1000);
+    const confirmBookVerification = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
     // proposal, NO insert), so an accidental immediate booking is impossible and the customer
@@ -1548,7 +1556,7 @@ Deno.serve(async (req) => {
     // convContext.booking_name via update_lead, else the WhatsApp profile display name). Threaded
     // through as knownSelfName so cancel/reschedule's cross-identity guard can detect when a
     // resolved target booking's own name differs from what THIS speaker has said about themselves.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -1908,6 +1916,33 @@ Deno.serve(async (req) => {
           { appointments?: AppointmentForDisclosure[] } | undefined;
         if (lastAppointmentsResult?.appointments) {
           replyText = enforceAppointmentNameDisclosure(replyText, lastAppointmentsResult.appointments, customerLanguage);
+        } else if (mentionsOwnAppointmentClaim(replyText)) {
+          // R107 (NO-FRESH-TOOL-CALL coverage gap fix): the model answered a possessive-booking-
+          // shaped reply ("je staat op maandag...", "your appointment is...") WITHOUT calling
+          // get_my_appointments this turn at all, most often a follow-up answered purely from its
+          // own prior-turn context memory ("en hoe laat ook alweer?"). The disclosure mechanism
+          // above only ever sees THIS turn's fresh tool result, so on a memory-only turn it was
+          // structurally never invoked, independent of whether a real name mismatch exists. Fix:
+          // on exactly this shape, re-run the SAME cheap upcoming-bookings lookup
+          // get_my_appointments itself does (scoped to phone + the owner's calendar allowlist,
+          // confirmed/pending, future-only, capped) and feed it through the identical deterministic
+          // rewrite. No-op (byte-identical reply) whenever that lookup finds nothing or nothing
+          // carries a real, distinct name, i.e. the common non-shared-phone case is unaffected;
+          // this only ever fires extra disclosure, never extra silence.
+          const { data: fallbackRows } = await supabase
+            .from("bookings")
+            .select("start_time, service_types(name), customer_name")
+            .eq("customer_phone", phone)
+            .in("calendar_id", calendars.map((c) => c.id))
+            .in("status", ["confirmed", "pending"])
+            .gt("start_time", new Date().toISOString())
+            .order("start_time", { ascending: true })
+            .limit(5);
+          const fallbackAppointments = ((fallbackRows as Array<{ start_time: string; service_types?: { name?: string } | null; customer_name?: string | null }>) ?? [])
+            .map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), customer_name: b.customer_name }));
+          if (fallbackAppointments.length > 0) {
+            replyText = enforceAppointmentNameDisclosure(replyText, fallbackAppointments, customerLanguage);
+          }
         }
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
