@@ -41,9 +41,9 @@ export function useNextAppointment(calendarIds: string[]) {
         .gte('start_time', now.toISOString())
         .order('start_time', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching next appointment:', error);
         throw error;
       }
