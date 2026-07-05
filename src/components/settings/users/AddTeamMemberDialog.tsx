@@ -161,8 +161,8 @@ export function AddTeamMemberDialog({
             htmlFor="invite-role"
             description={
               role === 'editor'
-                ? t('settings.users.fields.inviteRole.descriptionEditor', 'Editors are intended to manage bookings and settings. This permission level is still being rolled out, so for now their access matches Viewer.')
-                : t('settings.users.fields.inviteRole.descriptionViewer', 'Viewers can view bookings.')
+                ? t('settings.users.fields.inviteRole.descriptionEditor', 'Editors can view and manage bookings and services on this calendar.')
+                : t('settings.users.fields.inviteRole.descriptionViewer', 'Viewers can view bookings and services, but cannot make changes.')
             }
           >
             <Select value={role} onValueChange={(v: 'editor' | 'viewer') => onRoleChange(v)}>

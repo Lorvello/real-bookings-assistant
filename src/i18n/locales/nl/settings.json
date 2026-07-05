@@ -682,8 +682,8 @@
         },
         "inviteRole": {
           "label": "Rol",
-          "descriptionEditor": "Bewerkers zijn bedoeld om boekingen en instellingen te beheren. Dit rechtenniveau wordt nog uitgerold, dus voorlopig komt hun toegang overeen met Bekijker.",
-          "descriptionViewer": "Bekijkers kunnen boekingen bekijken."
+          "descriptionEditor": "Bewerkers kunnen boekingen en diensten van deze agenda bekijken en beheren.",
+          "descriptionViewer": "Bekijkers kunnen boekingen en diensten bekijken, maar niets wijzigen."
         }
       },
       "aria": {

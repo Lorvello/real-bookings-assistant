@@ -137,13 +137,20 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                     style={{ backgroundColor: calendar.color || '#6B7280' }}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium truncate text-foreground">{calendar.name}</span>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      {/* IUX R104-2: name is capped to the row's own width (max-w-full)
+                          but no longer shares a flex-shrink budget with the badges.
+                          2 non-shrinking badges (Default + Active, e.g. the active
+                          default calendar) used to crowd a flex-1 name span down to
+                          a few illegible characters. The row now wraps (flex-wrap
+                          above) so badges that don't fit next to the full name drop
+                          to their own line instead of squeezing it. */}
+                      <span className="max-w-full truncate font-medium text-foreground">{calendar.name}</span>
                       {calendar.is_default && (
-                        <Badge variant="outline" className="text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
+                        <Badge variant="outline" className="shrink-0 text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
                       )}
                       {isActive && (
-                        <Badge className="text-xs bg-primary/15 text-primary border-transparent">{t('app.calSwitch.active', 'Active')}</Badge>
+                        <Badge className="shrink-0 text-xs bg-primary/15 text-primary border-transparent">{t('app.calSwitch.active', 'Active')}</Badge>
                       )}
                     </div>
                     {calendar.description && (
