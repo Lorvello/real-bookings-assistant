@@ -45,7 +45,12 @@ export const useSettingsData = () => {
     address_number: '',
     address_postal: '',
     address_city: '',
-    address_country: 'Nederland',
+    // No language-guessing default: every other text field here starts blank, and
+    // "Nederland" is a Dutch word that leaked into English-locale Settings pages
+    // (T2 sweep, R124) before the user ever typed anything. A blank field already
+    // reads correctly everywhere per this page's own rule (blank = agent won't
+    // mention it) and matches formatAddress()'s existing Nederland-is-noise drop.
+    address_country: '',
     website: '',
     facebook: '',
     instagram: '',
@@ -67,7 +72,8 @@ export const useSettingsData = () => {
     business_number: '',
     business_postal: '',
     business_city: '',
-    business_country: 'Nederland',
+    // See address_country above: no language-guessing default (T2 sweep, R124).
+    business_country: '',
     business_description: '',
     parking_info: '',
     public_transport_info: '',
@@ -122,7 +128,7 @@ export const useSettingsData = () => {
           address_number: data.address_number || '',
           address_postal: data.address_postal || '',
           address_city: data.address_city || '',
-          address_country: data.address_country || 'Nederland',
+          address_country: data.address_country || '',
           website: data.website || '',
           facebook: data.facebook || '',
           instagram: data.instagram || '',
@@ -144,7 +150,7 @@ export const useSettingsData = () => {
           business_number: data.business_number || '',
           business_postal: data.business_postal || '',
           business_city: data.business_city || '',
-          business_country: data.business_country || 'Nederland',
+          business_country: data.business_country || '',
           business_description: data.business_description || '',
           parking_info: data.parking_info || '',
           public_transport_info: data.public_transport_info || '',

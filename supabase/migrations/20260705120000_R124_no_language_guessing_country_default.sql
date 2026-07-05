@@ -1,0 +1,31 @@
+-- R124 (T2 frontend micro-polish, fresh design-criticus sweep): stop defaulting
+-- users.address_country / users.business_country to the Dutch word "Nederland".
+--
+-- Reproduced live this round (fresh throwaway tenant, language='en', real browser):
+-- a brand-new EN-locale user's Settings > Business Information page showed "Nederland"
+-- in the Country field before they ever typed anything -- a Dutch word silently
+-- injected into an English-language page. Root cause: both DB columns default to the
+-- literal string 'Nederland' (20250624170435-88d3266f), and the frontend
+-- (src/hooks/useSettingsData.tsx) independently re-asserted the same hardcoded
+-- 'Nederland' fallback in 4 places whenever the column was null. Every other text
+-- field on this same page/hook defaults to '' (blank); these two were the only ones
+-- guessing a value, and guessing it in the wrong language for non-NL tenants.
+--
+-- This is display-only data (the WhatsApp-facing address line, not tax logic):
+-- service_types.business_country is a SEPARATE column (ISO country codes 'NL'/'GB',
+-- used by Stripe Tax / assign-tax-codes) and is NOT touched by this migration.
+-- supabase/functions/whatsapp-agent/tools.ts's formatAddress() already explicitly
+-- drops "Nederland" from the spoken address as redundant noise ("Drops the country
+-- when it is the default"); dropping an empty string is the same no-op, so this
+-- migration is a behavior-neutral no-op for the WhatsApp agent and only changes what
+-- a brand-new user sees as their own untouched Settings field.
+--
+-- Frontend companion change (same round): the 4 hardcoded 'Nederland' fallbacks in
+-- src/hooks/useSettingsData.tsx were changed to '' to match every other field.
+--
+-- Existing rows are left untouched (do not silently rewrite real tenant data,
+-- including Lorvello, based on a guess about whether they ever meant to keep it).
+-- This only changes the default applied to columns on FUTURE inserts.
+
+ALTER TABLE public.users ALTER COLUMN address_country DROP DEFAULT;
+ALTER TABLE public.users ALTER COLUMN business_country DROP DEFAULT;
