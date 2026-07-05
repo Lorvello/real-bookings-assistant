@@ -165,6 +165,13 @@ async function checkRateLimit(supabaseClient: any, identifier: string): Promise<
 }
 
 // Helper: Log security event
+// (R113, 2026-07-05) Fire-and-forget by design: must never delay or fail the actual
+// webhook response to Meta. But a silent insert failure here previously meant the
+// ENTIRE security/audit trail vanished with zero trace (missing ip_address column,
+// no .select(), no error-checking; fixed in migration 20260705063300_R113_F-R113-1).
+// Added error-checking so a future schema drift surfaces in edge-function logs
+// instead of disappearing again; still not awaited by callers beyond this function,
+// and still never throws.
 async function logSecurityEvent(
   supabaseClient: any,
   eventType: string,
@@ -172,7 +179,7 @@ async function logSecurityEvent(
   details: any,
   ipAddress?: string
 ) {
-  await supabaseClient
+  const { error } = await supabaseClient
     .from('webhook_security_logs')
     .insert({
       event_type: eventType,
@@ -181,6 +188,9 @@ async function logSecurityEvent(
       event_data: details,
       created_at: new Date().toISOString()
     });
+  if (error) {
+    console.error(`logSecurityEvent insert failed [${eventType}]:`, error);
+  }
 }
 
 serve(async (req) => {
