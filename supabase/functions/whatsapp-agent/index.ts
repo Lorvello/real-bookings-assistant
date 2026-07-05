@@ -13,7 +13,7 @@ import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceRescheduleAmbiguityDisclosure, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -335,6 +335,18 @@ function deterministicConfirmation(
       ? `Done, the name on your appointment (${renamed.renamed.when}) is now ${renamed.renamed.new_name}.`
       : `Gedaan, de naam op je afspraak (${renamed.renamed.when}) is nu ${renamed.renamed.new_name}.`;
   }
+  // R118 (GAP 2 fix): update_lead's own booking_renamed:true commit (a post-commit name-correction
+  // it detected and propagated to the real booking row, see tools.ts). Deliberately generic (no
+  // stored "when"/old-name fields on this result shape, unlike update_booking_name's own renamed
+  // object), but this is still a genuine committed mutation, so it gets the SAME deterministic,
+  // code-templated reply guarantee as every other commit here, never left to free model prose.
+  const leadRename = okResult("update_lead");
+  if (leadRename?.booking_renamed === true) {
+    const newName = typeof leadRename.new_name === "string" && leadRename.new_name.trim() ? leadRename.new_name.trim() : null;
+    return en
+      ? (newName ? `Got it, your appointment is now under the name ${newName}.` : `Got it, your appointment is now under the name you just gave.`)
+      : (newName ? `Gelukt, je afspraak staat nu op naam van ${newName}.` : `Gelukt, je afspraak staat nu op de naam die je net gaf.`);
+  }
   return null;
 }
 
@@ -394,6 +406,13 @@ function isCommittedMutation(name: string, result: unknown): boolean {
   if (name === "cancel_appointment") return !!r.cancelled;
   if (name === "reschedule_appointment") return !!(r.rescheduled && r.rescheduled.to);
   if (name === "update_booking_name") return !!r.renamed;
+  // R118 (GAP 2 fix): update_lead's own NEW booking_renamed:true shape (tools.ts) is a genuine
+  // committed mutation on an EXISTING booking row too (a post-commit name-correction that update_lead
+  // detected and propagated), same "real DB write happened" bar as update_booking_name's own renamed
+  // field, so it must be recognized here identically for stopOnToolResult/deterministicConfirmation
+  // to template an honest reply instead of falling through to (or being stripped by) the model-prose
+  // guard below.
+  if (name === "update_lead") return r.booking_renamed === true;
   return false;
 }
 
@@ -1418,6 +1437,20 @@ Deno.serve(async (req) => {
     const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
       identityVerificationResolved(prsv?.current_name ?? null, knownName, String(message));
 
+    // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): SAME deterministic
+    // server-detection pattern as confirmRescheduleVerification directly above, keyed off
+    // reschedule_appointment's own NEW pending_reschedule_confirm marker (tools.ts, a SEPARATE
+    // marker from pending_reschedule_verification: that one guards cross-identity risk, this one
+    // guards intent ambiguity after an open cancel-or-reschedule fork question). Only the
+    // customer's OWN raw reply to OUR ambiguity-confirmation question can release this guard,
+    // never the model's own judgement. Also requires ctx.hardConfirm (the same third, structural,
+    // finite-allow-list gate every other commit-driving flag in this codebase requires), so a
+    // vague/hedged/conditional reply to OUR OWN question can never silently release the gate
+    // either, same safety bar as confirmBook/confirmCancel/confirmRename.
+    const prc = convContext.pending_reschedule_confirm as { booking_id?: string; at?: number } | undefined;
+    const pendingRescheduleConfirmFresh = !!prc && (typeof prc.at !== "number" || (Date.now() - prc.at) < 15 * 60 * 1000);
+    const confirmRescheduleAmbiguity = pendingRescheduleConfirmFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+
     // R107 (BOOK-COMMIT-IDENTITY-GAP fix): SAME deterministic server-detection pattern as
     // confirmCancelVerification/confirmRescheduleVerification directly above, keyed off
     // book_appointment's own pending_book_verification marker (tools.ts). Only the customer's OWN
@@ -1441,6 +1474,36 @@ Deno.serve(async (req) => {
       { at?: number; service_type_id?: string; start_time?: string; end_time?: string; calendar_id?: string } | undefined;
     const pendingBookFresh = !!pbk && (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
     const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(msgLower);
+    // R118 (GAP 3, PENDING-BOOKING-NO-EXPIRY fix, live-reproduced on the S6 testpad): a booking
+    // preview is offered, the customer asks something unrelated in between, gets an answer, then
+    // sends an unrelated LATER "Ja" (plausibly meaning something else entirely, e.g. "yes, good to
+    // know") which silently committed the old, stale, possibly-abandoned preview, with no
+    // re-confirmation of what was actually being confirmed. The pre-existing 15-minute TTL
+    // (pendingBookFresh above) only checks raw elapsed TIME, never whether anything unrelated
+    // happened in between, so a customer chatting normally for several turns inside that same
+    // 15-minute window could still have a stray "ja" silently commit an old, abandoned proposal.
+    //
+    // FIX: detect a genuine INTERVENING exchange, i.e. at least one OTHER inbound customer message
+    // strictly between the preview being stored (pbk.at) and this turn's own message, using the
+    // SAME 12-message history window already fetched above (sharedMsgsAsc), zero extra round-trip.
+    // When such an intervening message exists, a bare affirm alone is no longer sufficient: the
+    // gate additionally requires this turn's message to itself reference the pending proposal (a
+    // day/time/service mention, reusing the SAME DAY_OR_TIME_SHIFT_RE signal already defined above
+    // for ambiguousConfirm, since that regex already recognizes exactly this content), so the
+    // customer re-states enough of what they are confirming for a mismatch to be catchable. A bare
+    // "ja" with NOTHING confirming the specific proposal, after a genuine intervening exchange, no
+    // longer silently commits; the model instead re-surfaces the pending proposal and asks the
+    // customer to confirm it explicitly (safer than guessing what an isolated "ja" meant).
+    const pendingBookAtMs = typeof pbk?.at === "number" ? pbk.at : null;
+    const pendingBookInterveningExchange = pendingBookFresh && pendingBookAtMs != null && sharedMsgsAsc.some((m) => {
+      if (m.direction !== "inbound") return false;
+      const ts = new Date(m.meta_timestamp ?? m.created_at).getTime();
+      if (!Number.isFinite(ts)) return false;
+      // Strictly AFTER the preview was stored, and strictly BEFORE this turn's own message (the
+      // current inbound row is always the newest by construction, see R97's own comment above on
+      // sharedMsgsDesc[0] always being the current message on the real webhook path).
+      return ts > pendingBookAtMs && (m.content ?? "") !== String(message ?? "");
+    });
     // R23: same ambiguousConfirm gate as confirmCancel (see its comment above for the 3 repro
     // shapes and the design reasoning). A day/time-shift mention, a price question, a trailing "?",
     // or a hedge word means this is NOT a clean confirmation of the exact previewed slot.
@@ -1453,7 +1516,14 @@ Deno.serve(async (req) => {
     // phrasing not on the curated allow-list): the model still gets a normal turn and can still
     // re-preview/answer, it simply cannot commit until hardConfirm agrees. See section 6b below for
     // the measured smooth-UX-rate tradeoff this choice implies.
-    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel && !ambiguousConfirm;
+    // R118: pendingBookInterveningExchange additionally requires the message to restate a
+    // day/time reference (DAY_OR_TIME_SHIFT_RE) when a genuine intervening exchange happened, so a
+    // bare, context-free "ja" after chatting about something else never silently commits a stale
+    // proposal. The common, honest flow (preview immediately followed by a clean "ja", no
+    // intervening exchange) is completely unaffected: pendingBookInterveningExchange is false
+    // there, so this extra requirement never engages.
+    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel && !ambiguousConfirm &&
+      (!pendingBookInterveningExchange || DAY_OR_TIME_SHIFT_RE.test(msgLower));
 
     // IUX R58 (WHATSAPP-DUPLICATE-CONFIRM-BURST): cross-request idempotency CLAIM, taken BEFORE
     // the race-loss pre-check and BEFORE the LLM turn. Root cause (R56/R56-verify): near-
@@ -1681,7 +1751,7 @@ Deno.serve(async (req) => {
     // convContext.booking_name via update_lead, else the WhatsApp profile display name). Threaded
     // through as knownSelfName so cancel/reschedule's cross-identity guard can detect when a
     // resolved target booking's own name differs from what THIS speaker has said about themselves.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower) });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -2077,6 +2147,10 @@ Deno.serve(async (req) => {
         // non-sequitur refusal). No-op unless a tool call this turn actually returned
         // naam_verificatie_nodig AND the drafted reply fails to disclose the target name.
         replyText = enforceVerificationGateDisclosure(replyText, result.toolCalls);
+        // R118 (GAP 1 fix): same gate-first-trigger-wrong-text pattern, for reschedule_appointment's
+        // NEW verzet_bevestiging_nodig ambiguity gate (a SEPARATE gate from naam_verificatie_nodig
+        // above: this one guards intent ambiguity, not cross-identity).
+        replyText = enforceRescheduleAmbiguityDisclosure(replyText, result.toolCalls);
         // R113 (RETURNING-SERVICE-TOOL-CALL-GATE-ONLY fix, closes R111-verify's own reported gap):
         // `blockForReturningServiceDefaultEffective` only ever produces a disclosure via tools.ts
         // when the model actually attempts get_available_slots/book_appointment and gets refused.

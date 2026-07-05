@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, extractStatedNameForBooking, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
+import { crossIdentityActionRisk, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -153,10 +153,39 @@ export interface ToolContext {
   confirmCancelVerification?: boolean;
   // R102: same idea, for reschedule_appointment's own pending_reschedule_verification marker.
   confirmRescheduleVerification?: boolean;
+  // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): server-detected (index.ts,
+  // mirrors confirmRescheduleVerification exactly: a fresh pending_reschedule_confirm marker +
+  // AFFIRM_RE + !NEGATE_RE + !ambiguousConfirm + ctx.hardConfirm), NOT a model-supplied arg. This
+  // is a SEPARATE marker/flag from confirmRescheduleVerification (that one guards cross-IDENTITY
+  // risk on a shared phone; this one guards INTENT ambiguity: a bare fragment arriving right after
+  // an unresolved cancel-or-reschedule fork question, or with no explicit reschedule signal of its
+  // own). Only the customer's OWN raw reply to OUR ambiguity-confirmation question is allowed to
+  // release this guard, never the model's own judgement, same pattern as every other pending_*
+  // marker in this codebase.
+  confirmRescheduleAmbiguity?: boolean;
   // R107: same idea, for book_appointment's own pending_book_verification marker (BOOK-COMMIT-
   // IDENTITY-GAP fix, see the guard's own comment in the book_appointment case for the full
   // root-cause reasoning).
   confirmBookVerification?: boolean;
+  // R118 (GAP 1 fix): every configured service name across the owner's calendar(s) (mirrors
+  // index.ts's own allServiceNamesForReturning), used ONLY by reschedule_appointment's ambiguity
+  // gate to recognize a message that names a real service as carrying its own explicit intent
+  // (never a bare fragment), so a genuine "book this service at the new time" reschedule is never
+  // held up by the ambiguity gate below.
+  allServiceNamesForAmbiguity?: string[];
+  // R118 (GAP 3, PENDING-BOOKING-NO-EXPIRY fix): server-computed once per turn in index.ts, true
+  // when a fresh pending_booking preview exists AND at least one OTHER inbound customer message
+  // arrived strictly between the preview being stored and this turn's own message (a genuine
+  // intervening, unrelated exchange, not just elapsed time). Gates book_appointment's commit on
+  // BOTH arms (ctx.confirmBook AND the model's own args.confirmed self-attestation): a bare
+  // "ja"/"klopt" with no restated day/time reference can no longer silently commit a stale,
+  // possibly-abandoned preview after the customer has moved on to something else in between.
+  pendingBookInterveningExchange?: boolean;
+  // R118: true when THIS turn's own raw message restates a day/time reference (mirrors index.ts's
+  // own DAY_OR_TIME_SHIFT_RE, computed there and threaded through so tools.ts never needs its own
+  // copy of that regex). Only consulted when pendingBookInterveningExchange is true; irrelevant
+  // (and never blocks anything) otherwise.
+  messageRestatesDayTime?: boolean;
 }
 
 interface UpcomingBooking {
@@ -1232,10 +1261,12 @@ export function createTools(
         // reads as knownName next turn, so a name given at THIS business never bleeds to
         // another (R3). The name_refused flag also lets book_appointment tell a genuine
         // declined "Privé" apart from a premature placeholder.
+        let priorBookingName: string | null = null;
         if (ctx.conversationId) {
           const { data: conv } = await supabase
             .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
           const context = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+          priorBookingName = typeof context.booking_name === "string" ? context.booking_name.trim() : null;
           const next: Record<string, unknown> = { ...context };
           if (refused) {
             next.name_refused = true;
@@ -1246,7 +1277,86 @@ export function createTools(
           }
           await supabase.from("whatsapp_conversations").update({ context: next }).eq("id", ctx.conversationId);
         }
-        return { ok: true };
+        // R118 (GAP 2, POST-COMMIT-NAME-CORRECTION-SILENTLY-DROPPED fix, live-reproduced on the S6
+        // testpad): update_lead is a generic "remember the name for the NEXT booking" tool; it only
+        // ever wrote whatsapp_contacts (dashboard display) + this conversation's OWN context
+        // (booking_name), never the real bookings.customer_name row. That is correct for a name
+        // given BEFORE a booking commits (there is no row yet to update). But when the customer
+        // states a corrected name as a SEPARATE follow-up fragment AFTER a booking already
+        // committed in this conversation, the model routinely calls update_lead (not
+        // update_booking_name) for it, so the context correctly captured the new name while the
+        // REAL booking row silently kept the old one, and the model's reply implied success
+        // ("Gelukt!") based only on the context write.
+        //
+        // FIX: detect this exact shape server-side (never trust the model's tool choice for
+        // something this safety-relevant, same "code, not prompt" discipline as every other guard
+        // in this file) and PROPAGATE the correction, reusing update_booking_name's own proven
+        // simple-update mechanism, rather than silently dropping it. Narrow and safe by
+        // construction: only fires when (a) this phone has EXACTLY ONE upcoming booking (2+
+        // candidates: refuse to guess which one, same bar resolveTarget's own ambiguous-branch
+        // callers already enforce elsewhere in this file), (b) that booking's OWN current
+        // customer_name (the authoritative source of truth, NOT the conversation context, which
+        // live testing found is not always populated, e.g. when a name flowed straight into
+        // book_appointment's own args.customer_name without ever calling update_lead first) is
+        // itself a real, distinct name (never a placeholder/"Privé"/empty), and (c) it genuinely
+        // DIFFERS from the new name (a real correction, not a no-op restate). No preview/commit
+        // round-trip is added: this is the SAME simple direct update update_booking_name's own
+        // commit phase performs, applied the instant the correction is recognized, so the
+        // reply-honesty guarantee below always has a real committed write to check against.
+        void priorBookingName; // kept for observability/logging parity, not required by the gate below
+        let renamedBookingId: string | null = null;
+        if (!refused && first && looksLikeName(first)) {
+          const target = await resolveTarget(supabase, ctx);
+          if (target.booking && !target.ambiguous) {
+            const b = target.booking;
+            const currentBookingName = (b.customer_name ?? "").trim();
+            // R118 IDEMPOTENCY (retry-safety): if the booking is ALREADY under the new name (e.g. a
+            // stall-retry re-runs this same tool call after an earlier attempt this turn already
+            // committed the rename, or the customer's own message simply repeats a name already
+            // set), report it as a genuine success rather than a no-op: the row IS at the intended
+            // state, so the reply-honesty guarantee below should still confirm it, not silently
+            // fall through to "nothing changed" (which would contradict a real prior write in the
+            // SAME turn and risk exactly the false-negative this fix must not introduce).
+            if (currentBookingName.toLowerCase() === first.toLowerCase()) {
+              renamedBookingId = b.id;
+            } else {
+              // R118 hardening: reuse the SAME cross-identity risk test every sibling mutating tool
+              // in this file already applies (crossIdentityActionRisk, R101/R107's shared-phone
+              // guard), so this NEW auto-propagation path never silently renames a booking that is
+              // genuinely under a DIFFERENT, distinct third party's name than whoever is currently
+              // texting (e.g. a customer who booked for "Willem" then gives their OWN different name
+              // for something else). On a detected risk, this simply skips the auto-rename (falls
+              // through to booking_renamed:false, honest no-op) rather than guessing; the customer
+              // can still use update_booking_name directly, which has its own full verification flow.
+              const crossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, currentBookingName, ctx.knownSelfName);
+              if (isRealNameShared(currentBookingName) && !crossIdentityRisk) {
+                const { error: renameErr } = await supabase.from("bookings").update({
+                  customer_name: first,
+                  updated_at: new Date().toISOString(),
+                }).eq("id", b.id);
+                if (!renameErr) renamedBookingId = b.id;
+              }
+            }
+          }
+        }
+        // R118: the reply-honesty half. Never let the model imply success ("Gelukt!") purely from
+        // the context write above; tell it EXPLICITLY whether a real booking row was actually
+        // corrected, so it can only claim what genuinely happened (mirrors this codebase's
+        // enforceNoFalseConfirmation discipline: a claim must be backed by a real committed
+        // mutation, never conversational context alone).
+        return renamedBookingId
+          ? {
+            ok: true,
+            booking_renamed: true,
+            booking_id: renamedBookingId,
+            new_name: first,
+            message: `De naam op de al bevestigde afspraak is aangepast naar ${first}. Bevestig dit kort ("Gelukt! De naam op je afspraak is nu ${first}.").`,
+          }
+          : {
+            ok: true,
+            booking_renamed: false,
+            message: "Alleen de naam voor een VOLGENDE boeking is onthouden; er is GEEN bestaande, al bevestigde afspraak aangepast. Claim NOOIT dat een afspraak is gewijzigd of dat iets 'gelukt' is tenzij je net een tool hebt aangeroepen die dat ECHT deed (bv. update_booking_name). Heeft de klant een bestaande afspraak die aangepast moet worden, gebruik dan update_booking_name.",
+          };
       }
 
       case "book_appointment": {
@@ -1372,7 +1482,16 @@ export function createTools(
         const noPriorTurnProposal = ctx.confirmBook !== true;
         const previewIsSelfWritten = noPriorTurnProposal &&
           typeof pendingBook?.at === "number" && pendingBook.at === lastSelfWrittenBookAt;
-        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time && !previewIsSelfWritten;
+        // R118 (GAP 3 fix): applies to BOTH commit arms (the server-forced ctx.confirmBook AND the
+        // model's own self-issued args.confirmed), same "close every arm of the OR" discipline
+        // R24 already established for ctx.ambiguousConfirm. Without this, a genuine intervening
+        // exchange (detected server-side in index.ts, independent of the model) could still be
+        // silently bypassed by the model self-attesting args.confirmed:true + only_confirming_
+        // previous:true on a bare "ja", exactly the live-reproduced GAP 3 shape. Live-reproduced
+        // exploit confirmed this was reachable via the args.confirmed arm even though ctx.confirmBook
+        // itself was already correctly gated.
+        const bookInterveningBlock = ctx.pendingBookInterveningExchange === true && ctx.messageRestatesDayTime !== true;
+        const committing = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !nameChanged && cleanlyConfirmed && ctx.hardConfirm === true && !!pendingBook?.start_time && !previewIsSelfWritten && !bookInterveningBlock;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
         // rather than falling through to the generic fresh-preview path, which would expect
@@ -2302,6 +2421,115 @@ export function createTools(
         }
         const b = target.booking!;
 
+        // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix, live-reproduced 3/3 on
+        // the S6 testpad): reschedule_appointment is deliberately a ONE-STEP tool (prompt.ts
+        // explicitly tells the model never to ask "klopt dat?" before rescheduling), which is
+        // exactly right for the honest single-message flow ("kun je mijn afspraak verzetten naar
+        // vrijdag 15:00") but was silently exploitable: after cancel_appointment's own open-ended
+        // "annuleren of verzetten?" fork question (which stores a pending_cancel marker for THIS
+        // booking, see cancel_appointment's PREVIEW phase above), a bare fragment with no verb,
+        // service, or explicit reschedule intent of its own (e.g. just "voor vrijdag" or "maandag")
+        // got read as accepting the reschedule branch and silently moved the booking, with ZERO
+        // confirmation obtained for either the cancel or reschedule branch.
+        //
+        // FIX SHAPE: read this turn's own conversation context ONCE here (reused below for the
+        // cross-identity check + the args-restore branch, no extra round-trip) so both this new
+        // ambiguity gate and the pre-existing cross-identity gate see the SAME fresh state. Two
+        // independent ambiguity signals, EITHER of which requires an explicit confirmation before
+        // committing:
+        //   (a) a fresh, unresolved pending_cancel marker exists for THIS EXACT booking (b.id),
+        //       i.e. the immediately preceding agent turn asked the open-ended cancel-or-reschedule
+        //       fork question about this booking and it was never answered, proven live to be the
+        //       exact precondition of the exploit;
+        //   (b) the current raw message carries NO explicit reschedule intent of its own
+        //       (hasExplicitRescheduleIntent: no reschedule verb, no real service name, not a
+        //       long/structured sentence), i.e. it is a bare day/time fragment.
+        // Both conditions must hold for the gate to fire (a fresh fork-question marker alone is
+        // harmless if the customer's OWN message already carries explicit intent, e.g. "verzet 'm
+        // naar vrijdag" right after the fork question is unambiguous and stays frictionless; a bare
+        // fragment alone with NO open fork question is the ordinary, safe "which day works" answer
+        // flow used throughout this codebase's own honest-flow tests). When gated, NOTHING is
+        // moved: a pending_reschedule_confirm marker stores the intended new date/time (mirroring
+        // pending_reschedule_verification's own stored-intent shape) so the customer's own next-turn
+        // clean affirm can complete the SAME reschedule without resupplying the time, exactly like
+        // the sibling cross-identity gate below.
+        let reschedCtx: Record<string, unknown> = {};
+        if (ctx.conversationId) {
+          const { data: rvConv } = await supabase
+            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+          reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+        }
+        const pendingCancelForThisBooking = reschedCtx.pending_cancel as { booking_id?: string; at?: number } | undefined;
+        const openForkQuestionForThisBooking = !!pendingCancelForThisBooking &&
+          pendingCancelForThisBooking.booking_id === b.id &&
+          (typeof pendingCancelForThisBooking.at !== "number" || (Date.now() - pendingCancelForThisBooking.at) < 15 * 60 * 1000);
+        const messageCarriesExplicitIntent = hasExplicitRescheduleIntent(ctx.userMessage, ctx.allServiceNamesForAmbiguity ?? []);
+        const existingReschedConfirm = reschedCtx.pending_reschedule_confirm as
+          { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+        const rescheduleAmbiguityAlreadyConfirmed = ctx.confirmRescheduleAmbiguity === true &&
+          existingReschedConfirm?.booking_id === b.id;
+        if (openForkQuestionForThisBooking && !messageCarriesExplicitIntent && !rescheduleAmbiguityAlreadyConfirmed) {
+          const confirmAt = Date.now();
+          if (ctx.conversationId) {
+            // Drop the now-superseded pending_cancel marker (we are asking our OWN, sharper
+            // question instead) so it can never also independently release cancel_appointment's
+            // own commit gate on a later turn, mirroring how the existing cross-identity gate
+            // below always replaces whichever marker it is superseding rather than layering them.
+            const { pending_cancel: _dropPC, ...restNoPC } = reschedCtx;
+            await supabase
+              .from("whatsapp_conversations")
+              .update({
+                context: {
+                  ...restNoPC,
+                  pending_reschedule_confirm: {
+                    booking_id: b.id,
+                    new_date: args.date ?? null,
+                    new_time: args.time ?? null,
+                    new_start_time: args.start_time ?? null,
+                    new_end_time: args.end_time ?? null,
+                    new_service_type_id: args.service_type_id ?? null,
+                    new_calendar_index: args.calendar_index ?? null,
+                    at: confirmAt,
+                  },
+                },
+              })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            error: "verzet_bevestiging_nodig",
+            current_name: b.customer_name,
+            // Purely customer-facing, mirrors customer_reply's role on the naam_verificatie_nodig
+            // gates (identityDisambiguationGuard.ts's enforceVerificationGateDisclosure header):
+            // never the internal `message` field, so no meta-instruction ever leaks to the customer.
+            customer_reply: `Wil je dat ik de afspraak${b.customer_name && isRealNameShared(b.customer_name) ? ` van ${b.customer_name}` : ""} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) verzet naar ${nlWhen(args.start_time ? String(args.start_time) : `${args.date ?? ""}T${String(args.time ?? "").padStart(5, "0")}:00`)}? Of bedoelde je toch annuleren?`,
+            message:
+              "NIETS verzet. De vorige beurt vroeg 'annuleren of verzetten?' en dit bericht is te kort of onduidelijk om zonder meer als een verzet-bevestiging te lezen (geen werkwoord, geen dienst, geen duidelijke verzet-intentie). " +
+              "Stel EXPLICIET de vraag uit customer_reply hierboven en wacht op het antwoord; roep in DEZE beurt GEEN tool meer aan. " +
+              "Bevestigt de klant het verzetten? Roep reschedule_appointment dan opnieuw aan (het systeem gebruikt de eerder opgegeven nieuwe datum/tijd, dus geef geen date/time opnieuw door tenzij de klant een nieuwe tijd noemt). " +
+              "Blijkt het toch om annuleren te gaan, of twijfelt de klant: verzet niets en volg de annuleer-flow.",
+            guidance: "NIETS verzet. Veiligheidscheck: de vorige beurt stelde de open annuleren-of-verzetten-vraag en dit bericht bevestigt geen van beide expliciet. Stel de vraag en wacht op het antwoord.",
+          };
+        }
+        // R118 (GAP 1 fix, continued): the customer's own reply to OUR ambiguity-confirmation
+        // question just cleared the gate (ctx.confirmRescheduleAmbiguity, server-detected in
+        // index.ts exactly like confirmRescheduleVerification). Re-derive the ORIGINALLY intended
+        // new date/time from the stored marker rather than trusting the model to resupply it on a
+        // bare "ja" reply (which carries no date/time hint at all), same reasoning as
+        // pending_reschedule_verification's own args-restore branch below.
+        if (rescheduleAmbiguityAlreadyConfirmed && existingReschedConfirm) {
+          if (existingReschedConfirm.new_date) args.date = existingReschedConfirm.new_date;
+          if (existingReschedConfirm.new_time) args.time = existingReschedConfirm.new_time;
+          if (existingReschedConfirm.new_start_time) args.start_time = existingReschedConfirm.new_start_time;
+          if (existingReschedConfirm.new_end_time) args.end_time = existingReschedConfirm.new_end_time;
+          if (existingReschedConfirm.new_service_type_id) args.service_type_id = existingReschedConfirm.new_service_type_id;
+          if (existingReschedConfirm.new_calendar_index != null) args.calendar_index = existingReschedConfirm.new_calendar_index;
+          if (ctx.conversationId) {
+            const { pending_reschedule_confirm: _dropRC, ...restRC } = reschedCtx;
+            await supabase.from("whatsapp_conversations").update({ context: restRC }).eq("id", ctx.conversationId);
+            reschedCtx = restRC;
+          }
+        }
+
         // R102 (shared-phone identity fix, R101-1/R101-2 + verify-round findings 1/2, mirrors the
         // SAME gate just added to cancel_appointment above): reschedule_appointment is a ONE-STEP
         // tool by design (the new time IS the confirmation, see this tool's own doc comment), so
@@ -2324,12 +2552,6 @@ export function createTools(
         // distinct candidates (multipleNamesStated): the customer is actively re-disambiguating, so
         // any prior marker's implicit "already OK'd" no longer applies, exactly the live-reproduced
         // R103 stuck-loop shape.
-        let reschedCtx: Record<string, unknown> = {};
-        if (ctx.conversationId) {
-          const { data: rvConv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
-        }
         const existingReschedVerification = reschedCtx.pending_reschedule_verification as
           { booking_id?: string; current_name?: string | null; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
         const rescheduleAlreadyVerifiedThisBooking = !target.multipleNamesStated &&

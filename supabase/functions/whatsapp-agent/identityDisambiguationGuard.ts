@@ -405,3 +405,73 @@ export function enforceVerificationGateDisclosure(
   if (!customerReply) return replyText; // nothing authoritative to fall back to, leave the model's own text
   return customerReply;
 }
+
+// R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): reschedule_appointment is
+// deliberately a ONE-STEP tool (the new date/time IS the confirmation, see tools.ts's own doc
+// comment on that case) so the HONEST single-message flow ("kun je mijn afspraak verzetten naar
+// vrijdag 15:00") stays frictionless. But live-reproduced 3/3 on the S6 testpad (R117/R118): after
+// cancel_appointment's own open-ended "annuleren of verzetten?" fork question, a BARE fragment
+// with no verb/service/explicit-reschedule-intent of its own (e.g. just "voor vrijdag" or
+// "maandag") gets silently read as accepting a reschedule and moves a REAL confirmed booking with
+// zero confirmation for either branch.
+//
+// FIX SHAPE: a message carries its OWN explicit reschedule intent when it contains a reschedule
+// verb (verzet/verzetten/verplaats/verschuif/reschedule/move, NL+EN) OR names a real configured
+// service (a genuine "book this service at this new time" request is never ambiguous) OR is long
+// enough / structured enough to plausibly be a full sentence rather than a bare day/time
+// fragment. A message that names ONLY a day/time reference, with none of the above, is a "bare
+// fragment": on its own it is a perfectly normal way to answer "which day suits you", but
+// immediately after an unresolved cancel-or-reschedule fork question it is genuinely ambiguous
+// (it could just as easily mean "yes, cancel it" or something unrelated). This function answers
+// only the "does THIS message carry its own explicit intent" half; index.ts/tools.ts combine it
+// with the fork-question-still-open signal (a fresh pending_cancel marker for the SAME booking).
+const RESCHEDULE_VERB_RE =
+  /\b(verzet\w*|verplaats\w*|verschuif\w*|verschoven|reschedul\w*|\bmove\b|\bmoved\b|\bshift\w*)\b/i;
+
+export function hasExplicitRescheduleIntent(rawMessage: string | undefined | null, allServiceNames: string[]): boolean {
+  const msg = String(rawMessage ?? "").trim();
+  if (!msg) return false;
+  if (RESCHEDULE_VERB_RE.test(msg)) return true;
+  for (const name of allServiceNames) {
+    const n = name.trim();
+    if (n.length >= 2 && msg.toLowerCase().includes(n.toLowerCase())) return true;
+  }
+  // A genuinely long/structured message (multiple words beyond a bare day/time fragment) reads as
+  // a real sentence, not a one/two-word fragment. Threshold picked from the proven exploit corpus
+  // ("voor vrijdag" = 2 words, "maandag" = 1 word) plus the honest single-message flow ("kun je
+  // mijn afspraak verzetten naar vrijdag 15:00" = 7 words, already caught by RESCHEDULE_VERB_RE
+  // anyway, so this threshold is a pure safety net, never the primary discriminator).
+  const wordCount = msg.split(/\s+/).filter(Boolean).length;
+  return wordCount > 4;
+}
+
+// R118 (GAP 1 fix, continued): SAME "gate-first-trigger-wrong-text" pattern as
+// enforceVerificationGateDisclosure above (R112), applied to reschedule_appointment's NEW
+// verzet_bevestiging_nodig gate. The gate ALWAYS blocks the mutation server-side regardless of
+// what the model says; this only guarantees the CUSTOMER-FACING TEXT on that turn is the intended
+// confirmation question, deterministically, instead of trusting the model to relay it (which live
+// testing across this codebase's sibling gates has repeatedly shown can drift into an unrelated
+// reply). No-op unless a tool call this turn actually returned verzet_bevestiging_nodig.
+export function enforceRescheduleAmbiguityDisclosure(
+  replyText: string,
+  toolCalls: VerificationGateToolResult[],
+): string {
+  if (!replyText) return replyText;
+  let gate: { customer_reply?: unknown } | null = null;
+  for (let i = toolCalls.length - 1; i >= 0; i--) {
+    const r = toolCalls[i].result;
+    if (r && typeof r === "object" && (r as Record<string, unknown>).error === "verzet_bevestiging_nodig") {
+      gate = r as { customer_reply?: unknown };
+      break;
+    }
+  }
+  if (!gate) return replyText;
+  const customerReply = typeof gate.customer_reply === "string" ? gate.customer_reply.trim() : "";
+  if (!customerReply) return replyText; // nothing authoritative to fall back to, leave the model's own text
+  // Conservative: only override when the model's own reply does not already end in a question
+  // (a genuine confirming question, however phrased, is left alone; only a non-question drift is
+  // replaced), mirroring this codebase's existing "?" heuristic for detecting an open question
+  // (confirmationGuard.ts's FUTURE_OR_OFFER_RE / confirmStall both use the same signal).
+  if (replyText.trim().endsWith("?")) return replyText;
+  return customerReply;
+}

@@ -38,6 +38,11 @@ export function committedMutationThisTurn(toolCalls: ToolCall[]): boolean {
     if (t.name === "reschedule_appointment" && o.rescheduled && typeof o.rescheduled === "object") {
       if ((o.rescheduled as Record<string, unknown>).to) return true;
     }
+    // R118 (GAP 2 fix): update_lead's own NEW booking_renamed:true shape (tools.ts) is a genuine
+    // committed mutation on an existing booking row (a post-commit name-correction propagated to
+    // the real row), mirrored here identically to index.ts's own isCommittedMutation so a model-
+    // prose reply following this commit is never mistaken for a hallucinated claim and stripped.
+    if (t.name === "update_lead" && o.booking_renamed === true) return true;
   }
   return false;
 }
