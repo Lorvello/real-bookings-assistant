@@ -715,7 +715,8 @@
         "invited": "Uitgenodigd",
         "expired": "Verlopen",
         "cancelled": "Geannuleerd",
-        "active": "Actief"
+        "active": "Actief",
+        "pending": "In afwachting"
       },
       "badge": {
         "pro": "Pro"

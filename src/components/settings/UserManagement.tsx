@@ -212,12 +212,13 @@ export const UserManagement = ({
           role: 'owner',
           calendar: { name: 'All Calendars' },
           type: 'member',
+          accepted_at: baseProfile.created_at || new Date().toISOString(),
         }
       : null;
 
     const teamMembers: TeamUser[] = members
       .filter((member) => member.user?.email !== baseProfile?.email)
-      .map((member) => ({ ...member, type: 'member' as const }));
+      .map((member) => ({ ...member, type: 'member' as const, accepted_at: member.accepted_at ?? null }));
 
     const pendingInvitations: TeamUser[] = invitations.map((invitation) => ({
       id: invitation.id,

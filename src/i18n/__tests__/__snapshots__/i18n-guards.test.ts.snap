@@ -3071,6 +3071,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "settings.users.status.cancelled": "Cancelled",
   "settings.users.status.expired": "Expired",
   "settings.users.status.invited": "Invited",
+  "settings.users.status.pending": "Pending",
   "settings.users.table.header.actions": "Actions",
   "settings.users.table.header.calendar": "Calendar",
   "settings.users.table.header.member": "Member",

@@ -41,6 +41,10 @@ export interface TeamUser {
   type: 'member' | 'invitation';
   status?: string;
   expires_at?: string;
+  /** `calendar_members.accepted_at`. Null/undefined on a `type: 'member'` row means
+   *  the membership exists but hasn't been accepted yet: StatusBadge must show
+   *  Pending, not Active, for that case (owner rows are always pre-accepted). */
+  accepted_at?: string | null;
 }
 
 interface MemberActionHandlers {
@@ -104,6 +108,19 @@ function StatusBadge({ user, t }: { user: TeamUser; t: TFunction }) {
         return null;
     }
   }
+  // Owner is always active by construction. A real `calendar_members` row
+  // (type 'member') is only genuinely active once `accepted_at` is set; a row
+  // that exists but hasn't been accepted yet is a pending membership and must
+  // say so, not "Active" (see BUG-STATUSBADGE-IGNORES-ACCEPTED-AT).
+  if (user.role !== 'owner' && !user.accepted_at) {
+    return (
+      <Badge variant="outline" className="border-warning/40 bg-warning/10 text-warning-foreground">
+        <Clock className="mr-1 h-3 w-3" />
+        {t('settings.users.status.pending', 'Pending')}
+      </Badge>
+    );
+  }
+
   return (
     <Badge variant="outline" className="border-success/40 bg-success/10 text-success-foreground">
       <Check className="mr-1 h-3 w-3" />
