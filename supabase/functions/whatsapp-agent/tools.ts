@@ -1607,7 +1607,40 @@ export function createTools(
         // still-bound pending_book_verification marker's OWN prior turn already required a name
         // match to reach this point.
         const bookInterveningBlock = ctx.pendingBookInterveningExchange === true && ctx.messageRestatesDayTime !== true && !verifiedBypass;
-        const committing = ((args.confirmed === true || ctx.confirmBook === true) && cleanlyConfirmed && ctx.hardConfirm === true || verifiedBypass) &&
+        // R129 (DURATION-INTEGRITY-FLAKINESS fix, ~64% observed rate pre-fix): ctx.confirmBook and
+        // ctx.hardConfirm are BOTH already fully deterministic, code-level signals computed in
+        // index.ts BEFORE the LLM ever runs (confirmBook: pendingBookFresh + AFFIRM_RE/!NEGATE_RE/
+        // !ambiguousConfirm/no-unresolved-intervening-exchange; hardConfirm: classifyHardConfirm's
+        // finite, human-auditable allow-list against the raw message). Before this fix, committing
+        // STILL required cleanlyConfirmed (args.only_confirming_previous === true, the MODEL's own
+        // tool-call attestation) even when both deterministic signals already agreed this was an
+        // unambiguous clean confirm, because of operator precedence: `(A || B) && C && D || E`
+        // parses as `((A || B) && C && D) || E`, so a small model that flakes on setting
+        // only_confirming_previous on a bare "ja" (proven unreliable elsewhere in this file, see
+        // R120's own header) made committing false even though the server already knew, with zero
+        // ambiguity, that this was a genuine confirm of a still-fresh, non-intervened, non-ambiguous
+        // pending_booking. Root cause of the flakiness (live-reproduced, see evidence/R129_repro.md):
+        // that false `committing` sent the turn down the `!committing` fresh-preview branch below,
+        // which legitimately re-reads the service's CURRENT live duration to build a fresh proposal,
+        // silently landing a mid-flow-changed duration on the very next successful commit instead of
+        // the originally previewed one (~64% of trials pre-fix; 0/20 in this round's post-fix batch).
+        //
+        // Fix: deterministicCleanConfirm is a NEW, independent OR-branch (alongside verifiedBypass),
+        // never a replacement for the existing cleanlyConfirmed/hardConfirm/ambiguousConfirm layers,
+        // which stay fully intact for every path that does NOT satisfy this branch (a model self-
+        // issuing args.confirmed:true on a message the server itself thinks is ambiguous still
+        // cannot commit through here: ctx.confirmBook is false whenever ambiguousConfirm is true).
+        // This mirrors the EXACT precedent R120 already established for confirmBookVerification/
+        // confirmBookOwnerRestated (verifiedBypass above): once independent server-side determinism
+        // already proves the confirm is clean, requiring the small model's own attestation ON TOP
+        // adds no safety, only flakiness risk, per this codebase's own established doctrine that
+        // prompt-only/model-attestation steering does not reliably hold at this model's scale.
+        // Still fully subject to every other AND-gate below (ambiguousConfirm/nameChanged/
+        // pendingBook/previewIsSelfWritten/bookInterveningBlock), so this can never commit a
+        // different, wrong, stale, or hijacked proposal, only remove the redundant single-model-
+        // attestation dependency for an ALREADY-deterministically-clean confirm.
+        const deterministicCleanConfirm = ctx.confirmBook === true && ctx.hardConfirm === true;
+        const committing = ((args.confirmed === true || ctx.confirmBook === true) && cleanlyConfirmed && ctx.hardConfirm === true || verifiedBypass || deterministicCleanConfirm) &&
           !ctx.ambiguousConfirm && !nameChanged && !!pendingBook?.start_time && !previewIsSelfWritten && !bookInterveningBlock;
         // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
         // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
@@ -1925,19 +1958,54 @@ export function createTools(
           (ps as { payment_required_for_booking?: boolean } | null)?.payment_required_for_booking
         );
 
-        // Same safety layer as create-booking: validate_booking_security (the
-        // calendar_id overload returns a boolean, true = ok), then the
-        // bookings_no_overlap exclusion constraint catches a race on insert.
-        // Email is null for WhatsApp (verified allowed).
-        const { data: valid, error: valErr } = await supabase.rpc("validate_booking_security", {
-          p_calendar_id: calId,
+        // R129 (VALIDATE-BOOKING-SECURITY-WEAK-OVERLOAD fix): this used to call the (uuid, uuid,
+        // timestamptz, timestamptz, text) overload of validate_booking_security, which ONLY checks
+        // calendar/service is_active plus a raw booking-time overlap. A SECOND, fuller overload,
+        // (text calendar_slug, uuid, timestamptz, timestamptz, text), already existed in the same
+        // database (used by the public web booking path) with COMPLETE enforcement: the real-time
+        // availability-window/schedule check (business hours + day-overrides), minimum_notice_hours,
+        // booking_window_days, max_bookings_per_day, AND buffer/prep/cleanup-time conflict widening,
+        // but book_appointment's commit path never called it, so an owner blocking a day/slot via
+        // availability_overrides (or tightening minimum_notice_hours) AFTER a preview was already
+        // open did not stop that stale preview from committing (100% reproducible, not a race; see
+        // evidence/R129_repro.md). Fix: call the FULLER overload instead, passing the calendar's
+        // SLUG (a single indexed by-id lookup; the RPC's own text-typed first param requires it,
+        // not the uuid) so the commit gets the SAME real-time enforcement get_available_slots and
+        // the public web path already have. This closes BOTH the availability-override staleness
+        // AND the minimum-notice staleness in one structural change (both were symptoms of the same
+        // wrong-overload call), by construction, not two separate patches.
+        //
+        // Deliberately NOT relied on for max_bookings_per_day: that guard is its own separate,
+        // already-commit-time-fresh check a few lines up in THIS file (bookPolicy.maxBookingsPerDay),
+        // never routed through validate_booking_security at all, so switching overloads here cannot
+        // regress it (the fuller overload also re-checks max/day itself, using the SAME COUNT logic
+        // and the SAME "confirmed status, non-deleted" scoping as this file's own guard, redundant
+        // by design, not a conflicting second source of truth: both would refuse together).
+        const { data: calRow, error: calErr } = await supabase
+          .from("calendars")
+          .select("slug")
+          .eq("id", calId)
+          .maybeSingle();
+        const calSlug = (calRow as { slug?: string } | null)?.slug ?? null;
+        if (calErr || !calSlug) {
+          return { error: calErr?.message ?? "kalender_onbekend", message: "Kon de kalender niet verifiëren, probeer het zo nog eens." };
+        }
+        const { data: validation, error: valErr } = await supabase.rpc("validate_booking_security", {
+          p_calendar_slug: calSlug,
           p_service_type_id: serviceId,
           p_start_time: start,
           p_end_time: end,
           p_customer_email: null,
         });
         if (valErr) return { error: valErr.message };
-        if (valid !== true) return { error: "niet_beschikbaar", message: "Dat tijdstip is niet beschikbaar." };
+        const validationResult = validation as { valid?: boolean; errors?: Array<{ field?: string; message?: string }> } | null;
+        if (validationResult?.valid !== true) {
+          const reasons = (validationResult?.errors ?? []).map((e) => e?.message).filter(Boolean).join("; ");
+          return {
+            error: "niet_beschikbaar",
+            message: reasons ? `Dat tijdstip is niet beschikbaar (${reasons}).` : "Dat tijdstip is niet beschikbaar.",
+          };
+        }
 
         // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, continued): fires BEFORE the re-preview
         // below is allowed to silently swap pending_booking's stored name. See previewTakeoverRisk
