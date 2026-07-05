@@ -13,7 +13,7 @@ import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -21,7 +21,7 @@ import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.
 import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -758,6 +758,46 @@ Deno.serve(async (req) => {
       ? shouldBlockForAmbiguousBranch({ calendars: calendarsForPrompt, inboundTexts })
       : false;
 
+    // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, closes R107-RETURNING-DEFAULT-BLEED): runs for
+    // EVERY tenant (single- or multi-calendar), since the finding was reproduced on a
+    // single-calendar fixture. `allServiceNamesForReturning` covers both shapes: single-calendar's
+    // own `services` list, plus every per-calendar service in multi-calendar mode (mirrors
+    // `allServiceNamesForReschedule` below). `returningServiceConfirmed` is a durable
+    // conversation-context marker, set below (this block) once the customer resolves the
+    // assumption either by naming a service themselves OR by affirming our own disclosure
+    // question (tracked via a `pending_returning_service_confirm` marker, mirroring the
+    // pending_*_verification convention used throughout this codebase), so the guard fires AT
+    // MOST once per conversation.
+    const allServiceNamesForReturning = calendarsForPrompt
+      ? calendarsForPrompt.flatMap((c) => c.services.map((s) => s.name))
+      : services.map((s) => s.name);
+    const returningServiceConfirmed = convContext.returning_service_confirmed === true;
+    const blockForReturningServiceDefault = shouldBlockReturningServiceDefault({
+      lastService,
+      currentMessage: String(message ?? ""),
+      allServiceNames: allServiceNamesForReturning,
+      returningServiceConfirmed,
+    });
+    // Store the pending-confirm marker the FIRST time this turn's guard fires (fresh, i.e. not
+    // already set), so a subsequent bare "ja"/"klopt" reply (no service named) can be recognized
+    // as answering OUR OWN disclosure question (see the AFFIRM_RE-based resolution further below).
+    // Cheap best-effort write; never blocks the turn on failure.
+    if (blockForReturningServiceDefault && conversationId && !convContext.pending_returning_service_confirm) {
+      await supabase.from("whatsapp_conversations")
+        .update({ context: { ...convContext, pending_returning_service_confirm: { at: Date.now() } } })
+        .eq("id", conversationId);
+    }
+    // The customer's CURRENT message names a real configured service on ANY turn (not just while
+    // the guard is actively blocking, e.g. their very first message already names it): persist
+    // returning_service_confirmed now so a later, unrelated bare follow-up in this same
+    // conversation never re-triggers the guard. No-op when already set or not a returning customer.
+    if (lastService && !returningServiceConfirmed && conversationId &&
+        mentionsAnyServiceName(String(message ?? ""), allServiceNamesForReturning)) {
+      await supabase.from("whatsapp_conversations")
+        .update({ context: { ...convContext, returning_service_confirmed: true } })
+        .eq("id", conversationId);
+    }
+
     // R96 (RESCHEDULE-HIJACK fix, R95-1): a SMALL, deliberately narrow recency window (this
     // turn's message + the last few messages BOTH directions), unlike the wide 40-message
     // inbound-only window above (which is multi-calendar-only and answers a different question:
@@ -1238,6 +1278,32 @@ Deno.serve(async (req) => {
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/
     // confirmCancel computed from it right below. R23 only fixed the latter; R24 closes the former.
     const ambiguousConfirm = notCleanConfirm(msgLower);
+    // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, marker resolution): the guard above
+    // (blockForReturningServiceDefault) already covers "the customer's OWN current message names a
+    // service" as a same-turn resolution. This second path resolves the OTHER way the disclosure
+    // question gets answered: a bare, clean affirm ("ja", "klopt", "yes") to OUR OWN just-asked
+    // "ik ga uit van dezelfde dienst als de vorige keer, X, klopt dat?" question, tracked via a
+    // `pending_returning_service_confirm` marker (set in tools.ts's kies_dienst-style refusal,
+    // mirroring the pending_cancel/pending_*_verification convention). A clean affirm (AFFIRM_RE,
+    // not NEGATE_RE, not ambiguousConfirm) marks the assumption CONFIRMED; a clear negate/ambiguous
+    // reply leaves it unresolved so the guard fires again next turn with the model free to ask
+    // again or the customer free to name the correct service. Persisted immediately (not deferred
+    // to the tool layer) so `returningServiceConfirmed` above already reflects it if this exact
+    // turn also happens to re-enter the guard for any reason.
+    const prsc = convContext.pending_returning_service_confirm as { at?: number } | undefined;
+    const prscFresh = !!prsc && (typeof prsc.at !== "number" || (Date.now() - prsc.at) < 15 * 60 * 1000);
+    const returningServiceJustConfirmedByAffirm = prscFresh && !returningServiceConfirmed &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    if (returningServiceJustConfirmedByAffirm && conversationId) {
+      const { pending_returning_service_confirm: _dropPRSC, ...restPRSC } = convContext;
+      await supabase.from("whatsapp_conversations")
+        .update({ context: { ...restPRSC, returning_service_confirmed: true } })
+        .eq("id", conversationId);
+    }
+    // This turn's EFFECTIVE block decision, incorporating a same-turn affirm resolution (computed
+    // above, after AFFIRM_RE/NEGATE_RE/ambiguousConfirm became available) on top of the earlier
+    // same-turn service-mention resolution already folded into blockForReturningServiceDefault.
+    const blockForReturningServiceDefaultEffective = blockForReturningServiceDefault && !returningServiceJustConfirmedByAffirm;
     // R96 (SILENT-DROP-ON-MULTI-SERVICE fix, follow-up hardening after this round's own live
     // testing, evidence/IUX_r96.md section 6): the "vorige_boeking_nog_open" guard (tools.ts)
     // originally relied ONLY on the model self-setting args.abandon_previous_preview:true, but a
@@ -1593,7 +1659,7 @@ Deno.serve(async (req) => {
     // convContext.booking_name via update_lead, else the WhatsApp profile display name). Threaded
     // through as knownSelfName so cancel/reschedule's cross-identity guard can detect when a
     // resolved target booking's own name differs from what THIS speaker has said about themselves.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -1981,6 +2047,14 @@ Deno.serve(async (req) => {
             replyText = enforceAppointmentNameDisclosure(replyText, fallbackAppointments, customerLanguage);
           }
         }
+        // R112 (GATE-FIRST-TRIGGER-WRONG-TEXT fix, closes R107-GATE-FIRST-TRIGGER-WRONG-TEXT): the
+        // cross-identity naam_verificatie_nodig gate (book/cancel/reschedule/rename) ALWAYS blocks
+        // the mutation server-side; this only guarantees the CUSTOMER-FACING TEXT on that turn is
+        // the intended disclosure-and-confirm question, deterministically, instead of trusting the
+        // model to relay it (which live testing showed sometimes drifts into an unrelated
+        // non-sequitur refusal). No-op unless a tool call this turn actually returned
+        // naam_verificatie_nodig AND the drafted reply fails to disclose the target name.
+        replyText = enforceVerificationGateDisclosure(replyText, result.toolCalls);
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
         // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard

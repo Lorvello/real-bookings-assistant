@@ -341,3 +341,67 @@ export function enforceAppointmentNameDisclosure(
   }
   return isEN ? `There are multiple appointments: ${lines.join("; ")}.` : `Er staan meerdere afspraken: ${lines.join("; ")}.`;
 }
+
+// R112 (GATE-FIRST-TRIGGER-WRONG-TEXT fix, closes R107-GATE-FIRST-TRIGGER-WRONG-TEXT): the
+// deterministic disclosure backstop for the `naam_verificatie_nodig` cross-identity gate
+// (crossIdentityActionRisk in tools.ts, fired from book_appointment/cancel_appointment/
+// reschedule_appointment/update_booking_name). That gate ALWAYS correctly blocks the mutation
+// server-side (the DB stays safe on every trigger, first or not) and hands the model a
+// pre-composed `message` field naming the target `current_name` explicitly, exactly the same
+// "message"-relay pattern get_my_appointments' own `message`/`guidance` fields use. Just like that
+// sibling case (see enforceAppointmentNameDisclosure's own header), trusting the model to relay
+// this message faithfully on every turn is NOT a safe guarantee: this codebase's own established
+// lesson (OWNERESCALATION-VERBLIST-BRITTLE, get_my_appointments' own disclosure history) is that a
+// 20B model at this scale intermittently drops or replaces a pre-composed safety message with its
+// own improvised, sometimes non-sequitur prose (e.g. a generic "I don't have confirmed information
+// about that, contact us directly" refusal lifted from an unrelated business-data-refusal
+// register) instead of the intended disclosure-and-confirm question. The server-side block itself
+// never weakens either way (this is a pure customer-facing TEXT guarantee); this function makes
+// that text guarantee deterministic instead of trusting model fidelity.
+//
+// WHAT THIS DOES: given this turn's tool-call results, finds the MOST RECENT one whose result
+// carries `error === "naam_verificatie_nodig"` (any of the 5 call sites in tools.ts: book/cancel
+// x2/reschedule/rename all share this exact shape: `current_name` + a pre-composed `message`). If
+// the model's drafted reply does not already mention that target name (the same
+// containsWholeWord/firstNameToken whole-word matcher enforceAppointmentNameDisclosure trusts), the
+// reply is rewritten to the tool's own `message` field, exactly as originally composed server-side
+// (already phrased as the disclosure-and-confirm question, in Dutch; the tool always composes it in
+// Dutch regardless of customer language today, matching this codebase's existing convention of
+// leaving rare guard fallbacks Dutch-default, e.g. noFalseConfirmReply's EN floor is the sole
+// exception because it is the single highest-traffic guard). No-op (return replyText unchanged)
+// when no such tool result exists this turn, or when the reply already discloses the name
+// correctly (a correct disclosure, however phrased, must never be second-guessed/altered).
+export interface VerificationGateToolResult {
+  name: string;
+  result: unknown;
+}
+// The tool's own `message` field is INTERNAL guidance mixed with a customer-facing lead sentence
+// (e.g. "De afspraak die ik vond staat op naam van X. Vraag de klant EXPLICIET te bevestigen dat
+// ..."), never meant to be relayed verbatim (it would leak meta-instructions to the customer,
+// worse than the bug this backstop fixes). `customer_reply` is a SEPARATE, purely customer-facing
+// field tools.ts now sets alongside it on all 5 naam_verificatie_nodig call sites (book/cancel
+// x2/reschedule/rename), the exact disclosure-and-confirm question with nothing else attached,
+// mirroring how get_my_appointments' own `message` (relay-safe) is already kept separate from its
+// `guidance` (instruction-only). This backstop uses ONLY `customer_reply`, never `message`.
+export function enforceVerificationGateDisclosure(
+  replyText: string,
+  toolCalls: VerificationGateToolResult[],
+): string {
+  if (!replyText) return replyText;
+  let gate: { current_name?: unknown; customer_reply?: unknown } | null = null;
+  for (let i = toolCalls.length - 1; i >= 0; i--) {
+    const r = toolCalls[i].result;
+    if (r && typeof r === "object" && (r as Record<string, unknown>).error === "naam_verificatie_nodig") {
+      gate = r as { current_name?: unknown; customer_reply?: unknown };
+      break;
+    }
+  }
+  if (!gate) return replyText;
+  const targetName = gate.current_name;
+  if (!isRealName(targetName)) return replyText; // nothing to disclose, conservative no-op
+  const token = firstNameToken(String(targetName));
+  if (token && token.length >= 2 && containsWholeWord(replyText, token)) return replyText; // already discloses it
+  const customerReply = typeof gate.customer_reply === "string" ? gate.customer_reply.trim() : "";
+  if (!customerReply) return replyText; // nothing authoritative to fall back to, leave the model's own text
+  return customerReply;
+}

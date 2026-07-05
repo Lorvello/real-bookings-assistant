@@ -297,3 +297,120 @@ export function findDistinctServiceForReschedule(input: RescheduleDistinctServic
 
 export const RESCHEDULE_DISTINCT_SERVICE_MESSAGE = (distinctService: string) =>
   `De klant noemde zojuist "${distinctService}", een ANDERE dienst dan de dienst van de bestaande afspraak. Roep reschedule_appointment NIET aan (dat zou stilzwijgend de dienst van de bestaande afspraak ongewijzigd laten en alleen de tijd verzetten, zonder de gevraagde "${distinctService}" ooit te boeken). Vraag kort: is dit een AANVULLENDE, tweede afspraak naast de bestaande (roep dan book_appointment aan met confirm_second_booking:true), of wil de klant de bestaande afspraak ECHT vervangen door "${distinctService}" (annuleer dan de oude en boek de nieuwe dienst opnieuw)? Verzin dit niet zelf; vraag het de klant.`;
+
+// R111 RETURNING-SERVICE-DEFAULT-BLEED GUARD (the "never silently assume the returning customer's
+// last service/date" guarantee, in CODE not prompt; closes R107-RETURNING-DEFAULT-BLEED).
+//
+// ROOT CAUSE (live-reproduced on a fresh single-calendar fixture, phone-scoped history, S6
+// testpad): when a phone number has ANY booking history at all (any status, most-recent by
+// start_time; see index.ts's `lastService` derivation), a bare unspecified booking request ("ik
+// wil weer een afspraak maken", "gewoon weer een afspraak zoals de vorige keer") made the model
+// silently treat the LAST-BOOKED service as already-settled and jump straight to
+// get_available_slots / book_appointment for date/time, with ZERO disclosure of the assumed
+// service, and sometimes with an equally silent assumed date ("morgen"). prompt.ts's own
+// `<context>` line ("verifieer of ze weer hetzelfde willen voordat je boekt") was too weak: it
+// asks the model to "verify" but never says WHEN (before any tool call) or HOW (an explicit,
+// named, confirmable question), and prompt-only steering has repeatedly proven unreliable against
+// this model at this scale elsewhere in this codebase (OWNERESCALATION-VERBLIST-BRITTLE,
+// AFFIRM-CONFIRM, R70-3/R71/R72's own service-disambiguation history). This guard makes the
+// disclosure a SERVER-SIDE gate, the same architecture as `shouldBlockForMissingServiceChoice`
+// above: refuse the slot-lookup/booking tool and force the model to ask, rather than trusting it
+// to remember to ask on its own.
+//
+// WHAT THIS DOES: computes, once per turn (in index.ts), whether (a) this phone has a known
+// `lastService` (a real returning-customer signal), (b) the customer has NOT, in their CURRENT
+// message, named any real configured service themselves (a customer who names a service, even a
+// DIFFERENT one, has resolved the ambiguity themselves and needs no disclosure question), and (c)
+// the conversation has not already confirmed/resolved the returning-service assumption (tracked
+// via a `returning_service_confirmed` conversation-context marker, set once the customer answers
+// the disclosure question either way, mirroring the pending_*_verification marker convention used
+// throughout this codebase). If all three hold, the tool layer refuses get_available_slots and the
+// book_appointment PREVIEW step with a "bevestig_terugkerende_dienst" error, forcing the model to
+// ask the disclosure-and-confirm question ("Ik ga uit van dezelfde dienst als de vorige keer,
+// <service>, klopt dat?") before any slot-availability lookup or date assumption can occur.
+//
+// FALSE-POSITIVE SAFETY:
+// - No booking history at all (fresh customer): lastService is null, this guard never fires
+//   (byte-identical to today's behaviour for the common non-returning case).
+// - The customer names ANY real configured service in their current message (the returning one, a
+//   different one, or simply states what they want): resolved by construction, never blocks.
+// - Once `returning_service_confirmed` is set for this conversation (the customer answered the
+//   disclosure question, confirming OR correcting it), this never blocks again for the rest of the
+//   conversation, so the guard fires AT MOST once per conversation, matching a real receptionist
+//   who only asks once.
+export interface ReturningServiceDefaultInput {
+  lastService: string | null | undefined;
+  currentMessage: string;
+  allServiceNames: string[]; // every real configured service name for this calendar/customer
+  returningServiceConfirmed: boolean; // conversation-context marker: already asked+answered
+}
+
+// CODE-REVIEW FIX (found during this guard's own live testing, S6 testpad): the generic
+// `mentionsAny` matcher (used by the sibling multi-calendar guards above) word-splits a configured
+// name and treats ANY individual word (3+ letters, only a small business-generic exclude list
+// applied) as a valid standalone match. Real service catalogs routinely share a generic noun across
+// EVERY service name ("Standaard Afspraak" / "Speciale Afspraak" both contain "Afspraak"; "Knipbeurt
+// Dames" / "Knipbeurt Heren" both contain "Knipbeurt"), and `mentionsAny`'s own exclude list (`de`,
+// `salon`, `kapsalon`, ...) has no way to know which words are catalog-specific vs shared, since it
+// only ever sees ONE needle at a time. Live-reproduced: "gewoon weer een afspraak zoals de vorige
+// keer" (a BARE request naming no service at all) matched "Speciale Afspraak" purely via the shared
+// word "afspraak", silently resolving this guard's own ambiguity check on the very message it exists
+// to catch, the SAME failure shape R107-RETURNING-DEFAULT-BLEED itself describes. This guard needs a
+// STRICTER bar than the sibling multi-calendar guards (which only ever fail LESS strict on a false
+// negative, safe per their own design note above): a word shared across 2+ of THIS calendar's own
+// configured service names is excluded from the word-level match entirely (only the FULL configured
+// name, or one of its DISTINGUISHING words, counts), mirroring `mentionsDistinguishing`'s own
+// same-shared-word exclusion used by the reschedule-hijack guard below.
+function distinguishingWordsFor(name: string, allNames: string[]): Set<string> {
+  const norm = (n: string) => n.trim().toLowerCase();
+  const wordsOf = (n: string) => norm(n).split(/\s+/).filter((w) => w.length >= 3 && !GENERIC_NAME_WORDS.has(w));
+  const ownWords = new Set(wordsOf(name));
+  const sharedWithOthers = new Set<string>();
+  for (const other of allNames) {
+    if (norm(other) === norm(name)) continue;
+    for (const w of wordsOf(other)) {
+      if (ownWords.has(w)) sharedWithOthers.add(w);
+    }
+  }
+  return new Set([...ownWords].filter((w) => !sharedWithOthers.has(w)));
+}
+
+function mentionsServiceNameStrict(text: string, allServiceNames: string[]): boolean {
+  const lower = text.toLowerCase();
+  for (const name of allServiceNames) {
+    const trimmed = name.trim();
+    if (!trimmed) continue;
+    // Full configured name, exact substring: always a valid, unambiguous match.
+    if (trimmed.length >= 2 && lower.includes(trimmed.toLowerCase())) return true;
+    // A DISTINGUISHING word only (one this service's name does NOT share with any OTHER configured
+    // service name in the same set): a word shared across every service ("afspraak", "knipbeurt")
+    // never counts on its own.
+    for (const word of distinguishingWordsFor(trimmed, allServiceNames)) {
+      if (new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(lower)) return true;
+    }
+  }
+  return false;
+}
+
+export function shouldBlockReturningServiceDefault(input: ReturningServiceDefaultInput): boolean {
+  const { lastService, currentMessage, allServiceNames, returningServiceConfirmed } = input;
+  if (!lastService || !lastService.trim()) return false; // no history: not a returning customer
+  if (returningServiceConfirmed) return false; // already asked+answered this conversation
+  // A customer who names ANY real configured service themselves (including the returning one)
+  // has resolved the ambiguity; nothing to silently assume.
+  if (mentionsServiceNameStrict(currentMessage, allServiceNames)) return false;
+  return true;
+}
+
+// Exposed standalone so index.ts can persist `returning_service_confirmed` on ANY turn where the
+// customer names a real configured service, independent of whether this particular turn's own
+// blockForReturningServiceDefault decision fired (e.g. the customer names the service on the SAME
+// turn as their very first bare request, before the guard would even have blocked yet). Reuses the
+// exact same STRICT matcher `shouldBlockReturningServiceDefault` trusts, so "resolved" means the
+// identical thing in both places.
+export function mentionsAnyServiceName(currentMessage: string, allServiceNames: string[]): boolean {
+  return mentionsServiceNameStrict(currentMessage, allServiceNames);
+}
+
+export const BEVESTIG_TERUGKERENDE_DIENST_MESSAGE = (lastService: string) =>
+  `Dit is een terugkerende klant met een eerdere dienst "${lastService}", maar de klant noemde in dit gesprek zelf nog GEEN dienst. Roep get_available_slots of book_appointment NIET aan. Vraag EERST, als je ENIGE eerstvolgende bericht, expliciet of controleerbaar of je van dezelfde dienst mag uitgaan (bijvoorbeeld: "Ik ga uit van dezelfde dienst als de vorige keer, ${lastService}, klopt dat?"). Vraag in DIE beurt NOG NIET naar dag/tijd en neem ook geen dag (zoals "vandaag" of "morgen") stilzwijgend aan; dat komt pas nadat de klant de dienst heeft bevestigd of gecorrigeerd. Zodra de klant bevestigt of een (andere) dienst noemt, mag je gewoon doorgaan.`;

@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
-import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE } from "./serviceDisambiguationGuard.ts";
+import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
 import { crossIdentityActionRisk, extractStatedNameForBooking, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
@@ -91,6 +91,20 @@ export interface ToolContext {
   // pattern, replacing the older prompt-only "same service, multiple branches" rule that proved
   // flaky against the live model (0/6 to 20/20 silent defaults measured across two rounds).
   blockForAmbiguousBranch?: boolean;
+  // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, serviceDisambiguationGuard.ts's
+  // shouldBlockReturningServiceDefault): server-detected, computed once per turn in index.ts. true
+  // ONLY when this phone has a known `lastService` (a real returning-customer signal) AND the
+  // customer has NOT named any real configured service in their CURRENT message AND the
+  // conversation has not already confirmed the returning-service assumption. Gates
+  // get_available_slots and the book_appointment PREVIEW step with a
+  // "bevestig_terugkerende_dienst" refusal, forcing the model to explicitly disclose and confirm
+  // the assumed service (and NOT assume a date either) before any slot lookup or booking proceeds,
+  // rather than trusting the model to remember the prompt's own "verify before booking" line.
+  blockForReturningServiceDefault?: boolean;
+  // The returning customer's last-booked service name (for THIS calendar/phone), used to build the
+  // disclosure-and-confirm message above. null/undefined when blockForReturningServiceDefault is
+  // false (no history, or already resolved).
+  lastServiceForReturningDefault?: string | null;
   // R76 (RENAME-HIJACK-CROSSTHIRDPARTY fix): server-detected, computed once per turn in index.ts,
   // mirroring confirmRename exactly (same AFFIRM_RE/NEGATE_RE/ambiguousConfirm/15-minute-freshness
   // pattern) but keyed off a NEW pending_rename_verification context marker instead of
@@ -1146,6 +1160,13 @@ export function createTools(
         if (ctx.blockForAmbiguousBranch) {
           return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
         }
+        // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): a returning customer's last-booked service
+        // is context ONLY, never a silent assumption. Refuse the slot lookup (which would itself
+        // silently bake in an assumed date on top of the assumed service) until the model has
+        // explicitly disclosed and confirmed the assumption.
+        if (ctx.blockForReturningServiceDefault && ctx.lastServiceForReturningDefault) {
+          return { error: "bevestig_terugkerende_dienst", message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(ctx.lastServiceForReturningDefault) };
+        }
         // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
         // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
         const slotCal = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
@@ -1393,6 +1414,12 @@ export function createTools(
           // branch/price/duration through by going straight to book_appointment.
           if (ctx.blockForAmbiguousBranch) {
             return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
+          }
+          // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): same fresh-preview-only gate as
+          // get_available_slots above, so a customer cannot slip the silent returning-service
+          // default through by going straight to book_appointment either.
+          if (ctx.blockForReturningServiceDefault && ctx.lastServiceForReturningDefault) {
+            return { error: "bevestig_terugkerende_dienst", message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(ctx.lastServiceForReturningDefault) };
           }
           const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
           if ("needAsk" in bookCal) {
@@ -1828,6 +1855,11 @@ export function createTools(
           return {
             error: "naam_verificatie_nodig",
             current_name: pendingBook!.customer_name,
+            // R112: purely customer-facing (no meta-instruction), used verbatim by the deterministic
+            // backstop (identityDisambiguationGuard.ts's enforceVerificationGateDisclosure) whenever
+            // the model's own drafted reply fails to disclose the name; kept separate from `message`
+            // below (which mixes instructions and is never sent to the customer as-is).
+            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.customer_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${pendingBook!.customer_name}?`,
             message:
               `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.customer_name}. ` +
               `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${pendingBook!.customer_name} is die geboekt moet worden.`,
@@ -2022,6 +2054,9 @@ export function createTools(
             return {
               error: "naam_verificatie_nodig",
               current_name: b.customer_name,
+              // R112: purely customer-facing, see identityDisambiguationGuard.ts's
+              // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
+              customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden?`,
               message:
                 `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
                 `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden.`,
@@ -2149,6 +2184,9 @@ export function createTools(
           return {
             error: "naam_verificatie_nodig",
             current_name: b.customer_name,
+            // R112: purely customer-facing, see identityDisambiguationGuard.ts's
+            // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
+            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden?`,
             message:
               `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
               `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en niet een andere afspraak of persoon bedoeld is. ` +
@@ -2327,6 +2365,9 @@ export function createTools(
           return {
             error: "naam_verificatie_nodig",
             current_name: b.customer_name,
+            // R112: purely customer-facing, see identityDisambiguationGuard.ts's
+            // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
+            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die verzet moet worden?`,
             message:
               `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). ` +
               `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die verzet moet worden, en niet een andere afspraak of persoon bedoeld is. ` +
@@ -2834,6 +2875,9 @@ export function createTools(
           return {
             error: "naam_verificatie_nodig",
             current_name: currentName,
+            // R112: purely customer-facing, see identityDisambiguationGuard.ts's
+            // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
+            customer_reply: `De afspraak die ik vond staat op naam van ${currentName} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${currentName} is die hernoemd moet worden naar "${newNameRaw}"?`,
             message:
               `Er staan meerdere afspraken onder dit nummer. De afspraak die ik vond staat op naam van ${currentName}. ` +
               `Vraag de klant EXPLICIET te bevestigen dat de afspraak van ${currentName} (dienst ${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) ` +

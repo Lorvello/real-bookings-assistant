@@ -7,6 +7,7 @@ import {
   crossIdentityActionRisk,
   crossIdentityRenameRisk,
   enforceAppointmentNameDisclosure,
+  enforceVerificationGateDisclosure,
   extractStatedNameForBooking,
   hasMultipleDistinctNamesStated,
   identityVerificationResolved,
@@ -338,4 +339,51 @@ Deno.test("identityVerificationResolved: no real target name on the marker -> no
 
 Deno.test("identityVerificationResolved: unrelated message content does not accidentally satisfy it", () => {
   assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "Ok doe donderdag maar"), false);
+});
+
+// ── R112 enforceVerificationGateDisclosure (closes R107-GATE-FIRST-TRIGGER-WRONG-TEXT) ─────────
+function gateToolCall(customerReply: string, currentName = "Anna Fixture") {
+  return [{
+    name: "reschedule_appointment",
+    result: { error: "naam_verificatie_nodig", current_name: currentName, customer_reply: customerReply, message: "internal instructions, never sent" },
+  }];
+}
+
+Deno.test("enforceVerificationGateDisclosure: rewrites a non-sequitur reply to the customer_reply when the name is missing", () => {
+  const nonSequitur = "Ik heb daar geen bevestigde informatie over, dus ik ga daar niet naar gokken. Voor een definitief antwoord kun je het beste rechtstreeks contact opnemen.";
+  const result = enforceVerificationGateDisclosure(nonSequitur, gateToolCall("De afspraak die ik vond staat op naam van Anna Fixture. Klopt het dat dit echt de afspraak van Anna Fixture is die verzet moet worden?"));
+  assertEquals(result.includes("Anna Fixture"), true);
+  assertEquals(result.includes("geen bevestigde informatie"), false);
+});
+
+Deno.test("enforceVerificationGateDisclosure: no-op when the model's OWN reply already discloses the name correctly", () => {
+  const good = "Ik zie een afspraak op naam van Anna Fixture (Standaard Afspraak, donderdag 20 augustus 12:00). Is dit echt de afspraak die je wilt verzetten?";
+  assertEquals(enforceVerificationGateDisclosure(good, gateToolCall("some other customer_reply text")), good);
+});
+
+Deno.test("enforceVerificationGateDisclosure: no-op when no tool call this turn returned naam_verificatie_nodig", () => {
+  const reply = "Schikt 10:00 of 14:30?";
+  assertEquals(
+    enforceVerificationGateDisclosure(reply, [{ name: "get_available_slots", result: { available_slots: [] } }]),
+    reply,
+  );
+});
+
+Deno.test("enforceVerificationGateDisclosure: no-op when replyText is empty (nothing to rewrite)", () => {
+  assertEquals(enforceVerificationGateDisclosure("", gateToolCall("x")), "");
+});
+
+Deno.test("enforceVerificationGateDisclosure: no-op when current_name is not a real name (Privé/placeholder)", () => {
+  const reply = "Sorry, kun je dat verduidelijken?";
+  assertEquals(enforceVerificationGateDisclosure(reply, gateToolCall("x", "Privé")), reply);
+});
+
+Deno.test("enforceVerificationGateDisclosure: uses the MOST RECENT naam_verificatie_nodig result when several tool calls happened this turn", () => {
+  const nonSequitur = "Neem rechtstreeks contact op.";
+  const toolCalls = [
+    { name: "get_my_appointments", result: { appointments: [] } },
+    { name: "reschedule_appointment", result: { error: "naam_verificatie_nodig", current_name: "Oude Eigenaar", customer_reply: "De afspraak die ik vond staat op naam van Oude Eigenaar. Klopt het dat dit echt de afspraak van Oude Eigenaar is die verzet moet worden?" } },
+  ];
+  const result = enforceVerificationGateDisclosure(nonSequitur, toolCalls);
+  assertEquals(result.includes("Oude Eigenaar"), true);
 });

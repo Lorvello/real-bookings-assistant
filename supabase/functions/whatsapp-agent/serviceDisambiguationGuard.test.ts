@@ -3,7 +3,7 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
 
 // R98 helper: build an all-inbound recency window from plain strings (the common case for tests
 // that only care about customer messages, matching the pre-R98 test convention).
@@ -489,5 +489,118 @@ Deno.test("R98-10 does not block: agent's confused reply mentions current servic
       modelSuppliedServiceId: false,
     }),
     null,
+  );
+});
+
+// ── R111 RETURNING-SERVICE-DEFAULT-BLEED tests (closes R107-RETURNING-DEFAULT-BLEED) ──────────
+const AFSPRAAK_SERVICES = ["Speciale Afspraak", "Standaard Afspraak"];
+
+Deno.test("R111-1 blocks: returning customer, bare unspecified booking request, no service named", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Speciale Afspraak",
+      currentMessage: "ik wil weer een afspraak maken",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    true,
+  );
+});
+
+Deno.test("R111-2 (regression pin, live-reproduced false negative) blocks: 'gewoon weer een afspraak zoals de vorige keer' must NOT be treated as naming 'Speciale Afspraak' via the shared generic word 'afspraak'", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Speciale Afspraak",
+      currentMessage: "gewoon weer een afspraak zoals de vorige keer",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    true,
+  );
+  assertEquals(mentionsAnyServiceName("gewoon weer een afspraak zoals de vorige keer", AFSPRAAK_SERVICES), false);
+});
+
+Deno.test("R111-3 does not block: customer names the full returning service themselves", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Speciale Afspraak",
+      currentMessage: "ik wil graag de Speciale Afspraak boeken",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    false,
+  );
+});
+
+Deno.test("R111-4 does not block: customer names a DIFFERENT real service than their history", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Speciale Afspraak",
+      currentMessage: "ik wil deze keer de Standaard Afspraak",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    false,
+  );
+});
+
+Deno.test("R111-5 does not block: customer names only the distinguishing word ('Speciale', not the full name)", () => {
+  assertEquals(mentionsAnyServiceName("doe mij maar de Speciale", AFSPRAAK_SERVICES), true);
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Speciale Afspraak",
+      currentMessage: "doe mij maar de Speciale",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    false,
+  );
+});
+
+Deno.test("R111-6 does not block: no booking history at all (fresh customer)", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: null,
+      currentMessage: "ik wil een afspraak maken",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    false,
+  );
+});
+
+Deno.test("R111-7 does not block: conversation already confirmed the returning-service assumption", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Speciale Afspraak",
+      currentMessage: "kan het ook om 14:00?",
+      allServiceNames: AFSPRAAK_SERVICES,
+      returningServiceConfirmed: true,
+    }),
+    false,
+  );
+});
+
+Deno.test("R111-8 blocks: single-service catalog, bare request, still fires (returning-default is about DISCLOSURE, not just disambiguation)", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knipbeurt",
+      currentMessage: "ik wil weer een afspraak maken",
+      allServiceNames: ["Knipbeurt"],
+      returningServiceConfirmed: false,
+    }),
+    true,
+  );
+});
+
+Deno.test("R111-9 does not block: single-service catalog, customer's message contains the service's own (only) word", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knipbeurt",
+      currentMessage: "ik wil een knipbeurt boeken",
+      allServiceNames: ["Knipbeurt"],
+      returningServiceConfirmed: false,
+    }),
+    false,
   );
 });
