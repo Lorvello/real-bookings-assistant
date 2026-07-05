@@ -1,0 +1,55 @@
+-- R136: SEV-1 cross-tenant WRITE-PATH bleed, three findings from the exhaustive
+-- src/hooks/useWhatsApp*.tsx + WhatsApp-component write sweep (grep of every
+-- .update(/.delete(/.insert( across the frontend dashboard WhatsApp surface).
+--
+-- FINDING 1 (fixed in application code, this migration documents/verifies no DB-side
+-- gap remains): useCloseConversation (src/hooks/useWhatsAppConversations.tsx) updated
+-- whatsapp_conversations.status='closed' filtered ONLY by contact_id — a value shared
+-- across every calendar a phone number has ever talked to (whatsapp_contacts.phone_number
+-- is a GLOBAL unique column, not per-tenant). The FQ-12 RLS policy
+-- ("Users can manage whatsapp conversations for their calendars", calendar_id IS NOT NULL
+-- AND calendars.user_id = auth.uid()) already blocks this across DIFFERENT auth.uid()
+-- logins, but does NOT block it across multiple calendars owned by the SAME login (the
+-- real-world shape: one tenant, e.g. Lorvello, runs 2+ calendars/businesses under one
+-- account). Live-reproduced: closing calendar A's conversation for a shared contact also
+-- silently closed calendar A2's still-active conversation for the same contact, both
+-- calendars owned by the same user. Fixed by adding .eq('calendar_id', calendarId) to the
+-- mutation (calendarId was already in scope in the only consumer,
+-- ConversationDetailPanel.tsx, since sibling read-path hooks already require it).
+--
+-- FINDING 2 (fixed here by removing the write surface): whatsapp_contact_business_overrides
+-- is UNIQUE(contact_id) with NO calendar_id column at all — one global row per shared
+-- contact. useSetBusinessOverride / useRemoveBusinessOverride
+-- (src/hooks/useWhatsAppBusinessOverride.tsx) upserted/deleted that single row keyed only
+-- by contact_id. Live-reproduced: tenant B's override upsert silently overwrote tenant A's
+-- override on the same shared contact, with no notice to A. Its RLS "owner_all" policy only
+-- checks "does the caller own ANY calendar with a conversation touching this contact" — it
+-- cannot scope the WRITE itself, because the underlying row has no calendar_id to scope by.
+-- BusinessOverrideDialog.tsx (its only frontend consumer) had zero importers anywhere in
+-- the app — dead code, matching the exact "prefer correctness over reusing a fundamentally
+-- global data source... removed rather than fixed" precedent already set in
+-- useWhatsAppConversations.tsx for R135's own dead exports. Removed the hook file and the
+-- dialog component entirely rather than attempt an in-place calendar_id migration on a
+-- write path with zero live callers.
+--
+-- FINDING 3 (fixed here by revoking the reachable grant + removing the dead trigger):
+-- link_existing_whatsapp_conversations() (called by useLinkExistingConversations,
+-- src/hooks/useOrphanedConversations.tsx) takes NO calendar_id argument and NO
+-- auth.uid()/ownership gate at all — it loops over EVERY tenant's bookings and links
+-- EVERY tenant's orphaned (calendar_id IS NULL) whatsapp_conversations rows in one call,
+-- inserting webhook_events rows under other tenants' calendar_id as a side effect. R46
+-- (20260620170000) had deliberately left it "authenticated + service_role" as a dual-use
+-- function, and FQ-12-LEAK2 scoped the companion READ function
+-- (find_orphaned_whatsapp_conversations) but explicitly left this WRITE function global
+-- "for cron / link tooling". Live-reproduced: tenant A (zero relationship to the affected
+-- booking/contact) called it and it wrote a calendar_id onto tenant C's orphaned
+-- conversation and logged a webhook_events row under C's calendar, purely as a side effect
+-- of A's own dashboard action. Its only two frontend consumers,
+-- OrphanedConversationsManager.tsx and ConversationManagement.tsx, both had zero importers
+-- anywhere in the app — also dead code. Removed the dead hook/components (eliminating the
+-- only reachable authenticated trigger) and revoke the now-unused authenticated grant,
+-- matching R46's own Group B pattern ("service_role only" for functions with NO frontend
+-- caller). Cron/internal/service-role callers are unaffected: SECURITY DEFINER functions
+-- run in the owner's context regardless of the invoking role's own grant, and service_role
+-- keeps EXECUTE.
+REVOKE EXECUTE ON FUNCTION public.link_existing_whatsapp_conversations() FROM authenticated;

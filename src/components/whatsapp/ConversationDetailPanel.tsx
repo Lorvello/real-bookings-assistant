@@ -41,7 +41,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
   const isClosed = isLocallyClosed || contact.conversation_status === 'closed';
 
   const handleCloseConversation = () => {
-    closeConversation.mutate(contact.contact_id, {
+    closeConversation.mutate({ contactId: contact.contact_id, calendarId }, {
       onSuccess: () => {
         setIsLocallyClosed(true);
         toast({ title: t('convPage.conversationClosedToast', 'Conversation closed') });
