@@ -22,6 +22,7 @@ import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngrounde
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
+import { computePendingBookInterveningExchange } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -678,15 +679,20 @@ Deno.serve(async (req) => {
     // more than 40 total rows in a conversation with interleaved outbound messages) are not a
     // strict subset of this 12-row fetch, and changing them risks silently weakening R71/R72's
     // guard behavior, which this round must not touch.
-    let sharedMsgsDesc: Array<{ direction: string; content: string | null; created_at: string; meta_timestamp: string | null }> = [];
+    // R119 (id added): the row's own `id` (uuid PK) is now selected alongside the existing
+    // columns so pendingBookInterveningExchange below can identify "this turn's own message"
+    // by ROW IDENTITY instead of by text equality (see that gate's own comment for the full
+    // reasoning). Zero extra round-trip (same query, one more column); every other consumer of
+    // sharedMsgsDesc/sharedMsgsAsc/history ignores the new field.
+    let sharedMsgsDesc: Array<{ id: string; direction: string; content: string | null; created_at: string; meta_timestamp: string | null }> = [];
     if (conversationId) {
       const { data: msgs } = await supabase
         .from("whatsapp_messages")
-        .select("direction, content, created_at, meta_timestamp")
+        .select("id, direction, content, created_at, meta_timestamp")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: false })
         .limit(12);
-      sharedMsgsDesc = (msgs as Array<{ direction: string; content: string | null; created_at: string; meta_timestamp: string | null }>) ?? [];
+      sharedMsgsDesc = (msgs as Array<{ id: string; direction: string; content: string | null; created_at: string; meta_timestamp: string | null }>) ?? [];
     }
     // IUX R100 (F-R79-2 fix): sharedMsgsDesc is fetched in created_at (DB insert) order, which
     // is what a flaky connection or two fast customer messages can scramble relative to the
@@ -1494,16 +1500,19 @@ Deno.serve(async (req) => {
     // "ja" with NOTHING confirming the specific proposal, after a genuine intervening exchange, no
     // longer silently commits; the model instead re-surfaces the pending proposal and asks the
     // customer to confirm it explicitly (safer than guessing what an isolated "ja" meant).
+    //
+    // R119 (REPEATED-WORD-INTERVENING-EXCLUSION fix, see pendingBookGuard.ts's own header for the
+    // full live-reproduced root-cause reasoning): the original R118 exclusion used TEXT EQUALITY
+    // to skip "this turn's own row", which a REPEATED affirmation (e.g. two separate "ja"s, one a
+    // genuine intervening reply, one the later stale confirm) could exploit to hide the real
+    // intervening message. Fixed by identifying "this turn's own row" by ROW IDENTITY (its `id`,
+    // via sharedMsgsDesc[0] -- the same signal R97 already established as reliable for this exact
+    // purpose) instead of by content. Extracted into its own module (mirrors confirmationGuard.ts /
+    // identityDisambiguationGuard.ts) so the pure logic is unit-testable without importing index.ts.
+    const currentMessageRowId = sharedMsgsDesc[0]?.id ?? null;
     const pendingBookAtMs = typeof pbk?.at === "number" ? pbk.at : null;
-    const pendingBookInterveningExchange = pendingBookFresh && pendingBookAtMs != null && sharedMsgsAsc.some((m) => {
-      if (m.direction !== "inbound") return false;
-      const ts = new Date(m.meta_timestamp ?? m.created_at).getTime();
-      if (!Number.isFinite(ts)) return false;
-      // Strictly AFTER the preview was stored, and strictly BEFORE this turn's own message (the
-      // current inbound row is always the newest by construction, see R97's own comment above on
-      // sharedMsgsDesc[0] always being the current message on the real webhook path).
-      return ts > pendingBookAtMs && (m.content ?? "") !== String(message ?? "");
-    });
+    const pendingBookInterveningExchange = pendingBookFresh &&
+      computePendingBookInterveningExchange(sharedMsgsAsc, pendingBookAtMs, currentMessageRowId);
     // R23: same ambiguousConfirm gate as confirmCancel (see its comment above for the 3 repro
     // shapes and the design reasoning). A day/time-shift mention, a price question, a trailing "?",
     // or a hedge word means this is NOT a clean confirmation of the exact previewed slot.
