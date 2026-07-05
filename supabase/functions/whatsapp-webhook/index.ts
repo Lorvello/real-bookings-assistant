@@ -393,19 +393,47 @@ serve(async (req) => {
               ownerId = (row as any)?.owner_id ?? null;
               calendarId = (row as any)?.calendar_id ?? null;
             }
+            // SEV-1 fix (cross-tenant fallback misroute): the single shared WhatsApp number
+            // means a phone's conversation history can span MULTIPLE distinct tenants. The old
+            // logic here picked the single MOST-RECENTLY-ACTIVE conversation across ANY tenant
+            // with no further check, so a code-less follow-up genuinely meant for Tenant Z could
+            // silently attach to Tenant X's conversation/booking/pending-verification state
+            // merely because X was more recently active. Fix: fetch ALL of this phone's
+            // conversations (not just the top one), and only auto-resolve when they all belong
+            // to the SAME owner (the overwhelmingly common single-tenant-history case: zero
+            // added friction, identical behavior to before). The instant 2+ DISTINCT owners are
+            // present, resolution is genuinely ambiguous from the message alone (no tracking
+            // code to disambiguate); leave ownerId/calendarId unset so this falls through to
+            // the SAME fail-closed codeless-stranger path below (D-2) rather than guessing.
             if (!ownerId && contact.wa_id) {
-              // returning customer (geen code): phone → contact → laatste conversatie → calendar → owner
+              // returning customer (geen code): phone → contact → ALLE conversaties → distinct owners
               const { data: ct } = await supabaseClient
                 .from('whatsapp_contacts').select('id').eq('phone_number', contact.wa_id).maybeSingle();
               if (ct?.id) {
-                const { data: conv } = await supabaseClient
+                const { data: convs } = await supabaseClient
                   .from('whatsapp_conversations')
                   .select('calendar_id, calendars!inner(user_id)')
                   .eq('contact_id', ct.id)
-                  .order('last_message_at', { ascending: false })
-                  .limit(1).maybeSingle();
-                ownerId = (conv as any)?.calendars?.user_id ?? null;
-                calendarId = (conv as any)?.calendar_id ?? null;
+                  .order('last_message_at', { ascending: false });
+                const rows = (convs as Array<{ calendar_id: string; calendars: { user_id: string } }> | null) ?? [];
+                const distinctOwners = new Set(rows.map((r) => r.calendars?.user_id).filter(Boolean));
+                if (distinctOwners.size === 1) {
+                  // Single-tenant history: identical resolution to before this fix (most-recent
+                  // row happens to be the only owner anyway, so picking rows[0] is unchanged).
+                  ownerId = rows[0]?.calendars?.user_id ?? null;
+                  calendarId = rows[0]?.calendar_id ?? null;
+                } else if (distinctOwners.size > 1) {
+                  console.log(`Meerdere tenants (${distinctOwners.size}) in geschiedenis voor dit nummer, geen code, fail-closed, niet auto-resolven.`);
+                  await logSecurityEvent(
+                    supabaseClient,
+                    'whatsapp_ambiguous_tenant_inbound',
+                    'high',
+                    { from: contact.wa_id, distinct_owner_count: distinctOwners.size },
+                    ipAddress,
+                  );
+                }
+                // distinctOwners.size === 0 (no rows) falls through with ownerId still null,
+                // same as any other code-less stranger.
               }
             }
             // Owner self-test (D-5): the business owner texting in from their OWN
@@ -436,13 +464,19 @@ serve(async (req) => {
               }
             } else {
               console.log('Kon business-eigenaar niet resolven → niet forwarden (veilig).');
-              // Code-less stranger fallback (D-2): a sender we cannot tie to any
-              // business (no tracking code, no prior conversation). Nudge them to
-              // scan the QR / send their code instead of silently dropping.
+              // Code-less stranger fallback (D-2), ALSO now the fail-closed landing spot for the
+              // genuinely-ambiguous multi-tenant-history case above (SEV-1 fix): either a sender
+              // we cannot tie to any business at all (no tracking code, no prior conversation), or
+              // one whose history spans 2+ distinct tenants with no code to disambiguate. Both get
+              // the SAME safe treatment: never silently forwarded to any tenant. Nudge them to scan
+              // the QR / send their code instead of silently dropping.
               // Guarded behind WHATSAPP_CODELESS_FALLBACK so the outward send stays
               // OFF until Mathew verifies it once with a real WhatsApp number (a blind
               // unverifiable outward send is not shipped live). Flip the secret to
               // 'on' to enable. The detection + logging ship now regardless.
+              // (Ambiguous-history case already logged its own whatsapp_ambiguous_tenant_inbound
+              // event above with the distinct-owner count; this generic event still fires too so
+              // every no-forward path remains visible under the one existing counter.)
               await logSecurityEvent(supabaseClient, 'whatsapp_codeless_inbound', 'info', { from: contact.wa_id }, ipAddress);
               if (Deno.env.get('WHATSAPP_CODELESS_FALLBACK') === 'on' && contact.wa_id) {
                 try {
