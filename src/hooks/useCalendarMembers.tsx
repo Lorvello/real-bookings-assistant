@@ -75,55 +75,6 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
   };
 
-  // Check if user exists or create new user using security definer function
-  const findOrCreateUser = async (email: string, fullName: string = '', calendarId?: string) => {
-    try {
-      // First check if user exists
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, email')
-        .eq('email', email)
-        .single();
-
-      if (userData) {
-        // User exists, update name if provided
-        if (fullName) {
-          const { error: updateError } = await supabase
-            .from('users')
-            .update({ full_name: fullName })
-            .eq('id', userData.id);
-
-          if (updateError) {
-            console.error('Error updating user name:', updateError);
-          }
-        }
-        return userData;
-      }
-
-      // User doesn't exist, create new user using security definer function
-      if (!calendarId) {
-        throw new Error('Calendar ID is required for creating new users');
-      }
-
-      const { data: newUserId, error: createError } = await supabase
-        .rpc('create_team_member_user', {
-          p_email: email,
-          p_full_name: fullName || email.split('@')[0],
-          p_calendar_id: calendarId
-        });
-
-      if (createError) {
-        console.error('Error creating user:', createError);
-        throw createError;
-      }
-
-      return { id: newUserId, email };
-    } catch (error) {
-      console.error('Error finding or creating user:', error);
-      throw error;
-    }
-  };
-
   // New invitation system using email invitations
   const inviteMember = async (
     email: string,
@@ -186,76 +137,6 @@ export const useCalendarMembers = (calendarId?: string) => {
     }
   };
 
-  // Keep for multi-calendar invitations when needed
-  const inviteMemberToMultipleCalendars = async (
-    email: string, 
-    calendarIds: string[], 
-    role: 'editor' | 'viewer' = 'viewer', 
-    fullName: string = ''
-  ) => {
-    if (!calendarIds.length) {
-      toast({
-        title: t('calendarMembers.noCalendarsSelected.title', 'No calendars selected'),
-        description: t('calendarMembers.noCalendarsSelected.description', 'Please select at least one calendar'),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Find or create user (pass first calendar ID for potential user creation)
-      const userData = await findOrCreateUser(email, fullName, calendarIds[0]);
-      
-      // Check for existing memberships and create new ones
-      const { data: existingMemberships } = await supabase
-        .from('calendar_members')
-        .select('calendar_id')
-        .eq('user_id', userData.id)
-        .in('calendar_id', calendarIds);
-      
-      const existingCalendarIds = existingMemberships?.map(m => m.calendar_id) || [];
-      const newCalendarIds = calendarIds.filter(id => !existingCalendarIds.includes(id));
-      
-      if (newCalendarIds.length === 0) {
-        toast({
-          title: t('calendarMembers.alreadyMember.title', 'User is already a member'),
-          description: t('calendarMembers.alreadyMember.description', 'This user already has access to all selected calendars'),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create memberships for calendars user isn't already part of
-      const invitedBy = (await supabase.auth.getUser()).data.user?.id;
-      const memberships = newCalendarIds.map(calendarId => ({
-        calendar_id: calendarId,
-        user_id: userData.id,
-        role: role,
-        invited_by: invitedBy
-      }));
-
-      const { error } = await supabase
-        .from('calendar_members')
-        .insert(memberships);
-
-      if (error) throw error;
-
-      toast({
-        title: t('calendarMembers.userInvited.title', 'User invited'),
-        description: t('calendarMembers.userInvited.description', '{{email}} has been invited to {{count}} calendar(s) as {{role}}', { email, count: newCalendarIds.length, role }),
-      });
-
-      fetchMembers();
-    } catch (error) {
-      console.error('Error inviting member:', error);
-      toast({
-        title: t('calendarMembers.inviteUserError.title', 'Error inviting user'),
-        description: t('calendarMembers.inviteUserError.description', 'Could not invite the user'),
-        variant: "destructive",
-      });
-    }
-  };
-
   const removeMember = async (memberId: string) => {
     try {
       const { error } = await supabase
@@ -314,7 +195,6 @@ export const useCalendarMembers = (calendarId?: string) => {
     members,
     loading,
     inviteMember,
-    inviteMemberToMultipleCalendars,
     removeMember,
     updateMemberRole,
     refetch: fetchMembers

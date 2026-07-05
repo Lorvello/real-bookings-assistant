@@ -47,30 +47,38 @@ export const TimeBlockRow: React.FC<TimeBlockRowProps> = ({
   const endDropdownId = `${dayKey}-${block.id}-end`;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {/* Start time */}
-      <CompactTimePicker
-        value={block.startTime}
-        onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'startTime', value)}
-        isOpen={openDropdowns[startDropdownId] || false}
-        onToggle={() => onToggleDropdown(startDropdownId)}
-        onClose={() => onCloseDropdown(startDropdownId)}
-      />
-      
-      {/* Separator */}
-      <span className="text-muted-foreground text-sm">-</span>
-      
-      {/* End time */}
-      <CompactTimePicker
-        value={block.endTime}
-        onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'endTime', value)}
-        isOpen={openDropdowns[endDropdownId] || false}
-        onToggle={() => onToggleDropdown(endDropdownId)}
-        onClose={() => onCloseDropdown(endDropdownId)}
-      />
-      
-      {/* Action buttons */}
-      <div className="flex items-center gap-1 ml-1 sm:ml-2">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+      <div className="flex items-center gap-2">
+        {/* Start time */}
+        <CompactTimePicker
+          value={block.startTime}
+          onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'startTime', value)}
+          isOpen={openDropdowns[startDropdownId] || false}
+          onToggle={() => onToggleDropdown(startDropdownId)}
+          onClose={() => onCloseDropdown(startDropdownId)}
+        />
+
+        {/* Separator */}
+        <span className="text-muted-foreground text-sm">-</span>
+
+        {/* End time */}
+        <CompactTimePicker
+          value={block.endTime}
+          onChange={(value) => onUpdateTimeBlock(dayKey, block.id, 'endTime', value)}
+          isOpen={openDropdowns[endDropdownId] || false}
+          onToggle={() => onToggleDropdown(endDropdownId)}
+          onClose={() => onCloseDropdown(endDropdownId)}
+        />
+      </div>
+
+      {/* Action buttons. On mobile the row is stacked (flex-col) so this group always
+          renders on its own line below the time inputs, by deliberate layout rather than
+          incidental flex-wrap; it previously wrapped there anyway once the two 80px time
+          inputs filled the narrow row, but with no visual tether it read as a stray row of
+          icon buttons floating below the time fields (T2 mobile-availability fix). The
+          hairline top border + tight mt/pt give it a clear "belongs to the row above" cue.
+          Desktop (sm:) restores the original single inline row with no border. */}
+      <div className="flex items-center gap-1 mt-1 pt-1 border-t border-border/40 sm:mt-0 sm:pt-0 sm:border-t-0 sm:ml-2">
         {/* Add button - only on last block */}
         {isLastBlock && (
           <Button
