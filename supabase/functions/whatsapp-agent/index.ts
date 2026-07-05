@@ -13,6 +13,7 @@ import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
+import { enforceAppointmentNameDisclosure, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -1260,6 +1261,21 @@ Deno.serve(async (req) => {
     const pendingRenameVerificationFresh = !!prv && (typeof prv.at !== "number" || (Date.now() - prv.at) < 15 * 60 * 1000);
     const confirmRenameVerification = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
 
+    // R102 (shared-phone identity fix, generalizes R76's cross-identity verification to
+    // cancel_appointment + reschedule_appointment, see identityDisambiguationGuard.ts header for
+    // the full R101 root-cause reasoning): SAME deterministic server-detection pattern as
+    // confirmRenameVerification directly above, keyed off cancel_appointment's own
+    // pending_cancel_verification / reschedule_appointment's own pending_reschedule_verification
+    // markers (tools.ts). Only the customer's OWN raw reply to OUR verification question can
+    // release either guard, never the model's own judgement.
+    const pcv = convContext.pending_cancel_verification as { at?: number } | undefined;
+    const pendingCancelVerificationFresh = !!pcv && (typeof pcv.at !== "number" || (Date.now() - pcv.at) < 15 * 60 * 1000);
+    const confirmCancelVerification = pendingCancelVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+
+    const prsv = convContext.pending_reschedule_verification as { at?: number } | undefined;
+    const pendingRescheduleVerificationFresh = !!prsv && (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
+    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
     // proposal, NO insert), so an accidental immediate booking is impossible and the customer
@@ -1506,7 +1522,12 @@ Deno.serve(async (req) => {
     // ONCE per HTTP request right here, reused across the primary AND any bookCommitMissed/
     // confirmStall retry runAgent call below) now tracks its own preview writes internally and
     // refuses to commit a pending_booking/pending_cancel it JUST wrote itself this turn.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview });
+    // R102 (shared-phone identity fix): knownName is the SAME tenant-scoped "name of whoever is
+    // texting" signal book_appointment already defaults the booking name to (scopedName from
+    // convContext.booking_name via update_lead, else the WhatsApp profile display name). Threaded
+    // through as knownSelfName so cancel/reschedule's cross-identity guard can detect when a
+    // resolved target booking's own name differs from what THIS speaker has said about themselves.
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, knownSelfName: knownName, ambiguousConfirm, hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -1853,6 +1874,20 @@ Deno.serve(async (req) => {
         // reply honestly. A real successful commit goes through the `committed` branch above (and
         // deterministicConfirmation), so the legit confirmation path is never reached here.
         replyText = enforceNoFalseConfirmation(replyText, result.toolCalls, customerLanguage);
+        // R102 (shared-phone identity fix, deterministic disclosure backstop, see
+        // identityDisambiguationGuard.ts header): get_my_appointments is a read-only lookup, so a
+        // MISSED disclosure here cannot itself mutate data, but it is the exact R101-1 trigger
+        // shape (a customer shown a DIFFERENT real person's booking as if it were their own with
+        // zero name disclosure). Live-tested this round: the model's own prompt-guided disclosure
+        // was UNRELIABLE for a single-booking result (it repeatedly still said "je afspraak"
+        // despite the tool result carrying customer_name + guidance), so this is rewritten here
+        // deterministically, mirroring enforceRefundPolicy/enforcePriceClaim below. No-op unless a
+        // get_my_appointments call actually ran this turn with a real, undisclosed name mismatch.
+        const lastAppointmentsResult = result.toolCalls.filter((t) => t.name === "get_my_appointments").pop()?.result as
+          { appointments?: AppointmentForDisclosure[] } | undefined;
+        if (lastAppointmentsResult?.appointments) {
+          replyText = enforceAppointmentNameDisclosure(replyText, lastAppointmentsResult.appointments, customerLanguage);
+        }
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
         // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard

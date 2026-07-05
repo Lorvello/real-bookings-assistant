@@ -7,6 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE } from "./serviceDisambiguationGuard.ts";
+import { crossIdentityActionRisk, extractStatedNameForBooking, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -121,6 +122,23 @@ export interface ToolContext {
   // service already exists, so it can never fire outside that narrow, already-safety-checked
   // precondition.
   abandonPreviousPreview?: boolean;
+  // R102 (shared-phone identity fix, generalizes R76's rename-only crossIdentityRisk to
+  // cancel/reschedule too, see identityDisambiguationGuard.ts header for the full R101 root-cause
+  // reasoning): the tenant-scoped name the CURRENT conversation has on file for whoever is
+  // texting, i.e. the EXACT SAME signal book_appointment already uses as the default booking name
+  // (index.ts's knownName/scopedName, sourced from convContext.booking_name via update_lead, or
+  // the WhatsApp profile display name on a fresh conversation). null when nothing is known yet.
+  // Used ONLY to detect a cross-identity risk (the target booking's name differs from this), never
+  // to silently pick a booking; resolveTarget's own hint-narrowing stays the sole picking mechanism.
+  knownSelfName?: string | null;
+  // R102: server-detected (index.ts, mirrors confirmRenameVerification exactly: a fresh
+  // pending_cancel_verification marker + AFFIRM_RE + !NEGATE_RE + !ambiguousConfirm), NOT a
+  // model-supplied arg. Only the customer's OWN raw reply to OUR cross-identity verification
+  // question (cancel_appointment's own pending_cancel_verification, see tools.ts) is allowed to
+  // release that guard, never the model's own judgement about what it just heard.
+  confirmCancelVerification?: boolean;
+  // R102: same idea, for reschedule_appointment's own pending_reschedule_verification marker.
+  confirmRescheduleVerification?: boolean;
 }
 
 interface UpcomingBooking {
@@ -204,6 +222,22 @@ async function resolveTarget(
   // their behaviour is byte-identical.
   const totalCandidates = list.length;
   if (list.length === 0) return { none: true, totalCandidates: 0 };
+  // R102 (shared-phone identity fix): a customer-STATED name is the STRONGEST possible hint,
+  // stronger than a time/date echo, because it directly answers "which PERSON's booking do you
+  // mean" rather than "which slot". Checked FIRST, before any time/date narrowing, using the
+  // STRICT (non-fuzzy) matcher in identityDisambiguationGuard.ts: "Anne" can never match "Anna"
+  // (R101 verify-round finding 2's exact guarantee). Only acts when it uniquely resolves to ONE
+  // candidate; two distinct names mentioned, or none, falls through to the existing hint chain
+  // unaffected (byte-identical behaviour for every conversation that never names a specific
+  // person, which is the overwhelming common single-attendee case).
+  const statedNameId = extractStatedNameForBooking(
+    list.map((b) => ({ id: b.id, customerName: b.customer_name ?? null })),
+    ctx.userMessage,
+  );
+  if (statedNameId) {
+    const named = list.find((b) => b.id === statedNameId);
+    if (named) return { booking: named, totalCandidates };
+  }
   // Normalise a customer-named clock time ("14:00", "14.00", "2 uur") to HH:MM.
   const wantTime = (() => {
     const m = String(matchTime ?? "").trim().match(/^(\d{1,2})[:.](\d{2})/);
@@ -755,7 +789,8 @@ export function createTools(
         "ALLEEN-LEZEN: leest de aankomende afspraken van DEZE klant terug (dienst + tijd + status). " +
         "Gebruik dit als de klant vraagt wat hij/zij geboekt heeft, welke afspraken er staan, of wanneer de afspraak is " +
         "('wat heb ik geboekt', 'welke afspraken heb ik', 'wanneer is mijn afspraak', 'staat mijn afspraak nog'). " +
-        "Het annuleert of wijzigt NIETS. Gebruik NOOIT cancel_appointment of reschedule_appointment om alleen op te zoeken.",
+        "Het annuleert of wijzigt NIETS. Gebruik NOOIT cancel_appointment of reschedule_appointment om alleen op te zoeken. " +
+        "GEDEELD NUMMER: bij 2+ afspraken bevat elk item ook customer_name; staat een afspraak op een ANDERE naam dan de huidige klant, presenteer die dan ALTIJD als 'de afspraak van [naam]', nooit als 'jouw afspraak'.",
       parameters: { type: "object", properties: {} },
     },
     {
@@ -848,9 +883,10 @@ export function createTools(
     {
       name: "cancel_appointment",
       description:
-        "Annuleert de aankomende afspraak van DEZE klant in TWEE stappen (annuleren is destructief → altijd één bevestiging). " +
-        "Stap 1: roep aan ZONDER confirmed → de tool annuleert NIETS en geeft 'needs_confirmation' + de afspraak (dienst + when) terug; lees die terug, vraag of je echt mag annuleren, en bied aan om in plaats daarvan te verzetten. " +
-        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true + only_confirming_previous, dan annuleert de tool. only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG signaal bevat dat de klant iets anders wil (bv. vraag, voorwaarde, correctie, of een vage voorkeur zoals 'toch liever iets anders'). Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden; vraag welke en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00').",
+        "Annuleert de aankomende afspraak van DEZE klant in TWEE stappen (annuleren is destructief, dus altijd één bevestiging). " +
+        "Stap 1: roep aan ZONDER confirmed → de tool annuleert NIETS en geeft 'needs_confirmation' + de afspraak (dienst + when, + customer_name als bekend) terug; lees die terug, vraag of je echt mag annuleren, en bied aan om in plaats daarvan te verzetten. " +
+        "Stap 2: pas NADAT de klant bevestigt, roep opnieuw aan met confirmed:true + only_confirming_previous, dan annuleert de tool. only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG signaal bevat dat de klant iets anders wil (bv. vraag, voorwaarde, correctie, of een vage voorkeur zoals 'toch liever iets anders'). Bij meerdere afspraken geeft stap 1 'meerdere_afspraken' terug met de tijden + customer_name per afspraak; vraag welke (noem de naam als die bekend is) en geef bij de volgende aanroep match_time = de kloktijd die de klant kiest mee (bv '14:00'). " +
+        "GEDEELD NUMMER: bij 2+ afspraken onder dit nummer waarvan de gevonden afspraak op een ANDERE naam staat dan de huidige klant (of de klant nog onbekend is), geeft de tool 'naam_verificatie_nodig' terug in plaats van 'needs_confirmation': stel dan EERST de veiligheidsvraag uit het resultaat en wacht op antwoord voordat je verder gaat.",
       parameters: {
         type: "object",
         properties: {
@@ -882,7 +918,8 @@ export function createTools(
         "roep METEEN aan met date (YYYY-MM-DD uit de <kalender>) + time (HH:MM); de tool zoekt zelf het exacte slot, " +
         "checkt of het vrij is en verzet direct. Vraag NIET 'klopt dat?' en kondig niets aan. Is die tijd niet vrij, " +
         "dan geeft de tool 'niet_beschikbaar' + de vrije tijden terug; stel er meteen een voor (geen aparte get_available_slots nodig). " +
-        "Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' met de tijden terug; geef bij de volgende aanroep match_time = de kloktijd van de BESTAANDE afspraak die verzet moet worden mee (bv '14:00'), naast date+time van de nieuwe tijd. " +
+        "Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' met de tijden + customer_name per afspraak terug; geef bij de volgende aanroep match_time = de kloktijd van de BESTAANDE afspraak die verzet moet worden mee (bv '14:00'), naast date+time van de nieuwe tijd. " +
+        "GEDEELD NUMMER: bij 2+ afspraken onder dit nummer waarvan de gevonden afspraak op een ANDERE naam staat dan de huidige klant (of de klant nog onbekend is), geeft de tool 'naam_verificatie_nodig' terug in plaats van meteen te verzetten: stel dan EERST de veiligheidsvraag uit het resultaat en wacht op antwoord; bevestigt de klant, roep reschedule_appointment dan opnieuw aan (het systeem gebruikt de eerder opgegeven nieuwe datum/tijd). " +
         "ALLEEN bij meerdere agenda's (<kalenders> in je context): wil de klant naar een ANDERE medewerker/locatie verzetten (bv. 'kan ik naar Anna in plaats van Bram verzetten'), geef dan service_type_id van de dienst bij DIE nieuwe agenda mee (of calendar_index) samen met de nieuwe date+time; de tool verzet de afspraak dan mee naar die agenda, in dezelfde ene stap, mits daar een vrij slot is.",
       parameters: {
         type: "object",
@@ -1020,10 +1057,10 @@ export function createTools(
 
       case "get_my_appointments": {
         // Read-only lookup of THIS customer's upcoming bookings. NO side effects (unlike using
-        // cancel/reschedule as a lookup, which sets a pending_cancel marker — a mis-commit landmine).
+        // cancel/reschedule as a lookup, which sets a pending_cancel marker, a mis-commit landmine).
         const { data } = await supabase
           .from("bookings")
-          .select("start_time, status, calendar_id, service_types(name)")
+          .select("start_time, status, calendar_id, service_types(name), customer_name")
           .eq("customer_phone", ctx.phone)
           // A2: across the owner's whole calendar allowlist, so the customer sees appointments
           // in any of the business's calendars (not only the one the webhook routed them to).
@@ -1032,10 +1069,36 @@ export function createTools(
           .gt("start_time", new Date().toISOString())
           .order("start_time", { ascending: true })
           .limit(5);
-        const list = ((data as Array<{ start_time: string; status: string; calendar_id: string; service_types?: { name?: string } | null }>) ?? []);
+        const list = ((data as Array<{ start_time: string; status: string; calendar_id: string; service_types?: { name?: string } | null; customer_name?: string | null }>) ?? []);
         if (list.length === 0) return { appointments: [], message: "Deze klant heeft geen aankomende afspraken." };
         const calName = (id: string) => ctx.calendars.find((c) => c.id === id)?.name ?? null;
         const multi = ctx.calendars.length > 1;
+        // R102 (shared-phone identity fix, R101-1): surface a candidate's own customer_name
+        // whenever it is a REAL name that could plausibly NOT belong to whoever is currently
+        // texting: either 2+ bookings exist under this phone (the multi-booking shared-phone
+        // shape), OR the single booking's name differs from ctx.knownSelfName (including "no self
+        // name known yet", R101-1's EXACT single-booking trigger: an unnamed second person asking
+        // "wanneer is mijn afspraak" on a phone that already holds one OTHER real person's single
+        // booking). A single booking that IS the speaker's own stated name stays byte-identical
+        // (no name field added, nothing to disclose in the common single-attendee case).
+        const nameDiffersFromSelf = (name: string | null | undefined) =>
+          isRealNameShared(name) &&
+          (!isRealNameShared(ctx.knownSelfName) || String(ctx.knownSelfName).trim().toLowerCase() !== String(name).trim().toLowerCase());
+        const showNames = list.length > 1 || list.some((b) => nameDiffersFromSelf(b.customer_name));
+        // R102 (deterministic disclosure, not a prompt nudge): live-tested this round, a plain
+        // "guidance" instruction to disclose the name was UNRELIABLE against gpt-oss-20b (it
+        // repeatedly still said "je afspraak" despite the customer_name field + guidance being
+        // present), consistent with this codebase's own established lesson (OWNERESCALATION-
+        // VERBLIST-BRITTLE, AFFIRM-CONFIRM history) that prompt-only steering does not hold at this
+        // model's scale. Pre-compose the exact customer-facing sentence(s) here in `message`,
+        // mirroring every other tool's error/needs_confirmation message convention, so the model
+        // only has to relay it rather than decide on its own whether/how to disclose a name.
+        const appointmentLines = list.map((b) => {
+          const svc = b.service_types?.name ?? "";
+          const when = nlWhen(b.start_time);
+          const nm = showNames && isRealNameShared(b.customer_name) ? b.customer_name : null;
+          return nm ? `${svc} op ${when} (op naam ${nm})` : `${svc} op ${when}`;
+        });
         return {
           appointments: list.map((b) => ({
             service: b.service_types?.name ?? null,
@@ -1044,7 +1107,14 @@ export function createTools(
             // Only surface the calendar (staff/location) when the business has more than one,
             // so the customer/agent can tell apart same-time appointments in different calendars.
             ...(multi ? { agenda: calName(b.calendar_id) } : {}),
+            ...(showNames && isRealNameShared(b.customer_name) ? { customer_name: b.customer_name } : {}),
           })),
+          ...(showNames ? {
+            message: list.length === 1
+              ? `Er staat een afspraak: ${appointmentLines[0]}.`
+              : `Er staan meerdere afspraken: ${appointmentLines.join("; ")}.`,
+            guidance: "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' altijd behoudt) in je antwoord. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X', zodat de klant kan zien van wie de afspraak is.",
+          } : {}),
         };
       }
 
@@ -1781,6 +1851,17 @@ export function createTools(
           const { pending_cancel: _drop, ...rest } = cancelCtx;
           await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
         };
+        // R102 (shared-phone identity fix): the SAME cross-identity verification marker shape as
+        // update_booking_name's R76 pending_rename_verification, generalized to cancel. Read here
+        // (once, top of the tool) so both the PREVIEW branch (which may consume/clear it) and any
+        // future extension can see it without a second query.
+        const pendingCancelVerification = cancelCtx.pending_cancel_verification as
+          { booking_id?: string; current_name?: string | null; start_time?: string; at?: number } | undefined;
+        const clearPendingCancelVerification = async (base: Record<string, unknown>) => {
+          if (!ctx.conversationId) return;
+          const { pending_cancel_verification: _dropV, ...rest } = base;
+          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+        };
 
         // COMMIT phase: only when a preview was taken in a PREVIOUS turn AND the customer confirmed.
         // Confirmation is detected server-side (ctx.confirmCancel) OR via the model's confirmed flag.
@@ -1820,6 +1901,31 @@ export function createTools(
             };
           }
           const b = target.booking!;
+          // R102 (defense-in-depth): re-check the SAME cross-identity risk at COMMIT time too, not
+          // just in the PREVIEW branch above. This guards a pending_cancel marker written BEFORE
+          // this fix shipped (a transitional/race case only; every fresh preview after this fix
+          // already required verification before ever reaching this point) from ever committing a
+          // cross-identity cancel it never actually verified. Fail-safe: on risk, refuse the commit
+          // and route back through the same verification question, rather than trusting a stale
+          // pending marker's implicit "this was already OK'd".
+          if (crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName) && !(ctx.confirmCancelVerification === true && pendingCancelVerification?.booking_id === b.id)) {
+            await clearPending();
+            const verifyAt = Date.now();
+            if (ctx.conversationId) {
+              await supabase
+                .from("whatsapp_conversations")
+                .update({ context: { ...cancelCtx, pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
+                .eq("id", ctx.conversationId);
+            }
+            return {
+              error: "naam_verificatie_nodig",
+              current_name: b.customer_name,
+              message:
+                `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
+                `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden.`,
+              guidance: "NIETS geannuleerd. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
+            };
+          }
           // A2: enforce the policy of the calendar the booking actually lives in (it may be a
           // non-entry calendar of the same owner), not the entry calendar.
           const policy = await getCalendarPolicy(supabase, b.calendar_id);
@@ -1856,7 +1962,9 @@ export function createTools(
             // outcome against a real DB row for cancellations too, matching book_appointment and
             // reschedule_appointment. Purely additive (every existing caller ignores unknown fields).
             booking_id: b.id,
-            cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time },
+            // R102: surface whose name it was, so the model's final reply can say "de afspraak van
+            // X is geannuleerd" instead of always "je afspraak", whenever a real name is on file.
+            cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null },
           };
         }
 
@@ -1874,14 +1982,65 @@ export function createTools(
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te annuleren." };
         }
         if (target.ambiguous) {
+          // R102 (shared-phone identity fix, verify-round finding 2, "Anne"/"Anna" collision):
+          // ALWAYS disclose whose name each candidate is under (nameSuffix renders nothing for a
+          // placeholder/no-name booking, so the common single-attendee-under-one-real-name case is
+          // unaffected). This alone lets a customer choosing between two options see the mismatch,
+          // even before the cross-identity verification gate below ever engages.
           return {
             error: "meerdere_afspraken",
             message: "Je hebt meerdere aankomende afspraken staan.",
-            guidance: "Vraag kort welke van deze afspraken de klant wil annuleren.",
-            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
+            guidance: "Vraag kort welke van deze afspraken de klant wil annuleren. Staat er bij een afspraak een naam die AFWIJKT van wie er nu aan het typen is, noem die naam dan expliciet in je vraag (bv. 'de afspraak van Sanne, of die van Tim?'), zodat de klant kan zien als een van de twee niet de eigen afspraak is.",
+            appointments: target.ambiguous.map((b) => ({
+              service: b.service_types?.name ?? null,
+              when: nlWhen(b.start_time),
+              start_time: b.start_time,
+              customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null,
+            })),
           };
         }
         const b = target.booking!;
+
+        // R102 (shared-phone identity fix, R101-1/R101-2/R101-3 + verify-round findings 1/2): the
+        // SAME two-condition cross-identity test as update_booking_name's own R76 guard, generalized
+        // via identityDisambiguationGuard.ts. Fires when (a) this phone genuinely holds 2+ upcoming
+        // bookings (a single-booking phone can NEVER hit this, so the common case stays completely
+        // frictionless) AND (b) the resolved target's own customer_name is a real, distinct name
+        // that differs from whatever name the CURRENT speaker has stated about themselves this
+        // conversation (ctx.knownSelfName), INCLUDING the case where the speaker has stated no name
+        // at all (exactly R101-1/R101-2/R101-3's trigger shape: an unnamed second person on a shared
+        // phone). Deterministic, code-level, not a prompt nudge: mirrors the ALREADY-PROVEN R76
+        // rename guard rather than trusting the model's own judgement about whose booking this is.
+        const cancelCrossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName);
+        const alreadyVerifiedThisBooking = ctx.confirmCancelVerification === true &&
+          pendingCancelVerification?.booking_id === b.id;
+        if (cancelCrossIdentityRisk && !alreadyVerifiedThisBooking) {
+          const verifyAt = Date.now();
+          if (ctx.conversationId) {
+            await supabase
+              .from("whatsapp_conversations")
+              .update({ context: { ...cancelCtx, pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: b.customer_name,
+            message:
+              `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
+              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en niet een andere afspraak of persoon bedoeld is. ` +
+              "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
+              "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: annuleer niets en vraag om verduidelijking.",
+            guidance: "NIETS geannuleerd. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
+          };
+        }
+        // Strip any pending_cancel_verification from the base object used below (whether it was
+        // just consumed above, or never applied at all), so a stale marker can never leak into
+        // (and confuse) a later, unrelated cancel in this same conversation. Mirrors
+        // update_booking_name's identical renameCtxClean pattern.
+        const { pending_cancel_verification: _dropCV, ...cancelCtxClean } = cancelCtx;
+        if (alreadyVerifiedThisBooking && ctx.conversationId) {
+          await clearPendingCancelVerification(cancelCtx);
+        }
 
         // Honour the "Allow cancellations" + "Cancellation deadline" Operations settings before
         // offering to cancel (so we never ask to confirm something that can't be cancelled).
@@ -1907,19 +2066,26 @@ export function createTools(
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...cancelCtx, pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt } } })
+            .update({ context: { ...cancelCtxClean, pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt } } })
             .eq("id", ctx.conversationId);
         }
+        // R102 (shared-phone identity fix, verify-round finding 1): whose name this booking is
+        // under is now ALWAYS surfaced in the tool result (not just when totalCandidates>=2), so
+        // the model has the data to disclose it whenever relevant, and NEVER has an excuse to
+        // silently say "je afspraak" about a booking under someone else's name.
+        const cancelTargetName = isRealNameShared(b.customer_name) ? b.customer_name : null;
         return {
           needs_confirmation: true,
-          appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time },
+          appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time, customer_name: cancelTargetName },
           // T3-A1: the free-cancellation sentence for THIS booking's OWN calendar (b.calendar_id),
           // not the generic <business_data> annuleringsbeleid (which reflects only the ENTRY
           // calendar and can differ in a multi-calendar business). Use this field, never
           // <business_data>, whenever this specific booking's cancellation terms come up.
           cancellation_policy_this_booking: formatCancellationPolicyNL(cancelPolicy),
           // guidance = internal-only (the model composes the customer-facing read-back itself).
-          guidance: "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).",
+          guidance: cancelTargetName
+            ? `NIET geannuleerd. Deze afspraak staat op naam van ${cancelTargetName}. Noem die naam EXPLICIET in je vraag (bv. "Wil je de afspraak van ${cancelTargetName} echt annuleren?"), zeg NOOIT alleen "je afspraak" als er een naam bekend is. Bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).`
+            : "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).",
         };
       }
 
@@ -1942,13 +2108,96 @@ export function createTools(
           return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
         }
         if (target.ambiguous) {
+          // R102 (shared-phone identity fix, verify-round finding 2): ALWAYS disclose whose name
+          // each candidate is under, same reasoning as cancel_appointment's identical fix above.
           return {
             error: "meerdere_afspraken",
             message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant wil verzetten.",
-            appointments: target.ambiguous.map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time })),
+            guidance: "Staat er bij een afspraak een naam die AFWIJKT van wie er nu aan het typen is, noem die naam dan expliciet in je vraag, zodat de klant kan zien als een van de twee niet de eigen afspraak is.",
+            appointments: target.ambiguous.map((b) => ({
+              service: b.service_types?.name ?? null,
+              when: nlWhen(b.start_time),
+              start_time: b.start_time,
+              customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null,
+            })),
           };
         }
         const b = target.booking!;
+
+        // R102 (shared-phone identity fix, R101-1/R101-2 + verify-round findings 1/2, mirrors the
+        // SAME gate just added to cancel_appointment above): reschedule_appointment is a ONE-STEP
+        // tool by design (the new time IS the confirmation, see this tool's own doc comment), so
+        // there is no existing preview/commit turn to hook a verification question into. When a
+        // genuine cross-identity risk is detected, this REFUSES the reschedule outright (nothing is
+        // moved) and stores a pending_reschedule_verification marker carrying the INTENDED new
+        // date/time, so the customer's own next-turn affirm can complete the SAME reschedule once
+        // verified, without asking them to resupply the new time. Never fires for the common
+        // single-booking-on-this-phone case (totalCandidates<2 short-circuits immediately below,
+        // matching cancel/rename's identical frictionless-common-case guarantee).
+        const rescheduleCrossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName);
+        if (rescheduleCrossIdentityRisk && !(ctx.confirmRescheduleVerification === true)) {
+          const verifyAt = Date.now();
+          let baseCtx: Record<string, unknown> = {};
+          if (ctx.conversationId) {
+            const { data: conv } = await supabase
+              .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
+            baseCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+            await supabase
+              .from("whatsapp_conversations")
+              .update({
+                context: {
+                  ...baseCtx,
+                  pending_reschedule_verification: {
+                    booking_id: b.id,
+                    new_date: args.date ?? null,
+                    new_time: args.time ?? null,
+                    new_start_time: args.start_time ?? null,
+                    new_end_time: args.end_time ?? null,
+                    new_service_type_id: args.service_type_id ?? null,
+                    new_calendar_index: args.calendar_index ?? null,
+                    at: verifyAt,
+                  },
+                },
+              })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: b.customer_name,
+            message:
+              `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). ` +
+              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die verzet moet worden, en niet een andere afspraak of persoon bedoeld is. ` +
+              "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
+              "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: verzet niets en vraag om verduidelijking.",
+            guidance: "NIETS verzet. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
+          };
+        }
+        // R102: the customer's own reply to OUR verification question just cleared the guard
+        // (ctx.confirmRescheduleVerification, computed server-side in index.ts exactly like
+        // confirmRenameVerification). Re-derive the ORIGINALLY intended new date/time from the
+        // stored marker rather than trusting the model to resupply it on a bare "ja klopt" reply
+        // (which carries no date/time at all), same reasoning as update_booking_name's
+        // pending_rename_verification consumption.
+        if (ctx.confirmRescheduleVerification === true) {
+          const { data: convV } = ctx.conversationId
+            ? await supabase.from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle()
+            : { data: null as { context?: Record<string, unknown> } | null };
+          const vctx = ((convV as { context?: Record<string, unknown> } | null)?.context) ?? {};
+          const prv = vctx.pending_reschedule_verification as
+            { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+          if (prv?.booking_id === b.id) {
+            if (prv.new_date) args.date = prv.new_date;
+            if (prv.new_time) args.time = prv.new_time;
+            if (prv.new_start_time) args.start_time = prv.new_start_time;
+            if (prv.new_end_time) args.end_time = prv.new_end_time;
+            if (prv.new_service_type_id) args.service_type_id = prv.new_service_type_id;
+            if (prv.new_calendar_index != null) args.calendar_index = prv.new_calendar_index;
+            if (ctx.conversationId) {
+              const { pending_reschedule_verification: _dropRV, ...restV } = vctx;
+              await supabase.from("whatsapp_conversations").update({ context: restV }).eq("id", ctx.conversationId);
+            }
+          }
+        }
 
         // R96 (RESCHEDULE-HIJACK fix, R95-1): the customer's own recent words name a DIFFERENT,
         // distinct configured service than this booking's own current service, AND the model did
@@ -2128,7 +2377,9 @@ export function createTools(
           // so a caller can verify the claimed outcome against a real, identifiable row instead of
           // trusting `ok:true` alone. Purely additive (every existing caller ignores unknown fields).
           booking_id: b.id,
-          rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart },
+          // R102: surface whose name it was, so the model's final reply can say "de afspraak van
+          // X is verzet" instead of always "je afspraak", whenever a real name is on file.
+          rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null },
           ...(switchedCalendar ? { new_agenda: switchedCalendar } : {}),
         };
       }
