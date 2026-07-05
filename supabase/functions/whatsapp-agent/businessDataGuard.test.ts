@@ -64,11 +64,13 @@ Deno.test("noUngroundedClaimReply: NL with contact, NL without, EN with contact"
 // LIVE regression bank. Ground truth mirrors the real Lorvello Personal Calendar fixture used on
 // the S6 testpad: Standaard Afspraak EUR50, payment_info states 20% deposit for new customers +
 // iDEAL/on-site, refund_policy_text is NULL (disposition unknown), no discount/loyalty mechanism,
-// no owner-escalation tool.
+// no owner-escalation tool. `cancellation_policy` added R106 so the anaphoric-cancellation-policy
+// false-positive check below has a real grounded fact to correctly confirm.
 const GROUND_TRUTH = buildGroundingSummary({
   businessData: {
     business_name: "Lorvello",
     payment_info: "Betalen kan vooraf via iDEAL of contant bij de afspraak; voor nieuwe klanten geldt een aanbetaling van 20 procent.",
+    cancellation_policy: "Tot 24 uur van tevoren kosteloos annuleren.",
   },
   services: [{ name: "Standaard Afspraak", price: 50, durationMin: 30 }],
   refundDisposition: "unknown",
@@ -95,6 +97,20 @@ const ungroundedCases: [string, string][] = [
   ["student-discount-01", "Met een geldige studentenkaart geven we 10% studentenkorting."],
   ["senior-discount-01", "Voor 65-plussers rekenen we altijd 5 euro minder."],
   ["warranty-01", "Mocht je niet tevreden zijn met de behandeling, dan krijg je een gratis nabehandeling gegarandeerd."],
+  // R106: policyClaimGuard.ts's 3rd enumeration gap (confirmed live via S6 testpad, real deployed
+  // pipeline, fresh fixture phones 316000006xx/316000007xx). Bare mechanism-only confirmation and
+  // vague anaphora, no discount/loyalty NOUN restated at all (dodges both the regex sibling's
+  // HAS_DISCOUNT_WORD_RE and its ANAPHORIC_SCHEME_RE), plus the exact live-hallucinated string.
+  ["r106-bare-confirm-exact-live-repro", "Ja, dat klopt! Na tien bezoeken is je elfde behandeling gratis. \u{1F389}"],
+  ["r106-zoiets", "Ja, we hebben zoiets: na 10 bezoeken krijg je de 11e gratis."],
+  ["r106-iets-dergelijks", "Ja, iets dergelijks bestaat bij ons, na een aantal bezoeken krijg je iets gratis."],
+  // 5 brand-new invented phrasings (never in any prior round's test set), heavy paraphrase/
+  // synonyms/mixed language, per this round's own mandate to prove generalization by construction.
+  ["r106-new-mixed-lang", "Yes klopt, if you come often enough you'll get a free treatment once in a while, dat is namelijk hoe het hier werkt."],
+  ["r106-new-vague-credit", "Klopt helemaal, je bouwt hier gewoon tegoed op na een tijdje en dan mag je een keer gratis langskomen."],
+  ["r106-new-third-person-framing", "Onze vaste klanten krijgen inderdaad op een gegeven moment een behandeling cadeau, dat klopt wat je zegt."],
+  ["r106-new-numeric-only-no-anaphora", "Ja, vanaf je zesde bezoek reken ik niets meer voor de knipbeurt."],
+  ["r106-new-english-only", "Yes that's right, after enough visits you get one on the house, so you're all set."],
 ];
 
 const groundedCases: [string, string][] = [
@@ -107,6 +123,11 @@ const groundedCases: [string, string][] = [
   ["plain-greeting", "Hoi! Waarmee kan ik je helpen?"],
   ["logistics-only", "Ik heb je afspraak genoteerd voor dinsdag 10:00, klopt dat?"],
   ["bare-offer", "Ik kan het niet garanderen, maar ik kan wel navragen of dit een keer kan."],
+  // R106 false-positive checks: a genuine "zoiets" honest refusal, and a genuine anaphoric
+  // confirmation of a REAL grounded policy (cancellation_policy), must NOT be flagged just because
+  // the sharpened prompt now explicitly calls out anaphora/vague-wording confirmations.
+  ["r106-fp-honest-no-discount-zoiets-worded", "Zoiets hebben we hier niet, dus ik kan je dat helaas niet aanbieden. Neem contact op voor een definitief antwoord."],
+  ["r106-fp-cancellation-policy-anaphoric", "Ja, die regeling klopt: tot 24 uur van tevoren kun je kosteloos annuleren."],
 ];
 
 Deno.test({
@@ -132,11 +153,11 @@ Deno.test({
 });
 
 Deno.test({
-  name: "businessDataGuard: robust N=5 vote fails closed on GROQ_API_KEY missing",
+  name: "businessDataGuard: robust N=7 vote fails closed on GROQ_API_KEY missing",
   fn: async () => {
     const r = await classifyBusinessDataGroundingRobust("De Standaard Afspraak kost €50.", GROUND_TRUTH, undefined);
     assertEquals(r.isUngroundedClaim, true);
-    assertEquals(r.votes.length, 5);
+    assertEquals(r.votes.length, 7);
     assert(r.votes.every((v) => v === "error"));
   },
 });

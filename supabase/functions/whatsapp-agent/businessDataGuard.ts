@@ -74,6 +74,47 @@
 // construction, exactly the same disclosure convention the escalation classifier's own history
 // (R67-R69) established for this codebase.
 //
+// R106 EXTENSION (policy-mechanism anaphora, closes policyClaimGuard.ts's 3rd enumeration gap):
+// policyClaimGuard.ts's own regex net needed 2 rounds of word/phrase-list patches (R62 build, R105
+// anaphoric "die regeling" patch) and R105-verify's adversarial pass immediately found a 3rd
+// adjacent gap ("zoiets"/"iets dergelijks"/a bare mechanism-only confirmation restating no
+// discount/anaphora noun at all, e.g. "Ja, dat klopt, na tien bezoeken is je elfde behandeling
+// gratis"). Rather than a 3rd regex patch (the same enumeration-doesn't-generalize failure mode
+// recurring), this guard's SYSTEM_PROMPT was extended to explicitly name this exact claim SHAPE
+// (any wording, any anaphora, any bare mechanism-restatement) as a canonical YES, since a
+// fabricated loyalty/discount confirmation already falls squarely within this guard's existing
+// "confirming a customer's own claim... as true when BUSINESS_DATA does not support it" scope; no
+// new classifier was built (this guard already scores the claim, regardless of phrasing, by
+// construction, unlike the regex sibling it backstops). Proven on the S6 testpad through the real
+// deployed pipeline: the exact confirmed-gap string plus 5 brand-new invented paraphrases (mixed
+// NL/EN, vague-credit framing, third-person framing, numeric-only-no-anaphora, English-only) all
+// caught cleanly on a clean fixture tenant, with a false-positive check (honest "zoiets" refusal +
+// a genuine anaphoric confirmation of a REAL grounded cancellation policy) confirming no
+// over-triggering.
+//
+// VOTE_COUNT raised 5 -> 7 in the same round: an EARLIER live-testing pass on this round appeared
+// to show a genuine N=5-unanimous miss on this exact claim (votes=[no,no,no,no,no] captured live),
+// which briefly looked like Groq-side non-determinism distinct from a prompt/scope gap. Root-caused
+// via a temporary diagnostic deploy: that miss was NOT classifier unreliability at all, it was a
+// pre-existing DATA-CONTAMINATION bug on the shared S6 testpad fixture (the `users.other_info` free
+// -text field on the long-lived shared test tenant, calendar 58103fe8, literally contained the
+// string "Spaaractie: na tien bezoeken is je elfde behandeling gratis." from an earlier round's
+// probing, apparently never cleaned up, updated_at 2026-06-30). The model was truthfully quoting
+// REAL (if bogus/planted) business_data, and the classifier was CORRECTLY scoring it as grounded;
+// this was never a hallucination on that fixture. Re-verified on a fresh, isolated fixture tenant
+// (own auth user/calendar/service, zero discount/loyalty content anywhere) built for this round:
+// the confirmed gap + all 5 new invented phrasings caught cleanly, 0 misses across every live trial
+// run against clean data. VOTE_COUNT is still raised to 7 (a modest, disclosed-cost hardening, not
+// a fix for a phantom bug) since a single low-reasoning-effort Groq call is not literally
+// deterministic in general (this guard's own long-standing disclosure), and the extra parallel
+// call is cheap (Promise.all, wall-clock bounded by the slowest call, not the count; see the
+// measured p50/max below). The shared fixture's `other_info` contamination itself was NOT altered
+// by this round (it is not this round's data to unilaterally rewrite; flagged separately for a
+// human/future-round cleanup) - this round's own proof used a fresh, disposable, fully-torn-down
+// tenant instead. This guard remains the semantic backstop; policyClaimGuard.ts's regex stays
+// wired as the free first-pass (defense in depth, per this codebase's own established composition
+// discipline).
+//
 // dash-free of em dashes per house rule.
 
 export interface GroundingClassifierResult {
@@ -185,7 +226,14 @@ const SYSTEM_PROMPT =
   "given; inventing a specific discount, loyalty program, coupon, bulk/group/student/senior " +
   "discount, or fee waiver of ANY kind (percentage, fixed amount, or eligibility condition) that " +
   "BUSINESS_DATA does not mention; confirming a customer's own claim about a discount, exception, " +
-  "or policy as true when BUSINESS_DATA does not support it; inventing a specific refund/" +
+  "or policy as true when BUSINESS_DATA does not support it, REGARDLESS of how the confirmation is " +
+  "worded: a direct restatement ('we hebben een spaaractie'), a vague pronoun/anaphora referring " +
+  "back to the customer's own claim without repeating any discount word ('die regeling', 'zoiets', " +
+  "'iets dergelijks'), OR a bare affirmation that restates only the MECHANISM (a visit count, a " +
+  "percentage, 'iets gratis') while never using any discount/loyalty noun at all (e.g. 'Ja, dat " +
+  "klopt, na tien bezoeken is je elfde behandeling gratis') are ALL the exact same claim and must " +
+  "ALL be answered YES; judge the underlying assertion, never the specific words or grammatical " +
+  "shape used to make it; inventing a specific refund/" +
   "cancellation-fee/rescheduling rule (an amount, a percentage, a time window, a weather-related " +
   "exception) that BUSINESS_DATA does not contain; claiming legitimacy, a rationale, or an " +
   "explanation for a fee/charge (e.g. a platform fee) that BUSINESS_DATA never mentions at all; " +
@@ -270,18 +318,35 @@ export async function classifyBusinessDataGrounding(
   }
 }
 
-// N=5 any-YES-wins parallel majority vote, same rationale as
+// N=7 any-YES-wins parallel majority vote, same rationale as
 // ownerEscalationClassifier.ts's classifyOwnerEscalationClaimRobust (R68/R69): a single temp-0
 // Groq call on this low-reasoning-effort MoE-routed infra is not perfectly deterministic on a
 // genuinely close-to-boundary reply, so ANY single YES among N independent parallel votes wins
-// (fail-closed, matching this guard's own per-call error/timeout convention). N=5 (not the
-// escalation guard's N=10) is a deliberate, cheaper starting point for THIS guard: it is a
+// (fail-closed, matching this guard's own per-call error/timeout convention). Originally N=5 (not
+// the escalation guard's N=10), a deliberate, cheaper starting point for THIS guard: it is a
 // broader, lower-precision net by design (a final safety layer under 5 already-precise upstream
 // guards, not the sole/only defense the way the escalation classifier's regex-miss gap was), so
 // the cost/latency tradeoff favors a smaller N; R94's own measured pooled pass rate at N=5 is
-// disclosed honestly in IUX_r94.md rather than assumed, and can be raised in a future round if a
-// specific reproducible flaky-miss phrase is found (the same escalation-path playbook).
-const VOTE_COUNT = 5;
+// disclosed honestly in IUX_r94.md rather than assumed.
+//
+// RAISED TO N=7 (R106): the mission this round was to close policyClaimGuard.ts's 3rd enumeration
+// gap (anaphoric "zoiets"/"iets dergelijks"/bare mechanism-only confirmations with no discount noun
+// restated). Rather than build a second classifier (duplicating the identical call/claim-shape/
+// failure-mode for no structural benefit), this round sharpened SYSTEM_PROMPT to explicitly name
+// the anaphora/bare-mechanism-confirmation shape as a canonical YES example, proven on a clean
+// fixture tenant to catch the confirmed gap + 5 brand-new invented paraphrases, 0 misses (see the
+// header comment above for the full account, including a mid-round false alarm: an apparent
+// N=5-unanimous live miss turned out to be pre-existing data contamination on the shared testpad
+// fixture, not a classifier gap). VOTE_COUNT is raised 5 -> 7 anyway as a modest, disclosed-cost
+// hardening for this claim family specifically (still well under the escalation guard's N=10, this
+// guard remains a broader supplementary net behind 5 already-precise regex-first-pass guards, not
+// the sole defense): a single low-reasoning-effort Groq call is not literally deterministic in
+// general (this guard's own long-standing disclosure), so a small extra margin against a genuinely
+// rare split vote on this now-more-explicit claim shape is cheap insurance, not a response to a
+// measured deficiency. Cost/latency impact: 2 more parallel Groq calls per turn on this classifier
+// only (Promise.all, so wall-clock is still bounded by the slowest single call, not the call
+// count); measured p50 stayed well inside the <3s gate on the clean-fixture retest.
+const VOTE_COUNT = 7;
 
 export interface GroundingVoteResult extends GroundingClassifierResult {
   votes: Array<"yes" | "no" | "timeout" | "error" | "empty_or_unparseable">;
