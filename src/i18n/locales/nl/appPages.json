@@ -632,6 +632,8 @@
       "cancelButton": "Annuleren",
       "submitButton": "Agenda bijwerken",
       "submittingButton": "Bijwerken...",
+      "cannotRemoveServiceTitle": "Deze dienst kan hier niet worden verwijderd",
+      "cannotRemoveServiceDescription": "Een dienst hoort altijd bij precies één agenda. Wil je de dienst verplaatsen of verwijderen? Ga naar Instellingen > Diensten.",
       "deleteConfirm": {
         "title": "Weet je het zeker?",
         "description": "Deze actie kan niet ongedaan worden gemaakt. Dit verwijdert de agenda en alle bijbehorende gegevens permanent.",

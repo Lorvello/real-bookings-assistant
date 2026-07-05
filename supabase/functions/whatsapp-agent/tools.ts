@@ -3073,7 +3073,7 @@ export function createTools(
         if (reschedPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < reschedPolicy.cancellationDeadlineHours) {
           return {
             error: "te_laat_verzetten",
-            message: `Verzetten kan tot ${reschedPolicy.cancellationDeadlineHours} uur van tevoren. Voor deze afspraak is dat niet meer mogelijk.`,
+            message: `Verzetten kan tot ${formatHoursNL(reschedPolicy.cancellationDeadlineHours)} van tevoren. Voor deze afspraak is dat niet meer mogelijk.`,
           };
         }
 

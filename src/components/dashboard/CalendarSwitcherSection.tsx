@@ -87,7 +87,7 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
             </Button>
           </DropdownMenuTrigger>
           
-          <DropdownMenuContent className="w-64 bg-card border-border z-50" align="end">
+          <DropdownMenuContent className="w-80 bg-card border-border z-50" align="end">
             <DropdownMenuLabel className="text-foreground">{t('app.calSwitch.selectLabel', 'Select Calendar')}</DropdownMenuLabel>
             <p className="px-2 pb-1.5 text-xs leading-snug text-muted-foreground">
               {t('app.calSwitch.hint', 'Switching changes the bookings, availability and stats shown across the whole dashboard.')}
@@ -144,8 +144,19 @@ export function CalendarSwitcherSection({ isSidebarOpen }: CalendarSwitcherSecti
                           default calendar) used to crowd a flex-1 name span down to
                           a few illegible characters. The row now wraps (flex-wrap
                           above) so badges that don't fit next to the full name drop
-                          to their own line instead of squeezing it. */}
-                      <span className="max-w-full truncate font-medium text-foreground">{calendar.name}</span>
+                          to their own line instead of squeezing it.
+                          T2 R125-follow-up (CALSWITCH-ACTIVEROW-NAME-TRUNCATION):
+                          R104-2 fixed badge-crowding, but a genuinely long name (a
+                          real-world branch/practitioner name, e.g. "R1 Amsterdam
+                          Centrum Locatie") was STILL silently ellipsized by
+                          `truncate` even alone on its own line, because the row's
+                          available width (a 256px/w-64 dropdown minus the color dot
+                          + edit button) was narrower than many real names need.
+                          Fix: widen the dropdown (w-64->w-80) AND let the name wrap
+                          onto up to 2 lines (line-clamp-2) instead of single-line
+                          ellipsis, so the FULL name is legible for the common case
+                          and only an extreme outlier clips gracefully at 2 lines. */}
+                      <span className="max-w-full line-clamp-2 break-words font-medium text-foreground">{calendar.name}</span>
                       {calendar.is_default && (
                         <Badge variant="outline" className="shrink-0 text-xs border-border">{t('app.calSwitch.default', 'Default')}</Badge>
                       )}
