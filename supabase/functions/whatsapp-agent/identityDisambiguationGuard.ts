@@ -323,6 +323,138 @@ export function messageNamesPendingBookOwner(
   return containsWholeWord(String(rawMessage ?? ""), token);
 }
 
+// R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, live-reproduced with DB proof on the S6 testpad,
+// fresh fixture 31600001806, "Variation-E"): a SECOND real person on a shared/fresh phone can
+// silently steal an unconfirmed book_appointment preview from whoever actually started it, and
+// the booking commits under the SECOND person's name with ZERO verification ever shown, to
+// anyone. Precise mechanism (tools.ts's own nameChanged/namePreviewOnly + update_lead, see their
+// header comments): Person A previews under "Anna" (never confirms). Person B, same phone,
+// sends "Ja, echt boeken voor Bram" BEFORE Anna ever confirms; nameChanged correctly detects the
+// name conflict and re-previews under "Bram" instead of committing (R25's own fix, unchanged,
+// still exactly right for a genuine same-speaker correction) -- but this re-preview branch has
+// NEVER called crossIdentityBookRisk (it structurally can't: crossIdentityBookRisk needs
+// ctx.knownSelfName, which book_appointment's OWN commit gate already established as the correct
+// reference point, see its own header). The model then also calls update_lead({first_name:
+// "Bram"}) in that SAME turn (routine live behaviour whenever a name is bundled with other
+// content), which writes convContext.booking_name = "Bram" for the FIRST time this
+// conversation. On the VERY NEXT turn, index.ts computes knownName fresh from convContext BEFORE
+// this turn's own tools run, so ctx.knownSelfName is now "Bram" -- matching the pending preview's
+// OWN name (also "Bram", from the re-preview), so crossIdentityBookRisk("Bram", "Bram", ...)
+// sees NO mismatch at all and a bare "ja" commits silently. The mismatch that mattered (Bram vs
+// the ORIGINAL Anna) was never checked, because by the time any check ran, both sides of the
+// comparison had already been overwritten to agree with each other.
+//
+// ROOT CAUSE: nameChanged/namePreviewOnly only ever compares the incoming name against the
+// CURRENT (possibly already-hijacked) pendingBook.customer_name, which is simply "whatever this
+// same re-preview mechanism last wrote," not an independent fact about who genuinely started this
+// specific booking attempt. There was no signal at all for "who did this preview originally
+// belong to," so a later re-preview + update_lead pair could rewrite BOTH sides of the identity
+// comparison in the same turn, closing the gap crossIdentityBookRisk exists to open.
+//
+// FIX SHAPE: `pending_booking` gets its own `originator_name` field (tools.ts), stamped ONCE, only
+// at a booking's TRUE first preview (never a namePreviewOnly re-preview), mirroring how other
+// pending markers already store their own target/owner name independent of whatever the
+// conversation's shared knownSelfName later becomes (pending_book_verification/
+// pending_cancel_verification/pending_reschedule_verification all already do exactly this). This
+// function is consulted at the RE-PREVIEW point itself (before nameChanged is allowed to silently
+// swap the stored name), comparing the NEW candidate name against the ORIGINAL originator_name,
+// never against the current (possibly already-hijacked) pendingBook.customer_name.
+//
+// THE SAME-SPEAKER-CORRECTION VS DIFFERENT-SPEAKER-TAKEOVER DISCRIMINATOR: message CONTENT alone
+// cannot reliably distinguish "Nee wacht, Ana niet Anna" (a genuine typo-fix, same person) from
+// "Ja, echt boeken voor Bram" (a different person taking over) -- both change the stored name on
+// a re-preview turn, and this codebase's own established doctrine (identityDisambiguationGuard.ts
+// top-of-file comment; the whole R101-R109/R120 arc) is that a small model's or a hand-rolled
+// wording heuristic's BELIEF about "who is speaking" is never a safe transaction boundary. The one
+// signal that IS safe and already fully proven elsewhere in this exact file is whether THIS
+// SAME message is independently CONFIRM-SHAPED (AFFIRM_RE-equivalent, not NEGATE_RE-equivalent) --
+// the exact same "is this message trying to LOCK IN a decision" test hardConfirm/confirmBook/
+// confirmCancel already run before ANY commit anywhere in this codebase. A genuine same-speaker
+// typo/correction ("nee wacht, Ana niet Anna", "voor Ana ipv Anna", "moet Ana zijn") is a
+// CORRECTION, not a confirmation: it carries no independent claim of "yes, book this now," so it
+// stays completely frictionless (unchanged from today, mirrors nameChanged's existing behaviour
+// exactly). A message that is BOTH confirm-shaped AND restates a conflicting name ("Ja, echt
+// boeken voor Bram", "Klopt, maar dan voor Iris") is asserting two things at once: "lock this in"
+// AND "under this different name" -- structurally indistinguishable, by content alone, from a
+// genuine third party claiming somebody else's still-open preview, so it is treated exactly like
+// every other identity-conflict shape in this file: flagged for the SAME explicit verification,
+// never silently trusted. This is a conscious, honest tightening (the pre-existing R25 frictionless
+// "Klopt, maar dan voor Iris" single-person shape now also asks a verification question when the
+// new name conflicts with the ORIGINAL originator), justified because message content cannot
+// safely tell the two real-world cases apart and this codebase's standing rule is clarify over
+// guess, not because the two cases are expected to look different structurally.
+//
+// Deliberately reuses this file's own strict, non-fuzzy whole-word matching philosophy (no new
+// fuzzy logic): the confirm/negate test below is a minimal, INDEPENDENTLY-DUPLICATED subset of
+// index.ts's own AFFIRM_RE/NEGATE_RE (same convention as isRealName's own duplicated-on-purpose
+// comment at the top of this file), scoped ONLY to deciding "is this specific re-preview message
+// itself confirm-shaped," never used for any other commit decision.
+const REPREVIEW_AFFIRM_RE =
+  /(?<![\p{L}\p{N}])(ja|jaha|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|klopt|inderdaad|akkoord|echt|zeker weten|oui|si|sí|sì|sim|genau|klar)(?![\p{L}\p{N}])/iu;
+const REPREVIEW_NEGATE_RE =
+  /\b(nee|neen|no|niet|wacht|toch niet|verkeerd|fout|typo)\b/i;
+
+export function isConfirmShapedMessage(rawMessage: string | undefined | null): boolean {
+  const msg = String(rawMessage ?? "");
+  if (!msg.trim()) return false;
+  return REPREVIEW_AFFIRM_RE.test(msg) && !REPREVIEW_NEGATE_RE.test(msg);
+}
+
+// The core R121 predicate book_appointment's re-preview path consults. `originatorName` is
+// pending_booking's own NEW originator_name field (the name captured at this booking's TRUE
+// first preview, never overwritten by a later re-preview); falls back to null for any
+// in-flight pending_booking stored BEFORE this fix shipped (no originator_name field at all yet),
+// in which case this predicate is conservatively skipped by the caller (tools.ts), identical to
+// today's behaviour for that narrow transitional window, never a new false-positive on old data.
+// `newCandidateName` is the incoming args.customer_name this turn's nameChanged already detected
+// as conflicting with the CURRENT (possibly already-hijacked) pendingBook.customer_name.
+export function previewTakeoverRisk(
+  originatorName: string | null | undefined,
+  newCandidateName: string | null | undefined,
+  rawMessage: string | undefined | null,
+): boolean {
+  if (!isRealName(originatorName)) return false; // no originator on file yet (pre-fix data): skip, unchanged behaviour
+  if (!nameMismatch(newCandidateName, originatorName)) return false; // new name still agrees with the originator, not a takeover
+  return isConfirmShapedMessage(rawMessage);
+}
+
+// R121 (continued): the dedicated release predicate for the takeover-verification marker
+// previewTakeoverRisk's caller (tools.ts) writes. Deliberately its OWN function, not a reuse of
+// identityVerificationResolved: that function answers "is this REALLY <target>'s appointment"
+// (release = the reply names the SAME target the marker is protecting), which is backwards for
+// this marker's actual question ("do you genuinely want this changed FROM <originator> TO
+// <proposedName>"). A takeover verification is resolved one of two ways, both requiring the
+// SAME clean-affirm cleanliness bar (AFFIRM_RE/!NEGATE_RE/!ambiguousConfirm) every release in this
+// codebase already requires, applied by the caller before this function is even consulted:
+//   1. the customer explicitly reaffirms the NEW name ("ja, echt voor Bram", "klopt, Bram") --
+//      deliberate, repeated intent to change it, strong enough evidence to proceed with the change.
+//   2. the customer instead names the ORIGINATOR ("nee, gewoon voor Anna", "laat maar op Anna") --
+//      no takeover was actually intended, the original preview stands unchanged.
+// A bare, context-free "ja"/"klopt" with neither name present resolves NEITHER way (matches this
+// file's own R109 standing rule: a bare affirm with no new information can never release an
+// identity-conflict marker); the caller keeps re-asking, exactly like every other gate here.
+export function takeoverVerificationResolution(
+  originatorName: string | null | undefined,
+  proposedName: string | null | undefined,
+  rawMessage: string | undefined | null,
+): "confirmed_new" | "reverted_to_originator" | "unresolved" {
+  const msg = String(rawMessage ?? "");
+  const namesProposed = isRealName(proposedName) && (() => {
+    const token = firstNameToken(String(proposedName));
+    return !!token && token.length >= 2 && containsWholeWord(msg, token);
+  })();
+  const namesOriginator = isRealName(originatorName) && (() => {
+    const token = firstNameToken(String(originatorName));
+    return !!token && token.length >= 2 && containsWholeWord(msg, token);
+  })();
+  // Both mentioned (rare, e.g. "niet Bram maar Anna" said as a correction of the correction):
+  // never guess between two explicit signals in the same message, stay unresolved and re-ask.
+  if (namesProposed && namesOriginator) return "unresolved";
+  if (namesProposed) return "confirmed_new";
+  if (namesOriginator) return "reverted_to_originator";
+  return "unresolved";
+}
+
 // R109 (MARKER-RELEASE-HAS-NO-SPEAKER-IDENTITY-CHECK fix, closes the gap R107's own verify round
 // found in book_appointment and generalizes it to cancel/reschedule's pre-existing markers, which
 // share the identical release-gate shape and were never adversarially tested for this specific

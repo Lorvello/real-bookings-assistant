@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix } from "./identityDisambiguationGuard.ts";
+import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, takeoverVerificationResolution } from "./identityDisambiguationGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -1092,6 +1092,19 @@ export function createTools(
   // R40: same self-write-chain guard, mirrored for update_booking_name's own pending_rename
   // preview/commit dance (see the R36 comment above for the full reasoning).
   let lastSelfWrittenRenameAt: number | undefined;
+  // R121: same self-write-chain guard, mirrored for the NEW pending_book_takeover_verification
+  // marker. Live-reproduced (S6 testpad, phone 31600001811): index.ts's stall-retry mechanism
+  // (bookPreviewMissed) re-invokes book_appointment a SECOND time within the SAME HTTP turn when
+  // the first call's naam_verificatie_nodig result looks like a stall. Without this guard, the
+  // retry's own book_appointment call sees the marker THIS SAME closure JUST wrote moments ago as
+  // "a fresh marker from a prior turn," and takeoverVerificationResolution reads THIS SAME
+  // turn's raw message (which of course still names "Bram", the very message that triggered the
+  // marker) as a genuine NEW confirming reply, self-resolving "confirmed_new" in the same breath
+  // the question was first asked -- silently defeating the whole gate one call later in the exact
+  // same turn. Comparing pendingTakeoverVerification.at against this closure's own last-self-
+  // written stamp (not a wall-clock instant) makes this exact and immune to retry-timing, same
+  // pattern as lastSelfWrittenBookAt/lastSelfWrittenCancelAt/lastSelfWrittenRenameAt above.
+  let lastSelfWrittenTakeoverVerifyAt: number | undefined;
 
   const execute: ToolExecutor = async (name, args) => {
     switch (name) {
@@ -1406,7 +1419,7 @@ export function createTools(
           bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number } | undefined;
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number; originator_name?: string | null } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
           // R107: also drop any pending_book_verification marker here. It only ever answers "is
@@ -1414,8 +1427,9 @@ export function createTools(
           // committed (booking now exists) or abandoned/replaced (a new preview overwrites it), a
           // leftover marker from before has nothing left to verify and must not silently carry
           // forward onto an unrelated future preview (same stale-marker reasoning as R103's
-          // hasMultipleDistinctNamesStated fix for cancel/reschedule).
-          const { pending_booking: _drop, pending_book_verification: _dropV, ...rest } = bookCtx;
+          // hasMultipleDistinctNamesStated fix for cancel/reschedule). R121: same reasoning for
+          // pending_book_takeover_verification, its sibling marker.
+          const { pending_booking: _drop, pending_book_verification: _dropV, pending_book_takeover_verification: _dropTV3, ...rest } = bookCtx;
           await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
         };
         // R107: the SAME cross-identity verification marker shape as R102's
@@ -1424,6 +1438,16 @@ export function createTools(
         // can see it without a second query.
         const pendingBookVerification = bookCtx.pending_book_verification as
           { start_time?: string; customer_name?: string | null; at?: number } | undefined;
+        // R121: a SEPARATE marker from pending_book_verification above -- that marker's release
+        // question ("is this REALLY <target>'s appointment") is the wrong shape for a takeover
+        // attempt, whose actual question is "do you genuinely want this changed FROM <originator>
+        // TO <proposed name>" (see takeoverVerificationResolution's own header for why reusing
+        // identityVerificationResolved here would be backwards). 15-minute freshness TTL, same
+        // convention as every other pending_* marker in this file.
+        const pendingTakeoverVerification = bookCtx.pending_book_takeover_verification as
+          { start_time?: string; originator_name?: string | null; proposed_name?: string | null; at?: number } | undefined;
+        const pendingTakeoverVerificationFresh = !!pendingTakeoverVerification &&
+          (typeof pendingTakeoverVerification.at !== "number" || (Date.now() - pendingTakeoverVerification.at) < 15 * 60 * 1000);
         // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-NAME, sev-3): a name-correction stated on the SAME
         // turn as the confirmation ("Klopt, maar dan voor Iris" on a Dana preview) was silently
         // swallowed: the commit always sourced customer_name from the STORED pendingBook proposal
@@ -1444,6 +1468,26 @@ export function createTools(
         };
         const nameChanged = !!pendingBook?.start_time && isRealName(args.customer_name) && isRealName(pendingBook?.customer_name) &&
           String(args.customer_name).trim().toLowerCase() !== String(pendingBook?.customer_name).trim().toLowerCase();
+
+        // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, identityDisambiguationGuard.ts's
+        // previewTakeoverRisk has the full root-cause/design reasoning + live S6 repro): nameChanged
+        // above only ever compares the incoming name against pendingBook.customer_name, which is
+        // simply "whatever the last re-preview wrote," not an independent fact about who genuinely
+        // started THIS booking attempt. A second, different real person on a shared/fresh phone
+        // could send a confirm-shaped, name-restating message BEFORE the original person ever
+        // confirmed; nameChanged correctly re-previews under the new name, but the ORIGINAL name
+        // (the one genuine evidence of who started this) is silently discarded with no check at
+        // all, and a same-turn update_lead call then lets the very next bare "ja" commit clean
+        // (ctx.knownSelfName now agrees with the already-hijacked pendingBook.customer_name, so
+        // crossIdentityBookRisk never sees the mismatch that mattered). Fix: consult
+        // previewTakeoverRisk BEFORE letting nameChanged's re-preview silently swap the name,
+        // comparing the NEW candidate against pendingBook.originator_name (the name captured at
+        // this booking's TRUE first preview, stamped once below and never overwritten by a later
+        // re-preview) rather than against the current, possibly-already-hijacked stored name.
+        // Skips cleanly (false) when no originator_name is on file yet (an in-flight preview from
+        // before this fix shipped): conservative, byte-identical behaviour for that narrow
+        // transitional window, never a new false-positive on old data.
+        const takeoverRisk = nameChanged && previewTakeoverRisk(pendingBook?.originator_name, args.customer_name == null ? null : String(args.customer_name), ctx.userMessage);
 
         // COMMIT only when a proposal was previewed in a previous turn AND the customer
         // confirmed (server-detected ctx.confirmBook, or the model's confirmed flag). On
@@ -1895,6 +1939,142 @@ export function createTools(
         if (valErr) return { error: valErr.message };
         if (valid !== true) return { error: "niet_beschikbaar", message: "Dat tijdstip is niet beschikbaar." };
 
+        // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, continued): fires BEFORE the re-preview
+        // below is allowed to silently swap pending_booking's stored name. See previewTakeoverRisk
+        // (identityDisambiguationGuard.ts) + the takeoverRisk comment above for the full mechanism.
+        // Bound to originator_name (the TRUE first-preview name), never to the current, possibly-
+        // already-hijacked pendingBook.customer_name, so a chain of multiple takeover attempts can
+        // never each reset the reference point to their own prior hijack.
+        //
+        // A FRESH, still-bound marker from a PRIOR turn is checked FIRST and independent of
+        // whether takeoverRisk is true THIS turn: the resolving reply ("nee, gewoon voor Anna") is
+        // itself NEGATE-shaped, so nameChanged/takeoverRisk may well be false on the resolving
+        // turn (the model may not even resupply args.customer_name), and this must still be caught
+        // here rather than falling through to a fresh, unrelated preview.
+        // R121 (self-write-chain guard, see lastSelfWrittenTakeoverVerifyAt's own header comment):
+        // a marker THIS SAME closure/turn just wrote (matched by its own `at` stamp) is NEVER
+        // treated as a genuine prior-turn marker to resolve, exactly mirroring lastSelfWrittenBookAt's
+        // established pattern -- otherwise a same-turn stall-retry re-reads its own just-asked
+        // question and "resolves" it using the SAME original message that triggered it.
+        const takeoverVerificationIsSelfWritten = typeof pendingTakeoverVerification?.at === "number" &&
+          pendingTakeoverVerification.at === lastSelfWrittenTakeoverVerifyAt;
+        let takeoverJustConfirmed = false;
+        if (
+          pendingTakeoverVerificationFresh &&
+          !takeoverVerificationIsSelfWritten &&
+          pendingTakeoverVerification?.start_time === pendingBook?.start_time &&
+          pendingTakeoverVerification?.originator_name === pendingBook?.originator_name
+        ) {
+          const resolution = takeoverVerificationResolution(
+            pendingTakeoverVerification.originator_name,
+            pendingTakeoverVerification.proposed_name,
+            ctx.userMessage,
+          );
+          if (resolution === "reverted_to_originator") {
+            // No takeover intended after all: drop the marker, restore the ORIGINAL preview name
+            // (pendingBook.customer_name may still read as the proposed name from the blocked
+            // re-preview attempt below -- it never actually got there, since this gate returned
+            // before storing anything, so pendingBook.customer_name is still originator_name here;
+            // this is a pure no-op confirmation, re-preview under the unchanged, original values).
+            const { pending_book_takeover_verification: _dropTV, ...restTV } = bookCtx;
+            if (ctx.conversationId) {
+              await supabase.from("whatsapp_conversations").update({ context: restTV }).eq("id", ctx.conversationId);
+            }
+            bookCtx = restTV;
+            // Falls through to the normal re-preview path below with args.customer_name effectively
+            // ignored (nameChanged only reads args.customer_name, and this turn's reply names the
+            // ORIGINATOR, not a new candidate, so on the next book_appointment call -- driven by the
+            // model reading this result -- nameChanged will correctly see no conflict). Return a
+            // clean, deterministic confirmation instead of re-entering guard logic a second time.
+            return {
+              needs_confirmation: true,
+              start_time: pendingBook!.start_time,
+              proposal: { customer_name: pendingTakeoverVerification.originator_name },
+              message: `Duidelijk, de afspraak blijft op naam van ${pendingTakeoverVerification.originator_name}. Vat dienst + tijd + naam kort samen en vraag of het klopt.`,
+            };
+          }
+          if (resolution === "confirmed_new") {
+            // Deliberate, repeated intent to change it: drop the marker and let the normal
+            // re-preview path below proceed (nameChanged/namePreviewOnly will re-store
+            // pending_booking under the proposed name; originator_name stays preserved at the
+            // TRUE original, per the preview-write logic below, so a THIRD person's later attempt
+            // is still checked against the real originator, never against this now-confirmed hijack).
+            const { pending_book_takeover_verification: _dropTV2, ...restTV2 } = bookCtx;
+            bookCtx = restTV2;
+            takeoverJustConfirmed = true;
+          } else {
+            // Unresolved (bare affirm/negate with no name, or both names mentioned at once): keep
+            // re-asking, exactly like every other identity-conflict gate in this file. Re-stamp
+            // `at` so the 15-minute TTL keeps extending while the question is genuinely still live.
+            //
+            // R121 (THIRD-PARTY-CHIME-IN freshness fix, live-reproduced, S6 testpad phone
+            // 31600001818): a THIRD person naming yet ANOTHER candidate ("Ja, echt boeken voor
+            // Carlos" after the marker already asked about "Bram") is itself a fresh takeoverRisk
+            // this turn (nameChanged sees Carlos != Anna); without this, the stale marker's own
+            // proposed_name ("Bram") would be re-asked about instead of the customer's actual
+            // latest words ("Carlos"), a confusing but NOT unsafe text-staleness bug (pending_booking
+            // itself was never touched either way). Refresh proposed_name to the CURRENT turn's
+            // candidate whenever takeoverRisk is independently true this turn with a genuinely new
+            // name, so the question the customer sees always matches what they just said.
+            const effectiveProposedName = takeoverRisk && args.customer_name != null &&
+                String(args.customer_name).trim().toLowerCase() !== String(pendingTakeoverVerification.proposed_name ?? "").trim().toLowerCase()
+              ? String(args.customer_name)
+              : pendingTakeoverVerification.proposed_name;
+            const verifyAt = Date.now();
+            lastSelfWrittenTakeoverVerifyAt = verifyAt;
+            if (ctx.conversationId) {
+              await supabase.from("whatsapp_conversations").update({
+                context: { ...bookCtx, pending_book_takeover_verification: { ...pendingTakeoverVerification, proposed_name: effectiveProposedName, at: verifyAt } },
+              }).eq("id", ctx.conversationId);
+            }
+            return {
+              error: "naam_verificatie_nodig",
+              current_name: pendingTakeoverVerification.originator_name,
+              customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingTakeoverVerification.originator_name} (${nlWhen(String(pendingTakeoverVerification.start_time))}). Moet dit ECHT gewijzigd worden naar ${effectiveProposedName}, of blijft de afspraak op naam van ${pendingTakeoverVerification.originator_name}?`,
+              message:
+                `Nog geen duidelijk antwoord op de vraag of de afspraak (${nlWhen(String(pendingTakeoverVerification.start_time))}), nu op naam van ${pendingTakeoverVerification.originator_name}, ` +
+                `ECHT gewijzigd moet worden naar ${effectiveProposedName}. Vraag het EXPLICIET opnieuw en noem beide namen, wacht op een duidelijk antwoord.`,
+              guidance: "NOG NIETS gewijzigd of geboekt. Veiligheidscheck nog niet opgelost: stel de vraag opnieuw en wacht op een ondubbelzinnig antwoord.",
+            };
+          }
+        }
+        // takeoverJustConfirmed: the marker above was JUST resolved this exact turn via
+        // "confirmed_new" -- never re-ask the same question again in the same turn just because
+        // takeoverRisk (computed earlier, before resolution was known) is still structurally true.
+        if (takeoverRisk && !takeoverJustConfirmed) {
+          const verifyAt = Date.now();
+          lastSelfWrittenTakeoverVerifyAt = verifyAt;
+          if (ctx.conversationId) {
+            await supabase
+              .from("whatsapp_conversations")
+              .update({
+                context: {
+                  ...bookCtx,
+                  // Deliberately does NOT touch pending_booking itself: the original preview (still
+                  // under originator_name) stays exactly as it was, untouched and uncommittable,
+                  // until this verification is resolved one way or the other. Only a marker is
+                  // written, mirroring every other identity-conflict gate in this file.
+                  pending_book_takeover_verification: {
+                    start_time: pendingBook!.start_time,
+                    originator_name: pendingBook!.originator_name,
+                    proposed_name: args.customer_name,
+                    at: verifyAt,
+                  },
+                },
+              })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: pendingBook!.originator_name,
+            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.originator_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${String(args.customer_name)} in plaats van ${pendingBook!.originator_name}?`,
+            message:
+              `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.originator_name}. ` +
+              `De klant wil 'm nu op naam van ${String(args.customer_name)} zetten. Vraag EXPLICIET te bevestigen dat dit ECHT dezelfde afspraak is, nu voor ${String(args.customer_name)} in plaats van ${pendingBook!.originator_name}.`,
+            guidance: "NOG NIETS gewijzigd of geboekt. Veiligheidscheck nodig: stel de vraag en wacht op het antwoord.",
+          };
+        }
+
         // PREVIEW phase: every guard passed, but DON'T insert yet. Store the proposal and ask
         // the customer to confirm; the next affirm turn commits THIS exact proposal.
         // R25: this branch is ALSO where a namePreviewOnly turn lands (nameChanged blocked the
@@ -1963,6 +2143,20 @@ export function createTools(
           // genuine prior-turn proposal (see the committing gate above + ToolContext comment).
           const previewAt = Date.now();
           lastSelfWrittenBookAt = previewAt;
+          // R121: originator_name is stamped ONCE, at this booking's TRUE first preview, and
+          // PRESERVED across every later re-preview of the SAME proposal (namePreviewOnly's own
+          // name-correction re-preview, or any other re-preview that doesn't touch the name at
+          // all) -- never reset to whatever the current re-preview's name happens to be. This is
+          // what lets previewTakeoverRisk keep comparing against the ORIGINAL name even after a
+          // takeover attempt has already (correctly, per the gate above) been blocked once: the
+          // reference point never moves just because a hijack was attempted. Only resets to the
+          // new customerName when there is genuinely no pendingBook at all yet (a true first
+          // preview) or the previous preview was for a DIFFERENT service_type_id (the R96
+          // abandon-previous-preview path already clears bookCtx.pending_booking above in that
+          // case, so pendingBook is undefined here too).
+          const originatorName = isRealNameShared(pendingBook?.originator_name)
+            ? pendingBook!.originator_name
+            : (isRealNameShared(pendingBook?.customer_name) ? pendingBook!.customer_name : customerName);
           if (ctx.conversationId) {
             await supabase.from("whatsapp_conversations").update({
               context: {
@@ -1971,7 +2165,7 @@ export function createTools(
                 // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
                 // model having to resend them on the "ja" turn (same authoritative-from-server
                 // pattern as start_time / customer_name). null for an in_person booking.
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: previewAt },
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: previewAt, originator_name: originatorName },
               },
             }).eq("id", ctx.conversationId);
           }

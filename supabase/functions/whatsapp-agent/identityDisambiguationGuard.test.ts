@@ -13,10 +13,13 @@ import {
   extractStatedNameForBooking,
   hasMultipleDistinctNamesStated,
   identityVerificationResolved,
+  isConfirmShapedMessage,
   isRealName,
   mentionsOwnAppointmentClaim,
   messageNamesPendingBookOwner,
   nameSuffix,
+  previewTakeoverRisk,
+  takeoverVerificationResolution,
   type NamedCandidate,
 } from "./identityDisambiguationGuard.ts";
 
@@ -450,4 +453,77 @@ Deno.test("enforceVerificationGateDisclosure: uses the MOST RECENT naam_verifica
   ];
   const result = enforceVerificationGateDisclosure(nonSequitur, toolCalls);
   assertEquals(result.includes("Oude Eigenaar"), true);
+});
+
+// ── R121 previewTakeoverRisk / isConfirmShapedMessage / takeoverVerificationResolution ─────────
+// (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, live-reproduced with DB proof on the S6 testpad, fresh
+// fixture 31600001806, "Variation-E": Person A previews under "Anna", never confirms; Person B,
+// same phone, sends "Ja, echt boeken voor Bram" before Anna ever confirms; nameChanged re-previews
+// under "Bram" with ZERO identity check (crossIdentityBookRisk is never consulted on a re-preview);
+// a same-turn update_lead then establishes knownSelfName="Bram", so the next bare "ja" commits
+// clean under Bram with no verification ever shown to anyone.)
+
+Deno.test("isConfirmShapedMessage: the exact Variation-E exploit message is confirm-shaped", () => {
+  assertEquals(isConfirmShapedMessage("Ja, echt boeken voor Bram"), true);
+  assertEquals(isConfirmShapedMessage("Klopt, maar dan voor Iris"), true);
+});
+
+Deno.test("isConfirmShapedMessage: a genuine same-speaker typo correction is NOT confirm-shaped", () => {
+  assertEquals(isConfirmShapedMessage("Nee wacht, Ana niet Anna"), false);
+  assertEquals(isConfirmShapedMessage("nee, ik bedoel Ana"), false);
+});
+
+Deno.test("isConfirmShapedMessage: empty/whitespace-only message is not confirm-shaped", () => {
+  assertEquals(isConfirmShapedMessage(""), false);
+  assertEquals(isConfirmShapedMessage(null), false);
+  assertEquals(isConfirmShapedMessage(undefined), false);
+});
+
+Deno.test("previewTakeoverRisk: the exact Variation-E shape -> RISK (originator Anna, new candidate Bram, confirm-shaped message)", () => {
+  assertEquals(previewTakeoverRisk("Anna", "Bram", "Ja, echt boeken voor Bram"), true);
+});
+
+Deno.test("previewTakeoverRisk: a genuine same-speaker typo correction -> NO risk (not confirm-shaped)", () => {
+  assertEquals(previewTakeoverRisk("Anna", "Ana", "Nee wacht, Ana niet Anna"), false);
+});
+
+Deno.test("previewTakeoverRisk: no originator_name on file yet (pre-fix in-flight preview) -> NO risk, conservative skip", () => {
+  assertEquals(previewTakeoverRisk(null, "Bram", "Ja, echt boeken voor Bram"), false);
+  assertEquals(previewTakeoverRisk(undefined, "Bram", "Ja, echt boeken voor Bram"), false);
+});
+
+Deno.test("previewTakeoverRisk: new candidate name agrees with the originator (case/diacritic variant) -> NO risk", () => {
+  assertEquals(previewTakeoverRisk("Anna", "ANNA", "Ja, klopt, echt voor Anna"), false);
+});
+
+Deno.test("previewTakeoverRisk: new candidate has no real name (placeholder) -> NO risk", () => {
+  assertEquals(previewTakeoverRisk("Anna", "Privé", "Ja, boek maar zonder naam"), false);
+});
+
+Deno.test("previewTakeoverRisk: a non-confirm-shaped message with a genuinely different name is still NOT flagged (matches nameChanged's own existing frictionless-correction behaviour)", () => {
+  // A bare correction with no affirm word at all ("voor Ana ipv Anna") must stay frictionless,
+  // exactly like today's nameChanged/namePreviewOnly path.
+  assertEquals(previewTakeoverRisk("Anna", "Ana", "voor Ana ipv Anna"), false);
+});
+
+Deno.test("takeoverVerificationResolution: message names the PROPOSED new name -> confirmed_new", () => {
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "ja, echt voor Bram"), "confirmed_new");
+});
+
+Deno.test("takeoverVerificationResolution: message names the ORIGINATOR -> reverted_to_originator", () => {
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "nee, gewoon voor Anna"), "reverted_to_originator");
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "laat maar op Anna"), "reverted_to_originator");
+});
+
+Deno.test("takeoverVerificationResolution: bare affirm/negate with no name at all -> unresolved", () => {
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "ja"), "unresolved");
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "nee"), "unresolved");
+});
+
+Deno.test("takeoverVerificationResolution: BOTH names mentioned at once -> unresolved (never guess between two explicit signals)", () => {
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "niet Bram maar Anna"), "unresolved");
+});
+
+Deno.test("takeoverVerificationResolution: near-identical names never cross-match (Anne vs Anna, same strict matcher as the rest of this file)", () => {
+  assertEquals(takeoverVerificationResolution("Anna", "Bram", "ja voor Anne"), "unresolved");
 });
