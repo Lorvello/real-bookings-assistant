@@ -1070,7 +1070,7 @@ export function createTools(
   // slot "taken" by the customer's OWN just-made booking and tells them it's unavailable
   // (DB correct, reply contradicts it; the A2-WATCH redundant-call case). One commit per turn,
   // so this never blocks a legitimate booking.
-  let bookedThisTurn: { when: string; payment_url?: string } | null = null;
+  let bookedThisTurn: { when: string; payment_url?: string; price_changed?: boolean; new_price?: number; previous_price?: number } | null = null;
 
   // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2): the exact `at` epoch-ms stamp THIS closure itself
   // wrote the last time IT stored a pending_booking / pending_cancel preview (undefined until
@@ -1403,6 +1403,10 @@ export function createTools(
             already_booked: true,
             when: bookedThisTurn.when,
             ...(bookedThisTurn.payment_url ? { payment_required: true, payment_url: bookedThisTurn.payment_url } : {}),
+            // R130: carry the price-change disclosure through a same-turn redundant re-fire too,
+            // so a stall-retry that re-hits this idempotency echo can't accidentally drop the
+            // disclosure the FIRST call already computed for this exact commit.
+            ...(bookedThisTurn.price_changed ? { price_changed: true, new_price: bookedThisTurn.new_price, previous_price: bookedThisTurn.previous_price } : {}),
             message: "Deze afspraak is in deze beurt AL geboekt. Bevestig dat kort en vriendelijk; zeg NIET dat de tijd bezet of niet beschikbaar is en boek niet opnieuw.",
           };
         }
@@ -1419,7 +1423,7 @@ export function createTools(
           bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number; originator_name?: string | null } | undefined;
+          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number; originator_name?: string | null; preview_price?: number | null } | undefined;
         const clearPendingBook = async () => {
           if (!ctx.conversationId) return;
           // R107: also drop any pending_book_verification marker here. It only ever answers "is
@@ -2204,8 +2208,20 @@ export function createTools(
           }
           bookPreviewsThisTurn += 1;
           const { data: stRow } = await supabase
-            .from("service_types").select("name").eq("id", serviceId).maybeSingle();
+            .from("service_types").select("name, price").eq("id", serviceId).maybeSingle();
           const svcName = (stRow as { name?: string } | null)?.name ?? null;
+          // R130 (PRICE-INTEGRITY fix): snapshot the price shown at PREVIEW time so the commit
+          // turn can detect a genuine change (see the price-disclosure block right before the
+          // insert, below). Never itself written to the bookings row -- that always uses a FRESH
+          // commit-time read (the same "re-validate at commit, don't trust stale preview data"
+          // principle R129 already established for duration/availability), this is only the
+          // reference point the disclosure check compares against. null when the service has no
+          // price configured (kept null-safe throughout; never coerced to 0).
+          const previewPrice = typeof (stRow as { price?: unknown } | null)?.price === "number"
+            ? (stRow as { price?: number }).price
+            : (typeof (stRow as { price?: unknown } | null)?.price === "string" && (stRow as { price?: string }).price !== ""
+              ? Number((stRow as { price?: string }).price)
+              : null);
           // R36: stamp + remember it as OUR OWN write (lastSelfWrittenBookAt), so a later call
           // within THIS SAME closure/turn that reads this exact row back can never treat it as a
           // genuine prior-turn proposal (see the committing gate above + ToolContext comment).
@@ -2233,7 +2249,7 @@ export function createTools(
                 // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
                 // model having to resend them on the "ja" turn (same authoritative-from-server
                 // pattern as start_time / customer_name). null for an in_person booking.
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: previewAt, originator_name: originatorName },
+                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: previewAt, originator_name: originatorName, preview_price: previewPrice },
               },
             }).eq("id", ctx.conversationId);
           }
@@ -2332,6 +2348,38 @@ export function createTools(
           };
         }
 
+        // R130 (PRICE-INTEGRITY fix, R128's finding): `bookings` had NO price/total-amount
+        // snapshot at all (total_price/total_amount_cents existed as columns but were never
+        // populated for a WhatsApp booking), and whatsapp-payment-handler read
+        // service_types.price LIVE at charge time, fully decoupled from whatever price was
+        // quoted+confirmed in the conversation. Fix: read the CURRENT service_types.price HERE,
+        // at COMMIT time (never trust the preview-time value, same "re-validate at commit"
+        // principle R129 already established for duration/availability -- a preview is a proposal,
+        // the commit is the authoritative moment), and snapshot it onto the booking row below.
+        // This intentionally means a price that changed mid-flow is charged/booked at the price
+        // AT THE MOMENT THE CUSTOMER ACTUALLY CONFIRMED, not a stale preview-time figure -- but
+        // that change must be genuinely DISCLOSED, never silent (see priceChanged below, and the
+        // reply-honesty wiring in deterministicConfirmation/index.ts). On a fresh single-turn
+        // preview-that-immediately-commits-nothing path this still runs (committing implies a
+        // pendingBook exists), so this read only ever happens once per real commit, no added cost
+        // on the common non-committing preview turn.
+        const { data: commitSvcRow } = await supabase
+          .from("service_types").select("price").eq("id", serviceId).maybeSingle();
+        const commitPriceRaw = (commitSvcRow as { price?: unknown } | null)?.price;
+        const commitPrice = typeof commitPriceRaw === "number"
+          ? commitPriceRaw
+          : (typeof commitPriceRaw === "string" && commitPriceRaw !== "" ? Number(commitPriceRaw) : null);
+        // Compare against the price that was actually SHOWN to the customer at preview time
+        // (pendingBook.preview_price, stamped above). Only a genuine, real numeric difference
+        // counts; a service with no price configured on either side (null/NaN) is never treated
+        // as "changed" (nothing was ever quoted, so there is nothing to disclose). Rounds to cents
+        // to avoid a false "changed" from floating-point noise on the same underlying value.
+        const previewPriceForCompare = pendingBook?.preview_price;
+        const priceChanged =
+          typeof commitPrice === "number" && !Number.isNaN(commitPrice) &&
+          typeof previewPriceForCompare === "number" && !Number.isNaN(previewPriceForCompare) &&
+          Math.round(commitPrice * 100) !== Math.round(previewPriceForCompare * 100);
+
         // Pay-and-book reserves the slot as pending until payment; a normal booking
         // is confirmed immediately. A pending booking still occupies the slot
         // (availability + bookings_no_overlap count status IN confirmed,pending).
@@ -2349,6 +2397,14 @@ export function createTools(
           // detected locale. Defaults to 'nl' when unknown (matches the RPC's null->nl norm).
           customer_locale: (committing ? pendingBook?.customer_locale : undefined) ?? ctx.customerLocale ?? "nl",
         };
+        // R130: snapshot the COMMIT-TIME price onto the row (never the stale preview price),
+        // so the dashboard/analytics/payment-handler always read what was ACTUALLY charged/
+        // confirmed, not a live re-read that could have moved since. Only set when a real numeric
+        // price exists (never coerced to 0), matching every other optional-snapshot field's
+        // null-safe convention in this insert (customer_country/customer_vat_id above).
+        if (typeof commitPrice === "number" && !Number.isNaN(commitPrice)) {
+          insertRow.total_price = commitPrice;
+        }
         // X3b-2: persist the customer billing country + optional EU VAT-ID (X1 columns) onto the
         // booking row, so whatsapp-payment-handler reads them off the row at charge time to drive
         // the Stripe Tax cross-border / OSS / reverse-charge calc (X3b-1). Only set when present:
@@ -2382,8 +2438,31 @@ export function createTools(
         if (!paymentRequired) {
           await clearPendingBook();
           const whenNL = nlWhen(booking.start_time);
-          bookedThisTurn = { when: whenNL };
-          return { ok: true, booking_id: booking.id, start_time: booking.start_time, when: whenNL };
+          // R130: surface the price-change disclosure fields on the result so
+          // deterministicConfirmation (index.ts) can template an honest reply that tells the
+          // customer the price changed, rather than silently confirming at a different price
+          // than what the preview showed. Only present when priceChanged is genuinely true
+          // (the common, unchanged-price case adds no new fields, byte-identical result shape).
+          bookedThisTurn = {
+            when: whenNL,
+            ...(priceChanged ? { price_changed: true, new_price: commitPrice!, previous_price: previewPriceForCompare! } : {}),
+          };
+          return {
+            ok: true,
+            booking_id: booking.id,
+            start_time: booking.start_time,
+            when: whenNL,
+            ...(priceChanged
+              ? {
+                price_changed: true,
+                new_price: commitPrice,
+                previous_price: previewPriceForCompare,
+                message:
+                  `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${previewPriceForCompare}, is nu €${commitPrice}). ` +
+                  "De afspraak is geboekt tegen de HUIDIGE prijs. Vermeld dit EXPLICIET en eerlijk aan de klant in je bevestiging (bv. 'Let op: de prijs is inmiddels gewijzigd naar €X, ...'); verzwijg dit nooit.",
+              }
+              : {}),
+          };
         }
 
         // Pay-and-book: mint a hosted Stripe payment link tied to THIS booking via
@@ -2422,7 +2501,15 @@ export function createTools(
         }
         await clearPendingBook();
         const whenPayNL = nlWhen(booking.start_time);
-        bookedThisTurn = { when: whenPayNL, payment_url: payUrl };
+        // R130: same price-change disclosure as the non-payment path above. Especially relevant
+        // here since whatsapp-payment-handler now sources the CHARGE amount from this booking's
+        // own total_price snapshot (never a second live re-read), so this reply is the customer's
+        // only chance to see the price changed before they pay via the link.
+        bookedThisTurn = {
+          when: whenPayNL,
+          payment_url: payUrl,
+          ...(priceChanged ? { price_changed: true, new_price: commitPrice!, previous_price: previewPriceForCompare! } : {}),
+        };
         return {
           ok: true,
           booking_id: booking.id,
@@ -2430,6 +2517,16 @@ export function createTools(
           when: whenPayNL,
           payment_required: true,
           payment_url: payUrl,
+          ...(priceChanged
+            ? {
+              price_changed: true,
+              new_price: commitPrice,
+              previous_price: previewPriceForCompare,
+              message:
+                `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${previewPriceForCompare}, is nu €${commitPrice}). ` +
+                "De betaallink is voor de HUIDIGE prijs. Vermeld dit EXPLICIET en eerlijk aan de klant voordat je de betaallink deelt; verzwijg dit nooit.",
+            }
+            : {}),
         };
       }
 

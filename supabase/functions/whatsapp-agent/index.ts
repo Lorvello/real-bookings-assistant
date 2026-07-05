@@ -273,17 +273,36 @@ function deterministicConfirmation(
     const bookName = typeof book.customer_name === "string" && book.customer_name.trim() ? book.customer_name.trim() : null;
     const selfMatches = !bookName || (typeof knownSelfName === "string" && knownSelfName.trim() &&
       knownSelfName.trim().toLowerCase() === bookName.toLowerCase());
+    // R130 (PRICE-INTEGRITY fix): book_appointment's own commit re-reads service_types.price
+    // FRESH at commit time (never the stale preview-time value) and snapshots it onto the
+    // booking row; when that commit-time price genuinely differs from what the preview showed
+    // the customer, tools.ts sets price_changed:true + new_price/previous_price on the result.
+    // Mirrors the SAME "deterministic reply-honesty over free model prose" discipline this
+    // codebase already applies to identity disclosure (R102/R103's customer_name-in-reply,
+    // enforceAppointmentNameDisclosure) -- a price change is at least as safety-relevant as a
+    // name mismatch, and prompt-only instructions have already proven unreliable for this class
+    // of "must always disclose X" requirement at this model's scale, so this is templated here
+    // rather than left to the model to remember to mention. Prefixed onto EVERY branch below
+    // (payment-link, cross-identity, and the common clean confirm) so the disclosure can never
+    // be silently dropped by whichever branch happens to also apply this turn.
+    const priceNote = book.price_changed === true && typeof book.new_price === "number" && typeof book.previous_price === "number"
+      ? (en
+        ? `Note: the price for this service has changed since the earlier preview (was €${book.previous_price}, now €${book.new_price}); you've been booked at the CURRENT price. `
+        : `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${book.previous_price}, is nu €${book.new_price}); je bent geboekt tegen de HUIDIGE prijs. `)
+      : "";
     if (book.payment_url) {
       return en
-        ? `Your spot is reserved for ${bookWhen}. Please complete the payment here to confirm: ${book.payment_url}`
-        : `Je plek is gereserveerd voor ${bookWhen}. Rond de betaling af via deze link om te bevestigen: ${book.payment_url}`;
+        ? `${priceNote}Your spot is reserved for ${bookWhen}. Please complete the payment here to confirm: ${book.payment_url}`
+        : `${priceNote}Je plek is gereserveerd voor ${bookWhen}. Rond de betaling af via deze link om te bevestigen: ${book.payment_url}`;
     }
     if (bookName && !selfMatches) {
       return en
-        ? `That appointment for ${bookWhen} is already booked, under the name ${bookName}. 🎉`
-        : `Die afspraak voor ${bookWhen} staat al geboekt, op naam van ${bookName}. 🎉`;
+        ? `${priceNote}That appointment for ${bookWhen} is already booked, under the name ${bookName}. 🎉`
+        : `${priceNote}Die afspraak voor ${bookWhen} staat al geboekt, op naam van ${bookName}. 🎉`;
     }
-    return en ? `Done! You're booked for ${bookWhen}. 🎉` : `Gelukt! Je staat genoteerd voor ${bookWhen}. 🎉`;
+    return en
+      ? `${priceNote}Done! You're booked for ${bookWhen}. 🎉`
+      : `${priceNote}Gelukt! Je staat genoteerd voor ${bookWhen}. 🎉`;
   }
   const resched = okResult("reschedule_appointment");
   if (resched?.rescheduled?.to) {

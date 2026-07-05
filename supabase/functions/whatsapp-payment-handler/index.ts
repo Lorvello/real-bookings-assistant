@@ -97,10 +97,21 @@ serve(async (req) => {
     // computation) + reporting columns, never the destination account or platform fee.
     let bookingCustomerCountry: string | null = null;
     let bookingCustomerVatId: string | null = null;
+    // R130 (PRICE-INTEGRITY fix): the price actually charged must match what was quoted and
+    // confirmed in the WhatsApp conversation, not a live re-read of service_types.price that may
+    // have moved since (an owner raising/lowering a price between confirm and charge previously
+    // silently charged the NEW price with zero disclosure -- see tools.ts's book_appointment
+    // commit, which now snapshots the CURRENT price onto bookings.total_price at the moment the
+    // customer actually confirmed, and discloses any change from the preview). null when the
+    // booking predates this fix (no snapshot was ever written) or the service has no price
+    // configured; the amount calc below falls back to the live service_types.price ONLY in that
+    // narrow legacy/unconfigured case, never as the default path for a booking created after this
+    // fix shipped.
+    let bookingTotalPrice: number | null = null;
     if (bookingId) {
       const { data: bk } = await supabaseClient
         .from('bookings')
-        .select('calendar_id, customer_country, customer_vat_id')
+        .select('calendar_id, customer_country, customer_vat_id, total_price')
         .eq('id', bookingId)
         .maybeSingle();
       if (!bk || bk.calendar_id !== conversation.calendar_id) {
@@ -112,6 +123,9 @@ serve(async (req) => {
       bookingCustomerVatId = typeof bk.customer_vat_id === 'string' && bk.customer_vat_id.trim().length > 0
         ? bk.customer_vat_id.trim()
         : null;
+      bookingTotalPrice = typeof bk.total_price === 'number'
+        ? bk.total_price
+        : (typeof bk.total_price === 'string' && bk.total_price !== '' ? Number(bk.total_price) : null);
     }
 
     // Get payment settings for this calendar
@@ -177,6 +191,19 @@ serve(async (req) => {
     }
     logStep("Service type found", { serviceName: serviceType.name, price: serviceType.price });
 
+    // R130 (PRICE-INTEGRITY fix): the AUTHORITATIVE price for this charge is the booking's own
+    // total_price SNAPSHOT (what was actually confirmed/disclosed in the conversation at commit
+    // time), never a fresh live re-read of service_types.price -- a price the owner changes AFTER
+    // the customer confirmed must not silently change what gets charged. Falls back to the live
+    // service price ONLY when no snapshot exists (a booking created before this fix shipped, or a
+    // legacy conversation-only flow with no bookingId at all), so this never breaks pre-existing
+    // pending pay-and-book bookings mid-flight; every booking created going forward always has a
+    // real snapshot, so this fallback is a one-time transitional safety net, not the steady state.
+    const chargePrice = typeof bookingTotalPrice === 'number' && !Number.isNaN(bookingTotalPrice)
+      ? bookingTotalPrice
+      : serviceType.price;
+    logStep("Charge price resolved", { chargePrice, fromSnapshot: bookingTotalPrice != null, liveServicePrice: serviceType.price });
+
     // Get the calendar owner for Stripe account lookup
     const { data: calendar } = await supabaseClient
       .from("calendars")
@@ -227,7 +254,8 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Calculate payment amount based on type
-    let amountCents = Math.round(serviceType.price * 100);
+    // R130: use the booking's snapshot price (chargePrice), not a live serviceType.price re-read.
+    let amountCents = Math.round(chargePrice * 100);
 
     // Tax (mirror create-booking-payment so the WhatsApp payment matches the web
     // payment; previously the WhatsApp path charged the untaxed price, an
@@ -247,11 +275,11 @@ serve(async (req) => {
       const taxRate = serviceType.applicable_tax_rate / 100;
       if (serviceType.tax_behavior === 'inclusive') {
         // Tax is already inside the price; report only the tax portion of the gross.
-        taxAmountCents = Math.round((serviceType.price * taxRate / (1 + taxRate)) * 100);
+        taxAmountCents = Math.round((chargePrice * taxRate / (1 + taxRate)) * 100);
       } else {
         // Tax is exclusive: add it on top and report the added VAT.
-        taxAmountCents = Math.round(serviceType.price * taxRate * 100);
-        amountCents = Math.round(serviceType.price * 100) + taxAmountCents;
+        taxAmountCents = Math.round(chargePrice * taxRate * 100);
+        amountCents = Math.round(chargePrice * 100) + taxAmountCents;
       }
       logStep("Tax applied", { taxRate: serviceType.applicable_tax_rate, behavior: serviceType.tax_behavior, amountCents, taxAmountCents });
     }
@@ -307,7 +335,8 @@ serve(async (req) => {
 
       persistedCustomerCountry = bookingCustomerCountry;
       const taxBehavior: 'inclusive' | 'exclusive' = serviceType.tax_behavior === 'inclusive' ? 'inclusive' : 'exclusive';
-      const lineAmountCents = Math.round(serviceType.price * 100);
+      // R130: chargePrice (the booking snapshot), not a live serviceType.price re-read.
+      const lineAmountCents = Math.round(chargePrice * 100);
 
       try {
         const calc = await calculateTax({
