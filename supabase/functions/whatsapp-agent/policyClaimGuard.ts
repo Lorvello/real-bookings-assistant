@@ -98,6 +98,50 @@ export const NEGATED_POLICY_RE = new RegExp(
   "iu",
 );
 
+// R64-verify residual (S6 §6 re-derivation): a reply can dodge BOTH the mechanism-detail check AND the
+// premise-confirm check by never restating a discount word at all, instead referring back to the
+// customer's own fabricated scheme with a bare PRONOUN/ANAPHORA ("die regeling", "dat programma", "die
+// deal") and then framing it as a real thing with describable details ("voor de details van die
+// regeling", "hoe die regeling precies werkt", "zij kunnen je uitleggen hoe het werkt"). This is the
+// same underlying confirmed-false-premise failure as PREMISE_CONFIRM_RE, just phrased without a
+// re-used discount noun, so HAS_DISCOUNT_WORD_RE never engages. It is only meaningful in context: an
+// anaphoric "die regeling" is only a fabrication-confirmation if the CUSTOMER's own turn is what
+// introduced a discount/loyalty word for "die/dat" to refer back to (otherwise "die regeling" could
+// mean the cancellation policy, the booking flow, or anything else discussed). So this check is
+// deliberately gated on the customer's message, unlike every other check in this module.
+const ANAPHORIC_SCHEME_RE = new RegExp(
+  `${B}(die|dat|that|this)${A}[^.!?,;:]{0,4}${B}(regeling|programma|scheme|deal|actie)${A}`,
+  "iu",
+);
+// "describable" framing: the reply treats the anaphoric scheme as a real thing with details/mechanics
+// to hand over, not a flat denial of its existence.
+const DESCRIBABLE_FRAMING_RE = new RegExp(
+  [
+    `${B}(details?|specifics?|voorwaarden)${A}[^.!?,;:]{0,20}${B}van${A}`,
+    `${B}hoe${A}[^.!?,;:]{0,20}${B}(werkt|werkte|precies\\s+werkt)${A}`,
+    `${B}(uitleggen|explain)${A}[^.!?,;:]{0,20}${B}(hoe|werkt)${A}`,
+  ].join("|"),
+  "iu",
+);
+// The customer can introduce a fabricated scheme either with an explicit discount/loyalty NOUN
+// ("korting", "spaaractie") or by describing the MECHANISM without ever naming it ("mijn zus kreeg een
+// gratis behandeling na haar 10e bezoek" - no "korting"/"actie" word at all, but unmistakably a
+// discount/loyalty scheme). MECHANISM_DETAIL_RE already recognises exactly that shape (visit-tiers,
+// stamp-card "elfde gratis", percentage, fixed euro-off), so reuse it here instead of a second bespoke
+// pattern: if the customer's turn matches either, "die/dat regeling" in the reply is unambiguously
+// pointing back at a fabricated discount/loyalty scheme, not the cancellation policy or booking flow.
+export function customerIntroducedDiscountWord(userMessage?: string | null): boolean {
+  if (!userMessage) return false;
+  return HAS_DISCOUNT_WORD_RE.test(userMessage) || MECHANISM_DETAIL_RE.test(userMessage);
+}
+export function looksLikeAnaphoricPolicyConfirmation(reply: string, userMessage?: string | null): boolean {
+  if (!customerIntroducedDiscountWord(userMessage)) return false;
+  if (!ANAPHORIC_SCHEME_RE.test(reply)) return false;
+  if (!DESCRIBABLE_FRAMING_RE.test(reply)) return false;
+  if (NEGATED_POLICY_RE.test(reply)) return false; // "die regeling bestaat niet" stays untouched
+  return true;
+}
+
 // Split into clauses on sentence AND clause boundaries (.!?,;: followed by whitespace) so negation
 // scope stays local to the clause it actually negates (see comment above).
 function splitClauses(reply: string): string[] {
@@ -111,8 +155,13 @@ function splitClauses(reply: string): string[] {
 // ("dat klopt" / "goede vraag") ANYWHERE in the reply while the reply overall still mentions a
 // discount word (the confirmation and the discount word are often in adjacent clauses/sentences, e.g.
 // "Ja, dat klopt. Bij Lorvello bieden we soms een korting..."), unless that premise-confirmation is
-// itself clearly followed by an outright negation of the same discount claim.
-export function looksLikePolicyHallucination(reply: string): boolean {
+// itself clearly followed by an outright negation of the same discount claim, OR (R64-verify residual)
+// the reply refers back to the customer's OWN fabricated scheme with a bare anaphora ("die regeling",
+// "hoe die regeling werkt") while never restating a discount word itself, which would otherwise dodge
+// both checks above (see looksLikeAnaphoricPolicyConfirmation). `userMessage` is optional and ONLY
+// used for that third, context-dependent check; the first two checks are reply-only, unchanged.
+export function looksLikePolicyHallucination(reply: string, userMessage?: string | null): boolean {
+  if (looksLikeAnaphoricPolicyConfirmation(reply, userMessage)) return true;
   if (!HAS_DISCOUNT_WORD_RE.test(reply)) return false;
   // 1) Per-clause mechanism check: a fabricated mechanism detail not locally negated in its own clause.
   for (const clause of splitClauses(reply)) {
@@ -141,14 +190,19 @@ export function noPolicyHallucinationReply(customerLanguage: string | null): str
 
 // THE guarantee (narrow, defense-in-depth layer under the prompt-level reinforcement): on a
 // model-prose turn, if the reply asserts a concrete fabricated discount/loyalty mechanism (or confirms
-// a customer's fabricated discount premise) and is not a clear negation/refusal, REWRITE it to the
-// honest no-guessing reply. No-op on the common correct "we don't have discounts" answer and on any
-// reply that does not mention a discount/loyalty word at all.
+// a customer's fabricated discount premise, including the bare-anaphora "die regeling" dodge) and is
+// not a clear negation/refusal, REWRITE it to the honest no-guessing reply. No-op on the common correct
+// "we don't have discounts" answer and on any reply that does not mention a discount/loyalty word at
+// all (unless the anaphoric-confirmation check fires off the customer's own turn). `userMessage` is
+// optional (the customer's raw current-turn text, same convention as enforcePriceClaim's userMessage
+// param) and only widens detection; omitting it only disables the anaphora check, never narrows the
+// other two.
 export function enforceNoPolicyHallucination(
   replyText: string,
   customerLanguage: string | null,
+  userMessage?: string | null,
 ): string {
-  if (!looksLikePolicyHallucination(replyText)) return replyText;
+  if (!looksLikePolicyHallucination(replyText, userMessage)) return replyText;
   console.warn(
     `policy-claim-guard: rewrote a fabricated discount/loyalty policy claim:`,
     JSON.stringify(replyText),

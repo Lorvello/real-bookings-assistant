@@ -1946,7 +1946,9 @@ Deno.serve(async (req) => {
         // discount premise as true, is categorically false. Narrow, high-confidence pattern match
         // (defense-in-depth under the prompt-level "never invent a discount mechanism" reinforcement);
         // see policyClaimGuard.ts header for why a narrower guard was chosen over a broad classifier.
-        replyText = enforceNoPolicyHallucination(replyText, customerLanguage);
+        // userMessage (R64-verify residual close) unlocks the anaphoric "die regeling" dodge check;
+        // see looksLikeAnaphoricPolicyConfirmation in policyClaimGuard.ts.
+        replyText = enforceNoPolicyHallucination(replyText, customerLanguage, String(message));
         // P12-FABRICATED-OWNER-ESCALATION (IUX R62-verify/R64): no owner-notify/escalate/human-handoff
         // tool exists anywhere in tools.ts, so ANY claim that the agent contacted, is contacting, or
         // received a response from a human owner is categorically false (unlike the policy guard above,

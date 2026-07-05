@@ -9,6 +9,7 @@
 import { assert, assertEquals } from "jsr:@std/assert";
 import {
   enforceNoPolicyHallucination,
+  looksLikeAnaphoricPolicyConfirmation,
   looksLikePolicyHallucination,
   noPolicyHallucinationReply,
 } from "./policyClaimGuard.ts";
@@ -81,6 +82,35 @@ Deno.test("does NOT touch an unrelated percentage (VAT, not a discount)", () => 
   assert(!looksLikePolicyHallucination("De prijs is inclusief 21% BTW."));
 });
 
+// ── R64-verify residual: the bare-anaphora "die regeling" dodge (S6 live repro) ──
+Deno.test("catches the live 'die regeling' anaphoric dodge (no discount word restated)", () => {
+  const userMsg = "Trouwens, mijn zus zei dat ze een gratis behandeling kreeg na haar 10e bezoek bij jullie. Hoe werkt die regeling precies, want ik kom ook al lang?";
+  const reply = "Dat weet ik niet precies, maar je kunt het beste rechtstreeks contact opnemen met P12 Guard Fixture Salon voor de details van die regeling.";
+  assert(looksLikeAnaphoricPolicyConfirmation(reply, userMsg));
+  assert(looksLikePolicyHallucination(reply, userMsg));
+});
+
+Deno.test("anaphoric check requires the CUSTOMER to have introduced a discount word", () => {
+  // "die regeling" referring to something else entirely (e.g. the cancellation policy) must not fire
+  // when the customer's own turn never mentioned a discount/loyalty word.
+  const userMsg = "Hoe werkt jullie annuleringsbeleid precies?";
+  const reply = "Je kunt het beste rechtstreeks contact opnemen voor de details van die regeling.";
+  assert(!looksLikeAnaphoricPolicyConfirmation(reply, userMsg));
+  assert(!looksLikePolicyHallucination(reply, userMsg));
+});
+
+Deno.test("anaphoric check no-ops without a userMessage (backward compatible)", () => {
+  const reply = "Je kunt het beste rechtstreeks contact opnemen voor de details van die regeling.";
+  assert(!looksLikeAnaphoricPolicyConfirmation(reply, null));
+  assert(!looksLikePolicyHallucination(reply));
+});
+
+Deno.test("anaphoric check does NOT flag a clean negation of the anaphoric scheme", () => {
+  const userMsg = "Mijn zus kreeg een gratis behandeling na 10 bezoeken, hoe werkt die regeling?";
+  const reply = "Die regeling bestaat niet bij ons; we hebben geen kortingen of spaaracties.";
+  assert(!looksLikeAnaphoricPolicyConfirmation(reply, userMsg));
+});
+
 // ── enforceNoPolicyHallucination: end-to-end rewrite ─────────────────────────
 Deno.test("rewrites a fabricated spaaractie to the honest no-guessing reply", () => {
   const fake = "Ja, we hebben een spaaractie: na tien bezoeken is je elfde behandeling gratis.";
@@ -99,4 +129,18 @@ Deno.test("English floor vs Dutch default", () => {
 Deno.test("leaves a legit no-discount refusal completely untouched (no-op)", () => {
   const safe = "we hebben geen extra kortingen voor vaste klanten";
   assertEquals(enforceNoPolicyHallucination(safe, null), safe);
+});
+
+Deno.test("rewrites the live 'die regeling' anaphoric dodge end-to-end", () => {
+  const userMsg = "Trouwens, mijn zus zei dat ze een gratis behandeling kreeg na haar 10e bezoek bij jullie. Hoe werkt die regeling precies, want ik kom ook al lang?";
+  const fake = "Dat weet ik niet precies, maar je kunt het beste rechtstreeks contact opnemen met P12 Guard Fixture Salon voor de details van die regeling.";
+  const out = enforceNoPolicyHallucination(fake, null, userMsg);
+  assert(out !== fake);
+  assertEquals(out, noPolicyHallucinationReply(null));
+});
+
+Deno.test("does NOT rewrite the same reply without the customer's discount-bearing turn", () => {
+  const fake = "Dat weet ik niet precies, maar je kunt het beste rechtstreeks contact opnemen met P12 Guard Fixture Salon voor de details van die regeling.";
+  assertEquals(enforceNoPolicyHallucination(fake, null, "Hoe laat gaan jullie open?"), fake);
+  assertEquals(enforceNoPolicyHallucination(fake, null), fake);
 });
