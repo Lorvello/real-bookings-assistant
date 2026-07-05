@@ -414,3 +414,89 @@ export function mentionsAnyServiceName(currentMessage: string, allServiceNames: 
 
 export const BEVESTIG_TERUGKERENDE_DIENST_MESSAGE = (lastService: string) =>
   `Dit is een terugkerende klant met een eerdere dienst "${lastService}", maar de klant noemde in dit gesprek zelf nog GEEN dienst. Roep get_available_slots of book_appointment NIET aan. Vraag EERST, als je ENIGE eerstvolgende bericht, expliciet of controleerbaar of je van dezelfde dienst mag uitgaan (bijvoorbeeld: "Ik ga uit van dezelfde dienst als de vorige keer, ${lastService}, klopt dat?"). Vraag in DIE beurt NOG NIET naar dag/tijd en neem ook geen dag (zoals "vandaag" of "morgen") stilzwijgend aan; dat komt pas nadat de klant de dienst heeft bevestigd of gecorrigeerd. Zodra de klant bevestigt of een (andere) dienst noemt, mag je gewoon doorgaan.`;
+
+// R113 (RETURNING-SERVICE-TOOL-CALL-GATE-ONLY fix, closes the gap R111's own verify round found).
+//
+// ROOT CAUSE: `shouldBlockReturningServiceDefault` above is a TOOL-CALL gate: tools.ts only ever
+// returns the "bevestig_terugkerende_dienst" refusal (and its message) when the model actually
+// attempts get_available_slots or the book_appointment PREVIEW step and gets refused. Live-
+// reproduced (S6 testpad, fresh fixture phones with real future booking history, same tenant/
+// service-catalog shape as R111's own fixture): a bare returning-customer request phrased as
+// "ik wil weer een afspraak inplannen" or "hoi, ik wil een afspraak" (both drawn verbatim from
+// prompt.ts's own example trigger-phrase list) routinely makes the model compose a reply with
+// ZERO tool calls at all -- e.g. it answers as if the customer asked to SEE their existing
+// appointment ("Er staat een afspraak: Speciale Afspraak op ..., op naam ...") or asks a generic
+// "Welke dienst wil je graag boeken?" without ever surfacing the assumed last-service by name --
+// so the gated tool call this guard's disclosure depends on never happens, and the customer never
+// sees any disclosure of the returning-service assumption at all. `blockForReturningServiceDefault`
+// itself computes correctly in every one of these cases (confirmed live: the
+// `pending_returning_service_confirm` marker is set server-side on exactly these turns), so the
+// gap is purely "the disclosure TEXT depends on a tool call that may never come", the identical
+// defect shape `enforceAppointmentNameDisclosure` and `enforceVerificationGateDisclosure` already
+// each closed once for their own sibling gates.
+//
+// FIX SHAPE (same deterministic-backstop pattern, no new mechanism invented): run AFTER the
+// model's reply is drafted, independent of which (if any) tool calls happened this turn. Given
+// this turn's OWN effective block decision (computed once in index.ts, the same boolean tools.ts
+// itself gates get_available_slots/book_appointment on) and the last-booked service name, if the
+// guard's condition holds this turn AND the drafted reply does not already disclose that service
+// name (the same whole-word-or-full-name strict matcher `shouldBlockReturningServiceDefault`
+// itself trusts, via `mentionsServiceNameStrict`/`mentionsAnyServiceName`), the reply is rewritten
+// to the canonical disclosure-and-confirm question, byte-identical in wording to
+// `BEVESTIG_TERUGKERENDE_DIENST_MESSAGE`'s own customer-facing sentence (kept as its own constant
+// below rather than reusing that message verbatim, since the tool-call message mixes an
+// internal instruction with the customer-facing question -- exactly the same reason
+// enforceVerificationGateDisclosure needed its own separate `customer_reply` field instead of
+// reusing a tool's internal `message`).
+//
+// FALSE-POSITIVE SAFETY:
+// - No-op when `blockForReturningServiceDefaultEffective` is false this turn (fresh customer, no
+//   history, already confirmed this conversation, or the customer's OWN message already names a
+//   service): byte-identical behaviour to today for every one of those cases.
+// - No-op when the reply ALREADY discloses the last service by name (a correct disclosure,
+//   however phrased -- via a tool-call refusal message relayed faithfully, or the model's own
+//   correct prose -- must never be second-guessed/altered), using the exact same strict matcher
+//   the gate itself uses so "disclosed" means the identical thing in both places.
+// - Runs in the SAME prose-reply branch as the sibling backstops (index.ts, after
+//   enforceVerificationGateDisclosure), so a turn that already got a deterministic override from
+//   an earlier backstop for an unrelated guarantee is not fought over; this only checks the FINAL
+//   drafted text for this ONE guarantee, same as every sibling backstop already does independently.
+//
+// APPOINTMENT-STATUS-READOUT EXCLUSION (found during this backstop's OWN live testing, S6
+// testpad): one of the two live-reproduced failures ("ik wil weer een afspraak inplannen") made
+// the model misread the request as "show me my existing appointment" and reply with the exact
+// `get_my_appointments`-shaped template ("Er staat een afspraak: <service> op <when> (op naam
+// <name>)."). That reply DOES contain the last service's name, so a naive "does the reply mention
+// the service anywhere" check would wrongly treat it as disclosed -- but naming the service as
+// part of describing the EXISTING booking is not the same guarantee as disclosing-and-confirming
+// the ASSUMPTION behind a NEW booking request; the customer's actual ask (book again) was never
+// engaged with at all. `looksLikeAppointmentStatusReadout` recognizes this exact canonical
+// template shape (mirrors identityDisambiguationGuard.ts's own `enforceAppointmentNameDisclosure`
+// output strings byte-for-byte, the only two shapes get_my_appointments' deterministic path ever
+// produces) and, when matched, the service-name check is skipped entirely so this backstop still
+// rewrites to the real disclosure-and-confirm question, closing this exact reproduced shape too.
+function looksLikeAppointmentStatusReadout(replyText: string): boolean {
+  return /^(er staat een afspraak|er staan meerdere afspraken|there is an appointment|there are multiple appointments)\s*:/i.test(replyText.trim());
+}
+
+export const BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE = (lastService: string) =>
+  `Ik ga uit van dezelfde dienst als de vorige keer, ${lastService}, klopt dat?`;
+
+export function enforceReturningServiceDisclosure(
+  replyText: string,
+  blockForReturningServiceDefaultEffective: boolean,
+  lastService: string | null | undefined,
+  allServiceNames: string[],
+): string {
+  if (!replyText) return replyText;
+  if (!blockForReturningServiceDefaultEffective) return replyText;
+  if (!lastService || !lastService.trim()) return replyText;
+  // A pure existing-appointment status readout never counts as disclosing the NEW booking's
+  // assumption, regardless of whether it happens to name the service (see the exclusion note
+  // above): skip straight to the rewrite without consulting the name-match check below.
+  if (looksLikeAppointmentStatusReadout(replyText)) return BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE(lastService);
+  // Already disclosed: the reply names a real configured service somewhere (the strict matcher
+  // used by the gate itself), so trust it rather than second-guess correct model output.
+  if (mentionsServiceNameStrict(replyText, allServiceNames)) return replyText;
+  return BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE(lastService);
+}

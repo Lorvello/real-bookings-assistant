@@ -3,7 +3,7 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
 
 // R98 helper: build an all-inbound recency window from plain strings (the common case for tests
 // that only care about customer messages, matching the pre-R98 test convention).
@@ -603,4 +603,66 @@ Deno.test("R111-9 does not block: single-service catalog, customer's message con
     }),
     false,
   );
+});
+
+// ── R113 enforceReturningServiceDisclosure (closes R111-verify's TOOL-CALL-GATE-ONLY gap) ──────
+// Live-reproduced on the S6 testpad (fresh fixture phones, real future booking history, same
+// tenant/service-catalog shape as R111's own fixture): "ik wil weer een afspraak inplannen" and
+// "hoi, ik wil een afspraak" (both verbatim from prompt.ts's own trigger-phrase list) made the
+// model compose a reply with ZERO tool calls, so tools.ts's "bevestig_terugkerende_dienst" refusal
+// (and its message) never fired even though blockForReturningServiceDefaultEffective was true.
+
+Deno.test("R113-1 rewrites: guard is effective this turn, model's reply names no service at all (live-reproduced 'get_my_appointments-style' non-sequitur shape)", () => {
+  const out = enforceReturningServiceDisclosure(
+    "Er staat een afspraak: Speciale Afspraak op zaterdag 1 augustus 11:00 (op naam Fixture Test).",
+    true,
+    "Speciale Afspraak",
+    AFSPRAAK_SERVICES,
+  );
+  assertEquals(out, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE("Speciale Afspraak"));
+});
+
+Deno.test("R113-2 rewrites: guard effective, model asks a generic 'which service' WITHOUT naming the last one (live-reproduced shape)", () => {
+  const out = enforceReturningServiceDisclosure(
+    "Hoi! Welkom bij Lorvello. Welke dienst wil je graag boeken?",
+    true,
+    "Speciale Afspraak",
+    AFSPRAAK_SERVICES,
+  );
+  assertEquals(out, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE("Speciale Afspraak"));
+});
+
+Deno.test("R113-3 no-op: guard not effective this turn (fresh customer / already confirmed / customer named a service)", () => {
+  const reply = "Welke dienst wil je graag boeken?";
+  assertEquals(enforceReturningServiceDisclosure(reply, false, "Speciale Afspraak", AFSPRAAK_SERVICES), reply);
+});
+
+Deno.test("R113-4 no-op: guard effective but lastService is null/empty (defensive, should never happen alongside effective=true)", () => {
+  const reply = "Welke dienst wil je graag boeken?";
+  assertEquals(enforceReturningServiceDisclosure(reply, true, null, AFSPRAAK_SERVICES), reply);
+  assertEquals(enforceReturningServiceDisclosure(reply, true, "", AFSPRAAK_SERVICES), reply);
+});
+
+Deno.test("R113-5 no-op: the model's OWN reply already discloses the last service by name (correct disclosure must never be second-guessed)", () => {
+  const reply = "Ik ga uit van dezelfde dienst als de vorige keer, Speciale Afspraak, klopt dat?";
+  assertEquals(enforceReturningServiceDisclosure(reply, true, "Speciale Afspraak", AFSPRAAK_SERVICES), reply);
+});
+
+Deno.test("R113-6 no-op: replyText is empty (nothing to rewrite)", () => {
+  assertEquals(enforceReturningServiceDisclosure("", true, "Speciale Afspraak", AFSPRAAK_SERVICES), "");
+});
+
+Deno.test("R113-7 rewrites: a tool-call-relayed refusal message the model paraphrased into a non-sequitur (defense in depth even when a tool DID fire but the model still dropped the disclosure)", () => {
+  const out = enforceReturningServiceDisclosure(
+    "Ik heb op dit moment geen bevestigde informatie daarover, neem contact op met de zaak.",
+    true,
+    "Standaard Afspraak",
+    AFSPRAAK_SERVICES,
+  );
+  assertEquals(out, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE("Standaard Afspraak"));
+});
+
+Deno.test("R113-8 no-op: single-service catalog, guard effective, reply already mentions the service's own (only) word", () => {
+  const reply = "Ik boek de knipbeurt in, voor welke dag wil je?";
+  assertEquals(enforceReturningServiceDisclosure(reply, true, "Knipbeurt", ["Knipbeurt"]), reply);
 });

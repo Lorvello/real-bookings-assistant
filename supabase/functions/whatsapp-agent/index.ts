@@ -21,7 +21,7 @@ import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.
 import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
@@ -2055,6 +2055,17 @@ Deno.serve(async (req) => {
         // non-sequitur refusal). No-op unless a tool call this turn actually returned
         // naam_verificatie_nodig AND the drafted reply fails to disclose the target name.
         replyText = enforceVerificationGateDisclosure(replyText, result.toolCalls);
+        // R113 (RETURNING-SERVICE-TOOL-CALL-GATE-ONLY fix, closes R111-verify's own reported gap):
+        // `blockForReturningServiceDefaultEffective` only ever produces a disclosure via tools.ts
+        // when the model actually attempts get_available_slots/book_appointment and gets refused.
+        // Live-reproduced: a bare returning-customer request ("ik wil weer een afspraak inplannen",
+        // "hoi, ik wil een afspraak") routinely makes the model compose a reply with ZERO tool
+        // calls at all (e.g. it answers as a get_my_appointments-style status lookup, or asks a
+        // generic "welke dienst?" without ever naming the assumed last service), so the gated tool
+        // call this guarantee depended on never happens. This runs regardless of which (if any)
+        // tool calls happened this turn, closing the exact gap the tool-call-only gate leaves open
+        // (see serviceDisambiguationGuard.ts's own header for the full root-cause + safety notes).
+        replyText = enforceReturningServiceDisclosure(replyText, blockForReturningServiceDefaultEffective, lastService, allServiceNamesForReturning);
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
         // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard
