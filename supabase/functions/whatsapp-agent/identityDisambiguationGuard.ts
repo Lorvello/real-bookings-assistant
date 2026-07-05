@@ -323,6 +323,144 @@ export function messageNamesPendingBookOwner(
   return containsWholeWord(String(rawMessage ?? ""), token);
 }
 
+// R122 (STRUCTURAL FAIL-CLOSED REDESIGN of R121's own isConfirmShapedMessage discriminator,
+// live-reproduced with DB proof on the S6 testpad, fresh fixtures 31600001901/31600001902):
+// R121's fix asked "is THIS message confirm-shaped" (isConfirmShapedMessage, an AFFIRM_RE-vs-
+// NEGATE_RE token check) before ever consulting takeover risk, and skipped the whole
+// verification path when it wasn't. Its own 2-lens verify round found this is trivially walkable
+// two ways, BOTH live-reproduced to a real committed booking under a total stranger's name with
+// ZERO verification marker ever created:
+//   1. an IMPERATIVE phrasing outside the AFFIRM/NEGATE token lists at all ("Zet maar op Bram",
+//      "Kan dit voor Bram?", "Doe maar Bram") -- isConfirmShapedMessage returns false (neither
+//      regex matches), so previewTakeoverRisk short-circuited to false and the re-preview +
+//      later bare "ja" committed silently under "Bram", a name with zero relation to the
+//      original "Anna".
+//   2. a NEGATE-shaped phrasing ("Nee wacht, doe het voor Otto") matches REPREVIEW_NEGATE_RE,
+//      so isConfirmShapedMessage ALSO returns false here (by construction: NEGATE and AFFIRM are
+//      mutually exclusive in that function) and was UNCONDITIONALLY TRUSTED as a same-speaker
+//      typo-fix, with NO check that "Otto" resembles the original "Nora" at all -- the exact
+//      opposite of a safety net, since a "Nee wacht"-shaped message is precisely the phrasing a
+//      genuine typo-correction ALSO uses ("nee wacht, Ana niet Anna"), so this discriminator
+//      could never tell the honest case from the theft.
+//
+// ROOT CAUSE: message CONTENT-SHAPE (does it look like an affirm or a negate) was being used as a
+// proxy for "is this a genuine same-speaker correction," but shape says nothing about WHO is
+// speaking or whether the new name is even related to the old one. A third real person can phrase
+// a takeover as an imperative (sidestepping the shape check entirely) or as a negate (satisfying
+// the WRONG half of the check, since negate was wrongly treated as auto-safe).
+//
+// FIX SHAPE (mandated structural rebuild, not a 3rd word/phrase list): flip the default from
+// fail-OPEN (trust unless flagged negate-and-something) to FAIL-CLOSED (block unless PROVEN
+// same-speaker). ANY re-preview message that proposes a name conflicting with originator_name is
+// now takeover-risk BY DEFAULT, regardless of its shape (affirm/negate/imperative/anything else).
+// The ONLY way to suppress the verification requirement is when BOTH hold:
+//   (a) the message contains an explicit CORRECTION MARKER (nee/niet/wacht/typo/ik bedoel/
+//       verkeerd -- a keyword list is fine here since it only gates a NARROWING condition, never
+//       the sole safety mechanism); AND
+//   (b) the new name is genuinely SIMILAR to originator_name via a REAL computed string-
+//       similarity score (normalized Levenshtein edit distance, see nameSimilarity below), not
+//       another hardcoded list of "acceptable" name pairs.
+// A name sharing no meaningful similarity with the original (Nora -> Otto) can NEVER be treated
+// as a same-speaker correction, no matter what marker words surround it -- closing exploit #2
+// precisely. An imperative phrasing naming a DISSIMILAR person never had a correction marker to
+// begin with, so it also always fails closed -- closing exploit #1. A genuine typo/nickname fix
+// ("nee wacht, Ana niet Anna") has BOTH a correction marker AND high similarity, so it stays
+// exactly as frictionless as before.
+//
+// Deliberately does NOT special-case imperative phrasings as a "third confirm shape": a stricter
+// fail-closed design intentionally does not accept imperative phrasing ALONE (with no correction
+// marker) as proof of same-speaker intent, even naming a similar/nickname variant of the
+// original -- imperative wording ("zet maar op Ana") is exactly as available to a genuine second
+// person taking over politely as to the original speaker correcting themselves, so it earns no
+// special trust; only the explicit-correction-marker path (condition a) is ever allowed to narrow
+// the fail-closed default, matching this file's existing standing rule (clarify over guess).
+function normNameForSimilarity(n: string): string {
+  return normName(n).replace(/[^\p{L}\p{N}]/gu, "");
+}
+
+// Iterative (non-recursive, O(len_a * len_b) time / O(min(len_a,len_b)) space) Levenshtein edit
+// distance between two strings. Standard single-row DP; no external dependency, deterministic,
+// fast enough for short name-length strings (this file's existing "deterministic guard over model
+// judgment for identity-critical decisions" doctrine, see top-of-file comment).
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  // Ensure `a` is the shorter string, so the DP row is as small as possible.
+  if (a.length > b.length) [a, b] = [b, a];
+  let prevRow = new Array(a.length + 1);
+  for (let i = 0; i <= a.length; i++) prevRow[i] = i;
+  for (let j = 1; j <= b.length; j++) {
+    const currRow = new Array(a.length + 1);
+    currRow[0] = j;
+    for (let i = 1; i <= a.length; i++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      currRow[i] = Math.min(
+        prevRow[i] + 1, // deletion
+        currRow[i - 1] + 1, // insertion
+        prevRow[i - 1] + cost, // substitution
+      );
+    }
+    prevRow = currRow;
+  }
+  return prevRow[a.length];
+}
+
+// Normalized similarity score in [0, 1]: 1 = identical, 0 = completely dissimilar (edit distance
+// >= the longer string's own length). Compares the first-name TOKEN of each (same "customer
+// mentions someone by first name" convention every other matcher in this file already uses), on
+// the SAME diacritic/case-insensitive normalized form containsWholeWord's callers already rely
+// on. Empty-vs-empty is defined as maximally similar (1) so callers never divide by zero; either
+// side actually being empty in practice is already excluded upstream by isRealName checks.
+export function nameSimilarity(nameA: string, nameB: string): number {
+  const a = normNameForSimilarity(firstNameToken(nameA));
+  const b = normNameForSimilarity(firstNameToken(nameB));
+  if (a === b) return 1;
+  const maxLen = Math.max(a.length, b.length);
+  if (maxLen === 0) return 1;
+  const dist = levenshteinDistance(a, b);
+  return 1 - dist / maxLen;
+}
+
+// The threshold above which two names are considered "genuinely similar" for same-speaker-
+// correction purposes. Picked from the proven boundary corpus this round's own test suite pins:
+//   - "Anna" -> "Ana"   : distance 1, len 4 -> similarity 0.75  (must PASS, genuine typo-fix)
+//   - "Anne" -> "Anna"  : distance 1, len 4 -> similarity 0.75  (must PASS, R101's own near-
+//                         identical-name pair; NOTE this predicate is only ever consulted for
+//                         the SAME-speaker-correction narrowing condition, never for
+//                         extractStatedNameForBooking's disambiguation matching, which must stay
+//                         strict/non-fuzzy exactly as R101 requires -- these are different
+//                         functions answering different questions, see each one's own header)
+//   - "Nora" -> "Otto"  : distance 4, len 4 -> similarity 0.0   (must FAIL, R121's own live-
+//                         reproduced theft)
+//   - "Chris"-> "Christiaan": distance 5, len 10 -> similarity 0.50 (a plausible full-name-vs-
+//                         short-name pair, sitting RIGHT AT the chosen threshold, kept passing
+//                         via the ">=" comparison below).
+// 0.5 is a deliberately generous-but-safe cutoff: it passes every genuine near-miss/typo/
+// short-name pair in this round's proof corpus while still failing any name pair that shares no
+// real structural resemblance (as Nora/Otto, sharing zero characters in the same position and
+// only a coincidental single trailing vowel, demonstrates).
+export const NAME_SIMILARITY_THRESHOLD = 0.5;
+
+export function namesAreSimilar(nameA: string, nameB: string): boolean {
+  return nameSimilarity(nameA, nameB) >= NAME_SIMILARITY_THRESHOLD;
+}
+
+// The keyword half of condition (a): does this message contain an explicit CORRECTION MARKER?
+// This is intentionally a keyword list -- per the fix-shape mandate, a keyword list is fine here
+// because it only ever NARROWS the fail-closed default (a message failing to match still fails
+// closed, exactly as it should), it is never the sole safety mechanism (namesAreSimilar's real
+// computed similarity score is the other, mandatory half). NL+EN coverage of the correction-
+// signaling vocabulary this round's own reported exploits and prior rounds' evidence use.
+const CORRECTION_MARKER_RE =
+  /\b(nee|neen|no|niet|wacht|toch niet|verkeerd|fout|typo|ik bedoel(de)?|i mean|meant|correction|actually|sorry|ipv|in plaats van|instead of|liever)\b/i;
+
+export function hasCorrectionMarker(rawMessage: string | undefined | null): boolean {
+  const msg = String(rawMessage ?? "");
+  if (!msg.trim()) return false;
+  return CORRECTION_MARKER_RE.test(msg);
+}
+
 // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, live-reproduced with DB proof on the S6 testpad,
 // fresh fixture 31600001806, "Variation-E"): a SECOND real person on a shared/fresh phone can
 // silently steal an unconfirmed book_appointment preview from whoever actually started it, and
@@ -360,54 +498,67 @@ export function messageNamesPendingBookOwner(
 // swap the stored name), comparing the NEW candidate name against the ORIGINAL originator_name,
 // never against the current (possibly already-hijacked) pendingBook.customer_name.
 //
-// THE SAME-SPEAKER-CORRECTION VS DIFFERENT-SPEAKER-TAKEOVER DISCRIMINATOR: message CONTENT alone
-// cannot reliably distinguish "Nee wacht, Ana niet Anna" (a genuine typo-fix, same person) from
-// "Ja, echt boeken voor Bram" (a different person taking over) -- both change the stored name on
-// a re-preview turn, and this codebase's own established doctrine (identityDisambiguationGuard.ts
-// top-of-file comment; the whole R101-R109/R120 arc) is that a small model's or a hand-rolled
-// wording heuristic's BELIEF about "who is speaking" is never a safe transaction boundary. The one
-// signal that IS safe and already fully proven elsewhere in this exact file is whether THIS
-// SAME message is independently CONFIRM-SHAPED (AFFIRM_RE-equivalent, not NEGATE_RE-equivalent) --
-// the exact same "is this message trying to LOCK IN a decision" test hardConfirm/confirmBook/
-// confirmCancel already run before ANY commit anywhere in this codebase. A genuine same-speaker
-// typo/correction ("nee wacht, Ana niet Anna", "voor Ana ipv Anna", "moet Ana zijn") is a
-// CORRECTION, not a confirmation: it carries no independent claim of "yes, book this now," so it
-// stays completely frictionless (unchanged from today, mirrors nameChanged's existing behaviour
-// exactly). A message that is BOTH confirm-shaped AND restates a conflicting name ("Ja, echt
-// boeken voor Bram", "Klopt, maar dan voor Iris") is asserting two things at once: "lock this in"
-// AND "under this different name" -- structurally indistinguishable, by content alone, from a
-// genuine third party claiming somebody else's still-open preview, so it is treated exactly like
-// every other identity-conflict shape in this file: flagged for the SAME explicit verification,
-// never silently trusted. This is a conscious, honest tightening (the pre-existing R25 frictionless
-// "Klopt, maar dan voor Iris" single-person shape now also asks a verification question when the
-// new name conflicts with the ORIGINAL originator), justified because message content cannot
-// safely tell the two real-world cases apart and this codebase's standing rule is clarify over
-// guess, not because the two cases are expected to look different structurally.
+// THE SAME-SPEAKER-CORRECTION VS DIFFERENT-SPEAKER-TAKEOVER DISCRIMINATOR (R122 REDESIGN):
+// R121's original approach asked "is THIS message CONFIRM-shaped" (isConfirmShapedMessage below,
+// kept only for backward-compat/tests, no longer consulted here) and used message SHAPE
+// (affirm-vs-negate) as a proxy for "is this a genuine same-speaker correction." R121's own
+// 2-lens verify + this round's live reproduction proved that proxy fails open on BOTH an
+// imperative phrasing (matches neither AFFIRM nor NEGATE, so the old check silently skipped
+// entirely) and a negate-shaped phrasing (WRONGLY auto-trusted as "just a correction," with no
+// check that the new name resembles the original at all). Message shape says nothing about WHO
+// is speaking or whether the new name is even related to the old one -- this codebase's own
+// established doctrine (top-of-file comment; the whole R101-R109/R120 arc) is that a hand-rolled
+// wording heuristic's BELIEF about "who is speaking" is never a safe transaction boundary.
 //
-// Deliberately reuses this file's own strict, non-fuzzy whole-word matching philosophy (no new
-// fuzzy logic): the confirm/negate test below is a minimal, INDEPENDENTLY-DUPLICATED subset of
-// index.ts's own AFFIRM_RE/NEGATE_RE (same convention as isRealName's own duplicated-on-purpose
-// comment at the top of this file), scoped ONLY to deciding "is this specific re-preview message
-// itself confirm-shaped," never used for any other commit decision.
+// FAIL-CLOSED REDESIGN: the default for ANY re-preview message naming a person conflicting with
+// originator_name is now TAKEOVER RISK, full stop, independent of message shape (affirm, negate,
+// imperative, or anything else). This is intentionally the OPPOSITE default of R121's own
+// fail-open design. The ONLY way to suppress the verification requirement (treat a name change as
+// a genuine same-speaker correction) is when BOTH of these hold:
+//   (a) hasCorrectionMarker(rawMessage) -- the message contains an explicit correction signal
+//       (nee/niet/wacht/typo/ik bedoel/verkeerd/...). A keyword list is acceptable here because
+//       it only ever NARROWS the fail-closed default (missing the list still fails closed); and
+//   (b) namesAreSimilar(newCandidateName, originatorName) -- a REAL computed string-similarity
+//       score (normalized Levenshtein, see nameSimilarity above) shows the new name genuinely
+//       resembles the original, not a hardcoded "acceptable pairs" list.
+// A genuine same-speaker typo/correction ("nee wacht, Ana niet Anna") has BOTH a correction
+// marker AND high similarity, so it stays exactly as frictionless as before. A takeover attempt
+// naming a DISSIMILAR person (Nora -> Otto) fails condition (b) even when it happens to use
+// correction-shaped wording ("Nee wacht, doe het voor Otto"), closing exploit #2 precisely. An
+// imperative phrasing ("Zet maar op Bram") never had a correction marker to begin with, so it
+// fails condition (a) regardless of similarity, closing exploit #1 precisely. Deliberately does
+// NOT grant imperative phrasing alone (even naming a similar/nickname variant) a pass: wording
+// alone never proves same-speaker intent as clearly as an explicit correction marker does, and
+// this file's standing rule is clarify over guess -- only the marker+similarity combination is
+// ever allowed to narrow the fail-closed default.
 const REPREVIEW_AFFIRM_RE =
   /(?<![\p{L}\p{N}])(ja|jaha|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|klopt|inderdaad|akkoord|echt|zeker weten|oui|si|sí|sì|sim|genau|klar)(?![\p{L}\p{N}])/iu;
 const REPREVIEW_NEGATE_RE =
   /\b(nee|neen|no|niet|wacht|toch niet|verkeerd|fout|typo)\b/i;
 
+// Kept for backward-compat / regression pinning only: no longer consulted by previewTakeoverRisk
+// (see the R122 redesign comment above for why message-shape alone was proven unsafe as the sole
+// discriminator). Still exported/tested as its own well-defined predicate ("does this message
+// read as an affirm and not a negate"), just no longer wired into the takeover-risk decision.
 export function isConfirmShapedMessage(rawMessage: string | undefined | null): boolean {
   const msg = String(rawMessage ?? "");
   if (!msg.trim()) return false;
   return REPREVIEW_AFFIRM_RE.test(msg) && !REPREVIEW_NEGATE_RE.test(msg);
 }
 
-// The core R121 predicate book_appointment's re-preview path consults. `originatorName` is
-// pending_booking's own NEW originator_name field (the name captured at this booking's TRUE
-// first preview, never overwritten by a later re-preview); falls back to null for any
-// in-flight pending_booking stored BEFORE this fix shipped (no originator_name field at all yet),
-// in which case this predicate is conservatively skipped by the caller (tools.ts), identical to
-// today's behaviour for that narrow transitional window, never a new false-positive on old data.
-// `newCandidateName` is the incoming args.customer_name this turn's nameChanged already detected
-// as conflicting with the CURRENT (possibly already-hijacked) pendingBook.customer_name.
+// The core R122 predicate (redesign of R121's own previewTakeoverRisk) book_appointment's
+// re-preview path consults. `originatorName` is pending_booking's own originator_name field (the
+// name captured at this booking's TRUE first preview, never overwritten by a later re-preview);
+// falls back to null for any in-flight pending_booking stored before originator_name existed at
+// all, in which case this predicate is conservatively skipped by the caller (tools.ts), identical
+// to today's behaviour for that narrow transitional window, never a new false-positive on old
+// data. `newCandidateName` is the incoming args.customer_name this turn's nameChanged already
+// detected as conflicting with the CURRENT (possibly already-hijacked) pendingBook.customer_name.
+//
+// FAIL-CLOSED: returns true (takeover risk, verification required) by default whenever the new
+// name mismatches the originator. Returns false (frictionless, no verification) ONLY when the
+// message both signals an explicit correction AND the new name is genuinely similar to the
+// original -- see the header comment above for the full reasoning and exploit-closure mapping.
 export function previewTakeoverRisk(
   originatorName: string | null | undefined,
   newCandidateName: string | null | undefined,
@@ -415,7 +566,11 @@ export function previewTakeoverRisk(
 ): boolean {
   if (!isRealName(originatorName)) return false; // no originator on file yet (pre-fix data): skip, unchanged behaviour
   if (!nameMismatch(newCandidateName, originatorName)) return false; // new name still agrees with the originator, not a takeover
-  return isConfirmShapedMessage(rawMessage);
+  // FAIL-CLOSED default: a real name mismatch against the originator is takeover risk UNLESS
+  // BOTH narrowing conditions hold (explicit correction marker AND genuine name similarity).
+  const isGenuineSameSpeakerCorrection =
+    hasCorrectionMarker(rawMessage) && namesAreSimilar(String(newCandidateName), String(originatorName));
+  return !isGenuineSameSpeakerCorrection;
 }
 
 // R121 (continued): the dedicated release predicate for the takeover-verification marker
