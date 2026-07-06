@@ -46,8 +46,24 @@ export function formatDate(iso: string, locale: ReminderLocale, tz = "Europe/Ams
 // escaped FIRST so an already-safe entity is never double-escaped incorrectly. The plain-text values
 // that flow into the SUBJECT (business_name) are escaped the same way; email clients render the
 // subject as text, so the entity form (e.g. `&amp;`) is the correct, non-executable representation.
+//
+// SEQP1R21 (finding R20-1, availability): also strip raw control characters (CR/LF plus C0/DEL,
+// `\x00-\x1F\x7F`) BEFORE the HTML-escape, at this same single choke point. This function's output
+// feeds BOTH the email body AND the subject template (`business` below is interpolated straight
+// into `t.subject`), so a `business_name` containing a literal CRLF previously survived
+// entity-escaping untouched (escapeHtml never touched `\r`/`\n`) and rode straight into the
+// `subject` string. Resend rejects the ENTIRE send when the subject header contains a raw `\n`
+// ("The `\n` is not allowed in the `subject` field"), so a single newline in one owner's
+// business_name silently zeroed out every reminder email for that tenant. Stripping control chars
+// here (mirroring sanitizeFromName's header-injection guard in index.ts, applied to the sibling
+// from-header sink) means every consumer of escapeHtml (name, business, service, and therefore the
+// subject built from business) gets the same safety for free, with no scattered per-call-site
+// patch. Only C0/DEL control bytes are stripped; normal unicode, spaces and punctuation (including
+// legitimate whitespace like a mid-name space) are left completely untouched.
 function escapeHtml(value: string): string {
   return value
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x1F\x7F]/g, "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")

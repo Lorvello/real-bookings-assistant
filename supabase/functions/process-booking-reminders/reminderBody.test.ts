@@ -152,3 +152,32 @@ Deno.test("subjects differ between NL and EN", () => {
   assertEquals(nl.startsWith("Herinnering"), true);
   assertEquals(en.startsWith("Reminder"), true);
 });
+
+// SEQP1R21 (finding R20-1, availability, sibling of R18-2/F4): a business_name containing a raw
+// CRLF must never reach the subject string, since Resend rejects the ENTIRE send when the subject
+// header contains a literal `\n` ("The `\n` is not allowed in the `subject` field"), silently
+// zeroing out every reminder email for that tenant. Asserts both the CRLF itself and any other C0
+// control byte are stripped from the subject (and the body), in both locales.
+Deno.test("R20-1: a CRLF/control-char business_name cannot break the subject header", () => {
+  const evilBusiness = "Evil\r\nBcc: victim@evil.com\r\nX-Injected: 1";
+  const nl = reminderHtml("nl", "Sanne", evilBusiness, null, "d", "t", false);
+  const en = reminderHtml("en", "Sanne", evilBusiness, null, "d", "t", false);
+  for (const { subject, html } of [nl, en]) {
+    assert(!subject.includes("\r"), "CR leaked into the subject");
+    assert(!subject.includes("\n"), "LF leaked into the subject");
+    assert(!html.includes("\r"), "CR leaked into the body");
+    // eslint-disable-next-line no-control-regex
+    assert(!/[\x00-\x1F\x7F]/.test(subject), "a control char leaked into the subject");
+  }
+  assertStringIncludes(nl.subject, "Herinnering: je afspraak bij EvilBcc: victim@evil.comX-Injected: 1");
+  assertStringIncludes(en.subject, "Reminder: your appointment at EvilBcc: victim@evil.comX-Injected: 1");
+});
+
+// Anti-regression: a normal business_name (no control chars) must render an unchanged subject in
+// both locales, i.e. the control-char strip must not touch legitimate whitespace/punctuation.
+Deno.test("R20-1: a normal business_name renders an unchanged subject in NL and EN", () => {
+  const nl = reminderHtml("nl", "Sanne", "Lorvello", null, "d", "t", false).subject;
+  const en = reminderHtml("en", "Sanne", "Lorvello", null, "d", "t", false).subject;
+  assertEquals(nl, "Herinnering: je afspraak bij Lorvello");
+  assertEquals(en, "Reminder: your appointment at Lorvello");
+});
