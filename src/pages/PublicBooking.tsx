@@ -25,6 +25,7 @@ import {
   isValidVatIdFormat,
   type SupplyType,
 } from '@/components/booking/publicBookingFields';
+import { getCountryCallingCode, type CountryCode } from 'libphonenumber-js';
 
 interface CalendarInfo {
   id: string;
@@ -82,7 +83,11 @@ export default function PublicBooking() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [slot, setSlot] = useState<Slot | null>(null);
 
-  const [customer, setCustomer] = useState({ name: '', email: '', phone: '', country: '', vatId: '' });
+  // phoneCountry (P1-9-PHONE3): the country the customer explicitly picks for their phone
+  // number, default NL. Drives the E.164 disambiguation in usePublicBookingCreation so a bare
+  // national number (e.g. a French 0687654321) is never silently guessed as Dutch. `country`
+  // (below) is the separate cross-border BILLING country, only collected for remote/digital.
+  const [customer, setCustomer] = useState({ name: '', email: '', phone: '', phoneCountry: 'NL', country: '', vatId: '' });
   const [confirmed, setConfirmed] = useState(false);
   const [paymentRequired, setPaymentRequired] = useState(false);
   const [bookingForPayment, setBookingForPayment] = useState<{ id: string; calendar_id: string; confirmation_token: string } | null>(null);
@@ -169,6 +174,37 @@ export default function PublicBooking() {
   // Stripe does the authoritative format + (optional) VIES check server-side.
   const vatIdValid = useMemo(() => isValidVatIdFormat(customer.vatId), [customer.vatId]);
 
+  // Phone-country options (P1-9-PHONE3): reuse the single COUNTRY_OPTIONS list (flag + name)
+  // and derive the +dial code from libphonenumber-js itself (authoritative, no hand-kept
+  // second list). Sorted by localized name. Rendered as a compact selector to the left of the
+  // phone input so the customer's phone country is EXPLICIT and a bare national number is
+  // disambiguated to the right country's E.164 instead of blindly guessed as NL.
+  const regionNames = useMemo(() => {
+    try {
+      return new Intl.DisplayNames([i18n.language], { type: 'region' });
+    } catch {
+      return null;
+    }
+  }, [i18n.language]);
+  const phoneCountryOptions = useMemo(() => {
+    return COUNTRY_OPTIONS.map((c) => {
+      let dial = '';
+      try {
+        dial = `+${getCountryCallingCode(c.code as CountryCode)}`;
+      } catch {
+        dial = '';
+      }
+      const localizedName = regionNames?.of(c.code) ?? c.name;
+      return { code: c.code, flag: c.flag, name: localizedName, dial };
+    })
+      .filter((c) => c.dial.length > 0)
+      .sort((a, b) => a.name.localeCompare(b.name, i18n.language));
+  }, [regionNames, i18n.language]);
+  const selectedPhoneDial = useMemo(
+    () => phoneCountryOptions.find((c) => c.code === customer.phoneCountry)?.dial ?? '',
+    [phoneCountryOptions, customer.phoneCountry]
+  );
+
   const canSubmit = useMemo(
     () => !!(slot && customer.name.trim() && emailValid && !countryMissing && vatIdValid),
     [slot, customer.name, emailValid, countryMissing, vatIdValid]
@@ -182,6 +218,10 @@ export default function PublicBooking() {
       customerName: customer.name,
       customerEmail: customer.email,
       customerPhone: customer.phone || undefined,
+      // P1-9-PHONE3: the explicitly-chosen phone country (ISO-3166 alpha-2), so a bare
+      // national-format number is disambiguated to the correct country's E.164, never
+      // NL-guessed. Only meaningful when a phone was typed; harmless otherwise.
+      phoneCountry: customer.phoneCountry,
       startTime: new Date(slot.slot_start),
       endTime: new Date(slot.slot_end),
       // Cross-border (X3a): persist the customer country + optional EU VAT-ID onto the
@@ -488,12 +528,52 @@ export default function PublicBooking() {
                     <Label htmlFor="phone" className="text-white/70">
                       {t('publicBooking.pb.phone', 'Phone')} <span className="text-white/55">{t('publicBooking.pb.optional', '(optional)')}</span>
                     </Label>
-                    <Input
-                      id="phone"
-                      value={customer.phone}
-                      onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
-                      className="border-white/10 bg-white/[0.03]"
-                    />
+                    {/* P1-9-PHONE3: explicit phone-country selector (default NL) + number
+                        input. The selected country disambiguates a bare national number to the
+                        correct country's E.164 (a French 0687654321 becomes +33..., never a
+                        wrong +31...). Zero extra effort for a Dutch customer (NL is the default),
+                        correct capture for a French/Belgian one. */}
+                    <div className="flex gap-2">
+                      <Select
+                        value={customer.phoneCountry}
+                        onValueChange={(c) => setCustomer({ ...customer, phoneCountry: c })}
+                      >
+                        <SelectTrigger
+                          id="phone-country"
+                          aria-label={t('publicBooking.pb.phoneCountry', 'Phone country')}
+                          className="w-[7.5rem] shrink-0 border-white/10 bg-white/[0.03]"
+                        >
+                          <SelectValue>
+                            <span className="flex items-center gap-1.5">
+                              <span aria-hidden="true">
+                                {phoneCountryOptions.find((c) => c.code === customer.phoneCountry)?.flag}
+                              </span>
+                              <span className="tabular-nums">{selectedPhoneDial}</span>
+                            </span>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {phoneCountryOptions.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              <span className="flex w-full items-center gap-2">
+                                <span aria-hidden="true">{c.flag}</span>
+                                <span className="truncate">{c.name}</span>
+                                <span className="ml-auto pl-3 text-white/50 tabular-nums">{c.dial}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={customer.phone}
+                        onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+                        className="flex-1 border-white/10 bg-white/[0.03]"
+                      />
+                    </div>
                   </div>
 
                   {/* Cross-border (X3a): country selector. Shown + REQUIRED only for a

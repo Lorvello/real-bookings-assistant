@@ -2134,6 +2134,7 @@ exports[`i18n guard 1: EN inline-default snapshot (the EN source of truth) > eve
   "publicBooking.pb.notFoundTitle": "Not found",
   "publicBooking.pb.optional": "(optional)",
   "publicBooking.pb.phone": "Phone",
+  "publicBooking.pb.phoneCountry": "Phone country",
   "publicBooking.pb.poweredBy": "Powered by Bookings Assistant",
   "publicBooking.pb.selectCountry": "Select your country",
   "publicBooking.pb.selectDateFirst": "Select a date first.",

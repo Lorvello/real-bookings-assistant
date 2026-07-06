@@ -15,6 +15,14 @@ interface BookingData {
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
+  // P1-9-PHONE3: the phone's country, chosen EXPLICITLY on the public form via a
+  // country/dial-code selector (default NL). ISO-3166 alpha-2. Used as the libphonenumber-js
+  // defaultCountry so a bare national-format number is disambiguated to the RIGHT country's
+  // E.164 instead of blindly guessed as Dutch. Distinct from customerCountry (the
+  // cross-border billing country, only collected for remote/digital services): when both are
+  // present customerCountry wins as the stronger explicit signal, else this phoneCountry, else
+  // NL as the last-resort default. Optional so a caller that omits it keeps the NL default.
+  phoneCountry?: string;
   startTime: Date;
   endTime: Date;
   notes?: string;
@@ -124,21 +132,29 @@ export const usePublicBookingCreation = () => {
       // when not passed, so a non-NL customer's bare national-format number (no leading
       // "+") was either silently mis-normalized as Dutch, or rejected outright as
       // "Ongeldig telefoonnummer" even though it is a real, valid number for their own
-      // country (reproduced: a UK customer booking a remote_service appointment, having
-      // already selected United Kingdom in the required cross-border-VAT country field,
-      // got "invalid phone number" and could not complete the booking at all).
+      // country.
       //
-      // The form already collects bookingData.customerCountry (ISO-3166 alpha-2, e.g.
-      // "GB") for remote/digital services needing cross-border VAT -- reuse that as the
-      // defaultCountry hint instead of hardcoding NL. It is optional (in_person bookings
-      // omit it), so this only improves accuracy when a country is already known; the NL
-      // fallback stays for the in_person / country-not-collected path where NL remains
-      // the right default for this NL-based product today.
+      // P1-9-PHONE3: for an in_person service, no cross-border customerCountry is collected,
+      // so the old NL fallback here silently mis-tagged a French/Belgian bare number as Dutch
+      // (0687654321 -> +31687654321). Fixed by making the phone's country EXPLICIT on the
+      // public form: PublicBooking.tsx now renders a country/dial-code selector (default NL)
+      // and passes the chosen ISO code as phoneCountry. Resolution order for the
+      // libphonenumber-js defaultCountry hint, strongest signal first:
+      //   1. customerCountry -- the cross-border billing country the customer actively
+      //      selected for a remote/digital service (still the strongest hint when present),
+      //   2. phoneCountry -- the country the customer explicitly picked in the phone selector
+      //      (the in_person path, default NL but a CHOSEN default, not a blind guess),
+      //   3. 'NL' -- last-resort default for any caller that supplies neither.
+      // Because the country is now always an explicit choice, a bare national number resolves
+      // to the RIGHT country's E.164; there is no after-the-fact ambiguous guess left on this
+      // path. The stored value is always the disambiguated E.164 (phoneResult.value).
       let sanitizedPhone: string | undefined = undefined;
       if (bookingData.customerPhone) {
         const defaultCountry: CountryCode = isValidCountryCode(bookingData.customerCountry)
           ? (bookingData.customerCountry!.trim().toUpperCase() as CountryCode)
-          : 'NL';
+          : isValidCountryCode(bookingData.phoneCountry)
+            ? (bookingData.phoneCountry!.trim().toUpperCase() as CountryCode)
+            : 'NL';
         const phoneResult = validatePhoneNumber(bookingData.customerPhone, { defaultCountry });
         if (!phoneResult.valid) {
           throw new Error(phoneResult.errors[0] || 'Ongeldig telefoonnummer');

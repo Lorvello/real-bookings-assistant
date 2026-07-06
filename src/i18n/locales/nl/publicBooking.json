@@ -26,6 +26,7 @@
       "email": "E-mail *",
       "emailError": "Voer een geldig e-mailadres in (bijv. naam@voorbeeld.nl).",
       "phone": "Telefoon",
+      "phoneCountry": "Land telefoonnummer",
       "optional": "(optioneel)",
       "country": "Land *",
       "selectCountry": "Selecteer je land",
