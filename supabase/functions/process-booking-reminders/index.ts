@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { formatDate, reminderHtml } from "./reminderBody.ts";
+import { sendWhatsAppTemplate } from "../_shared/whatsappSend.ts";
 
 // LR-R95 + E1/E2/E4 + SEQP1R3: reminder-engine. Door pg_cron (via pg_net) periodiek
 // aangeroepen (zie 20260630191000_E1_schedule_process_booking_reminders_cron.sql): haalt
@@ -30,27 +31,64 @@ const corsHeaders = {
 // marked 'sent'.
 const WHATSAPP_REMINDER_MAX_ATTEMPTS = 12;
 
+// SEQP1R8 (P1-9): env-gated switch for the real Meta template send. Defaults OFF (unset,
+// or any value other than the literal string "true") so today's fail-closed/stub-only
+// behavior is completely unchanged unless BOTH this flag is explicitly set to "true" AND a
+// real approved template name is configured. This is the single on-switch Mathew flips once
+// Meta approves the template staged in launch-ready-loop/META_TEMPLATE_REMINDER.md; no code
+// change is needed at that point, only these two Supabase Edge Function secrets.
+const WHATSAPP_REMINDER_TEMPLATE_LIVE = Deno.env.get("WHATSAPP_REMINDER_TEMPLATE_LIVE") === "true";
+const META_REMINDER_TEMPLATE_NAME = Deno.env.get("META_REMINDER_TEMPLATE_NAME") ?? "";
+
 // E-2: route a WhatsApp-origin booking (phone, no email) to a WhatsApp reminder.
 // The LIVE Meta template send is a human-gate (a business-initiated message outside the
-// 24h customer-care window needs an APPROVED template). Until that template is approved
-// and wired, this returns delivered:false so the reminder is NOT marked sent (it is
-// retried on a later run, not silently lost). In TEST, x-test-stub-whatsapp lets the
-// harness assert the routing + dedup without contacting Meta.
+// 24h customer-care window needs an APPROVED template). Until WHATSAPP_REMINDER_TEMPLATE_LIVE
+// is explicitly "true" (and a template name is configured), this returns delivered:false so
+// the reminder is NOT marked sent (it is retried on a later run, not silently lost). In
+// TEST, x-test-stub-whatsapp lets the harness assert the routing + dedup without contacting
+// Meta, on WHICHEVER branch (gated or live) the flag currently selects, so the stub proves
+// the actual code path in play, not a separate hardcoded test-only branch.
 async function sendWhatsAppReminder(
   r: { booking_id: string; customer_phone: string; customer_name: string; business_name: string; start_time: string; reminder_number: number; customer_locale: "nl" | "en" },
   stub: boolean,
 ): Promise<{ delivered: boolean; stubbed: boolean; reason?: string }> {
+  if (!WHATSAPP_REMINDER_TEMPLATE_LIVE || !META_REMINDER_TEMPLATE_NAME) {
+    // SAFE DEFAULT: flag unset/false, or set true but no template name configured yet
+    // (half-configured is treated as OFF, never as an accidental live send). Unchanged
+    // from pre-P1-9 behavior.
+    if (stub) {
+      console.log(`[whatsapp-reminder][stub] would send reminder ${r.reminder_number} for booking ${r.booking_id} (${r.customer_locale}), gated branch`);
+      return { delivered: true, stubbed: true };
+    }
+    console.warn(`[whatsapp-reminder] Meta template send is gated; booking reminder ${r.reminder_number} for booking ${r.booking_id} left for retry.`);
+    return { delivered: false, stubbed: false, reason: "meta_template_gated" };
+  }
+
+  // LIVE branch: flag is "true" AND a template name is configured. Build the exact
+  // 4 body-variables staged in META_TEMPLATE_REMINDER.md (name, business, date, time), in
+  // that positional order (Meta template params are positional, not named).
+  const { datum, tijd } = formatDate(r.start_time, r.customer_locale);
+  const displayName = r.customer_name && r.customer_name.trim().length > 0
+    ? r.customer_name
+    : (r.customer_locale === "en" ? "there" : "daar");
+  const bodyParams = [displayName, r.business_name, datum, tijd];
+
   if (stub) {
-    // TEST-only: prove the branch was taken without sending. Treated as deliverable so the
-    // claim-then-send dedup path is exercised end-to-end. Log the booking_id (UUID), never
-    // the customer phone number (PII), matching this fn's logging discipline.
-    console.log(`[whatsapp-reminder][stub] would send reminder ${r.reminder_number} for booking ${r.booking_id} (${r.customer_locale})`);
+    // TEST-only: exercise the REAL live-branch code path (param assembly, template name,
+    // language) but stop short of the actual Meta fetch, so a real cron run can never be
+    // stubbed (x-test-stub-whatsapp is only honoured by the caller in the first place) and
+    // this stub proves the live branch, not the old no-op gated branch. Log the booking_id
+    // (UUID) and template name only, never the phone number (PII).
+    console.log(`[whatsapp-reminder][stub] would send LIVE template "${META_REMINDER_TEMPLATE_NAME}" reminder ${r.reminder_number} for booking ${r.booking_id} (${r.customer_locale}), params=${JSON.stringify(bodyParams)}`);
     return { delivered: true, stubbed: true };
   }
-  // HUMAN-GATE: approved Meta template + WHATSAPP_ACCESS_TOKEN send not yet wired here.
-  // Fail closed: do not mark sent. Log the booking_id (UUID), never the phone (PII).
-  console.warn(`[whatsapp-reminder] Meta template send is gated; booking reminder ${r.reminder_number} for booking ${r.booking_id} left for retry.`);
-  return { delivered: false, stubbed: false, reason: "meta_template_gated" };
+
+  const result = await sendWhatsAppTemplate(r.customer_phone, META_REMINDER_TEMPLATE_NAME, r.customer_locale, bodyParams);
+  if (!result.ok) {
+    console.error(`[whatsapp-reminder] LIVE template send failed for booking ${r.booking_id}: status=${result.status} error=${result.error}`);
+    return { delivered: false, stubbed: false, reason: result.error ?? "template_send_failed" };
+  }
+  return { delivered: true, stubbed: false };
 }
 
 const handler = async (req: Request): Promise<Response> => {
