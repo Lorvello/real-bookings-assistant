@@ -103,6 +103,47 @@ Deno.test("service row is omitted when service is null and present otherwise", (
   assertStringIncludes(reminderHtml("nl", "x", "B", "Knipbeurt", "d", "t", false).html, "Knipbeurt");
 });
 
+// SEQP1R19 (finding R18-2, SECURITY): every user/owner-controlled field interpolated into the
+// email HTML must be output-encoded at the render boundary. customer_name arrives verbatim from the
+// WhatsApp booking path, so a stored `<img src=x onerror=...>` name (or a business_name breaking out
+// of a table cell with `</td></tr><script>`) previously rendered as LIVE markup in a DKIM-signed
+// reminder email. These assert the payloads land ESCAPED (HTML entities, not live tags) while a
+// normal name is untouched, so the injection can never silently regress.
+Deno.test("R18-2: customer_name HTML is escaped, not rendered as live markup", () => {
+  const payload = "rux <img src=x onerror=alert(1)> Bobby";
+  const { html } = reminderHtml("nl", payload, "Lorvello", null, "d", "t", false);
+  // The raw live tag must NOT be present.
+  assert(!html.includes("<img src=x onerror=alert(1)>"), "live <img> tag leaked into the email HTML");
+  // The escaped, inert entity form MUST be present.
+  assertStringIncludes(html, "rux &lt;img src=x onerror=alert(1)&gt; Bobby");
+});
+
+Deno.test("R18-2: business_name HTML is escaped in both the body and the subject", () => {
+  const evilBusiness = "Evil</td></tr><script>steal()</script>";
+  const { subject, html } = reminderHtml("nl", "Sanne", evilBusiness, null, "d", "t", false);
+  assert(!html.includes("<script>steal()</script>"), "live <script> leaked into the email HTML");
+  assert(!subject.includes("<script>"), "live <script> leaked into the email subject");
+  assertStringIncludes(html, "Evil&lt;/td&gt;&lt;/tr&gt;&lt;script&gt;steal()&lt;/script&gt;");
+});
+
+Deno.test("R18-2: service value is escaped", () => {
+  const { html } = reminderHtml("nl", "Sanne", "Lorvello", "Cut & <b>Style</b>", "d", "t", false);
+  assert(!html.includes("<b>Style</b>"), "live <b> tag leaked from the service value");
+  assertStringIncludes(html, "Cut &amp; &lt;b&gt;Style&lt;/b&gt;");
+});
+
+Deno.test("R18-2: the quote characters are escaped (attribute-context safety)", () => {
+  const { html } = reminderHtml("en", `A"B'C`, "Biz", null, "d", "t", false);
+  assertStringIncludes(html, "A&quot;B&#39;C");
+});
+
+Deno.test("R18-2: a normal name with no special chars renders unchanged (no over-escaping)", () => {
+  const { html } = reminderHtml("nl", "Sanne de Vries", "Lorvello", "Knipbeurt", "d", "t", false);
+  assertStringIncludes(html, "Hoi Sanne de Vries,");
+  assertStringIncludes(html, "Knipbeurt");
+  assert(!html.includes("&amp;"), "a plain name/business/service must not introduce stray entities");
+});
+
 // Sanity: subjects are distinct between locales (used by the send path).
 Deno.test("subjects differ between NL and EN", () => {
   const nl = reminderHtml("nl", "x", "B", null, "d", "t", false).subject;

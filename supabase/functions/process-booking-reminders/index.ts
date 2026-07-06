@@ -16,6 +16,23 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const supabase = createClient(Deno.env.get("SUPABASE_URL") ?? "", SERVICE_KEY);
 
+// SEQP1R19 (finding R18-2, defense-in-depth alongside the reminderBody HTML-escape): the email
+// From field is built as an RFC 5322 `display-name <addr>` string from the owner-controlled
+// business_name. reminderHtml escaping fixes the BODY/subject, but the From display-name is a
+// separate header sink: newlines/control chars enable header injection, and `<>"@,;:` break the
+// `display-name <addr>` structure (e.g. a business_name containing `<` could smuggle a different
+// address). Strip those characters (and collapse whitespace) so the display-name is always inert,
+// then fall back to a safe literal if nothing usable remains.
+function sanitizeFromName(raw: string | null | undefined): string {
+  const cleaned = (raw ?? "")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x1F\x7F]/g, " ") // CR/LF + all control chars: header-injection guard
+    .replace(/["<>@,;:\\]/g, " ") // structural chars that would break `display-name <addr>`
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned.length > 0 ? cleaned : "Bookings Assistant";
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
@@ -193,7 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
           const { datum, tijd } = formatDate(r.start_time, locale);
           const { subject, html } = reminderHtml(locale, r.customer_name, r.business_name, null, datum, tijd, r.reminder_number === 2);
           const resp = await resend.emails.send({
-            from: `${r.business_name} <noreply@bookingsassistant.com>`,
+            from: `${sanitizeFromName(r.business_name)} <noreply@bookingsassistant.com>`,
             to: [r.customer_email],
             subject,
             html,
