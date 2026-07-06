@@ -17,6 +17,7 @@ import { Calendar, Clock, MessageCircle, Users, Activity, Zap, Info, ArrowRight,
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { MetricCard } from './business-intelligence/MetricCard';
+import { ReminderActivityCard } from '@/components/dashboard/ReminderActivityCard';
 
 interface LiveOperationsTabProps {
   calendarIds: string[];
@@ -542,6 +543,13 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
             </div>
           </div>
         </div>
+
+        {/* Reminder Activity (SEQP1R6/P1-7): real owner-facing visibility into the
+            reminder engine proven end-to-end in earlier rounds. Sits alongside the other
+            live operational surfaces above rather than its own tab: it is one signal
+            among several "is my booking system actually working" checks, not yet a
+            standalone workflow needing its own navigation destination. */}
+        <ReminderActivityCard calendarIds={calendarIds} />
       </div>
     </TooltipProvider>
   );

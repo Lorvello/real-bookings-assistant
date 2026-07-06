@@ -361,6 +361,32 @@
     },
     "aria": {
       "filterDateRange": "Filter op datumbereik"
+    },
+    "reminders": {
+      "heading": "Herinneringsactiviteit",
+      "subtitle": "Afgelopen {{days}} dagen",
+      "loading": "Herinneringsactiviteit laden",
+      "errTitle": "Kon herinneringsactiviteit niet laden",
+      "errDesc": "Controleer je verbinding en probeer het opnieuw.",
+      "retry": "Opnieuw proberen",
+      "count": {
+        "sent": "Verzonden",
+        "pending": "In behandeling",
+        "stuck": "Vastgelopen"
+      },
+      "status": {
+        "sent": "Verzonden",
+        "pending": "In behandeling",
+        "stuck": "Wacht op WhatsApp-goedkeuring"
+      },
+      "sentTip": "Herinneringen die daadwerkelijk zijn afgeleverd bij de klant via e-mail of WhatsApp.",
+      "pendingTip": "Geclaimd en wordt nog opnieuw geprobeerd. De meeste worden binnen enkele minuten afgerond; dit is normale, lopende activiteit.",
+      "stuckTip": "Wacht op goedkeuring van het WhatsApp-sjabloon. Dit wordt ongeveer een uur lang automatisch opnieuw geprobeerd en blijft daarna hier staan tot het is goedgekeurd.",
+      "listLabel": "Recente herinneringen",
+      "unknownCustomer": "Klant",
+      "appointmentAt": "Afspraak {{date}}",
+      "emptyTitle": "Nog geen herinneringen verzonden",
+      "emptyDesc": "Zodra afspraakherinneringen zijn ingeschakeld en een boeking bijna begint, verschijnt de activiteit hier."
     }
   }
 }
