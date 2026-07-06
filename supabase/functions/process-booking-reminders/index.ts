@@ -158,9 +158,15 @@ const handler = async (req: Request): Promise<Response> => {
       if (claimErr || !claimRows || claimRows.length === 0) { skipped++; continue; }
       const claim = claimRows[0] as { attempt_count: number; status: string };
       if (claim.status !== "pending") {
-        // Defensive: a concurrent invocation already resolved this row to a terminal
-        // status (sent / pending_template_approval) between the RPC read and get_due_
-        // booking_reminders()'s snapshot. Do not attempt delivery again.
+        // Do not attempt delivery: the claim did not yield a fresh retryable row. Two cases:
+        //  (a) a concurrent invocation already resolved this row to a terminal status
+        //      (sent / pending_template_approval / invalid_phone_format) between the RPC read
+        //      and get_due_booking_reminders()'s snapshot; or
+        //  (b) SEQP1R13 (P1-5-CANCEL): the booking was cancelled / deleted / moved to the
+        //      past between the get_due snapshot and this claim, so claim_booking_reminder
+        //      folded the active-booking guard in and returned the terminal 'booking_cancelled'
+        //      status instead of 'pending'. This is the cancel-during-send abort: the send is
+        //      never made, and the row is recorded as booking_cancelled (never a false 'sent').
         skipped++;
         continue;
       }
