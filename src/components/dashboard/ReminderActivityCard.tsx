@@ -2,7 +2,7 @@ import React from 'react';
 import { format } from 'date-fns';
 import { nl, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
-import { BellRing, Mail, MessageCircle, CheckCircle2, Clock3, AlertTriangle, Info } from 'lucide-react';
+import { BellRing, Mail, MessageCircle, CheckCircle2, Clock3, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useReminderActivity } from '@/hooks/dashboard/useReminderActivity';
@@ -44,11 +44,27 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
         return {
           label: t('dashboard.reminders.status.stuck', 'Awaiting WhatsApp approval'),
           icon: AlertTriangle,
+          badgeClass: 'border-warning/30 text-warning-foreground bg-warning/10',
+        };
+      // SEQP1R19 (R18-1): the two terminal FAILURE states. Previously both fell through to the
+      // default branch, which rendered the raw DB string (e.g. "invalid_phone_format") with a neutral
+      // Info badge, untranslated for a Dutch owner. Now each has an explicit translated label and a
+      // destructive style so a permanently-failed reminder is unmistakable, not a low-key grey note.
+      case 'invalid_phone_format':
+        return {
+          label: t('dashboard.reminders.status.invalidPhone', 'Invalid phone number'),
+          icon: XCircle,
+          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+        };
+      case 'booking_cancelled':
+        return {
+          label: t('dashboard.reminders.status.bookingCancelled', 'Booking cancelled'),
+          icon: XCircle,
           badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
         };
       default:
         return {
-          label: status,
+          label: t('dashboard.reminders.status.unknown', 'Unknown'),
           icon: Info,
           badgeClass: 'border-white/[0.12] text-muted-foreground bg-muted/40',
         };
@@ -100,15 +116,17 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
               </div>
             </div>
 
-            {/* Counts row */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
+            {/* Counts row: 2x2 on mobile, 4-across from sm up (R18-1 added the Failed tile). */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
                     className="relative w-full text-left rounded-xl border border-white/[0.08] bg-card/50 p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <p className="text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">{summary?.sent ?? 0}</p>
+                    <p className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
+                      (summary?.sent ?? 0) > 0 ? 'text-success-foreground' : 'text-foreground'
+                    }`}>{summary?.sent ?? 0}</p>
                     <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
                       {t('dashboard.reminders.count.sent', 'Sent')}
                     </p>
@@ -145,11 +163,11 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                   <button
                     type="button"
                     className={`relative w-full text-left rounded-xl border p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                      (summary?.stuck ?? 0) > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-white/[0.08] bg-card/50'
+                      (summary?.stuck ?? 0) > 0 ? 'border-warning/30 bg-warning/5' : 'border-white/[0.08] bg-card/50'
                     }`}
                   >
                     <p className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
-                      (summary?.stuck ?? 0) > 0 ? 'text-destructive-foreground' : 'text-foreground'
+                      (summary?.stuck ?? 0) > 0 ? 'text-warning-foreground' : 'text-foreground'
                     }`}>
                       {summary?.stuck ?? 0}
                     </p>
@@ -162,6 +180,35 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                 <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
                   <p className="text-sm">
                     {t('dashboard.reminders.stuckTip', 'Waiting on WhatsApp template approval. These retry automatically for about an hour, then stay here until approved.')}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              {/* SEQP1R19 (R18-1): the Failed / needs-attention tile. Surfaces the two terminal
+                  FAILURE statuses (invalid_phone_format + booking_cancelled) that previously landed
+                  in no tile at all, so a permanently-failed reminder now gives the owner a clear
+                  numeric signal instead of a silent gap behind "Sent". */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className={`relative w-full text-left rounded-xl border p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                      (summary?.failed ?? 0) > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-white/[0.08] bg-card/50'
+                    }`}
+                  >
+                    <p className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
+                      (summary?.failed ?? 0) > 0 ? 'text-destructive-foreground' : 'text-foreground'
+                    }`}>
+                      {summary?.failed ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
+                      {t('dashboard.reminders.count.failed', 'Failed')}
+                    </p>
+                    <Info className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80" aria-hidden="true" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
+                  <p className="text-sm">
+                    {t('dashboard.reminders.failedTip', "These reminders could not be delivered and won't retry: the phone number was invalid, or the booking was cancelled. They need your attention.")}
                   </p>
                 </TooltipContent>
               </Tooltip>

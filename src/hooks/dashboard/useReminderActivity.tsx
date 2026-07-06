@@ -10,7 +10,23 @@ import { useMockDataControl } from '@/hooks/useMockDataControl';
 export const REMINDER_ACTIVITY_WINDOW_DAYS = 7;
 
 export type ReminderChannel = 'email' | 'whatsapp';
-export type ReminderStatus = 'sent' | 'pending' | 'pending_template_approval';
+// SEQP1R19 (finding R18-1): the full live status union. booking_reminders_sent's CHECK constraint
+// is exactly these five values. The prior type listed only the first three, so the two terminal
+// FAILURE states (invalid_phone_format, booking_cancelled) were a silent type lie (`row.status as
+// ReminderStatus`) AND were absent from every count tile, giving the owner zero numeric signal that
+// a reminder permanently failed. Both are now first-class members of the union and the count model.
+export type ReminderStatus =
+  | 'sent'
+  | 'pending'
+  | 'pending_template_approval'
+  | 'invalid_phone_format'
+  | 'booking_cancelled';
+
+// The two terminal statuses that mean a reminder will NEVER reach the customer and needs a human
+// to look (fix the phone number, or acknowledge the cancellation). Folded into one owner-facing
+// "failed / needs attention" count, kept distinct from `stuck` (pending_template_approval, which
+// still auto-retries) and `pending` (still in flight).
+export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled'];
 
 export interface ReminderActivityItem {
   id: string;
@@ -31,9 +47,25 @@ export interface ReminderActivityItem {
 export interface ReminderActivitySummary {
   sent: number;
   pending: number;
-  stuck: number; // status = pending_template_approval
+  stuck: number; // status = pending_template_approval (auto-retries, then waits on WhatsApp approval)
+  failed: number; // status in FAILED_REMINDER_STATUSES (permanently failed, needs a human)
   items: ReminderActivityItem[];
   window_days: number;
+}
+
+// Pure count model, extracted so the aggregation can be unit-tested independently of the
+// supabase query (R18-1 regression guard). EVERY live status must land in exactly one bucket:
+// the two terminal FAILURE states (invalid_phone_format, booking_cancelled) fold into `failed`,
+// so no status is ever silently omitted from the owner's headline counts again.
+export function summarizeReminderItems(items: ReminderActivityItem[]): ReminderActivitySummary {
+  return {
+    sent: items.filter((i) => i.status === 'sent').length,
+    pending: items.filter((i) => i.status === 'pending').length,
+    stuck: items.filter((i) => i.status === 'pending_template_approval').length,
+    failed: items.filter((i) => FAILED_REMINDER_STATUSES.includes(i.status)).length,
+    window_days: REMINDER_ACTIVITY_WINDOW_DAYS,
+    items,
+  };
 }
 
 export function useReminderActivity(calendarIds: string[]) {
@@ -49,6 +81,7 @@ export function useReminderActivity(calendarIds: string[]) {
           sent: 4,
           pending: 1,
           stuck: 0,
+          failed: 0,
           window_days: REMINDER_ACTIVITY_WINDOW_DAYS,
           items: [
             {
@@ -109,13 +142,7 @@ export function useReminderActivity(calendarIds: string[]) {
         channel: row.bookings?.customer_email ? 'email' : 'whatsapp',
       }));
 
-      return {
-        sent: items.filter((i) => i.status === 'sent').length,
-        pending: items.filter((i) => i.status === 'pending').length,
-        stuck: items.filter((i) => i.status === 'pending_template_approval').length,
-        window_days: REMINDER_ACTIVITY_WINDOW_DAYS,
-        items,
-      };
+      return summarizeReminderItems(items);
     },
     enabled: !!calendarIds && calendarIds.length > 0,
     staleTime: 30000,
