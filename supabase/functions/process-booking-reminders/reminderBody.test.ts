@@ -39,6 +39,60 @@ Deno.test("formatDate uses English month/day names for EN", () => {
   assertStringIncludes(datum, "June");
 });
 
+// SEQP1R16 (finding R15-1): the date-off-by-one regression guard. An appointment in the
+// 00:00-01:59 Europe/Amsterdam window has an Amsterdam calendar date that is ONE DAY AHEAD of
+// its UTC date. The old formatDate localised the time to Amsterdam but built the date from UTC
+// getters, so it rendered the previous day (e.g. Amsterdam Tuesday 7 July 00:30 -> "maandag 6
+// juli", Monday). This asserts the FULL date string (weekday + day-of-month + month) lands on the
+// correct Amsterdam day in BOTH locales, and that the time is still correct, so the exact case
+// every prior round missed (they only tested noon, same UTC date) can never silently regress.
+Deno.test("R15-1: 00:30 Amsterdam booking renders the correct Amsterdam day (SUMMER, +02) in NL and EN", () => {
+  // 2026-07-06 22:30:00Z == Europe/Amsterdam Tuesday 2026-07-07 00:30 (Amsterdam is +02 in July).
+  const iso = "2026-07-06T22:30:00Z";
+  const nl = formatDate(iso, "nl");
+  assertEquals(nl.datum, "dinsdag 7 juli 2026", "NL date must be Tuesday 7 July, not Monday 6");
+  assertEquals(nl.tijd, "00:30");
+  assert(!nl.datum.includes("maandag"), "must not show the previous day (Monday)");
+  assert(!nl.datum.includes(" 6 "), "must not show day-of-month 6");
+
+  const en = formatDate(iso, "en");
+  assertEquals(en.datum, "Tuesday 7 July 2026", "EN date must be Tuesday 7 July, not Monday 6");
+  assertEquals(en.tijd, "00:30");
+  assert(!en.datum.includes("Monday"), "must not show the previous day (Monday)");
+});
+
+Deno.test("R15-1: 00:30 Amsterdam booking renders the correct Amsterdam day (WINTER, +01) in NL and EN", () => {
+  // 2026-01-05 23:30:00Z == Europe/Amsterdam Tuesday 2026-01-06 00:30 (Amsterdam is +01 in January).
+  const iso = "2026-01-05T23:30:00Z";
+  const nl = formatDate(iso, "nl");
+  assertEquals(nl.datum, "dinsdag 6 januari 2026", "NL date must be Tuesday 6 Jan, not Monday 5");
+  assertEquals(nl.tijd, "00:30");
+  const en = formatDate(iso, "en");
+  assertEquals(en.datum, "Tuesday 6 January 2026", "EN date must be Tuesday 6 Jan, not Monday 5");
+  assertEquals(en.tijd, "00:30");
+});
+
+Deno.test("noon booking date + time are unchanged (anti-regression, same output shape as before)", () => {
+  // 2026-06-29 12:00:00Z == Europe/Amsterdam Monday 2026-06-29 14:00 (same UTC date, the only case
+  // the old tests ever covered). Locks the exact prior output shape so the fix did not drift it.
+  assertEquals(formatDate("2026-06-29T12:00:00Z", "nl").datum, "maandag 29 juni 2026");
+  assertEquals(formatDate("2026-06-29T12:00:00Z", "nl").tijd, "14:00");
+  assertEquals(formatDate("2026-06-29T12:00:00Z", "en").datum, "Monday 29 June 2026");
+  assertEquals(formatDate("2026-06-29T12:00:00Z", "en").tijd, "14:00");
+});
+
+Deno.test("DST boundary dates stay correct (spring-forward + fall-back)", () => {
+  // Spring-forward 2026-03-29 (Amsterdam clocks jump 02:00 -> 03:00, +01 -> +02).
+  // 00:30Z = Amsterdam 01:30 (before the gap); 01:30Z = Amsterdam 03:30 (after the gap).
+  assertEquals(formatDate("2026-03-29T00:30:00Z", "nl").datum, "zondag 29 maart 2026");
+  assertEquals(formatDate("2026-03-29T00:30:00Z", "nl").tijd, "01:30");
+  assertEquals(formatDate("2026-03-29T01:30:00Z", "nl").tijd, "03:30");
+  // Fall-back 2026-10-25 (Amsterdam clocks fall 03:00 -> 02:00, +02 -> +01).
+  // 00:30Z = Amsterdam 02:30, date must stay Sunday 25 October.
+  assertEquals(formatDate("2026-10-25T00:30:00Z", "en").datum, "Sunday 25 October 2026");
+  assertEquals(formatDate("2026-10-25T00:30:00Z", "en").tijd, "02:30");
+});
+
 Deno.test("empty name falls back per locale", () => {
   assertStringIncludes(reminderHtml("nl", "", "B", null, "d", "t", false).html, "Hoi daar,");
   assertStringIncludes(reminderHtml("en", "", "B", null, "d", "t", false).html, "Hi there,");

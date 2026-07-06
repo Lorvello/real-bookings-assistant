@@ -3,20 +3,33 @@
 // branch is keyed off the booking locale (bookings.customer_locale, normalised to nl|en by
 // the RPC), so an NL booking gets an NL body and an EN booking gets an EN body.
 
-const MAANDEN = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
-const DAGEN = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"];
-const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-const DAYS_EN = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
 export type ReminderLocale = "nl" | "en";
 
+// SEQP1R16 (P1-3 / finding R15-1): render BOTH the date and the time from a SINGLE zoned
+// Intl.DateTimeFormat in the SAME timeZone (Europe/Amsterdam by default, i.e. the timezone the
+// time was already localised to). The previous version localised only the TIME to Amsterdam but
+// built the DATE from d.getDay()/getDate()/getMonth()/getFullYear(), which read the PROCESS
+// timezone (UTC on the Supabase edge runtime). For an appointment in the 00:00-01:59 Amsterdam
+// window (its Amsterdam calendar date differs from its UTC date) that rendered the date one day
+// early (e.g. Amsterdam Tuesday 7 July 00:30 shown as "maandag 6 juli 2026") while the time was
+// correct: an internally contradictory, no-show-causing reminder. Deriving date AND time from the
+// same formatter's parts (one instant, one zone) means they can never disagree again. The
+// nl-NL/en-US "weekday d month yyyy" word order is assembled explicitly from formatToParts so the
+// output shape (Dutch lowercase weekday+month names, no comma) is stable regardless of the
+// locale's default date pattern.
 export function formatDate(iso: string, locale: ReminderLocale, tz = "Europe/Amsterdam"): { datum: string; tijd: string } {
   try {
     const d = new Date(iso);
-    const tijd = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(d);
-    const datum = locale === "en"
-      ? `${DAYS_EN[d.getDay()]} ${d.getDate()} ${MONTHS_EN[d.getMonth()]} ${d.getFullYear()}`
-      : `${DAGEN[d.getDay()]} ${d.getDate()} ${MAANDEN[d.getMonth()]} ${d.getFullYear()}`;
+    if (isNaN(d.getTime())) return { datum: iso, tijd: "" };
+    const tag = locale === "en" ? "en-US" : "nl-NL";
+    const dateFmt = new Intl.DateTimeFormat(tag, {
+      weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: tz,
+    });
+    const parts = dateFmt.formatToParts(d);
+    const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
+    // Fixed "weekday day month year" order in the SAME Amsterdam zone as the time below.
+    const datum = `${get("weekday")} ${get("day")} ${get("month")} ${get("year")}`.trim();
+    const tijd = new Intl.DateTimeFormat(tag, { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz }).format(d);
     return { datum, tijd };
   } catch {
     return { datum: iso, tijd: "" };
