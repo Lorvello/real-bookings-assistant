@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { formatDate, reminderHtml } from "./reminderBody.ts";
-import { sendWhatsAppTemplate } from "../_shared/whatsappSend.ts";
+import { sendWhatsAppTemplate, normalizePhoneForMeta } from "../_shared/whatsappSend.ts";
 
 // LR-R95 + E1/E2/E4 + SEQP1R3: reminder-engine. Door pg_cron (via pg_net) periodiek
 // aangeroepen (zie 20260630191000_E1_schedule_process_booking_reminders_cron.sql): haalt
@@ -52,6 +52,19 @@ async function sendWhatsAppReminder(
   r: { booking_id: string; customer_phone: string; customer_name: string; business_name: string; start_time: string; reminder_number: number; customer_locale: "nl" | "en" },
   stub: boolean,
 ): Promise<{ delivered: boolean; stubbed: boolean; reason?: string }> {
+  // SEQP1R9 (P1-9-PHONE): checked up front, BEFORE the gated/live branch split, and even in
+  // the stub path, so (a) a bad phone number is caught regardless of which branch the env
+  // flag currently selects, and (b) the x-test-stub-whatsapp harness genuinely proves the
+  // fail-closed behaviour for a garbage number rather than skipping past it into a fake
+  // "would send" log line. This is the SAME normalizer sendWhatsAppTemplate itself calls
+  // (single source of truth), just surfaced one level up so the caller can route the
+  // distinct "invalid_phone_format" reason into its own terminal status instead of the
+  // generic gated/failed-send paths.
+  if (!normalizePhoneForMeta(r.customer_phone)) {
+    console.error(`[whatsapp-reminder] booking ${r.booking_id} reminder ${r.reminder_number}: customer_phone niet betrouwbaar te normaliseren, send geweigerd (geen Meta-call).`);
+    return { delivered: false, stubbed: false, reason: "invalid_phone_format" };
+  }
+
   if (!WHATSAPP_REMINDER_TEMPLATE_LIVE || !META_REMINDER_TEMPLATE_NAME) {
     // SAFE DEFAULT: flag unset/false, or set true but no template name configured yet
     // (half-configured is treated as OFF, never as an accidental live send). Unchanged
@@ -163,6 +176,12 @@ const handler = async (req: Request): Promise<Response> => {
       // one. Net effect: WhatsApp bookings are retried up to the cap (not lost, not
       // retried forever), email send-failures are not double-sent.
       let releaseClaim = false;
+      // SEQP1R9 (P1-9-PHONE): a distinct, specific failure reason (currently only
+      // "invalid_phone_format") that must be routed to its OWN terminal status rather than
+      // treated as a generic retryable gated-send. Left null for every other outcome so
+      // record_booking_reminder_result's default behaviour (pending / pending_template_
+      // approval-on-cap) is completely unchanged for those.
+      let failureReason: string | null = null;
       try {
         if (channel === "email") {
           const { datum, tijd } = formatDate(r.start_time, locale);
@@ -185,6 +204,7 @@ const handler = async (req: Request): Promise<Response> => {
           if (delivered) whatsapp++;
           // Gated WhatsApp (delivered:false) sent nothing: eligible for bounded retry.
           else releaseClaim = true;
+          if (wa.reason === "invalid_phone_format") failureReason = "invalid_phone_format";
         }
       } catch (e) {
         delivered = false;
@@ -202,22 +222,28 @@ const handler = async (req: Request): Promise<Response> => {
         if (!releaseClaim) continue;
       }
 
-      // SEQP1R3: single atomic write of the outcome (code-review fix). record_booking_
-      // reminder_result does `attempt_count = attempt_count + 1` evaluated against the
-      // LIVE row at commit time inside Postgres, not a count read earlier in this request,
-      // so concurrent invocations cannot lose an increment, and it refuses to overwrite an
-      // already-'sent' row (idempotency guard against a delayed/duplicate result).
-      // FAIL-CLOSED GUARANTEE: 'sent' is written ONLY when delivered=true, which requires
-      // either a non-error Resend response or a genuine WhatsApp send (never the gated
-      // stub path).
+      // SEQP1R3/SEQP1R9: single atomic write of the outcome (code-review fix). record_
+      // booking_reminder_result does `attempt_count = attempt_count + 1` evaluated against
+      // the LIVE row at commit time inside Postgres, not a count read earlier in this
+      // request, so concurrent invocations cannot lose an increment, and it refuses to
+      // overwrite an already-terminal (sent / invalid_phone_format) row (idempotency guard
+      // against a delayed/duplicate result). FAIL-CLOSED GUARANTEE: 'sent' is written ONLY
+      // when delivered=true, which requires either a non-error Resend response or a genuine
+      // WhatsApp send (never the gated stub path). p_failure_reason routes an unresolvable
+      // phone number straight to its own 'invalid_phone_format' terminal status in this SAME
+      // write, reached in one attempt (never conflated with the retry-cap-driven
+      // pending_template_approval, per the P1-9-VERIFY-1 finding).
       const { data: resultRows } = await supabase.rpc("record_booking_reminder_result", {
         p_booking_id: r.booking_id,
         p_reminder_number: r.reminder_number,
         p_delivered: delivered,
         p_max_attempts: WHATSAPP_REMINDER_MAX_ATTEMPTS,
+        p_failure_reason: failureReason,
       });
       const result = resultRows?.[0] as { attempt_count: number; status: string } | undefined;
-      if (result?.status === "pending_template_approval") {
+      if (result?.status === "invalid_phone_format") {
+        console.error(`[whatsapp-reminder] booking ${r.booking_id} reminder ${r.reminder_number} parked as invalid_phone_format; customer_phone could not be normalized, needs a human data fix (NOT a Meta template-approval wait).`);
+      } else if (result?.status === "pending_template_approval") {
         console.warn(`[whatsapp-reminder] booking ${r.booking_id} reminder ${r.reminder_number} hit the ${WHATSAPP_REMINDER_MAX_ATTEMPTS}-attempt retry cap; parked as pending_template_approval.`);
       }
     }
