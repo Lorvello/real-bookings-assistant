@@ -107,7 +107,7 @@ export function AddTeamMemberDialog({
 
         <div className="space-y-5 pt-1">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <SettingsField label={t('settings.users.fields.inviteName.label', 'Full name')} htmlFor="invite-name">
+            <SettingsField label={t('settings.users.fields.inviteName.label', 'Full name')} htmlFor="invite-name" required>
               <Input
                 id="invite-name"
                 value={name}
@@ -121,6 +121,7 @@ export function AddTeamMemberDialog({
             <SettingsField
               label={t('settings.users.fields.inviteEmail.label', 'Email address')}
               htmlFor="invite-email"
+              required
               error={emailError ?? undefined}
             >
               <Input
