@@ -65,6 +65,25 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
     [contact.first_name, contact.last_name].filter(Boolean).join(' ') ||
     contact.phone_number;
 
+  // SEQP1R10 (code-review catch): contact.phone_number is stored as Meta's own wa_id, bare
+  // digits with no leading "+" (confirmed live against whatsapp_contacts: e.g.
+  // "31612345678"). Prefilled straight into useBookingForm's defaultValues, this bypasses
+  // BookingBasicFields.tsx's handlePhoneChange entirely (only wired to the input's own
+  // onChange, never runs on a prefilled defaultValue), so it would reach bookingSchema.ts's
+  // E164_SHAPE refine (added this same round, requires a leading "+") in bare-digit form
+  // and fail validation, blocking "create a booking from an existing WhatsApp conversation"
+  // for what used to work. This value's provenance is certain here (Meta's own already-
+  // international contact id, never a locally-typed ambiguous string), so prefixing "+" is
+  // a safe format conversion, not a country guess, mirroring normalizePhoneForMeta's own
+  // bare-international branch trusting this exact same shape. Only applied to a plausible
+  // bare-digit MSISDN (10-15 digits, no leading 0): a handful of legacy/dummy test rows in
+  // this table use non-numeric placeholder shapes (e.g. "316000035NN_CONNTEST") or are
+  // empty, and those are passed through unchanged so the form's own validation still
+  // catches them as invalid, same as before this fix.
+  const prefillPhone = /^[1-9]\d{9,14}$/.test(contact.phone_number || '')
+    ? `+${contact.phone_number}`
+    : contact.phone_number;
+
   const initials = displayName
     .split(' ')
     .map(n => n[0])
@@ -336,7 +355,7 @@ export function ConversationDetailPanel({ contact, calendarId }: ConversationDet
         open={bookingModalOpen}
         onClose={() => setBookingModalOpen(false)}
         calendarId={calendarId}
-        prefill={{ customerName: displayName, customerPhone: contact.phone_number }}
+        prefill={{ customerName: displayName, customerPhone: prefillPhone }}
       />
     </div>
   );

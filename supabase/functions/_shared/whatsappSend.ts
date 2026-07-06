@@ -16,36 +16,38 @@ export interface WhatsAppSendResult {
   error?: string;
 }
 
-// SEQP1R9 (P1-9-PHONE, sev-3 reopened by R8 verify): `bookings.customer_phone` reaches this
-// module's `to` param in at least 3 structurally different unnormalized shapes depending on
-// which write path created the row:
-//   - WhatsApp-origin (whatsapp-agent/tools.ts): `ctx.phone` = Meta's own inbound `contact.wa_id`,
-//     already bare-digits international (e.g. "31612345678"). Safe as-is.
-//   - Web-booking-form (create-booking/index.ts via usePublicBookingCreation.tsx): the
-//     frontend's validatePhoneNumber() normally produces E.164-with-"+" (e.g. "+31612345678"),
-//     but create-booking itself does ZERO phone validation/normalization server-side (only
-//     sanitizeBookingText's XSS/control-char strip), so a direct API caller (bypassing the
-//     frontend entirely) can put ANYTHING in this column.
-//   - Installment-payment (create-installment-payment/index.ts): `customerData.phone` is a
-//     raw request-body field written straight to `bookings.customer_phone` with NO validation
-//     of any kind, not even the frontend's.
-// Since `bookings` has 0 rows in production today (no historical data to migrate) and a
-// DB-level trigger would face the exact same "is this ambiguous local number Dutch or not"
-// judgment call as this function (relocating the risk, not removing it), the fix lives at the
-// one place that actually talks to Meta: right before every Graph API `to` field is built.
-// This closes the gap for all 3 write paths (and any future one) at a single choke point,
-// mirroring R50's DB-trigger philosophy but applied at the layer where the format actually
-// matters (Meta's `to` field), not the storage layer.
+// SEQP1R9/SEQP1R9-VERIFY/SEQP1R10 (P1-9-PHONE, reopened twice as P1-9-PHONE2): `bookings.
+// customer_phone` reaches this module's `to` param from 3 write paths (WhatsApp-origin via
+// whatsapp-agent/tools.ts, web/dashboard booking forms, create-installment-payment).
 //
-// Deliberately mirrors whatsapp-webhook/index.ts's `normalizePhone` for the one case that is
-// genuinely unambiguous (NL national format, single leading "0"), but adds a documented
-// prior bug's exact anti-pattern as a hard NO: usePublicBookingCreation.tsx carries a comment
-// (P1-COUNTRYCODE-BOOKING) describing a real shipped bug where a UK customer's bare national-
-// format number was silently mis-normalized as Dutch by a naive "assume NL if it doesn't look
-// international" heuristic. This function refuses to repeat that shape of guess: a bare
-// national-format number for anything OTHER than the single-leading-zero NL case is
-// UNRESOLVABLE without a country hint this function does not have, so it fails closed
-// (returns null) rather than assuming any default country.
+// HISTORY: R9 first fixed this by normalizing at THIS send boundary, including a bare-local
+// "assume NL" guess for the single case it believed was unambiguous (10 digits, single leading
+// "0"). R9's own independent verify round reopened it (P1-9-PHONE2): that guess is NOT actually
+// unambiguous, a French mobile ("06XXXXXXXX") and a Belgian mobile ("04XXXXXXXX") are both also
+// exactly 10 digits with a single leading "0", byte-identical in shape to a Dutch "06" number,
+// and were silently mis-tagged as Dutch too, the exact same bug class as the earlier documented
+// UK mis-normalization.
+//
+// SEQP1R10 FIX: retired the bare-local NL-guess branch entirely rather than narrowing it
+// further. Root-caused instead: the web/dashboard booking form (BookingBasicFields.tsx)
+// computed a correct, disambiguated E.164 value via libphonenumber-js and then discarded it,
+// storing raw ambiguous text; create-booking and create-installment-payment did zero
+// server-side phone validation at all. All 3 write paths now validate/normalize BEFORE the row
+// is ever written (BookingBasicFields.tsx stores result.value; create-booking and
+// create-installment-payment run _shared/phoneValidation.ts's validatePhoneServerSide; a DB
+// CHECK constraint, migration 20260706170000_SEQP1R10, backstops all of them). Given this is
+// pre-launch with 0 production rows (confirmed live at fix time) and every write path is now
+// fixed, there is no remaining route by which a genuinely ambiguous bare-local number should
+// ever reach this function for a NEW booking, so this function fails closed (returns null) for
+// ANY bare-local-format number rather than keeping a narrowed guess as a "last resort": a
+// narrowed guess is still a guess, and the whole point of this round is to stop guessing.
+// Residual risk: if some future write path is added without going through the shared
+// validator, a bare-local number could still reach here and would now be REJECTED (fail
+// closed into invalid_phone_format) rather than silently mis-tagged, which is the intentionally
+// safe failure mode. This function only ever trusts a number that already declares its own
+// country via an explicit "+" or "00" international-dialing prefix, or is already a bare
+// international MSISDN with no leading "0" (the WhatsApp-origin wa_id shape, e.g. "31612345678",
+// which is Meta's own confirmed contact id, never a locally-typed local-format number).
 //
 // Returns the bare-digits Meta wa_id-style string (no "+", no leading "0", digits only) on
 // success, matching what Meta's own webhook `contact.wa_id` looks like (the one format this
@@ -91,24 +93,18 @@ export function normalizePhoneForMeta(raw: string): string | null {
     // GUESSING a country for an AMBIGUOUS bare-local number, not about a number that already
     // told us its country via "+"). Just validate plausible MSISDN shape below.
     candidate = digits;
-  } else if (/^0\d{9}$/.test(digits)) {
-    // Exactly 10 digits, single leading "0": the one genuinely unambiguous case for this
-    // NL-based product (NL national format, e.g. "0612345678" -> "31612345678"). Mirrors
-    // whatsapp-webhook/index.ts's normalizePhone. Deliberately narrow: does NOT extend to
-    // "starts with 0" in general (a UK bare-national number, e.g. "07911123456", ALSO starts
-    // with a single "0" and is 11 digits, not 10: the length check plus this being the one
-    // documented-safe case is the guard against repeating the prior bug).
-    candidate = "31" + digits.slice(1);
   } else if (/^[1-9]\d{9,14}$/.test(digits)) {
     // No "+"/"00"/leading-0: already looks like a bare international MSISDN with a country
     // code baked in (e.g. Meta's own wa_id shape "31612345678", or "4479..." etc), 10-15
     // digits, no leading 0. Trust as-is (this is exactly the WhatsApp-origin shape).
     candidate = digits;
   } else {
-    // Ambiguous or implausible (e.g. a bare local number for a country whose national format
-    // isn't the single-leading-zero NL case, too short, too long, all-zero, garbage). Fail
-    // closed rather than guess a default country: this is the exact class of bug (silent
-    // UK-as-Dutch mis-normalization) this function exists to never repeat.
+    // Ambiguous or implausible: a bare local-format number of ANY country's shape (NL, UK,
+    // FR, BE, or otherwise), too short, too long, all-zero, or garbage. SEQP1R10: no bare-local
+    // shape gets a country guess anymore, not even the single-leading-zero NL case R9 believed
+    // was safe (it collides with real FR/BE mobile shapes, see the SEQP1R10 header comment).
+    // Fail closed rather than guess any default country: this is the exact class of bug
+    // (silent wrong-country mis-normalization) this function exists to never repeat.
     return null;
   }
 

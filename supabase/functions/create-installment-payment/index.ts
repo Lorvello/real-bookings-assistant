@@ -3,6 +3,7 @@ import Stripe from 'https://esm.sh/stripe@14.21.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 import { calculateApplicationFee } from '../_shared/feeCalculator.ts';
 import { validateStripeMode, getStripeSecretKey } from '../_shared/stripeValidation.ts';
+import { validatePhoneServerSide } from '../_shared/phoneValidation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -71,7 +72,47 @@ serve(async (req) => {
       test_mode = false,
     }: InstallmentPaymentRequest = await req.json();
 
-    // SECURITY: pin the Stripe mode to the server's STRIPE_MODE — never trust the
+    // SEQP1R10 (fixes P1-9-PHONE2, third write path flagged as a follow-up by R9):
+    // customerData.phone was written verbatim to bookings.customer_phone with ZERO
+    // validation of any kind (not even the light sanitization create-booking at least
+    // had before this same round). This endpoint IS authenticated (professional/
+    // enterprise subscription tier required, checked above), but auth alone does not
+    // guarantee the phone value is well-formed or unambiguous: it is still whatever the
+    // calling client (the WhatsApp agent's payment-flow UI) put in the request body.
+    // Validate and normalize to E.164 here, failing the request (400) before any Stripe
+    // session or booking row is created, rather than writing an ambiguous or bare-local
+    // number that would later break at the WhatsApp reminder send boundary.
+    //
+    // validatePhoneServerSide treats an empty/missing phone as valid-but-optional (correct
+    // for create-booking, where the field genuinely is optional), but THIS endpoint's own
+    // InstallmentPaymentRequest interface declares customerData.phone as a required string:
+    // an installment booking always originates from an active WhatsApp conversation, so a
+    // phone number should always be present. A code-review pass on this same round caught
+    // that without an explicit presence check here, an omitted phone would silently pass
+    // through as customer_phone: null instead of being rejected, contradicting the
+    // interface's own "required" contract. Enforce that explicitly.
+    if (!customerData?.phone) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Phone number is required for installment bookings',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+    const phoneResult = validatePhoneServerSide(customerData.phone);
+    if (!phoneResult.valid) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: phoneResult.error || 'Invalid phone number',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+    const normalizedCustomerPhone = phoneResult.value as string;
+
+    // SECURITY: pin the Stripe mode to the server's STRIPE_MODE, never trust the
     // client's test_mode (mirrors create-booking-payment). Defaulted to LIVE before,
     // which meant our own test flows could touch real money. The client param is
     // ignored; the server is the single source of truth.
@@ -288,7 +329,7 @@ serve(async (req) => {
         service_type_id: serviceTypeId,
         customer_name: customerData.name,
         customer_email: customerData.email,
-        customer_phone: customerData.phone,
+        customer_phone: normalizedCustomerPhone,
         start_time: appointmentDate,
         end_time: new Date(new Date(appointmentDate).getTime() + (serviceType.duration * 60000)).toISOString(),
         status: 'pending',

@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
+import { validatePhoneServerSide } from '../_shared/phoneValidation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -123,15 +124,36 @@ Deno.serve(async (req) => {
       );
     }
 
+    // SEQP1R10 (fixes P1-9-PHONE2): this endpoint is PUBLIC and unauthenticated -- anyone can
+    // POST directly to it, bypassing the web form's own client-side validatePhoneNumber()
+    // entirely, regardless of the BookingBasicFields.tsx / usePublicBookingCreation.tsx fixes
+    // on the client. Previously customer_phone only went through sanitizeBookingText (XSS/
+    // control-char stripping + length cap), never a real phone-format check, so a direct API
+    // caller could write ANY string into bookings.customer_phone, including the exact bare
+    // local-format shape (e.g. "0612345678"/"0687654321"/"0470123456") that caused the
+    // NL/UK/FR/BE mis-normalization bug class at the WhatsApp send boundary. This validates +
+    // normalizes to E.164 server-side, the real trust boundary for this write path, and rejects
+    // (400) a genuinely ambiguous/invalid number rather than silently guessing a country or
+    // storing garbage. See _shared/phoneValidation.ts for why it never defaults to NL here (a
+    // bare local number is unresolvable at this boundary with no country hint available).
+    const phoneResult = validatePhoneServerSide(bookingData.customerPhone);
+    if (!phoneResult.valid) {
+      return new Response(
+        JSON.stringify({ error: phoneResult.error || 'Invalid phone number' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Sanitize all text inputs
     const sanitized = {
       ...bookingData,
       customerName: sanitizeBookingText(bookingData.customerName),
       customerEmail: bookingData.customerEmail.toLowerCase().trim(),
-      // customer_phone came straight from ...bookingData (raw, uncapped) while
-      // name/notes were sanitized, so sanitize it too for consistency: strips <>,
-      // strips control chars, and caps length (defense-in-depth + prevents bloat).
-      customerPhone: bookingData.customerPhone ? sanitizeBookingText(bookingData.customerPhone) : null,
+      // customerPhone is now the server-validated E.164 value (or undefined/null), never
+      // the raw client-supplied string. sanitizeBookingText is no longer needed for phone:
+      // a value that passed validatePhoneServerSide is already digits + a single leading
+      // "+", nothing an XSS/control-char strip would ever need to touch.
+      customerPhone: phoneResult.value ?? null,
       notes: bookingData.notes ? sanitizeBookingText(bookingData.notes) : null
     };
 
