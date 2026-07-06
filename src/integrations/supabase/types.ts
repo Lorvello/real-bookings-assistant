@@ -557,22 +557,28 @@ export type Database = {
       }
       booking_reminders_sent: {
         Row: {
+          attempt_count: number
           booking_id: string
           id: string
           reminder_number: number
           sent_at: string
+          status: string
         }
         Insert: {
+          attempt_count?: number
           booking_id: string
           id?: string
           reminder_number: number
           sent_at?: string
+          status?: string
         }
         Update: {
+          attempt_count?: number
           booking_id?: string
           id?: string
           reminder_number?: number
           sent_at?: string
+          status?: string
         }
         Relationships: [
           {
