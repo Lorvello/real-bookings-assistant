@@ -66,7 +66,7 @@ const META_REMINDER_TEMPLATE_NAME = Deno.env.get("META_REMINDER_TEMPLATE_NAME") 
 // Meta, on WHICHEVER branch (gated or live) the flag currently selects, so the stub proves
 // the actual code path in play, not a separate hardcoded test-only branch.
 async function sendWhatsAppReminder(
-  r: { booking_id: string; customer_phone: string; customer_name: string; business_name: string; start_time: string; reminder_number: number; customer_locale: "nl" | "en" },
+  r: { booking_id: string; customer_phone: string; customer_name: string; business_name: string; start_time: string; reminder_number: number; customer_locale: "nl" | "en"; calendar_timezone: string },
   stub: boolean,
 ): Promise<{ delivered: boolean; stubbed: boolean; reason?: string }> {
   // SEQP1R9 (P1-9-PHONE): checked up front, BEFORE the gated/live branch split, and even in
@@ -97,7 +97,7 @@ async function sendWhatsAppReminder(
   // LIVE branch: flag is "true" AND a template name is configured. Build the exact
   // 4 body-variables staged in META_TEMPLATE_REMINDER.md (name, business, date, time), in
   // that positional order (Meta template params are positional, not named).
-  const { datum, tijd } = formatDate(r.start_time, r.customer_locale);
+  const { datum, tijd } = formatDate(r.start_time, r.customer_locale, r.calendar_timezone || "Europe/Amsterdam");
   const displayName = r.customer_name && r.customer_name.trim().length > 0
     ? r.customer_name
     : (r.customer_locale === "en" ? "there" : "daar");
@@ -189,6 +189,16 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const locale: "nl" | "en" = r.customer_locale === "en" ? "en" : "nl";
+      // SEQP1R25 (finding R24-1): the booking's OWN calendar timezone (owner-writable via
+      // the Availability page, sourced from get_due_booking_reminders's calendar_timezone
+      // column), not a hardcoded literal. The RPC already coalesces null/empty to
+      // Europe/Amsterdam at the SQL layer; this is a second, defensive normalization at the
+      // application boundary (r is untyped `any` from the RPC response) so a malformed or
+      // missing value can never silently fall through to formatDate's own default in a way
+      // that masks a real upstream data problem.
+      const tz: string = typeof r.calendar_timezone === "string" && r.calendar_timezone.trim().length > 0
+        ? r.calendar_timezone
+        : "Europe/Amsterdam";
       let delivered = false;
       // releaseClaim = "no message left the building, so the claim should stay retryable
       // rather than being treated as a possible-send". We ONLY take this path when
@@ -207,7 +217,7 @@ const handler = async (req: Request): Promise<Response> => {
       let failureReason: string | null = null;
       try {
         if (channel === "email") {
-          const { datum, tijd } = formatDate(r.start_time, locale);
+          const { datum, tijd } = formatDate(r.start_time, locale, tz);
           const { subject, html } = reminderHtml(locale, r.customer_name, r.business_name, null, datum, tijd, r.reminder_number === 2);
           const resp = await resend.emails.send({
             from: `${sanitizeFromName(r.business_name)} <noreply@bookingsassistant.com>`,
@@ -220,7 +230,7 @@ const handler = async (req: Request): Promise<Response> => {
           email++;
         } else {
           const wa = await sendWhatsAppReminder(
-            { booking_id: r.booking_id, customer_phone: r.customer_phone, customer_name: r.customer_name, business_name: r.business_name, start_time: r.start_time, reminder_number: r.reminder_number, customer_locale: locale },
+            { booking_id: r.booking_id, customer_phone: r.customer_phone, customer_name: r.customer_name, business_name: r.business_name, start_time: r.start_time, reminder_number: r.reminder_number, customer_locale: locale, calendar_timezone: tz },
             stubWhatsApp,
           );
           delivered = wa.delivered;

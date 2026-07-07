@@ -72,6 +72,42 @@ Deno.test("R15-1: 00:30 Amsterdam booking renders the correct Amsterdam day (WIN
   assertEquals(en.tijd, "00:30");
 });
 
+// SEQP1R25 (finding R24-1): a calendar configured to a genuinely different IANA timezone
+// (via the Availability page's owner-writable calendars.timezone column) must render its
+// reminder in THAT zone when the tz argument is explicitly supplied -- the exact case R24
+// reproduced live (a Pacific/Auckland-configured calendar's reminder rendered the
+// Amsterdam-local day+time instead). Pacific/Auckland has no DST in July (NZST->NZDT
+// changes in Sep/Apr), so this is a stable +12 offset. 2026-07-08T13:45:00Z is
+// Amsterdam Wednesday 8 July 15:45 (summer, +02) but Auckland Thursday 9 July 01:45
+// (+12) -- a different calendar DAY, not just a different clock time.
+Deno.test("R25-1: a non-Amsterdam calendar timezone renders in ITS OWN zone, not Amsterdam", () => {
+  const iso = "2026-07-08T13:45:00Z";
+  const nl = formatDate(iso, "nl", "Pacific/Auckland");
+  assertEquals(nl.datum, "donderdag 9 juli 2026", "NL date must be Auckland's Thursday 9 July, not Amsterdam's Wednesday 8");
+  assertEquals(nl.tijd, "01:45", "NL time must be Auckland's 01:45, not Amsterdam's 15:45");
+  assert(!nl.datum.includes("woensdag"), "must not show the Amsterdam-local day (Wednesday)");
+
+  const en = formatDate(iso, "en", "Pacific/Auckland");
+  assertEquals(en.datum, "Thursday 9 July 2026");
+  assertEquals(en.tijd, "01:45");
+
+  // Anti-regression: the SAME instant with no tz argument (or an explicit Amsterdam tz)
+  // still renders the Amsterdam-local day+time -- proves the fix only changes behavior
+  // when a non-default tz is actually supplied, never the common Amsterdam case.
+  const amsDefault = formatDate(iso, "nl");
+  assertEquals(amsDefault.datum, "woensdag 8 juli 2026");
+  assertEquals(amsDefault.tijd, "15:45");
+});
+
+// A second non-Amsterdam zone (America/New_York) to confirm the mechanism generalizes and
+// is not somehow special-cased to Auckland. New York is UTC-4 (EDT) in July.
+Deno.test("R25-1: a second non-Amsterdam timezone (America/New_York) also renders in its own zone", () => {
+  const iso = "2026-07-08T13:45:00Z"; // Amsterdam Wed 15:45; New York Wed 09:45 (EDT, UTC-4)
+  const en = formatDate(iso, "en", "America/New_York");
+  assertEquals(en.datum, "Wednesday 8 July 2026");
+  assertEquals(en.tijd, "09:45");
+});
+
 Deno.test("noon booking date + time are unchanged (anti-regression, same output shape as before)", () => {
   // 2026-06-29 12:00:00Z == Europe/Amsterdam Monday 2026-06-29 14:00 (same UTC date, the only case
   // the old tests ever covered). Locks the exact prior output shape so the fix did not drift it.
