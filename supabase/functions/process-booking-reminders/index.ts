@@ -156,12 +156,6 @@ const handler = async (req: Request): Promise<Response> => {
     let sent = 0, skipped = 0, failed = 0, whatsapp = 0, email = 0;
     for (const r of reminders) {
       const channel: string | null = r.channel ?? null;
-      if (channel !== "email" && channel !== "whatsapp") {
-        // No reachable channel: never claim, never mark sent. Defensive; the RPC already
-        // excludes these.
-        skipped++;
-        continue;
-      }
 
       // SEQP1R3: claim-or-resume-retry atomically via one RPC (code-review fix). The
       // previous SELECT-then-INSERT/UPDATE pattern was a TOCTOU race: two overlapping cron
@@ -183,7 +177,8 @@ const handler = async (req: Request): Promise<Response> => {
         customer_name: string | null;
       };
       if (claim.status !== "pending") {
-        // Do not attempt delivery: the claim did not yield a fresh retryable row. Two cases:
+        // Do not attempt delivery: the claim did not yield a fresh retryable row. Several
+        // cases land here:
         //  (a) a concurrent invocation already resolved this row to a terminal status
         //      (sent / pending_template_approval / invalid_phone_format) between the RPC read
         //      and get_due_booking_reminders()'s snapshot; or
@@ -192,6 +187,19 @@ const handler = async (req: Request): Promise<Response> => {
         //      folded the active-booking guard in and returned the terminal 'booking_cancelled'
         //      status instead of 'pending'. This is the cancel-during-send abort: the send is
         //      never made, and the row is recorded as booking_cancelled (never a false 'sent').
+        //  (c) SEQP1R51 (fix for R50-1): both customer_email and customer_phone are now
+        //      null/empty (an owner edit or a GDPR-style redaction landing mid-retry), so
+        //      claim_booking_reminder resolved the row to the terminal 'no_contact_info'
+        //      instead of 'pending'. Never a false 'sent'; never a silent forever-freeze.
+        skipped++;
+        continue;
+      }
+      if (channel !== "email" && channel !== "whatsapp") {
+        // Defensive only: claim resolved to 'pending' (a genuinely retryable row) but no
+        // deliverable channel is known. Should not happen given get_due_booking_reminders()'s
+        // channel filter on its two normal branches plus claim_booking_reminder's own
+        // no_contact guard (SEQP1R51), which together mean a 'pending' result always carries
+        // a real channel today -- but a send must never be attempted without one.
         skipped++;
         continue;
       }

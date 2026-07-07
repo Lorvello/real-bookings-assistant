@@ -26,6 +26,11 @@ export type ReminderChannel = 'email' | 'whatsapp';
 // that has hit the retry cap -- before this fix, an email exception silently skipped the
 // attempt-accounting RPC entirely, so attempt_count froze and this state could never be
 // reached; the reminder simply retried forever with zero owner-visible signal (R44-1).
+// `no_contact_info` (SEQP1R51, finding R50-1): a booking already mid-retry had BOTH
+// customer_email and customer_phone cleared (an owner edit or a GDPR-style redaction) --
+// before this fix, the reminder pipeline's own due-selection filter excluded that booking
+// entirely on every future tick, so this state could never be reached and the row simply
+// froze at 'pending' forever with zero owner-visible signal.
 export type ReminderStatus =
   | 'sent'
   | 'pending'
@@ -34,14 +39,16 @@ export type ReminderStatus =
   | 'booking_cancelled'
   | 'payment_refunded'
   | 'stripe_check_failed'
-  | 'email_send_failed';
+  | 'email_send_failed'
+  | 'no_contact_info';
 
 // The terminal statuses that mean a reminder will NEVER reach the customer and needs a
 // human to look (fix the phone number, acknowledge the cancellation, acknowledge the
-// refund, check Stripe connectivity, or investigate an email delivery failure). Folded into
-// one owner-facing "failed / needs attention" count, kept distinct from `stuck`
-// (pending_template_approval, which still auto-retries) and `pending` (still in flight).
-export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled', 'payment_refunded', 'stripe_check_failed', 'email_send_failed'];
+// refund, check Stripe connectivity, investigate an email delivery failure, or restore a
+// customer's contact info). Folded into one owner-facing "failed / needs attention" count,
+// kept distinct from `stuck` (pending_template_approval, which still auto-retries) and
+// `pending` (still in flight).
+export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled', 'payment_refunded', 'stripe_check_failed', 'email_send_failed', 'no_contact_info'];
 
 // SEQP1R45 (finding R44-1, dashboard-truthfulness half): the owner-facing mirror of
 // WHATSAPP_REMINDER_MAX_ATTEMPTS in supabase/functions/process-booking-reminders/index.ts.

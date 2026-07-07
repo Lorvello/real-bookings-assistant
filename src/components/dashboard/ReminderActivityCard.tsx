@@ -92,6 +92,17 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
           icon: XCircle,
           badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
         };
+      // SEQP1R51 (finding R50-1): both customer_email and customer_phone were cleared on the
+      // booking (an owner edit or a GDPR-style redaction) while this reminder was mid-retry,
+      // so there is no channel left to deliver to. Distinct from every other failure label for
+      // the same reason those are distinct from each other: the owner should see the real
+      // reason (missing contact info), not a generic or misleading label.
+      case 'no_contact_info':
+        return {
+          label: t('dashboard.reminders.status.noContactInfo', 'No contact info'),
+          icon: XCircle,
+          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+        };
       default:
         return {
           label: t('dashboard.reminders.status.unknown', 'Unknown'),
@@ -242,7 +253,7 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
                   <p className="text-sm">
-                    {t('dashboard.reminders.failedTip', "These reminders could not be delivered and won't retry further: an invalid phone number, a cancelled booking, a refunded payment, a payment check that kept failing, or an email that kept failing to send. They need your attention.")}
+                    {t('dashboard.reminders.failedTip', "These reminders could not be delivered and won't retry further: an invalid phone number, a cancelled booking, a refunded payment, a payment check that kept failing, an email that kept failing to send, or a customer's contact info being removed. They need your attention.")}
                   </p>
                 </TooltipContent>
               </Tooltip>
