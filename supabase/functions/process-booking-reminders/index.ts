@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { formatDate, reminderHtml } from "./reminderBody.ts";
-import { sendWhatsAppTemplate, normalizePhoneForMeta } from "../_shared/whatsappSend.ts";
+import { sendWhatsAppTemplate, normalizePhoneForMeta, EXTERNAL_SEND_TIMEOUT_MS } from "../_shared/whatsappSend.ts";
 import { checkBookingRefundedAtStripe } from "../_shared/stripeRefundCheck.ts";
 
 // LR-R95 + E1/E2/E4 + SEQP1R3: reminder-engine. Door pg_cron (via pg_net) periodiek
@@ -312,12 +312,29 @@ const handler = async (req: Request): Promise<Response> => {
         if (channel === "email") {
           const { datum, tijd } = formatDate(r.start_time, locale, tz);
           const { subject, html } = reminderHtml(locale, customerName, r.business_name, null, datum, tijd, r.reminder_number === 2);
+          // SEQP1R48 (fix for R47-1): bound the Resend call to EXTERNAL_SEND_TIMEOUT_MS
+          // (well under claim_booking_reminder's 3-minute lease, SEQP1R42). Resend's SDK
+          // merges its second `options` argument directly into the underlying fetch() call
+          // (confirmed by reading node_modules/.deno/resend@2.0.0's resend.js this round), so
+          // passing `signal` here is a genuine abort, not a cosmetic timeout. Without this, a
+          // stalled Resend round-trip could still be genuinely in-flight when the lease
+          // expires, letting a second invocation validly re-claim and also send the same
+          // reminder (reproduced live, evidence/SEQ_P1_r47.md + r48.md). On abort, fetch
+          // rejects and this falls into the catch block below exactly like any other send
+          // exception, so SEQP1R45's exception-path retry accounting already applies unchanged.
+          // The published resend@2.0.0 .d.ts (CreateEmailRequestOptions) only declares
+          // `query`, but its JS implementation merges this whole options object straight into
+          // the underlying fetch() RequestInit (confirmed by reading resend.js/emails.js this
+          // round: `Object.assign({method, headers, body}, options)`), so `signal` genuinely
+          // reaches fetch even though the public type doesn't declare it. Cast narrowly to the
+          // SDK's own declared parameter type (not `any`) so everything else about this call
+          // stays type-checked.
           const resp = await resend.emails.send({
             from: `${sanitizeFromName(r.business_name)} <noreply@bookingsassistant.com>`,
             to: [customerEmail],
             subject,
             html,
-          });
+          }, { signal: AbortSignal.timeout(EXTERNAL_SEND_TIMEOUT_MS) } as Parameters<typeof resend.emails.send>[1]);
           if (resp.error) throw new Error(resp.error.message);
           delivered = true;
           email++;

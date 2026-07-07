@@ -9,6 +9,32 @@
 const GRAPH_VERSION = "v22.0";
 const PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") || "1204872446033001";
 
+// SEQP1R48 (fix for R47-1): the reminder claim mechanism (SEQP1R42, claim_booking_reminder's
+// claimed_at lease) uses a 3-minute TTL specifically to distinguish "a crashed invocation"
+// from "a still-genuinely-in-flight send", but that distinction only holds if a real send can
+// never legitimately approach 3 minutes. Before this fix, NEITHER the Resend client nor these
+// Meta Graph API fetch() calls carried any explicit timeout, so a stalled DNS/TLS handshake or
+// a degraded upstream could let a single item's send genuinely still be running when the lease
+// expired, letting a second invocation validly re-claim and also send (reproduced live,
+// evidence/SEQ_P1_r47.md + r48.md). EXTERNAL_SEND_TIMEOUT_MS bounds every outbound Resend/Meta
+// call to comfortably under the 3-minute lease: once this fires, the calling code's own
+// try/catch (process-booking-reminders/index.ts) treats the abort as a normal send failure and
+// commits a definite record_booking_reminder_result outcome (sent, or a retryable/terminal
+// failure) well before the lease window closes, so a call can no longer sit in an ambiguous
+// "still might be in-flight" state all the way out to 3 minutes. Exported so index.ts's own
+// resend.emails.send() call uses the exact same bound (one source of truth), mirroring the
+// existing STRIPE_CHECK_TIMEOUT_MS pattern in _shared/stripeRefundCheck.ts (a single, named,
+// per-call timeout constant, no SDK-level retries hidden behind it).
+//
+// Residual, explicitly accepted (same trade-off SEQP1R45 already documented for a Resend
+// client-side error surfacing after the request was already accepted): aborting the client's
+// wait does not retroactively un-send a message Meta/Resend had already started processing
+// server-side before the abort fired. This fix closes the reproduced gap (a call silently
+// outliving its own lease with no bound at all); it does not claim to make external delivery
+// itself exactly-once, which no client-side timeout can guarantee against an at-least-once
+// upstream with no dedup key.
+export const EXTERNAL_SEND_TIMEOUT_MS = 45_000;
+
 export interface WhatsAppSendResult {
   ok: boolean;
   status: number;
@@ -143,6 +169,11 @@ export async function sendReadReceiptWithTyping(inboundMessageId: string): Promi
         message_id: inboundMessageId,
         typing_indicator: { type: "text" },
       }),
+      // SEQP1R48 (fix for R47-1): bound this call so it can never legitimately outlive the
+      // claim_booking_reminder lease (irrelevant to this specific reminder-adjacent helper's
+      // own call site today, but this module's fetch calls are a single shared choke point;
+      // see EXTERNAL_SEND_TIMEOUT_MS's own comment above for the full reasoning).
+      signal: AbortSignal.timeout(EXTERNAL_SEND_TIMEOUT_MS),
     });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
@@ -230,6 +261,14 @@ export async function sendWhatsAppTemplate(
           ],
         },
       }),
+      // SEQP1R48 (fix for R47-1): this is the reminder-send Meta call. Bounding it well under
+      // claim_booking_reminder's 3-minute lease is the core of the fix: a call that would
+      // otherwise still be genuinely in-flight when the lease expires now fails fast instead,
+      // so process-booking-reminders/index.ts's own try/catch always commits a definite
+      // record_booking_reminder_result outcome long before a second invocation could validly
+      // re-claim the same row. See EXTERNAL_SEND_TIMEOUT_MS's comment above for the full
+      // reasoning and the accepted residual.
+      signal: AbortSignal.timeout(EXTERNAL_SEND_TIMEOUT_MS),
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
@@ -279,6 +318,11 @@ export async function sendWhatsAppText(to: string, body: string): Promise<WhatsA
         type: "text",
         text: { preview_url: false, body: body.slice(0, 4096) },
       }),
+      // SEQP1R48 (fix for R47-1): not on the reminder-claim path today (this is the free-form
+      // customer-chat reply, sendWhatsAppTemplate above is the reminder sender), bounded anyway
+      // since this module's fetch calls are treated as a single shared choke point. See
+      // EXTERNAL_SEND_TIMEOUT_MS's comment above for the full reasoning.
+      signal: AbortSignal.timeout(EXTERNAL_SEND_TIMEOUT_MS),
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
