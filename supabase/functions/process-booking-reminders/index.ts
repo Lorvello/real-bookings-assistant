@@ -173,7 +173,14 @@ const handler = async (req: Request): Promise<Response> => {
         p_reminder_number: r.reminder_number,
       });
       if (claimErr || !claimRows || claimRows.length === 0) { skipped++; continue; }
-      const claim = claimRows[0] as { attempt_count: number; status: string; calendar_timezone: string };
+      const claim = claimRows[0] as {
+        attempt_count: number;
+        status: string;
+        calendar_timezone: string;
+        customer_email: string | null;
+        customer_phone: string | null;
+        customer_name: string | null;
+      };
       if (claim.status !== "pending") {
         // Do not attempt delivery: the claim did not yield a fresh retryable row. Two cases:
         //  (a) a concurrent invocation already resolved this row to a terminal status
@@ -206,6 +213,26 @@ const handler = async (req: Request): Promise<Response> => {
       const tz: string = typeof claim.calendar_timezone === "string" && claim.calendar_timezone.trim().length > 0
         ? claim.calendar_timezone
         : "Europe/Amsterdam";
+      // SEQP1R35 (finding R34-2): use claim_booking_reminder's OWN fresh contact fields,
+      // read in the SAME atomic statement as the claim itself, immediately before this item
+      // is rendered/sent -- NOT r.customer_email/r.customer_phone/r.customer_name, which are
+      // the values that were live at the single get_due_booking_reminders() snapshot taken
+      // once at the top of this whole invocation. An owner edit to a customer's email/name
+      // (a typo fix, a corrected number) landing between that snapshot and this item's actual
+      // send must be picked up, exactly mirroring the calendar_timezone freshness fix above
+      // (SEQP1R28) and the payment_status freshness fix (SEQP1R31) at this same choke point.
+      // Fallback to the batch snapshot only guards a genuinely malformed/missing RPC field
+      // (claim is untyped `any` from the RPC response), never an expected/normal path: the
+      // fresh read should always be present since the same row was just confirmed to exist.
+      const customerEmail: string = typeof claim.customer_email === "string" && claim.customer_email.length > 0
+        ? claim.customer_email
+        : r.customer_email;
+      const customerPhone: string = typeof claim.customer_phone === "string" && claim.customer_phone.length > 0
+        ? claim.customer_phone
+        : r.customer_phone;
+      const customerName: string = typeof claim.customer_name === "string" && claim.customer_name.length > 0
+        ? claim.customer_name
+        : r.customer_name;
       let delivered = false;
       // releaseClaim = "no message left the building, so the claim should stay retryable
       // rather than being treated as a possible-send". We ONLY take this path when
@@ -225,10 +252,10 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         if (channel === "email") {
           const { datum, tijd } = formatDate(r.start_time, locale, tz);
-          const { subject, html } = reminderHtml(locale, r.customer_name, r.business_name, null, datum, tijd, r.reminder_number === 2);
+          const { subject, html } = reminderHtml(locale, customerName, r.business_name, null, datum, tijd, r.reminder_number === 2);
           const resp = await resend.emails.send({
             from: `${sanitizeFromName(r.business_name)} <noreply@bookingsassistant.com>`,
-            to: [r.customer_email],
+            to: [customerEmail],
             subject,
             html,
           });
@@ -237,7 +264,7 @@ const handler = async (req: Request): Promise<Response> => {
           email++;
         } else {
           const wa = await sendWhatsAppReminder(
-            { booking_id: r.booking_id, customer_phone: r.customer_phone, customer_name: r.customer_name, business_name: r.business_name, start_time: r.start_time, reminder_number: r.reminder_number, customer_locale: locale, calendar_timezone: tz },
+            { booking_id: r.booking_id, customer_phone: customerPhone, customer_name: customerName, business_name: r.business_name, start_time: r.start_time, reminder_number: r.reminder_number, customer_locale: locale, calendar_timezone: tz },
             stubWhatsApp,
           );
           delivered = wa.delivered;
