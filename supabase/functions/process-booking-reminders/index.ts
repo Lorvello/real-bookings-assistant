@@ -155,8 +155,6 @@ const handler = async (req: Request): Promise<Response> => {
 
     let sent = 0, skipped = 0, failed = 0, whatsapp = 0, email = 0;
     for (const r of reminders) {
-      const channel: string | null = r.channel ?? null;
-
       // SEQP1R3: claim-or-resume-retry atomically via one RPC (code-review fix). The
       // previous SELECT-then-INSERT/UPDATE pattern was a TOCTOU race: two overlapping cron
       // ticks could both read the same attempt_count and both write back +1, silently
@@ -175,6 +173,7 @@ const handler = async (req: Request): Promise<Response> => {
         customer_email: string | null;
         customer_phone: string | null;
         customer_name: string | null;
+        channel: string | null;
       };
       if (claim.status !== "pending") {
         // Do not attempt delivery: the claim did not yield a fresh retryable row. Several
@@ -194,6 +193,20 @@ const handler = async (req: Request): Promise<Response> => {
         skipped++;
         continue;
       }
+      // SEQP1R55 (finding R54-1): use claim_booking_reminder's OWN fresh channel, read in
+      // the SAME atomic statement as the claim itself, immediately before this item is
+      // rendered/sent -- NOT r.channel, which is the value that was live at the single
+      // get_due_booking_reminders() snapshot taken once at the top of this whole invocation.
+      // A booking that flips its reachable contact channel (email removed, phone added, or
+      // vice versa) between that snapshot and this item's own claim must be routed through
+      // the CURRENT channel, exactly mirroring the tz/contact freshness fixes above (SEQP1R28/
+      // SEQP1R35). Fallback to the batch snapshot only guards a genuinely malformed/missing
+      // RPC field (claim is untyped `any` from the RPC response), never an expected/normal
+      // path: the fresh read should always be present since the same row was just confirmed
+      // to exist.
+      const channel: string | null = claim.channel === "email" || claim.channel === "whatsapp"
+        ? claim.channel
+        : (r.channel ?? null);
       if (channel !== "email" && channel !== "whatsapp") {
         // Defensive only: claim resolved to 'pending' (a genuinely retryable row) but no
         // deliverable channel is known. Should not happen given get_due_booking_reminders()'s
@@ -402,6 +415,10 @@ const handler = async (req: Request): Promise<Response> => {
         p_delivered: delivered,
         p_max_attempts: WHATSAPP_REMINDER_MAX_ATTEMPTS,
         p_failure_reason: failureReason,
+        // SEQP1R55: re-affirm the channel actually attempted for THIS outcome (dashboard
+        // sibling fix), so booking_reminders_sent.channel reflects the real send-time channel
+        // rather than being re-derived later from the booking's current, mutable contact state.
+        p_channel: channel,
       });
       const result = resultRows?.[0] as { attempt_count: number; status: string } | undefined;
       if (result?.status === "invalid_phone_format") {

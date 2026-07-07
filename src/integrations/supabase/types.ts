@@ -559,6 +559,7 @@ export type Database = {
         Row: {
           attempt_count: number
           booking_id: string
+          channel: string | null
           id: string
           reminder_number: number
           sent_at: string
@@ -567,6 +568,7 @@ export type Database = {
         Insert: {
           attempt_count?: number
           booking_id: string
+          channel?: string | null
           id?: string
           reminder_number: number
           sent_at?: string
@@ -575,6 +577,7 @@ export type Database = {
         Update: {
           attempt_count?: number
           booking_id?: string
+          channel?: string | null
           id?: string
           reminder_number?: number
           sent_at?: string

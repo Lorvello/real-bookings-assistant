@@ -68,10 +68,14 @@ export interface ReminderActivityItem {
   attempt_count: number;
   customer_name: string;
   start_time: string;
-  // Derived, not stored: booking_reminders_sent has no channel column of its own.
-  // A row with a customer_email present on the booking is an email reminder; a
-  // WhatsApp-origin (no-email) booking's reminder is a whatsapp reminder (matches
-  // the process-booking-reminders edge function's own channel branch, SEQP1R3/R4).
+  // SEQP1R55 (sibling of finding R54-1): sourced from booking_reminders_sent.channel, the
+  // channel actually attempted at claim/send time, persisted once and never re-derived from
+  // the booking's current, mutable contact state. Before this fix, the channel was derived
+  // from row.bookings.customer_email on every render, so a contact edit made AFTER a real
+  // send would retroactively mislabel that past send's icon (R54's "vectors checked"
+  // section). Rows written before this migration have no persisted channel; those alone
+  // still fall back to the old current-state derivation (best-effort for historical data
+  // only, see the mapping below).
   channel: ReminderChannel;
 }
 
@@ -147,6 +151,7 @@ export function useReminderActivity(calendarIds: string[]) {
           sent_at,
           status,
           attempt_count,
+          channel,
           bookings!inner(customer_name, customer_email, start_time, calendar_id)
         `
         )
@@ -170,7 +175,13 @@ export function useReminderActivity(calendarIds: string[]) {
         attempt_count: row.attempt_count,
         customer_name: row.bookings?.customer_name || '',
         start_time: row.bookings?.start_time || row.sent_at,
-        channel: row.bookings?.customer_email ? 'email' : 'whatsapp',
+        // SEQP1R55: prefer the persisted send-time channel. Only a row written before this
+        // migration (no channel value yet) falls back to deriving from current contact state,
+        // exactly the prior (now-fixed) behavior, kept solely so old rows still show something
+        // sensible rather than a raw null.
+        channel: row.channel === 'email' || row.channel === 'whatsapp'
+          ? row.channel
+          : (row.bookings?.customer_email ? 'email' : 'whatsapp'),
       }));
 
       return summarizeReminderItems(items);
