@@ -3,6 +3,7 @@ import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { formatDate, reminderHtml } from "./reminderBody.ts";
 import { sendWhatsAppTemplate, normalizePhoneForMeta } from "../_shared/whatsappSend.ts";
+import { checkBookingRefundedAtStripe } from "../_shared/stripeRefundCheck.ts";
 
 // LR-R95 + E1/E2/E4 + SEQP1R3: reminder-engine. Door pg_cron (via pg_net) periodiek
 // aangeroepen (zie 20260630191000_E1_schedule_process_booking_reminders_cron.sql): haalt
@@ -233,6 +234,58 @@ const handler = async (req: Request): Promise<Response> => {
       const customerName: string = typeof claim.customer_name === "string" && claim.customer_name.length > 0
         ? claim.customer_name
         : r.customer_name;
+
+      // SEQP1R38 (finding R37-1): authoritative, send-time-fresh refund check against Stripe
+      // itself, right before the actual send attempt (email or WhatsApp, both channels).
+      // claim_booking_reminder's own payment_status re-check (SEQP1R31) is a real, cheap
+      // first-pass filter -- it already catches every refund the charge.refunded webhook has
+      // processed by now, at zero extra latency. This closes the narrow remaining window:
+      // Stripe's webhook has real observed delivery latency (~1-2s, evidence/SEQ_P1_r37.md +
+      // r38.md), and a reminder send is very often faster than that, so the local mirror can
+      // still say 'paid' for a booking Stripe itself already knows is refunded. Only Stripe
+      // itself can close that gap. checkBookingRefundedAtStripe short-circuits to
+      // checked=false/errored=false (no Stripe call at all) for a booking with no payment on
+      // record (e.g. unpaid/pay-at-appointment bookings), so this adds no latency for the
+      // large cohort of reminders that were never payment-gated in the first place.
+      const refundCheck = await checkBookingRefundedAtStripe(supabase, r.booking_id);
+      if (refundCheck.refunded) {
+        // Stripe confirms this booking is refunded, ahead of the local webhook mirror: never
+        // send, record straight to the same 'payment_refunded' terminal state SEQP1R31
+        // already established (not a new state -- this is the SAME outcome, just caught
+        // earlier by the authoritative source instead of the local mirror).
+        failed++;
+        console.warn(`[stripe-refund-check] booking ${r.booking_id} reminder ${r.reminder_number}: Stripe confirms a refund the local payment_status had not caught yet; send skipped.`);
+        await supabase.rpc("record_booking_reminder_result", {
+          p_booking_id: r.booking_id,
+          p_reminder_number: r.reminder_number,
+          p_delivered: false,
+          p_max_attempts: WHATSAPP_REMINDER_MAX_ATTEMPTS,
+          p_failure_reason: "stripe_refund_confirmed",
+        });
+        continue;
+      }
+      if (refundCheck.errored) {
+        // FAIL-CLOSED: the live Stripe check itself errored or timed out, so we genuinely do
+        // not know whether this booking is refunded. Bias toward not-yet-confirmed (never
+        // send on an errored check) rather than risk a false 'sent' on a booking that Stripe
+        // may actually have refunded. Bounded-retry, not an unbounded loop: this reuses the
+        // EXISTING attempt_count/cap mechanism (P1-6/SEQP1R3) -- below the cap the row simply
+        // stays 'pending' and is retried next cron tick (a transient Stripe blip self-heals
+        // within a few ticks); at the cap it parks at the distinct 'stripe_check_failed'
+        // terminal state (SEQP1R38 migration) rather than the misleading WhatsApp-specific
+        // 'pending_template_approval'.
+        failed++;
+        console.error(`[stripe-refund-check] booking ${r.booking_id} reminder ${r.reminder_number}: live Stripe check errored/timed out; send skipped, bounded-retrying.`);
+        await supabase.rpc("record_booking_reminder_result", {
+          p_booking_id: r.booking_id,
+          p_reminder_number: r.reminder_number,
+          p_delivered: false,
+          p_max_attempts: WHATSAPP_REMINDER_MAX_ATTEMPTS,
+          p_failure_reason: "stripe_check_failed",
+        });
+        continue;
+      }
+
       let delivered = false;
       // releaseClaim = "no message left the building, so the claim should stay retryable
       // rather than being treated as a possible-send". We ONLY take this path when

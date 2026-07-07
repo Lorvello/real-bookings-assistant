@@ -71,6 +71,17 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
           icon: XCircle,
           badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
         };
+      // SEQP1R38 (finding R37-1): the live send-time Stripe refund check itself failed
+      // repeatedly (network/timeout, not a confirmed refund) and hit the retry cap.
+      // Deliberately distinct from pending_template_approval: that label specifically means
+      // "waiting on WhatsApp template approval", which would be misleading here (this can
+      // happen on the email channel too and has nothing to do with Meta).
+      case 'stripe_check_failed':
+        return {
+          label: t('dashboard.reminders.status.stripeCheckFailed', 'Payment check failed'),
+          icon: XCircle,
+          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+        };
       default:
         return {
           label: t('dashboard.reminders.status.unknown', 'Unknown'),

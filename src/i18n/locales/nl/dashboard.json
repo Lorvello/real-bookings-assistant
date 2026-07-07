@@ -382,6 +382,7 @@
         "invalidPhone": "Ongeldig telefoonnummer",
         "bookingCancelled": "Boeking geannuleerd",
         "paymentRefunded": "Betaling terugbetaald",
+        "stripeCheckFailed": "Betalingscontrole mislukt",
         "unknown": "Onbekend"
       },
       "sentTip": "Herinneringen die daadwerkelijk zijn afgeleverd bij de klant via e-mail of WhatsApp.",
