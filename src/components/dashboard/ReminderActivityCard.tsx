@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { BellRing, Mail, MessageCircle, CheckCircle2, Clock3, AlertTriangle, XCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { useReminderActivity } from '@/hooks/dashboard/useReminderActivity';
+import { useReminderActivity, REMINDER_MAX_ATTEMPTS } from '@/hooks/dashboard/useReminderActivity';
 import type { ReminderActivityItem, ReminderStatus } from '@/hooks/dashboard/useReminderActivity';
 
 interface ReminderActivityCardProps {
@@ -79,6 +79,16 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
       case 'stripe_check_failed':
         return {
           label: t('dashboard.reminders.status.stripeCheckFailed', 'Payment check failed'),
+          icon: XCircle,
+          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+        };
+      // SEQP1R45 (finding R44-1): an email-channel send exception (network error, Resend
+      // rejection, timeout, quota exhaustion) that has hit the retry cap. Distinct from
+      // stripeCheckFailed/stuck for the same reason those are distinct from each other: a
+      // Dutch owner should never have to guess what actually went wrong from a generic label.
+      case 'email_send_failed':
+        return {
+          label: t('dashboard.reminders.status.emailSendFailed', 'Email delivery failed'),
           icon: XCircle,
           badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
         };
@@ -174,7 +184,11 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
                   <p className="text-sm">
-                    {t('dashboard.reminders.pendingTip', 'Claimed and still being retried. Most resolve within minutes; this is normal, ongoing activity.')}
+                    {t(
+                      'dashboard.reminders.pendingTip',
+                      'Claimed and retried automatically, up to {{max}} attempts over about an hour. Most resolve within minutes. Check the attempt count below if one has been retrying for a while.',
+                      { max: REMINDER_MAX_ATTEMPTS }
+                    )}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -228,7 +242,7 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
                   <p className="text-sm">
-                    {t('dashboard.reminders.failedTip', "These reminders could not be delivered and won't retry: the phone number was invalid, or the booking was cancelled. They need your attention.")}
+                    {t('dashboard.reminders.failedTip', "These reminders could not be delivered and won't retry further: an invalid phone number, a cancelled booking, a refunded payment, a payment check that kept failing, or an email that kept failing to send. They need your attention.")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -258,6 +272,19 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {/* SEQP1R45 (finding R44-1, dashboard-truthfulness half): attempt_count
+                            was fetched but never rendered anywhere, so a reminder retried 11
+                            times looked identical to one claimed seconds ago. Shown only once
+                            a real retry has happened (>0) to avoid cluttering the common case
+                            (a fresh claim, or a reminder that sent on the first try). */}
+                        {item.attempt_count > 0 && (
+                          <span className="hidden md:inline text-xs text-subtle-foreground tabular-nums">
+                            {t('dashboard.reminders.attemptCount', 'Attempt {{count}} of {{max}}', {
+                              count: item.attempt_count,
+                              max: REMINDER_MAX_ATTEMPTS,
+                            })}
+                          </span>
+                        )}
                         <span className="hidden sm:inline text-xs text-subtle-foreground tabular-nums">
                           {format(new Date(item.sent_at), 'd MMM, HH:mm', { locale: dateLocale })}
                         </span>

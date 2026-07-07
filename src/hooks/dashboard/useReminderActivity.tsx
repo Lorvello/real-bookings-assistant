@@ -10,18 +10,22 @@ import { useMockDataControl } from '@/hooks/useMockDataControl';
 export const REMINDER_ACTIVITY_WINDOW_DAYS = 7;
 
 export type ReminderChannel = 'email' | 'whatsapp';
-// SEQP1R19 (finding R18-1) + SEQP1R31 (finding R30-1) + SEQP1R38 (finding R37-1): the full
-// live status union. booking_reminders_sent's CHECK constraint is exactly these seven
-// values. The prior type listed only the first three, so the two terminal FAILURE states
-// (invalid_phone_format, booking_cancelled) were a silent type lie (`row.status as
-// ReminderStatus`) AND were absent from every count tile, giving the owner zero numeric
-// signal that a reminder permanently failed. All terminal-failure states are now first-class
-// members of the union and the count model. `payment_refunded` (SEQP1R31): a Stripe refund
-// (full or partial) on the booking, reminders correctly stopped, booking status itself
-// untouched (Mathew's decision). `stripe_check_failed` (SEQP1R38): the live send-time Stripe
-// refund-check itself errored/timed out repeatedly (hit the retry cap) -- distinct from
-// pending_template_approval (a WhatsApp-Meta-approval-specific wait) since this can happen
-// on the email channel too and has nothing to do with WhatsApp template approval.
+// SEQP1R19 (finding R18-1) + SEQP1R31 (finding R30-1) + SEQP1R38 (finding R37-1) +
+// SEQP1R45 (finding R44-1): the full live status union. booking_reminders_sent's CHECK
+// constraint is exactly these EIGHT values. The prior type listed only the first three, so
+// the terminal FAILURE states were a silent type lie (`row.status as ReminderStatus`) AND
+// were absent from every count tile, giving the owner zero numeric signal that a reminder
+// permanently failed. All terminal-failure states are now first-class members of the union
+// and the count model. `payment_refunded` (SEQP1R31): a Stripe refund (full or partial) on
+// the booking, reminders correctly stopped, booking status itself untouched (Mathew's
+// decision). `stripe_check_failed` (SEQP1R38): the live send-time Stripe refund-check itself
+// errored/timed out repeatedly (hit the retry cap) -- distinct from pending_template_approval
+// (a WhatsApp-Meta-approval-specific wait) since this can happen on the email channel too and
+// has nothing to do with WhatsApp template approval. `email_send_failed` (SEQP1R45): an
+// email-channel send exception (network error, Resend rejection, timeout, quota exhaustion)
+// that has hit the retry cap -- before this fix, an email exception silently skipped the
+// attempt-accounting RPC entirely, so attempt_count froze and this state could never be
+// reached; the reminder simply retried forever with zero owner-visible signal (R44-1).
 export type ReminderStatus =
   | 'sent'
   | 'pending'
@@ -29,14 +33,24 @@ export type ReminderStatus =
   | 'invalid_phone_format'
   | 'booking_cancelled'
   | 'payment_refunded'
-  | 'stripe_check_failed';
+  | 'stripe_check_failed'
+  | 'email_send_failed';
 
 // The terminal statuses that mean a reminder will NEVER reach the customer and needs a
 // human to look (fix the phone number, acknowledge the cancellation, acknowledge the
-// refund, or check Stripe connectivity). Folded into one owner-facing "failed / needs
-// attention" count, kept distinct from `stuck` (pending_template_approval, which still
-// auto-retries) and `pending` (still in flight).
-export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled', 'payment_refunded', 'stripe_check_failed'];
+// refund, check Stripe connectivity, or investigate an email delivery failure). Folded into
+// one owner-facing "failed / needs attention" count, kept distinct from `stuck`
+// (pending_template_approval, which still auto-retries) and `pending` (still in flight).
+export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled', 'payment_refunded', 'stripe_check_failed', 'email_send_failed'];
+
+// SEQP1R45 (finding R44-1, dashboard-truthfulness half): the owner-facing mirror of
+// WHATSAPP_REMINDER_MAX_ATTEMPTS in supabase/functions/process-booking-reminders/index.ts.
+// Duplicated on purpose (same convention as REMINDER_ACTIVITY_WINDOW_DAYS above): the two
+// values must be kept in sync by hand if the backend cap ever changes, there is no shared
+// runtime between an edge function and the dashboard bundle. Used to show "attempt N of 12"
+// per item so a reminder that has been retried many times is visibly distinct from one that
+// just got claimed, instead of both looking identical inside the same `pending` bucket.
+export const REMINDER_MAX_ATTEMPTS = 12;
 
 export interface ReminderActivityItem {
   id: string;

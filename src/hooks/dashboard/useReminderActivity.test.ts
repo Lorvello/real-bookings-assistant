@@ -7,15 +7,18 @@ import {
   type ReminderStatus,
 } from './useReminderActivity';
 
-// SEQP1R19 (finding R18-1) + SEQP1R31 (finding R30-1) + SEQP1R38 (finding R37-1): the
-// owner-facing count model must account for EVERY live reminder status. Before R19, only
-// sent/pending/stuck were counted, so the terminal FAILURE states (invalid_phone_format,
-// booking_cancelled) were silently omitted from every tile: a permanently failed reminder
-// gave the owner zero numeric signal. R31 adds a third terminal failure state,
-// payment_refunded (a Stripe refund stopped the reminder). R38 adds a fourth,
-// stripe_check_failed (the live send-time Stripe refund-check itself errored/timed out
-// repeatedly). These guard that each status lands in exactly one bucket and that all four
-// failure states fold into `failed`.
+// SEQP1R19 (finding R18-1) + SEQP1R31 (finding R30-1) + SEQP1R38 (finding R37-1) +
+// SEQP1R45 (finding R44-1): the owner-facing count model must account for EVERY live
+// reminder status. Before R19, only sent/pending/stuck were counted, so the terminal
+// FAILURE states (invalid_phone_format, booking_cancelled) were silently omitted from every
+// tile: a permanently failed reminder gave the owner zero numeric signal. R31 adds a third
+// terminal failure state, payment_refunded (a Stripe refund stopped the reminder). R38 adds
+// a fourth, stripe_check_failed (the live send-time Stripe refund-check itself errored/timed
+// out repeatedly). R45 adds a fifth, email_send_failed (an email-channel send exception that
+// hit the retry cap; before this fix, the exception silently skipped the attempt-accounting
+// RPC entirely, so this state could never be reached and the reminder retried forever with
+// zero owner-visible signal). These guard that each status lands in exactly one bucket and
+// that all five failure states fold into `failed`.
 function item(status: ReminderStatus, id: string): ReminderActivityItem {
   return {
     id,
@@ -30,8 +33,8 @@ function item(status: ReminderStatus, id: string): ReminderActivityItem {
   };
 }
 
-describe('summarizeReminderItems (R18-1 + R31 + R38 count model)', () => {
-  it('counts one of every live status, folding the four failure states into `failed`', () => {
+describe('summarizeReminderItems (R18-1 + R31 + R38 + R45 count model)', () => {
+  it('counts one of every live status, folding the five failure states into `failed`', () => {
     const items = [
       item('sent', 'a'),
       item('pending', 'b'),
@@ -40,14 +43,15 @@ describe('summarizeReminderItems (R18-1 + R31 + R38 count model)', () => {
       item('booking_cancelled', 'e'),
       item('payment_refunded', 'f'),
       item('stripe_check_failed', 'g'),
+      item('email_send_failed', 'h'),
     ];
     const s = summarizeReminderItems(items);
     expect(s.sent).toBe(1);
     expect(s.pending).toBe(1);
     expect(s.stuck).toBe(1);
-    expect(s.failed).toBe(4); // invalid_phone_format + booking_cancelled + payment_refunded + stripe_check_failed
+    expect(s.failed).toBe(5); // invalid_phone_format + booking_cancelled + payment_refunded + stripe_check_failed + email_send_failed
     expect(s.window_days).toBe(REMINDER_ACTIVITY_WINDOW_DAYS);
-    expect(s.items).toHaveLength(7);
+    expect(s.items).toHaveLength(8);
   });
 
   it('accounts for every item across the tiles (no status silently dropped)', () => {
@@ -58,6 +62,7 @@ describe('summarizeReminderItems (R18-1 + R31 + R38 count model)', () => {
       item('booking_cancelled', 'd'),
       item('payment_refunded', 'e'),
       item('stripe_check_failed', 'g'),
+      item('email_send_failed', 'h'),
       item('pending', 'f'),
     ];
     const s = summarizeReminderItems(items);
@@ -71,7 +76,7 @@ describe('summarizeReminderItems (R18-1 + R31 + R38 count model)', () => {
     expect(s.items).toHaveLength(0);
   });
 
-  it('FAILED_REMINDER_STATUSES contains exactly the four terminal failure states', () => {
-    expect([...FAILED_REMINDER_STATUSES].sort()).toEqual(['booking_cancelled', 'invalid_phone_format', 'payment_refunded', 'stripe_check_failed']);
+  it('FAILED_REMINDER_STATUSES contains exactly the five terminal failure states', () => {
+    expect([...FAILED_REMINDER_STATUSES].sort()).toEqual(['booking_cancelled', 'email_send_failed', 'invalid_phone_format', 'payment_refunded', 'stripe_check_failed']);
   });
 });

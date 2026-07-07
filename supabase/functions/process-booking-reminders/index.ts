@@ -287,20 +287,26 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       let delivered = false;
-      // releaseClaim = "no message left the building, so the claim should stay retryable
-      // rather than being treated as a possible-send". We ONLY take this path when
-      // delivery was deterministically NOT attempted (WhatsApp Meta send still gated ->
-      // nothing sent). For an EMAIL exception we treat it as a real attempt too: a Resend
-      // call may have actually gone out before the error surfaced, and re-sending would
-      // spam the customer. Original LR-R95 policy: prefer a missed reminder over a double
-      // one. Net effect: WhatsApp bookings are retried up to the cap (not lost, not
-      // retried forever), email send-failures are not double-sent.
+      // releaseClaim = "this non-delivered outcome must still be recorded via
+      // record_booking_reminder_result", i.e. delivery was either deterministically NOT
+      // attempted (WhatsApp Meta send still gated -> nothing sent) or the attempt itself
+      // threw before we could confirm success. SEQP1R45 (fix for R44-1): previously an
+      // email-channel exception left this false and the RPC call below was skipped
+      // entirely, so attempt_count (only ever incremented inside that RPC) froze forever
+      // and the 12-attempt bounded-retry cap could mathematically never engage -- see the
+      // migration 20260707180000_SEQP1R45_reminder_email_exception_result_recording.sql
+      // for the full root-cause writeup and evidence/SEQ_P1_r44.md + r45.md for the live
+      // reproduction. Every non-delivered outcome now reaches record_booking_reminder_result
+      // exactly once, so attempt_count always reflects reality and the cap always
+      // eventually engages, for every channel.
       let releaseClaim = false;
       // SEQP1R9 (P1-9-PHONE): a distinct, specific failure reason (currently only
       // "invalid_phone_format") that must be routed to its OWN terminal status rather than
       // treated as a generic retryable gated-send. Left null for every other outcome so
       // record_booking_reminder_result's default behaviour (pending / pending_template_
-      // approval-on-cap) is completely unchanged for those.
+      // approval-on-cap) is completely unchanged for those. SEQP1R45 adds a second specific
+      // value, "email_send_failed", set in the catch block below for an email-channel send
+      // exception.
       let failureReason: string | null = null;
       try {
         if (channel === "email") {
@@ -329,16 +335,28 @@ const handler = async (req: Request): Promise<Response> => {
       } catch (e) {
         delivered = false;
         console.error(`Reminder mislukt voor booking ${r.booking_id} (${channel}):`, (e as any).message);
+        // SEQP1R45 (fix for R44-1): an email-channel exception (a network error, a Resend
+        // API error response -- resp.error is converted into a throw a few lines above --
+        // a timeout, quota exhaustion, or anything else) is overwhelmingly a "nothing left
+        // the building" case, so it must still be recorded via record_booking_reminder_result
+        // like every other failure path in this function, never silently skipped. This is a
+        // deliberate, documented trade-off, not an oversight: the small residual risk that
+        // Resend actually sent before the client-side error surfaced is strictly better than
+        // the prior behaviour (an unbounded, invisible, forever-retrying reminder). Scoped to
+        // the email channel only: the WhatsApp branch above never throws today
+        // (sendWhatsAppReminder / sendWhatsAppTemplate both catch their own errors and
+        // return {delivered:false, ...} rather than throwing, confirmed by source-read this
+        // round), so in practice this catch block is reached exclusively by the email path.
+        if (channel === "email") {
+          releaseClaim = true;
+          failureReason = "email_send_failed";
+        }
       }
 
       if (delivered) {
         sent++;
       } else {
         failed++;
-        // Email-exception (not releaseClaim): claim BLIJFT staan als 'pending' zonder cap
-        // (mogelijk al verstuurd) -> geen dubbele mail; email failures are not the
-        // Meta-gate cohort the retry cap targets and are expected to be transient/rare.
-        // Skip the result-write entirely so attempt_count/status stay exactly as claimed.
         if (!releaseClaim) continue;
       }
 
