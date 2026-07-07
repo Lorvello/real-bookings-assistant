@@ -164,6 +164,21 @@ serve(async (req) => {
         await handleBookingPaymentSucceeded(supabase, event.data.object as Stripe.PaymentIntent, stripe);
         break;
 
+      // SEQP1R31 (finding R30-1): a refund (full or partial, no distinction, Mathew's
+      // decision) on a booking-payment charge must stop that booking's reminders. Never
+      // handled before this: the switch had no case at all for the refund-event family, so
+      // a real refund silently no-op'd (reached processed_stripe_events, i.e. passed
+      // signature verification + idempotency-claim, then fell to default). Only
+      // 'charge.refunded' is handled (not the sibling 'refund.created'/'refund.updated'/
+      // 'charge.refund.updated' events also seen on the account): 'charge.refunded' is the
+      // single event that carries the charge's CURRENT authoritative refunded/amount_refunded
+      // state (idempotent to re-derive from), while the refund.* family are per-refund-object
+      // deltas that would require summing across possibly-multiple partial refunds to reach
+      // the same conclusion this one event already gives directly.
+      case 'charge.refunded':
+        await handleChargeRefunded(supabase, event.data.object as Stripe.Charge);
+        break;
+
       // Connect: a merchant's account capabilities changed (finished onboarding,
       // charges/payouts enabled, etc.). Sync business_stripe_accounts so Pay & Book
       // un-disables automatically, without the merchant revisiting the settings page.
@@ -617,6 +632,62 @@ async function handleBookingPaymentSucceeded(
   // The full PI is already in hand on this path, so pass it through: ensureBookingPaymentRow
   // can record the row with no extra Stripe round-trip (and no transient-retrieve failure mode).
   await confirmBookingPaid(supabase, bookingId, paymentIntent.id, stripe, paymentIntent);
+}
+
+// SEQP1R31 (finding R30-1, evidence launch-ready-loop/evidence/SEQ_P1_r30.md): a Stripe
+// refund against a booking-payment charge must stop that booking's reminders. Mathew's
+// decision (2026-07-07, "any refund stops reminders"): full or partial, no distinction --
+// this handler does not branch on charge.amount_refunded vs charge.amount at all, any
+// refunded=true charge with a booking_id in its metadata sets payment_status='refunded'.
+// The booking's own `status` is DELIBERATELY left untouched (never auto-cancelled): the
+// reminder-side gate (claim_booking_reminder / get_due_booking_reminders, SEQP1R31
+// migration) is what actually stops the send, independent of status. Idempotent: a
+// redelivered charge.refunded (or a second partial refund on the same charge) just
+// re-writes the same 'refunded' value; the .neq guard below keeps a no-op write from
+// happening at all once already set.
+async function handleChargeRefunded(supabase: any, charge: Stripe.Charge) {
+  const bookingId = charge.metadata?.booking_id;
+  if (!bookingId) {
+    // Not every charge.refunded is a booking-payment charge (subscription/other Stripe
+    // objects can also be refunded) -- ignore anything without our booking_id metadata,
+    // same convention as handleBookingPaymentSucceeded's early-return.
+    return;
+  }
+  console.log(`↩️ Charge refunded: ${charge.id} (amount_refunded=${charge.amount_refunded}/${charge.amount}) -> booking ${bookingId}`);
+
+  // Self-review catch (not in the original build, live-tested and reverted): a
+  // .neq('payment_status','refunded') filter is a no-op on a row whose payment_status is SQL
+  // NULL (NULL <> 'refunded' evaluates to NULL, not true -- confirmed live against the real
+  // REST endpoint). Tried .or('payment_status.neq.refunded,payment_status.is.null') next, but
+  // live-testing THAT against the real deployed supabase-js client (not just curl) surfaced a
+  // second, worse PostgREST quirk: combining .eq() with .or() DOES perform the write
+  // correctly, but the RETURNING/.select() response comes back an empty array regardless --
+  // so the idempotency branch below would misreport a genuinely successful first-time write as
+  // "already refunded". Simplest ROBUST fix: drop the conditional filter entirely. Setting
+  // payment_status='refunded' on an already-'refunded' row is itself harmless and idempotent
+  // (identical end state either way); a plain .eq('id', bookingId) with no payment_status
+  // filter always matches and always returns the row, so the log branch below is now accurate
+  // in every case (fresh write vs redelivery), not just usually accurate.
+  const { data: updated, error } = await supabase
+    .from('bookings')
+    .update({ payment_status: 'refunded' })
+    .eq('id', bookingId)
+    .select('id, status, payment_status');
+
+  if (error) {
+    // A money-adjacent state write failing silently would leave a refunded booking's
+    // reminders still firing (the exact bug this round exists to fix) -- throw so the
+    // switch-level catch releases the idempotency claim and Stripe retries the delivery.
+    console.error(`❌ Failed to mark booking ${bookingId} payment_status='refunded' for charge ${charge.id}:`, error);
+    throw new Error(`charge.refunded write failed for booking ${bookingId}: ${error.message ?? error}`);
+  }
+  if (!updated || updated.length === 0) {
+    // No row with this id exists at all (deleted booking, bad metadata) -- not an error, just
+    // nothing to gate.
+    console.log(`ℹ️ No booking found for id ${bookingId} (charge ${charge.id}); nothing to mark refunded.`);
+    return;
+  }
+  console.log(`✅ Booking ${bookingId} marked payment_status='refunded' (status untouched, stays '${updated[0].status}'). Reminders for this booking will now be gated off at claim time.`);
 }
 
 // Gedeeld door beide betaal-routes (hosted Checkout: checkout.session.completed,

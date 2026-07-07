@@ -62,6 +62,15 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
           icon: XCircle,
           badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
         };
+      // SEQP1R31 (finding R30-1): a Stripe refund (full or partial) stopped this reminder.
+      // Distinct from bookingCancelled (the appointment itself is untouched, only the
+      // payment was refunded) so the owner sees the real reason, not a generic label.
+      case 'payment_refunded':
+        return {
+          label: t('dashboard.reminders.status.paymentRefunded', 'Payment refunded'),
+          icon: XCircle,
+          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+        };
       default:
         return {
           label: t('dashboard.reminders.status.unknown', 'Unknown'),

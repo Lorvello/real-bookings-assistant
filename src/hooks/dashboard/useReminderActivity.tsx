@@ -10,23 +10,27 @@ import { useMockDataControl } from '@/hooks/useMockDataControl';
 export const REMINDER_ACTIVITY_WINDOW_DAYS = 7;
 
 export type ReminderChannel = 'email' | 'whatsapp';
-// SEQP1R19 (finding R18-1): the full live status union. booking_reminders_sent's CHECK constraint
-// is exactly these five values. The prior type listed only the first three, so the two terminal
-// FAILURE states (invalid_phone_format, booking_cancelled) were a silent type lie (`row.status as
-// ReminderStatus`) AND were absent from every count tile, giving the owner zero numeric signal that
-// a reminder permanently failed. Both are now first-class members of the union and the count model.
+// SEQP1R19 (finding R18-1) + SEQP1R31 (finding R30-1): the full live status union.
+// booking_reminders_sent's CHECK constraint is exactly these six values. The prior type
+// listed only the first three, so the two terminal FAILURE states (invalid_phone_format,
+// booking_cancelled) were a silent type lie (`row.status as ReminderStatus`) AND were absent
+// from every count tile, giving the owner zero numeric signal that a reminder permanently
+// failed. All three terminal-failure states are now first-class members of the union and
+// the count model. `payment_refunded` (SEQP1R31): a Stripe refund (full or partial) on the
+// booking, reminders correctly stopped, booking status itself untouched (Mathew's decision).
 export type ReminderStatus =
   | 'sent'
   | 'pending'
   | 'pending_template_approval'
   | 'invalid_phone_format'
-  | 'booking_cancelled';
+  | 'booking_cancelled'
+  | 'payment_refunded';
 
-// The two terminal statuses that mean a reminder will NEVER reach the customer and needs a human
-// to look (fix the phone number, or acknowledge the cancellation). Folded into one owner-facing
-// "failed / needs attention" count, kept distinct from `stuck` (pending_template_approval, which
-// still auto-retries) and `pending` (still in flight).
-export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled'];
+// The three terminal statuses that mean a reminder will NEVER reach the customer and needs a
+// human to look (fix the phone number, acknowledge the cancellation, or acknowledge the
+// refund). Folded into one owner-facing "failed / needs attention" count, kept distinct from
+// `stuck` (pending_template_approval, which still auto-retries) and `pending` (still in flight).
+export const FAILED_REMINDER_STATUSES: ReminderStatus[] = ['invalid_phone_format', 'booking_cancelled', 'payment_refunded'];
 
 export interface ReminderActivityItem {
   id: string;
