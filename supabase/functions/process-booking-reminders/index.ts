@@ -173,7 +173,7 @@ const handler = async (req: Request): Promise<Response> => {
         p_reminder_number: r.reminder_number,
       });
       if (claimErr || !claimRows || claimRows.length === 0) { skipped++; continue; }
-      const claim = claimRows[0] as { attempt_count: number; status: string };
+      const claim = claimRows[0] as { attempt_count: number; status: string; calendar_timezone: string };
       if (claim.status !== "pending") {
         // Do not attempt delivery: the claim did not yield a fresh retryable row. Two cases:
         //  (a) a concurrent invocation already resolved this row to a terminal status
@@ -189,15 +189,22 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const locale: "nl" | "en" = r.customer_locale === "en" ? "en" : "nl";
-      // SEQP1R25 (finding R24-1): the booking's OWN calendar timezone (owner-writable via
-      // the Availability page, sourced from get_due_booking_reminders's calendar_timezone
-      // column), not a hardcoded literal. The RPC already coalesces null/empty to
-      // Europe/Amsterdam at the SQL layer; this is a second, defensive normalization at the
-      // application boundary (r is untyped `any` from the RPC response) so a malformed or
-      // missing value can never silently fall through to formatDate's own default in a way
-      // that masks a real upstream data problem.
-      const tz: string = typeof r.calendar_timezone === "string" && r.calendar_timezone.trim().length > 0
-        ? r.calendar_timezone
+      // SEQP1R28 (finding R27-1): use claim_booking_reminder's OWN fresh calendar_timezone,
+      // read in the SAME atomic statement as the claim itself, immediately before this item
+      // is rendered/sent -- NOT r.calendar_timezone, which is the value that was live at the
+      // single get_due_booking_reminders() snapshot taken once at the top of this whole
+      // invocation. On a multi-item batch (a real, ordinary production condition), that
+      // batch-level snapshot can go stale mid-invocation if the owner edits the calendar's
+      // timezone (Availability page) while earlier items in the same batch are still being
+      // sent; every later item must reflect the CURRENT value, not the batch's initial read.
+      // claim_booking_reminder is called once per item, right at the moment of processing,
+      // so it is the single authoritative freshness point for both status (SEQP1R13) and
+      // timezone (SEQP1R28). The RPC already coalesces null/empty to Europe/Amsterdam at the
+      // SQL layer; this is a second, defensive normalization at the application boundary
+      // (claim is untyped `any` from the RPC response) so a malformed or missing value can
+      // never silently fall through in a way that masks a real upstream data problem.
+      const tz: string = typeof claim.calendar_timezone === "string" && claim.calendar_timezone.trim().length > 0
+        ? claim.calendar_timezone
         : "Europe/Amsterdam";
       let delivered = false;
       // releaseClaim = "no message left the building, so the claim should stay retryable
