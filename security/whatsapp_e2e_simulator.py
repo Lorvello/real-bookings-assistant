@@ -17,7 +17,9 @@ SAFETY RULES (non-negotiable, see GOAL_PROMPT_WHATSAPP_E2E_TEST_INFRA.md section
     every send. There is no CLI flag, env var, or code path that can change it.
   - No tight hot-loop. This script sends ONE inbound message per invocation; a
     multi-turn conversation driver (Item 6) must pace its own calls (a few per minute
-    at most).
+    at most). STRUCTURALLY ENFORCED (R153): send_inbound() sleeps out any gap shorter
+    than MIN_SECONDS_BETWEEN_SENDS since the last real send, tracked in a persisted
+    state file, not just an honor-system caller convention.
   - Never sends anything Meta would classify as business-initiated/template traffic;
     this only ever simulates a customer-initiated free-form text message.
   - The App Secret is read from ~/.config/ba/whatsapp_app_secret.key and is never
@@ -54,6 +56,39 @@ WABA_ID = "860773763291531"
 
 APP_SECRET_FILE = Path.home() / ".config" / "ba" / "whatsapp_app_secret.key"
 SUPABASE_PAT_FILE = Path.home() / ".config" / "ba" / "supabase.pat"
+
+# R153 (WHATSAPP_E2E_TEST_INFRA DoD close-out, adversarial round 1 finding): the SAFETY RULE
+# "a few real sends per minute at most" was, until this fix, enforced ONLY by caller discipline
+# (a human remembering to `sleep` between calls, or a subagent following its prompt). The real
+# server-side webhook rate limiter (whatsapp-webhook/index.ts, 100 req/min before it blocks) is an
+# abuse/DDoS backstop, roughly 20-50x looser than this tool's own intended pacing, so it is not a
+# real enforcement mechanism for THIS safety rule. This adds an actual, structural backstop inside
+# the tool itself: a persisted last-send timestamp that forces a real sleep (not just a warning) if
+# called again too soon, so a careless caller (a tight loop, a dropped `sleep`, a future script that
+# imports send_inbound directly) cannot silently exceed the pacing cap regardless of discipline.
+MIN_SECONDS_BETWEEN_SENDS = 8  # caps real sends at 7.5/minute, comfortably "a few per minute"
+PACING_STATE_FILE = Path.home() / ".config" / "ba" / "whatsapp_e2e_simulator_last_send.txt"
+
+
+def _enforce_pacing() -> None:
+    """Structural backstop for the pacing SAFETY RULE: sleeps out any gap shorter than
+    MIN_SECONDS_BETWEEN_SENDS since the last real send (tracked in a small local state file,
+    survives across separate script invocations, not just within one process)."""
+    now = time.time()
+    last = None
+    if PACING_STATE_FILE.exists():
+        try:
+            last = float(PACING_STATE_FILE.read_text().strip())
+        except (ValueError, OSError):
+            last = None
+    if last is not None:
+        elapsed = now - last
+        if elapsed < MIN_SECONDS_BETWEEN_SENDS:
+            wait = MIN_SECONDS_BETWEEN_SENDS - elapsed
+            print(f"[pacing] {wait:.1f}s since last send < {MIN_SECONDS_BETWEEN_SENDS}s minimum, sleeping", file=sys.stderr)
+            time.sleep(wait)
+    PACING_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PACING_STATE_FILE.write_text(str(time.time()))
 
 
 def _load_secret(path: Path) -> str:
@@ -125,6 +160,7 @@ def sign(raw_body: str, app_secret: str) -> str:
 
 def send_inbound(message_text: str) -> dict:
     _validate_destination(HARDCODED_TEST_WA_ID)
+    _enforce_pacing()
     app_secret = _load_secret(APP_SECRET_FILE)
     message_id = f"wamid.E2E_SIM_{uuid.uuid4().hex}"
     payload = build_payload(message_text, message_id)
