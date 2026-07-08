@@ -1,0 +1,74 @@
+[
+  {
+    "anon_exec": false,
+    "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier text, p_trial_end_date text, p_subscription_end_date text, p_business_name text, p_business_type text",
+    "authenticated_exec": false,
+    "function_name": "admin_developer_update_user_subscription",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": true,
+    "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier subscription_tier, p_trial_end_date timestamp with time zone, p_subscription_end_date timestamp with time zone, p_business_name text, p_business_type text",
+    "authenticated_exec": true,
+    "function_name": "admin_update_user_subscription",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier text, p_trial_end_date text, p_subscription_end_date text, p_business_name text, p_business_type text",
+    "authenticated_exec": false,
+    "function_name": "admin_update_user_subscription",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier text, p_trial_end_date timestamp with time zone, p_subscription_end_date timestamp with time zone",
+    "authenticated_exec": false,
+    "function_name": "admin_update_user_subscription",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint",
+    "authenticated_exec": false,
+    "function_name": "claim_booking_reminder",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "",
+    "authenticated_exec": false,
+    "function_name": "get_due_booking_reminders",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_user_id uuid",
+    "authenticated_exec": false,
+    "function_name": "get_user_subscription_details",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": true,
+    "args": "user_uuid uuid",
+    "authenticated_exec": true,
+    "function_name": "get_user_subscription_tier",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint, p_delivered boolean, p_max_attempts integer, p_failure_reason text, p_channel text",
+    "authenticated_exec": false,
+    "function_name": "record_booking_reminder_result",
+    "security_definer": true,
+    "service_role_exec": true
+  }
+]
