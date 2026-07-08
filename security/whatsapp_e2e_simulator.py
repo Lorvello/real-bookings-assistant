@@ -265,7 +265,12 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
     result["security_log_events"] = log_rows
     result["inbound_confirmed"] = any(r["event_type"] == "signature_validated" for r in log_rows)
 
-    time_filter = f"and wm.created_at > '{since_iso}'" if since_iso else "and wm.created_at >= now() - interval '2 minutes'"
+    # R156 (adversarial round 4 finding): the standalone check-reply fallback (no after_ts) used a
+    # hardcoded 2-minute lookback regardless of --wait, contradicting this function's own docstring
+    # ("falls back to now minus wait_seconds"). A standalone `check-reply <id> --wait 300` could
+    # silently miss a reply older than 2 minutes despite the operator explicitly asking to look back
+    # further. wait_seconds is an int (argparse), safe to interpolate directly into the interval literal.
+    time_filter = f"and wm.created_at > '{since_iso}'" if since_iso else f"and wm.created_at >= now() - interval '{wait_seconds} seconds'"
     while time.time() < deadline:
         rows = sql_query(
             f"""select wm.id, wm.direction, wm.content, wm.created_at
