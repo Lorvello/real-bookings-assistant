@@ -14,6 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_actions: {
+        Row: {
+          action_type: string
+          actor: string
+          booking_id: string
+          calendar_id: string
+          channel: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          new_value: Json
+          old_value: Json | null
+          overridden_at: string | null
+          overridden_by: string | null
+          override_action: string | null
+        }
+        Insert: {
+          action_type: string
+          actor?: string
+          booking_id: string
+          calendar_id: string
+          channel?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          new_value: Json
+          old_value?: Json | null
+          overridden_at?: string | null
+          overridden_by?: string | null
+          override_action?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor?: string
+          booking_id?: string
+          calendar_id?: string
+          channel?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          new_value?: Json
+          old_value?: Json | null
+          overridden_at?: string | null
+          overridden_by?: string | null
+          override_action?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_actions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "agent_actions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "user_status_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_overridden_by_fkey"
+            columns: ["overridden_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       archived_security_events: {
         Row: {
           archived_at: string | null

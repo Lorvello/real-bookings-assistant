@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ReminderActivityCard } from '@/components/dashboard/ReminderActivityCard';
+import { ActivityLogCard } from '@/components/dashboard/ActivityLogCard';
 
 interface LiveOperationsTabProps {
   calendarIds: string[];
@@ -550,6 +551,11 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
             among several "is my booking system actually working" checks, not yet a
             standalone workflow needing its own navigation destination. */}
         <ReminderActivityCard calendarIds={calendarIds} />
+
+        {/* Activity log (SEQP2R7/P2-2b): the owner-facing view of `agent_actions`
+            (book/reschedule/cancel/no_show), same "one signal among several"
+            placement as ReminderActivityCard directly above. */}
+        <ActivityLogCard calendarIds={calendarIds} />
       </div>
     </TooltipProvider>
   );

@@ -397,6 +397,44 @@
       "appointmentAt": "Afspraak {{date}}",
       "emptyTitle": "Nog geen herinneringen verzonden",
       "emptyDesc": "Zodra afspraakherinneringen zijn ingeschakeld en een boeking bijna begint, verschijnt de activiteit hier."
+    },
+    "activityLog": {
+      "heading": "Activiteitenlog",
+      "subtitle": "Afgelopen {{days}} dagen",
+      "loading": "Activiteitenlog laden",
+      "errTitle": "Kon activiteitenlog niet laden",
+      "errDesc": "Controleer je verbinding en probeer het opnieuw.",
+      "retry": "Opnieuw proberen",
+      "action": {
+        "book": "Geboekt",
+        "reschedule": "Verzet",
+        "cancel": "Geannuleerd",
+        "noShow": "No-show"
+      },
+      "summary": {
+        "book": "Geboekt voor {{date}}",
+        "bookGeneric": "Nieuwe afspraak geboekt",
+        "reschedule": "Verzet van {{from}} naar {{to}}",
+        "rescheduleGeneric": "Afspraak verzet naar een nieuw tijdstip",
+        "cancel": "Afspraak geannuleerd",
+        "cancelRefund": "Afspraak geannuleerd, terugbetaling vereist",
+        "noShow": "Afspraak gemarkeerd als no-show",
+        "unknown": "Boeking bijgewerkt"
+      },
+      "actor": {
+        "agent": "Assistent",
+        "owner": "Jij"
+      },
+      "actorAgentTip": "Automatisch uitgevoerd door je WhatsApp-boekingsassistent.",
+      "actorOwnerTip": "Door jou uitgevoerd vanuit het dashboard.",
+      "channelWhatsapp": "Via WhatsApp-gesprek",
+      "channelWhatsappTip": "Getriggerd door de klant in een WhatsApp-gesprek met je assistent.",
+      "undoComingSoon": "Ongedaan maken (binnenkort)",
+      "undoComingSoonTip": "Een actie van de assistent hiervandaan overrulen komt binnenkort.",
+      "listLabel": "Recente assistent-activiteit",
+      "unknownCustomer": "Klant",
+      "emptyTitle": "Nog geen activiteit",
+      "emptyDesc": "Zodra je assistent een afspraak boekt, verzet of annuleert, verschijnt dit hier."
     }
   }
 }
