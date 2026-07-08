@@ -280,13 +280,14 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
     # window with no correlation to THIS specific request, so a genuinely failed signature
     # check on one turn could be masked by a NEIGHBORING turn's successful validation event
     # landing in the same window (turns are sent only ~8s+ apart, well inside 2 minutes).
-    # Tightened two ways: (1) a narrow time window anchored to since_iso (falls back to the
-    # same wait_seconds-derived window as the reply query below when after_ts is absent),
-    # (2) when payload_size is known, match webhook_security_logs.event_data->>'payload_size'
-    # exactly (index.ts's signature_validated log always carries payload_size, see
-    # logSecurityEvent calls in whatsapp-webhook/index.ts), a strong per-request fingerprint
-    # since two genuinely different inbound messages essentially never share an exact byte
-    # length within the same narrow time window.
+    # Tightened two ways: (1) a narrow time window anchored to since_iso, this alone is
+    # already the load-bearing guarantee (round 6 verify: sends are serialized by
+    # _enforce_pacing's flock, so every prior call's log rows land strictly before this
+    # call's since_iso, no dependency on payload_size for correctness); (2) when
+    # payload_size is known, match webhook_security_logs.event_data->>'payload_size'
+    # exactly (index.ts's signature_validated log always carries payload_size) as a
+    # secondary, marginal narrowing, not a uniqueness guarantee on its own (two different
+    # short test messages of equal character length CAN share a payload_size).
     log_time_filter = f"and created_at > '{since_iso}'" if since_iso else f"and created_at >= now() - interval '{wait_seconds} seconds'"
     log_size_filter = f"and (event_data->>'payload_size')::int = {int(payload_size)}" if payload_size is not None else ""
     log_rows = sql_query(
