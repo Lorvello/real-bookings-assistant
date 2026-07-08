@@ -24,6 +24,8 @@ verification round happened to catch it). This makes that catch automatic.
 | `admin_developer_update_user_subscription` | Same class as above, a developer-console variant. |
 | `get_user_subscription_details(uuid)` | Returns a full PII/billing row (`row_to_json(v_user)`, tier, status) for an arbitrary `p_user_id`, service_role-only by design. |
 | `get_user_subscription_tier(uuid)` | Known pre-existing issue (`task_6a750a7e`, spun off separately, not fixed here): currently anon/authenticated-callable, leaks a non-sensitive tier field. Included here so the baseline still tracks it and any FURTHER widening past its current state is still caught, even though its current state is itself a known open item. |
+| `reschedule_booking_atomic` (all overloads) | Mutates a booking's time/calendar; since SEQP2R5 also writes the owner activity log (`agent_actions`) inside the same transaction. service_role-only by design. Added SEQP2R5 after a REAL live finding on this exact function (see below). |
+| `owner_update_booking_status(uuid, text, text)` | Mutates booking status and `payment_status` (flags `refund_required`), money-adjacent; since SEQP2R5 also writes the owner-actor `agent_actions` row. authenticated + service_role only (owner-facing RPC), never anon. |
 
 This list is a judgment call, not exhaustive. Add any new function that touches Stripe/payments,
 mutates billing/subscription state, or returns PII/customer data to a non-owner caller. When you
@@ -90,3 +92,25 @@ project's own standard): `20260708150000_SEQP2R2_admin_update_user_subscription_
 locks it to `service_role`-only EXECUTE, matching its two siblings and
 `admin_developer_update_user_subscription`. Baseline updated to the new locked-down state.
 Full evidence: `../../../Bookings Assistant/launch-ready-loop/evidence/SEQ_P2_r2.md`.
+
+## Real finding closed: reschedule_booking_atomic default-privilege trap (2026-07-08, SEQP2R5)
+
+Building the new `agent_actions` owner-activity-log table (SEQP2R5), `reschedule_booking_atomic`
+gained a new 6-arg overload (added `p_conversation_id`). The migration's own
+`REVOKE ALL ... FROM PUBLIC; GRANT EXECUTE ... TO service_role;` block (the exact shape used
+everywhere else in this repo) was applied, then `check` on the newly-extended sensitive set
+still showed the NEW overload as `anon_exec=true, authenticated_exec=true`. Root cause,
+confirmed live via `pg_default_acl`: this project has an `ALTER DEFAULT PRIVILEGES` entry for
+role `postgres` (the role the Mgmt-API SQL endpoint runs as) that grants `EXECUTE` on every
+brand-new function DIRECTLY to `anon`/`authenticated`/`service_role`, independent of `PUBLIC`.
+`REVOKE ALL ... FROM PUBLIC` never touches a direct grant, only a `PUBLIC`-inherited one, so a
+genuinely NEW function signature (not a `CREATE OR REPLACE` of an existing one) needs
+`anon`/`authenticated` revoked EXPLICITLY, every time, or it silently launches open. This is a
+DIFFERENT mechanism than the R55/R56 drop-then-recreate incident (that one lost previously-set
+ACLs; this one is a fresh object inheriting a project-level default no migration author would
+expect), but the same dangerous direction and the same fix shape once known. Fixed live:
+`REVOKE ALL ... FROM PUBLIC, anon, authenticated;` explicitly. `owner_update_booking_status` was
+unaffected (same signature, `CREATE OR REPLACE` of an EXISTING object, default privileges only
+apply to newly created objects). Both functions added to the sensitive set above so future
+overloads of either are caught automatically. Baseline updated to the fixed state. Full
+evidence: `../../../Bookings Assistant/launch-ready-loop/evidence/SEQ_P2_r5.md`.

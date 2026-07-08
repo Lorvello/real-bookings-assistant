@@ -65,9 +65,25 @@
   },
   {
     "anon_exec": false,
+    "args": "p_booking_id uuid, p_new_status text, p_reason text",
+    "authenticated_exec": true,
+    "function_name": "owner_update_booking_status",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
     "args": "p_booking_id uuid, p_reminder_number smallint, p_delivered boolean, p_max_attempts integer, p_failure_reason text, p_channel text",
     "authenticated_exec": false,
     "function_name": "record_booking_reminder_result",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_new_start timestamp with time zone, p_new_end timestamp with time zone, p_service_type_id uuid, p_calendar_id uuid, p_conversation_id uuid",
+    "authenticated_exec": false,
+    "function_name": "reschedule_booking_atomic",
     "security_definer": true,
     "service_role_exec": true
   }

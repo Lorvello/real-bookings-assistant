@@ -54,7 +54,9 @@ where n.nspname = 'public'
     'admin_update_user_subscription',
     'admin_developer_update_user_subscription',
     'get_user_subscription_details',
-    'get_user_subscription_tier'
+    'get_user_subscription_tier',
+    'reschedule_booking_atomic',
+    'owner_update_booking_status'
   )
 order by p.proname, args;
 EOSQL

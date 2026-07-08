@@ -2477,6 +2477,28 @@ export function createTools(
           return { error: insErr.message };
         }
 
+        // SEQP2R5: owner activity log. One row per successful commit (book: old_value=NULL,
+        // new_value = the booking's own key fields, same shape as insertRow). Best-effort,
+        // non-fatal (mirrors the typing-indicator/other best-effort side writes in this file):
+        // a logging failure must never undo or block a real booking that already exists.
+        const { error: bookActionErr } = await supabase.from("agent_actions").insert({
+          booking_id: booking.id,
+          calendar_id: calId,
+          action_type: "book",
+          actor: "agent",
+          old_value: null,
+          new_value: {
+            service_type_id: serviceId,
+            start_time: start,
+            end_time: end,
+            customer_name: customerName,
+            customer_phone: ctx.phone,
+          },
+          conversation_id: ctx.conversationId ?? null,
+          channel: "whatsapp",
+        });
+        if (bookActionErr) console.error("agent_actions insert failed (book):", bookActionErr.message);
+
         if (!paymentRequired) {
           await clearPendingBook();
           const whenNL = nlWhen(booking.start_time);
@@ -2514,6 +2536,20 @@ export function createTools(
         // the live-flip), never a client value.
         if (!ctx.conversationId) {
           await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
+          // SEQP2R5: self-corrective cancel (undoing the booking just made above because no
+          // conversation to hang a payment link off of). Same booking_id as the 'book' row
+          // written seconds ago, self-explanatory to an owner reading the log in order.
+          const { error: selfCancelErr1 } = await supabase.from("agent_actions").insert({
+            booking_id: booking.id,
+            calendar_id: calId,
+            action_type: "cancel",
+            actor: "agent",
+            old_value: { status: insertRow.status },
+            new_value: { status: "cancelled" },
+            conversation_id: ctx.conversationId ?? null,
+            channel: "whatsapp",
+          });
+          if (selfCancelErr1) console.error("agent_actions insert failed (self-cancel, no conversation):", selfCancelErr1.message);
           return {
             error: "payment_setup_failed",
             message: "Ik kon de betaling nu niet opzetten. Probeer het zo nog eens.",
@@ -2536,6 +2572,19 @@ export function createTools(
         if (payErr || !payUrl) {
           // No link → don't leave a stuck pending booking holding the slot.
           await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
+          // SEQP2R5: same self-corrective cancel as above, other failure branch (payment link
+          // mint itself failed rather than no conversation to send it to).
+          const { error: selfCancelErr2 } = await supabase.from("agent_actions").insert({
+            booking_id: booking.id,
+            calendar_id: calId,
+            action_type: "cancel",
+            actor: "agent",
+            old_value: { status: insertRow.status },
+            new_value: { status: "cancelled" },
+            conversation_id: ctx.conversationId ?? null,
+            channel: "whatsapp",
+          });
+          if (selfCancelErr2) console.error("agent_actions insert failed (self-cancel, payment link failed):", selfCancelErr2.message);
           return {
             error: "payment_setup_failed",
             message: "Het lukte niet een betaallink te maken. Probeer het later opnieuw of neem contact op.",
@@ -2716,6 +2765,21 @@ export function createTools(
             updated_at: new Date().toISOString(),
           }).eq("id", b.id);
           if (error) return { error: error.message };
+          // SEQP2R5: owner activity log. old_value is the pre-cancel status captured by
+          // resolveTarget above (b.status, whatever non-terminal status it had); new_value is
+          // the post-cancel state. Best-effort, non-fatal (a logging failure must never block
+          // a cancellation that already committed).
+          const { error: cancelActionErr } = await supabase.from("agent_actions").insert({
+            booking_id: b.id,
+            calendar_id: b.calendar_id,
+            action_type: "cancel",
+            actor: "agent",
+            old_value: { status: b.status },
+            new_value: { status: "cancelled", cancellation_reason: "Geannuleerd via WhatsApp" },
+            conversation_id: ctx.conversationId ?? null,
+            channel: "whatsapp",
+          });
+          if (cancelActionErr) console.error("agent_actions insert failed (cancel):", cancelActionErr.message);
           await clearPending();
           return {
             ok: true,
@@ -3299,6 +3363,9 @@ export function createTools(
           p_new_end: newEnd,
           p_service_type_id: args.service_type_id ? serviceId : null,
           p_calendar_id: targetCalId,
+          // SEQP2R5: threads through to the agent_actions row the RPC now writes inside the
+          // same transaction as the move itself; NULL when there is no conversation.
+          p_conversation_id: ctx.conversationId ?? null,
         });
         if (rrErr) return { error: rrErr.message };
         const rres = rr as { ok?: boolean; error?: string } | null;
