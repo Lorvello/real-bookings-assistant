@@ -1360,6 +1360,35 @@ Deno.serve(async (req) => {
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/
     // confirmCancel computed from it right below. R23 only fixed the latter; R24 closes the former.
     const ambiguousConfirm = notCleanConfirm(msgLower);
+    // R150 (WHATSAPP_E2E_TEST_INFRA Item 6, live-reproduced on the real production agent): a
+    // customer resolving an identity-verification marker (pending_cancel_verification /
+    // pending_reschedule_verification, the GEDEELD TELEFOONNUMMER cross-identity safety flow) who
+    // naturally restates the EXISTING appointment's day/time as proof of which one they mean, e.g.
+    // "Ja, annuleer de afspraak van Test Klant E2E op vrijdag 10 juli 09:00, dat is 'm echt" (this
+    // exact message, evidence/WHATSAPP_E2E_r6.md turns 9-11), satisfies identityVerificationResolved
+    // (it explicitly names the target) but was blocked anyway purely by DAY_OR_TIME_SHIFT_RE inside
+    // ambiguousConfirm, an UNRESOLVABLE structural deadlock: identityVerificationResolved's own
+    // design (see identityDisambiguationGuard.ts) is satisfied by naming the person, but the most
+    // natural, complete way a real customer answers "which appointment do you mean" is to name BOTH
+    // the person AND its day/time, and any day/time mention at all trips DAY_OR_TIME_SHIFT_RE
+    // regardless of whether it names a NEW time or restates the SAME already-pending one. That
+    // shift-detection concern exists to protect a FRESH, not-yet-committed preview from a customer
+    // silently getting the OLD time committed when they actually asked for a different one
+    // (confirmBook/confirmCancel's own gate, R23-R31); it does not apply to an identity-verification
+    // confirm, which is not previewing a time at all, only resolving WHOSE existing appointment this
+    // is. The model still runs on this turn with full conversation context regardless of this flag,
+    // so a genuine new target time (for reschedule) is still supplied by the model's own tool-call
+    // args, unaffected. Scoped narrowly to ONLY the day/time-shift signal; every other ambiguity
+    // category (price question, hedge, conditional, vague preference, open rejection, a trailing
+    // "?") still fully applies, since those remain valid reasons to withhold a commit even during
+    // identity verification. Used ONLY by confirmCancelVerification/confirmRescheduleVerification
+    // below (the two gates actually reproduced as stuck); confirmBookVerification is left on the
+    // full ambiguousConfirm (a booking negotiation can genuinely still be mid-time-negotiation
+    // during its own identity check) and confirmRenameVerification has no day/time dimension to it
+    // at all, so neither was touched.
+    const ambiguousConfirmForVerification = (raw: string) =>
+      PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
+      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw) || REJECTION_RE.test(raw);
     // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, marker resolution): the guard above
     // (blockForReturningServiceDefault) already covers "the customer's OWN current message names a
     // service" as a same-turn resolution. This second path resolves the OTHER way the disclosure
@@ -1470,12 +1499,12 @@ Deno.serve(async (req) => {
     // must be the one now recognized as speaking.
     const pcv = convContext.pending_cancel_verification as { current_name?: string | null; at?: number } | undefined;
     const pendingCancelVerificationFresh = !!pcv && (typeof pcv.at !== "number" || (Date.now() - pcv.at) < 15 * 60 * 1000);
-    const confirmCancelVerification = pendingCancelVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+    const confirmCancelVerification = pendingCancelVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirmForVerification(msgLower) &&
       identityVerificationResolved(pcv?.current_name ?? null, knownName, String(message));
 
     const prsv = convContext.pending_reschedule_verification as { current_name?: string | null; at?: number } | undefined;
     const pendingRescheduleVerificationFresh = !!prsv && (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
-    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirmForVerification(msgLower) &&
       identityVerificationResolved(prsv?.current_name ?? null, knownName, String(message));
 
     // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): SAME deterministic
