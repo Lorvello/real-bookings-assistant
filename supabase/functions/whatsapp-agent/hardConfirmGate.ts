@@ -85,6 +85,9 @@ export const HARD_CONFIRM_EXACT: ReadonlySet<string> = new Set([
   "ja", "jaa", "jaaa", "jaaaa", "jazeker", "jawel", "jaha", "klopt", "klopt.", "akkoord", "oke",
   "oké", "okay", "ok", "prima", "graag", "doe maar", "inderdaad", "correct", "top", "helemaal goed",
   "helemaal juist", "dat klopt", "dat is correct", "is goed",
+  // R149: "graag bevestigen" ("please confirm") is unambiguous standalone too, same reasoning as
+  // "confirm"/"confirmed" below.
+  "graag bevestigen", "bevestig maar", "bevestigd",
   // EN
   "yes", "yep", "yup", "yeah", "yea", "sure", "correct", "confirm", "confirmed", "that's correct",
   "that is correct", "that's right", "that is right", "sounds good", "perfect", "great", "good",
@@ -109,7 +112,16 @@ export const HARD_REJECT_EXACT: ReadonlySet<string> = new Set([
 // because it is a genuinely common, load-bearing pleasantry shape (validated against the R22-R31
 // genuine-confirm corpus plus this round's own UX-smoothness sample, section 6b below), not because
 // "it might help." When in doubt, an entry was left out (falls back to the existing layers, safe).
-const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?|thanks?|thank you|please)";
+// R149 (WHATSAPP_E2E_TEST_INFRA Item 6, live-reproduced on the real production agent via the
+// signed E2E simulator): "Klopt, graag bevestigen." (literally "Correct, please confirm") stalled
+// a real booking, the customer had already restated the confirm word AND explicitly asked for
+// confirmation, and got the exact same preview re-asked back at them instead of a commit, because
+// "graag bevestigen" was not yet a member of the closed PLEASANTRY alternation. "graag bevestigen"
+// reads as "please confirm" with no other possible meaning in this position (only ever chained
+// after a confirm word or correctness-clause via the anchored skeletons below), so it belongs in
+// the SAME closed, curated set as "dank je"/"thanks"/"please", following the exact discipline this
+// file already uses (a genuinely common, load-bearing pleasantry shape, not a guess).
+const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?|thanks?|thank you|please|graag bevestigen)";
 // R32 live-testpad finding (section 6b): a bare affirm word followed ONLY by the SAME cancel verb
 // already named in the preview being confirmed ("Ja, annuleer maar" / "Yes, cancel it") is a
 // genuinely common, unambiguous CANCEL-confirm shape, distinct from a bare "annuleer maar" alone

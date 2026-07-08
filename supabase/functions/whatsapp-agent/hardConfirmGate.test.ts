@@ -436,3 +436,39 @@ Deno.test("R84 ADVERSARIAL: extra content after a shared-base word plus cancel v
     assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none`);
   }
 });
+
+// ── R149 (WHATSAPP_E2E_TEST_INFRA Item 6, live-reproduced on the real production agent) ─────────
+// "Klopt, graag bevestigen." ("Correct, please confirm") stalled a real booking on the live agent:
+// the customer had already restated the confirm word AND explicitly asked for confirmation, but
+// "graag bevestigen" was not yet in the closed PLEASANTRY set, so the gate returned "none" and the
+// agent re-asked the identical preview instead of committing. Full repro: evidence/WHATSAPP_E2E_r5.md.
+Deno.test("R149: the exact live-reproduced stall phrasing now hard-confirms", () => {
+  assertEquals(classifyHardConfirm("Klopt, graag bevestigen."), "confirm");
+  assertEquals(classifyHardConfirm("klopt, graag bevestigen"), "confirm");
+});
+Deno.test("R149: 'graag bevestigen' chains after other confirm words and correctness clauses too", () => {
+  const variants = [
+    "Ja, graag bevestigen", "Prima, graag bevestigen!", "Akkoord, graag bevestigen",
+    "Yes, graag bevestigen", "Dat klopt, graag bevestigen",
+  ];
+  for (const m of variants) {
+    assertEquals(classifyHardConfirm(m), "confirm", `expected "${m}" to hard-confirm`);
+  }
+});
+Deno.test("R149: 'graag bevestigen' also hard-confirms as a bare standalone reply", () => {
+  assertEquals(classifyHardConfirm("Graag bevestigen"), "confirm");
+  assertEquals(classifyHardConfirm("graag bevestigen"), "confirm");
+  assertEquals(classifyHardConfirm("Bevestig maar"), "confirm");
+  assertEquals(classifyHardConfirm("Bevestigd"), "confirm");
+});
+Deno.test("R149 ADVERSARIAL: real content beyond the 'graag bevestigen' skeleton must NOT match", () => {
+  const mustStayNone = [
+    "Klopt, graag bevestigen, maar dan wel voor 10:30",
+    "Kun je dit graag bevestigen?", // a question, not a reply-confirmation, and no leading confirm word
+    "Graag bevestigen zodra het gratis is",
+    "Nee, hoef niet te bevestigen",
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none`);
+  }
+});
