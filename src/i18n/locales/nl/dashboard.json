@@ -435,6 +435,15 @@
       "unknownCustomer": "Klant",
       "emptyTitle": "Nog geen activiteit",
       "emptyDesc": "Zodra je assistent een afspraak boekt, verzet of annuleert, verschijnt dit hier."
+    },
+    "gateRejections": {
+      "heading": "Geblokkeerde WhatsApp-berichten",
+      "subtitle": "{{count}} in de afgelopen {{days}} dagen",
+      "errTitle": "Kon geblokkeerde WhatsApp-berichten niet laden",
+      "retry": "Opnieuw proberen",
+      "listLabel": "Geblokkeerde WhatsApp-berichten",
+      "entitlement": "Geblokkeerd: abonnement niet actief",
+      "botOff": "Geblokkeerd: WhatsApp-assistent staat uit"
     }
   }
 }

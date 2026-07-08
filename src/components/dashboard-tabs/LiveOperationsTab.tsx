@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/comp
 import { MetricCard } from './business-intelligence/MetricCard';
 import { ReminderActivityCard } from '@/components/dashboard/ReminderActivityCard';
 import { ActivityLogCard } from '@/components/dashboard/ActivityLogCard';
+import { WhatsappGateRejectionsCard } from '@/components/dashboard/WhatsappGateRejectionsCard';
 
 interface LiveOperationsTabProps {
   calendarIds: string[];
@@ -556,6 +557,10 @@ export function LiveOperationsTab({ calendarIds }: LiveOperationsTabProps) {
             (book/reschedule/cancel/no_show), same "one signal among several"
             placement as ReminderActivityCard directly above. */}
         <ActivityLogCard calendarIds={calendarIds} />
+
+        {/* Blocked WhatsApp messages (WHATSAPP_E2E_TEST_INFRA Item 3): entitlement/bot-toggle
+            gate rejections, previously a buried log row. Renders nothing when empty. */}
+        <WhatsappGateRejectionsCard calendarIds={calendarIds} />
       </div>
     </TooltipProvider>
   );

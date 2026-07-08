@@ -495,7 +495,31 @@ serve(async (req) => {
               // (Ambiguous-history case already logged its own whatsapp_ambiguous_tenant_inbound
               // event above with the distinct-owner count; this generic event still fires too so
               // every no-forward path remains visible under the one existing counter.)
-              await logSecurityEvent(supabaseClient, 'whatsapp_codeless_inbound', 'info', { from: contact.wa_id }, ipAddress);
+              // WHATSAPP_E2E_TEST_INFRA Item 3 (gate-rejection visibility): a codeless-stranger
+              // drop is genuinely not tenant-attributable (that's the whole reason it's codeless),
+              // so it cannot show on any one business's dashboard. Instead, a phone that keeps
+              // getting dropped this way escalates to 'high' severity, the same treatment as the
+              // ambiguous-tenant case, so a repeat offender (exactly the class of silent failure
+              // that went unnoticed for days before this initiative) is no longer indistinguishable
+              // from a one-off in the security log.
+              let codelessRepeatCount = 0;
+              if (contact.wa_id) {
+                const { count } = await supabaseClient
+                  .from('webhook_security_logs')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('event_type', 'whatsapp_codeless_inbound')
+                  .eq('event_data->>from', contact.wa_id)
+                  .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+                codelessRepeatCount = count ?? 0;
+              }
+              const codelessSeverity = codelessRepeatCount >= 2 ? 'high' : 'info';
+              await logSecurityEvent(
+                supabaseClient,
+                'whatsapp_codeless_inbound',
+                codelessSeverity,
+                { from: contact.wa_id, repeat_count_24h: codelessRepeatCount },
+                ipAddress,
+              );
               if (Deno.env.get('WHATSAPP_CODELESS_FALLBACK') === 'on' && contact.wa_id) {
                 try {
                   await sendWhatsAppText(

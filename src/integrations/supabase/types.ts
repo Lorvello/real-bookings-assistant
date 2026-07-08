@@ -693,6 +693,7 @@ export type Database = {
           attempt_count: number
           booking_id: string
           channel: string | null
+          claimed_at: string | null
           id: string
           reminder_number: number
           sent_at: string
@@ -702,6 +703,7 @@ export type Database = {
           attempt_count?: number
           booking_id: string
           channel?: string | null
+          claimed_at?: string | null
           id?: string
           reminder_number: number
           sent_at?: string
@@ -711,6 +713,7 @@ export type Database = {
           attempt_count?: number
           booking_id?: string
           channel?: string | null
+          claimed_at?: string | null
           id?: string
           reminder_number?: number
           sent_at?: string
@@ -4239,6 +4242,7 @@ export type Database = {
           event_data: Json | null
           event_type: string
           id: string
+          ip_address: string | null
           severity: string | null
           user_id: string | null
         }
@@ -4247,6 +4251,7 @@ export type Database = {
           event_data?: Json | null
           event_type: string
           id?: string
+          ip_address?: string | null
           severity?: string | null
           user_id?: string | null
         }
@@ -4255,8 +4260,39 @@ export type Database = {
           event_data?: Json | null
           event_type?: string
           id?: string
+          ip_address?: string | null
           severity?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      whatsapp_confirm_claims: {
+        Row: {
+          calendar_id: string
+          claim_key: string
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          proposal_at: string
+        }
+        Insert: {
+          calendar_id: string
+          claim_key: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          phone: string
+          proposal_at: string
+        }
+        Update: {
+          calendar_id?: string
+          claim_key?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          proposal_at?: string
         }
         Relationships: []
       }
@@ -4526,6 +4562,7 @@ export type Database = {
           media_url: string | null
           message_id: string | null
           message_type: string | null
+          meta_timestamp: string | null
           metadata: Json | null
           status: string | null
         }
@@ -4538,6 +4575,7 @@ export type Database = {
           media_url?: string | null
           message_id?: string | null
           message_type?: string | null
+          meta_timestamp?: string | null
           metadata?: Json | null
           status?: string | null
         }
@@ -4550,6 +4588,7 @@ export type Database = {
           media_url?: string | null
           message_id?: string | null
           message_type?: string | null
+          meta_timestamp?: string | null
           metadata?: Json | null
           status?: string | null
         }
@@ -5946,8 +5985,16 @@ export type Database = {
             Returns: Json
           }
       archive_old_security_events: { Args: never; Returns: number }
+      caller_is_accepted_calendar_member: {
+        Args: { p_calendar_id: string; p_min_role?: string }
+        Returns: boolean
+      }
       caller_owns_calendar: {
         Args: { p_calendar_id: string }
+        Returns: boolean
+      }
+      caller_shares_calendar_with_user: {
+        Args: { p_target_user_id: string }
         Returns: boolean
       }
       cancel_booking_by_token: {
@@ -6011,6 +6058,30 @@ export type Database = {
         Args: { p_calendar_id: string; p_user_id: string }
         Returns: boolean
       }
+      claim_booking_reminder: {
+        Args: { p_booking_id: string; p_reminder_number: number }
+        Returns: {
+          attempt_count: number
+          calendar_timezone: string
+          channel: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          status: string
+        }[]
+      }
+      claim_whatsapp_confirm: {
+        Args: {
+          p_calendar_id: string
+          p_phone: string
+          p_proposal_at: string
+          p_ttl_seconds?: number
+        }
+        Returns: {
+          claim_id: string
+          won: boolean
+        }[]
+      }
       cleanup_duplicate_availability_rules: {
         Args: { p_day_of_week: number; p_schedule_id: string }
         Returns: undefined
@@ -6018,6 +6089,10 @@ export type Database = {
       cleanup_expired_context: { Args: never; Returns: undefined }
       cleanup_expired_invitations: { Args: never; Returns: undefined }
       cleanup_expired_waitlist: { Args: never; Returns: undefined }
+      cleanup_expired_whatsapp_confirm_claims: {
+        Args: never
+        Returns: undefined
+      }
       cleanup_old_whatsapp_data: { Args: never; Returns: undefined }
       cleanup_whatsapp_data_for_calendar: {
         Args: { p_calendar_id: string }
@@ -6209,6 +6284,7 @@ export type Database = {
           booking_id: string
           business_name: string
           calendar_id: string
+          calendar_timezone: string
           channel: string
           customer_email: string
           customer_locale: string
@@ -6237,6 +6313,10 @@ export type Database = {
       get_whatsapp_data_retention_days: {
         Args: { p_calendar_id: string }
         Returns: number
+      }
+      get_whatsapp_gate_rejections: {
+        Args: { p_calendar_ids: string[]; p_days?: number }
+        Returns: Json
       }
       has_role: {
         Args: {
@@ -6299,6 +6379,10 @@ export type Database = {
             Returns: Json
           }
         | { Args: { p_calendar_id: string; p_message: string }; Returns: Json }
+      owner_update_booking_status: {
+        Args: { p_booking_id: string; p_new_status: string; p_reason?: string }
+        Returns: Json
+      }
       process_automatic_status_transitions: { Args: never; Returns: Json }
       process_booking_webhook_events: { Args: never; Returns: undefined }
       process_webhook_queue: { Args: never; Returns: undefined }
@@ -6307,6 +6391,7 @@ export type Database = {
           p_calendar_id: string
           p_message_content: string
           p_message_id: string
+          p_message_timestamp?: string
           p_phone_number: string
         }
         Returns: Json
@@ -6314,6 +6399,20 @@ export type Database = {
       record_auth_attempt: {
         Args: { p_email: string; p_ip?: unknown; p_success?: boolean }
         Returns: undefined
+      }
+      record_booking_reminder_result: {
+        Args: {
+          p_booking_id: string
+          p_channel?: string
+          p_delivered: boolean
+          p_failure_reason?: string
+          p_max_attempts: number
+          p_reminder_number: number
+        }
+        Returns: {
+          attempt_count: number
+          status: string
+        }[]
       }
       record_payment_attempt: {
         Args: {
@@ -6333,20 +6432,16 @@ export type Database = {
         Args: { p_calendar_id?: string }
         Returns: undefined
       }
-      owner_update_booking_status: {
-        Args: {
-          p_booking_id: string
-          p_new_status: string
-          p_reason?: string
-        }
-        Returns: Json
-      }
       refresh_business_overview_v2: {
         Args: { p_user_id?: string }
         Returns: undefined
       }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }
       refresh_whatsapp_contact_overview: { Args: never; Returns: undefined }
+      release_whatsapp_confirm_claim: {
+        Args: { p_claim_id: string }
+        Returns: undefined
+      }
       render_whatsapp_template:
         | {
             Args: {
@@ -6368,6 +6463,8 @@ export type Database = {
       reschedule_booking_atomic: {
         Args: {
           p_booking_id: string
+          p_calendar_id?: string
+          p_conversation_id?: string
           p_new_end: string
           p_new_start: string
           p_service_type_id?: string
