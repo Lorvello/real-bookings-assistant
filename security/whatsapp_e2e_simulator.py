@@ -34,9 +34,11 @@ Requires: ~/.config/ba/whatsapp_app_secret.key, ~/.config/ba/supabase.pat (for t
 DB read-back via the Supabase Management API; no service-role key needed).
 """
 import argparse
+import fcntl
 import hashlib
 import hmac
 import json
+import os
 import sys
 import time
 import uuid
@@ -48,6 +50,18 @@ import requests
 # consenting number, hardcoded, never derived from anything else. See
 # GOAL_PROMPT_WHATSAPP_E2E_TEST_INFRA.md section 2.
 HARDCODED_TEST_WA_ID = "31638281482"
+
+# R154 (WHATSAPP_E2E_TEST_INFRA DoD close-out, adversarial round finding): whatsapp_contacts.
+# phone_number is a GLOBAL unique column, not per-tenant (see migration 20260706000000_R136, the
+# real SEV-1 this schema shape already caused on the WRITE side: closing one calendar's conversation
+# silently closed a sibling calendar's too). Mathew's own account has 2+ calendars, so his test
+# number can have MULTIPLE independent whatsapp_conversations rows, one per calendar/tenant.
+# check_reply() used to scope its read only by phone_number + a time window, meaning a reply from a
+# DIFFERENT calendar's conversation (not this test's target calendar) could be captured into an
+# evidence file as if it were the simulator's own test reply, a read-side echo of the same bug class.
+# Scoping by calendar_id closes it: this is Mathew's own "Personal Calendar" test fixture, the one
+# every round in this initiative has actually used (see _WHATSAPP_E2E_TEST_INFRA_STATE.md baseline).
+TEST_CALENDAR_ID = "58103fe8-8d22-458a-a145-5864644b379b"
 
 WEBHOOK_URL = "https://grdgjhkygzciwwrxgvgy.supabase.co/functions/v1/whatsapp-webhook"
 PROJECT_REF = "grdgjhkygzciwwrxgvgy"
@@ -73,22 +87,36 @@ PACING_STATE_FILE = Path.home() / ".config" / "ba" / "whatsapp_e2e_simulator_las
 def _enforce_pacing() -> None:
     """Structural backstop for the pacing SAFETY RULE: sleeps out any gap shorter than
     MIN_SECONDS_BETWEEN_SENDS since the last real send (tracked in a small local state file,
-    survives across separate script invocations, not just within one process)."""
-    now = time.time()
-    last = None
-    if PACING_STATE_FILE.exists():
-        try:
-            last = float(PACING_STATE_FILE.read_text().strip())
-        except (ValueError, OSError):
-            last = None
-    if last is not None:
-        elapsed = now - last
-        if elapsed < MIN_SECONDS_BETWEEN_SENDS:
-            wait = MIN_SECONDS_BETWEEN_SENDS - elapsed
-            print(f"[pacing] {wait:.1f}s since last send < {MIN_SECONDS_BETWEEN_SENDS}s minimum, sleeping", file=sys.stderr)
-            time.sleep(wait)
+    survives across separate script invocations, not just within one process).
+
+    R154 (adversarial round finding): holds an exclusive advisory lock (fcntl.flock) across the
+    whole read-decide-sleep-write sequence, so two invocations starting at the same instant cannot
+    both read the same stale `last` value and both proceed within the same window (the original
+    R153 version had this TOCTOU race). The write is also atomic (temp file + os.replace) so a
+    process killed mid-write can never leave a corrupt/partial timestamp behind."""
     PACING_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PACING_STATE_FILE.write_text(str(time.time()))
+    lock_path = PACING_STATE_FILE.with_suffix(".lock")
+    with open(lock_path, "w") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            now = time.time()
+            last = None
+            if PACING_STATE_FILE.exists():
+                try:
+                    last = float(PACING_STATE_FILE.read_text().strip())
+                except (ValueError, OSError):
+                    last = None
+            if last is not None:
+                elapsed = now - last
+                if elapsed < MIN_SECONDS_BETWEEN_SENDS:
+                    wait = MIN_SECONDS_BETWEEN_SENDS - elapsed
+                    print(f"[pacing] {wait:.1f}s since last send < {MIN_SECONDS_BETWEEN_SENDS}s minimum, sleeping", file=sys.stderr)
+                    time.sleep(wait)
+            tmp_path = PACING_STATE_FILE.with_suffix(".tmp")
+            tmp_path.write_text(str(time.time()))
+            os.replace(tmp_path, PACING_STATE_FILE)
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
 
 
 def _load_secret(path: Path) -> str:
@@ -242,6 +270,7 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
             join whatsapp_conversations wc on wc.id = wm.conversation_id
             join whatsapp_contacts c on c.id = wc.contact_id
             where c.phone_number = '{HARDCODED_TEST_WA_ID}'
+            and wc.calendar_id = '{TEST_CALENDAR_ID}'
             and wm.direction = 'outbound'
             {time_filter}
             order by wm.created_at asc limit 1;"""
