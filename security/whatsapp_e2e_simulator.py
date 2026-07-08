@@ -285,18 +285,20 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
     # guarantee (round 6 verify: sends are serialized by _enforce_pacing's flock, so every
     # prior call's log rows land strictly before this call's since_iso).
     #
-    # R158 (adversarial round 7 finding): R157 also added a hard payload_size match, but
-    # this Python-side value (len(raw_body.encode()), a UTF-8 BYTE count) and the value
-    # whatsapp-webhook/index.ts logs (rawBody.length, a JS-string UTF-16 CODE-UNIT count)
-    # are only equal for pure-ASCII payloads. Any accented character or emoji in the test
-    # message (a completely realistic input, this tool exists to send messages "shaped
-    # exactly like a real customer's") makes them diverge, so the hard AND filter matched
-    # ZERO rows for such a message even though the inbound leg genuinely succeeded,
-    # producing a false "inbound_confirmed: false" indistinguishable from a real failure,
-    # defeating the exact thing this correlation exists to prove. Dropped the size filter
-    # entirely rather than fixing the TS-side units (which would need a live edge-function
-    # redeploy for a test-tooling correctness issue); the time window alone is already the
-    # real guarantee, per R157's own round-6-verified reasoning above.
+    # R158 (adversarial round 7, CORRECTED by round 8's direct verification): R157 also
+    # added a hard payload_size match. Round 7 theorized a UTF-8-byte-count (Python) vs
+    # UTF-16-code-unit-count (whatsapp-webhook/index.ts's rawBody.length) mismatch for any
+    # non-ASCII test message. Round 8 verified this directly (built a payload with accented
+    # + astral-plane emoji characters, checked the actual bytes json.dumps produces) and
+    # found it does NOT reproduce: json.dumps' default ensure_ascii=True escapes every
+    # non-ASCII character to a u-escape sequence before serialization, so the wire body is
+    # ALWAYS pure ASCII regardless of message_text's content, and for pure ASCII text the
+    # two counts are identical by definition. The size filter was still dropped (kept
+    # dropped, not reinstated): relying on an implicit ensure_ascii=True default elsewhere
+    # in the file to keep two independently-computed counts in sync is fragile (a future
+    # edit adding ensure_ascii=False would silently reopen the exact class of bug round 7
+    # described, even though it isn't live today), and the time-window bound is already the
+    # real, load-bearing guarantee (round 6's own verified reasoning, still holds).
     log_time_filter = f"and created_at > '{since_iso}'" if since_iso else f"and created_at >= now() - interval '{wait_seconds} seconds'"
     log_rows = sql_query(
         f"""select event_type, severity, created_at from webhook_security_logs
