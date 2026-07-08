@@ -75,3 +75,18 @@ Reverted immediately (re-applied the standard `REVOKE`/`GRANT` lockdown block), 
 to clean PASS, and a grants-neutral no-op change (a `COMMENT ON FUNCTION`, added then removed)
 left `check` silently PASSing throughout, no false positive. Full evidence:
 `../../../Bookings Assistant/launch-ready-loop/evidence/SEQ_P2_r1.md`.
+
+## Real finding closed: admin_update_user_subscription enum overload (2026-07-08, SEQP2R2)
+
+The out-of-scope finding this same round's evidence flagged (one overload of
+`admin_update_user_subscription`, the `subscription_tier`-enum-arg one, had
+`anon_exec=true, authenticated_exec=true` while its siblings did not) was investigated and
+fixed. Investigated live: the overload does carry the same internal `IF NOT is_admin() THEN
+RETURN unauthorized` gate as its siblings, and a live anon-key attack against a disposable test
+user was independently blocked twice over (the internal gate, and a PostgREST overload-ambiguity
+error, `PGRST203`, since this overload shares 7 identical argument names with a sibling
+all-text overload). Not live-exploitable, sev-4. Fixed anyway (defense-in-depth, matching the
+project's own standard): `20260708150000_SEQP2R2_admin_update_user_subscription_enum_overload_grants_lockdown.sql`
+locks it to `service_role`-only EXECUTE, matching its two siblings and
+`admin_developer_update_user_subscription`. Baseline updated to the new locked-down state.
+Full evidence: `../../../Bookings Assistant/launch-ready-loop/evidence/SEQ_P2_r2.md`.

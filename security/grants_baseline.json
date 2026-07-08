@@ -8,9 +8,9 @@
     "service_role_exec": true
   },
   {
-    "anon_exec": true,
+    "anon_exec": false,
     "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier subscription_tier, p_trial_end_date timestamp with time zone, p_subscription_end_date timestamp with time zone, p_business_name text, p_business_type text",
-    "authenticated_exec": true,
+    "authenticated_exec": false,
     "function_name": "admin_update_user_subscription",
     "security_definer": true,
     "service_role_exec": true
