@@ -29,6 +29,10 @@ Usage:
   python3 security/whatsapp_e2e_simulator.py send "hallo, ik wil een afspraak maken"
   python3 security/whatsapp_e2e_simulator.py send "hallo" --wait 25
   python3 security/whatsapp_e2e_simulator.py check-reply <inbound_message_id>
+    (NOTE: inbound_message_id is accepted for reference only and does not filter the
+    query; check-reply is a time-window scan for the most recent reply, not an exact
+    lookup by that id. Prefer `send`, which correlates precisely via a captured
+    timestamp and payload size.)
 
 Requires: ~/.config/ba/whatsapp_app_secret.key, ~/.config/ba/supabase.pat (for the
 DB read-back via the Supabase Management API; no service-role key needed).
@@ -42,6 +46,7 @@ import os
 import sys
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -217,7 +222,15 @@ def send_inbound(message_text: str) -> dict:
         timeout=30,
     )
     print(f"[send] response: {resp.status_code} {resp.text[:300]}")
-    return {"message_id": message_id, "status_code": resp.status_code, "body": resp.text, "sent_at": sent_at}
+    # R157: payload_size threaded through so check_reply can correlate the security-log
+    # confirmation to THIS specific request (see that function's own R157 comment).
+    return {
+        "message_id": message_id,
+        "status_code": resp.status_code,
+        "body": resp.text,
+        "sent_at": sent_at,
+        "payload_size": len(raw_body.encode()),
+    }
 
 
 def sql_query(query: str) -> list:
@@ -235,7 +248,7 @@ def sql_query(query: str) -> list:
     return data
 
 
-def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: int = 3, after_ts: float = None) -> dict:
+def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: int = 3, after_ts: float = None, payload_size: int = None) -> dict:
     """Polls whatsapp_messages for the outbound reply that followed this inbound
     message on the same conversation, plus webhook_security_logs for the
     signature_validated + webhook_processed confirmation of the inbound leg itself.
@@ -245,21 +258,42 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
     `after_ts` (the moment this script POSTed the inbound). Without `after_ts` (e.g. a
     standalone check-reply invocation) this falls back to "now minus wait_seconds",
     which is only reliable for a single isolated check, not mid-conversation polling.
+
+    NOTE: `inbound_message_id` is currently NOT used to filter (whatsapp_security_logs
+    carries no message-id column; whatsapp_messages IS filtered, by phone+calendar+time,
+    see below). A standalone `check-reply <id>` call is a time-window scan, not an
+    exact-message lookup; see the CLI help text for this caveat.
     """
     _validate_destination(HARDCODED_TEST_WA_ID)
     deadline = time.time() + wait_seconds
     since_iso = None
     if after_ts is not None:
-        # R155 (adversarial round 3 finding): explicit "+00:00" so this is unambiguously a UTC
-        # instant when interpolated into the SQL comparison against a timestamptz column, not a
-        # bare wall-clock string whose interpretation depends on the query session's timezone GUC.
-        since_iso = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(after_ts))
+        # R157 (adversarial round 5 finding, supersedes R155's second-precision version):
+        # microsecond-precision UTC ISO string. time.strftime/time.gmtime floor to whole
+        # seconds, which could admit the TAIL of a prior turn's own reply (landing in the
+        # <1s gap between the floored second and the real send instant) into THIS turn's
+        # "after this send" window, an echo of the exact stale-reply bug class R4 fixed.
+        since_iso = datetime.fromtimestamp(after_ts, tz=timezone.utc).isoformat()
     result = {"inbound_confirmed": False, "outbound_reply": None, "security_log_events": []}
 
+    # R157 (adversarial round 5 finding): previously scoped ONLY by a rolling 2-minute
+    # window with no correlation to THIS specific request, so a genuinely failed signature
+    # check on one turn could be masked by a NEIGHBORING turn's successful validation event
+    # landing in the same window (turns are sent only ~8s+ apart, well inside 2 minutes).
+    # Tightened two ways: (1) a narrow time window anchored to since_iso (falls back to the
+    # same wait_seconds-derived window as the reply query below when after_ts is absent),
+    # (2) when payload_size is known, match webhook_security_logs.event_data->>'payload_size'
+    # exactly (index.ts's signature_validated log always carries payload_size, see
+    # logSecurityEvent calls in whatsapp-webhook/index.ts), a strong per-request fingerprint
+    # since two genuinely different inbound messages essentially never share an exact byte
+    # length within the same narrow time window.
+    log_time_filter = f"and created_at > '{since_iso}'" if since_iso else f"and created_at >= now() - interval '{wait_seconds} seconds'"
+    log_size_filter = f"and (event_data->>'payload_size')::int = {int(payload_size)}" if payload_size is not None else ""
     log_rows = sql_query(
-        """select event_type, severity, created_at from webhook_security_logs
+        f"""select event_type, severity, created_at from webhook_security_logs
         where event_type in ('signature_validated','webhook_processed')
-        and created_at >= now() - interval '2 minutes'
+        {log_time_filter}
+        {log_size_filter}
         order by created_at desc limit 10;"""
     )
     result["security_log_events"] = log_rows
@@ -299,8 +333,15 @@ def main() -> None:
     p_send.add_argument("message", help="The customer message text")
     p_send.add_argument("--wait", type=int, default=25, help="Seconds to wait for the outbound reply (default 25)")
 
-    p_check = sub.add_parser("check-reply", help="Poll for the outbound reply to a prior send")
-    p_check.add_argument("inbound_message_id")
+    # R157 (adversarial round 5, Finding 3): inbound_message_id is NOT used to filter (see
+    # check_reply()'s own docstring), this is a time-window scan since last send, not an
+    # exact-message lookup. Made explicit in --help so a future cold-context agent reading
+    # only this text (not the function body) doesn't assume tighter correlation than exists.
+    p_check = sub.add_parser(
+        "check-reply",
+        help="Poll for the MOST RECENT outbound reply on the test conversation (inbound_message_id is NOT used to filter, this is a time-window scan, not an exact-message lookup; see check_reply()'s docstring)",
+    )
+    p_check.add_argument("inbound_message_id", help="Accepted for reference/logging only, does not filter the query")
     p_check.add_argument("--wait", type=int, default=20)
 
     args = parser.parse_args()
@@ -310,7 +351,7 @@ def main() -> None:
         if sent["status_code"] != 200:
             print("FAIL: webhook did not return 200", file=sys.stderr)
             sys.exit(1)
-        reply = check_reply(sent["message_id"], wait_seconds=args.wait, after_ts=sent["sent_at"])
+        reply = check_reply(sent["message_id"], wait_seconds=args.wait, after_ts=sent["sent_at"], payload_size=sent["payload_size"])
         print(json.dumps({**sent, **reply}, indent=2, default=str))
     elif args.cmd == "check-reply":
         reply = check_reply(args.inbound_message_id, wait_seconds=args.wait)
