@@ -250,7 +250,10 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
     deadline = time.time() + wait_seconds
     since_iso = None
     if after_ts is not None:
-        since_iso = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(after_ts))
+        # R155 (adversarial round 3 finding): explicit "+00:00" so this is unambiguously a UTC
+        # instant when interpolated into the SQL comparison against a timestamptz column, not a
+        # bare wall-clock string whose interpretation depends on the query session's timezone GUC.
+        since_iso = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(after_ts))
     result = {"inbound_confirmed": False, "outbound_reply": None, "security_log_events": []}
 
     log_rows = sql_query(
