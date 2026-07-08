@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
 import { createHmac } from "node:crypto"
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 import { sendWhatsAppText, sendReadReceiptWithTyping } from '../_shared/whatsappSend.ts';
+import { resolveSenderGate, checkEntitlementGate, checkBotToggleGate, countDistinctHistoryOwners, type OwnerHistoryRow } from './gateLogic.ts';
 
 // Normalise a phone to wa_id form (country code, digits only). Dutch 06… → 316…; strips +.
 function normalizePhone(raw: string): string {
@@ -380,18 +381,20 @@ serve(async (req) => {
               ? new Date(metaTimestampSeconds * 1000).toISOString()
               : null;
 
-            // 1. Resolve owner user_id + calendar_id: via tracking-code, anders via bestaande conversatie
-            let ownerId: string | null = null;
-            let calendarId: string | null = null;
+            // 1. Resolve owner user_id + calendar_id: via tracking-code, anders via bestaande
+            // conversatie, anders owner-self-test. The DECISION lives in gateLogic.ts's
+            // resolveSenderGate (WHATSAPP_E2E_TEST_INFRA Item 2, unit-tested there); this block
+            // only performs the real DB round-trips and hands the results in.
             const tm = messageText.match(/Code:\s*([A-F0-9]{8})/i);
+            let trackingCodeMatch: { ownerId: string; calendarId: string | null } | null = null;
             if (tm) {
               // RPC cast de uuid->text (users.id ILIKE faalt rauw: geen uuid ~~* text-operator).
               const { data: rc, error: rcErr } = await supabaseClient
                 .rpc('resolve_owner_calendar_by_code', { p_code: tm[1].toLowerCase() });
               if (rcErr) console.error('resolve_owner_calendar_by_code faalde:', rcErr);
               const row = Array.isArray(rc) ? rc[0] : rc;
-              ownerId = (row as any)?.owner_id ?? null;
-              calendarId = (row as any)?.calendar_id ?? null;
+              const oid = (row as any)?.owner_id ?? null;
+              if (oid) trackingCodeMatch = { ownerId: oid, calendarId: (row as any)?.calendar_id ?? null };
             }
             // SEV-1 fix (cross-tenant fallback misroute): the single shared WhatsApp number
             // means a phone's conversation history can span MULTIPLE distinct tenants. The old
@@ -399,13 +402,15 @@ serve(async (req) => {
             // with no further check, so a code-less follow-up genuinely meant for Tenant Z could
             // silently attach to Tenant X's conversation/booking/pending-verification state
             // merely because X was more recently active. Fix: fetch ALL of this phone's
-            // conversations (not just the top one), and only auto-resolve when they all belong
-            // to the SAME owner (the overwhelmingly common single-tenant-history case: zero
-            // added friction, identical behavior to before). The instant 2+ DISTINCT owners are
-            // present, resolution is genuinely ambiguous from the message alone (no tracking
-            // code to disambiguate); leave ownerId/calendarId unset so this falls through to
-            // the SAME fail-closed codeless-stranger path below (D-2) rather than guessing.
-            if (!ownerId && contact.wa_id) {
+            // conversations (not just the top one); resolveSenderGate only auto-resolves when
+            // they all belong to the SAME owner (the overwhelmingly common single-tenant-history
+            // case: zero added friction, identical behavior to before). The instant 2+ DISTINCT
+            // owners are present, resolution is genuinely ambiguous from the message alone (no
+            // tracking code to disambiguate); resolveSenderGate leaves ownerId/calendarId unset so
+            // this falls through to the SAME fail-closed codeless-stranger path below (D-2) rather
+            // than guessing.
+            let historyRows: OwnerHistoryRow[] = [];
+            if (!trackingCodeMatch && contact.wa_id) {
               // returning customer (geen code): phone → contact → ALLE conversaties → distinct owners
               const { data: ct } = await supabaseClient
                 .from('whatsapp_contacts').select('id').eq('phone_number', contact.wa_id).maybeSingle();
@@ -424,48 +429,53 @@ serve(async (req) => {
                   .eq('calendars.is_deleted', false)
                   .order('last_message_at', { ascending: false });
                 const rows = (convs as Array<{ calendar_id: string; calendars: { user_id: string } }> | null) ?? [];
-                const distinctOwners = new Set(rows.map((r) => r.calendars?.user_id).filter(Boolean));
-                if (distinctOwners.size === 1) {
-                  // Single-tenant history: identical resolution to before this fix (most-recent
-                  // row happens to be the only owner anyway, so picking rows[0] is unchanged).
-                  ownerId = rows[0]?.calendars?.user_id ?? null;
-                  calendarId = rows[0]?.calendar_id ?? null;
-                } else if (distinctOwners.size > 1) {
-                  console.log(`Meerdere tenants (${distinctOwners.size}) in geschiedenis voor dit nummer, geen code, fail-closed, niet auto-resolven.`);
-                  await logSecurityEvent(
-                    supabaseClient,
-                    'whatsapp_ambiguous_tenant_inbound',
-                    'high',
-                    { from: contact.wa_id, distinct_owner_count: distinctOwners.size },
-                    ipAddress,
-                  );
-                }
-                // distinctOwners.size === 0 (no rows) falls through with ownerId still null,
-                // same as any other code-less stranger.
+                historyRows = rows
+                  .map((r) => ({ calendarId: r.calendar_id, ownerId: r.calendars?.user_id }))
+                  .filter((r): r is OwnerHistoryRow => !!r.ownerId);
               }
             }
             // Owner self-test (D-5): the business owner texting in from their OWN
             // registered number (no code, no prior conversation). Route to their own
             // default calendar so they experience the agent exactly as a customer would.
-            if (!ownerId && contact.wa_id) {
+            // Skipped when history already resolved a single tenant (same query-efficiency as
+            // before this extraction); still runs in the ambiguous-history case, matching the
+            // original fall-through (resolveSenderGate decides precedence, not this fetch-gate).
+            const historySingleTenantResolved = countDistinctHistoryOwners(historyRows) === 1;
+            let ownerTestPhoneMatch: { ownerId: string; defaultCalendarId: string | null } | null = null;
+            if (!trackingCodeMatch && !historySingleTenantResolved && contact.wa_id) {
               const norm = normalizePhone(contact.wa_id);
               const { data: ownerByTest } = await supabaseClient
                 .from('users').select('id').eq('owner_test_phone', norm).maybeSingle();
               if (ownerByTest?.id) {
-                ownerId = ownerByTest.id;
                 const { data: oc } = await supabaseClient
-                  .from('calendars').select('id').eq('user_id', ownerId)
+                  .from('calendars').select('id').eq('user_id', ownerByTest.id)
                   .order('is_default', { ascending: false }).limit(1).maybeSingle();
-                calendarId = (oc as any)?.id ?? null;
-                console.log(`Owner self-test herkend (eigenaar ${ownerId}, calendar ${calendarId}) via owner_test_phone.`);
+                ownerTestPhoneMatch = { ownerId: ownerByTest.id, defaultCalendarId: (oc as any)?.id ?? null };
               }
+            }
+
+            const senderResult = resolveSenderGate({ trackingCodeMatch, historyRows, ownerTestPhoneMatch });
+            const ownerId: string | null = senderResult.ownerId;
+            const calendarId: string | null = senderResult.calendarId;
+            if (senderResult.ambiguousMultiTenant) {
+              console.log(`Meerdere tenants (${senderResult.distinctOwnerCount}) in geschiedenis voor dit nummer, geen code, fail-closed, niet auto-resolven.`);
+              await logSecurityEvent(
+                supabaseClient,
+                'whatsapp_ambiguous_tenant_inbound',
+                'high',
+                { from: contact.wa_id, distinct_owner_count: senderResult.distinctOwnerCount },
+                ipAddress,
+              );
+            }
+            if (senderResult.matchedVia === 'owner_self_test') {
+              console.log(`Owner self-test herkend (eigenaar ${ownerId}, calendar ${calendarId}) via owner_test_phone.`);
             }
 
             // 2. Access-gating: alleen forwarden als de eigenaar WhatsApp-toegang heeft.
             let entitled = false;
             if (ownerId) {
               const { data: status } = await supabaseClient.rpc('get_user_status_type', { p_user_id: ownerId });
-              entitled = ['active_trial', 'paid_subscriber', 'canceled_but_active', 'missed_payment_grace'].includes(status as string);
+              entitled = checkEntitlementGate(status as string | null);
               if (!entitled) {
                 console.log(`WhatsApp-agent NIET geforward: eigenaar ${ownerId} heeft status '${status}' (geen WhatsApp-toegang)`);
                 await logSecurityEvent(supabaseClient, 'whatsapp_forward_gated', 'info', { owner: ownerId, status }, ipAddress);
@@ -505,8 +515,8 @@ serve(async (req) => {
             if (entitled && calendarId) {
               const { data: cs } = await supabaseClient
                 .from('calendar_settings').select('whatsapp_bot_active').eq('calendar_id', calendarId).maybeSingle();
-              if (cs && cs.whatsapp_bot_active === false) {
-                botActive = false;
+              botActive = checkBotToggleGate(cs?.whatsapp_bot_active as boolean | null | undefined);
+              if (!botActive) {
                 console.log(`WhatsApp-agent NIET geforward: bot staat UIT voor calendar ${calendarId}`);
                 await logSecurityEvent(supabaseClient, 'whatsapp_forward_bot_off', 'info', { calendar: calendarId }, ipAddress);
               }
