@@ -222,8 +222,9 @@ def send_inbound(message_text: str) -> dict:
         timeout=30,
     )
     print(f"[send] response: {resp.status_code} {resp.text[:300]}")
-    # R157: payload_size threaded through so check_reply can correlate the security-log
-    # confirmation to THIS specific request (see that function's own R157 comment).
+    # payload_size (UTF-8 byte count) kept in the output for informational/debugging value
+    # only; R158 removed it as a check_reply() query filter (it does not match the UTF-16
+    # code-unit count whatsapp-webhook/index.ts logs for non-ASCII messages, see R158).
     return {
         "message_id": message_id,
         "status_code": resp.status_code,
@@ -248,7 +249,7 @@ def sql_query(query: str) -> list:
     return data
 
 
-def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: int = 3, after_ts: float = None, payload_size: int = None) -> dict:
+def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: int = 3, after_ts: float = None) -> dict:
     """Polls whatsapp_messages for the outbound reply that followed this inbound
     message on the same conversation, plus webhook_security_logs for the
     signature_validated + webhook_processed confirmation of the inbound leg itself.
@@ -280,21 +281,27 @@ def check_reply(inbound_message_id: str, wait_seconds: int = 20, poll_interval: 
     # window with no correlation to THIS specific request, so a genuinely failed signature
     # check on one turn could be masked by a NEIGHBORING turn's successful validation event
     # landing in the same window (turns are sent only ~8s+ apart, well inside 2 minutes).
-    # Tightened two ways: (1) a narrow time window anchored to since_iso, this alone is
-    # already the load-bearing guarantee (round 6 verify: sends are serialized by
-    # _enforce_pacing's flock, so every prior call's log rows land strictly before this
-    # call's since_iso, no dependency on payload_size for correctness); (2) when
-    # payload_size is known, match webhook_security_logs.event_data->>'payload_size'
-    # exactly (index.ts's signature_validated log always carries payload_size) as a
-    # secondary, marginal narrowing, not a uniqueness guarantee on its own (two different
-    # short test messages of equal character length CAN share a payload_size).
+    # Tightened via a narrow time window anchored to since_iso; this is the load-bearing
+    # guarantee (round 6 verify: sends are serialized by _enforce_pacing's flock, so every
+    # prior call's log rows land strictly before this call's since_iso).
+    #
+    # R158 (adversarial round 7 finding): R157 also added a hard payload_size match, but
+    # this Python-side value (len(raw_body.encode()), a UTF-8 BYTE count) and the value
+    # whatsapp-webhook/index.ts logs (rawBody.length, a JS-string UTF-16 CODE-UNIT count)
+    # are only equal for pure-ASCII payloads. Any accented character or emoji in the test
+    # message (a completely realistic input, this tool exists to send messages "shaped
+    # exactly like a real customer's") makes them diverge, so the hard AND filter matched
+    # ZERO rows for such a message even though the inbound leg genuinely succeeded,
+    # producing a false "inbound_confirmed: false" indistinguishable from a real failure,
+    # defeating the exact thing this correlation exists to prove. Dropped the size filter
+    # entirely rather than fixing the TS-side units (which would need a live edge-function
+    # redeploy for a test-tooling correctness issue); the time window alone is already the
+    # real guarantee, per R157's own round-6-verified reasoning above.
     log_time_filter = f"and created_at > '{since_iso}'" if since_iso else f"and created_at >= now() - interval '{wait_seconds} seconds'"
-    log_size_filter = f"and (event_data->>'payload_size')::int = {int(payload_size)}" if payload_size is not None else ""
     log_rows = sql_query(
         f"""select event_type, severity, created_at from webhook_security_logs
         where event_type in ('signature_validated','webhook_processed')
         {log_time_filter}
-        {log_size_filter}
         order by created_at desc limit 10;"""
     )
     result["security_log_events"] = log_rows
@@ -352,7 +359,7 @@ def main() -> None:
         if sent["status_code"] != 200:
             print("FAIL: webhook did not return 200", file=sys.stderr)
             sys.exit(1)
-        reply = check_reply(sent["message_id"], wait_seconds=args.wait, after_ts=sent["sent_at"], payload_size=sent["payload_size"])
+        reply = check_reply(sent["message_id"], wait_seconds=args.wait, after_ts=sent["sent_at"])
         print(json.dumps({**sent, **reply}, indent=2, default=str))
     elif args.cmd == "check-reply":
         reply = check_reply(args.inbound_message_id, wait_seconds=args.wait)
