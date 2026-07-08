@@ -83,7 +83,7 @@ Deno.test("multi-tenant ambiguous history fails closed (no owner-test-phone matc
   assertEquals(result.distinctOwnerCount, 2);
 });
 
-Deno.test("multi-tenant ambiguous history still falls through to owner-self-test (matches the original inline fall-through, not a hard stop)", () => {
+Deno.test("R5 sev-1 fix: multi-tenant ambiguous history NEVER resolves via owner-self-test, even when it matches (was: silently hijacked to the owner-test-phone owner's default calendar)", () => {
   const historyRows: OwnerHistoryRow[] = [
     { ownerId: "owner-a", calendarId: "cal-a" },
     { ownerId: "owner-b", calendarId: "cal-b" },
@@ -93,10 +93,15 @@ Deno.test("multi-tenant ambiguous history still falls through to owner-self-test
     historyRows,
     ownerTestPhoneMatch: { ownerId: "owner-self-test", defaultCalendarId: "cal-default" },
   });
-  assertEquals(result.ownerId, "owner-self-test");
-  assertEquals(result.calendarId, "cal-default");
-  assertEquals(result.matchedVia, "owner_self_test");
-  // The ambiguity signal survives independently so the caller still logs it.
+  // Must fail closed (matches the no-owner-test-phone-match case above), NOT hijack to
+  // "owner-self-test"/"cal-default": a phone whose history spans 2+ distinct owners is genuinely
+  // ambiguous from the message alone, and owner_test_phone has no DB unique constraint, so any two
+  // owners whose phones collide there could otherwise steal each other's in-progress conversation.
+  assertEquals(result.ownerId, null);
+  assertEquals(result.calendarId, null);
+  assertEquals(result.matchedVia, "none");
+  // The ambiguity signal still survives independently so the caller still logs
+  // whatsapp_ambiguous_tenant_inbound.
   assertEquals(result.ambiguousMultiTenant, true);
   assertEquals(result.distinctOwnerCount, 2);
 });

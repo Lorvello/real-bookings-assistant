@@ -1459,6 +1459,12 @@ Deno.serve(async (req) => {
     // hardConfirm=true only for an exact/curated-pleasantry clean "yes"; hardReject=true mirrors
     // for a clean "no". Neither implies confirmCancel/confirmBook below (those still require a
     // FRESH pending proposal to exist); this signal only ever GATES a commit, never triggers one.
+    // R5 fix (sev-1, FULL_JOURNEY_AGENT_SIMULATION R4 finding): a message carrying a leading
+    // "Code: XXXXXXXX" tracking-code token (required on every turn for a customer whose phone
+    // collides with another owner's owner_test_phone, see gateLogic.ts's ambiguous-history fix)
+    // used to never hard-confirm, since classifyHardConfirm's normalization did not strip it. Fixed
+    // inside hardConfirmGate.ts's own normalizeForHardConfirm (single source of truth, unit-tested
+    // there), not here, so `message` itself stays untouched for msgLower/AFFIRM_RE/the LLM prompt.
     const hardVerdict = classifyHardConfirm(message);
     const hardConfirm = hardVerdict === "confirm";
     const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm;

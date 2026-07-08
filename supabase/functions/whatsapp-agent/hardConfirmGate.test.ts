@@ -472,3 +472,27 @@ Deno.test("R149 ADVERSARIAL: real content beyond the 'graag bevestigen' skeleton
     assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none`);
   }
 });
+
+// ── R5 (FULL_JOURNEY_AGENT_SIMULATION R4, live-reproduced on the real production agent) ─────────
+// A customer whose phone's message history is ambiguous across 2+ owners (gateLogic.ts's
+// ambiguity fix) must resend "Code: XXXXXXXX" on every turn to stay attached to the right tenant.
+// Before this fix, a code-prefixed confirm like "Code: f744eddc Ja, dat klopt" could never
+// hard-confirm (the code text broke every anchored skeleton), permanently stalling the booking.
+// Live-reproduced 3x in a row: evidence cited in _FULL_JOURNEY_AGENT_SIMULATION_STATE.md R4/R5.
+Deno.test("R5: a leading tracking-code token no longer blocks a hard confirm", () => {
+  assertEquals(classifyHardConfirm("Code: f744eddc Ja, dat klopt"), "confirm");
+  assertEquals(classifyHardConfirm("code: F744EDDC ja, dat klopt"), "confirm");
+  assertEquals(classifyHardConfirm("Code: f744eddc Ja, dat klopt, graag bevestigen!"), "confirm");
+  assertEquals(classifyHardConfirm("Code:f744eddc Klopt, graag bevestigen."), "confirm");
+  assertEquals(classifyHardConfirm("Code: f744eddc klopt"), "confirm");
+});
+Deno.test("R5: a leading tracking code does not manufacture a false confirm out of unclear content", () => {
+  assertEquals(classifyHardConfirm("Code: f744eddc misschien, ik weet het niet"), "none");
+  assertEquals(classifyHardConfirm("Code: f744eddc nee"), "reject");
+  assertEquals(classifyHardConfirm("Code: f744eddc"), "none");
+});
+Deno.test("R5 ADVERSARIAL: a code-shaped token that is NOT at the very start of the message must NOT be stripped", () => {
+  // A tracking code is only ever a conversation-opening convention; if a customer's own message
+  // happens to mention "code" mid-sentence, that is real content and must not be silently deleted.
+  assertEquals(classifyHardConfirm("Ja klopt, mijn code: f744eddc is toch goed?"), "none");
+});

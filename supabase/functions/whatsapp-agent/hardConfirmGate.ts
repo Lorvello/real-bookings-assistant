@@ -58,15 +58,37 @@ function stripEdges(s: string): string {
 // message that carries real extra content, since the visible characters are untouched.
 const INVISIBLE_RE = /[​‌‍‎‏﻿⁠-⁤]/g;
 
-/** Bounded, fully deterministic normalization: NFC-normalize, strip invisible/bidi-control
- * formatting marks, lowercase (locale-safe), strip edge punctuation/emoji/whitespace (never
- * internal VISIBLE content), collapse internal whitespace runs to a single space. No stemming,
- * no fuzzy matching, no synonym expansion: every step here is mechanically reversible/auditable
- * by reading this function alone. */
+// R5 fix (sev-1, FULL_JOURNEY_AGENT_SIMULATION R4 finding): a customer whose phone number's
+// message history is ambiguous across 2+ distinct owners (gateLogic.ts's `resolveSenderGate`
+// ambiguity fix) must resend the "Code: XXXXXXXX" tracking-code token on EVERY turn to stay
+// attached to the right tenant, since there is no other per-message identity signal. Before this
+// fix, a message like "Code: f744eddc Ja, dat klopt" could never hard-confirm: the anchored
+// (^...$) exact/curated-skeleton design of this gate (see file header) means the code token,
+// being outside any accepted skeleton, made the WHOLE message fail every check, permanently
+// stalling the booking-commit step for as long as the code had to be resent. Live-reproduced 3x
+// in a row on the real production agent (identical re-asked preview each time). Fix: strip a
+// LEADING "Code: XXXXXXXX" token (the exact same shape whatsapp-webhook/index.ts's own
+// `/Code:\s*([A-F0-9]{8})/i` match parses for routing) before any other normalization, so the
+// classifier sees only the customer's actual confirmation text, exactly as if no code had been
+// sent. Deliberately anchored to the START of the string only (not `g`/anywhere-in-message): a
+// tracking code is only ever a conversation-opening convention, never something a customer types
+// mid-sentence, so restricting the strip to a leading token cannot accidentally swallow real
+// confirmation content occurring elsewhere in a longer message. This can only ever make a message
+// MORE likely to hard-confirm when it is a genuine confirm with a leading code, never manufacture
+// a false match for unrelated content (the rest of the message still has to pass every existing
+// check unchanged).
+const LEADING_TRACKING_CODE_RE = /^\s*code:\s*[a-f0-9]{8}\s*/i;
+
+/** Bounded, fully deterministic normalization: NFC-normalize, strip a leading tracking-code
+ * token, strip invisible/bidi-control formatting marks, lowercase (locale-safe), strip edge
+ * punctuation/emoji/whitespace (never internal VISIBLE content), collapse internal whitespace
+ * runs to a single space. No stemming, no fuzzy matching, no synonym expansion: every step here
+ * is mechanically reversible/auditable by reading this function alone. */
 export function normalizeForHardConfirm(raw: unknown): string {
   const s = typeof raw === "string" ? raw : "";
   const nfc = s.normalize("NFC").trim();
-  const noInvisible = nfc.replace(INVISIBLE_RE, "");
+  const noCode = nfc.replace(LEADING_TRACKING_CODE_RE, "");
+  const noInvisible = noCode.replace(INVISIBLE_RE, "");
   const lower = noInvisible.toLocaleLowerCase();
   const stripped = stripEdges(lower);
   return stripped.replace(/\s+/g, " ").trim();
