@@ -1249,6 +1249,19 @@ Deno.serve(async (req) => {
     // letters as word chars, so the boundary holds while "simpel"/"klaar"/"jasmijn" stay excluded.
     const AFFIRM_RE = /(?<![\p{L}\p{N}])(ja|jaha|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord|oui|ouais|volontiers|sí|si|claro|vale|perfecto|sì|certo|esatto|perfetto|sim|perfeito|parfait|genau|gerne|bitte|klar|passt)(?![\p{L}\p{N}])/iu;
     const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
+    // R151 (WHATSAPP_E2E_TEST_INFRA Item 6, live-reproduced): NEGATE_RE's "verzet|verzetten|
+    // reschedule|verplaats" tokens exist to catch a customer saying "ik wil liever verzetten"
+    // INSTEAD OF confirming a CANCEL (a genuine reject-the-cancel-offer-a-reschedule-instead
+    // signal). Reused unchanged for confirmRescheduleVerification (the reschedule flow's OWN
+    // cross-identity confirm gate), those exact words are simply the normal Dutch verb for the
+    // very action being confirmed: a customer naturally completing "Ja klopt, dat is de afspraak
+    // van [naam], verzet die naar 14:30" (live-reproduced, evidence/WHATSAPP_E2E_r7.md turns 4-5)
+    // trips NEGATE_RE on "verzet" and can never satisfy confirmRescheduleVerification, an
+    // unresolvable deadlock structurally identical to R150's, just a different signal. Scoped
+    // narrowly: only drops the reschedule-verb tokens, keeps every other negate signal (nee/niet/
+    // hou/andere/nieuwe tijd) fully intact, since those remain valid "actually, wait" signals even
+    // inside a reschedule confirmation. Used ONLY by confirmRescheduleVerification below.
+    const NEGATE_RE_FOR_RESCHEDULE_VERIFICATION = /\b(nee|neen|no|niet|liever niet|toch niet|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     // A hypothetical / policy QUESTION that merely contains a cancel word ("krijg ik geld terug als ik
     // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
     // cancellation, it's an info question, answered from <business_data>. Without this, asking about the
@@ -1504,7 +1517,7 @@ Deno.serve(async (req) => {
 
     const prsv = convContext.pending_reschedule_verification as { current_name?: string | null; at?: number } | undefined;
     const pendingRescheduleVerificationFresh = !!prsv && (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
-    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirmForVerification(msgLower) &&
+    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE_FOR_RESCHEDULE_VERIFICATION.test(msgLower) && !ambiguousConfirmForVerification(msgLower) &&
       identityVerificationResolved(prsv?.current_name ?? null, knownName, String(message));
 
     // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): SAME deterministic
