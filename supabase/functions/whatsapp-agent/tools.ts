@@ -47,6 +47,18 @@ export interface ToolContext {
   // ambiguity. Threading this through ctx lets book_appointment/cancel_appointment gate BOTH
   // arms of that OR on the same signal, so an ambiguous message can never commit via either path.
   ambiguousConfirm?: boolean;
+  // R152 (WHATSAPP_E2E_TEST_INFRA Item 6, live-reproduced): the SAME narrower ambiguity signal
+  // R150 added for confirmCancelVerification/confirmRescheduleVerification's own computation
+  // (drops only the day/time-shift check; every other ambiguity category stays enforced), also
+  // needed here because cancel_appointment's COMMIT gate (see cancelVerifiedBypass below) ANDs a
+  // SEPARATE, independent `!ctx.ambiguousConfirm` check on TOP of the bypass, using the FULL
+  // (unscoped) signal. R150 alone was not enough: a customer whose identity-confirming reply
+  // restates the existing appointment's day/time (satisfying confirmCancelVerification) still hit
+  // this outer full-ambiguousConfirm check and got sent back through ANOTHER preview cycle rather
+  // than committing (live-reproduced, evidence/WHATSAPP_E2E_r7.md). Used ONLY when
+  // cancelVerifiedBypass is the reason this gate is being consulted; the regular fresh-preview
+  // confirm path is untouched.
+  ambiguousConfirmForVerification?: boolean;
   // R32 (2nd AFFIRM-CONFIRM taste-fork, Mathew's "zero errors, build it properly" decision): a
   // THIRD, purely structural commit gate, computed by ./hardConfirmGate.ts's classifyHardConfirm
   // against the raw customer message BEFORE the LLM ever runs. true only when the normalized
@@ -2696,7 +2708,10 @@ export function createTools(
         // prompt-nudge-only attempt was already proven unreliable on the book side; this goes
         // straight to the deterministic bypass without repeating that dead end).
         const cancelVerifiedBypass = ctx.confirmCancelVerification === true;
-        if (((confirmed || ctx.confirmCancel === true) && cleanlyConfirmedCancel && ctx.hardConfirm === true || cancelVerifiedBypass) && !ctx.ambiguousConfirm && pending?.start_time && !cancelPreviewIsSelfWritten) {
+        // R152: when cancelVerifiedBypass is the reason this passes, use the narrower
+        // ambiguousConfirmForVerification signal (day/time-shift excluded); otherwise keep the
+        // full ambiguousConfirm exactly as before. See ToolContext's own R152 comment above.
+        if (((confirmed || ctx.confirmCancel === true) && cleanlyConfirmedCancel && ctx.hardConfirm === true || cancelVerifiedBypass) && !(cancelVerifiedBypass ? ctx.ambiguousConfirmForVerification : ctx.ambiguousConfirm) && pending?.start_time && !cancelPreviewIsSelfWritten) {
           const target = await resolveTarget(supabase, ctx, pending.start_time);
           if (target.none || target.ambiguous) {
             await clearPending();
