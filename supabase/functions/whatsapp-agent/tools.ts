@@ -3629,11 +3629,29 @@ export function createTools(
               guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
-          const { error } = await supabase.from("bookings").update({
+          // R56 (RENAME-PHANTOM-SUCCESS fix, same class as R40's cancel fix + R49's reschedule
+          // fix): the SELECT just above only proves the row was confirmed/pending AT READ TIME;
+          // a concurrent request in the race window between this SELECT and the UPDATE below
+          // (e.g. a burst double-send, or a cancel racing a rename on the same booking) can leave
+          // the row no longer confirmed/pending by UPDATE time. The old code trusted "no Postgres
+          // error" as proof of a real mutation; an .update() whose WHERE matches zero rows also
+          // returns no error, so a no-op could silently reach ok:true/renamed:{...} and the model
+          // would narrate a rename that never happened. Fix: re-assert status + phone in the WHERE
+          // clause (closes the race window at the SQL level) AND .select("id") so the actual
+          // affected-row-count is checked, never just the absence of a Postgres error.
+          const { data: renamedRows, error } = await supabase.from("bookings").update({
             customer_name: String(pendingRename.new_name),
             updated_at: new Date().toISOString(),
-          }).eq("id", freshBooking.id);
+          }).eq("id", freshBooking.id).eq("customer_phone", ctx.phone).in("status", ["confirmed", "pending"]).select("id");
           if (error) return { error: error.message };
+          if (!renamedRows || renamedRows.length === 0) {
+            await clearPendingRename();
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
           await clearPendingRename();
           return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
         }
@@ -3676,11 +3694,22 @@ export function createTools(
               guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
-          const { error } = await supabase.from("bookings").update({
+          // R56 (RENAME-PHANTOM-SUCCESS fix): same reasoning as the primary commit branch above
+          // (re-assert status + phone in the WHERE clause, check affected-row-count, never trust
+          // absence of a Postgres error alone).
+          const { data: renamedRows2, error } = await supabase.from("bookings").update({
             customer_name: String(pendingRename.new_name),
             updated_at: new Date().toISOString(),
-          }).eq("id", freshBooking.id);
+          }).eq("id", freshBooking.id).eq("customer_phone", ctx.phone).in("status", ["confirmed", "pending"]).select("id");
           if (error) return { error: error.message };
+          if (!renamedRows2 || renamedRows2.length === 0) {
+            await clearPendingRename();
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
           await clearPendingRename();
           return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
         }
