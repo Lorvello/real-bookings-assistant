@@ -335,6 +335,20 @@ export async function classifyBusinessDataGrounding(
       return { isUngroundedClaim: true, reason: "error", latencyMs: Date.now() - t0 };
     }
     const data = await resp.json();
+    // COST-AUDIT (R-cost-audit): per-call token usage, mirroring llm.ts's own [llm-usage] log.
+    // This guard fires VOTE_COUNT (7) parallel Groq calls per model-prose turn and, before this
+    // line, had zero token-cost observability (only latencyMs/reason were logged) even though it
+    // is a real, non-trivial share of per-message Groq spend (~1.6-2k prompt tokens x 7 calls).
+    // Cheap (one extra field read per call, no added request), so kept permanently rather than
+    // reverted after the one-off audit that added it.
+    try {
+      const u = (data?.usage ?? {}) as Record<string, unknown>;
+      // COST-AUDIT follow-up (Groq caching verification round): see ownerEscalationClassifier.ts's
+      // identical comment. Groq caching is automatic, has no request-level opt-in, and the only
+      // real evidence of a hit is usage.prompt_tokens_details.cached_tokens. Observability only.
+      const det = (u.prompt_tokens_details ?? {}) as Record<string, unknown>;
+      console.log(`[llm-usage][business-data-guard] prompt_tok=${u.prompt_tokens ?? "-"} completion_tok=${u.completion_tokens ?? "-"} cached_tok=${det.cached_tokens ?? "-"}`);
+    } catch (_) { /* observability must never break the guard */ }
     const content = (data?.choices?.[0]?.message?.content ?? "").toString().trim().toUpperCase();
     const latencyMs = Date.now() - t0;
     if (content.startsWith("YES")) return { isUngroundedClaim: true, reason: "yes", latencyMs };

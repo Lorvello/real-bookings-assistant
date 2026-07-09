@@ -212,6 +212,24 @@ export async function classifyOwnerEscalationClaim(
       return { isEscalationClaim: true, reason: "error", latencyMs: Date.now() - t0 };
     }
     const data = await resp.json();
+    // COST-AUDIT (R-cost-audit): per-call token usage, mirroring llm.ts's own [llm-usage] log.
+    // This classifier fires ROBUST_VOTE_COUNT (10) parallel Groq calls per model-prose turn and,
+    // before this line, had zero token-cost observability (only latencyMs/reason were logged)
+    // even though it is a real, non-trivial share of per-message Groq spend (~2k prompt tokens x
+    // 10 calls). Cheap (one extra field read per call, no added request), so kept permanently
+    // rather than reverted after the one-off audit that added it.
+    try {
+      const u = (data?.usage ?? {}) as Record<string, unknown>;
+      // COST-AUDIT follow-up (Groq caching verification round): Groq's real docs
+      // (console.groq.com/docs/prompt-caching) confirm caching is fully automatic prefix-match, no
+      // request parameter exists to enable/control it, and a cache hit surfaces ONLY via
+      // usage.prompt_tokens_details.cached_tokens in the raw response. There is nothing to "wire in"
+      // in this fetch call (no code-level caching mechanism exists to add), so this is pure
+      // observability: surface the signal Groq already returns so real hit/miss rates can be
+      // measured from logs instead of assumed from a token-count coincidence.
+      const det = (u.prompt_tokens_details ?? {}) as Record<string, unknown>;
+      console.log(`[llm-usage][owner-escalation-classifier] prompt_tok=${u.prompt_tokens ?? "-"} completion_tok=${u.completion_tokens ?? "-"} cached_tok=${det.cached_tokens ?? "-"}`);
+    } catch (_) { /* observability must never break the guard */ }
     const content = (data?.choices?.[0]?.message?.content ?? "").toString().trim().toUpperCase();
     const latencyMs = Date.now() - t0;
     if (content.startsWith("YES")) return { isEscalationClaim: true, reason: "yes", latencyMs };

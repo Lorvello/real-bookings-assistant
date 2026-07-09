@@ -240,9 +240,19 @@ async function runAgentOpenAI(
     try {
       const u = (data?.usage ?? {}) as Record<string, unknown>;
       const det = (u.completion_tokens_details ?? {}) as Record<string, unknown>;
+      // COST-AUDIT (Groq caching verification round): Groq's real docs (console.groq.com/docs/
+      // prompt-caching) confirm caching is fully automatic prefix-match, no request parameter
+      // exists to enable it, and a cache hit is only provable via usage.prompt_tokens_details.
+      // cached_tokens in the raw response, not inferred from a token-count coincidence. This
+      // system prompt (~18.6-19k tokens, static across calls in the same conversation and largely
+      // shared across DIFFERENT conversations on the same tenant) is exactly the shape Groq's docs
+      // describe as cacheable (well over the documented 128-1024 token minimum), so this field is
+      // logged to measure real hit rate from production traffic rather than assume one.
+      const promptDet = (u.prompt_tokens_details ?? {}) as Record<string, unknown>;
       console.log(
         `[llm-usage] model=${model} step=${step} ms=${Date.now() - callT0}` +
         ` prompt_tok=${u.prompt_tokens ?? "-"} completion_tok=${u.completion_tokens ?? "-"}` +
+        ` cached_tok=${promptDet.cached_tokens ?? "-"}` +
         ` reasoning_tok=${det.reasoning_tokens ?? "-"} queue_s=${u.queue_time ?? "-"}` +
         ` prompt_s=${u.prompt_time ?? "-"} completion_s=${u.completion_time ?? "-"}` +
         ` total_s=${u.total_time ?? "-"} tool_calls=${(data?.choices?.[0]?.message?.tool_calls ?? []).length}`,
