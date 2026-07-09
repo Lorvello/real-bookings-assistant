@@ -109,20 +109,67 @@ export async function runAgent(opts: RunOpts): Promise<AgentResult> {
 // GPT-5 reasoning models: no custom temperature (only default), use
 // max_completion_tokens, reasoning_effort=minimal for speed/cost.
 // ---------------------------------------------------------------------------
+// R22 (full-journey sim loop, sev-1 fix): a hung upstream LLM call (Groq/OpenAI) used to be able
+// to block this fetch indefinitely, no AbortController existed anywhere in this file. index.ts's
+// outer try/catch DOES already send the customer a graceful "something went wrong" fallback on any
+// THROWN error, but a hang throws nothing: the invocation just runs until the Edge Runtime's own
+// hard wall-clock kill, which happens OUTSIDE this isolate's own try/catch, so no fallback is ever
+// sent and the customer sees permanent silence. That silent-hang shape matches R21's reproduced
+// sev-1 exactly (3 consecutive turns, ~14 min, zero replies, no application error ever surfaced,
+// consistent with a kill rather than a caught exception). LLM_CALL_TIMEOUT_MS bounds every single
+// upstream call so a hang now THROWS well inside the isolate's own lifetime, which the existing
+// catch-and-fallback in index.ts turns into a real (if apologetic) reply instead of silence.
+const LLM_CALL_TIMEOUT_MS = 25_000;
+
 async function postOpenAI(baseUrl: string, key: string, body: unknown): Promise<any> {
   let lastErr = "";
   for (let attempt = 0; attempt < 3; attempt++) {
-    const resp = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      // Mozilla UA: Groq sits behind Cloudflare, which 403s (code 1010) a default Deno UA.
-      // Harmless for OpenAI. Same WAF-evasion pattern as the Supabase Mgmt-API helper.
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}`, "User-Agent": "Mozilla/5.0" },
-      body: JSON.stringify(body),
-    });
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), LLM_CALL_TIMEOUT_MS);
+    let resp: Response;
+    try {
+      resp = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        // Mozilla UA: Groq sits behind Cloudflare, which 403s (code 1010) a default Deno UA.
+        // Harmless for OpenAI. Same WAF-evasion pattern as the Supabase Mgmt-API helper.
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}`, "User-Agent": "Mozilla/5.0" },
+        body: JSON.stringify(body),
+        signal: ac.signal,
+      });
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") {
+        lastErr = `LLM timeout after ${LLM_CALL_TIMEOUT_MS}ms`;
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+        continue;
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
     if (resp.ok) return await resp.json();
-    lastErr = `LLM ${resp.status}: ${(await resp.text()).slice(0, 300)}`;
+    const respText = await resp.text();
+    lastErr = `LLM ${resp.status}: ${respText.slice(0, 300)}`;
     if (resp.status === 429 || resp.status >= 500) {
       await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+      continue;
+    }
+    // R22 fix: gpt-oss-20b (live Groq model) occasionally leaks its internal Harmony
+    // "<|channel|>commentary" chat-format token into the tool_call NAME itself (e.g.
+    // "book_appointment<|channel|>commentary" instead of "book_appointment"), which Groq's own
+    // schema validator correctly rejects with a 400 "Tool call validation failed... which was not
+    // in request.tools" since the mangled name matches nothing declared. Live-reproduced twice on
+    // the exact conversation thread behind R21's stall (direct whatsapp-agent invocation, service
+    // f8321de7 owner f744eddc, ~4.5s each, deterministic on that thread's history). Previously this
+    // 400 was NOT retried (400 = "client error", same bucket as a genuinely malformed request), so
+    // it went straight to index.ts's outer catch: the fallback reply DOES fire there, but this is a
+    // transient GENERATION glitch, not a real client error, a plain re-ask of the model with the
+    // identical input reliably produces a clean tool name on the next attempt (same class as the
+    // existing 429/5xx retry above). Narrow, string-matched retry (never a blanket 400-retry, which
+    // would mask real schema mistakes) buys one more real shot at a proper reply before falling
+    // back to the apology message.
+    if (resp.status === 400 && /tool call validation failed/i.test(respText) && attempt < 2) {
+      lastErr = `LLM 400 (malformed tool-call name, retrying): ${respText.slice(0, 200)}`;
+      await new Promise((r) => setTimeout(r, 300 * (attempt + 1)));
       continue;
     }
     throw new Error(lastErr);
@@ -245,11 +292,26 @@ async function postGemini(model: string, key: string, body: unknown): Promise<an
   const url = `${geminiEndpoint(model)}?key=${key}`;
   let lastErr = "";
   for (let attempt = 0; attempt < 3; attempt++) {
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), LLM_CALL_TIMEOUT_MS);
+    let resp: Response;
+    try {
+      resp = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ac.signal,
+      });
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") {
+        lastErr = `Gemini timeout after ${LLM_CALL_TIMEOUT_MS}ms`;
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+        continue;
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
     if (resp.ok) return await resp.json();
     lastErr = `Gemini ${resp.status}: ${(await resp.text()).slice(0, 200)}`;
     if (resp.status === 503 || resp.status === 429) {

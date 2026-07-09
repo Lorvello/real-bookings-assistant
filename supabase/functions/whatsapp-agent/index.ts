@@ -583,6 +583,13 @@ Deno.serve(async (req) => {
   // knowable at the moment of the throw. Same hoisting pattern as phoneForFallback/fallbackMessage.
   let bookClaimIdForFallback: string | undefined;
   let cancelClaimIdForFallback: string | undefined;
+  // R22 (full-journey sim loop, sev-1 finding): the graceful fallback reply sent from the catch
+  // block below was never persisted to `whatsapp_messages`, so a thrown turn (e.g. the gpt-oss-20b
+  // malformed-tool-call-name 400 documented at LLM_CALL_TIMEOUT_MS above) is invisible to every
+  // DB-based verification path (this loop's own method, any future support/audit query), even
+  // though the customer's WhatsApp thread DOES receive the apology text. Hoisted so the catch can
+  // insert it once conversationId is known.
+  let conversationIdForFallback: string | null = null;
 
   try {
     const { phone, calendar_id, message, contact_name } = await req.json();
@@ -790,6 +797,7 @@ Deno.serve(async (req) => {
     }
 
     const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
+    conversationIdForFallback = conversationId;
     const convContext: Record<string, unknown> = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
 
     // Phase 3, message history (needs conversation_id).
@@ -2777,6 +2785,21 @@ Deno.serve(async (req) => {
         const s = await sendWhatsAppText(phoneForFallback, fallbackReply);
         fallbackSent = !!s.ok;
       } catch (_) { /* swallow: keep the response leak-free regardless */ }
+    }
+    // R22 (full-journey sim loop): persist the fallback so it is visible to any DB-based
+    // verification/audit, same as every normal outbound reply. Best-effort only, never throws,
+    // never blocks the leak-free response below.
+    if (fallbackSent && conversationIdForFallback) {
+      try {
+        await supabase.from("whatsapp_messages").insert({
+          conversation_id: conversationIdForFallback,
+          message_id: `agent-fallback-${Date.now()}`,
+          direction: "outbound",
+          message_type: "text",
+          content: fallbackReply,
+          status: "sent",
+        });
+      } catch (_) { /* best-effort only */ }
     }
     // Leak-free body: a generic code + the SAME graceful reply the customer saw. The raw error
     // stays in the server logs only. Status 200 because we DID handle the turn (the customer got a
