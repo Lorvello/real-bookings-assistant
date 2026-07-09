@@ -1639,9 +1639,24 @@ Deno.serve(async (req) => {
     // question silently release the other). ambiguousConfirm is still ANDed in (same false-positive
     // protection: a day/time-shift, price question, trailing "?", or hedge word never counts as a
     // clean affirm here either, exact same reasoning as every sibling confirm* signal in this file).
-    const prv = convContext.pending_rename_verification as { at?: number } | undefined;
+    // R61 (RENAME-GATE1-NO-NAME-REPEAT fix, FULL_JOURNEY_AGENT_SIMULATION R59/R60's own flagged,
+    // deferred asymmetry, now live-reproduced and closed): this gate was the ONE identity-
+    // verification marker in this file still missing the identityVerificationResolved requirement
+    // R109 already added to confirmCancelVerification/confirmRescheduleVerification/
+    // confirmBookVerification above. Live-reproduced on the real production agent (thread
+    // f8321de7..., 2026-07-09): a bare "Ja", never repeating the target booking's current holder
+    // name ("WillemR61") the verification question explicitly asked for, silently released Gate 1
+    // (pending_rename_verification cleared, pending_rename armed for Gate 2) anyway. Since Gate 2
+    // itself carries no identity check of its own (it only re-confirms the PROPOSED rename via
+    // hardConfirm, never re-asks whose booking this is), a bare "ja" + a bare hardConfirm phrase was
+    // enough to walk a cross-identity rename all the way to Gate 2 without the customer ever having
+    // to demonstrate they know whose appointment they are renaming, exactly the gap R109 closed for
+    // the sibling tools. Same fix shape: require identityVerificationResolved against the marker's
+    // own stored current_name, re-checked against THIS turn's raw message and current knownName.
+    const prv = convContext.pending_rename_verification as { current_name?: string | null; at?: number } | undefined;
     const pendingRenameVerificationFresh = !!prv && (typeof prv.at !== "number" || (Date.now() - prv.at) < 15 * 60 * 1000);
-    const confirmRenameVerification = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const confirmRenameVerification = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      identityVerificationResolved(prv?.current_name ?? null, knownName, String(message));
 
     // R102 (shared-phone identity fix, generalizes R76's cross-identity verification to
     // cancel_appointment + reschedule_appointment, see identityDisambiguationGuard.ts header for
