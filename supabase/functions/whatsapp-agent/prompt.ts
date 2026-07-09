@@ -63,7 +63,11 @@ export interface PromptContext {
   // pattern as openingHours, so the model can correctly answer a question about a NAMED
   // DIFFERENT calendar's policy (not just the customer's own booking's calendar, which R6
   // already covers via the <business_data> override). null means no policy data available.
-  calendars?: Array<{ index: number; name: string; services: ServiceInfo[]; openingHours?: string | null; cancellationPolicy?: string | null }> | null;
+  // TRACK G5 (R45): collapsed = true means Phase A.5's deterministic pre-filter did NOT match this
+  // calendar on the current turn's raw message text, so Phase B skipped its hours/policy fetch to
+  // save prompt tokens; the entry renders as a one-line placeholder instead of full detail (see the
+  // render site below). undefined/false = full detail, byte-identical to pre-G5 behaviour.
+  calendars?: Array<{ index: number; name: string; services: ServiceInfo[]; openingHours?: string | null; cancellationPolicy?: string | null; collapsed?: boolean }> | null;
   // AS-3-V1: the disposition of the OWNER-SET refund policy, classified server-side from
   // payment_settings.refund_policy_text. 'denied' = the policy clearly says NO refund / bookings
   // final; 'granted' = the policy clearly grants a (full/partial) refund; 'unknown' = silent or
@@ -288,7 +292,9 @@ ${ctx.services.length === 1 ? `Er is precies ÉÉN dienst (${ctx.services[0].nam
       ? `
 <kalenders>
 Dit bedrijf werkt met MEERDERE boekbare medewerkers of locaties. Behandel elk als een PERSOON of PLEK waar de klant terecht kan, NOOIT als een "agenda" of een technisch systeem. Elk heeft eigen openingstijden en eigen diensten met eigen id's. Het nummer hieronder (calendar_index) is alleen voor jezelf; noem het NOOIT tegen de klant en lees de namen nooit op als een technische keuzelijst.
-${ctx.calendars.map((c) => `Optie ${c.index} (${c.name})${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}${c.cancellationPolicy ? `\n  Annuleringsbeleid: ${c.cancellationPolicy}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""}${isRemoteSupply(s.supplyType) ? ", AFSTAND/DIGITAAL" : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
+${ctx.calendars.map((c) => c.collapsed
+      ? `Optie ${c.index} (${c.name})\n  (diensten van ${c.name} worden hier getoond zodra de klant ${c.name} of een dienst van ${c.name} noemt)`
+      : `Optie ${c.index} (${c.name})${c.openingHours ? `\n  Openingstijden: ${c.openingHours}` : ""}${c.cancellationPolicy ? `\n  Annuleringsbeleid: ${c.cancellationPolicy}` : ""}\n${c.services.length ? c.services.map((s) => `  - ${s.name} (id: ${s.id}, ${s.durationMin} min${s.price != null ? `, €${s.price}` : ""}${isRemoteSupply(s.supplyType) ? ", AFSTAND/DIGITAAL" : ""})${s.description && s.description.trim() ? `: ${s.description.trim()}` : ""}`).join("\n") : "  (geen diensten ingesteld; niet boekbaar)"}`).join("\n")}
 </kalenders>
 HARDE REGEL VOOR BOEKEN/BESCHIKBAARHEID (geldt ALLEEN voor een boekings- of beschikbaarheids-verzoek, NIET voor een info-vraag zoals openingstijden/beleid/prijzen, die beantwoord je gewoon zoals de regels hieronder al zeggen): wil de klant een afspraak maken of vraagt die naar beschikbaarheid ("heb je morgen nog plek?", "ik wil een afspraak maken", "wat kan er deze week?", "kan ik om 14:00?"), en heeft die tot nu toe in dit gesprek NOG NOOIT een specifieke dienst (bv. "knipbeurt", "massage") EN NOG NOOIT een specifieke persoon/locatie (bv. "bij Anna", "in Centrum") genoemd? Dan roep je get_available_slots en book_appointment NIET aan. Vraag dan EERST, als je ENIGE volgende bericht, welke dienst ze willen (bijv. "Waarvoor wil je een afspraak maken?", eventueel met 2-3 diensten als voorbeeld). Dit geldt zelfs als er maar één dienst is die "voor de hand ligt": met meerdere medewerkers/locaties is die aanname VERBODEN, want een andere locatie kan een andere prijs/duur/dienst hebben. Pas zodra de klant een dienst genoemd heeft (of een persoon/locatie, waaruit de dienst volgt) mag je boeken/beschikbaarheid checken.
 Regels voor meerdere medewerkers/locaties:

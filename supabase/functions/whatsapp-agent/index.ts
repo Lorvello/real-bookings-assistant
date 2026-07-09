@@ -26,6 +26,7 @@ import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { computePendingBookInterveningExchange } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
+import { resolveCandidateCalendarIds } from "./preFilterCalendars.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
 
@@ -747,7 +748,7 @@ Deno.serve(async (req) => {
     // Per-calendar services for the prompt's <kalenders> block, ONLY when multi-calendar
     // (single-calendar path stays byte-identical: zero extra queries, no block). One query
     // for the whole set; service UUIDs differ per calendar so the agent picks the right one.
-    let calendarsForPrompt: Array<{ index: number; name: string; services: ServiceInfo[] }> | null = null;
+    let calendarsForPrompt: Array<{ index: number; name: string; services: ServiceInfo[]; openingHours?: string | null; cancellationPolicy?: string | null; collapsed?: boolean }> | null = null;
     // ITEM2: serviceId -> calendarId for the whole allowlist, so the tools route a booking to the
     // right staff/location calendar from the chosen service alone (no "which agenda?" turn). Built
     // from the SAME per-calendar service query, zero extra round-trip; only in multi-calendar mode.
@@ -765,28 +766,43 @@ Deno.serve(async (req) => {
         byCal.set(s.calendar_id, arr);
         serviceCalendarMap[s.id] = s.calendar_id;
       }
+      // TRACK G5 (R45): Phase A.5, deterministic zero-LLM-call keyword pre-filter (design
+      // DESIGN_KALENDERS_TWO_PHASE_G3.md, cleared by G4 with the word-boundary matcher fix folded
+      // into preFilterCalendars.ts). Reads ONLY this turn's raw message text (never history, same
+      // discipline as relativeDateHint.ts, R23/R32). candidateIds decides which calendars get the
+      // EXPENSIVE per-calendar hours/policy fetch below (Phase B); it never affects
+      // serviceCalendarMap (built above from the full, unnarrowed byCal/setSvc fetch), so
+      // tool-routing correctness is structurally decoupled from this prompt-narrowing step (the
+      // design's own section 4 safety property).
+      const preFilter = resolveCandidateCalendarIds(String(message ?? ""), calendars, byCal);
+      const candidateIds = preFilter.candidateIds;
+
       // A4: per-calendar opening hours. Hours differ per staff/location, so each <kalenders>
       // entry carries its OWN bookable weekly hours (same availability_rules source as
       // get_available_slots → spoken hours match what that agenda can actually book). Reuse the
       // entry calendar's already-fetched schedule (weeklyHours); fetch the others in parallel.
+      // TRACK G5: only fetched for calendars still in candidateIds (Phase B scoping); a collapsed
+      // calendar simply never queries its hours this turn, saving both the round-trip and the
+      // prompt tokens.
       const hoursByCal = new Map<string, string | null>([[calendar_id, weeklyHours?.text ?? null]]);
-      const otherCals = calendars.filter((c) => c.id !== calendar_id);
+      const otherCals = calendars.filter((c) => c.id !== calendar_id && candidateIds.has(c.id));
       const otherHours = await Promise.all(otherCals.map((c) => getCalendarWeeklyHours(supabase, c.id)));
       otherCals.forEach((c, i) => hoursByCal.set(c.id, otherHours[i]?.text ?? null));
       // T3-A1 (R7): per-calendar cancellation policy, same pattern as openingHours above, so the
       // model can correctly answer a question about a NAMED DIFFERENT calendar's policy (the
       // <business_data> override further below only ever resolves to the CUSTOMER'S OWN upcoming
       // booking, never an arbitrary named calendar; both are needed for the two different
-      // question shapes). One getCalendarPolicy call per calendar in the allowlist (max 5, the
-      // same allowlist size cap as the services query above), reusing the same exported helpers
-      // R6 added for the own-booking case. Only runs in multi-calendar mode, so single-calendar
-      // tenants pay zero added cost, identical gating to the rest of this block.
+      // question shapes). One getCalendarPolicy call per calendar STILL in candidateIds (TRACK G5
+      // Phase B scoping; was previously every calendar in the allowlist, max 5), reusing the same
+      // exported helpers R6 added for the own-booking case. Only runs in multi-calendar mode, so
+      // single-calendar tenants pay zero added cost, identical gating to the rest of this block.
       // businessName is derived further below in this function; use the same source
       // (businessData.business_name) directly here since that const is not yet in scope.
       const businessNameForPolicy = (businessData?.business_name as string | null) ?? "ons bedrijf";
-      const policyByCal = await Promise.all(calendars.map((c) => getCalendarPolicy(supabase, c.id)));
+      const policyCals = calendars.filter((c) => candidateIds.has(c.id));
+      const policyByCal = await Promise.all(policyCals.map((c) => getCalendarPolicy(supabase, c.id)));
       const policyTextByCal = new Map<string, string | null>(
-        calendars.map((c, i) => {
+        policyCals.map((c, i) => {
           const p = policyByCal[i];
           const text = !p.allowCancellations
             ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessNameForPolicy}.`
@@ -794,7 +810,17 @@ Deno.serve(async (req) => {
           return [c.id, text];
         }),
       );
-      calendarsForPrompt = calendars.map((c, i) => ({ index: i + 1, name: c.name, services: byCal.get(c.id) ?? [], openingHours: hoursByCal.get(c.id) ?? null, cancellationPolicy: policyTextByCal.get(c.id) ?? null }));
+      calendarsForPrompt = calendars.map((c, i) => {
+        const collapsed = !candidateIds.has(c.id);
+        return {
+          index: i + 1,
+          name: c.name,
+          services: byCal.get(c.id) ?? [],
+          openingHours: hoursByCal.get(c.id) ?? null,
+          cancellationPolicy: policyTextByCal.get(c.id) ?? null,
+          collapsed,
+        };
+      });
     }
 
     const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
