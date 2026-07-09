@@ -932,11 +932,21 @@ Deno.serve(async (req) => {
       ? calendarsForPrompt.flatMap((c) => c.services.map((s) => s.name))
       : services.map((s) => s.name);
     const returningServiceConfirmed = convContext.returning_service_confirmed === true;
+    // R118 (STALE-SERVICE-DEFAULT-OVERRIDE fix, closes full-journey-simulation R23): a small,
+    // deliberately bounded window of the most recent customer messages (reuses `inboundTexts`,
+    // R71's own wide inbound-only fetch when available, else just this turn's own message for a
+    // single-calendar tenant where no such fetch happens). Passed to the guard so an explicit
+    // service named a couple of turns ago in THIS same thread still counts as resolved even if the
+    // durable `returning_service_confirmed` context marker (set below, a separate DB round-trip)
+    // did not persist in time for this turn's read. See serviceDisambiguationGuard.ts for the full
+    // root-cause writeup.
+    const recentInboundTextsForReturning = inboundTexts.slice(0, 4);
     const blockForReturningServiceDefault = shouldBlockReturningServiceDefault({
       lastService,
       currentMessage: String(message ?? ""),
       allServiceNames: allServiceNamesForReturning,
       returningServiceConfirmed,
+      recentInboundTexts: recentInboundTextsForReturning,
     });
     // Store the pending-confirm marker the FIRST time this turn's guard fires (fresh, i.e. not
     // already set), so a subsequent bare "ja"/"klopt" reply (no service named) can be recognized

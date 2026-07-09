@@ -409,6 +409,12 @@ export interface ReturningServiceDefaultInput {
   currentMessage: string;
   allServiceNames: string[]; // every real configured service name for this calendar/customer
   returningServiceConfirmed: boolean; // conversation-context marker: already asked+answered
+  // R118 (STALE-SERVICE-DEFAULT-OVERRIDE fix, closes the R23 full-journey-simulation finding):
+  // recent same-thread CUSTOMER messages (most-recent-first is fine, order does not matter, just
+  // needs to include the last few turns), checked in ADDITION to `currentMessage`. Optional and
+  // additive: omitting it (as every pre-existing R111 test does) reproduces the exact prior
+  // behaviour byte-for-byte. See the block below for why this exists.
+  recentInboundTexts?: string[];
 }
 
 // CODE-REVIEW FIX (found during this guard's own live testing, S6 testpad): the generic
@@ -459,12 +465,33 @@ function mentionsServiceNameStrict(text: string, allServiceNames: string[]): boo
 }
 
 export function shouldBlockReturningServiceDefault(input: ReturningServiceDefaultInput): boolean {
-  const { lastService, currentMessage, allServiceNames, returningServiceConfirmed } = input;
+  const { lastService, currentMessage, allServiceNames, returningServiceConfirmed, recentInboundTexts } = input;
   if (!lastService || !lastService.trim()) return false; // no history: not a returning customer
   if (returningServiceConfirmed) return false; // already asked+answered this conversation
   // A customer who names ANY real configured service themselves (including the returning one)
   // has resolved the ambiguity; nothing to silently assume.
   if (mentionsServiceNameStrict(currentMessage, allServiceNames)) return false;
+  // R118 (STALE-SERVICE-DEFAULT-OVERRIDE fix): ROOT CAUSE, live-reproduced (full-journey
+  // simulation R23, multi-calendar entry-code thread, Milan/"Volledige kleuring"). Before this
+  // fix, ONLY the single literal current message was checked above; the durable
+  // `returning_service_confirmed` context marker (set the turn the customer first names a
+  // service, see index.ts) is what was relied on to keep the guard from re-firing on a later
+  // turn that does not repeat the service name. That marker write is a separate, later DB
+  // round-trip in the SAME turn that named the service, and is not guaranteed to have landed (or
+  // to have survived an unrelated concurrent context write) by the time the NEXT turn's read
+  // happens. Net effect: an explicit, same-thread service statement from just 1-2 turns earlier
+  // could be silently outranked by OLDER `bookings` history the instant the marker write did not
+  // (or had not yet) persist, exactly R23's reproduction. This check makes the guard itself
+  // self-contained instead of solely trusting that side-effect write: it also inspects a small,
+  // BOUNDED window of the most recent customer messages (deliberately NOT the full conversation
+  // history, unlike the sibling R71 "has a service ever been named" guards, since THIS guard's
+  // guarantee is specifically about a RECENT explicit statement outranking OLDER historical-
+  // booking data, not "ever mentioned"). A genuinely stale mention from many turns ago must not
+  // silently resolve a brand-new bare ask; the caller (index.ts) is responsible for keeping this
+  // window small (a handful of the most recent inbound turns).
+  if (recentInboundTexts && recentInboundTexts.some((t) => mentionsServiceNameStrict(t, allServiceNames))) {
+    return false;
+  }
   return true;
 }
 

@@ -751,3 +751,64 @@ Deno.test("R140-9 no switch: empty allServiceNames (defensive)", () => {
   });
   assertEquals(out, null);
 });
+
+// ── R118 STALE-SERVICE-DEFAULT-OVERRIDE tests (closes full-journey-simulation R23) ─────────────
+// Live shape: turn 1 the customer explicitly names "Volledige kleuring bij Milan" (resolved), turn
+// 2 (2 messages later in the transcript sense used here) asks about a slot WITHOUT repeating the
+// service name, and the durable `returning_service_confirmed` marker write from turn 1 did not (or
+// had not yet) persisted, so only `returningServiceConfirmed: false` reaches the guard this turn.
+const KLEUR_SERVICES = ["Knippen Dames", "Knippen Heren", "Volledige kleuring", "Highlights"];
+
+Deno.test("R118-1 does not block: explicit service named 2 messages ago in this same thread outranks older historical lastService, even when returningServiceConfirmed did not persist", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen Dames", // stale/older DB history, a DIFFERENT calendar's last booking
+      currentMessage: "heb je woensdag 15 juli om 11:00 nog plek?",
+      allServiceNames: KLEUR_SERVICES,
+      returningServiceConfirmed: false, // marker write did not land in time (R23's exact shape)
+      recentInboundTexts: [
+        "heb je woensdag 15 juli om 11:00 nog plek?",
+        "wat kost een Volledige kleuring bij Milan?",
+      ],
+    }),
+    false,
+  );
+});
+
+Deno.test("R118-2 still blocks: no recent explicit mention at all (genuinely stale/no history in the window), falls back to the historical-booking heuristic as intended", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen Dames",
+      currentMessage: "heb je woensdag 15 juli om 11:00 nog plek?",
+      allServiceNames: KLEUR_SERVICES,
+      returningServiceConfirmed: false,
+      recentInboundTexts: ["heb je woensdag 15 juli om 11:00 nog plek?", "hoi"],
+    }),
+    true,
+  );
+});
+
+Deno.test("R118-3 still blocks: recentInboundTexts omitted entirely (backward-compatible, byte-identical to pre-fix behaviour)", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen Dames",
+      currentMessage: "heb je woensdag 15 juli om 11:00 nog plek?",
+      allServiceNames: KLEUR_SERVICES,
+      returningServiceConfirmed: false,
+    }),
+    true,
+  );
+});
+
+Deno.test("R118-4 does not block: already confirmed takes priority regardless of recentInboundTexts contents", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen Dames",
+      currentMessage: "heb je woensdag 15 juli om 11:00 nog plek?",
+      allServiceNames: KLEUR_SERVICES,
+      returningServiceConfirmed: true,
+      recentInboundTexts: ["iets willekeurigs zonder dienstnaam"],
+    }),
+    false,
+  );
+});
