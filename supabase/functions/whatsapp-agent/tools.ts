@@ -2276,6 +2276,65 @@ export function createTools(
             : (typeof (stRow as { price?: unknown } | null)?.price === "string" && (stRow as { price?: string }).price !== ""
               ? Number((stRow as { price?: string }).price)
               : null);
+          // R11 (round 11, INSTALLMENT-SPLIT-NEVER-DISCLOSED fix, bug B of the full-journey
+          // simulation loop): R8/R10 live-reproduced that the preview NEVER mentioned an
+          // installment-enabled service's real split (e.g. "50% nu, 50% bij de afspraak") or its
+          // price before the payment attempt, on 2/2 installment cases tested. Root cause: this
+          // whole file never once read `service_installment_configs` -- the agent had no data
+          // path to ever surface the split, so it structurally could not disclose it, model
+          // prompting alone could never fix a data gap. Fix: read the REAL, service-scoped
+          // installment config here (server-side, at preview time, same "never trust the model to
+          // invent it" discipline as price/name disclosure elsewhere in this file) and attach it
+          // to the preview result so deterministicPreview (index.ts) can template an honest split
+          // disclosure. Only looked up when payment is actually required for this calendar
+          // (paymentRequired, computed above): a no-payment calendar (Iris) has no split to state.
+          // Deliberately does NOT change the actual charge behavior (whatsapp-payment-handler
+          // still runs its own existing pay-now flow, a separate, larger gap noted in PRODUCT
+          // KNOWLEDGE/FINDINGS LEDGER for a future round) -- this only fixes the DISCLOSURE gap
+          // asked for this round: state the real, DB-sourced terms, never an invented number.
+          let installmentInfo: {
+            price: number | null;
+            parts?: Array<{ percentage: number; timing: string; hours?: number }>;
+            fixedDepositAmount?: number;
+          } | null = null;
+          if (paymentRequired) {
+            const { data: instRow } = await supabase
+              .from("service_installment_configs")
+              .select("enabled, plan_type, custom_deposits, preset_plan, fixed_deposit_amount")
+              .eq("service_type_id", serviceId)
+              .maybeSingle();
+            const inst = instRow as {
+              enabled?: boolean;
+              plan_type?: string | null;
+              custom_deposits?: Array<{ percentage: number; timing: string; hours?: number }> | null;
+              preset_plan?: string | null;
+              fixed_deposit_amount?: number | string | null;
+            } | null;
+            if (inst?.enabled) {
+              if (inst.plan_type === "custom" && Array.isArray(inst.custom_deposits) && inst.custom_deposits.length > 0) {
+                installmentInfo = { price: previewPrice ?? null, parts: inst.custom_deposits };
+              } else if (inst.plan_type === "preset" && inst.preset_plan === "fixed_deposit") {
+                const dep = typeof inst.fixed_deposit_amount === "number"
+                  ? inst.fixed_deposit_amount
+                  : (typeof inst.fixed_deposit_amount === "string" && inst.fixed_deposit_amount !== "" ? Number(inst.fixed_deposit_amount) : null);
+                if (typeof dep === "number" && !Number.isNaN(dep)) installmentInfo = { price: previewPrice ?? null, fixedDepositAmount: dep };
+              } else if (inst.plan_type === "preset" && inst.preset_plan) {
+                // The 3 non-fixed presets have a fixed, known percentage shape (see
+                // service_installment_configs's own check constraint, confirmed R2): only these
+                // 4 preset_plan values exist at all, fixed_deposit handled separately above.
+                const PRESET_PARTS: Record<string, Array<{ percentage: number; timing: string }>> = {
+                  "100_at_booking": [{ percentage: 100, timing: "now" }],
+                  "50_50": [{ percentage: 50, timing: "now" }, { percentage: 50, timing: "appointment" }],
+                  "25_25_50": [
+                    { percentage: 25, timing: "now" },
+                    { percentage: 25, timing: "hours_after" },
+                    { percentage: 50, timing: "appointment" },
+                  ],
+                };
+                if (PRESET_PARTS[inst.preset_plan]) installmentInfo = { price: previewPrice ?? null, parts: PRESET_PARTS[inst.preset_plan] };
+              }
+            }
+          }
           // R36: stamp + remember it as OUR OWN write (lastSelfWrittenBookAt), so a later call
           // within THIS SAME closure/turn that reads this exact row back can never treat it as a
           // genuine prior-turn proposal (see the committing gate above + ToolContext comment).
@@ -2316,7 +2375,14 @@ export function createTools(
             // the same slot (ITEM 12: confirmed "donderdag 25 juni", stored "dinsdag 30 juni").
             start_time: start,
             proposal: { service: svcName, when: nlWhen(start), customer_name: customerName === "Privé" ? null : customerName },
-            message: "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
+            // R11 (round 11, bug B fix): the real, DB-sourced installment split (never invented),
+            // only present when this service genuinely has one enabled. deterministicPreview
+            // (index.ts) templates this into the customer-facing preview text; consumed
+            // server-side only, never left to the model to restate from memory.
+            ...(installmentInfo ? { installment: installmentInfo } : {}),
+            message: installmentInfo
+              ? "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen, EN vermeld de betaalvoorwaarden (het echte, hierboven meegegeven betalingsschema, verzin nooit zelf een percentage), en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken."
+              : "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
           };
         }
 

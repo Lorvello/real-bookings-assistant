@@ -195,6 +195,40 @@ function enWhen(iso: string | undefined, fallback: string): string {
 // (book_appointment -> needs_confirmation + proposal); errors / niet_beschikbaar (the ITEM 5
 // two-slot offer) carry no proposal and stay model-generated. NL default, English floor for any
 // non-Dutch customer (the same floor the shipped commit confirmation uses).
+// R11 (round 11, bug B fix): format a REAL, DB-sourced installment split into customer-facing
+// text. Only ever called with data book_appointment itself read from service_installment_configs
+// at preview time (tools.ts); never invents or infers a percentage/amount, matching this file's
+// existing "deterministic template over model prose" discipline for price/name disclosure.
+function money(n: number): string {
+  return `€${n.toFixed(2).replace(/\.00$/, "")}`;
+}
+
+function formatInstallmentSplit(
+  info: { price: number | null; parts?: Array<{ percentage: number; timing: string; hours?: number }>; fixedDepositAmount?: number } | null | undefined,
+  en: boolean,
+): string | null {
+  if (!info) return null;
+  const timingText = (timing: string, hours?: number) => {
+    if (timing === "now") return en ? "now" : "nu";
+    if (timing === "appointment") return en ? "at the appointment" : "bij de afspraak";
+    if (timing === "hours_after") return en ? `${hours ?? "a few"}h after booking` : `${hours ?? "een paar"} uur na het boeken`;
+    return timing;
+  };
+  if (typeof info.fixedDepositAmount === "number") {
+    return en
+      ? `a deposit of ${money(info.fixedDepositAmount)} now, the rest at the appointment`
+      : `een aanbetaling van ${money(info.fixedDepositAmount)} nu, de rest bij de afspraak`;
+  }
+  if (info.parts && info.parts.length > 0) {
+    const segs = info.parts.map((p) => {
+      const amt = typeof info.price === "number" ? ` (${money(Math.round(info.price * p.percentage) / 100)})` : "";
+      return `${p.percentage}% ${timingText(p.timing, p.hours)}${amt}`;
+    });
+    return segs.join(", ");
+  }
+  return null;
+}
+
 function deterministicPreview(
   toolCalls: { name: string; result: unknown }[],
   customerLanguage: string | null,
@@ -219,12 +253,21 @@ function deterministicPreview(
   // Service is an owner-configured proper noun: never translated, only included if present.
   const svc = (p.service ?? "").trim();
   const name = (p.customer_name ?? "").trim() || null;
+  // R11 (round 11, bug B fix): append the real, DB-sourced installment split (if this service has
+  // one enabled and payment is required) to the preview, so the customer sees the actual payment
+  // terms and total price BEFORE confirming, never silently skipped past into a payment attempt.
+  const splitText = formatInstallmentSplit(pv.installment, en);
+  const splitSentence = splitText
+    ? (en
+      ? ` Payment: ${splitText}${typeof pv.installment?.price === "number" ? ` (total ${money(pv.installment.price)})` : ""}.`
+      : ` Betaling: ${splitText}${typeof pv.installment?.price === "number" ? ` (totaal ${money(pv.installment.price)})` : ""}.`)
+    : "";
   if (en) {
     const head = svc ? `I'll put you down for ${svc} on ${when}` : `I'll put you down for ${when}`;
-    return name ? `${head} in the name of ${name}. Is that correct?` : `${head}. Is that correct?`;
+    return (name ? `${head} in the name of ${name}. Is that correct?` : `${head}. Is that correct?`) + splitSentence;
   }
   const head = svc ? `Ik zet ${svc} op ${when}` : `Ik zet je op ${when}`;
-  return name ? `${head} op naam ${name}, klopt dat?` : `${head}, klopt dat?`;
+  return (name ? `${head} op naam ${name}, klopt dat?` : `${head}, klopt dat?`) + splitSentence;
 }
 
 // ---------------------------------------------------------------------------
@@ -1960,6 +2003,38 @@ Deno.serve(async (req) => {
     const slotTakenOnCommit = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && result.toolCalls.some(
       (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
         BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
+    // R11 (round 11, DUPLICATE-BOOKING-ON-PAYMENT-SETUP-FAILURE fix, bug A of the full-journey
+    // simulation loop): live-reproduced (R7/R8/R10 evidence, re-verified this round on ALL 3
+    // payment-required calendars, not installment-specific as first scoped) that a confirmBook
+    // turn whose book_appointment call ALREADY inserted a real `bookings` row and then genuinely
+    // failed at the (external) payment-link-minting step returns `error: "payment_setup_failed"`
+    // -- tools.ts's own payment branch already self-cancels that row before returning the error
+    // (see tools.ts, the two `status: "cancelled"` updates right before both
+    // `payment_setup_failed` returns), so nothing is actually "missing" here, a booking WAS made
+    // and the failure was correctly handled and disclosed. But `succeededMutation` only counts a
+    // tool call with NO `error` field as success, so this errored-but-already-handled call still
+    // left `succeededMutation` false, `slotTakenOnCommit` false (payment_setup_failed is not a
+    // BOOK_RACE_LOSS_ERRORS member), and `bookCommitMissed` fired, forcing the retry mechanism to
+    // re-invoke book_appointment. Since the payment failure path never calls clearPendingBook()
+    // (the stored proposal is deliberately left in place so the customer can re-confirm and retry
+    // payment later), the forced retry's book_appointment call re-commits the SAME still-pending
+    // proposal, inserting a SECOND, near-identical `bookings` row (same calendar/service/time),
+    // which then ALSO fails the same payment step and self-cancels -- exactly the "two
+    // near-duplicate rows created ~2 seconds apart, both status=cancelled" shape found on Milan
+    // (R8), Bo (R10), AND Sanne (re-verified live this round, `ea6a5360.../e4e43fe0...`, R7 had
+    // only reported the second of the pair, mis-scoping this as installment-specific). The
+    // retry's own reply is never even shown to the customer (the accept-gate at the bottom of
+    // this stall-retry block requires `!isErr(t.result)`, and the retry's book_appointment call
+    // errors the same way, so `accept` stays false and `result` stays the primary) -- the retry's
+    // ONLY effect was a silently orphaned duplicate DB row, no customer-visible symptom, which is
+    // exactly why this went undetected until this loop's DB-level verification. Fix: mirror
+    // slotTakenOnCommit's exact pattern, excluding this specific, already-fully-handled failure
+    // from bookCommitMissed so no pointless (and duplicating) retry is forced; the customer
+    // already got the correct, honest "kon de betaling niet instellen" reply from the primary
+    // turn, retrying the insert can never fix a missing Stripe Connect account anyway.
+    const paymentSetupFailedOnCommit = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && result.toolCalls.some(
+      (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
+        String((t.result as Record<string, unknown>).error) === "payment_setup_failed");
     // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, model-attestation-reliability
     // half): live-reproduced on the S6 testpad (phone 31600001716) that even AFTER tools.ts's own
     // gate correctly accepts ctx.confirmBookVerification/ctx.confirmBookOwnerRestated as an
@@ -1976,7 +2051,7 @@ Deno.serve(async (req) => {
     // still only ever forces the SAME deterministic, server-stored-slot commit tools.ts's own gate
     // already independently re-verifies, so this can never force a wrong or premature booking, only
     // a booking that was already safe to make.
-    const bookCommitMissed = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && !succeededMutation && !slotTakenOnCommit;
+    const bookCommitMissed = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && !succeededMutation && !slotTakenOnCommit && !paymentSetupFailedOnCommit;
 
     // R40: Rename-commit-missed (mirrors cancelCommitMissed exactly). The customer AFFIRMED a
     // pending name-change (server-detected confirmRename) but no rename SUCCEEDED this turn (the
