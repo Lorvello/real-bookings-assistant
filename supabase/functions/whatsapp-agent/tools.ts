@@ -1846,6 +1846,14 @@ export function createTools(
             return {
               error: "niet_beschikbaar",
               available_slots: r.available,
+              // R18/R52: this result always echoes back the RESOLVED service_type_id + calendar_id
+              // (not just whatever the model's own tool-call args happened to include), because a
+              // fresh book_appointment call always carries a real serviceId server-side even when
+              // the model's args are sparse; index.ts's dateOfferGuard/false-past-claim guards read
+              // these directly so they never depend on the model re-stating identifiers it already
+              // supplied earlier in the tool call.
+              service_type_id: serviceId,
+              calendar_id: calId,
               // R18: this message previously said "stel vriendelijk een andere dag voor" while
               // handing the model ZERO real alternative dates, which is exactly what made the
               // model invent one (R17: "woensdag 22 juli", itself also inside the same closed
@@ -3474,6 +3482,15 @@ export function createTools(
             return {
               error: "niet_beschikbaar",
               available_slots: r.available,
+              // R18/R52: resolved service_type_id + calendar_id, same rationale as the
+              // book_appointment sibling above. This matters MORE here than for book_appointment:
+              // prompt.ts explicitly instructs the model to call reschedule_appointment with just
+              // date+time (NOT service_type_id) when not switching service/calendar (the common
+              // case), so the model's own tool-call args frequently omit it; without echoing the
+              // server-RESOLVED serviceId/targetCalId back here, index.ts's guards have no way to
+              // know which service/calendar to re-verify a date against.
+              service_type_id: serviceId,
+              calendar_id: targetCalId,
               // R18: same fix as the book_appointment sibling above, same rationale.
               message: r.available.length
                 ? `Dat nieuwe tijdstip is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`

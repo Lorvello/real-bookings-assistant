@@ -2,7 +2,7 @@
 // (the RPC-verification/scan orchestration lives in index.ts, same split as slotOfferGuard.ts).
 // Run: deno test dateOfferGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { buildDeterministicDateAlternatives, dateLabelFromISO, extractOfferedDates, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
+import { buildDeterministicDateAlternatives, dateLabelFromISO, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 
 // ── extractOfferedDates ──────────────────────────────────────────────────────
 
@@ -65,4 +65,34 @@ Deno.test("no real open date found -> honest ask, no invented date", () => {
   const en = noNearbyOpenDateReply(true);
   assertEquals(nl.includes("Welke andere dag"), true);
   assertEquals(en.includes("Which other day"), true);
+});
+
+// ── mentionsFalsePastClaim (R52, mirror of R17/R18) ──────────────────────────
+
+Deno.test("R51 exact reproduction: 'X is al voorbij' (reschedule + fresh-book phrasing) detected", () => {
+  assertEquals(mentionsFalsePastClaim("Sorry, 6 augustus is al voorbij. Kun je een andere datum kiezen?"), true);
+  assertEquals(mentionsFalsePastClaim("Sorry, 6 augustus is al voorbij. Wil je een andere datum proberen?"), true);
+});
+
+Deno.test("detects other NL/EN 'already past' phrasings", () => {
+  assertEquals(mentionsFalsePastClaim("Die datum is al geweest, kies een andere dag."), true);
+  assertEquals(mentionsFalsePastClaim("That date has already passed, could you pick another?"), true);
+  assertEquals(mentionsFalsePastClaim("Sorry, that day is already gone."), true);
+});
+
+Deno.test("honest generic decline (no invented reason) is NOT flagged", () => {
+  assertEquals(
+    mentionsFalsePastClaim("Die dag heeft helemaal geen vrije tijden. Wil je een andere dag proberen?"),
+    false,
+  );
+  assertEquals(mentionsFalsePastClaim("That day has no free times. Would you like to try another day?"), false);
+});
+
+Deno.test("a genuinely past-date decline (tools.ts's own honest 'al geweest' message) still matches, by design", () => {
+  // This guard only ever ENGAGES when index.ts's dayClosedCall fires, which (by construction,
+  // see tools.ts isPastDateNL short-circuit) never happens for an actually-past date, so this
+  // string co-occurring with dayClosedCall cannot happen in practice; the detector itself is
+  // intentionally reason-agnostic (it flags the WORDING, index.ts's dayClosedCall gate is what
+  // guarantees the wording is false whenever this check actually runs).
+  assertEquals(mentionsFalsePastClaim("Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst."), true);
 });

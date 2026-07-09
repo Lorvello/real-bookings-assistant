@@ -104,3 +104,35 @@ export function noNearbyOpenDateReply(en: boolean): string {
     ? `That day has no free times, and I don't have confirmed info on another nearby open day. Which other day would you like to try?`
     : `Die dag heeft geen vrije tijden, en ik heb geen bevestigde info over een andere dag in de buurt. Welke andere dag wil je proberen?`;
 }
+
+// R52 FALSE-PAST-DATE-CLAIM GUARD (symmetric mirror of the R17/R18 isPastDateNL guard, which
+// catches the model inventing "gesloten" for a genuinely PAST date; see tools.ts's own
+// isPastDateNL + its "datum_verleden" branches on book_appointment/reschedule_appointment).
+//
+// R51 (full-journey agent simulation) found the MIRROR-IMAGE failure: on a real FUTURE date that
+// simply falls on a closed weekday for the calendar (live-reproduced: Bo/Thursday 2026-08-06,
+// today real-time 2026-07-09, booking_window_days=60, so the date is neither past nor
+// beyond-window, it is simply a day Bo does not work), book_appointment's and
+// reschedule_appointment's own "niet_beschikbaar" empty-available_slots branch (tools.ts
+// ~1858/~3477) already returns an honest, non-specific "die dag heeft helemaal geen vrije tijden"
+// message with NO invented reason, but the model (Groq gpt-oss-20b) overrides it with a false,
+// specific "al voorbij" (already past) claim instead, e.g. "Sorry, 6 augustus is al voorbij."
+// Reproduced 2/2, both call sites (see ROUNDS R51 for the full repro).
+//
+// This is a DIFFERENT failure shape from the offered-ALTERNATIVE-date gap dateOfferGuard.ts
+// already closes above (extractOfferedDates deliberately EXCLUDES the just-declined date, since
+// restating it is not a new offer): R51's false reply re-mentions the SAME declined date with a
+// false reason attached, so extractOfferedDates alone never catches it (offered.length stays 0).
+//
+// GROUND TRUTH: the "niet_beschikbaar" empty-available_slots branch this guard engages on is
+// reached ONLY after tools.ts's own isPastDateNL(args.date) check already ran and returned
+// false for this exact date (a genuinely past date short-circuits earlier with the correct
+// "datum_verleden" error and never reaches resolveSlotForTime at all). So any reply claiming
+// "voorbij"/"already past" here is false BY CONSTRUCTION; this guard does not need to re-run
+// isPastDateNL itself, dayClosedCall's own existence in index.ts is the proof.
+const FALSE_PAST_CLAIM_RE =
+  /\b(al voorbij|alweer voorbij|reeds voorbij|al geweest|reeds geweest|nu al voorbij|already past|already passed|has (?:already )?passed|already gone|is in the past)\b/i;
+
+export function mentionsFalsePastClaim(reply: string): boolean {
+  return FALSE_PAST_CLAIM_RE.test(reply || "");
+}

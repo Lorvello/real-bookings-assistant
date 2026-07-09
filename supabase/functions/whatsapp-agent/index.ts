@@ -11,7 +11,7 @@ import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from ".
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
-import { buildDeterministicDateAlternatives, extractOfferedDates, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
+import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 import { extractRelativeDayHint, formatRelativeDateHint } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
@@ -2483,23 +2483,38 @@ Deno.serve(async (req) => {
         });
         if (dayClosedCall) {
           const dcArgs = (dayClosedCall as { args?: Record<string, unknown> }).args ?? {};
+          const dcResult = (dayClosedCall.result ?? {}) as Record<string, unknown>;
           const declinedDate = typeof dcArgs.date === "string" ? dcArgs.date : null;
-          const serviceId = typeof dcArgs.service_type_id === "string" ? dcArgs.service_type_id : null;
+          // R52: prefer the tool's own RESOLVED service_type_id/calendar_id (tools.ts now echoes
+          // these back on the niet_beschikbaar/empty-slots result) over the model's tool-call args.
+          // reschedule_appointment in particular is routinely called WITHOUT service_type_id when
+          // not switching service/calendar (prompt.ts's own instruction for the common case), so
+          // relying on dcArgs alone left this guard entirely unable to engage for reschedule.
+          const serviceId =
+            (typeof dcResult.service_type_id === "string" ? dcResult.service_type_id : null) ??
+            (typeof dcArgs.service_type_id === "string" ? dcArgs.service_type_id : null);
+          const declinedCalendarId = typeof dcResult.calendar_id === "string" ? dcResult.calendar_id : null;
           const todayISO = now.toISOString().slice(0, 10);
           const offered = declinedDate ? extractOfferedDates(replyText, todayISO, declinedDate) : [];
-          if (serviceId && offered.length > 0) {
-            const targetCalendarId = serviceCalendarMap?.[serviceId] ?? calendar_id;
+          // R52: the model falsely claiming the DECLINED date itself is "already past" (see
+          // dateOfferGuard.ts's mentionsFalsePastClaim header). Distinct from a phantom
+          // ALTERNATIVE date above, this re-mentions the same declinedDate with a false reason,
+          // so extractOfferedDates alone (which excludes declinedDate on purpose) never catches
+          // it; checked as a sibling trigger on the SAME dayClosedCall/serviceId ground truth.
+          const falsePastClaim = mentionsFalsePastClaim(replyText);
+          if (serviceId && (offered.length > 0 || falsePastClaim)) {
+            const targetCalendarId = declinedCalendarId ?? serviceCalendarMap?.[serviceId] ?? calendar_id;
             const checkDate = async (iso: string): Promise<boolean> => {
               const { data } = await supabase.rpc("get_available_slots", {
                 p_calendar_id: targetCalendarId, p_service_type_id: serviceId, p_date: iso,
               });
               return ((data as Array<{ is_available: boolean }>) ?? []).some((s) => s.is_available);
             };
-            const checks = await Promise.all(offered.slice(0, 3).map((iso) => checkDate(iso)));
-            const anyFabricated = checks.some((ok) => !ok);
+            const checks = offered.length > 0 ? await Promise.all(offered.slice(0, 3).map((iso) => checkDate(iso))) : [];
+            const anyFabricated = falsePastClaim || checks.some((ok) => !ok);
             if (anyFabricated) {
               console.warn(
-                `date-offer-guard: rebuilt date offer, phantom dates ${JSON.stringify(offered)} not real per get_available_slots for calendar=${targetCalendarId} service=${serviceId}`,
+                `date-offer-guard: rebuilt date offer${falsePastClaim ? " (false past-date claim)" : ""}, phantom dates ${JSON.stringify(offered)} not real per get_available_slots for calendar=${targetCalendarId} service=${serviceId}`,
               );
               const realOpen: string[] = [];
               if (declinedDate) {
