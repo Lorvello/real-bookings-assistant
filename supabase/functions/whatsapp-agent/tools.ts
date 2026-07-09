@@ -2868,10 +2868,10 @@ export function createTools(
               current_name: b.customer_name,
               // R112: purely customer-facing, see identityDisambiguationGuard.ts's
               // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-              customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden?`,
+              customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
               message:
                 `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
-                `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden.`,
+                `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging.`,
               guidance: "NIETS geannuleerd. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
             };
           }
@@ -3037,10 +3037,10 @@ export function createTools(
             current_name: b.customer_name,
             // R112: purely customer-facing, see identityDisambiguationGuard.ts's
             // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden?`,
+            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
             message:
               `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
-              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en niet een andere afspraak of persoon bedoeld is. ` +
+              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging, en niet een andere afspraak of persoon bedoeld is. ` +
               "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
               "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: annuleer niets en vraag om verduidelijking.",
             guidance: "NIETS geannuleerd. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
@@ -3321,10 +3321,10 @@ export function createTools(
             current_name: b.customer_name,
             // R112: purely customer-facing, see identityDisambiguationGuard.ts's
             // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die verzet moet worden?`,
+            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die verzet moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
             message:
               `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). ` +
-              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die verzet moet worden, en niet een andere afspraak of persoon bedoeld is. ` +
+              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die verzet moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging, en niet een andere afspraak of persoon bedoeld is. ` +
               "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
               "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: verzet niets en vraag om verduidelijking.",
             guidance: "NIETS verzet. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
@@ -3873,11 +3873,11 @@ export function createTools(
             current_name: currentName,
             // R112: purely customer-facing, see identityDisambiguationGuard.ts's
             // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-            customer_reply: `De afspraak die ik vond staat op naam van ${currentName} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${currentName} is die hernoemd moet worden naar "${newNameRaw}"?`,
+            customer_reply: `De afspraak die ik vond staat op naam van ${currentName} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${currentName} is die hernoemd moet worden naar "${newNameRaw}"? Typ ter bevestiging de naam terug, bijv. "Ja, ${currentName}".`,
             message:
               `Er staan meerdere afspraken onder dit nummer. De afspraak die ik vond staat op naam van ${currentName}. ` +
               `Vraag de klant EXPLICIET te bevestigen dat de afspraak van ${currentName} (dienst ${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) ` +
-              `echt hernoemd moet worden naar "${newNameRaw}", en niet een andere afspraak of persoon bedoeld is. ` +
+              `echt hernoemd moet worden naar "${newNameRaw}", en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${currentName}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging, en niet een andere afspraak of persoon bedoeld is. ` +
               "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
               "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: wijzig niets en vraag om verduidelijking.",
             guidance: "NIETS gewijzigd. Veiligheidscheck: meerdere afspraken op dit nummer, dit zou een ANDERE persoon se afspraak hernoemen. Stel de vraag en wacht op het antwoord.",
