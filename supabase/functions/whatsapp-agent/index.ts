@@ -398,8 +398,25 @@ function deterministicConfirmation(
       ? `${priceNote}Done! You're booked for ${bookWhen}. 🎉`
       : `${priceNote}Gelukt! Je staat genoteerd voor ${bookWhen}. 🎉`;
   }
+  // R66 (fix for R65's DEFERRED finding, EMPLOYEE-CALENDAR-MISMATCH-NO-DISCLOSURE): cancel/
+  // reschedule/rename's ok:true result now carries calendar_mismatch whenever the customer's own
+  // message named a real but WRONG calendar/employee for the booking actually being acted on
+  // (tools.ts's findCalendarMismatch, threaded through the pending markers so it survives from
+  // the original request turn to the eventual bare "ja klopt" commit turn). This is the exact
+  // gate-first-trigger-wrong-text pattern already used throughout this file (enforceExisting
+  // AppointmentDisclosure etc): the customer must never learn a mutation just silently proceeded
+  // against a calendar/employee other than the one they explicitly named, on EVERY commit path,
+  // not left to the model's own (proven unreliable) prose to mention it.
+  const calendarMismatchNote = (m: unknown): string => {
+    const mm = m as { statedName?: unknown; actualName?: unknown } | null | undefined;
+    if (!mm || typeof mm.statedName !== "string" || typeof mm.actualName !== "string" || !mm.statedName.trim() || !mm.actualName.trim()) return "";
+    return en
+      ? `Note: I found the appointment with ${mm.actualName}, not ${mm.statedName}. `
+      : `Let op: ik zie de afspraak bij ${mm.actualName}, niet bij ${mm.statedName}. `;
+  };
   const resched = okResult("reschedule_appointment");
   if (resched?.rescheduled?.to) {
+    const mismatchNote = calendarMismatchNote(resched.rescheduled.calendar_mismatch);
     const reWhen = en ? enWhen(resched.rescheduled.to_start_time, resched.rescheduled.to) : resched.rescheduled.to;
     // R48: a multi-calendar reschedule may also have switched staff/location (new_agenda set
     // only when it actually changed calendar). Mention it here too, so this Groq-empty-text
@@ -420,12 +437,12 @@ function deterministicConfirmation(
       : null;
     if (newAgenda) {
       return en
-        ? (reName ? `Done, ${reName}'s appointment is now on ${reWhen} with ${newAgenda}.` : `Done, your appointment is now on ${reWhen} with ${newAgenda}.`)
-        : (reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen} bij ${newAgenda}.` : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`);
+        ? `${mismatchNote}${reName ? `Done, ${reName}'s appointment is now on ${reWhen} with ${newAgenda}.` : `Done, your appointment is now on ${reWhen} with ${newAgenda}.`}`
+        : `${mismatchNote}${reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen} bij ${newAgenda}.` : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`}`;
     }
     return en
-      ? (reName ? `Done, ${reName}'s appointment is now on ${reWhen}.` : `Done, your appointment is now on ${reWhen}.`)
-      : (reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen}.` : `Gedaan, je afspraak staat nu op ${reWhen}.`);
+      ? `${mismatchNote}${reName ? `Done, ${reName}'s appointment is now on ${reWhen}.` : `Done, your appointment is now on ${reWhen}.`}`
+      : `${mismatchNote}${reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen}.` : `Gedaan, je afspraak staat nu op ${reWhen}.`}`;
   }
   const cancel = okResult("cancel_appointment");
   if (cancel?.cancelled) {
@@ -435,9 +452,10 @@ function deterministicConfirmation(
     const cancelName = typeof cancel.cancelled.customer_name === "string" && cancel.cancelled.customer_name.trim()
       ? cancel.cancelled.customer_name.trim()
       : null;
+    const mismatchNote = calendarMismatchNote(cancel.cancelled.calendar_mismatch);
     return en
-      ? (cancelName ? `Done, ${cancelName}'s appointment has been cancelled.` : `Done, your appointment has been cancelled.`)
-      : (cancelName ? `Gedaan, de afspraak van ${cancelName} is geannuleerd.` : `Gedaan, je afspraak is geannuleerd.`);
+      ? `${mismatchNote}${cancelName ? `Done, ${cancelName}'s appointment has been cancelled.` : `Done, your appointment has been cancelled.`}`
+      : `${mismatchNote}${cancelName ? `Gedaan, de afspraak van ${cancelName} is geannuleerd.` : `Gedaan, je afspraak is geannuleerd.`}`;
   }
   // R40: update_booking_name commit. no_change (name was already that) is deliberately NOT
   // handled here: it never satisfies isCommittedMutation (no r.renamed), so stopOnToolResult
@@ -445,9 +463,10 @@ function deterministicConfirmation(
   // that isn't a genuine commit.
   const renamed = okResult("update_booking_name");
   if (renamed?.renamed) {
+    const mismatchNote = calendarMismatchNote(renamed.renamed.calendar_mismatch);
     return en
-      ? `Done, the name on your appointment (${renamed.renamed.when}) is now ${renamed.renamed.new_name}.`
-      : `Gedaan, de naam op je afspraak (${renamed.renamed.when}) is nu ${renamed.renamed.new_name}.`;
+      ? `${mismatchNote}Done, the name on your appointment (${renamed.renamed.when}) is now ${renamed.renamed.new_name}.`
+      : `${mismatchNote}Gedaan, de naam op je afspraak (${renamed.renamed.when}) is nu ${renamed.renamed.new_name}.`;
   }
   // R118 (GAP 2 fix): update_lead's own booking_renamed:true commit (a post-commit name-correction
   // it detected and propagated to the real booking row, see tools.ts). Deliberately generic (no

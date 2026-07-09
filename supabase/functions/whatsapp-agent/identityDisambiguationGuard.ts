@@ -124,6 +124,50 @@ export function extractStatedNameForBooking(
   return [...matchedIds][0];
 }
 
+// R66 (fix for R65's DEFERRED finding, EMPLOYEE-CALENDAR-MISMATCH-NO-DISCLOSURE): cancel/
+// reschedule/update_booking_name all resolve the target booking via resolveTarget() purely by
+// phone + name/date/time hints and never check whether the customer's own message names a
+// calendar/employee OTHER than the one the resolved booking actually lives on (live-reproduced
+// R65: a customer repeatedly says "bij Milan" for their only real booking, which is actually on
+// Iris's calendar; resolveTarget still finds the one real candidate correctly, so no wrong
+// mutation happens, but nothing ever corrects or discloses the mismatch, including in the final
+// "Gedaan, ..." success reply). Mirrors extractStatedNameForBooking's own whole-word, non-fuzzy,
+// "never guess between 2+ distinct mentions" discipline, applied to ctx.calendars' {id, name}
+// list instead of booking candidate names. Single-calendar businesses can never hit this (no
+// "wrong" employee is even possible), so the by-far-most-common case is completely unaffected.
+export interface CalendarMismatch {
+  statedName: string;
+  actualName: string;
+}
+export function findCalendarMismatch(
+  calendars: Array<{ id: string; name: string }>,
+  rawMessage: string | undefined | null,
+  actualCalendarId: string,
+): CalendarMismatch | null {
+  const msg = String(rawMessage ?? "");
+  if (!msg.trim() || calendars.length < 2) return null;
+  const matched: Array<{ id: string; name: string }> = [];
+  const seenNames = new Set<string>();
+  for (const c of calendars) {
+    const name = String(c.name ?? "").trim();
+    if (!name) continue;
+    const token = firstNameToken(name);
+    if (!token || token.length < 2) continue;
+    const normKey = normName(name);
+    if (seenNames.has(normKey)) continue; // dedupe: 2 calendars sharing the same displayed name count once
+    if (containsWholeWord(msg, token)) {
+      matched.push(c);
+      seenNames.add(normKey);
+    }
+  }
+  if (matched.length !== 1) return null; // 0 or 2+ distinct calendar names mentioned: don't guess
+  const stated = matched[0];
+  if (stated.id === actualCalendarId) return null; // customer named the RIGHT calendar, nothing to disclose
+  const actual = calendars.find((c) => c.id === actualCalendarId);
+  if (!actual || !String(actual.name ?? "").trim()) return null; // no real name to disclose, conservative no-op
+  return { statedName: stated.name.trim(), actualName: actual.name.trim() };
+}
+
 // R103 (GAP 2, STALE-VERIFICATION-MARKER-ON-RAPID-NAME-CORRECTION fix): the SAME 2+-distinct-name
 // detection extractStatedNameForBooking already performs internally (then discards, returning null
 // for both the "0 names" and "2+ names" cases), exposed as its own named signal. Live-reproduced

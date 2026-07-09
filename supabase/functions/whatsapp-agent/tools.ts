@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, takeoverVerificationResolution } from "./identityDisambiguationGuard.ts";
+import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
 
 export interface ToolContext {
@@ -2823,7 +2823,7 @@ export function createTools(
             .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
           cancelCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
-        const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string; at?: number } | undefined;
+        const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
         const clearPending = async () => {
           if (!ctx.conversationId) return;
           const { pending_cancel: _drop, ...rest } = cancelCtx;
@@ -2834,7 +2834,7 @@ export function createTools(
         // (once, top of the tool) so both the PREVIEW branch (which may consume/clear it) and any
         // future extension can see it without a second query.
         const pendingCancelVerification = cancelCtx.pending_cancel_verification as
-          { booking_id?: string; current_name?: string | null; start_time?: string; at?: number } | undefined;
+          { booking_id?: string; current_name?: string | null; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
         const clearPendingCancelVerification = async (base: Record<string, unknown>) => {
           if (!ctx.conversationId) return;
           const { pending_cancel_verification: _dropV, ...rest } = base;
@@ -2903,6 +2903,15 @@ export function createTools(
             };
           }
           const b = target.booking!;
+          // R66 (EMPLOYEE-CALENDAR-MISMATCH-NO-DISCLOSURE fix): does THIS turn's own raw message
+          // name a wrong calendar/employee (fresh check)? Falls back to whatever was already
+          // detected and stored on the pending_cancel/pending_cancel_verification markers from the
+          // ORIGINAL turn that requested this cancel (the commit turn itself is usually just a
+          // bare "ja klopt", which no longer restates the wrong name), so the mismatch survives
+          // across the preview -> verification -> commit turns, not just a single message.
+          const cancelCommitCalMismatch: CalendarMismatch | null =
+            findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id) ??
+            pending?.calendar_mismatch ?? pendingCancelVerification?.calendar_mismatch ?? null;
           // R102 (defense-in-depth): re-check the SAME cross-identity risk at COMMIT time too, not
           // just in the PREVIEW branch above. This guards a pending_cancel marker written BEFORE
           // this fix shipped (a transitional/race case only; every fresh preview after this fix
@@ -2916,7 +2925,7 @@ export function createTools(
             if (ctx.conversationId) {
               await supabase
                 .from("whatsapp_conversations")
-                .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
+                .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt, calendar_mismatch: cancelCommitCalMismatch } } })
                 .eq("id", ctx.conversationId);
             }
             return {
@@ -3008,7 +3017,9 @@ export function createTools(
             booking_id: b.id,
             // R102: surface whose name it was, so the model's final reply can say "de afspraak van
             // X is geannuleerd" instead of always "je afspraak", whenever a real name is on file.
-            cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null },
+            // R66: surface the customer-STATED-but-wrong calendar/employee name (if any), so the
+            // final "Gedaan, ..." reply can correct/disclose it instead of silently proceeding.
+            cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null, calendar_mismatch: cancelCommitCalMismatch },
           };
         }
 
@@ -3055,6 +3066,13 @@ export function createTools(
           };
         }
         const b = target.booking!;
+        // R66 (EMPLOYEE-CALENDAR-MISMATCH-NO-DISCLOSURE fix): does THIS message name a real but
+        // WRONG calendar/employee for the resolved target booking (e.g. "bij Milan" when the only
+        // real booking is on Iris's calendar)? Computed once here at PREVIEW time (this is the
+        // turn most likely to carry the customer's own stated name) and threaded through both
+        // pending markers below so it survives to the commit turn, which is usually just a bare
+        // "ja klopt" that no longer restates it.
+        const cancelPreviewCalMismatch = findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id);
 
         // R102 (shared-phone identity fix, R101-1/R101-2/R101-3 + verify-round findings 1/2): the
         // SAME two-condition cross-identity test as update_booking_name's own R76 guard, generalized
@@ -3085,7 +3103,7 @@ export function createTools(
           if (ctx.conversationId) {
             await supabase
               .from("whatsapp_conversations")
-              .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
+              .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt, calendar_mismatch: cancelPreviewCalMismatch } } })
               .eq("id", ctx.conversationId);
           }
           return {
@@ -3136,7 +3154,7 @@ export function createTools(
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtxClean, b.id), pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt } } })
+            .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtxClean, b.id), pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt, calendar_mismatch: cancelPreviewCalMismatch } } })
             .eq("id", ctx.conversationId);
         }
         // R102 (shared-phone identity fix, verify-round finding 1): whose name this booking is
@@ -3152,10 +3170,14 @@ export function createTools(
           // calendar and can differ in a multi-calendar business). Use this field, never
           // <business_data>, whenever this specific booking's cancellation terms come up.
           cancellation_policy_this_booking: formatCancellationPolicyNL(cancelPolicy),
+          // R66: surface the customer-STATED-but-wrong calendar/employee name (if any), so the
+          // model can correct it right away at the preview stage too, not just at final commit.
+          ...(cancelPreviewCalMismatch ? { calendar_mismatch: cancelPreviewCalMismatch } : {}),
           // guidance = internal-only (the model composes the customer-facing read-back itself).
-          guidance: cancelTargetName
+          guidance: (cancelTargetName
             ? `NIET geannuleerd. Deze afspraak staat op naam van ${cancelTargetName}. Noem die naam EXPLICIET in je vraag (bv. "Wil je de afspraak van ${cancelTargetName} echt annuleren?"), zeg NOOIT alleen "je afspraak" als er een naam bekend is. Bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).`
-            : "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).",
+            : "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).") +
+            (cancelPreviewCalMismatch ? ` LET OP: de klant noemde "${cancelPreviewCalMismatch.statedName}", maar deze afspraak staat bij ${cancelPreviewCalMismatch.actualName}. Noem dit expliciet (bv. "Ik zie je afspraak bij ${cancelPreviewCalMismatch.actualName}, niet bij ${cancelPreviewCalMismatch.statedName}, wil je toch dat ik die annuleer?") in plaats van stilzwijgend door te gaan.` : ""),
         };
       }
 
@@ -3208,6 +3230,14 @@ export function createTools(
           };
         }
         const b = target.booking!;
+        // R66 (EMPLOYEE-CALENDAR-MISMATCH-NO-DISCLOSURE fix): does THIS turn's own raw message
+        // name a real but WRONG calendar/employee for the resolved target booking (e.g. "bij
+        // Milan" when the only real booking is on Iris's calendar)? Computed fresh here every time
+        // this case runs (reschedule_appointment is a one-step tool, so the SAME message can both
+        // name the mismatch AND commit); combined below with whatever was stored on the
+        // pending_reschedule_confirm/pending_reschedule_verification markers from an EARLIER turn
+        // (the eventual commit turn is often just a bare "ja klopt" that no longer restates it).
+        const reschedFreshCalMismatch = findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id);
 
         // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix, live-reproduced 3/3 on
         // the S6 testpad): reschedule_appointment is deliberately a ONE-STEP tool (prompt.ts
@@ -3253,7 +3283,7 @@ export function createTools(
           (typeof pendingCancelForThisBooking.at !== "number" || (Date.now() - pendingCancelForThisBooking.at) < 15 * 60 * 1000);
         const messageCarriesExplicitIntent = hasExplicitRescheduleIntent(ctx.userMessage, ctx.allServiceNamesForAmbiguity ?? []);
         const existingReschedConfirm = reschedCtx.pending_reschedule_confirm as
-          { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+          { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
         const rescheduleAmbiguityAlreadyConfirmed = ctx.confirmRescheduleAmbiguity === true &&
           existingReschedConfirm?.booking_id === b.id;
         if (openForkQuestionForThisBooking && !messageCarriesExplicitIntent && !rescheduleAmbiguityAlreadyConfirmed) {
@@ -3283,6 +3313,7 @@ export function createTools(
                     new_service_type_id: args.service_type_id ?? null,
                     new_calendar_index: args.calendar_index ?? null,
                     at: confirmAt,
+                    calendar_mismatch: reschedFreshCalMismatch,
                   },
                 },
               })
@@ -3309,6 +3340,9 @@ export function createTools(
         // new date/time from the stored marker rather than trusting the model to resupply it on a
         // bare "ja" reply (which carries no date/time hint at all), same reasoning as
         // pending_reschedule_verification's own args-restore branch below.
+        // R66: mismatch restored from the ambiguity-confirm marker (an earlier turn may have named
+        // the wrong calendar/employee, this turn's own bare affirm usually doesn't repeat it).
+        let reschedRestoredCalMismatch1: CalendarMismatch | null = null;
         if (rescheduleAmbiguityAlreadyConfirmed && existingReschedConfirm) {
           if (existingReschedConfirm.new_date) args.date = existingReschedConfirm.new_date;
           if (existingReschedConfirm.new_time) args.time = existingReschedConfirm.new_time;
@@ -3316,6 +3350,7 @@ export function createTools(
           if (existingReschedConfirm.new_end_time) args.end_time = existingReschedConfirm.new_end_time;
           if (existingReschedConfirm.new_service_type_id) args.service_type_id = existingReschedConfirm.new_service_type_id;
           if (existingReschedConfirm.new_calendar_index != null) args.calendar_index = existingReschedConfirm.new_calendar_index;
+          reschedRestoredCalMismatch1 = existingReschedConfirm.calendar_mismatch ?? null;
           if (ctx.conversationId) {
             const { pending_reschedule_confirm: _dropRC, ...restRC } = reschedCtx;
             await supabase.from("whatsapp_conversations").update({ context: restRC }).eq("id", ctx.conversationId);
@@ -3346,7 +3381,7 @@ export function createTools(
         // any prior marker's implicit "already OK'd" no longer applies, exactly the live-reproduced
         // R103 stuck-loop shape.
         const existingReschedVerification = reschedCtx.pending_reschedule_verification as
-          { booking_id?: string; current_name?: string | null; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number } | undefined;
+          { booking_id?: string; current_name?: string | null; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
         const rescheduleAlreadyVerifiedThisBooking = !target.multipleNamesStated &&
           ctx.confirmRescheduleVerification === true &&
           existingReschedVerification?.booking_id === b.id;
@@ -3378,6 +3413,7 @@ export function createTools(
                     new_service_type_id: args.service_type_id ?? null,
                     new_calendar_index: args.calendar_index ?? null,
                     at: verifyAt,
+                    calendar_mismatch: reschedFreshCalMismatch,
                   },
                 },
               })
@@ -3406,6 +3442,10 @@ export function createTools(
         // R103: reuses reschedCtx/existingReschedVerification read once above (was a second
         // redundant read before this fix); STALE-invalidated the identical way (multipleNamesStated
         // or a booking_id mismatch means prv below simply won't match b.id, so nothing is restored).
+        // R66: mismatch restored from the identity-verification marker (this is the EXACT marker
+        // R65's live repro passed through: the wrong-employee name was stated on the original
+        // request turn, the eventual "Ja, <naam> klopt" commit turn never repeats it).
+        let reschedRestoredCalMismatch2: CalendarMismatch | null = null;
         if (ctx.confirmRescheduleVerification === true && !target.multipleNamesStated) {
           const vctx = reschedCtx;
           const prv = existingReschedVerification;
@@ -3416,12 +3456,17 @@ export function createTools(
             if (prv.new_end_time) args.end_time = prv.new_end_time;
             if (prv.new_service_type_id) args.service_type_id = prv.new_service_type_id;
             if (prv.new_calendar_index != null) args.calendar_index = prv.new_calendar_index;
+            reschedRestoredCalMismatch2 = prv.calendar_mismatch ?? null;
             if (ctx.conversationId) {
               const { pending_reschedule_verification: _dropRV, ...restV } = vctx;
               await supabase.from("whatsapp_conversations").update({ context: restV }).eq("id", ctx.conversationId);
             }
           }
         }
+        // R66: THIS turn's own message wins if it restates a (possibly different) mismatch,
+        // otherwise fall back to whichever earlier marker carried one.
+        const reschedFinalCalMismatch: CalendarMismatch | null =
+          reschedFreshCalMismatch ?? reschedRestoredCalMismatch1 ?? reschedRestoredCalMismatch2 ?? null;
         // R103 (GAP 2 fix, explicit stale-marker cleanup, mirrors cancel_appointment's identical
         // cleanup above): a message naming 2+ distinct candidates always invalidates whatever
         // pending_reschedule_verification marker predates it, whether or not the cross-identity
@@ -3626,7 +3671,9 @@ export function createTools(
           booking_id: b.id,
           // R102: surface whose name it was, so the model's final reply can say "de afspraak van
           // X is verzet" instead of always "je afspraak", whenever a real name is on file.
-          rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null },
+          // R66: surface the customer-STATED-but-wrong calendar/employee name (if any), so the
+          // final "Gedaan, ..." reply can correct/disclose it instead of silently proceeding.
+          rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null, calendar_mismatch: reschedFinalCalMismatch },
           ...(switchedCalendar ? { new_agenda: switchedCalendar } : {}),
         };
       }
@@ -3659,7 +3706,7 @@ export function createTools(
           renameCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pendingRename = renameCtx.pending_rename as
-          { booking_id?: string; start_time?: string; old_name?: string; new_name?: string; at?: number } | undefined;
+          { booking_id?: string; start_time?: string; old_name?: string; new_name?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
         const clearPendingRename = async () => {
           if (!ctx.conversationId) return;
           const { pending_rename: _drop, ...rest } = renameCtx;
@@ -3720,7 +3767,7 @@ export function createTools(
             };
           }
           await clearPendingRename();
-          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
+          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name, calendar_mismatch: pendingRename.calendar_mismatch ?? null } };
         }
 
         // R40 (renameCommitMissed follow-up, live-repro'd this round): when the customer's raw
@@ -3778,7 +3825,7 @@ export function createTools(
             };
           }
           await clearPendingRename();
-          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
+          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name, calendar_mismatch: pendingRename.calendar_mismatch ?? null } };
         }
 
         // R59 (RENAME-GATE2-MISS-LOOPBACK fix, sev-2, FINDINGS LEDGER R58): both commit branches
@@ -3873,7 +3920,7 @@ export function createTools(
         // the only way this confirm turn can ever complete without the model resupplying a
         // date/time hint it has no reason to repeat.
         const pendingVerification = renameCtx.pending_rename_verification as
-          { booking_id?: string; current_name?: string | null; new_name?: string; start_time?: string; at?: number } | undefined;
+          { booking_id?: string; current_name?: string | null; new_name?: string; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
         // R76 hardening: if the model's OWN args.new_name this turn is present AND differs from
         // what the verification marker stored, treat this as the customer stating a CORRECTION
         // alongside their reply (e.g. "ja klopt, maar dan Karim de Vries"), never silently keep
@@ -3945,6 +3992,13 @@ export function createTools(
           b = target.booking!;
           totalCandidatesNow = target.totalCandidates;
         }
+        // R66 (EMPLOYEE-CALENDAR-MISMATCH-NO-DISCLOSURE fix): does THIS turn's own raw message
+        // name a real but WRONG calendar/employee for the resolved target booking? Falls back to
+        // whatever the pending_rename_verification marker already carried (stored the first time
+        // the identity-verification question was asked), so it survives to the eventual bare
+        // "ja klopt" commit turn that no longer restates it.
+        const renameCalMismatch: CalendarMismatch | null =
+          findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id) ?? pendingVerification?.calendar_mismatch ?? null;
         const { data: currentRow } = await supabase.from("bookings").select("customer_name").eq("id", b.id).maybeSingle();
         const currentName = (currentRow as { customer_name?: string } | null)?.customer_name ?? null;
         if (currentName && currentName.trim().toLowerCase() === newNameRaw.toLowerCase()) {
@@ -4011,7 +4065,7 @@ export function createTools(
           if (ctx.conversationId) {
             await supabase
               .from("whatsapp_conversations")
-              .update({ context: { ...renameCtx, pending_rename_verification: { booking_id: b.id, current_name: currentName, new_name: newNameRaw, start_time: b.start_time, at: verifyAt } } })
+              .update({ context: { ...renameCtx, pending_rename_verification: { booking_id: b.id, current_name: currentName, new_name: newNameRaw, start_time: b.start_time, at: verifyAt, calendar_mismatch: renameCalMismatch } } })
               .eq("id", ctx.conversationId);
           }
           return {
@@ -4040,7 +4094,7 @@ export function createTools(
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...renameCtxClean, pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt } } })
+            .update({ context: { ...renameCtxClean, pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt, calendar_mismatch: renameCalMismatch } } })
             .eq("id", ctx.conversationId);
         }
         return {
@@ -4048,7 +4102,10 @@ export function createTools(
           appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time) },
           current_name: currentName,
           proposed_name: newNameRaw,
-          guidance: "NIETS gewijzigd. Lees de afspraak (dienst + tijd) + de huidige naam + de nieuwe naam terug en vraag of het klopt. Pas NA de bevestiging van de klant: roep update_booking_name opnieuw aan met confirmed:true + only_confirming_previous.",
+          // R66: surface the customer-STATED-but-wrong calendar/employee name (if any).
+          ...(renameCalMismatch ? { calendar_mismatch: renameCalMismatch } : {}),
+          guidance: "NIETS gewijzigd. Lees de afspraak (dienst + tijd) + de huidige naam + de nieuwe naam terug en vraag of het klopt. Pas NA de bevestiging van de klant: roep update_booking_name opnieuw aan met confirmed:true + only_confirming_previous." +
+            (renameCalMismatch ? ` LET OP: de klant noemde "${renameCalMismatch.statedName}", maar deze afspraak staat bij ${renameCalMismatch.actualName}. Noem dit expliciet (bv. "Ik zie de afspraak bij ${renameCalMismatch.actualName}, niet bij ${renameCalMismatch.statedName}, wil je toch dat ik die naam wijzig?") in plaats van stilzwijgend door te gaan.` : ""),
         };
       }
 

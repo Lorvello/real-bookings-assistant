@@ -12,6 +12,7 @@ import {
   enforceExistingAppointmentDisclosure,
   enforceVerificationGateDisclosure,
   extractStatedNameForBooking,
+  findCalendarMismatch,
   hasMultipleDistinctNamesStated,
   identityVerificationResolved,
   isRealName,
@@ -628,4 +629,55 @@ Deno.test("takeoverVerificationResolution: BOTH names mentioned at once -> unres
 
 Deno.test("takeoverVerificationResolution: near-identical names never cross-match (Anne vs Anna, same strict matcher as the rest of this file)", () => {
   assertEquals(takeoverVerificationResolution("Anna", "Bram", "ja voor Anne"), "unresolved");
+});
+
+// ── R66 findCalendarMismatch (fix for R65's DEFERRED finding, EMPLOYEE-CALENDAR-MISMATCH-NO-
+// DISCLOSURE): live-reproduced R65 shape -- a customer's only real booking is on Iris's calendar,
+// but they repeatedly say "bij Milan" (a real but wrong employee); resolveTarget still finds the
+// one real candidate correctly, but nothing ever discloses the mismatch. This pins the detector's
+// own logic in isolation. ────────────────────────────────────────────────────────────────────
+const CALENDARS = [
+  { id: "cal-iris", name: "Iris" },
+  { id: "cal-milan", name: "Milan" },
+  { id: "cal-sanne", name: "Sanne" },
+];
+
+Deno.test("findCalendarMismatch: R65 exact repro shape -- customer names a real but WRONG calendar", () => {
+  const result = findCalendarMismatch(
+    CALENDARS,
+    "Kun je mijn Knippen + Stylen afspraak bij Milan van dinsdag 14 juli verzetten naar zondag 19 juli om 15:00?",
+    "cal-iris",
+  );
+  assertEquals(result, { statedName: "Milan", actualName: "Iris" });
+});
+
+Deno.test("findCalendarMismatch: no-op when the customer names the RIGHT calendar", () => {
+  assertEquals(findCalendarMismatch(CALENDARS, "Kun je mijn afspraak bij Iris verzetten naar zondag 15:00?", "cal-iris"), null);
+});
+
+Deno.test("findCalendarMismatch: no-op when the message names NO calendar/employee at all", () => {
+  assertEquals(findCalendarMismatch(CALENDARS, "Kun je mijn afspraak verzetten naar zondag 15:00?", "cal-iris"), null);
+});
+
+Deno.test("findCalendarMismatch: no-op (don't guess) when the message names 2+ DISTINCT calendars", () => {
+  assertEquals(findCalendarMismatch(CALENDARS, "Was het nou bij Milan of bij Sanne?", "cal-iris"), null);
+});
+
+Deno.test("findCalendarMismatch: single-calendar business can never hit this (no 'wrong' employee possible)", () => {
+  assertEquals(findCalendarMismatch([{ id: "cal-iris", name: "Iris" }], "bij Milan graag", "cal-iris"), null);
+});
+
+Deno.test("findCalendarMismatch: whole-word match only (never a substring false-positive)", () => {
+  // "Milaan" (the city) should never false-match the calendar name "Milan".
+  assertEquals(findCalendarMismatch(CALENDARS, "Ik kom net terug van een tripje Milaan", "cal-iris"), null);
+});
+
+Deno.test("findCalendarMismatch: empty/blank raw message -> null", () => {
+  assertEquals(findCalendarMismatch(CALENDARS, "", "cal-iris"), null);
+  assertEquals(findCalendarMismatch(CALENDARS, undefined, "cal-iris"), null);
+  assertEquals(findCalendarMismatch(CALENDARS, null, "cal-iris"), null);
+});
+
+Deno.test("findCalendarMismatch: actualCalendarId not present in the calendars list -> no real name to disclose, conservative no-op", () => {
+  assertEquals(findCalendarMismatch(CALENDARS, "bij Milan graag", "cal-unknown"), null);
 });
