@@ -8,6 +8,7 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
 import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, takeoverVerificationResolution } from "./identityDisambiguationGuard.ts";
+import { isRenameGate2Retry } from "./renameGate2Guard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -72,6 +73,12 @@ export interface ToolContext {
   // gate, regardless of what new phrasing a customer invents in the future. See
   // evidence/IUX_r32.md section 2 for the full design reasoning.
   hardConfirm?: boolean;
+  // R59 (RENAME-GATE2-MISS-LOOPBACK fix): the mirror-image verdict of hardConfirm, true only when
+  // classifyHardConfirm's finite allow-list recognizes the raw message as an explicit CLEAN
+  // decline (not merely "not a clean confirm"). Used by update_booking_name's Gate-2 retry branch
+  // to tell an explicit "nee"/"niet doen" apart from a plain non-curated-phrase miss, so a real
+  // decline clears the pending rename instead of re-asking the same question.
+  hardReject?: boolean;
   // The customer's raw current message. Used as a SERVER-SIDE disambiguation fallback when the
   // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
   // we extract the clock time the customer named and resolve which booking they meant.
@@ -3712,6 +3719,85 @@ export function createTools(
           }
           await clearPendingRename();
           return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name } };
+        }
+
+        // R59 (RENAME-GATE2-MISS-LOOPBACK fix, sev-2, FINDINGS LEDGER R58): both commit branches
+        // above (the primary hardConfirm-gated branch and the same-name auto-commit branch) just
+        // fell through, meaning THIS turn did not satisfy the strict Gate-2 bar (ctx.hardConfirm/
+        // cleanlyConfirmedRename). Before this fix, execution always fell straight into the PREVIEW
+        // phase below, which (when no usable pending_rename_verification marker survives, the
+        // normal case since that marker is dropped the moment Gate 2 is first asked) calls
+        // resolveTarget() FROM SCRATCH and recomputes crossIdentityRisk against the CURRENT db
+        // name, re-triggering Gate 1 even though Gate 1 was already satisfied when this Gate-2
+        // marker was written. Live-reproduced (R58 ledger): 4 full Gate1-Gate2-Gate1-Gate2 cycles,
+        // 8 turns, zero progress, escaping only via a bare curated hardConfirm word.
+        //
+        // Fix: when a fresh pending_rename already exists for the SAME target (no genuine
+        // new_name correction supplied this turn), this is a Gate-2 RETRY, not a new request.
+        // Re-ask Gate 2 only, using the marker already on file (no resolveTarget() call, no
+        // crossIdentityRisk recompute, so Gate 1 can never re-fire from this branch), and restate
+        // the exact accepted confirm phrase in the guidance so the model can relay it, mirroring
+        // R57's own "improve the copy, don't weaken the gate" precedent for cancel/reschedule's
+        // identity-gate wording. Deliberately does NOT loosen hardConfirm's own allow-list (kept
+        // deliberately strict, see file header): Gate 2 is the actual "yes, really rename THIS
+        // other person's booking" security question, the same class every other mutating commit
+        // (book/cancel/reschedule) already requires ctx.hardConfirm===true for, so the fix here is
+        // to stop the FALLTHROUGH mechanism from discarding a satisfied Gate 1, never to relax
+        // what counts as a satisfied Gate 2.
+        //
+        // An explicit decline (ctx.hardReject, or a message-level NEGATE_RE-class refusal the
+        // model still routed back into this tool) clears the marker instead of re-asking, so a
+        // genuine "nee, laat maar" is never trapped in a retry loop either.
+        const gate2ArgsNewNameRaw = String(args.new_name ?? "");
+        if (
+          isRenameGate2Retry(pendingRename, gate2ArgsNewNameRaw, Date.now()) && !renamePreviewIsSelfWritten && pendingRename
+        ) {
+          if (ctx.hardReject === true) {
+            await clearPendingRename();
+            return {
+              ok: true,
+              cancelled_action: true,
+              message: "Oké, de naam blijft ongewijzigd.",
+              guidance: "Bevestig kort dat er niets is gewijzigd en vraag of er nog iets anders is.",
+            };
+          }
+          const { data: stillFresh } = await supabase
+            .from("bookings")
+            .select("id, status, start_time, customer_phone, service_types(name)")
+            .eq("id", pendingRename.booking_id)
+            .maybeSingle();
+          const stillFreshBooking = stillFresh as
+            { id: string; status: string; start_time: string; customer_phone: string; service_types?: { name?: string } } | null;
+          if (
+            !stillFreshBooking || stillFreshBooking.customer_phone !== ctx.phone ||
+            !["confirmed", "pending"].includes(stillFreshBooking.status) || new Date(stillFreshBooking.start_time) <= new Date()
+          ) {
+            await clearPendingRename();
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
+          // Refresh only the marker's timestamp (an active back-and-forth); booking_id/old_name/
+          // new_name stay exactly as first previewed, never re-derived from this turn's args.
+          const refreshedAt = Date.now();
+          lastSelfWrittenRenameAt = refreshedAt;
+          if (ctx.conversationId) {
+            await supabase.from("whatsapp_conversations")
+              .update({ context: { ...renameCtx, pending_rename: { ...pendingRename, at: refreshedAt } } })
+              .eq("id", ctx.conversationId);
+          }
+          return {
+            needs_confirmation: true,
+            appointment: { service: stillFreshBooking.service_types?.name ?? null, when: nlWhen(stillFreshBooking.start_time) },
+            current_name: pendingRename.old_name ?? null,
+            proposed_name: pendingRename.new_name,
+            guidance:
+              `NIETS gewijzigd. De klant heeft de wijziging van "${pendingRename.old_name ?? ""}" naar "${pendingRename.new_name}" nog niet duidelijk genoeg bevestigd. ` +
+              `Vraag het NOGMAALS en leg expliciet uit dat een kort bevestigend antwoord zoals "Klopt" of "Ja, bevestig" genoeg is om het echt door te voeren. ` +
+              "Roep update_booking_name NIET opnieuw aan met een andere new_name tenzij de klant echt een ANDERE naam bedoelt; bij twijfel of afwijzing: vraag door, wijzig niets.",
+          };
         }
 
         // PREVIEW phase (default; also where a stray confirmed:true WITHOUT a preview lands).
