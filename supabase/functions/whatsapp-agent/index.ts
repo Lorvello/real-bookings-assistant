@@ -2530,6 +2530,35 @@ Deno.serve(async (req) => {
             }
           }
         }
+        // R54 (full-journey agent simulation): the R52 falsePastClaim guard directly above only
+        // ever engages when a tool call actually ran this turn (dayClosedCall needs a real
+        // niet_beschikbaar/empty-slots result to anchor against). R53's live repro found the model
+        // can produce the identical false "al voorbij" claim with ZERO tool calls at all: an
+        // explicit day+month date beyond the old 14-day <kalender> table left the model to compute
+        // the ISO date itself with no grounding, and it answered directly from that wrong belief
+        // without ever calling a tool to check availability, so dayClosedCall was never even
+        // defined this turn. relativeDateHint (computed above, R54 now resolves explicit day+month
+        // references too, not only bare weekdays, see relativeDateHint.ts) is exactly the
+        // deterministic ground truth needed here: whenever THIS turn's hint resolves to a real
+        // date that is NOT in the past and the reply still falsely claims it already passed, that
+        // claim is false BY CONSTRUCTION, mirroring R52's own "false by construction" reasoning,
+        // just anchored on the hint instead of a tool result. No tool result exists here to build
+        // a "these days are open" alternative from (unlike the dayClosedCall branch above), so the
+        // honest rewrite states the real date and asks to proceed, rather than guessing at
+        // availability.
+        if (
+          relativeDateHint &&
+          relativeDateHint.iso >= now.toISOString().slice(0, 10) &&
+          mentionsFalsePastClaim(replyText)
+        ) {
+          console.warn(
+            `date-offer-guard: rewrote a false past-date claim with NO tool call this turn, relativeDateHint=${relativeDateHint.iso}`,
+          );
+          const en = customerLanguage != null;
+          replyText = en
+            ? `Sorry, that's not right, ${relativeDateHint.label} (${relativeDateHint.iso}) is actually still in the future. Would you like me to check availability for that day?`
+            : `Sorry, dat klopt niet, ${relativeDateHint.label} (${relativeDateHint.iso}) ligt nog in de toekomst. Zal ik de beschikbaarheid voor die dag checken?`;
+        }
         // F-014: "no hallucinated booking-confirmation" guarantee. A prompt-injected user (a forged
         // TOOL_RESULT:{create_booking:confirmed} string, a "[systeem] geboekt!" paste) can coax the
         // 20B model into claiming "your appointment is confirmed!" with ZERO tool calls and ZERO DB

@@ -29,6 +29,17 @@
 // phrasing); when nothing explicit is found, returns null and prompt.ts renders nothing extra
 // (byte-identical to before this fix).
 //
+// R54 EXTENSION: an explicit day+month reference ("6 augustus", "6 aug", optionally +year) is
+// ALSO now resolved right here, deterministically, using the real server "now" as ground truth,
+// instead of being deferred entirely to the model's own arithmetic (the original R29 design).
+// index.ts's <kalender> table only renders a 14-day lookahead, so any explicit date beyond that
+// window had nothing for the model to read off, and it reproducibly miscomputed the ISO date
+// (see FINDINGS LEDGER R53 row for the live repro: a false "already passed" claim for a real,
+// bookable, 28-days-out date). This now covers explicit dates near OR far, with no dependence on
+// the 14-day window, and wins priority over vandaag/morgen/weekday phrasing (the most specific
+// thing the customer could have said). tools.ts already wires the resolved ISO to override
+// args.date whenever it disagrees, unchanged from R29's own mechanism.
+//
 // dash-free of em dashes per house rule.
 
 const NL_WEEKDAYS: Record<string, number> = {
@@ -75,18 +86,92 @@ function resolveWeekday(now: Date, targetDow: number, skipWeek: boolean): Date {
 const NL_MONTH_NAMES =
   "januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december|" +
   "jan|feb|mrt|apr|jun|jul|aug|sep|okt|nov|dec";
-// An explicit "24 juli" / "juli 24" style date ANYWHERE in the message means the customer's ask
-// is already unambiguous (dateOfferGuard.ts / the model's own <kalender> lookup already handle an
-// explicit date correctly, this whole module exists only for a BARE weekday with no day-number).
-// A bare weekday word can sit right next to an explicit date ("vrijdag 24 juli"): resolving that
-// as a fresh relative reference would silently overrule the customer's own explicit date, a real
-// regression this guard must never cause. So: any explicit day+month anywhere -> defer entirely,
-// return null.
-const EXPLICIT_DATE_RE = new RegExp(`\\b(\\d{1,2}\\s+(${NL_MONTH_NAMES})|(${NL_MONTH_NAMES})\\s+\\d{1,2})\\b`, "i");
+
+// R54 (real bug: R53 full-journey agent simulation): an explicit "6 augustus" style day+month
+// reference used to defer ENTIRELY to the model's own date arithmetic (this module only covered
+// bare weekday references, R29). index.ts's <kalender> table only renders a 14-day lookahead, so
+// any explicit date beyond that window had nothing for the model to read off, and Groq
+// gpt-oss-20b reproducibly (3/3 live) miscomputed the ISO date backward, producing a false
+// "already passed" claim for a real, bookable, future date, see FINDINGS LEDGER R53 row for the
+// full live repro. Fix: resolve an explicit day+month (optionally +year) reference to a real ISO
+// date deterministically, right here, using the real server "now" as ground truth, for EVERY
+// explicit date (near or far), not only ones beyond the 14-day table. This removes model
+// arithmetic from date resolution entirely, the same "deterministic ground truth over free model
+// computation" discipline the bare-weekday hint (R29) already applies, and tools.ts already wires
+// ctx.relativeDateHintISO to override args.date whenever it disagrees, so no other call site
+// needs to change.
+const NL_MONTHS: Record<string, number> = {
+  januari: 1, jan: 1,
+  februari: 2, feb: 2,
+  maart: 3, mrt: 3,
+  april: 4, apr: 4,
+  mei: 5,
+  juni: 6, jun: 6,
+  juli: 7, jul: 7,
+  augustus: 8, aug: 8,
+  september: 9, sep: 9,
+  oktober: 10, okt: 10,
+  november: 11, nov: 11,
+  december: 12, dec: 12,
+};
+
+// Captures an explicit day+month reference in either NL word order ("6 augustus" or
+// "augustus 6"), plus an optional explicit 4-digit year stated right after it ("6 augustus 2026").
+const EXPLICIT_DATE_CAPTURE_RE = new RegExp(
+  `\\b(?:(\\d{1,2})\\s+(${NL_MONTH_NAMES})|(${NL_MONTH_NAMES})\\s+(\\d{1,2}))\\b(?:\\s+(\\d{4}))?`,
+  "i",
+);
+
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : String(n);
+}
+
+// Resolves an explicit day+month (optionally +year) reference to a real ISO date. When no year
+// is stated: nearest occurrence on/after today (today itself counts), rolling into next year if
+// the day+month has already passed this year, mirroring resolveWeekday's own "nearest upcoming"
+// convention below. When an explicit year IS stated, it is honored literally, the customer's own
+// explicit year always wins, this function never overrules it (even into the past: a real past-
+// year claim should still surface as a genuine, honest "already passed" reply downstream, that is
+// correct behavior, not this bug's class).
+function resolveExplicitDayMonth(
+  now: Date,
+  day: number,
+  month: number,
+  explicitYear: number | null,
+): { iso: string; label: string } | null {
+  if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+  const todayIso = amsterdamISO(now);
+  const todayY = Number(todayIso.split("-")[0]);
+  let year = explicitYear ?? todayY;
+  let iso = `${year}-${pad2(month)}-${pad2(day)}`;
+  if (explicitYear === null && iso < todayIso) {
+    year += 1;
+    iso = `${year}-${pad2(month)}-${pad2(day)}`;
+  }
+  const d = new Date(`${iso}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  return { iso, label: dutchLabel(d) };
+}
 
 export function extractRelativeDayHint(text: string, now: Date): RelativeDateHint | null {
   const s = (text || "").toLowerCase();
-  if (EXPLICIT_DATE_RE.test(s)) return null;
+
+  // Explicit day+month wins over everything else (vandaag/morgen/weekday phrasing): it is the
+  // most specific, unambiguous thing the customer could have said, and now that it resolves to a
+  // real ISO date itself (R54), there is no reason to defer to the model for it at all, near or
+  // far. A defensive fallback (match found but resolution somehow fails, should not happen in
+  // practice) falls through to the rest of this function rather than throwing.
+  const explicitMatch = EXPLICIT_DATE_CAPTURE_RE.exec(s);
+  if (explicitMatch) {
+    const day = Number(explicitMatch[1] ?? explicitMatch[4]);
+    const monthName = explicitMatch[2] ?? explicitMatch[3];
+    const month = NL_MONTHS[monthName];
+    const explicitYear = explicitMatch[5] ? Number(explicitMatch[5]) : null;
+    const resolved = month ? resolveExplicitDayMonth(now, day, month, explicitYear) : null;
+    if (resolved) {
+      return { iso: resolved.iso, label: resolved.label, matchedPhrase: explicitMatch[0].trim() };
+    }
+  }
 
   const todayIso = amsterdamISO(now);
   if (/\bvandaag\b/.test(s)) {

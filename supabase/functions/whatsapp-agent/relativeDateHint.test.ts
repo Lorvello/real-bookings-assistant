@@ -1,5 +1,6 @@
-// Deterministic unit tests for the R29 relative-date hint (bare weekday pre-parse). Pure
-// extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
+// Deterministic unit tests for the relative-date hint: R29's bare weekday pre-parse, plus R54's
+// explicit day+month deterministic resolution (near or far, beyond the old 14-day table too).
+// Pure extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
 // Run: deno test relativeDateHint.test.ts
 import { assertEquals, assertMatch } from "jsr:@std/assert";
 import { extractRelativeDayHint, formatRelativeDateHint } from "./relativeDateHint.ts";
@@ -78,19 +79,54 @@ Deno.test("no relative-date phrase present -> null", () => {
   assertEquals(h, null);
 });
 
-Deno.test("explicit numeric date only (no bare weekday) -> null, this guard does not duplicate dateOfferGuard", () => {
+Deno.test("explicit numeric date within the 14-day window resolves deterministically (R54, no regression vs the old kalender-table path)", () => {
   const h = extractRelativeDayHint("Kan ik 24 juli om 9 uur?", THURSDAY);
-  assertEquals(h, null);
+  assertEquals(h?.iso, "2026-07-24");
 });
 
-Deno.test("weekday name RIGHT NEXT TO an explicit date -> null (never overrules an explicit date, regression guard)", () => {
+Deno.test("weekday name RIGHT NEXT TO an explicit date resolves to the EXPLICIT date, not the weekday (never overrules an explicit date, regression guard)", () => {
   const h = extractRelativeDayHint("Kan ik vrijdag 24 juli om 9 uur Gelnagels boeken bij Bo?", THURSDAY);
-  assertEquals(h, null);
+  assertEquals(h?.iso, "2026-07-24");
+  assertEquals(h?.matchedPhrase, "24 juli");
 });
 
-Deno.test("weekday name elsewhere in a message that ALSO contains an unrelated explicit date -> still null (defer entirely)", () => {
+Deno.test("weekday name elsewhere in a message that ALSO contains an unrelated explicit date -> resolves to the explicit date (defer to it entirely, not the weekday)", () => {
   const h = extractRelativeDayHint("Ik had het over 24 juli, maar kan het ook op vrijdag?", THURSDAY);
-  assertEquals(h, null);
+  assertEquals(h?.iso, "2026-07-24");
+});
+
+// ── R54: explicit day+month beyond the 14-day <kalender> table (FINDINGS LEDGER R53) ──────────
+
+Deno.test("R53 exact repro: '6 augustus' (28 days out, beyond the 14-day table) resolves to the real future ISO date, not a hallucinated past one", () => {
+  const h = extractRelativeDayHint("Kan ik donderdag 6 augustus een Manicure boeken bij Bo?", THURSDAY);
+  assertEquals(h?.iso, "2026-08-06");
+});
+
+Deno.test("'6 aug' abbreviation resolves the same as '6 augustus'", () => {
+  const h = extractRelativeDayHint("Kan ik 6 aug een Manicure boeken bij Bo?", THURSDAY);
+  assertEquals(h?.iso, "2026-08-06");
+});
+
+Deno.test("explicit date WITH an explicit year is honored literally, not rolled", () => {
+  const h = extractRelativeDayHint("Kan ik 6 augustus 2027 een Manicure boeken?", THURSDAY);
+  assertEquals(h?.iso, "2027-08-06");
+});
+
+Deno.test("day+month already passed this year (no year stated) rolls to next year, never silently picks a past date", () => {
+  // THURSDAY is 2026-07-09; "3 januari" with no year would be 2026-01-03 if taken literally,
+  // which is already in the past. Must roll to 2027-01-03, not 2026-01-03.
+  const h = extractRelativeDayHint("Kan ik 3 januari een Manicure boeken?", THURSDAY);
+  assertEquals(h?.iso, "2027-01-03");
+});
+
+Deno.test("day+month still ahead this year (no year stated) stays in the current year", () => {
+  const h = extractRelativeDayHint("Kan ik 25 december een Manicure boeken?", THURSDAY);
+  assertEquals(h?.iso, "2026-12-25");
+});
+
+Deno.test("day+month equal to today (no year stated) resolves to today, not next year", () => {
+  const h = extractRelativeDayHint("Kan ik 9 juli een Manicure boeken?", THURSDAY);
+  assertEquals(h?.iso, "2026-07-09");
 });
 
 // ── formatRelativeDateHint ────────────────────────────────────────────────────
