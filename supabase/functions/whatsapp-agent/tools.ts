@@ -2782,6 +2782,36 @@ export function createTools(
         };
       }
 
+      // R62 (CROSS-ACTION-MARKER-COLLISION fix): cancel_appointment and reschedule_appointment each
+      // maintain their OWN pending_cancel/pending_cancel_verification vs
+      // pending_reschedule_confirm/pending_reschedule_verification markers for a given booking,
+      // written independently. Live-reproduced: arming reschedule's own identity-verification
+      // marker for a booking that ALREADY had a fresh pending_cancel/pending_cancel_verification
+      // marker (from an earlier, separate cancel attempt on the SAME booking, still within its own
+      // 15-minute TTL) left BOTH sets of markers live simultaneously. A single "Ja, <naam> klopt"
+      // reply then satisfied identityVerificationResolved for BOTH gates at once; the model called
+      // cancel_appointment (not reschedule_appointment), which committed deterministically (the
+      // cancel gate's own commit path has no visibility into the fact the customer had just been
+      // asked a RESCHEDULE question), silently CANCELLING the appointment instead of rescheduling
+      // it, with a clean "Gedaan, ... is geannuleerd" reply and no indication to the customer that
+      // a different action than the one they had just been asked about, and confirmed, was taken.
+      // Fix: whenever EITHER action arms a fresh pending marker for a booking, drop the OTHER
+      // action's pending markers for THAT SAME booking_id first, so at most one action can ever be
+      // "pending confirmation" for a given booking at a time (mirrors the existing R103 convention
+      // of dropping a stale marker the moment a newer, competing signal for the same target
+      // appears). Purely additive context cleanup; does not change any gate's own release logic.
+      function dropCrossActionMarkersForBooking(base: Record<string, unknown>, bookingId: string): Record<string, unknown> {
+        const out = { ...base };
+        for (
+          const key of
+            ["pending_cancel", "pending_cancel_verification", "pending_reschedule_confirm", "pending_reschedule_verification"] as const
+        ) {
+          const marker = out[key] as { booking_id?: string } | undefined;
+          if (marker && marker.booking_id === bookingId) delete out[key];
+        }
+        return out;
+      }
+
       case "cancel_appointment": {
         // Two-phase confirm (council A8 verdict): cancelling is destructive, so the tool NEVER
         // mutates without an explicit confirmation. Determinism lives here, not in the prompt:
@@ -2886,7 +2916,7 @@ export function createTools(
             if (ctx.conversationId) {
               await supabase
                 .from("whatsapp_conversations")
-                .update({ context: { ...cancelCtx, pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
+                .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
                 .eq("id", ctx.conversationId);
             }
             return {
@@ -3055,7 +3085,7 @@ export function createTools(
           if (ctx.conversationId) {
             await supabase
               .from("whatsapp_conversations")
-              .update({ context: { ...cancelCtx, pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
+              .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt } } })
               .eq("id", ctx.conversationId);
           }
           return {
@@ -3106,7 +3136,7 @@ export function createTools(
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...cancelCtxClean, pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt } } })
+            .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtxClean, b.id), pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt } } })
             .eq("id", ctx.conversationId);
         }
         // R102 (shared-phone identity fix, verify-round finding 1): whose name this booking is
@@ -3233,7 +3263,12 @@ export function createTools(
             // question instead) so it can never also independently release cancel_appointment's
             // own commit gate on a later turn, mirroring how the existing cross-identity gate
             // below always replaces whichever marker it is superseding rather than layering them.
-            const { pending_cancel: _dropPC, ...restNoPC } = reschedCtx;
+            // R62: ALSO drop pending_cancel_verification for this SAME booking (not just the plain
+            // pending_cancel fork marker) -- live-reproduced with pending_cancel_verification left
+            // behind, a later name-repeat reply could still independently satisfy the CANCEL
+            // identity gate and commit a cancel instead of the reschedule the customer had just
+            // been asked to confirm.
+            const restNoPC = dropCrossActionMarkersForBooking(reschedCtx, b.id);
             await supabase
               .from("whatsapp_conversations")
               .update({
@@ -3322,7 +3357,13 @@ export function createTools(
               .from("whatsapp_conversations")
               .update({
                 context: {
-                  ...reschedCtx,
+                  // R62: drop any pre-existing pending_cancel/pending_cancel_verification for this
+                  // SAME booking first (live-reproduced root cause: a customer replying "Ja, <naam>
+                  // klopt" to THIS reschedule-identity question could otherwise ALSO still satisfy
+                  // an older, still-fresh cancel-identity marker for the same booking, and the model
+                  // calling cancel_appointment instead of reschedule_appointment would silently
+                  // cancel the appointment rather than reschedule it).
+                  ...dropCrossActionMarkersForBooking(reschedCtx, b.id),
                   pending_reschedule_verification: {
                     booking_id: b.id,
                     // R109: the target booking's OWN customer_name, so index.ts's
