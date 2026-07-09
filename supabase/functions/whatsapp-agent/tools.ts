@@ -2887,14 +2887,38 @@ export function createTools(
             };
           }
           // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
-          // reporting isn't blank — the policy was already enforced just above.
-          const { error } = await supabase.from("bookings").update({
+          // reporting isn't blank (the policy was already enforced just above).
+          // R40-FIX (CANCEL-PHANTOM-SUCCESS, sev-2): resolveTarget's SELECT just above only proves
+          // the row was confirmed/pending AT READ TIME; a race (a concurrent request, a duplicate
+          // confirm burst, an already-cancelled row from the fixture-wide Stripe wall re-fetched
+          // stale) can still leave the row NOT actually in confirmed/pending state at UPDATE time.
+          // The old code trusted "no Postgres error" as proof of a real mutation, but an .update()
+          // whose WHERE clause matches ZERO rows returns NO error either, so a no-op could silently
+          // reach ok:true / cancelled:{...} below and the model would then narrate a cancellation
+          // that never happened, exactly the false-success shape found live at R40 (booking
+          // 15fdb936-8900-440a-9d08-4c5cff135662, updated_at/cancelled_at never actually changed).
+          // Fix: re-assert status in the WHERE clause (closes the race window at the SQL level, not
+          // just at the earlier SELECT) AND .select("id") so the actual affected-row-count is
+          // checked, not just the absence of a Postgres error. Zero rows affected is now treated
+          // exactly like "not found" (the same error shape resolveTarget's own none branch already
+          // uses above), never a false ok:true.
+          const { data: cancelledRows, error } = await supabase.from("bookings").update({
             status: "cancelled",
             cancelled_at: new Date().toISOString(),
             cancellation_reason: "Geannuleerd via WhatsApp",
             updated_at: new Date().toISOString(),
-          }).eq("id", b.id);
+          }).eq("id", b.id).in("status", ["confirmed", "pending"]).select("id");
           if (error) return { error: error.message };
+          if (!cancelledRows || cancelledRows.length === 0) {
+            // Zero rows actually mutated: the row was not really confirmed/pending anymore (already
+            // cancelled, or removed) by the time this UPDATE ran. Never claim success on a no-op.
+            await clearPending();
+            return {
+              error: "geen_boeking",
+              message: "Die afspraak kan ik niet meer vinden om te annuleren, mogelijk is hij al weg.",
+              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+            };
+          }
           // SEQP2R5: owner activity log. old_value is the pre-cancel status captured by
           // resolveTarget above (b.status, whatever non-terminal status it had); new_value is
           // the post-cancel state. Best-effort, non-fatal (a logging failure must never block
