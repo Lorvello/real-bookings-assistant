@@ -41,6 +41,11 @@ export interface PromptContext {
   businessData?: Record<string, unknown> | null; // ALL set business info (fetchBusinessData), injected every turn
   customerLanguage?: string | null; // server-detected non-Dutch language (Dutch name, e.g. "het Engels"); null = Dutch/unsure
   calendarHint?: string | null; // server-built concrete-date calendar (next 14 days, open/closed) for relative-date resolution
+  // R29: deterministic pre-parsed hint for a bare relative-weekday reference ("vrijdag", "vrijdag
+  // diezelfde week") found in THIS TURN's raw customer message, computed fresh from the real
+  // server "now" (never from conversation history). "" (empty string) or undefined = nothing
+  // detected this turn, renders nothing (byte-identical prompt to before this fix).
+  relativeDateHintText?: string | null;
   bookingWindowDays?: number | null; // how far ahead this calendar accepts bookings (booking_window_days); null = no horizon
   bookingHorizonISO?: string | null; // last bookable date (YYYY-MM-DD) = today + bookingWindowDays
   bookingHorizonNL?: string | null; // same date, human Dutch ("vrijdag 21 augustus 2026")
@@ -230,7 +235,7 @@ EIGENNAMEN VERTAAL JE NOOIT. De dienstnaam (exact zoals in <services>/<kalenders
 </language>
 
 <context>
-Huidige tijd: ${ctx.currentTimeNL}. Vandaag (ISO, UTC): ${ctx.todayISO}.
+Huidige tijd: ${ctx.currentTimeNL}. Vandaag (ISO, UTC): ${ctx.todayISO}.${ctx.relativeDateHintText || ""}
 ${known}
 ${returning}
 </context>

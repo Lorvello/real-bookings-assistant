@@ -12,6 +12,7 @@ import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHours
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { buildDeterministicDateAlternatives, extractOfferedDates, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
+import { extractRelativeDayHint, formatRelativeDateHint } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
@@ -1099,6 +1100,12 @@ Deno.serve(async (req) => {
       (typeof convContext.detected_language === "string" ? convContext.detected_language : null);
 
     const now = new Date();
+    // R29: deterministic pre-parse of the CURRENT customer message for a bare relative-weekday
+    // reference ("vrijdag", "vrijdag diezelfde week"), computed fresh from the real server "now",
+    // never from conversation history. See relativeDateHint.ts header for the full bug this
+    // closes (R28: long/rambling message with an unnumbered weekday got resolved against a STALE
+    // date already sitting in earlier conversation history instead of the real today).
+    const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now);
     // Single source of truth for opening hours = the BOOKABLE schedule of THIS calendar
     // (availability_rules, via getCalendarWeeklyHours). Override the spoken hours that
     // fetchBusinessData derived from the separate, often-stale business_overview.calendars[0]
@@ -1321,6 +1328,7 @@ Deno.serve(async (req) => {
       businessData,
       customerLanguage,
       calendarHint,
+      relativeDateHintText: formatRelativeDateHint(relativeDateHint),
       bookingWindowDays,
       bookingHorizonISO,
       bookingHorizonNL,
@@ -1967,7 +1975,7 @@ Deno.serve(async (req) => {
     // convContext.booking_name via update_lead, else the WhatsApp profile display name). Threaded
     // through as knownSelfName so cancel/reschedule's cross-identity guard can detect when a
     // resolved target booking's own name differs from what THIS speaker has said about themselves.
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, userMessage: String(message), customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).

@@ -76,6 +76,14 @@ export interface ToolContext {
   // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
   // we extract the clock time the customer named and resolve which booking they meant.
   userMessage?: string;
+  // R29 (relativeDateHint.ts): deterministic ISO date (YYYY-MM-DD) resolved server-side from a
+  // bare relative-weekday phrase found in THIS TURN's raw customer message ("vrijdag", "vrijdag
+  // diezelfde week"), computed fresh from the real server "now", never from conversation history.
+  // null/undefined when no such phrase was found this turn (no override, behaviour unchanged).
+  // The execute() function above uses this to override any `date` tool argument that disagrees
+  // with it, closing a real bug where the model echoed a stale date from earlier history instead
+  // of resolving the customer's actual relative reference.
+  relativeDateHintISO?: string | null;
   // FQ-11 locale: the customer's normalised booking locale ("en" when a non-Dutch language was
   // server-detected this turn/conversation, else "nl"). Persisted onto the booking row's
   // customer_locale so the reminder engine (get_due_booking_reminders + reminderBody) sends the
@@ -1119,6 +1127,27 @@ export function createTools(
   let lastSelfWrittenTakeoverVerifyAt: number | undefined;
 
   const execute: ToolExecutor = async (name, args) => {
+    // R29 (RELATIVE-DATE-HINT-ENFORCE, real bug: R28 full-journey agent simulation): a bare
+    // relative-weekday reference ("vrijdag", "vrijdag diezelfde week") in the customer's CURRENT
+    // message can get resolved by the model against a STALE date already sitting in earlier
+    // conversation history, instead of freshly computed from today. index.ts already computes the
+    // real, deterministic ISO date for such a phrase (relativeDateHint.ts) and passes it as
+    // ctx.relativeDateHintISO for THIS turn only. A prompt-only hint (first attempted, R29) proved
+    // insufficient: the model kept echoing the stale history date even with the hint present in
+    // its own context (same "prompt nudge cannot fix a structural gap" lesson as R11/R18/R20).
+    // This is the CODE-level backstop: get_available_slots / book_appointment / reschedule_appointment
+    // are the only three tools with a `date` argument (grepped, confirmed), always YYYY-MM-DD read
+    // from the <kalender> table. Whenever this turn's hint exists and the model's own `date` differs
+    // from it, the hint wins (deterministic ground truth over free model computation), same
+    // discipline as dateOfferGuard.ts applies to OFFERED dates.
+    if (
+      ctx.relativeDateHintISO &&
+      typeof args.date === "string" &&
+      args.date.length > 0 &&
+      args.date !== ctx.relativeDateHintISO
+    ) {
+      args = { ...args, date: ctx.relativeDateHintISO };
+    }
     switch (name) {
       case "get_business_data": {
         const out = await fetchBusinessData(supabase, ctx.businessUserId);
