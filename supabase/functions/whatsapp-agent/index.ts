@@ -2201,6 +2201,26 @@ Deno.serve(async (req) => {
     // already-previewed name, never a model-reconstructed one.
     const renameCommitMissed = confirmRename && !succeededMutation;
 
+    // R67 (RESCHEDULE-VERIFICATION-COMMIT-MISSED fix): confirmRescheduleVerification is the ONE
+    // identity-verification signal in this file that was never widened into this commitMissed
+    // forcing-nudge mechanism, unlike its two siblings (cancelCommitMissed already widened to
+    // confirmCancelVerification at R120 "MILDER-SYMPTOM fix, cancel side"; bookCommitMissed already
+    // widened to confirmBookVerification/confirmBookOwnerRestated at R120
+    // "BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix"). Live-reproduced (FULL_JOURNEY_AGENT_SIMULATION
+    // R67, thread f8321de7..., 2026-07-09): tools.ts's own gate (rescheduleAlreadyVerifiedThisBooking)
+    // is fully server-computed and airtight -- confirmed live TWICE that a genuine name-repeat
+    // ("Ja, R67Verify klopt") correctly consumes the existing pending_reschedule_verification marker
+    // and does NOT re-arm a fresh one. The actual gap is downstream of that: nothing forces the model
+    // to actually CALL reschedule_appointment on the turn that resolves the verification question,
+    // and gpt-oss-20b does not reliably do so on its own (live-reproduced: it called get_my_appointments
+    // instead and replied with a plain appointment listing, leaving succeededMutation false and the
+    // booking's start_time unchanged). reschedStall (below) does NOT cover this shape: it requires the
+    // model's OWN text to narrate a reschedule verb + a concrete new time, which a
+    // get_my_appointments-shaped reply never does. This mirrors the SAME "server-side gate is correct,
+    // model tool-selection isn't reliable" root cause R120 already fixed for cancel/book; reschedule
+    // was simply the one sibling left unwidened.
+    const reschedCommitMissed = confirmRescheduleVerification && !succeededMutation;
+
     // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
     // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
     // no pending_booking proposal exists and the customer's next "ja" has nothing to commit.
@@ -2243,14 +2263,14 @@ Deno.serve(async (req) => {
     const slotOfferUnbacked = !calledMutationTool && !calledSlots && offeredTimesPrimary.length > 0 &&
       OFFER_CONTEXT_RE.test(result.text || "");
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed || emptyNoAction || slotOfferUnbacked) {
+    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed || reschedCommitMissed || emptyNoAction || slotOfferUnbacked) {
       // T3-LATENCY-RETRY follow-up (R22): the stall-retry DOUBLES the turn's sequential LLM
       // round-trips, and when accepted, `result = retry` makes the primary call's step count
       // invisible in the response. Log which heuristic fired + both step counts so tail-latency
       // turns are diagnosable from the function logs. Log-only, no behavior change.
       const nudgeReason =
         cancelCommitMissed ? "cancelCommitMissed" : bookCommitMissed ? "bookCommitMissed" :
-        renameCommitMissed ? "renameCommitMissed" :
+        renameCommitMissed ? "renameCommitMissed" : reschedCommitMissed ? "reschedCommitMissed" :
         reschedStall ? "reschedStall" : bookPreviewMissed ? "bookPreviewMissed" :
         cancelPreviewMissed ? "cancelPreviewMissed" : confirmStall ? "confirmStall" :
         emptyNoAction ? "emptyNoAction" : slotOfferUnbacked ? "slotOfferUnbacked" : "looksLikeStall";
@@ -2277,6 +2297,13 @@ Deno.serve(async (req) => {
         ? "[systeem] De klant bevestigde dat de zojuist voorgestelde afspraak geannuleerd mag worden, maar je hebt cancel_appointment niet (geslaagd) aangeroepen, dus er is NIETS geannuleerd. Roep NU cancel_appointment aan met confirmed:true. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil (andere tijd, vraag, voorwaarde, twijfel, afwijzing/ontevredenheid in welke vorm dan ook). Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Antwoord met het resultaat. Zeg NOOIT dat een afspraak geannuleerd is zonder de tool aan te roepen."
         : renameCommitMissed
         ? "[systeem] De klant bevestigde de zojuist voorgestelde naamswijziging op de afspraak, maar je hebt update_booking_name niet (geslaagd) aangeroepen, dus de naam is nog NIET gewijzigd. Roep NU update_booking_name aan met BEIDE velden confirmed:true EN only_confirming_previous samen in DEZELFDE aanroep. Beoordeel only_confirming_previous zelf, opnieuw, op BETEKENIS: true ALLEEN als het laatste klantbericht ECHT en UITSLUITEND een kale bevestiging is zonder enige andere inhoud, false zodra er ENIG signaal in zit dat de klant iets anders wil. Twijfel je: false, dan vraagt het systeem gewoon nogmaals. Geef new_name NIET opnieuw door: het systeem gebruikt de in de preview opgeslagen naam. Antwoord met het resultaat."
+        // R67 (RESCHEDULE-VERIFICATION-COMMIT-MISSED fix): DEDICATED nudge for
+        // confirmRescheduleVerification, parallel to cancel's/book's own dedicated branches above,
+        // so the model is told explicitly that the name in this turn's message IS the resolution
+        // (not new doubt to re-litigate) and that the new date/time is already server-stored from
+        // the verification marker, not something to re-supply or recompute.
+        : reschedCommitMissed
+        ? "[systeem] De klant heeft zojuist bevestigd dat de afspraak echt van de genoemde naam is en verzet moet worden naar de eerder genoemde nieuwe tijd (dit is server-side al geverifieerd, de naam in het bericht is de bevestiging, GEEN nieuwe twijfel), maar je hebt reschedule_appointment niet (geslaagd) aangeroepen, dus er is nog NIETS verzet. Roep NU reschedule_appointment aan (het systeem gebruikt de eerder opgegeven nieuwe datum/tijd uit de verificatie: geef GEEN date/time opnieuw door, tenzij de klant in dit bericht zelf een NIEUWE tijd noemt). Vraag niets extra's, verifieer de naam niet nogmaals, roep geen andere tool aan (zoals get_my_appointments), en zeg NOOIT dat er verzet is voordat de tool 'ok' teruggaf."
         // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, model-attestation-reliability half,
         // continued): a DEDICATED nudge text for the confirmBookVerification/confirmBookOwnerRestated
         // shape, deliberately WITHOUT the generic bookCommitMissed text's "andere naam" caveat below.
@@ -2359,7 +2386,7 @@ Deno.serve(async (req) => {
       // kept verbatim below).
       const retryCommitted = retry.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
       const accept = retryRaceLost || retryCommitted || (!!retry.text && (
-        (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed)
+        (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed || reschedCommitMissed)
           ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       ));
