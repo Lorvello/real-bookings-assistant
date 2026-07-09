@@ -22,7 +22,7 @@ import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.
 import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { computePendingBookInterveningExchange } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
@@ -269,6 +269,54 @@ function deterministicPreview(
   }
   const head = svc ? `Ik zet ${svc} op ${when}` : `Ik zet je op ${when}`;
   return (name ? `${head} op naam ${name}, klopt dat?` : `${head}, klopt dat?`) + splitSentence;
+}
+
+// R20 (SILENT-DROP-ON-COMPOUND-REQUEST fix, full-journey simulation R19/R20). Root cause: on a
+// successful book_appointment PREVIEW, deterministicPreview above UNCONDITIONALLY overrides the
+// model's own prose with a template that only ever renders the ONE previewed service. A prompt-only
+// instruction to "mention the second service" (tried first this round) has ZERO effect here, since
+// the model's prose is discarded regardless of what it said -- this was live-reproduced twice after
+// the prompt-only fix was deployed (both re-tests still silently dropped the second service). Real
+// fix has to live at the template layer: independently detect, from the RAW customer message, any
+// OTHER configured service (a different one than what was just previewed) that this compound-request
+// business's customer named in the SAME message, and deterministically APPEND an honest "one at a
+// time" acknowledgement naming it, so the customer is never left with a second request that vanished
+// with no trace. Only engages in multi-calendar mode (>=2 calendars in calendarsForPrompt); a
+// single-calendar business has no "second service" concept this guard needs to protect. Reuses
+// serviceDisambiguationGuard.ts's own mentionsDistinguishing primitive (same word-level match used
+// throughout this codebase for "did the customer name X"), so behaviour is consistent with every
+// sibling guard, not a new ad-hoc heuristic.
+function findUnacknowledgedSecondService(
+  calendarsForPrompt: Array<{ name: string; services: Array<{ name: string }> }> | null,
+  previewedServiceName: string | null,
+  rawMessage: string,
+): { serviceName: string; personOrLocation: string } | null {
+  if (!calendarsForPrompt || calendarsForPrompt.length < 2 || !rawMessage.trim()) return null;
+  const prevNorm = (previewedServiceName ?? "").trim().toLowerCase();
+  const excludeWords = new Set(prevNorm.split(/\s+/).filter((w) => w.length >= 3));
+  for (const cal of calendarsForPrompt) {
+    for (const svc of cal.services) {
+      const name = (svc.name ?? "").trim();
+      if (!name) continue;
+      if (name.toLowerCase() === prevNorm) continue; // this IS the service that was just previewed
+      if (mentionsDistinguishing(rawMessage, name, excludeWords)) {
+        return { serviceName: name, personOrLocation: cal.name };
+      }
+    }
+  }
+  return null;
+}
+
+function appendSecondServiceAck(
+  previewText: string,
+  second: { serviceName: string; personOrLocation: string } | null,
+  customerLanguage: string | null,
+): string {
+  if (!second) return previewText;
+  const en = customerLanguage != null;
+  return previewText + (en
+    ? ` By the way, I can only schedule one appointment at a time; as soon as this one is confirmed, I'll help you book ${second.serviceName} at ${second.personOrLocation} right after.`
+    : ` Ik kan trouwens maar één afspraak tegelijk inplannen; zodra deze bevestigd is, plan ik meteen ook ${second.serviceName} bij ${second.personOrLocation} in.`);
 }
 
 // ---------------------------------------------------------------------------
@@ -2311,7 +2359,23 @@ Deno.serve(async (req) => {
         // whatever the model produced (including the suppressed-nudge fallthrough) with the template.
         replyText = slotTaken;
       } else if (preview) {
-        replyText = preview;
+        // R20: never silently drop a second, distinct service the customer named in the SAME
+        // message as the one that just got previewed (see findUnacknowledgedSecondService above
+        // for the full root-cause writeup). Only engages in multi-calendar mode; single-calendar
+        // businesses have no second calendar/service to lose track of.
+        let previewedServiceName: string | null = null;
+        for (let i = result.toolCalls.length - 1; i >= 0; i--) {
+          const t = result.toolCalls[i];
+          if (t.name === "book_appointment" && t.result && typeof t.result === "object" && (t.result as Record<string, unknown>).needs_confirmation === true) {
+            const p = (t.result as Record<string, any>).proposal as { service?: string | null } | undefined;
+            previewedServiceName = p?.service ?? null;
+            break;
+          }
+        }
+        const secondService = isMultiCalendar
+          ? findUnacknowledgedSecondService(calendarsForPrompt, previewedServiceName, String(message))
+          : null;
+        replyText = appendSecondServiceAck(preview, secondService, customerLanguage);
       } else if (!replyText) {
         const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
         if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || "";
