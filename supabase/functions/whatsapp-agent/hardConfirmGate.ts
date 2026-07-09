@@ -143,7 +143,14 @@ export const HARD_REJECT_EXACT: ReadonlySet<string> = new Set([
 // after a confirm word or correctness-clause via the anchored skeletons below), so it belongs in
 // the SAME closed, curated set as "dank je"/"thanks"/"please", following the exact discipline this
 // file already uses (a genuinely common, load-bearing pleasantry shape, not a guess).
-const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?|thanks?|thank you|please|graag bevestigen)";
+// R159 (FULL_JOURNEY_AGENT_SIMULATION R15/R16 finding, cancel-confirm-gate stall): a bare
+// "bevestigen" ("confirming"/"to confirm", no leading "graag") trailing a cancel verb is a
+// genuinely common, unambiguous closing pleasantry ("annuleer maar, bevestigen" = "cancel it,
+// confirming"), distinct from the already-covered "graag bevestigen" only by dropping "graag".
+// Live-reproduced: "Klopt, annuleer maar, bevestigen." stalled with the exact same reply twice on
+// the real production agent (R15). Added as its own closed alternation member, same discipline as
+// every other PLEASANTRY entry (a genuinely common, load-bearing shape, not a guess).
+const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?|thanks?|thank you|please|graag bevestigen|bevestigen)";
 // R32 live-testpad finding (section 6b): a bare affirm word followed ONLY by the SAME cancel verb
 // already named in the preview being confirmed ("Ja, annuleer maar" / "Yes, cancel it") is a
 // genuinely common, unambiguous CANCEL-confirm shape, distinct from a bare "annuleer maar" alone
@@ -161,8 +168,12 @@ const PLEASANTRY = "(?:tot dan|dank je(?:wel)?|dankjewel|bedankt|dank u(?: wel)?
 // `(?: (?:die|dat|hem))?` is a tiny, fixed, optional pronoun slot (never a wildcard), inserted only
 // where "annuleer" is immediately followed by an optional pronoun before the closing "maar"/bare
 // form; "cancel it please"/"cancel that please" are two more fixed, explicit alternation members.
+// R159 (FULL_JOURNEY_AGENT_SIMULATION R15/R16 finding): "annuleren graag" (verb + trailing
+// "graag" instead of "maar") is an equally common closing particle, live-reproduced as part of
+// "Ja, echt annuleren graag." stalling identically. Added as a fixed alternative to the existing
+// "annuleren maar" member, same closed-alternation discipline as every other entry here.
 const CANCEL_VERB =
-  "(?:annuleer(?: (?:die|dat|hem))?(?: het)? maar|annuleer(?: het| die| dat| hem)|annuleren maar|cancel it|cancel that|cancel please|please cancel it|please cancel that|cancel it please|cancel that please)";
+  "(?:annuleer(?: (?:die|dat|hem))?(?: het)? maar|annuleer(?: het| die| dat| hem)|annuleren (?:maar|graag)|cancel it|cancel that|cancel please|please cancel it|please cancel that|cancel it please|cancel that please)";
 // R32-verify finding V4 (evidence/IUX_r32.md): a "double affirm-word" message, i.e. two DIFFERENT
 // standalone confirm words back to back ("Ja klopt", "Ja ok", "Ja prima", "Yes correct"), is a very
 // common, completely natural way to confirm in both Dutch and English, but previously matched neither
@@ -214,7 +225,12 @@ const CANCEL_PREFIX_AFFIRM = `(?:${[...BASE_AFFIRM_WORDS, ...CANCEL_PREFIX_AFFIR
 // A tiny, closed, optional interjection slot ("Ja hoor", "Yeah okay") that can sit between the
 // affirm word and the cancel verb in genuinely common casual Dutch/English. Fixed alternation only,
 // never a wildcard; live-reproduced gap: "Ja hoor, annuleer maar" (evidence/IUX_r78.md trial 2).
-const CANCEL_INTERJECTION = "(?:hoor|oke|ok)?";
+// R159 (FULL_JOURNEY_AGENT_SIMULATION R15/R16 finding): "echt" ("really"/"genuinely") is a
+// genuinely common Dutch intensifier sitting in this exact slot ("Ja, echt annuleren graag"),
+// live-reproduced as part of the same R15 stall. Added as a fixed alternation member alongside
+// the existing "hoor"/"oke"/"ok" interjections; not a wildcard, never matched outside this closed
+// affirm-word -> interjection -> cancel-verb skeleton.
+const CANCEL_INTERJECTION = "(?:hoor|oke|ok|echt)?";
 // R81 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing gap 2): added the bare "klopt helemaal" member
 // (no leading "dat"). It previously only existed as its OWN separate standalone
 // `^klopt helemaal!?$` pattern entry below, never as a member of this shared alternation, so it
@@ -249,14 +265,20 @@ export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   // forms), mirroring R74's own affirm+clause skeleton shape. Live-reproduced gap phrasings this
   // closes: "Ja, annuleer die maar", "Ja hoor, annuleer maar", "Zeker, annuleer het", "Yeah cancel it
   // please", "yes please cancel that".
-  new RegExp(`^${CANCEL_PREFIX_AFFIRM},? ?${CANCEL_INTERJECTION},? ${CANCEL_VERB}!?$`, "i"),
+  // R159: appended an optional trailing `(?:,? ${PLEASANTRY})?` (closes over PLEASANTRY's own new
+  // "bevestigen" member too) so a genuine cancel-confirm can ALSO end in a closing pleasantry
+  // ("Klopt, annuleer maar, bevestigen." R15), mirroring the exact same trailing-pleasantry shape
+  // every HARD_CONFIRM_PATTERNS booking-side entry already allows; purely additive, every
+  // pre-R159 accepted phrasing (no trailing pleasantry) still matches since the group is optional.
+  new RegExp(`^${CANCEL_PREFIX_AFFIRM},? ?${CANCEL_INTERJECTION},? ${CANCEL_VERB}(?:,? ${PLEASANTRY})?!?$`, "i"),
   // R78: an affirm word FOLLOWED BY a correctness-clause (or a bare second confirm word, e.g. the
   // standalone "klopt" in "Ja, klopt, annuleer die maar") FOLLOWED BY the cancel verb. Both
   // "Ja, dat klopt, annuleer maar" and "Ja, klopt, annuleer die maar" live-reproduced, evidence/
   // IUX_r78.md trials 4 and 6. Reuses the SAME closed CORRECTNESS_CLAUSE, CONFIRM_WORD and
   // CANCEL_VERB alternations already defined above, just chained; still a single fixed skeleton,
   // no wildcard, anchored ^...$.
-  new RegExp(`^${PREFIX_AFFIRM},? (?:${CORRECTNESS_CLAUSE}|${CONFIRM_WORD}),? ${CANCEL_VERB}!?$`, "i"),
+  // R159: same optional trailing pleasantry appended as the entry above, same reasoning.
+  new RegExp(`^${PREFIX_AFFIRM},? (?:${CORRECTNESS_CLAUSE}|${CONFIRM_WORD}),? ${CANCEL_VERB}(?:,? ${PLEASANTRY})?!?$`, "i"),
   // R81 (CANCEL-CONFIRM-PATTERNLIST-BRITTLE, closing gap 2): a bare correctness-clause with NO
   // leading affirm word, chained directly into the cancel verb ("Klopt helemaal, annuleer maar"),
   // live-reproduced (evidence/IUX_r81.md section 3): the chained pattern above always required
@@ -267,7 +289,8 @@ export const HARD_CONFIRM_PATTERNS: readonly RegExp[] = [
   // ^...$ like every other entry. A bare cancel verb with NO correctness clause at all (e.g. a
   // standalone "annuleer maar") still cannot match this pattern, so it correctly stays on the
   // existing HARD_REJECT_EXACT path, proven by an adversarial boundary test.
-  new RegExp(`^${CORRECTNESS_CLAUSE},? ${CANCEL_VERB}!?$`, "i"),
+  // R159: same optional trailing pleasantry appended, same reasoning as the two entries above.
+  new RegExp(`^${CORRECTNESS_CLAUSE},? ${CANCEL_VERB}(?:,? ${PLEASANTRY})?!?$`, "i"),
   new RegExp(`^${CONFIRM_WORD},? ${CONFIRM_WORD}!?$`, "i"),
   new RegExp(`^${PREFIX_AFFIRM},? ${CORRECTNESS_CLAUSE}(?:,? ${PLEASANTRY})?!?$`, "i"),
   new RegExp(`^${CORRECTNESS_CLAUSE}(?:,? ${PLEASANTRY})?!?$`, "i"),

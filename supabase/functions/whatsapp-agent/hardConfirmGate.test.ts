@@ -473,6 +473,43 @@ Deno.test("R149 ADVERSARIAL: real content beyond the 'graag bevestigen' skeleton
   }
 });
 
+// ── R159 (FULL_JOURNEY_AGENT_SIMULATION R15/R16, live-reproduced on the real production agent) ──
+// The cancel-confirmation gate stalled twice in a row on two explicit confirms during a real cancel
+// flow: "Ja, echt annuleren graag." (the "echt" intensifier + "annuleren graag" verb form were both
+// outside the closed cancel skeleton) and "Klopt, annuleer maar, bevestigen." (a trailing bare
+// "bevestigen" pleasantry after the cancel verb was not yet accepted, only the leading "graag
+// bevestigen" chain was). Full repro: _FULL_JOURNEY_AGENT_SIMULATION_STATE.md R15/R16.
+Deno.test("R159: the exact live-reproduced cancel-confirm stall phrasings now hard-confirm", () => {
+  assertEquals(classifyHardConfirm("Ja, echt annuleren graag."), "confirm");
+  assertEquals(classifyHardConfirm("Klopt, annuleer maar, bevestigen."), "confirm");
+});
+Deno.test("R159: natural variants of the widened cancel-verb/interjection/pleasantry chain hard-confirm", () => {
+  const variants = [
+    "Zeker, echt annuleren graag",
+    "Ja, annuleren graag",
+    "Ja, echt annuleer maar",
+    "Prima, annuleer het maar, bevestigen",
+    "Dat klopt, annuleer maar, bevestigen",
+  ];
+  for (const m of variants) {
+    assertEquals(classifyHardConfirm(m), "confirm", `expected "${m}" to hard-confirm`);
+  }
+});
+Deno.test("R159 ADVERSARIAL: real content beyond the widened cancel skeleton must NOT match", () => {
+  const mustStayNone = [
+    "Ja, echt niet annuleren graag", // explicit negation must not slip through
+    "Klopt, annuleer maar, bevestigen, maar dan wel gratis", // real extra content after the pleasantry
+    "Echt annuleren graag", // no leading affirm word at all
+    "Ja, misschien annuleren graag", // hedge word inside the interjection slot must not match
+  ];
+  for (const m of mustStayNone) {
+    assertEquals(classifyHardConfirm(m), "none", `expected "${m}" to stay none`);
+  }
+});
+Deno.test("R159: bare 'annuleer maar' without a lead-in stays on the reject path, unweakened", () => {
+  assertEquals(classifyHardConfirm("annuleer maar"), "reject");
+});
+
 // ── R5 (FULL_JOURNEY_AGENT_SIMULATION R4, live-reproduced on the real production agent) ─────────
 // A customer whose phone's message history is ambiguous across 2+ owners (gateLogic.ts's
 // ambiguity fix) must resend "Code: XXXXXXXX" on every turn to stay attached to the right tenant.
