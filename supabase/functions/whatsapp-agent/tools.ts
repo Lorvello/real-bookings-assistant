@@ -1817,9 +1817,16 @@ export function createTools(
             return {
               error: "niet_beschikbaar",
               available_slots: r.available,
+              // R18: this message previously said "stel vriendelijk een andere dag voor" while
+              // handing the model ZERO real alternative dates, which is exactly what made the
+              // model invent one (R17: "woensdag 22 juli", itself also inside the same closed
+              // window). No specific day is proposed from here anymore; a code-level guard
+              // (dateOfferGuard.ts, wired in index.ts) independently verifies any date the model
+              // still proposes against the real RPC and rebuilds the offer from genuine
+              // availability when it does not hold up.
               message: r.available.length
                 ? `Die tijd is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`
-                : "Die dag heeft geen vrije tijden. Stel vriendelijk een andere dag voor.",
+                : "Die dag heeft helemaal geen vrije tijden. Vraag de klant vriendelijk of ze een andere dag willen proberen, zonder zelf een specifieke datum te noemen; je hebt geen gegevens over welke andere dag wel vrij is.",
             };
           }
           start = r.start; end = r.end;
@@ -3401,9 +3408,10 @@ export function createTools(
             return {
               error: "niet_beschikbaar",
               available_slots: r.available,
+              // R18: same fix as the book_appointment sibling above, same rationale.
               message: r.available.length
                 ? `Dat nieuwe tijdstip is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`
-                : "Die dag heeft geen vrije tijden. Stel vriendelijk een andere dag voor.",
+                : "Die dag heeft helemaal geen vrije tijden. Vraag de klant vriendelijk of ze een andere dag willen proberen, zonder zelf een specifieke datum te noemen; je hebt geen gegevens over welke andere dag wel vrij is.",
             };
           }
           newStart = r.start; newEnd = r.end;

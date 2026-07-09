@@ -54,6 +54,28 @@ Deno.test("buildGroundingSummary: multi-calendar per-agenda hours/policy include
   assertStringIncludes(summary, 'opening hours for "Luciano\'s Calender": Donderdag 08:00-13:30');
 });
 
+// R18: per-calendar SERVICES now included in the ground-truth summary, closing the R17 gap where
+// a "which services does Sanne offer" claim had NO ground truth to be checked against at all.
+Deno.test("buildGroundingSummary: per-calendar services included, attributed by name (R18 fix)", () => {
+  const summary = buildGroundingSummary({
+    businessData: { business_name: "Salon Sanne" },
+    calendars: [
+      { name: "Sanne (Knippen)", services: [{ name: "Knippen Dames", price: 45, durationMin: 45 }, { name: "Knippen Heren", price: 28, durationMin: 30 }] },
+      { name: "Milan (Kleuren)", services: [{ name: "Highlights", price: 95, durationMin: 90 }] },
+    ],
+  });
+  assertStringIncludes(summary, 'services offered by "Sanne (Knippen)" ONLY');
+  assertStringIncludes(summary, "Knippen Dames (EUR45, 45 min)");
+  assertStringIncludes(summary, "Knippen Heren (EUR28, 30 min)");
+  assertStringIncludes(summary, 'services offered by "Milan (Kleuren)" ONLY');
+  assertStringIncludes(summary, "Highlights (EUR95, 90 min)");
+  // Sanne's own line must never contain Milan's service, and vice versa.
+  const sanneLine = summary.split("\n").find((l) => l.includes('services offered by "Sanne (Knippen)"'))!;
+  const milanLine = summary.split("\n").find((l) => l.includes('services offered by "Milan (Kleuren)"'))!;
+  assertEquals(sanneLine.includes("Highlights"), false);
+  assertEquals(milanLine.includes("Knippen"), false);
+});
+
 Deno.test("noUngroundedClaimReply: NL with contact, NL without, EN with contact", () => {
   assertStringIncludes(noUngroundedClaimReply(null, "0101234567", "a@b.com"), "0101234567");
   assertStringIncludes(noUngroundedClaimReply(null, null, null), "rechtstreeks contact");
@@ -129,6 +151,52 @@ const groundedCases: [string, string][] = [
   ["r106-fp-honest-no-discount-zoiets-worded", "Zoiets hebben we hier niet, dus ik kan je dat helaas niet aanbieden. Neem contact op voor een definitief antwoord."],
   ["r106-fp-cancellation-policy-anaphoric", "Ja, die regeling klopt: tot 24 uur van tevoren kun je kosteloos annuleren."],
 ];
+
+// R18 LIVE proof: the exact R17 fixture (Sanne/Milan/Iris) that live-hallucinated on the real
+// deployed pipeline (see _FULL_JOURNEY_AGENT_SIMULATION_STATE.md R17). Unlike the diagnostic
+// print-only banks above, this asserts the real Groq call, not just logs it, since this is the
+// hard proof point that the businessDataGuard.ts prompt/summary change actually closes the gap.
+const SANNE_MULTI_CAL_GROUND_TRUTH = buildGroundingSummary({
+  businessData: { business_name: "Salon Sanne" },
+  calendars: [
+    { name: "Sanne (Knippen)", services: [{ name: "Knippen Dames", price: 45, durationMin: 45 }, { name: "Knippen Heren", price: 28, durationMin: 30 }] },
+    { name: "Milan (Kleuren)", services: [{ name: "Highlights", price: 95, durationMin: 90 }, { name: "Volledige kleuring", price: 130, durationMin: 120 }] },
+    { name: "Iris (Weekend)", services: [{ name: "Knippen + Stylen", price: 55, durationMin: 60 }, { name: "Bruidskapsel", price: 150, durationMin: 90 }] },
+  ],
+});
+
+// Uses the ROBUST N=7 any-YES-wins vote, the actual function index.ts wires into production
+// (classifyBusinessDataGroundingRobust, not the single-call version), since a single
+// low-reasoning-effort Groq call is documented elsewhere in this file/codebase as not perfectly
+// deterministic on a genuinely close-to-boundary claim (the same reason R106 raised VOTE_COUNT to
+// 7). This is the real, deployed-shape guarantee: ANY single yes among 7 votes rewrites the reply.
+Deno.test({
+  name: "businessDataGuard LIVE (R18 proof): R17's exact hallucinated Sanne service-list reply classifies YES (ungrounded), robust N=7 vote",
+  ignore: !GROQ_KEY,
+  fn: async () => {
+    const r = await classifyBusinessDataGroundingRobust(
+      "Welke behandeling wil je bij Sanne? (Knippen Dames, Knippen Heren, Knippen + Stylen, Bruidskapsel, Highlights, Volledige kleuring)",
+      SANNE_MULTI_CAL_GROUND_TRUTH,
+      GROQ_KEY,
+    );
+    console.log(`[r17-repro-ungrounded] isUngroundedClaim=${r.isUngroundedClaim} votes=${JSON.stringify(r.votes)} (${r.latencyMs}ms)`);
+    assertEquals(r.isUngroundedClaim, true);
+  },
+});
+
+Deno.test({
+  name: "businessDataGuard LIVE (R18 proof): the CORRECT Sanne service-list reply (her real 2 services only) classifies NO (grounded), robust N=7 vote",
+  ignore: !GROQ_KEY,
+  fn: async () => {
+    const r = await classifyBusinessDataGroundingRobust(
+      "Welke behandeling wil je bij Sanne? (Knippen Dames, Knippen Heren)",
+      SANNE_MULTI_CAL_GROUND_TRUTH,
+      GROQ_KEY,
+    );
+    console.log(`[r17-repro-grounded] isUngroundedClaim=${r.isUngroundedClaim} votes=${JSON.stringify(r.votes)} (${r.latencyMs}ms)`);
+    assertEquals(r.isUngroundedClaim, false);
+  },
+});
 
 Deno.test({
   name: "businessDataGuard: LIVE regression bank (ungrounded cases should classify YES)",

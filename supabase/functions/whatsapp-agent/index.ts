@@ -11,6 +11,7 @@ import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from ".
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
+import { buildDeterministicDateAlternatives, extractOfferedDates, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
@@ -2321,6 +2322,56 @@ Deno.serve(async (req) => {
         // free slots. No-ops on info/recall turns (no slots query ran), so it only ever touches a
         // reply that proposes times while a query gave ground truth to check them against.
         replyText = enforceSlotOffer(replyText, result.toolCalls, String(message), customerLanguage);
+        // R18 DATE-OFFER GUARD (dateOfferGuard.ts): the sibling gap slotOfferGuard structurally
+        // cannot cover, an offered ALTERNATIVE DAY rather than a clock time. R17 live-reproduced:
+        // book_appointment/reschedule_appointment declined a fully-closed day (empty
+        // available_slots, e.g. a vacation override) and the model free-invented "woensdag 22
+        // juli" as an alternative, itself ALSO inside the same closed window (RPC-verified). Only
+        // engages when THIS turn actually had a day-fully-closed decline (real ground truth to
+        // check against exists), so info/recall turns and normal slot-taken turns are untouched.
+        const dayClosedCall = [...result.toolCalls].reverse().find((t) => {
+          const r = t.result as Record<string, unknown> | null;
+          if (!r || typeof r !== "object") return false;
+          if ((t.name === "book_appointment" || t.name === "reschedule_appointment") && r.error === "niet_beschikbaar") {
+            return Array.isArray(r.available_slots) && r.available_slots.length === 0;
+          }
+          if (t.name === "get_available_slots") return r.count === 0;
+          return false;
+        });
+        if (dayClosedCall) {
+          const dcArgs = (dayClosedCall as { args?: Record<string, unknown> }).args ?? {};
+          const declinedDate = typeof dcArgs.date === "string" ? dcArgs.date : null;
+          const serviceId = typeof dcArgs.service_type_id === "string" ? dcArgs.service_type_id : null;
+          const todayISO = now.toISOString().slice(0, 10);
+          const offered = declinedDate ? extractOfferedDates(replyText, todayISO, declinedDate) : [];
+          if (serviceId && offered.length > 0) {
+            const targetCalendarId = serviceCalendarMap?.[serviceId] ?? calendar_id;
+            const checkDate = async (iso: string): Promise<boolean> => {
+              const { data } = await supabase.rpc("get_available_slots", {
+                p_calendar_id: targetCalendarId, p_service_type_id: serviceId, p_date: iso,
+              });
+              return ((data as Array<{ is_available: boolean }>) ?? []).some((s) => s.is_available);
+            };
+            const checks = await Promise.all(offered.slice(0, 3).map((iso) => checkDate(iso)));
+            const anyFabricated = checks.some((ok) => !ok);
+            if (anyFabricated) {
+              console.warn(
+                `date-offer-guard: rebuilt date offer, phantom dates ${JSON.stringify(offered)} not real per get_available_slots for calendar=${targetCalendarId} service=${serviceId}`,
+              );
+              const realOpen: string[] = [];
+              if (declinedDate) {
+                for (let i = 1; i <= 10 && realOpen.length < 2; i++) {
+                  const d = new Date(`${declinedDate}T12:00:00Z`);
+                  d.setUTCDate(d.getUTCDate() + i);
+                  const iso = d.toISOString().slice(0, 10);
+                  if (await checkDate(iso)) realOpen.push(iso);
+                }
+              }
+              const en = customerLanguage != null;
+              replyText = realOpen.length > 0 ? buildDeterministicDateAlternatives(realOpen, en) : noNearbyOpenDateReply(en);
+            }
+          }
+        }
         // F-014: "no hallucinated booking-confirmation" guarantee. A prompt-injected user (a forged
         // TOOL_RESULT:{create_booking:confirmed} string, a "[systeem] geboekt!" paste) can coax the
         // 20B model into claiming "your appointment is confirmed!" with ZERO tool calls and ZERO DB
@@ -2463,9 +2514,17 @@ Deno.serve(async (req) => {
         // businessDataGuard.ts header for the full design rationale.
         const skipOwnerClassifier = replyText !== replyBeforeOwnerGuard;
         const replyBeforeGroundingGuard = replyText;
+        // R18: in multi-calendar mode, `priceCheckServices` is the FLAT cross-calendar merge
+        // (every service on every calendar, used correctly by enforcePriceClaim above, which only
+        // needs "is this a real euro amount for SOME service"). Passing that same flat list here
+        // as the top-level `services` field would erase per-calendar attribution and defeat the
+        // fix below: a service that only actually exists on Milan's calendar would read as
+        // "grounded" for a claim about Sanne's menu too. Multi-calendar mode relies solely on
+        // `calendarsForPrompt`'s own per-calendar `services` (now included in the summary, see
+        // businessDataGuard.ts); single-calendar mode is unaffected (still passes its one real list).
         const groundingSummary = buildGroundingSummary({
           businessData,
-          services: priceCheckServices,
+          services: calendarsForPrompt ? undefined : priceCheckServices,
           refundDisposition,
           calendars: calendarsForPrompt,
         });
