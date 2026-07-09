@@ -2692,6 +2692,12 @@ export function createTools(
             channel: "whatsapp",
           });
           if (selfCancelErr1) console.error("agent_actions insert failed (self-cancel, no conversation):", selfCancelErr1.message);
+          // R60 (STALE-PENDING-BOOKING-ON-PAYMENT-FAILURE fix, see R9's original finding): the
+          // booking row this preview referenced is now cancelled, so pending_booking must not
+          // survive to hijack a later, unrelated request (clearPendingBook() is a no-op here
+          // anyway since ctx.conversationId is absent on this branch, kept for symmetry with the
+          // branch below).
+          await clearPendingBook();
           return {
             error: "payment_setup_failed",
             message: "Ik kon de betaling nu niet opzetten. Probeer het zo nog eens.",
@@ -2727,6 +2733,19 @@ export function createTools(
             channel: "whatsapp",
           });
           if (selfCancelErr2) console.error("agent_actions insert failed (self-cancel, payment link failed):", selfCancelErr2.message);
+          // R60 (STALE-PENDING-BOOKING-ON-PAYMENT-FAILURE fix, see R9's original finding, the
+          // longest-standing open item in this loop, first logged R9, reconfirmed live R32/R34/
+          // R35/R58 in new shapes): the booking row this preview referenced is now cancelled
+          // (2 lines above), but pending_booking was never cleared here, so it survived
+          // indefinitely in `whatsapp_conversations.context` and hijacked a LATER, wholly
+          // unrelated book_appointment request via the "vorige_boeking_nog_open" guard above,
+          // incorrectly asking the customer to resolve/abandon a booking that no longer exists at
+          // all. Root cause: the two success-path commits (no-payment above, pay-and-book below)
+          // both call clearPendingBook(), but this failure path (payment-link mint itself failed)
+          // never did, even though the underlying booking is JUST as dead as if it had been
+          // cancelled outright. Fix: clear it here too, symmetric with every other branch that
+          // ends this preview's lifecycle (committed, replaced, or now failed).
+          await clearPendingBook();
           return {
             error: "payment_setup_failed",
             message: "Het lukte niet een betaallink te maken. Probeer het later opnieuw of neem contact op.",
