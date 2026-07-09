@@ -2556,7 +2556,7 @@ export function createTools(
           .select("id, start_time")
           .single();
         if (insErr) {
-          if (insErr.code === "23P01" || /no_overlap|exclusion/i.test(insErr.message || "")) {
+          if (insErr.code === "23P01" || insErr.code === "40P01" || /no_overlap|exclusion/i.test(insErr.message || "")) {
             return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
           }
           return { error: insErr.message };
