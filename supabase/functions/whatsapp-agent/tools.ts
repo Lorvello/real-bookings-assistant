@@ -1983,13 +1983,26 @@ export function createTools(
               // name. Passing the EXISTING booking's own customer_name back lets the model state
               // correctly whose booking it found, instead of assuming phone equals attendee.
               const existingNameNote = existingName && existingName !== "Privé" ? ` (op naam ${existingName})` : "";
+              const existingStartTime = (existing as { start_time: string }).start_time;
               return {
                 error: "bestaande_afspraak",
                 message:
-                  `Er is al een aankomende afspraak op ${nlWhen((existing as { start_time: string }).start_time)}${existingNameNote} onder dit WhatsApp-nummer. ` +
+                  `Er is al een aankomende afspraak op ${nlWhen(existingStartTime)}${existingNameNote} onder dit WhatsApp-nummer. ` +
                   "Is dat DEZELFDE persoon als degene die nu geboekt wordt? Gebruik dan reschedule_appointment, niet book_appointment (dat maakt een tweede afspraak). " +
                   "Is de nieuwe boeking voor een ANDERE naam of persoon (bv. een ander kind, een collega)? Dan is dit een terechte extra afspraak: roep book_appointment opnieuw aan met confirm_second_booking=true. " +
                   "Twijfel je wie de bestaande afspraak hierboven is? Vraag het kort na in plaats van te raden.",
+                // R37 (bug R36b fix): raw ground truth + a purely customer-facing fallback, mirroring
+                // naam_verificatie_nodig's own message/customer_reply split (see
+                // identityDisambiguationGuard.ts's enforceVerificationGateDisclosure doc comment).
+                // `message` above is internal guidance the model reasons over; `customer_reply` is
+                // the exact question actually safe to send verbatim, used ONLY as a backstop when
+                // the model's own paraphrase drops or corrupts the real date (enforceExisting
+                // AppointmentDisclosure spot-checks the reply against `existing_start_time` first).
+                existing_start_time: existingStartTime,
+                customer_reply:
+                  `Je hebt al een aankomende afspraak op ${nlWhen(existingStartTime)}${existingNameNote} onder dit WhatsApp-nummer. ` +
+                  "Is dat dezelfde persoon als degene die je nu wilt boeken? Laat het weten, dan verzet ik die afspraak. " +
+                  "Is het een andere persoon (bv. een ander kind of een collega)? Zeg dat ook, dan maak ik een nieuwe, tweede afspraak.",
               };
             }
           }

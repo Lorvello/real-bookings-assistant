@@ -10,12 +10,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
-import { enforceSlotOffer, extractOfferedClockTimes, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
+import { enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { buildDeterministicDateAlternatives, extractOfferedDates, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 import { extractRelativeDayHint, formatRelativeDateHint } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -2308,6 +2308,33 @@ Deno.serve(async (req) => {
       }
     }
 
+    // R37 (bug R36a, MILAN-SLOT-FABRICATION fix, final safety net): the slotOfferUnbacked nudge
+    // above exists to force a real get_available_slots call before a time offer ships, but its own
+    // accept-gate only requires SOME non-announce text back, not an actual tool call -- a compound
+    // ask the model cannot even resolve to a real service_type_id (R36: "Manicure bij Milan",
+    // Manicure is a Bo-only service) can have its retry ALSO skip every tool call and just repeat
+    // the same fabricated offer, which then gets silently adopted. Since no query ever ran,
+    // enforceSlotOffer's own !hadQuery early-return (by design, so genuine info/recall replies are
+    // never mangled) lets that fabricated offer pass straight through untouched. Close the gap here:
+    // re-check the SAME slotOfferUnbacked condition against the FINAL result (original or retry)
+    // after the nudge/retry cycle has already had its one chance to supply real ground truth; if it
+    // is STILL true, refuse to ship the fabricated offer, ask honestly instead. Gated on
+    // slotOfferUnbacked itself (computed above from the PRIMARY turn only), so a turn that never
+    // looked like an unbacked slot offer in the first place is never touched.
+    if (slotOfferUnbacked) {
+      const finalCalledSlots = result.toolCalls.some((t) => t.name === "get_available_slots");
+      const finalCalledMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name));
+      const finalOfferedTimes = extractOfferedClockTimes(result.text || "", String(message));
+      const stillUnbacked = !finalCalledSlots && !finalCalledMutation && finalOfferedTimes.length > 0 &&
+        OFFER_CONTEXT_RE.test(result.text || "");
+      if (stillUnbacked) {
+        console.warn(
+          `slot-offer-guard: no-query safety net fired, phantom times ${JSON.stringify(finalOfferedTimes)} with zero grounding tool call even after retry`,
+        );
+        result = { ...result, text: noQueryGroundedReply(customerLanguage != null) };
+      }
+    }
+
     // IUX R61 (WHATSAPP-DUPLICATE-CONFIRM-BURST, structural fix, single post-hoc release site for
     // BOTH the book-claim and cancel-claim held above): `result` is now final (primary turn, or the
     // adopted stall-retry) and its real outcome is knowable via the SAME deterministic
@@ -2519,6 +2546,12 @@ Deno.serve(async (req) => {
         // non-sequitur refusal). No-op unless a tool call this turn actually returned
         // naam_verificatie_nodig AND the drafted reply fails to disclose the target name.
         replyText = enforceVerificationGateDisclosure(replyText, result.toolCalls);
+        // R37 (bug R36b fix): same gate-first-trigger-wrong-text pattern, for book_appointment's
+        // DUPLICATE GUARD (error: "bestaande_afspraak"). Live-reproduced: the model paraphrased the
+        // tool's real conflicting date into a WRONG date (the customer's own just-requested date
+        // instead of the real existing booking's date). No-op unless this turn actually returned
+        // bestaande_afspraak AND the drafted reply's date does not match the real existing_start_time.
+        replyText = enforceExistingAppointmentDisclosure(replyText, result.toolCalls);
         // R118 (GAP 1 fix): same gate-first-trigger-wrong-text pattern, for reschedule_appointment's
         // NEW verzet_bevestiging_nodig ambiguity gate (a SEPARATE gate from naam_verificatie_nodig
         // above: this one guards intent ambiguity, not cross-identity).

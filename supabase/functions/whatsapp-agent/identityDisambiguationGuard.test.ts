@@ -9,6 +9,7 @@ import {
   crossIdentityBookVerificationBypass,
   crossIdentityRenameRisk,
   enforceAppointmentNameDisclosure,
+  enforceExistingAppointmentDisclosure,
   enforceVerificationGateDisclosure,
   extractStatedNameForBooking,
   hasMultipleDistinctNamesStated,
@@ -452,6 +453,82 @@ Deno.test("enforceVerificationGateDisclosure: uses the MOST RECENT naam_verifica
   ];
   const result = enforceVerificationGateDisclosure(nonSequitur, toolCalls);
   assertEquals(result.includes("Oude Eigenaar"), true);
+});
+
+// ── R37 enforceExistingAppointmentDisclosure (bug R36b: hallucinated existing-booking date) ────
+function existingApptToolCall(existingStartTime: string, customerReply: string, toolName = "book_appointment") {
+  return [{
+    name: toolName,
+    result: {
+      error: "bestaande_afspraak",
+      existing_start_time: existingStartTime,
+      customer_reply: customerReply,
+      message: "internal instructions, never sent",
+    },
+  }];
+}
+
+Deno.test("enforceExistingAppointmentDisclosure: rewrites a reply citing the WRONG date to the real customer_reply", () => {
+  // R36 live shape: real existing booking is 2026-07-12, but the model's reply named 2026-07-26
+  // (the customer's own just-requested date) instead.
+  const wrongDate = "Je hebt al een afspraak op zondag 26 juli 12:00 onder de naam E2E Simulator. Wil je die afspraak verzetten naar de nieuwe tijd, of wil je een tweede afspraak maken voor een andere persoon?";
+  const result = enforceExistingAppointmentDisclosure(
+    wrongDate,
+    existingApptToolCall("2026-07-12T10:00:00+00:00", "Je hebt al een aankomende afspraak op zondag 12 juli 10:00 onder dit WhatsApp-nummer. Is dat dezelfde persoon als degene die je nu wilt boeken?"),
+  );
+  assertEquals(result.includes("12 juli"), true);
+  assertEquals(result.includes("26 juli"), false);
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: no-op when the model's OWN reply already cites the real date correctly", () => {
+  const correct = "Je hebt al een afspraak op zondag 12 juli om 10:00 onder de naam E2E Simulator. Wil je die verzetten of gaat het om een andere persoon?";
+  assertEquals(
+    enforceExistingAppointmentDisclosure(correct, existingApptToolCall("2026-07-12T10:00:00+00:00", "some other customer_reply text")),
+    correct,
+  );
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: EN month name also counts as a correct citation", () => {
+  const correctEN = "You already have an appointment on 12 July at 10:00. Would you like to reschedule that one, or is this for someone else?";
+  assertEquals(
+    enforceExistingAppointmentDisclosure(correctEN, existingApptToolCall("2026-07-12T10:00:00+00:00", "fallback text")),
+    correctEN,
+  );
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: no-op when no tool call this turn returned bestaande_afspraak", () => {
+  const reply = "Schikt 10:00 of 14:30?";
+  assertEquals(
+    enforceExistingAppointmentDisclosure(reply, [{ name: "get_available_slots", result: { available_slots: [] } }]),
+    reply,
+  );
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: no-op when replyText is empty (nothing to rewrite)", () => {
+  assertEquals(enforceExistingAppointmentDisclosure("", existingApptToolCall("2026-07-12T10:00:00+00:00", "x")), "");
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: forces customer_reply when the reply has no date at all", () => {
+  const noDate = "Ik zie dat er al iets staat, wil je dat wijzigen?";
+  const result = enforceExistingAppointmentDisclosure(noDate, existingApptToolCall("2026-07-12T10:00:00+00:00", "Je hebt al een aankomende afspraak op zondag 12 juli 10:00 onder dit WhatsApp-nummer."));
+  assertEquals(result.includes("12 juli"), true);
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: no authoritative customer_reply to fall back to -> leaves the model's own text", () => {
+  const reply = "Je hebt al een afspraak, wil je die verzetten?";
+  const toolCalls = [{ name: "book_appointment", result: { error: "bestaande_afspraak", existing_start_time: "2026-07-12T10:00:00+00:00" } }];
+  assertEquals(enforceExistingAppointmentDisclosure(reply, toolCalls), reply);
+});
+
+Deno.test("enforceExistingAppointmentDisclosure: uses the MOST RECENT bestaande_afspraak result when several tool calls happened this turn", () => {
+  const wrongDate = "Je hebt al een afspraak op 1 januari.";
+  const toolCalls = [
+    { name: "book_appointment", result: { error: "bestaande_afspraak", existing_start_time: "2026-08-01T09:00:00+00:00", customer_reply: "OLD, moet niet gebruikt worden (1 augustus)" } },
+    { name: "book_appointment", result: { error: "bestaande_afspraak", existing_start_time: "2026-07-12T10:00:00+00:00", customer_reply: "Je hebt al een aankomende afspraak op zondag 12 juli 10:00 onder dit WhatsApp-nummer." } },
+  ];
+  const result = enforceExistingAppointmentDisclosure(wrongDate, toolCalls);
+  assertEquals(result.includes("12 juli"), true);
+  assertEquals(result.includes("1 augustus"), false);
 });
 
 // ── R123 previewTakeoverRisk: UNCONDITIONAL FAIL-CLOSED, no heuristic bypass of any kind ───────

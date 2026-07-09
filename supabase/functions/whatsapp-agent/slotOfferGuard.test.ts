@@ -10,6 +10,7 @@ import {
   enforceSlotOffer,
   extractOfferedClockTimes,
   noFreeSlotsReply,
+  noQueryGroundedReply,
   stripHourRanges,
   type ToolCall,
 } from "./slotOfferGuard.ts";
@@ -167,4 +168,20 @@ Deno.test("buildDeterministicOffer caps at 6 times and asks one question", () =>
   assert(out.includes("09:00") && out.includes("11:30"), out);
   assert(!out.includes("12:00"), `should cap at 6: ${out}`);
   assertEquals((out.match(/\?/g) || []).length, 1);
+});
+
+// R37 (bug R36a, MILAN-SLOT-FABRICATION fix, final safety net text): pure text builder used by
+// index.ts when the upstream slotOfferUnbacked nudge/retry cycle STILL has zero grounding tool
+// call, so a fabricated offer is never allowed to ship even when the retry itself keeps skipping
+// the required get_available_slots call (see index.ts's post-retry stillUnbacked check).
+Deno.test("noQueryGroundedReply: NL asks for service+day, never invents a time", () => {
+  const out = noQueryGroundedReply(false);
+  assert(out.includes("dienst") && out.includes("dag"));
+  assert(!/\b\d{1,2}[:.]\d{2}\b/.test(out), `must not contain a clock time: ${out}`);
+});
+
+Deno.test("noQueryGroundedReply: EN variant, never invents a time", () => {
+  const out = noQueryGroundedReply(true);
+  assert(out.includes("service") && out.includes("day"));
+  assert(!/\b\d{1,2}[:.]\d{2}\b/.test(out), `must not contain a clock time: ${out}`);
 });

@@ -148,6 +148,26 @@ export function noFreeSlotsReply(en: boolean): string {
     : `Op die dag heb ik geen vrije tijden meer. Wil je een andere dag proberen?`;
 }
 
+// R37 (bug R36a, MILAN-SLOT-FABRICATION fix, final safety net): index.ts's own P0-1 upstream
+// re-query nudge (slotOfferUnbacked, "you offered a time without calling get_available_slots,
+// call it now") already exists to force a grounding query before a time offer ships. But its
+// accept-gate (index.ts, the retry block) only requires the retry to have SOME non-announce text,
+// not an actual tool call, so a compound ask the model cannot even resolve to a real
+// service_type_id/calendar_id (R36: "Manicure bij Milan", Manicure is a Bo-only service) can have
+// its retry ALSO skip every tool call and simply repeat the same fabricated offer, which then gets
+// silently adopted. Because no query ever ran, enforceSlotOffer's own !hadQuery early-return lets
+// that fabricated offer pass straight through untouched (by design, to avoid mangling genuine
+// info/recall replies that never queried in the first place). This is the final backstop: index.ts
+// calls this ONLY when the upstream slotOfferUnbacked condition is STILL true against the FINAL
+// result (original or retry) after the nudge/retry cycle has already had its one chance to supply
+// real ground truth, so a genuine info/recall reply (which never set slotOfferUnbacked in the
+// first place) is never touched.
+export function noQueryGroundedReply(en: boolean): string {
+  return en
+    ? `I can't confirm a time for that without checking first. Which service and day would you like?`
+    : `Ik kan die tijd niet bevestigen zonder dat eerst na te kijken. Welke dienst en dag bedoel je precies?`;
+}
+
 // THE guarantee: on a model-prose reply, every offered clock time must come from THIS turn's real
 // get_available_slots result. Engages ONLY when a slots query ran this turn (so info/recall/opening-
 // hours turns, which never query, are untouched: zero false positives). On a mismatch the offer is

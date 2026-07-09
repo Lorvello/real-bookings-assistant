@@ -692,6 +692,57 @@ export function enforceVerificationGateDisclosure(
   return customerReply;
 }
 
+// R37 (bug R36b, HALLUCINATED-EXISTING-BOOKING-DATE fix): tools.ts's book_appointment DUPLICATE
+// GUARD (the "you already have an appointment" case, error: "bestaande_afspraak") always finds the
+// real conflicting booking via a real DB query and composes an accurate `customer_reply` from its
+// REAL start_time. But the model is not reliable at preserving that specific date/time verbatim
+// when it paraphrases the tool result into customer-facing prose: live-reproduced (R36, Sanne+Iris
+// pair) asking to book a genuinely fresh, RPC-verified-open Iris slot on 2026-07-26 got back "Je
+// hebt al een afspraak op zondag 26 juli 12:00" -- the CUSTOMER's own just-requested date, not the
+// tool's real conflicting date (2026-07-12, DB-verified: zero bookings exist anywhere on 26 juli in
+// the whole fixture, while the one real future confirmed booking for that phone/calendar is on 12
+// juli). Same failure class as R11 (installment disclosure)/R18 (date offers)/R28 (relative-date
+// resolution): the server has the real fact, the model does not reliably relay it. Mirrors
+// enforceVerificationGateDisclosure's exact discipline directly above (a SEPARATE customer_reply
+// field, spot-checked against the reply, else the model's paraphrase is replaced wholesale) rather
+// than trusting the model to relay a specific date/time correctly.
+export interface ExistingAppointmentToolResult {
+  name: string;
+  result: unknown;
+}
+export function enforceExistingAppointmentDisclosure(
+  replyText: string,
+  toolCalls: ExistingAppointmentToolResult[],
+): string {
+  if (!replyText) return replyText;
+  let gate: { existing_start_time?: unknown; customer_reply?: unknown } | null = null;
+  for (let i = toolCalls.length - 1; i >= 0; i--) {
+    const r = toolCalls[i].result;
+    if (r && typeof r === "object" && (r as Record<string, unknown>).error === "bestaande_afspraak") {
+      gate = r as { existing_start_time?: unknown; customer_reply?: unknown };
+      break;
+    }
+  }
+  if (!gate) return replyText;
+  const customerReply = typeof gate.customer_reply === "string" ? gate.customer_reply.trim() : "";
+  if (!customerReply) return replyText; // nothing authoritative to fall back to, leave the model's own text
+  const startIso = typeof gate.existing_start_time === "string" ? gate.existing_start_time : null;
+  if (!startIso) return customerReply; // no real date to spot-check against, be conservative and force it
+  // Cheap spot-check: the real date's day-number must appear in the reply near the real month name
+  // (NL + EN), same tolerance level as dateOfferGuard's own date extraction. Any mismatch (wrong
+  // day, wrong month, or no date at all in the reply) is treated as an unreliable paraphrase.
+  const d = new Date(startIso);
+  const dayNum = d.toLocaleDateString("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" });
+  const monthNL = d.toLocaleDateString("nl-NL", { month: "long", timeZone: "Europe/Amsterdam" }).toLowerCase();
+  const monthEN = d.toLocaleDateString("en-GB", { month: "long", timeZone: "Europe/Amsterdam" }).toLowerCase();
+  const s = replyText.toLowerCase();
+  // (?!:) after each dayNum stops "juli 12:00" (a CLOCK TIME that happens to start with the same
+  // digits as the day-of-month) from being misread as a real "month day" date citation.
+  const dayMonthRe = new RegExp(`\\b${dayNum}(?!:)\\s+(${monthNL}|${monthEN})\\b|\\b(${monthNL}|${monthEN})\\s+${dayNum}(?!:)\\b`, "i");
+  if (dayMonthRe.test(s)) return replyText; // reply already cites the real date, trust it
+  return customerReply;
+}
+
 // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): reschedule_appointment is
 // deliberately a ONE-STEP tool (the new date/time IS the confirmation, see tools.ts's own doc
 // comment on that case) so the HONEST single-message flow ("kun je mijn afspraak verzetten naar
