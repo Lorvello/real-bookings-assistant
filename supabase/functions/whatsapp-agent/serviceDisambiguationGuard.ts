@@ -261,10 +261,31 @@ export interface RescheduleDistinctServiceInput {
 // ("Speciale Afspraak") purely because both names share the word "Afspraak", a real false-positive
 // this guard's own test suite caught. Falls back to a full-name substring check first (the common,
 // unambiguous case), then to word-level matching using ONLY the distinguishing words.
+//
+// R88 fix (full-journey-simulation R87 finding B: the "Knippen + Stylen"/"Knippen" hallucination).
+// ROOT CAUSE: the full-name substring check below (`lower.includes(trimmedName)`) ran BEFORE
+// `excludeWords` was ever consulted, so it matched unconditionally on trimmedName being a literal
+// substring of the raw message, with no exclusion. Live-reproduced: previewing the compound service
+// "Knippen + Stylen" (Iris) built `excludeWords = {"knippen","stylen"}` (index.ts's
+// findUnacknowledgedSecondService), then checked Bo's OTHER, genuinely different, real service
+// literally named just "Knippen" against the customer's raw message. Because "knippen" appears
+// verbatim inside "Knippen + Stylen" (the customer's own just-previewed service name), the full-name
+// substring check matched and returned true, even though `excludeWords` was specifically built to
+// stop exactly this word from counting -- the word-level branch below already respected
+// `excludeWords` correctly, only this earlier full-name branch did not. This deterministically
+// injected a fabricated "second appointment" (`appendSecondServiceAck`) into the reply, matching the
+// exact live-reproduced hallucination. FIX: skip the full-name substring shortcut whenever `name`'s
+// own words are ENTIRELY covered by `excludeWords` (i.e. `name` cannot be distinguished from the
+// excluded service/prefix at all, a pure shared-substring collision); falls through to the
+// word-level check, which already correctly returns false in that case (no distinguishing word
+// survives the exclusion). A genuinely distinct multi-word name that shares only SOME words with
+// excludeWords is unaffected (allWordsExcluded is only true when every single word is excluded).
 export function mentionsDistinguishing(text: string, name: string, excludeWords: Set<string>): boolean {
   const lower = text.toLowerCase();
   const trimmedName = name.trim().toLowerCase();
-  if (trimmedName.length >= 2 && lower.includes(trimmedName)) return true;
+  const nameWords = trimmedName.split(/\s+/).filter(Boolean);
+  const allWordsExcluded = nameWords.length > 0 && nameWords.every((w) => excludeWords.has(w));
+  if (trimmedName.length >= 2 && !allWordsExcluded && lower.includes(trimmedName)) return true;
   const words = trimmedName
     .split(/\s+/)
     .filter((w) => w.length >= 3 && !GENERIC_NAME_WORDS.has(w) && !excludeWords.has(w));

@@ -3,7 +3,7 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, mentionsDistinguishing, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
 
 // R98 helper: build an all-inbound recency window from plain strings (the common case for tests
 // that only care about customer messages, matching the pre-R98 test convention).
@@ -875,4 +875,56 @@ Deno.test("R79 GENERIC_NAME_WORDS extension: a lone 'ik'/'je'/'we' in a message 
     }),
     true,
   );
+});
+
+// ── R88 (full-journey-simulation R87 finding B fix): mentionsDistinguishing's full-name substring
+// check must respect excludeWords, exactly like its own word-level fallback already does. Live
+// repro shape: previewing Iris's compound service "Knippen + Stylen" (excludeWords built from ITS
+// own words, {"knippen","stylen"}) must never treat Bo's genuinely different, real service named
+// just "Knippen" as a second, customer-named service purely because "knippen" is a literal substring
+// of the just-previewed service's own name.
+
+Deno.test("R88-1 no match: excluded name is a pure substring collision with the previewed service's own name ('Knippen' inside 'Knippen + Stylen')", () => {
+  assertEquals(
+    mentionsDistinguishing(
+      "Ik wil Knippen + Stylen bij Iris boeken, zondag 26 juli om 15:00, naam R87HedgeC",
+      "Knippen",
+      new Set(["knippen", "stylen"]),
+    ),
+    false,
+  );
+});
+
+Deno.test("R88-2 still matches: a genuinely distinct service actually named by the customer, unrelated to the excluded words", () => {
+  assertEquals(
+    mentionsDistinguishing(
+      "Kan ik ook Gelnagels boeken bij Bo?",
+      "Gelnagels",
+      new Set(["knippen", "stylen"]),
+    ),
+    true,
+  );
+});
+
+Deno.test("R88-3 still matches: a multi-word name only PARTLY overlapping excludeWords (not every word excluded) is unaffected", () => {
+  assertEquals(
+    mentionsDistinguishing(
+      "en ook nog een Knippen Heren graag",
+      "Knippen Heren",
+      new Set(["knippen", "stylen"]), // "heren" is NOT excluded, so the name is not fully covered
+    ),
+    true,
+  );
+});
+
+Deno.test("R88-4 findUnacknowledgedSecondService-shaped repro via findServiceSwitchForPendingPreview: previewed compound service's own word never resolves to an unrelated same-word service", () => {
+  // Mirrors index.ts's findUnacknowledgedSecondService construction (excludeWords from the
+  // previewed service's own words), reusing the sibling findServiceSwitchForPendingPreview entry
+  // point since it shares the identical mentionsDistinguishing primitive and exclude-set shape.
+  const out = findServiceSwitchForPendingPreview({
+    allServiceNames: ["Knippen + Stylen", "Knippen", "Volledige kleuring"],
+    pendingServiceName: "Knippen + Stylen",
+    currentMessage: "Ik wil Knippen + Stylen bij Iris boeken, zondag 26 juli om 15:00, naam R87HedgeC",
+  });
+  assertEquals(out, null);
 });
