@@ -422,11 +422,18 @@ serve(async (req) => {
                 // really only one active tenant this customer could mean. calendars!inner
                 // still requires the join to exist (calendar_id not null); adding is_deleted
                 // just excludes rows whose calendar has since been soft-deleted.
+                // R91 (FULL_JOURNEY_AGENT_SIMULATION_V2 item 1): also exclude conversations
+                // whose OWN status has been archived (the never-delete-data doctrine's
+                // soft-delete mechanism already supported by the status check constraint:
+                // active/closed/archived). Without this, a stale test-fixture conversation
+                // row that was archived to clean up cross-tenant pollution would still be
+                // counted here and keep tripping this same ambiguity gate it was meant to fix.
                 const { data: convs } = await supabaseClient
                   .from('whatsapp_conversations')
                   .select('calendar_id, calendars!inner(user_id, is_deleted)')
                   .eq('contact_id', ct.id)
                   .eq('calendars.is_deleted', false)
+                  .neq('status', 'archived')
                   .order('last_message_at', { ascending: false });
                 const rows = (convs as Array<{ calendar_id: string; calendars: { user_id: string } }> | null) ?? [];
                 historyRows = rows
