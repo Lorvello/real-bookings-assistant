@@ -194,8 +194,23 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
   // "[weekday] volgende week" skip to the following full week; every other qualifier (or none)
   // means the nearest upcoming occurrence, matching prompt.ts's documented rule exactly.
   const dayNames = Object.keys(NL_WEEKDAYS).join("|");
+  // R82: a weekday name fused directly onto a daypart word ("dinsdagavond", "vrijdagmiddag",
+  // "maandagochtend", zero space, one token) used to fall straight through this whole function
+  // (the old regex required a word boundary immediately after the weekday name, so "dinsdagavond"
+  // never matched dinsdag at all, only a SPACED "dinsdag avond" ever did). With no hint produced,
+  // index.ts injected nothing and the model had to resolve the day entirely on its own, which is
+  // the confirmed live root cause of the FINDINGS LEDGER R80 mislabel: "Code: f744eddc Hoi, ik wil
+  // graag een afspraak maken bij Iris, dinsdagavond." got a reply claiming "Tuesday evening" while
+  // actually offering Sunday's real slot times, DB-verified via get_available_slots_range. This is
+  // a DIFFERENT failure than the R76/R77/R79 "no day named at all" shape (there is genuinely
+  // nothing to hint there): here the customer DID name an explicit day, just in a fused compound
+  // form this module's regex did not recognize, so the fix is a pure regex extension, not a new
+  // mechanism. The optional non-capturing daypart suffix below lets the weekday match with OR
+  // without a following daypart word, fused or spaced; the captured weekday group (group 3) is
+  // unaffected, so date resolution (resolveWeekday) needs no changes.
+  const DAYPART_SUFFIX_RE = "ochtend|voormiddag|namiddag|middag|avond|nacht";
   const re = new RegExp(
-    `\\b(volgende\\s+week\\s+)?(aanstaande|komende|deze|volgende|diezelfde|dezelfde)?\\s*(${dayNames})\\b(\\s+(diezelfde|dezelfde|die|deze)\\s+week)?(\\s+volgende\\s+week)?`,
+    `\\b(volgende\\s+week\\s+)?(aanstaande|komende|deze|volgende|diezelfde|dezelfde)?\\s*(${dayNames})(?:${DAYPART_SUFFIX_RE})?\\b(\\s+(diezelfde|dezelfde|die|deze)\\s+week)?(\\s+volgende\\s+week)?`,
     "i",
   );
   const m = re.exec(s);

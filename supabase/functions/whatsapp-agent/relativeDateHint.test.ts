@@ -79,6 +79,42 @@ Deno.test("no relative-date phrase present -> null", () => {
   assertEquals(h, null);
 });
 
+// ── R82: fused weekday+daypart compounds (FINDINGS LEDGER R80 exact repro) ──────────────────────
+
+Deno.test("R80 exact repro: 'dinsdagavond' (fused, zero space) resolves to the real next Tuesday, not null", () => {
+  const h = extractRelativeDayHint(
+    "Code: f744eddc Hoi, ik wil graag een afspraak maken bij Iris, dinsdagavond.",
+    THURSDAY,
+  );
+  assertEquals(h?.iso, "2026-07-14"); // nearest Tuesday from Thursday 07-09
+  assertEquals(h?.matchedPhrase.includes("dinsdag"), true);
+});
+
+Deno.test("fused 'vrijdagmiddag' resolves the same as spaced 'vrijdag middag'", () => {
+  const h = extractRelativeDayHint("Kan het vrijdagmiddag?", THURSDAY);
+  assertEquals(h?.iso, "2026-07-10");
+});
+
+Deno.test("fused 'maandagochtend' resolves to the next Monday", () => {
+  const h = extractRelativeDayHint("Liever maandagochtend.", THURSDAY);
+  assertEquals(h?.iso, "2026-07-13");
+});
+
+Deno.test("fused 'zondagnacht' resolves to the next Sunday", () => {
+  const h = extractRelativeDayHint("Zou zondagnacht nog kunnen?", THURSDAY);
+  assertEquals(h?.iso, "2026-07-12");
+});
+
+Deno.test("fused weekday+daypart still honors 'volgende week' skip-to-next-week", () => {
+  const h = extractRelativeDayHint("Liever volgende week dinsdagavond.", THURSDAY);
+  assertEquals(h?.iso, "2026-07-21"); // next-week Tuesday, not this Tuesday 07-14
+});
+
+Deno.test("fused weekday+daypart still honors a trailing 'diezelfde week' qualifier", () => {
+  const h = extractRelativeDayHint("Kan het misschien ook vrijdagmiddag diezelfde week?", THURSDAY);
+  assertEquals(h?.iso, "2026-07-10");
+});
+
 Deno.test("explicit numeric date within the 14-day window resolves deterministically (R54, no regression vs the old kalender-table path)", () => {
   const h = extractRelativeDayHint("Kan ik 24 juli om 9 uur?", THURSDAY);
   assertEquals(h?.iso, "2026-07-24");
