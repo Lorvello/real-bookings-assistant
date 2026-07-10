@@ -2852,9 +2852,15 @@ export function createTools(
           cancelCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
         }
         const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
+        // R153: also drops pending_cancel_verification here (not just pending_cancel). Needed
+        // because the cancelVerifiedBypass commit path above (R153) can now commit directly off a
+        // pending_cancel_verification marker with no pending_cancel ever having existed; every
+        // return path below that calls clearPending() must retire BOTH markers for this booking so
+        // a stale, still-fresh pending_cancel_verification never lingers referencing a booking that
+        // just terminated (cancelled/not-found/policy-refused).
         const clearPending = async () => {
           if (!ctx.conversationId) return;
-          const { pending_cancel: _drop, ...rest } = cancelCtx;
+          const { pending_cancel: _drop, pending_cancel_verification: _dropV, ...rest } = cancelCtx;
           await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
         };
         // R102 (shared-phone identity fix): the SAME cross-identity verification marker shape as
@@ -2915,11 +2921,34 @@ export function createTools(
         // prompt-nudge-only attempt was already proven unreliable on the book side; this goes
         // straight to the deterministic bypass without repeating that dead end).
         const cancelVerifiedBypass = ctx.confirmCancelVerification === true;
+        // R153 (CANCEL-VERIFICATION-FIRST-TURN-NO-PENDING-CANCEL fix, full-journey-simulation R70):
+        // when the cross-identity risk check fires on the customer's VERY FIRST cancel request
+        // (the common shape when a customer names the wrong employee straight away), the preview
+        // branch below returns naam_verificatie_nodig and writes ONLY pending_cancel_verification
+        // (see ~line 3134) -- it returns immediately, so the plain pending_cancel marker this outer
+        // gate has always required is NEVER written in that shape. The next turn's bare identity
+        // confirm then correctly computes cancelVerifiedBypass=true, but the outer gate ALSO
+        // unconditionally required pending?.start_time (from pending_cancel, not
+        // pending_cancel_verification), so it fell through to the preview branch instead of
+        // committing. The preview branch's own alreadyVerifiedThisBooking correctly recognized the
+        // already-verified identity and avoided re-arming THAT turn, but it re-previewed instead of
+        // committing (writing a fresh plain pending_cancel with calendar_mismatch recomputed from
+        // this turn's bare "Ja, <naam>" reply, i.e. null, losing the disclosure), forcing a SECOND
+        // bare-confirm reply which then failed ctx.hardConfirm (extra content: the echoed name) and
+        // fell through to preview YET AGAIN, this time with confirmCancelVerification no longer
+        // fresh, so alreadyVerifiedThisBooking was false and cancelCrossIdentityRisk re-armed a
+        // FRESH pending_cancel_verification (new `at`, calendar_mismatch nulled) -- live-reproduced
+        // 3x in R70, the disclosure lost every time. Fix: pending_cancel_verification already stores
+        // its own start_time (set at both its write sites), so when cancelVerifiedBypass is true it
+        // is trusted as the SAME kind of "which booking" evidence pending_cancel normally provides,
+        // letting a cancel that started directly on a cross-identity-risk turn commit in ONE
+        // identity-confirm reply instead of requiring an extra, unreachable plain re-confirm.
+        const cancelStartTimeForCommit = pending?.start_time ?? (cancelVerifiedBypass ? pendingCancelVerification?.start_time : undefined);
         // R152: when cancelVerifiedBypass is the reason this passes, use the narrower
         // ambiguousConfirmForVerification signal (day/time-shift excluded); otherwise keep the
         // full ambiguousConfirm exactly as before. See ToolContext's own R152 comment above.
-        if (((confirmed || ctx.confirmCancel === true) && cleanlyConfirmedCancel && ctx.hardConfirm === true || cancelVerifiedBypass) && !(cancelVerifiedBypass ? ctx.ambiguousConfirmForVerification : ctx.ambiguousConfirm) && pending?.start_time && !cancelPreviewIsSelfWritten) {
-          const target = await resolveTarget(supabase, ctx, pending.start_time);
+        if (((confirmed || ctx.confirmCancel === true) && cleanlyConfirmedCancel && ctx.hardConfirm === true || cancelVerifiedBypass) && !(cancelVerifiedBypass ? ctx.ambiguousConfirmForVerification : ctx.ambiguousConfirm) && cancelStartTimeForCommit && !cancelPreviewIsSelfWritten) {
+          const target = await resolveTarget(supabase, ctx, cancelStartTimeForCommit);
           if (target.none || target.ambiguous) {
             await clearPending();
             return {
