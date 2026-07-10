@@ -884,16 +884,31 @@ export function createTools(
   const decls: ToolDecl[] = [
     {
       name: "get_business_data",
+      // R75 (TRACK G6 tool-schema trim, pilot): shortened. The removed enumerated example list
+      // (adres, website, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid,
+      // voorbereiding, contact) duplicated prompt.ts's own <business_data> framing almost
+      // verbatim (prompt.ts lines ~321, 329, 340, 345, 349-350 already carry every one of these
+      // category words, some more than once). Kept "openingstijden" explicitly (the one item
+      // with a known real bug history, A1d watch-item: model once called this tool for opening
+      // hours instead of answering from context) and the exact "ZELDZAME fallback" / "ALLEEN
+      // aan als ... NIET in <business_data> staat" load-bearing framing untouched. Live-
+      // reverified R75 (see ROUNDS): 6/6 diverse turns held identical tool-selection/reply-shape
+      // before vs after.
       description:
-        "ZELDZAME fallback voor bedrijfsinfo/beleid (adres, website, openingstijden, annuleringsbeleid, betaalinfo, parkeren/OV, toegankelijkheid, voorbereiding, contact). Deze info staat AL in <business_data> in je context: beantwoord vragen over het bedrijf, openingstijden, locatie en contact DAAR direct uit, zonder deze tool. Roep dit ALLEEN aan als een gevraagd detail echt NIET in <business_data> staat.",
+        "ZELDZAME fallback voor bedrijfsinfo/beleid. Beantwoord vragen over het bedrijf DIRECT uit <business_data> in je context (incl. openingstijden), zonder deze tool. Roep dit ALLEEN aan als iets echt NIET in <business_data> staat.",
       parameters: { type: "object", properties: {} },
     },
     {
       name: "get_my_appointments",
+      // R75 (TRACK G6 tool-schema trim, 2nd pilot): 4 example phrasings collapsed to 2, one per
+      // semantic cluster ("what did I book" / "is it still on"), the other 2 were near-synonyms
+      // of a kept one, not a distinct trigger shape. The safety-critical clauses ("annuleert of
+      // wijzigt NIETS", GEDEELD NUMMER disclosure rule) are untouched. Live-reverified R75: held
+      // identical tool-selection/reply-shape on the get_my_appointments turn.
       description:
         "ALLEEN-LEZEN: leest de aankomende afspraken van DEZE klant terug (dienst + tijd + status). " +
-        "Gebruik dit als de klant vraagt wat hij/zij geboekt heeft, welke afspraken er staan, of wanneer de afspraak is " +
-        "('wat heb ik geboekt', 'welke afspraken heb ik', 'wanneer is mijn afspraak', 'staat mijn afspraak nog'). " +
+        "Gebruik dit als de klant vraagt wat die geboekt heeft of of de afspraak nog staat " +
+        "(bv. 'wat heb ik geboekt', 'staat mijn afspraak nog'). " +
         "Het annuleert of wijzigt NIETS. Gebruik NOOIT cancel_appointment of reschedule_appointment om alleen op te zoeken. " +
         "GEDEELD NUMMER: bij 2+ afspraken bevat elk item ook customer_name; staat een afspraak op een ANDERE naam dan de huidige klant, presenteer die dan ALTIJD als 'de afspraak van [naam]', nooit als 'jouw afspraak'.",
       parameters: { type: "object", properties: {} },
