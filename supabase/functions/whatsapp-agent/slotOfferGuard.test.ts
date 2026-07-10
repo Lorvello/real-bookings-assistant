@@ -83,7 +83,47 @@ Deno.test("queried a day with zero free slots but offered a time -> honest no-sl
     "maandag",
     null,
   );
-  assertEquals(out, noFreeSlotsReply(false));
+  assertEquals(out, noFreeSlotsReply(false, ["2026-06-29"]));
+});
+
+// R77 (DAY-DISCLOSURE fix, bug filed R76): the honest no-slots reply must NAME the actual day it
+// queried, so a customer can always see and correct a silently guessed day (R76's live-reproduced
+// 2-turn dead-end: the old generic "op die dag" template never revealed which day was checked, and
+// a direct "which day do you mean?" follow-up got the IDENTICAL non-answer, with no way out).
+Deno.test("no-slots reply names the actual queried day (NL)", () => {
+  const out = enforceSlotOffer(
+    "Schikt 09:00?",
+    [{ name: "get_available_slots", result: { date: "2026-07-21", available_slots: [] } }],
+    "op een dag deze week graag",
+    null,
+  );
+  assert(out.includes("dinsdag") && out.includes("21 juli"), `expected the real queried day in: ${out}`);
+  assert(!out.startsWith("Op die dag"), `must not fall back to the old unnamed template: ${out}`);
+});
+
+Deno.test("no-slots reply names the actual queried day (EN)", () => {
+  const out = enforceSlotOffer(
+    "Does 09:00 work?",
+    [{ name: "get_available_slots", result: { date: "2026-07-21", available_slots: [] } }],
+    "any day this week",
+    "het Engels",
+  );
+  assert(out.includes("Tuesday") && out.includes("21 July"), `expected the real queried day in: ${out}`);
+  assert(!out.startsWith("I don't have any free times left on that day"), `must not fall back to the old unnamed template: ${out}`);
+});
+
+Deno.test("noFreeSlotsReply falls back to the old generic wording when no date is known (defensive)", () => {
+  assertEquals(noFreeSlotsReply(false), `Op die dag heb ik geen vrije tijden meer. Wil je een andere dag proberen?`);
+  assertEquals(noFreeSlotsReply(true), `I don't have any free times left on that day. Would you like to try another day?`);
+});
+
+// collectTurnSlots must capture the queried date even on a zero-slot result (this is the ground
+// truth noFreeSlotsReply's disclosure depends on).
+Deno.test("collectTurnSlots captures queriedDates even when zero slots come back", () => {
+  const { queriedDates } = collectTurnSlots([
+    { name: "get_available_slots", result: { date: "2026-07-21", available_slots: [] } },
+  ]);
+  assertEquals(queriedDates, ["2026-07-21"]);
 });
 
 Deno.test("English customer -> English rebuild", () => {

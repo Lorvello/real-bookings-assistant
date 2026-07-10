@@ -64,10 +64,24 @@ export function extractOfferedClockTimes(reply: string, customerMsg: string): st
 // truth to validate against. byDate maps an ISO date -> its real free times (for a labelled rebuild).
 export function collectTurnSlots(
   toolCalls: ToolCall[],
-): { times: Set<string>; ordered: string[]; byDate: Map<string, string[]>; hadQuery: boolean } {
+): {
+  times: Set<string>;
+  ordered: string[];
+  byDate: Map<string, string[]>;
+  hadQuery: boolean;
+  queriedDates: string[];
+} {
   const times = new Set<string>();
   const ordered: string[] = [];
   const byDate = new Map<string, string[]>();
+  // R77 (DAY-DISCLOSURE fix, bug filed R76): the date(s) actually QUERIED this turn, captured
+  // regardless of whether the query found any free slots. get_available_slots' own tool result
+  // (tools.ts) always echoes back `date: args.date` verbatim, even on a zero-slot day, so this is
+  // real ground truth for what day the model looked up (self- or customer-chosen), never a
+  // reconstruction. Feeds noFreeSlotsReply below so the honest no-slots fallback can always NAME
+  // the day it checked: R76 found a customer could not previously tell (or correct) a silently
+  // guessed day from the old generic "op die dag" template, a genuine unrecoverable 2-turn stall.
+  const queriedDates: string[] = [];
   let hadQuery = false;
   const add = (t: string): string | null => {
     const hhmm = t.slice(0, 5);
@@ -83,6 +97,7 @@ export function collectTurnSlots(
     if (Array.isArray(arr)) {
       hadQuery = true;
       const dateLabel = typeof r.date === "string" ? r.date : null;
+      if (dateLabel && !queriedDates.includes(dateLabel)) queriedDates.push(dateLabel);
       const collected: string[] = [];
       for (const el of arr) {
         const raw = typeof el === "string"
@@ -111,7 +126,7 @@ export function collectTurnSlots(
       if (dateLabel && collected.length) byDate.set(dateLabel, collected);
     }
   }
-  return { times, ordered, byDate, hadQuery };
+  return { times, ordered, byDate, hadQuery, queriedDates };
 }
 
 // NL/EN date label from an ISO date ("2026-06-29" -> "maandag 29 juni" / "Monday 29 June").
@@ -142,7 +157,21 @@ export function buildDeterministicOffer(byDate: Map<string, string[]>, ordered: 
 }
 
 // "Queried that day, found zero free slots, yet the model offered a time" -> honest no-slots reply.
-export function noFreeSlotsReply(en: boolean): string {
+// R77 (DAY-DISCLOSURE fix, bug filed R76): ALWAYS names the actual day(s) queried, when known,
+// instead of the old bare "op die dag" ("on that day"). This is the disclosure half of the R76
+// fix: even in the worst case where the model silently guessed/invented a day the customer never
+// stated, the customer can now SEE which day was checked and self-correct in one turn, instead of
+// hitting an identical unnamed templated non-answer twice (R76's live-reproduced dead-end).
+// `dates` comes from collectTurnSlots' queriedDates (real tool-result ground truth, never a
+// re-guess); falls back to the old generic wording only if that ground truth is ever unavailable
+// (defensive, should not happen on the get_available_slots path that is this function's only caller).
+export function noFreeSlotsReply(en: boolean, dates: string[] = []): string {
+  if (dates.length > 0) {
+    const labels = dates.map((iso) => dateLabelFromISO(iso, en)).join(en ? " and " : " en ");
+    return en
+      ? `I don't have any free times left on ${labels}. Would you like to try another day?`
+      : `Op ${labels} heb ik geen vrije tijden meer. Wil je een andere dag proberen?`;
+  }
   return en
     ? `I don't have any free times left on that day. Would you like to try another day?`
     : `Op die dag heb ik geen vrije tijden meer. Wil je een andere dag proberen?`;
@@ -180,7 +209,7 @@ export function enforceSlotOffer(
   customerMsg: string,
   customerLanguage: string | null,
 ): string {
-  const { times, ordered, byDate, hadQuery } = collectTurnSlots(toolCalls);
+  const { times, ordered, byDate, hadQuery, queriedDates } = collectTurnSlots(toolCalls);
   if (!hadQuery) return replyText;
   const offered = extractOfferedClockTimes(replyText, customerMsg);
   if (offered.length === 0) return replyText;
@@ -194,5 +223,5 @@ export function enforceSlotOffer(
     return buildDeterministicOffer(byDate, ordered, en);
   }
   console.warn(`slot-offer-guard: queried day has no free slots but reply offered ${JSON.stringify(offered)}`);
-  return noFreeSlotsReply(en);
+  return noFreeSlotsReply(en, queriedDates);
 }
