@@ -1076,7 +1076,7 @@ export function createTools(
         "Wijzigt ALLEEN de naam op een BESTAANDE, al bevestigde afspraak van deze klant (bv. verkeerd gespeld, of per ongeluk onder iemand anders' naam geboekt). GEEN nieuwe boeking, GEEN dag/tijd/dienst-wijziging (gebruik daarvoor reschedule_appointment). Twee stappen, zoals annuleren: " +
         "STAP 1 (preview): roep aan met new_name = de nieuwe naam die de klant noemt. De tool wijzigt NIETS en geeft 'needs_confirmation' terug met de HUIDIGE naam + de voorgestelde nieuwe naam; lees dat kort terug en vraag of het klopt. Heeft de klant meerdere afspraken? Dan geeft de tool 'meerdere_afspraken' terug; geef bij de volgende aanroep match_time = de kloktijd van de bedoelde afspraak mee. " +
         "Staan er MEERDERE afspraken onder dit nummer EN wijkt de huidige naam op de gevonden afspraak echt af van de nieuwe naam? Dan geeft de tool 'naam_verificatie_nodig' terug: vraag de klant EXPLICIET of precies DIE afspraak (met de genoemde huidige naam) hernoemd moet worden, en wacht op het antwoord; roep GEEN tool aan in diezelfde beurt. Het systeem herkent zelf of het volgende bericht van de klant dit bevestigt. " +
-        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan met confirmed:true + only_confirming_previous. only_confirming_previous MOET je meesturen: true ALLEEN bij een kale, onvoorwaardelijke bevestiging zonder iets anders erbij, false zodra het bericht ENIG ander signaal bevat. Twijfel je: false.",
+        "STAP 2 (commit): roep PAS NA de bevestiging van de klant opnieuw aan met confirmed:true + only_confirming_previous (zie de parameterbeschrijving hieronder voor de exacte true/false-regel).",
       parameters: {
         type: "object",
         properties: {
