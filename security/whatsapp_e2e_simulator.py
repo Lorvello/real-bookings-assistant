@@ -51,10 +51,30 @@ from pathlib import Path
 
 import requests
 
-# SAFETY RULE (non-negotiable): every synthetic payload's destination is Mathew's own
-# consenting number, hardcoded, never derived from anything else. See
-# GOAL_PROMPT_WHATSAPP_E2E_TEST_INFRA.md section 2.
-HARDCODED_TEST_WA_ID = "31638281482"
+# SAFETY RULE (non-negotiable): every synthetic payload's destination must be a number that can
+# never belong to a real, unconsenting person.
+#
+# CHANGED (2026-07-10, full-journey-loop R90 finding): this used to be Mathew's own real number,
+# hardcoded. That choice had a real, undocumented side effect: check_reply() below (and every
+# round's own verification) only ever reads the REPLY back from `whatsapp_messages` in Postgres,
+# never from a real phone screen, so the destination number never actually needed to be a real,
+# receiving device at all. Reusing Mathew's real personal number for ~90 rounds of simulated
+# traffic instead silently gave his own number conversation history under multiple DISTINCT
+# business owners (his own real account + this loop's test fixture), which then made
+# whatsapp-webhook/gateLogic.ts's ambiguous-multi-tenant safety gate (a real, correct, earlier
+# sev-1 fix) fail-closed on his own genuine, code-less WhatsApp messages: real texts from his own
+# phone stopped getting any reply at all, "it always worked, now it suddenly doesn't", traced and
+# confirmed live 2026-07-10.
+#
+# FIX: use a number from the UK Ofcom "drama"/fictional block (07700 900000-900999), the
+# internationally-known reserved range that is guaranteed, by regulation, never assigned to any
+# real subscriber on any network. Any outbound Graph API send attempt to it will simply fail
+# (no WhatsApp account exists there), which is harmless and already handled: whatsapp-agent/
+# index.ts writes the outbound row to `whatsapp_messages` with status "failed" regardless of
+# whether the real Meta send succeeded, so every existing round's DB-based verification keeps
+# working byte-for-byte identically. This also means the simulator's OWN destination can never
+# again silently poison anyone's (including Mathew's) real conversation history.
+HARDCODED_TEST_WA_ID = "447700900123"
 
 # R154 (WHATSAPP_E2E_TEST_INFRA DoD close-out, adversarial round finding): whatsapp_contacts.
 # phone_number is a GLOBAL unique column, not per-tenant (see migration 20260706000000_R136, the
