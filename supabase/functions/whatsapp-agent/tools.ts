@@ -7,7 +7,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
+import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, rescheduleIdentityConfirmedFresh, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
 
 export interface ToolContext {
@@ -2804,7 +2804,7 @@ export function createTools(
         const out = { ...base };
         for (
           const key of
-            ["pending_cancel", "pending_cancel_verification", "pending_reschedule_confirm", "pending_reschedule_verification"] as const
+            ["pending_cancel", "pending_cancel_verification", "pending_reschedule_confirm", "pending_reschedule_verification", "reschedule_identity_confirmed"] as const
         ) {
           const marker = out[key] as { booking_id?: string } | undefined;
           if (marker && marker.booking_id === bookingId) delete out[key];
@@ -3382,9 +3382,20 @@ export function createTools(
         // R103 stuck-loop shape.
         const existingReschedVerification = reschedCtx.pending_reschedule_verification as
           { booking_id?: string; current_name?: string | null; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
+        // R68 (RESCHEDULE-VERIFICATION-TOKEN-BURNED-BEFORE-COMMIT fix): pending_reschedule_verification
+        // above is a single-use marker that gets cleared the instant the identity gate passes (see
+        // the confirmRescheduleVerification block below), BEFORE several real downstream refusal
+        // branches (distinct-service fork, calendar/service resolution, date guards, slot
+        // availability, cancellation deadline) that can still leave the reschedule uncommitted. This
+        // durable, SEPARATE marker is written alongside that clear (never instead of it) and survives
+        // those early returns, so a retry on the SAME booking within the freshness window never has
+        // to re-prove identity a second time. See identityDisambiguationGuard.ts's
+        // rescheduleIdentityConfirmedFresh doc comment for the full reasoning.
+        const reschedIdentityConfirmedMarker = reschedCtx.reschedule_identity_confirmed as
+          { booking_id?: string; at?: number } | undefined;
         const rescheduleAlreadyVerifiedThisBooking = !target.multipleNamesStated &&
-          ctx.confirmRescheduleVerification === true &&
-          existingReschedVerification?.booking_id === b.id;
+          ((ctx.confirmRescheduleVerification === true && existingReschedVerification?.booking_id === b.id) ||
+            rescheduleIdentityConfirmedFresh(reschedIdentityConfirmedMarker, b.id));
         if (rescheduleCrossIdentityRisk && !rescheduleAlreadyVerifiedThisBooking) {
           const verifyAt = Date.now();
           if (ctx.conversationId) {
@@ -3458,8 +3469,16 @@ export function createTools(
             if (prv.new_calendar_index != null) args.calendar_index = prv.new_calendar_index;
             reschedRestoredCalMismatch2 = prv.calendar_mismatch ?? null;
             if (ctx.conversationId) {
+              // R68: clear the single-use verification marker (unchanged), AND write the durable
+              // reschedule_identity_confirmed marker alongside it so a downstream refusal further
+              // below (distinct-service fork, calendar/service resolution, date guards, slot
+              // availability, cancellation deadline) can never burn this just-proven identity for
+              // nothing; the customer's next reply on this SAME booking checks this durable marker
+              // instead of re-arming naam_verificatie_nodig from scratch.
               const { pending_reschedule_verification: _dropRV, ...restV } = vctx;
-              await supabase.from("whatsapp_conversations").update({ context: restV }).eq("id", ctx.conversationId);
+              await supabase.from("whatsapp_conversations").update({
+                context: { ...restV, reschedule_identity_confirmed: { booking_id: b.id, at: Date.now() } },
+              }).eq("id", ctx.conversationId);
             }
           }
         }
@@ -3473,8 +3492,12 @@ export function createTools(
         // gate re-fired for the freshly-resolved b just above (a same-person re-disambiguation that
         // lands on a booking with NO cross-identity risk at all must still not leave the old
         // marker sitting there to confuse a later, unrelated reschedule in this same conversation).
-        if (target.multipleNamesStated && existingReschedVerification && ctx.conversationId) {
-          const { pending_reschedule_verification: _dropStaleRV, ...restStaleV } = reschedCtx;
+        // R68: the durable reschedule_identity_confirmed marker is scoped to a specific booking_id,
+        // but a fresh 2+-name re-disambiguation this turn means the customer is actively naming a
+        // possibly-different person/booking; drop it here too (alongside the transient marker
+        // above) so it can never silently satisfy a DIFFERENT booking's identity check later.
+        if (target.multipleNamesStated && (existingReschedVerification || reschedIdentityConfirmedMarker) && ctx.conversationId) {
+          const { pending_reschedule_verification: _dropStaleRV, reschedule_identity_confirmed: _dropStaleRIC, ...restStaleV } = reschedCtx;
           await supabase.from("whatsapp_conversations").update({ context: restStaleV }).eq("id", ctx.conversationId);
         }
 
@@ -3663,6 +3686,14 @@ export function createTools(
         const switchedCalendar = targetCalId !== b.calendar_id
           ? ctx.calendars.find((c) => c.id === targetCalId)?.name ?? null
           : null;
+        // R68: the reschedule actually committed, so the durable reschedule_identity_confirmed
+        // marker (if any) has served its purpose; drop it rather than leaving it to expire on its
+        // own TTL, so it can never be mistaken for evidence about a LATER, unrelated reschedule on
+        // this same booking further in the conversation.
+        if (reschedIdentityConfirmedMarker?.booking_id === b.id && ctx.conversationId) {
+          const { reschedule_identity_confirmed: _dropCommittedRIC, ...restCommitted } = reschedCtx;
+          await supabase.from("whatsapp_conversations").update({ context: restCommitted }).eq("id", ctx.conversationId);
+        }
         return {
           ok: true,
           // R96 (PHANTOM-SUCCESS fix, NEW-1): booking_id is the row this reschedule actually moved,

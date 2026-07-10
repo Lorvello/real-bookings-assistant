@@ -581,6 +581,32 @@ export function takeoverVerificationResolution(
 // Neither path can ever be satisfied by silently repeating the same affirm word from the same
 // unresolved identity: the customer must actually do one of the two things a real receptionist
 // would require, namely say who the appointment is really for, or have the real owner confirm.
+// R68 (RESCHEDULE-VERIFICATION-TOKEN-BURNED-BEFORE-COMMIT fix, closes R67's deferred Mechanism 2):
+// pending_reschedule_verification (tools.ts) is a SINGLE-USE marker, deliberately consumed the
+// instant confirmRescheduleVerification's identity gate passes, since that marker also carries the
+// intended new date/time to restore. But several real, live-reachable downstream refusal branches
+// (distinct-service fork, calendar/service resolution, date guards, slot availability,
+// cancellation-deadline) sit BETWEEN that gate-pass and the actual `reschedule_booking_atomic`
+// commit. When any of them fires, the just-proven identity has already been discarded, so the
+// customer's very next reply finds no marker and must re-prove identity from scratch (R67
+// live-reproduced this 3x). Fix shape (b) from R67's own writeup: a SEPARATE, durable
+// `reschedule_identity_confirmed: {booking_id, at}` marker, written ALONGSIDE (never instead of)
+// clearing the transient verification marker, so it survives every early-return branch between
+// gate-pass and commit. This predicate is the pure freshness+booking-id check a retry uses to skip
+// re-arming the identity question for the SAME booking; it never weakens the original identity
+// check itself (that still runs in full, exactly once, before this marker is ever written) and
+// respects the SAME 15-minute TTL convention every sibling pending_*/marker in this file already
+// uses (see pendingRescheduleVerificationFresh etc. in index.ts).
+export function rescheduleIdentityConfirmedFresh(
+  marker: { booking_id?: string; at?: number } | null | undefined,
+  bookingId: string,
+  now: number = Date.now(),
+  ttlMs: number = 15 * 60 * 1000,
+): boolean {
+  if (!marker || !bookingId || marker.booking_id !== bookingId) return false;
+  return typeof marker.at !== "number" || (now - marker.at) < ttlMs;
+}
+
 export function identityVerificationResolved(
   targetCustomerName: string | null | undefined,
   knownSelfNameAtRelease: string | null | undefined,

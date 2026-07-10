@@ -20,6 +20,7 @@ import {
   messageNamesPendingBookOwner,
   nameSuffix,
   previewTakeoverRisk,
+  rescheduleIdentityConfirmedFresh,
   takeoverVerificationResolution,
   type NamedCandidate,
 } from "./identityDisambiguationGuard.ts";
@@ -407,6 +408,40 @@ Deno.test("identityVerificationResolved: no real target name on the marker -> no
 
 Deno.test("identityVerificationResolved: unrelated message content does not accidentally satisfy it", () => {
   assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "Ok doe donderdag maar"), false);
+});
+
+// ── R68 rescheduleIdentityConfirmedFresh (closes R67's deferred Mechanism 2: the
+// pending_reschedule_verification single-use marker was consumed BEFORE the downstream refusal
+// branches ran, burning a just-proven identity for nothing) ────────────────────────────────────
+Deno.test("rescheduleIdentityConfirmedFresh: no marker at all -> false (nothing to reuse, must go through the normal identity gate)", () => {
+  assertEquals(rescheduleIdentityConfirmedFresh(undefined, "b-1"), false);
+  assertEquals(rescheduleIdentityConfirmedFresh(null, "b-1"), false);
+});
+
+Deno.test("rescheduleIdentityConfirmedFresh: a fresh marker for the SAME booking is true (the R67 fix target: a downstream refusal must not force re-verification)", () => {
+  const now = 1_000_000;
+  assertEquals(rescheduleIdentityConfirmedFresh({ booking_id: "b-1", at: now - 1000 }, "b-1", now), true);
+});
+
+Deno.test("rescheduleIdentityConfirmedFresh: a marker for a DIFFERENT booking never satisfies this one (no cross-booking leak)", () => {
+  const now = 1_000_000;
+  assertEquals(rescheduleIdentityConfirmedFresh({ booking_id: "b-2", at: now - 1000 }, "b-1", now), false);
+});
+
+Deno.test("rescheduleIdentityConfirmedFresh: expired past the 15-minute TTL (same convention as every sibling pending_* marker) -> false, must re-verify", () => {
+  const now = 1_000_000;
+  const fifteenMin = 15 * 60 * 1000;
+  assertEquals(rescheduleIdentityConfirmedFresh({ booking_id: "b-1", at: now - fifteenMin - 1 }, "b-1", now), false);
+  // Just under the TTL boundary is still fresh.
+  assertEquals(rescheduleIdentityConfirmedFresh({ booking_id: "b-1", at: now - fifteenMin + 1 }, "b-1", now), true);
+});
+
+Deno.test("rescheduleIdentityConfirmedFresh: an empty bookingId never matches anything (fail-closed, never a wildcard bypass)", () => {
+  assertEquals(rescheduleIdentityConfirmedFresh({ booking_id: "", at: 1 }, "", 1000), false);
+});
+
+Deno.test("rescheduleIdentityConfirmedFresh: no `at` timestamp on an otherwise-matching marker is treated as fresh (mirrors every sibling TTL check's own `typeof at !== \"number\"` convention)", () => {
+  assertEquals(rescheduleIdentityConfirmedFresh({ booking_id: "b-1" }, "b-1", 1_000_000), true);
 });
 
 // ── R112 enforceVerificationGateDisclosure (closes R107-GATE-FIRST-TRIGGER-WRONG-TEXT) ─────────
