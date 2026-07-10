@@ -2800,11 +2800,39 @@ export function createTools(
       // "pending confirmation" for a given booking at a time (mirrors the existing R103 convention
       // of dropping a stale marker the moment a newer, competing signal for the same target
       // appears). Purely additive context cleanup; does not change any gate's own release logic.
+      // R69 (RENAME-MARKER-LEAK fix): update_booking_name never called this helper at all, so a
+      // rename that commits (or even just previews) on a booking left a pre-existing durable
+      // `reschedule_identity_confirmed` marker (R68) completely untouched, even though the marker's
+      // own key list here was clearly SCOPED to be dropped by "any OTHER action arming its own
+      // marker for the SAME booking_id" (see the R68 PRODUCT KNOWLEDGE entry's own stated intent).
+      // Live-reproduced (R69): reschedule an existing booking to trigger identity verification,
+      // confirm identity (writes the durable marker), hit a downstream refusal so the marker
+      // survives unconsumed, then RENAME that same booking (single-booking phone, so rename's own
+      // crossIdentityRisk gate never even fires) which changes customer_name but leaves the durable
+      // marker alive; a SUBSEQUENT reschedule request on the SAME booking then skipped identity
+      // verification entirely (rescheduleAlreadyVerifiedThisBooking stayed true) and committed for
+      // real, even though the booking's own name had just changed underneath it and
+      // ctx.knownSelfName was still null the whole time (a fresh check would have fired). Fix, two
+      // parts: (1) added "pending_rename"/"pending_rename_verification" to this shared key list, so
+      // cancel/reschedule arming their own marker also drops any stale rename marker for the same
+      // booking (closes the R62-class collision in the direction that was missing); (2) wired
+      // dropCrossActionMarkersForBooking() into update_booking_name's own two write sites below
+      // (the verification-arm and the plain-preview-arm), so a rename now also drops any stale
+      // cancel/reschedule/reschedule_identity_confirmed marker for that same booking_id, exactly
+      // like cancel_appointment/reschedule_appointment already do for each other.
       function dropCrossActionMarkersForBooking(base: Record<string, unknown>, bookingId: string): Record<string, unknown> {
         const out = { ...base };
         for (
           const key of
-            ["pending_cancel", "pending_cancel_verification", "pending_reschedule_confirm", "pending_reschedule_verification", "reschedule_identity_confirmed"] as const
+            [
+              "pending_cancel",
+              "pending_cancel_verification",
+              "pending_reschedule_confirm",
+              "pending_reschedule_verification",
+              "reschedule_identity_confirmed",
+              "pending_rename",
+              "pending_rename_verification",
+            ] as const
         ) {
           const marker = out[key] as { booking_id?: string } | undefined;
           if (marker && marker.booking_id === bookingId) delete out[key];
@@ -4096,7 +4124,7 @@ export function createTools(
           if (ctx.conversationId) {
             await supabase
               .from("whatsapp_conversations")
-              .update({ context: { ...renameCtx, pending_rename_verification: { booking_id: b.id, current_name: currentName, new_name: newNameRaw, start_time: b.start_time, at: verifyAt, calendar_mismatch: renameCalMismatch } } })
+              .update({ context: { ...dropCrossActionMarkersForBooking(renameCtx, b.id), pending_rename_verification: { booking_id: b.id, current_name: currentName, new_name: newNameRaw, start_time: b.start_time, at: verifyAt, calendar_mismatch: renameCalMismatch } } })
               .eq("id", ctx.conversationId);
           }
           return {
@@ -4125,7 +4153,7 @@ export function createTools(
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...renameCtxClean, pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt, calendar_mismatch: renameCalMismatch } } })
+            .update({ context: { ...dropCrossActionMarkersForBooking(renameCtxClean, b.id), pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt, calendar_mismatch: renameCalMismatch } } })
             .eq("id", ctx.conversationId);
         }
         return {
