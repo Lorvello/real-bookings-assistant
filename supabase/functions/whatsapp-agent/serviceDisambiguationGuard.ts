@@ -54,7 +54,14 @@ export interface DisambiguationInput {
 // strict, never book anything wrong). The word-level match closes the OTHER false-positive risk:
 // a customer who DID name their branch/service, just not with its exact full configured string,
 // must never be needlessly asked again (see the single-relevant-option false-positive check).
-const GENERIC_NAME_WORDS = new Set(["de", "het", "een", "en", "van", "voor", "bij", "in", "op", "salon", "kapsalon", "praktijk", "studio"]);
+// R79: added a handful of common 2-letter Dutch filler words (defensive, given mentionsAny's word
+// filter below is now lowered to >= 2 letters so a genuinely short employee/branch name like "Bo"
+// can be recognized; these would otherwise become spuriously matchable if a future tenant's
+// calendar/service name ever happened to contain one as a standalone word).
+const GENERIC_NAME_WORDS = new Set([
+  "de", "het", "een", "en", "van", "voor", "bij", "in", "op", "salon", "kapsalon", "praktijk", "studio",
+  "ik", "je", "we", "ja", "of", "te", "me", "ze", "nu", "zo",
+]);
 function mentionsAny(haystacks: string[], needles: string[]): boolean {
   const names = needles.map((n) => n.trim().toLowerCase()).filter(Boolean);
   if (!names.length) return false;
@@ -62,7 +69,20 @@ function mentionsAny(haystacks: string[], needles: string[]): boolean {
     const lower = text.toLowerCase();
     for (const name of names) {
       if (name.length >= 2 && lower.includes(name)) return true;
-      const words = name.split(/\s+/).filter((w) => w.length >= 3 && !GENERIC_NAME_WORDS.has(w));
+      // R79 SHORT-NAME-NEVER-MATCHES fix (this guard's own `mentionsAny`, used by
+      // shouldBlockForMissingServiceChoice + shouldBlockForAmbiguousBranch): the word filter used
+      // to require >= 3 letters, which meant a genuinely short employee/branch name (e.g. "Bo", 2
+      // letters) could NEVER be recognized as "named" via its own first name alone, only via the
+      // exact FULL configured string (parentheses and all, e.g. "Bo (Nagels)"). Live-reproduced on
+      // the R78 fixture extension (a duplicated "Knippen" service across 2 calendars, one named
+      // "Bo (Nagels)"): "Bij Bo graag, maandag 13 juli om 10 uur" failed to resolve the branch
+      // TWICE in a row (an identical repeated clarifying question both times), only succeeding on
+      // a 3rd attempt that happened to repeat the calendar's full configured label verbatim. Lowered
+      // to >= 2 (matching the already-proven-safe threshold `identityDisambiguationGuard.ts` uses
+      // for real proper-noun matching, e.g. line 535/539/759/844 of that file); `GENERIC_NAME_WORDS`
+      // already pre-listed several 2-letter filler words ("de", "in", "op", ...) specifically so
+      // this exact threshold change would stay safe once made.
+      const words = name.split(/\s+/).filter((w) => w.length >= 2 && !GENERIC_NAME_WORDS.has(w));
       for (const word of words) {
         if (new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(lower)) return true;
       }

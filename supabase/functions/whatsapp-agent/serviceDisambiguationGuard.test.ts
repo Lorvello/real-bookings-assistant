@@ -812,3 +812,67 @@ Deno.test("R118-4 does not block: already confirmed takes priority regardless of
     false,
   );
 });
+
+// ── R79 SHORT-NAME-NEVER-MATCHES fix: a genuinely short (2-letter) employee/branch name must be
+// recognized when named on its own, not only via the exact full configured string ─────────────
+
+const R79_FIXTURE = [
+  { name: "Milan (Kleuren)", services: [{ name: "Knippen", price: 35, durationMin: 40 }] },
+  { name: "Bo (Nagels)", services: [{ name: "Knippen", price: 38, durationMin: 50 }] },
+];
+
+Deno.test("R79 does not block: short 2-letter branch name ('Bo') named alone, no parentheses", () => {
+  assertEquals(
+    shouldBlockForAmbiguousBranch({
+      calendars: R79_FIXTURE,
+      inboundTexts: ["ik wil graag een knippen boeken", "bij Bo graag, maandag om 10 uur"],
+    }),
+    false,
+  );
+});
+
+Deno.test("R79 does not block: short 2-letter branch name ('Bo') named lowercase mid-sentence", () => {
+  assertEquals(
+    shouldBlockForAmbiguousBranch({
+      calendars: R79_FIXTURE,
+      inboundTexts: ["kan ik een knippen boeken bij bo?"],
+    }),
+    false,
+  );
+});
+
+Deno.test("R79 still blocks: neither branch named, service is genuinely ambiguous (regression guard)", () => {
+  assertEquals(
+    shouldBlockForAmbiguousBranch({
+      calendars: R79_FIXTURE,
+      inboundTexts: ["ik wil graag een knippen boeken"],
+    }),
+    true,
+  );
+});
+
+Deno.test("R79 does not false-positive: a longer branch name ('Milan') still matches as before", () => {
+  assertEquals(
+    shouldBlockForAmbiguousBranch({
+      calendars: R79_FIXTURE,
+      inboundTexts: ["ik wil graag een knippen boeken bij Milan"],
+    }),
+    false,
+  );
+});
+
+Deno.test("R79 GENERIC_NAME_WORDS extension: a lone 'ik'/'je'/'we' in a message never falsely names a branch", () => {
+  const genericWordFixture = [
+    { name: "Ik (Studio)", services: [{ name: "Massage", price: 50, durationMin: 60 }] },
+    { name: "We (Praktijk)", services: [{ name: "Massage", price: 70, durationMin: 90 }] },
+  ];
+  // Customer never names either branch; every message is full of the generic words "ik"/"je"/"we"
+  // themselves, which must NOT be mistaken for a branch name mention.
+  assertEquals(
+    shouldBlockForAmbiguousBranch({
+      calendars: genericWordFixture,
+      inboundTexts: ["ik wil graag een massage boeken, wat kan je voor me doen"],
+    }),
+    true,
+  );
+});
