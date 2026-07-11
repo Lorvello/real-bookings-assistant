@@ -264,3 +264,116 @@ export function hasDayMentionAnywhere(
 // customer-language handling for the surrounding reply, same convention as KIES_DIENST_MESSAGE.
 export const VRAAG_DAG_MESSAGE =
   "De klant heeft in dit hele gesprek nog GEEN dag genoemd (geen weekdag, geen 'vandaag'/'morgen', geen datum). Neem NOOIT zelf een dag aan (ook niet 'vandaag'): vraag eerst kort en concreet op welke dag de klant de afspraak wil, bijvoorbeeld \"Op welke dag zou je de afspraak willen?\", en roep dan pas opnieuw aan zodra de klant een dag heeft genoemd.";
+
+// R95 (RESCHEDULE-NO-DAY-STONEWALL fix): same discipline as VRAAG_DAG_MESSAGE above, worded for
+// reschedule_appointment specifically (the klant already HAS a booking, so the question is which
+// NEW day, never a first-time "which day do you want the appointment" phrasing that would confuse
+// the existing-booking context).
+export const VRAAG_DAG_RESCHEDULE_MESSAGE =
+  "De klant wil verzetten maar heeft nog GEEN nieuwe dag genoemd (geen weekdag, geen 'vandaag'/'morgen', geen datum), alleen eventueel een tijdstip. Verzet NIETS en neem NOOIT zelf een dag aan: vraag eerst kort en concreet naar welke dag de klant de afspraak wil verzetten, bijvoorbeeld \"Naar welke dag wil je de afspraak verzetten?\", en roep reschedule_appointment dan pas opnieuw aan zodra de klant een dag heeft genoemd.";
+
+// R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94): tools.ts's own reschedDayEstablished
+// guard (see that file's reschedule_appointment case) only fires once the model actually INVOKES
+// reschedule_appointment. Live-reproduced this round: the model routinely never calls ANY tool at
+// all for a bare "kan ik mijn afspraak verzetten naar een ander tijdstip?" (no day named) turn,
+// instead composing a prose reply that reads the request as a pure status lookup and echoes the
+// EXACT get_my_appointments-shaped template ("Er staat een afspraak: <service> op <when> (op naam
+// <name>)."), the identical failure shape serviceDisambiguationGuard.ts's own
+// looksLikeAppointmentStatusReadout already names and guards against for the RETURNING-SERVICE
+// case. This is the SAME deterministic "backstop AFTER the reply is drafted, independent of which
+// tool (if any) was called this turn" pattern, applied to the reschedule-no-day case.
+//
+// rescheduleFlowActiveWithNoDay: true only when (a) a reschedule flow is genuinely in progress
+// this turn (the CURRENT message names an explicit reschedule verb, OR a recent prior INBOUND
+// message did, scoping "recent" to since the last such verb rather than the whole conversation,
+// exactly like the reasoning in hasDayMentionAnywhere's own header for why reschedule needs a
+// NARROWER window than book_appointment's whole-history scan: the ORIGINAL booking request almost
+// always already named a day, which would otherwise make this permanently false-negative), AND
+// (b) no day has been named anywhere in that same narrow window (current message + every inbound
+// message from the most recent reschedule-verb turn onward).
+export function rescheduleFlowActiveWithNoDay(
+  currentText: string,
+  priorInboundTextsOldestFirst: string[],
+  now: Date,
+  rescheduleVerbRe: RegExp,
+): boolean {
+  let sinceIndex = -1;
+  for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
+    if (rescheduleVerbRe.test(priorInboundTextsOldestFirst[i])) {
+      sinceIndex = i;
+      break;
+    }
+  }
+  const currentHasIntent = rescheduleVerbRe.test(currentText);
+  if (sinceIndex === -1 && !currentHasIntent) return false;
+  const windowTexts = sinceIndex === -1 ? [] : priorInboundTextsOldestFirst.slice(sinceIndex);
+  return !hasDayMentionAnywhere(currentText, windowTexts, now);
+}
+
+// Customer-facing question this backstop rewrites the drafted reply to, when triggered. Kept
+// separate from VRAAG_DAG_RESCHEDULE_MESSAGE (that one is a tool-result `message` field mixing an
+// internal instruction with the question; this is the bare customer-facing sentence, same
+// convention as BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE / enforceVerificationGateDisclosure's
+// own customer_reply field).
+export const VRAAG_DAG_RESCHEDULE_CUSTOMER_MESSAGE = "Naar welke dag wil je de afspraak verzetten?";
+
+// Error codes a SIBLING gate on reschedule_appointment/get_available_slots can legitimately
+// return this same turn, each with its own correct customer-facing question that must win over
+// this backstop (identity/ambiguity/service/calendar concerns are real and take priority over the
+// day question; asking "which day" on top of one of these would just be a second, confusing
+// question). Deliberately does NOT include "vraag_dag" (this fix's own tools.ts guard): this fix's
+// OWN live verify round found the model does NOT reliably relay that gate's `message` field into
+// an actual day-question either (live-reproduced: reschedule_appointment returned vraag_dag, yet
+// the model still composed the exact "Er staat een afspraak: ..." stonewall), the identical
+// "prompt/tool-message-only steering does not reliably hold at this model's scale" lesson this
+// whole codebase has already learned repeatedly (R102, R112, enforceReturningServiceDisclosure).
+// Treating vraag_dag as "already handled" and skipping the rewrite would silently let that exact
+// failure back through; this backstop must fire on EVERY vraag_dag hit too, not just tool-call-less
+// turns, so it always forces the identical, correct customer-facing question regardless of whether
+// the model followed the tool's own internal instruction.
+const RESCHEDULE_SIBLING_GATE_ERRORS = new Set([
+  "naam_verificatie_nodig",
+  "meerdere_afspraken",
+  "andere_dienst_verzet",
+  "verzet_bevestiging_nodig",
+  "meerdere_agendas",
+  "dienst_onbekend",
+]);
+
+export interface RescheduleNoDayToolResult {
+  name: string;
+  result?: unknown;
+}
+
+export function enforceRescheduleNoDayDisclosure(
+  replyText: string,
+  rescheduleFlowActiveWithNoDayThisTurn: boolean,
+  toolCalls: RescheduleNoDayToolResult[] = [],
+): string {
+  if (!replyText) return replyText;
+  if (!rescheduleFlowActiveWithNoDayThisTurn) return replyText;
+  // Already asks a day question (however phrased)? Trust correct model output, never clobber it.
+  if (/welke dag|which day/i.test(replyText)) return replyText;
+  // A sibling gate on reschedule_appointment/get_available_slots already fired this turn with its
+  // OWN correct, different question (identity verification, multiple bookings, a service/calendar
+  // choice), or the reschedule genuinely committed (ok:true): never override either with the day
+  // question, that would fight (or contradict) the sibling gate/a real success.
+  for (const tc of toolCalls) {
+    if (tc.name !== "reschedule_appointment" && tc.name !== "get_available_slots" && tc.name !== "book_appointment") continue;
+    const r = tc.result;
+    if (!r || typeof r !== "object") continue;
+    const err = (r as Record<string, unknown>).error;
+    if (typeof err === "string" && RESCHEDULE_SIBLING_GATE_ERRORS.has(err)) return replyText;
+    if ((r as Record<string, unknown>).ok === true) return replyText;
+  }
+  // Live-reproduced R95 (this fix's OWN verify round): the get_my_appointments-shaped stonewall
+  // template is not the only shape this bug produces. A customer whose reschedule ask names no day
+  // can also get a bare, silent slot OFFER (e.g. "19:30 past?"), the model having assumed some
+  // unstated day for itself with zero disclosure, no tool call this turn carrying any of the
+  // sibling-gate errors above, and no explicit day/appointment-status text either. Any reply this
+  // deterministically-computed flag reaches, other than a genuine sibling gate or a real commit
+  // (both already excluded above) or a reply that already asks the day, is WRONG BY CONSTRUCTION
+  // (the one and only correct reply while rescheduleFlowActiveWithNoDayThisTurn holds is the day
+  // question), so this rewrites unconditionally rather than pattern-matching one specific shape.
+  return VRAAG_DAG_RESCHEDULE_CUSTOMER_MESSAGE;
+}

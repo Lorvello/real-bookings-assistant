@@ -832,7 +832,10 @@ export function enforceExistingAppointmentDisclosure(
 // (it could just as easily mean "yes, cancel it" or something unrelated). This function answers
 // only the "does THIS message carry its own explicit intent" half; index.ts/tools.ts combine it
 // with the fork-question-still-open signal (a fresh pending_cancel marker for the SAME booking).
-const RESCHEDULE_VERB_RE =
+// R95 (RESCHEDULE-NO-DAY-STONEWALL fix): exported so relativeDateHint.ts's
+// enforceRescheduleNoDayDisclosure can detect "a reschedule flow is active" without duplicating
+// this regex (single source of truth for what counts as an explicit reschedule verb).
+export const RESCHEDULE_VERB_RE =
   /\b(verzet\w*|verplaats\w*|verschuif\w*|verschoven|reschedul\w*|\bmove\b|\bmoved\b|\bshift\w*)\b/i;
 
 export function hasExplicitRescheduleIntent(rawMessage: string | undefined | null, allServiceNames: string[]): boolean {

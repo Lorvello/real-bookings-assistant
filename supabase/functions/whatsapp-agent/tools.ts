@@ -9,7 +9,7 @@ import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
 import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, rescheduleIdentityConfirmedFresh, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
-import { VRAAG_DAG_MESSAGE } from "./relativeDateHint.ts";
+import { hasDayMentionAnywhere, VRAAG_DAG_MESSAGE, VRAAG_DAG_RESCHEDULE_MESSAGE } from "./relativeDateHint.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -3439,10 +3439,15 @@ export function createTools(
         // R66: mismatch restored from the ambiguity-confirm marker (an earlier turn may have named
         // the wrong calendar/employee, this turn's own bare affirm usually doesn't repeat it).
         let reschedRestoredCalMismatch1: CalendarMismatch | null = null;
+        // R95 (RESCHEDULE-NO-DAY-STONEWALL fix): tracks whether a real day/date was genuinely
+        // RESTORED from an earlier turn's own marker here (as opposed to the model silently
+        // inventing one on a fresh call), consumed by the reschedDayEstablished guard further below
+        // so a bare args.date is never blindly trusted as proof the customer actually named a day.
+        let reschedDayRestoredFromMarker = false;
         if (rescheduleAmbiguityAlreadyConfirmed && existingReschedConfirm) {
-          if (existingReschedConfirm.new_date) args.date = existingReschedConfirm.new_date;
+          if (existingReschedConfirm.new_date) { args.date = existingReschedConfirm.new_date; reschedDayRestoredFromMarker = true; }
           if (existingReschedConfirm.new_time) args.time = existingReschedConfirm.new_time;
-          if (existingReschedConfirm.new_start_time) args.start_time = existingReschedConfirm.new_start_time;
+          if (existingReschedConfirm.new_start_time) { args.start_time = existingReschedConfirm.new_start_time; reschedDayRestoredFromMarker = true; }
           if (existingReschedConfirm.new_end_time) args.end_time = existingReschedConfirm.new_end_time;
           if (existingReschedConfirm.new_service_type_id) args.service_type_id = existingReschedConfirm.new_service_type_id;
           if (existingReschedConfirm.new_calendar_index != null) args.calendar_index = existingReschedConfirm.new_calendar_index;
@@ -3557,9 +3562,9 @@ export function createTools(
           const vctx = reschedCtx;
           const prv = existingReschedVerification;
           if (prv?.booking_id === b.id) {
-            if (prv.new_date) args.date = prv.new_date;
+            if (prv.new_date) { args.date = prv.new_date; reschedDayRestoredFromMarker = true; }
             if (prv.new_time) args.time = prv.new_time;
-            if (prv.new_start_time) args.start_time = prv.new_start_time;
+            if (prv.new_start_time) { args.start_time = prv.new_start_time; reschedDayRestoredFromMarker = true; }
             if (prv.new_end_time) args.end_time = prv.new_end_time;
             if (prv.new_service_type_id) args.service_type_id = prv.new_service_type_id;
             if (prv.new_calendar_index != null) args.calendar_index = prv.new_calendar_index;
@@ -3595,6 +3600,36 @@ export function createTools(
         if (target.multipleNamesStated && (existingReschedVerification || reschedIdentityConfirmedMarker) && ctx.conversationId) {
           const { pending_reschedule_verification: _dropStaleRV, reschedule_identity_confirmed: _dropStaleRIC, ...restStaleV } = reschedCtx;
           await supabase.from("whatsapp_conversations").update({ context: restStaleV }).eq("id", ctx.conversationId);
+        }
+
+        // R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94 + this fix's OWN verify round):
+        // a deterministic backstop, mirroring get_available_slots/book_appointment's
+        // ctx.blockForNoDayNamed (R93), for the SAME class of bug (never silently guess a day) but
+        // DELIBERATELY NOT the same whole-history flag: ctx.blockForNoDayNamed is computed once per
+        // turn from the ENTIRE conversation, and for a reschedule the booking-request turn that
+        // created the ORIGINAL appointment almost always already named a day (e.g. "op dinsdag 14
+        // juli"), which would make ctx.blockForNoDayNamed permanently false for the rest of the
+        // conversation even though the customer has said NOTHING about which NEW day they want to
+        // move to (confirmed by direct inspection of the R94 repro transcript, conversation
+        // a54c90ca). What actually matters here is scoped to THIS reschedule attempt only: either
+        // (a) THIS message names an explicit day/date (hasDayMentionAnywhere on the current message
+        // only, no history), or (b) reschedDayRestoredFromMarker is true, meaning a real day was
+        // genuinely established on an EARLIER turn of this SAME reschedule attempt and just
+        // restored above from a pending_reschedule_confirm/pending_reschedule_verification marker.
+        // Deliberately NOT `!!args.date` (this fix's own verify round live-reproduced why: a bare
+        // "kan het naar 20:00?" follow-up let the model silently invent its OWN args.date for the
+        // existing booking's day with zero disclosure, e.g. replying "19:30 past?" with no day ever
+        // named by anyone; trusting a freshly-model-supplied args.date here would have silently
+        // reopened the EXACT R92/R93 class of bug this whole guard exists to close). A genuine
+        // relative-to-the-current-booking phrase ("een uur later", "een dag eerder", still handled
+        // by prompt.ts's existing immediate-call rule) is NOT specially exempted here either: if the
+        // model resolves it into a real args.date without the customer ever naming an explicit day,
+        // that is precisely the silent-assumption shape this guard must catch, same as book_appointment
+        // never gets a free pass for "obviously same day" reasoning. Only an explicit day/date in
+        // THIS message, or a day genuinely restored from an earlier turn's own marker, passes.
+        const reschedDayEstablished = reschedDayRestoredFromMarker || hasDayMentionAnywhere(ctx.userMessage ?? "", [], new Date());
+        if (!reschedDayEstablished) {
+          return { error: "vraag_dag", message: VRAAG_DAG_RESCHEDULE_MESSAGE };
         }
 
         // R96 (RESCHEDULE-HIJACK fix, R95-1): the customer's own recent words name a DIFFERENT,

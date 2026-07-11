@@ -12,10 +12,10 @@ import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHours
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
-import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere } from "./relativeDateHint.ts";
+import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -1127,6 +1127,17 @@ Deno.serve(async (req) => {
       .filter((m) => m.direction === "inbound")
       .map((m) => m.content ?? "");
     const blockForNoDayNamed = !hasDayMentionAnywhere(String(message ?? ""), priorInboundTexts, now);
+    // R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94): a SEPARATE, narrower-scoped
+    // flag from blockForNoDayNamed above, deliberately NOT reusing it. blockForNoDayNamed scans
+    // the WHOLE conversation, and for a reschedule the original booking request almost always
+    // already named a day, which would make it permanently false for the rest of the thread even
+    // though the customer has said nothing about which NEW day to move to. rescheduleFlowActiveWithNoDay
+    // instead scopes its own day-scan to just this reschedule attempt (current message + inbound
+    // history since the most recent reschedule-verb turn), see relativeDateHint.ts's own header for
+    // the full reasoning. Backstops the drafted reply (enforceRescheduleNoDayDisclosure, further
+    // below) for the live-reproduced case where the model never even calls reschedule_appointment
+    // at all, instead composing a get_my_appointments-shaped stonewall.
+    const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(String(message ?? ""), priorInboundTexts, now, RESCHEDULE_VERB_RE);
     // Single source of truth for opening hours = the BOOKABLE schedule of THIS calendar
     // (availability_rules, via getCalendarWeeklyHours). Override the spoken hours that
     // fetchBusinessData derived from the separate, often-stale business_overview.calendars[0]
@@ -2679,6 +2690,12 @@ Deno.serve(async (req) => {
         // tool calls happened this turn, closing the exact gap the tool-call-only gate leaves open
         // (see serviceDisambiguationGuard.ts's own header for the full root-cause + safety notes).
         replyText = enforceReturningServiceDisclosure(replyText, blockForReturningServiceDefaultEffective, lastService, allServiceNamesForReturning);
+        // R95 (RESCHEDULE-NO-DAY-STONEWALL fix): same "backstop AFTER the reply is drafted,
+        // regardless of which tool (if any) was called" pattern as enforceReturningServiceDisclosure
+        // directly above, for the reschedule-no-day-named case (live-reproduced: the model never
+        // calls reschedule_appointment at all for this shape, so tools.ts's own reschedDayEstablished
+        // guard never fires; see relativeDateHint.ts's header for the full reasoning).
+        replyText = enforceRescheduleNoDayDisclosure(replyText, rescheduleNoDayThisTurn, result.toolCalls);
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
         // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard

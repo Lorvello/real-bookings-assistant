@@ -3,7 +3,12 @@
 // Pure extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
 // Run: deno test relativeDateHint.test.ts
 import { assertEquals, assertMatch } from "jsr:@std/assert";
-import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere } from "./relativeDateHint.ts";
+import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
+
+// Minimal stand-in for identityDisambiguationGuard.ts's own RESCHEDULE_VERB_RE (avoids pulling in
+// that whole module just for this regex in a pure-function unit test).
+const RESCHEDULE_VERB_RE_TEST =
+  /\b(verzet\w*|verplaats\w*|verschuif\w*|verschoven|reschedul\w*|\bmove\b|\bmoved\b|\bshift\w*)\b/i;
 
 // Fixed reference instant: Thursday 2026-07-09, 10:00 UTC (matches this loop's live fixture
 // "today" at the time of the R28/R29 reproduction).
@@ -219,4 +224,114 @@ Deno.test("neither current message nor any prior inbound message names a day -> 
     THURSDAY,
   );
   assertEquals(found, false);
+});
+
+// R95 (RESCHEDULE-NO-DAY-STONEWALL fix) tests below: rescheduleFlowActiveWithNoDay's own
+// narrower-than-whole-history scoping (the reschedule-specific twin of blockForNoDayNamed above),
+// and enforceRescheduleNoDayDisclosure's reply-rewrite backstop.
+
+Deno.test("R94 exact repro: reschedule verb this turn, no day anywhere in this reschedule attempt -> true", () => {
+  const active = rescheduleFlowActiveWithNoDay(
+    "Kan ik mijn afspraak verzetten naar een ander tijdstip?",
+    ["Ik wil bij Iris (Weekend) Knippen + Stylen boeken op dinsdag 14 juli om 19:00"],
+    THURSDAY,
+    RESCHEDULE_VERB_RE_TEST,
+  );
+  assertEquals(active, true);
+});
+
+Deno.test("original booking's day in history does NOT satisfy the reschedule-day check (narrower scope than blockForNoDayNamed)", () => {
+  // Same scenario as the R94 repro test above, phrased to make the point explicit: a day WAS
+  // named in this conversation (when the appointment was booked), but that mention predates the
+  // reschedule attempt entirely, so it must NOT count as "the customer named a new day".
+  const active = rescheduleFlowActiveWithNoDay(
+    "verzetten naar een ander tijdstip alsjeblieft",
+    ["afspraak op dinsdag 14 juli om 19:00"],
+    THURSDAY,
+    RESCHEDULE_VERB_RE_TEST,
+  );
+  assertEquals(active, true);
+});
+
+Deno.test("bare follow-up naming only a new time, after an earlier reschedule-verb turn in this same attempt -> still true (no day given)", () => {
+  const active = rescheduleFlowActiveWithNoDay(
+    "Zet mijn afspraak alsjeblieft naar 20:00 uur",
+    [
+      "Ik wil bij Iris (Weekend) Knippen + Stylen boeken op dinsdag 14 juli om 19:00",
+      "Kan ik mijn afspraak verzetten naar een ander tijdstip?",
+    ],
+    THURSDAY,
+    RESCHEDULE_VERB_RE_TEST,
+  );
+  assertEquals(active, true);
+});
+
+Deno.test("reschedule with an explicit new day named this turn -> false (no block, zero regression)", () => {
+  const active = rescheduleFlowActiveWithNoDay(
+    "kan het naar dinsdag 21 juli 19:00?",
+    ["Ik wil bij Iris (Weekend) Knippen + Stylen boeken op dinsdag 14 juli om 19:00"],
+    THURSDAY,
+    RESCHEDULE_VERB_RE_TEST,
+  );
+  assertEquals(active, false);
+});
+
+Deno.test("no reschedule intent at all (plain booking flow) -> false, never fires outside a reschedule attempt", () => {
+  const active = rescheduleFlowActiveWithNoDay(
+    "Wanneer heb je tijd?",
+    ["Ik wil graag een afspraak bij Milan boeken"],
+    THURSDAY,
+    RESCHEDULE_VERB_RE_TEST,
+  );
+  assertEquals(active, false);
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure rewrites the get_my_appointments-shaped stonewall to the day question", () => {
+  const out = enforceRescheduleNoDayDisclosure(
+    "Er staat een afspraak: Knippen + Stylen op dinsdag 14 juli 19:00 (op naam E2E Simulator).",
+    true,
+  );
+  assertEquals(out, "Naar welke dag wil je de afspraak verzetten?");
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure is a no-op when the flag is false", () => {
+  const original = "Er staat een afspraak: Knippen + Stylen op dinsdag 14 juli 19:00 (op naam E2E Simulator).";
+  const out = enforceRescheduleNoDayDisclosure(original, false);
+  assertEquals(out, original);
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure never clobbers a reply that already asks which day", () => {
+  const original = "Naar welke dag zou je 'm willen verzetten?";
+  const out = enforceRescheduleNoDayDisclosure(original, true);
+  assertEquals(out, original);
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure also rewrites a silent bare slot-offer (live-reproduced R95-verify shape, not just the status-readout template)", () => {
+  const out = enforceRescheduleNoDayDisclosure("19:30 past?", true);
+  assertEquals(out, "Naar welke dag wil je de afspraak verzetten?");
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure defers to a sibling gate's own question (naam_verificatie_nodig) instead of overriding it", () => {
+  const original = "De afspraak die ik vond staat op naam van Sanne. Klopt het dat dit haar afspraak is?";
+  const out = enforceRescheduleNoDayDisclosure(original, true, [
+    { name: "reschedule_appointment", result: { error: "naam_verificatie_nodig" } },
+  ]);
+  assertEquals(out, original);
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure never touches a reply for a turn that actually committed (ok:true)", () => {
+  const original = "Gedaan, je staat nu op dinsdag 21 juli 19:00.";
+  const out = enforceRescheduleNoDayDisclosure(original, true, [
+    { name: "reschedule_appointment", result: { ok: true, booking_id: "abc" } },
+  ]);
+  assertEquals(out, original);
+});
+
+Deno.test("enforceRescheduleNoDayDisclosure STILL rewrites when reschedule_appointment itself returned vraag_dag (live-reproduced R95-verify: the model does not reliably relay that gate's own message either)", () => {
+  const out = enforceRescheduleNoDayDisclosure(
+    "Er staat een afspraak: Bruidskapsel op dinsdag 14 juli 18:00 (op naam E2E Simulator).",
+    true,
+    [{ name: "reschedule_appointment", result: { error: "vraag_dag", message: "vraag eerst welke dag" } }],
+  );
+  assertEquals(out, "Naar welke dag wil je de afspraak verzetten?");
 });
