@@ -461,23 +461,69 @@ function deterministicConfirmation(
 // time. Gated on the COMMIT turn so a first-PREVIEW "that time isn't free, here are alternatives"
 // (also "niet_beschikbaar") stays model-driven and helpful.
 const BOOK_RACE_LOSS_ERRORS = new Set(["slot_taken", "niet_beschikbaar", "dag_vol"]);
-function deterministicSlotTaken(
+
+// R114 (FALSE-CONFLICT-MESSAGE fix, root-cause of the R113 finding): a BOOK_RACE_LOSS_ERROR on a
+// commit turn used to be treated as unconditional proof that "the sibling's row already occupies
+// this slot," and templated the honest-sounding but potentially FALSE "iemand anders heeft het
+// geboekt" line. validate_booking_security is the FULLER overload (R129): it can return
+// valid:false for reasons that have nothing to do with a real double-booking (business hours/day
+// overrides, minimum-notice drift between preview and commit, booking-window-days, max/day cap),
+// and dag_vol is its own separate non-conflict cap. R113 live-reproduced a rapid double-confirm
+// where DB-verified ZERO rows were ever created by either side, yet the customer was told someone
+// else took the slot. Fix: before ever using the "iemand anders" wording, query `bookings` directly
+// for a REAL overlapping confirmed/pending row on the same calendar. Only that positive proof earns
+// the "someone else" wording; otherwise use an honest, non-blaming retry message. calendar_id/
+// start_time/end_time are now carried on all three BOOK_RACE_LOSS_ERRORS results (tools.ts), so this
+// verification is always possible; a missing/incomplete shape fails safe to the honest retry
+// message (never re-asserts a claim it cannot verify).
+async function hasRealConflictingBooking(
+  calendarId: string,
+  startTime: string,
+  endTime: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("calendar_id", calendarId)
+    .in("status", ["confirmed", "pending"])
+    .lt("start_time", endTime)
+    .gt("end_time", startTime)
+    .limit(1);
+  // Fail-safe: an RPC/network error means we cannot PROVE a real conflict, so never blame "someone
+  // else" on unverifiable grounds -- treat as no genuine conflict found (honest retry message).
+  if (error) return false;
+  return (data?.length ?? 0) > 0;
+}
+
+async function deterministicSlotTaken(
   toolCalls: { name: string; result: unknown }[],
   customerLanguage: string | null,
   isCommitTurn: boolean,
-): string | null {
+): Promise<string | null> {
   // Only on the commit turn: on a first PREVIEW turn, "niet_beschikbaar" means "pick another time"
   // and the model's helpful alternatives offer is correct, so we never override it there.
   if (!isCommitTurn) return null;
-  const lost = toolCalls.some(
+  const losingResult = toolCalls.find(
     (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
       BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)),
-  );
-  if (!lost) return null;
+  )?.result as Record<string, unknown> | undefined;
+  if (!losingResult) return null;
   const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
+  const calId = typeof losingResult.calendar_id === "string" ? losingResult.calendar_id : null;
+  const st = typeof losingResult.start_time === "string" ? losingResult.start_time : null;
+  const et = typeof losingResult.end_time === "string" ? losingResult.end_time : null;
+  const genuineConflict = calId && st && et ? await hasRealConflictingBooking(calId, st, et) : false;
+  if (genuineConflict) {
+    return en
+      ? "Sorry, that time was just taken by someone else, so I couldn't book it. Shall I look for another time for you?"
+      : "Sorry, dat tijdstip is net door iemand anders geboekt, dus het lukte niet meer. Zal ik een ander moment voor je zoeken?";
+  }
+  // No real conflicting row exists: an internal check failed (stale availability read, a transient
+  // validation hiccup, or a genuine non-conflict refusal like business hours/max-per-day), so an
+  // honest retry-friendly reply is used instead of falsely blaming another customer.
   return en
-    ? "Sorry, that time was just taken by someone else, so I couldn't book it. Shall I look for another time for you?"
-    : "Sorry, dat tijdstip is net door iemand anders geboekt, dus het lukte niet meer. Zal ik een ander moment voor je zoeken?";
+    ? "Sorry, that didn't go through just now. Shall I try again, or would you like a different time?"
+    : "Sorry, het lukte net niet om dat te bevestigen. Zal ik het nog een keer proberen, of wil je een ander moment?";
 }
 
 // B1 (2e-LLM-call collapse): a mutation tool result that represents a COMPLETED commit, exactly
@@ -2116,8 +2162,11 @@ Deno.serve(async (req) => {
     // through to the normal flow (fail-open: never block a legitimate commit on a transient RPC error).
     // Only when the slot is provably gone (valid === false) do we short-circuit.
     let raceLostPreCheck = false;
+    // R114: hoisted out of the `if` below (was block-scoped) so the race-loss reply block further
+    // down can reuse the SAME calendar id when verifying whether a real conflicting booking exists.
+    let preCalId: string | null = null;
     if (confirmBook && pbk?.start_time && pbk?.end_time && pbk?.service_type_id) {
-      const preCalId = pbk.calendar_id ?? calendar_id;
+      preCalId = pbk.calendar_id ?? calendar_id;
       const { data: stillValid, error: preErr } = await supabase.rpc("validate_booking_security", {
         p_calendar_id: preCalId,
         p_service_type_id: pbk.service_type_id,
@@ -2139,13 +2188,27 @@ Deno.serve(async (req) => {
         const { error: raceLossReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimId });
         if (raceLossReleaseErr) console.error("release_whatsapp_confirm_claim (book, race-loss) error (fails open, TTL self-heals):", raceLossReleaseErr);
       }
+      // R114: carry the actual calendar_id/start_time/end_time from the stored proposal so
+      // deterministicSlotTaken can verify a REAL conflicting row exists before ever using the
+      // "iemand anders" wording -- this pre-check runs BEFORE the agent/commit even starts, purely
+      // off validate_booking_security's own valid:false verdict, which (R129's fuller overload) can
+      // be false for reasons unrelated to an actual double-booking (see deterministicSlotTaken's own
+      // doc comment). Without pbk's own start/end this falls back to the honest non-blaming message.
       const slotTakenReply = sanitizeReply(
-        deterministicSlotTaken(
-          [{ name: "book_appointment", result: { error: "niet_beschikbaar" } }],
+        (await deterministicSlotTaken(
+          [{
+            name: "book_appointment",
+            result: {
+              error: "niet_beschikbaar",
+              calendar_id: preCalId,
+              start_time: pbk?.start_time ?? null,
+              end_time: pbk?.end_time ?? null,
+            },
+          }],
           customerLanguage,
           true,
-        ) ?? "",
-      ) || "Sorry, dat tijdstip is net door iemand anders geboekt. Zal ik een ander moment voor je zoeken?";
+        )) ?? "",
+      ) || "Sorry, het lukte net niet om dat te bevestigen. Zal ik het nog een keer proberen, of wil je een ander moment?";
       // Clear the stale pending_booking so a follow-up "ja" cannot re-trigger a doomed commit.
       if (conversationId) {
         const { pending_booking: _drop, ...restCtx } = convContext;
@@ -2653,7 +2716,7 @@ Deno.serve(async (req) => {
       // divergence structurally impossible. Only fires when book_appointment returned
       // needs_confirmation + proposal; if it didn't (no preview this turn), fall through unchanged.
       const preview = deterministicPreview(result.toolCalls, customerLanguage);
-      const slotTaken = deterministicSlotTaken(result.toolCalls, customerLanguage, confirmBook);
+      const slotTaken = await deterministicSlotTaken(result.toolCalls, customerLanguage, confirmBook);
       if (slotTaken) {
         // FQ-3: the concurrency LOSER. The DB already guaranteed no double-book; here we guarantee
         // the customer-facing message is honest + helpful instead of model-improvised prose. Override

@@ -1563,8 +1563,34 @@ export function createTools(
           const t = String(n ?? "").trim().toLowerCase();
           return t !== "" && t !== "privé" && t !== "prive";
         };
+        // R116 (NAMECHANGED-DATE-BLIND fix, live-reproduced R115 evidence/R115_repro.md): nameChanged
+        // below used to compare ONLY the incoming customer_name against pendingBook.customer_name,
+        // with no check at all that THIS turn's request is actually about the SAME stored proposal.
+        // A genuinely fresh booking request (different date/time/service) under a different name was
+        // therefore misdiagnosed as "renaming" whatever unrelated, possibly stale pending_booking
+        // happened to be sitting in context (live repro: a fresh "vrijdag 7 augustus" request for
+        // "R115DiagB" got flagged against an unrelated old "vrijdag 31 juli" pending booking under a
+        // different name). Fix: only let nameChanged fire when THIS turn's date/time/service either
+        // agree with the stored pending_booking's own slot, or were not restated at all (a bare name
+        // correction on an otherwise-untouched pending proposal, the original R25 shape this was built
+        // for) -- never when the customer explicitly named a genuinely different date/time/service.
+        // Date/time are compared in the SAME Amsterdam wall-clock convention nlWhen/nlTimeOnly already
+        // use elsewhere in this file, not raw UTC slicing, since args.date/args.time are customer-
+        // facing local values while pendingBook.start_time is stored UTC ISO.
+        const pendingDateNL = pendingBook?.start_time ? new Date(pendingBook.start_time).toLocaleDateString("en-CA", { timeZone: NL_TZ }) : null;
+        const pendingTimeNL = pendingBook?.start_time ? nlTimeOnly(pendingBook.start_time) : null;
+        const argsDateStr = typeof args.date === "string" && args.date.length > 0 ? args.date : null;
+        const argsTimeRaw = typeof args.time === "string" ? args.time.trim().match(/^(\d{1,2}):(\d{2})/) : null;
+        const argsTimeStr = argsTimeRaw ? `${argsTimeRaw[1].padStart(2, "0")}:${argsTimeRaw[2]}` : null;
+        const argsServiceStr = typeof args.service_type_id === "string" && args.service_type_id.length > 0 ? args.service_type_id : null;
+        const argsRestatesDifferentSlot = !!pendingBook?.start_time && (
+          (argsDateStr !== null && argsDateStr !== pendingDateNL) ||
+          (argsTimeStr !== null && argsTimeStr !== pendingTimeNL) ||
+          (argsServiceStr !== null && !!pendingBook?.service_type_id && argsServiceStr !== pendingBook.service_type_id)
+        );
         const nameChanged = !!pendingBook?.start_time && isRealName(args.customer_name) && isRealName(pendingBook?.customer_name) &&
-          String(args.customer_name).trim().toLowerCase() !== String(pendingBook?.customer_name).trim().toLowerCase();
+          String(args.customer_name).trim().toLowerCase() !== String(pendingBook?.customer_name).trim().toLowerCase() &&
+          !argsRestatesDifferentSlot;
 
         // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, identityDisambiguationGuard.ts's
         // previewTakeoverRisk has the full root-cause/design reasoning + live S6 repro): nameChanged
@@ -2100,7 +2126,11 @@ export function createTools(
             .gte("start_time", `${day}T00:00:00Z`)
             .lt("start_time", `${nextDay}T00:00:00Z`);
           if ((count ?? 0) >= bookPolicy.maxBookingsPerDay) {
-            return { error: "dag_vol", message: "Die dag zit vol. Stel de klant een andere dag voor." };
+            // R114: carry calendar_id/start_time/end_time so index.ts's deterministicSlotTaken can
+            // verify a REAL conflicting row exists before ever telling the customer "iemand anders
+            // heeft het geboekt" (see R114 fix note on the niet_beschikbaar branch below for the
+            // full root-cause reasoning; this is the same fix applied to this sibling error code).
+            return { error: "dag_vol", message: "Die dag zit vol. Stel de klant een andere dag voor.", calendar_id: calId, start_time: start, end_time: end };
           }
         }
 
@@ -2160,9 +2190,22 @@ export function createTools(
         const validationResult = validation as { valid?: boolean; errors?: Array<{ field?: string; message?: string }> } | null;
         if (validationResult?.valid !== true) {
           const reasons = (validationResult?.errors ?? []).map((e) => e?.message).filter(Boolean).join("; ");
+          // R114 (FALSE-CONFLICT-MESSAGE fix, R113 finding): this RPC is the FULLER overload (R129)
+          // and can return valid:false for reasons that have NOTHING to do with a real double-
+          // booking (business hours/day overrides, minimum-notice drift between preview and commit,
+          // booking-window-days, max/day cap) as well as a genuine slot-overlap. index.ts's
+          // deterministicSlotTaken/raceLostPreCheck used to treat ANY niet_beschikbaar on a commit
+          // turn as proof "the sibling's row already occupies this slot" and told the customer
+          // "iemand anders heeft het geboekt" -- live-reproduced (R113) with a rapid double-confirm
+          // where DB-verified ZERO rows were ever created by either side, so that message was false.
+          // Fix: carry calendar_id/start_time/end_time back so the caller can query `bookings`
+          // directly and only claim "someone else booked it" when a REAL conflicting row exists.
           return {
             error: "niet_beschikbaar",
             message: reasons ? `Dat tijdstip is niet beschikbaar (${reasons}).` : "Dat tijdstip is niet beschikbaar.",
+            calendar_id: calId,
+            start_time: start,
+            end_time: end,
           };
         }
 
@@ -2674,7 +2717,12 @@ export function createTools(
           .single();
         if (insErr) {
           if (insErr.code === "23P01" || insErr.code === "40P01" || /no_overlap|exclusion/i.test(insErr.message || "")) {
-            return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
+            // R114: same calendar_id/start_time/end_time carry-through as the niet_beschikbaar/
+            // dag_vol branches above, so index.ts can verify a real conflicting row exists before
+            // blaming "iemand anders" -- this IS the tight exclusion-constraint collision case, so a
+            // genuine conflicting row almost always exists here, but the check stays uniform across
+            // all three BOOK_RACE_LOSS_ERRORS rather than assuming it.
+            return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt.", calendar_id: calId, start_time: start, end_time: end };
           }
           return { error: insErr.message };
         }
