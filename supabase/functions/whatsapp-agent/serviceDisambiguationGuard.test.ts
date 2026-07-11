@@ -4,6 +4,7 @@
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, mentionsDistinguishing, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+import { scopeToCurrentTopicWindow, type PreFilterServiceInfo } from "./preFilterCalendars.ts";
 
 // R98 helper: build an all-inbound recency window from plain strings (the common case for tests
 // that only care about customer messages, matching the pre-R98 test convention).
@@ -225,6 +226,84 @@ Deno.test("R72 blocks: one of two named services is ambiguous, the other is not"
       inboundTexts: ["ik wil een manicure of een massage boeken"],
     }),
     true,
+  );
+});
+
+// ── R102 AMBIGUOUS-BRANCH-UNSCOPED-HISTORY fix ──────────────────────────────
+// The bug lived in index.ts's ORCHESTRATION (the `inboundTexts` fed into
+// shouldBlockForAmbiguousBranch was the raw, unscoped 40-row window), not inside the pure guard
+// function itself, so these tests reproduce the exact composition index.ts now performs:
+// scopeToCurrentTopicWindow() trims the historical portion, THEN the (possibly empty) scoped
+// history + the current message is what shouldBlockForAmbiguousBranch actually sees. This mirrors
+// R98's own established fix shape (day-detection) applied to this sibling check.
+// Real production calendar names in this fixture family always carry a parenthetical suffix
+// ("Bo (Nagels)", "Milan (Kleuren)", ...; see R79/R98's own fixtures + preFilterCalendars.ts's
+// header), never a BARE 2-letter name. Matching that shape here avoids an unrelated, pre-existing,
+// out-of-scope collision (mentionsAny's own plain-substring full-name check, with no word-boundary,
+// matches a bare 2-letter name like "Bo" inside the common Dutch verb "boeken" -- a real but
+// separate defect, not this round's target, and not reachable with real suffixed calendar names).
+const R102_SCOPE_CALENDARS = [
+  { id: "bo", name: "Bo (Nagels)" },
+  { id: "sanne", name: "Sanne (Knippen)" },
+  { id: "iris", name: "Iris (Weekend)" },
+  { id: "milan", name: "Milan (Kleuren)" },
+];
+const R102_SCOPE_SERVICES = new Map<string, PreFilterServiceInfo[]>([
+  ["bo", [{ name: "Knippen" }]],
+  ["sanne", [{ name: "Knippen" }]],
+  ["milan", [{ name: "Knippen" }]],
+  ["iris", [{ name: "Bruidskapsel" }]],
+]);
+// DisambiguationInput shape: Knippen genuinely ambiguous (different price) across Bo/Sanne/Milan;
+// Bruidskapsel exists only at Iris (no branch ambiguity for it).
+const R102_FIXTURE = [
+  { name: "Bo (Nagels)", services: [{ name: "Knippen", price: 25, durationMin: 30 }] },
+  { name: "Sanne (Knippen)", services: [{ name: "Knippen", price: 30, durationMin: 30 }] },
+  { name: "Iris (Weekend)", services: [{ name: "Bruidskapsel", price: 90, durationMin: 90 }] },
+  { name: "Milan (Kleuren)", services: [{ name: "Knippen", price: 28, durationMin: 30 }] },
+];
+
+// Mirrors index.ts's own composition exactly (see the R102 comment above blockForAmbiguousBranch):
+// scope the history-only portion (oldest-first) to the current topic, then re-append the current
+// message, before calling the guard.
+function shouldBlockAmbiguousBranchScoped(currentMessage: string, priorInboundTextsOldestFirst: string[]): boolean {
+  const scopedHistory = scopeToCurrentTopicWindow(currentMessage, priorInboundTextsOldestFirst, R102_SCOPE_CALENDARS, R102_SCOPE_SERVICES);
+  return shouldBlockForAmbiguousBranch({ calendars: R102_FIXTURE, inboundTexts: [...scopedHistory, currentMessage] });
+}
+
+Deno.test("R102 blocks: bare shared-service request after a genuine topic switch (all 4 calendar names appear somewhere earlier, but NOT for this fresh topic)", () => {
+  const longUnscopedHistory = [
+    "hoi",
+    "ik wil graag een afspraak bij Sanne boeken voor Knippen",
+    "wat kost dat",
+    "kan het zaterdag",
+    "ok bedankt",
+    "Los van dat alles, ik wil ook nog een afspraak bij Milan boeken voor Highlights, wanneer heb je tijd?",
+    "vrijdag graag",
+    "10 uur is prima",
+    "en ik had ook nog een vraag over mijn afspraak bij Iris voor Bruidskapsel",
+    "kan die naar volgende week?",
+    "ja dat is goed",
+  ];
+  assertEquals(
+    shouldBlockAmbiguousBranchScoped("Ik wil graag Knippen boeken, zaterdag 15 augustus om 11:00.", longUnscopedHistory),
+    true,
+  );
+});
+
+Deno.test("R102 does not block: calendar named earlier in the SAME current topic (no topic switch since), still correctly resolved", () => {
+  const sameTopicHistory = ["ik wil Knippen bij Bo boeken"];
+  // Immediate next turn: bare day/time, no re-mention of Bo. currentMessage names no calendar/
+  // service at all, so scopeToCurrentTopicWindow (per its own "no switch signal, keep full
+  // window" rule) must NOT drop the "bij Bo" history, and the branch-already-named check must
+  // still see it.
+  assertEquals(shouldBlockAmbiguousBranchScoped("zaterdag 15 augustus om 11:00 graag", sameTopicHistory), false);
+});
+
+Deno.test("R102 regression pin: zero regression on the R101 single-candidate-suppress case (Iris + Bruidskapsel, single calendar, never ambiguous regardless of scoping)", () => {
+  assertEquals(
+    shouldBlockAmbiguousBranchScoped("Ik wil graag een nieuwe afspraak bij Iris boeken voor Bruidskapsel, zaterdag om 14:00.", []),
+    false,
   );
 });
 

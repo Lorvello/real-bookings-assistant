@@ -924,15 +924,51 @@ Deno.serve(async (req) => {
     const blockForMissingServiceChoice = isMultiCalendar && calendarsForPrompt
       ? shouldBlockForMissingServiceChoice({ calendars: calendarsForPrompt, inboundTexts })
       : false;
+    // R102 (AMBIGUOUS-BRANCH-UNSCOPED-HISTORY fix, same unscoped-whole-history class R98 already
+    // fixed for day-detection via scopeToCurrentTopicWindow, never applied here until now).
+    //
+    // ROOT CAUSE (live-reproduced, R101's own honest finding): `shouldBlockForAmbiguousBranch`'s
+    // "branch already named" check (`mentionsAny(inboundTexts, calendarNames)`) was fed the SAME
+    // wide, unscoped 40-row inbound window as `blockForMissingServiceChoice` above. In a long
+    // shared conversation where every one of this tenant's calendar names (Sanne/Bo/Iris/Milan)
+    // has been said SOMEWHERE in the last 40 inbound rows (near-certain once a conversation runs
+    // deep), that check falsely concluded "the branch is already resolved" even when the CURRENT
+    // topic never named any calendar at all -- live-reproduced: a bare, fresh "Ik wil graag
+    // Knippen boeken, [day+time]." (a genuinely cross-calendar-shared service, no location named)
+    // got silently routed with zero disambiguation, when Knippen is genuinely ambiguous.
+    //
+    // FIX: scope the inbound-history PORTION of the window (never the current message itself,
+    // which always stays) to the current topic before it reaches shouldBlockForAmbiguousBranch,
+    // reusing the exact same scopeToCurrentTopicWindow/lastMentionedCalendar mechanism R98 already
+    // proved for the day-detection guard. `inboundTexts` above is DB-ordered newest-first with the
+    // current message appended last (see the query's `ascending: false` above), so the historical
+    // slice is reversed to oldest-first before scopeToCurrentTopicWindow (which expects that order
+    // and scans its own window newest-first internally). A genuine SAME-topic continuation (the
+    // common case, including every legitimate "branch named earlier this topic" resolution) keeps
+    // the FULL window unchanged, byte-identical to before this fix; only a detected topic SWITCH
+    // (this message clearly names a different calendar/service than the most recently named one)
+    // drops the older history, so the branch-named check correctly starts fresh at this message.
+    // Deliberately NOT applied to blockForMissingServiceChoice above (out of this round's scope;
+    // that check's own "neither service nor branch ever named" shape has not been shown to share
+    // this exact false-negative failure and stays byte-identical to avoid unreviewed scope creep).
+    const servicesByCalendarForAmbiguousBranchScope = isMultiCalendar && calendarsForPrompt
+      ? new Map(calendarsForPrompt.map((c) => [calendars[c.index - 1].id, c.services]))
+      : undefined;
+    const inboundHistoryOnly = inboundTexts.slice(0, -1); // exclude the appended current message
+    const inboundHistoryOldestFirst = [...inboundHistoryOnly].reverse(); // DB order is newest-first
+    const scopedInboundHistoryForAmbiguousBranch = isMultiCalendar && calendarsForPrompt
+      ? scopeToCurrentTopicWindow(String(message ?? ""), inboundHistoryOldestFirst, calendars, servicesByCalendarForAmbiguousBranchScope)
+      : inboundHistoryOldestFirst;
+    const inboundTextsForAmbiguousBranch = [...scopedInboundHistoryForAmbiguousBranch, String(message ?? "")];
     // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): the sibling condition, same guard
-    // module, same wide inbound history. Fires when the customer HAS named a real service that
-    // exists at 2+ calendars with a genuinely different price/duration and no branch has been
-    // named yet (the prompt-only "same service, multiple branches" rule proved flaky against the
-    // live model; see serviceDisambiguationGuard.ts header). Never true at the same time as
+    // module. Fires when the customer HAS named a real service that exists at 2+ calendars with a
+    // genuinely different price/duration and no branch has been named yet (the prompt-only "same
+    // service, multiple branches" rule proved flaky against the live model; see
+    // serviceDisambiguationGuard.ts header). Never true at the same time as
     // blockForMissingServiceChoice by construction (that one requires NO service named; this one
     // requires a service IS named), but computed independently so tools.ts can check either.
     const blockForAmbiguousBranch = isMultiCalendar && calendarsForPrompt
-      ? shouldBlockForAmbiguousBranch({ calendars: calendarsForPrompt, inboundTexts })
+      ? shouldBlockForAmbiguousBranch({ calendars: calendarsForPrompt, inboundTexts: inboundTextsForAmbiguousBranch })
       : false;
 
     // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, closes R107-RETURNING-DEFAULT-BLEED): runs for
