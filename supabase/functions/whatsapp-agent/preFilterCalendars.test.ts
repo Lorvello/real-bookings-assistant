@@ -185,3 +185,20 @@ Deno.test("scopeToCurrentTopicWindow: topic carried by SERVICE NAME alone (no ca
   const withServices = scopeToCurrentTopicWindow(current, prior, CALENDARS, SERVICES);
   assertEquals(withServices, []);
 });
+
+Deno.test("scopeToCurrentTopicWindow: a DUPLICATE of the current message as the newest prior entry never masks a real topic switch (live-verify-reproduced gap)", () => {
+  // The real webhook path (process_whatsapp_message) inserts THIS turn's own inbound row into
+  // whatsapp_messages BEFORE invoking the agent, so priorInboundTexts's newest entry is often
+  // already a duplicate of the current message (see index.ts's own established
+  // "newestIsCurrentInbound" dedup, same shape). Live-reproduced this round: without skipping
+  // that duplicate, the "most recently named calendar" search matched the duplicate against
+  // itself and never detected the switch, letting the exact R97 bug straight back through.
+  const current = "Los van die Iris afspraak, ik wil ook nog een keer een afspraak bij Bo boeken, wanneer heb je tijd?";
+  const prior = [
+    "Zondag 2 augustus is goed, 18:00 graag",
+    "Ik wil mijn Iris afspraak (Knippen + Stylen) verzetten naar woensdag 5 augustus om 17:00.",
+    current, // the duplicate: textually identical to the current message
+  ];
+  const window = scopeToCurrentTopicWindow(current, prior, CALENDARS, SERVICES);
+  assertEquals(window, []);
+});

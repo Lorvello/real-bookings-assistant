@@ -206,9 +206,22 @@ export function scopeToCurrentTopicWindow(
   if (calendars.length <= 1) return priorInboundTextsOldestFirst;
   const currentCal = lastMentionedCalendar(currentText, calendars, servicesByCalendar);
   if (currentCal === null) return priorInboundTextsOldestFirst;
+  // R98 (live-verify fix): the real webhook path inserts THIS turn's own inbound row into
+  // whatsapp_messages BEFORE invoking this agent (see index.ts's own "newestIsCurrentInbound"
+  // dedup a few hundred lines below, the same established shape), so the newest entry in
+  // priorInboundTextsOldestFirst can already BE a duplicate of currentText. Live-reproduced this
+  // round: without this skip, the "most recently named calendar" search below found the DUPLICATE
+  // of the current message itself, which trivially matched currentCal, so a genuine topic switch
+  // was never detected (recentCal === currentCal by definition of comparing a text against
+  // itself). Skip that duplicate here (textual identity, matching the established convention)
+  // before searching for the real prior turn's own most recently named calendar.
+  const historyTexts = priorInboundTextsOldestFirst.length > 0 &&
+      priorInboundTextsOldestFirst[priorInboundTextsOldestFirst.length - 1] === currentText
+    ? priorInboundTextsOldestFirst.slice(0, -1)
+    : priorInboundTextsOldestFirst;
   let recentCal: string | null = null;
-  for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
-    recentCal = lastMentionedCalendar(priorInboundTextsOldestFirst[i], calendars, servicesByCalendar);
+  for (let i = historyTexts.length - 1; i >= 0; i--) {
+    recentCal = lastMentionedCalendar(historyTexts[i], calendars, servicesByCalendar);
     if (recentCal !== null) break;
   }
   if (recentCal !== null && recentCal !== currentCal) return [];
