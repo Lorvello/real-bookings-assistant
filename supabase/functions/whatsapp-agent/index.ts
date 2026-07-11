@@ -27,7 +27,7 @@ import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, find
 import { computePendingBookInterveningExchange } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
-import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
+import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
 
@@ -707,6 +707,11 @@ Deno.serve(async (req) => {
       calendars.unshift({ id: calendar_id, name: "Agenda" });
     }
     const isMultiCalendar = calendars.length > 1;
+    // R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix): set below, only in multi-calendar mode, from
+    // this turn's resolveCandidateCalendarIds narrowing (see preFilterCalendars.ts's own header for
+    // the full root-cause). Declared here so it stays in scope for enforceNoRedundantLocationAsk,
+    // called much further down alongside the other reply-rewrite backstops.
+    let singleCandidateCalendarName: string | null = null;
 
     // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, see identityDisambiguationGuard.ts's
     // crossIdentityBookRisk for the full root-cause/design reasoning): does THIS phone have ANY
@@ -755,6 +760,12 @@ Deno.serve(async (req) => {
       // design's own section 4 safety property).
       const preFilter = resolveCandidateCalendarIds(String(message ?? ""), calendars, byCal);
       const candidateIds = preFilter.candidateIds;
+      // R101: exactly one calendar narrowed for THIS turn's service/location = no real ambiguity
+      // left to ask about (see preFilterCalendars.ts's enforceNoRedundantLocationAsk header).
+      if (candidateIds.size === 1) {
+        const onlyId = [...candidateIds][0];
+        singleCandidateCalendarName = calendars.find((c) => c.id === onlyId)?.name ?? null;
+      }
 
       // A4: per-calendar opening hours. Hours differ per staff/location, so each <kalenders>
       // entry carries its OWN bookable weekly hours (same availability_rules source as
@@ -2778,6 +2789,13 @@ Deno.serve(async (req) => {
         // calls reschedule_appointment at all for this shape, so tools.ts's own reschedDayEstablished
         // guard never fires; see relativeDateHint.ts's header for the full reasoning).
         replyText = enforceRescheduleNoDayDisclosure(replyText, rescheduleNoDayThisTurn, result.toolCalls);
+        // R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix): same "backstop AFTER the reply is
+        // drafted" pattern, for the case where this turn's deterministic pre-filter narrowed to
+        // exactly one candidate calendar (no real location ambiguity) but the model asked a
+        // "which location" question anyway. See preFilterCalendars.ts's own header for the full
+        // root-cause (live-reproduced R96/R100: Iris+Bruidskapsel, a service that exists on only
+        // one calendar, still got asked "Bij welke locatie...?").
+        replyText = enforceNoRedundantLocationAsk(replyText, singleCandidateCalendarName);
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
         // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard

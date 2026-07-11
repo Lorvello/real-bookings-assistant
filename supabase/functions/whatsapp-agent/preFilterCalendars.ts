@@ -195,6 +195,49 @@ export function lastMentionedCalendar(
   return bestId;
 }
 
+// R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix, live-reproduced R96/R100): resolveCandidateCalendarIds
+// above already correctly narrows candidateIds to exactly ONE calendar when the customer's current-turn
+// message names a service that genuinely exists on only one calendar (or names that calendar directly),
+// even in a multi-calendar business. Until this fix, that narrowing was used ONLY to prune the prompt's
+// per-calendar info block (the `collapsed` flag on calendarsForPrompt in index.ts), never to hard-suppress
+// a disambiguation question - so the model, still SEEING the other calendars' names in the (collapsed)
+// <kalenders> list, routinely asked "Bij welke locatie wil je [dienst] plannen?" anyway (live-reproduced
+// verbatim on "Ik wil graag een nieuwe afspraak bij Iris boeken voor Bruidskapsel..." even though
+// Bruidskapsel exists ONLY on Iris's calendar - confirmed via a direct service_types query, exactly one
+// row). prompt.ts's own line ~303 ("Wordt de gevraagde dienst maar door ÉÉN persoon/locatie aangeboden?
+// Dan is de keuze al duidelijk... vraag niets extra.") is a prompt-only instruction, the same failure
+// class R93/R95's day-guard fixes already found unreliable at this model's scale. This closes it the
+// same way: a deterministic, code-level backstop that rewrites the FINAL drafted reply, independent of
+// which (if any) tool was called this turn, same pattern as enforceReturningServiceDisclosure /
+// enforceRescheduleNoDayDisclosure.
+//
+// Detection of "this reply IS a location-disambiguation question" is intentionally broad (any of the
+// common Dutch/English phrasings this codebase's own prompt.ts instructs the model to use for a GENUINE
+// multi-location ambiguity, e.g. "bij wie/waar wil je de afspraak?", "Bij welke locatie...?", "welke
+// medewerker/vestiging...?", "which location/provider/stylist..."), since the whole point of this guard
+// is to catch the model asking that SHAPE of question even though, for THIS turn's narrowed candidate
+// set, there is no real ambiguity left to ask about.
+const LOCATION_DISAMBIGUATION_QUESTION_RE =
+  /\b(bij wie|bij welke|welke locatie|welke vestiging|welke medewerker|welke stylist|which location|which provider|which stylist|which staff member|which branch)\b.*\?/i;
+
+/**
+ * Reply-rewrite backstop (R101). No-op unless `singleCandidateCalendarName` is non-null (i.e. this
+ * turn's resolveCandidateCalendarIds narrowed to exactly one calendar for the service/location named)
+ * AND the drafted reply matches the location-disambiguation question shape. When both hold, the
+ * question is discarded: there is no real ambiguity left to ask about, so the reply is rewritten to
+ * acknowledge the single calendar and invite the customer to continue, without fabricating any booking
+ * outcome (no slot/time is invented here; a real tool call still resolves that on a subsequent turn).
+ */
+export function enforceNoRedundantLocationAsk(
+  replyText: string,
+  singleCandidateCalendarName: string | null,
+): string {
+  if (!replyText) return replyText;
+  if (!singleCandidateCalendarName) return replyText;
+  if (!LOCATION_DISAMBIGUATION_QUESTION_RE.test(replyText)) return replyText;
+  return `Dat kan bij ${singleCandidateCalendarName}, dus die keuze staat al vast. Een moment, ik ga verder met je afspraak.`;
+}
+
 // scopeToCurrentTopicWindow: the actual trim applied to the "prior inbound texts" window before
 // it reaches hasDayMentionAnywhere / rescheduleFlowActiveWithNoDay. Single-calendar tenants
 // (calendars.length <= 1) are always returned unchanged: there is no second calendar to switch

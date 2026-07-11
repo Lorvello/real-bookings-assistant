@@ -3,7 +3,7 @@
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
+import { resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
 
 const CALENDARS = [
   { id: "sanne", name: "Sanne" },
@@ -227,4 +227,59 @@ Deno.test("scopeToCurrentTopicWindow: genuine topic switch still detected with r
   const current = "Los van de Milan-afspraak, wil ik ook nog een keer bij Bo een afspraak maken, wanneer heb je tijd?";
   const window = scopeToCurrentTopicWindow(current, prior, CALENDARS_WITH_SUFFIX);
   assertEquals(window, []);
+});
+
+// R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix, live-reproduced R96/R100): resolveCandidateCalendarIds
+// narrows to exactly one calendar (e.g. Iris for Bruidskapsel, a service that exists on only one
+// calendar), but the model asks a "which location" question anyway. enforceNoRedundantLocationAsk is
+// the reply-rewrite backstop that discards that question in exactly this situation.
+
+Deno.test("enforceNoRedundantLocationAsk: no-op when there is no single candidate (null)", () => {
+  const reply = "Bij welke locatie wil je het Bruidskapsel plannen? (Sanne, Bo, Iris, Milan)";
+  assertEquals(enforceNoRedundantLocationAsk(reply, null), reply);
+});
+
+Deno.test("enforceNoRedundantLocationAsk: no-op when the reply does not ask a location question", () => {
+  const reply = "Iris kan je op donderdag 30 juli om 17:00 helpen met het Bruidskapsel. Zal ik dat inplannen?";
+  assertEquals(enforceNoRedundantLocationAsk(reply, "Iris"), reply);
+});
+
+Deno.test("enforceNoRedundantLocationAsk: rewrites a 'bij welke locatie' question when a single candidate is active", () => {
+  const reply = "Bij welke locatie wil je het Bruidskapsel plannen? (Sanne (Knippen), Bo (Nagels), Iris (Weekend), Milan (Kleuren))";
+  const out = enforceNoRedundantLocationAsk(reply, "Iris");
+  assertEquals(out, "Dat kan bij Iris, dus die keuze staat al vast. Een moment, ik ga verder met je afspraak.");
+});
+
+Deno.test("enforceNoRedundantLocationAsk: rewrites a 'bij wie wil je' phrasing too", () => {
+  const reply = "Bij wie wil je de afspraak maken voor Knippen?";
+  const out = enforceNoRedundantLocationAsk(reply, "Bo");
+  assertEquals(out, "Dat kan bij Bo, dus die keuze staat al vast. Een moment, ik ga verder met je afspraak.");
+});
+
+Deno.test("enforceNoRedundantLocationAsk: rewrites the English 'which location' phrasing too", () => {
+  const reply = "Which location would you like to book the Wedding Hairstyle at?";
+  const out = enforceNoRedundantLocationAsk(reply, "Iris");
+  assertEquals(out, "Dat kan bij Iris, dus die keuze staat al vast. Een moment, ik ga verder met je afspraak.");
+});
+
+// Genuinely-shared-service consistency check (multi-candidate case): resolveCandidateCalendarIds
+// itself must still return ALL matching calendars (never narrow to one) for a service like Knippen
+// that really is offered by multiple calendars, so index.ts never even computes a
+// singleCandidateCalendarName for this case and enforceNoRedundantLocationAsk is never invoked with a
+// non-null name; the disambiguation question must still fire correctly (zero regression).
+
+Deno.test("resolveCandidateCalendarIds: a genuinely shared service (Knippen) still narrows to ALL offering calendars, not one", () => {
+  const sharedCalendars = [
+    { id: "sanne", name: "Sanne (Knippen)" },
+    { id: "bo", name: "Bo (Nagels)" },
+    { id: "milan", name: "Milan (Kleuren)" },
+  ];
+  const sharedServices = new Map([
+    ["sanne", [{ name: "Knippen Dames" }]],
+    ["bo", [{ name: "Knippen" }]],
+    ["milan", [{ name: "Knippen" }]],
+  ]);
+  const r = resolveCandidateCalendarIds("Ik wil graag Knippen boeken, donderdag om 14:00.", sharedCalendars, sharedServices);
+  assertEquals(r.matched, true);
+  assertEquals(r.candidateIds.size > 1, true);
 });
