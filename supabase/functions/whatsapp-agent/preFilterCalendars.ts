@@ -117,3 +117,75 @@ export function resolveCandidateCalendarIds(
   }
   return { candidateIds: matchedIds, matched: true };
 }
+
+// R98 (DAY/INTENT TOPIC-BLEED fix): hasDayMentionAnywhere (relativeDateHint.ts) and, downstream of
+// it, rescheduleFlowActiveWithNoDay, used to scan the WHOLE shared conversation for a day mention
+// or a reschedule verb with no awareness of a mid-conversation TOPIC SWITCH to a different
+// calendar/service. Live-confirmed R97: a day named earlier for Iris's reschedule ("zondag 2
+// augustus") falsely satisfied a totally unrelated fresh Bo booking's own day requirement (silent
+// slot offer, the R92/R93 silent-default class reopened), and Iris's reschedule VERB
+// ("verzetten") bled into a plain "boeken" request on Bo (wrong-flavored clarifying question:
+// "Naar welke dag wil je de afspraak verzetten?" for a brand-new booking).
+//
+// lastMentionedCalendar: which calendar (by NAME, word-boundary match, never a service-name
+// substring, deliberately narrower than resolveCandidateCalendarIds above) is this text actually
+// ABOUT? Returns the calendar whose name occurs LATEST (by token position) in the text, or null
+// when no calendar name appears at all. "Last mentioned wins" specifically because a customer
+// naming two calendars in one message is, empirically (both live-confirmed cases this round),
+// naming the OLD one only to rule it out and the NEW one as the actual ask ("Los van de
+// Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken..." names Iris first, Bo
+// last, and Bo is unambiguously what this turn is about).
+export function lastMentionedCalendar(
+  text: string,
+  calendars: Array<{ id: string; name: string }>,
+): string | null {
+  const messageTokens = tokenize(text ?? "");
+  if (messageTokens.length === 0) return null;
+  let bestId: string | null = null;
+  let bestIndex = -1;
+  for (const cal of calendars) {
+    const nameTokens = tokenize(cal.name);
+    if (nameTokens.length === 0) continue;
+    for (let i = 0; i + nameTokens.length <= messageTokens.length; i++) {
+      let ok = true;
+      for (let j = 0; j < nameTokens.length; j++) {
+        if (messageTokens[i + j] !== nameTokens[j]) { ok = false; break; }
+      }
+      if (ok && i > bestIndex) { bestIndex = i; bestId = cal.id; }
+    }
+  }
+  return bestId;
+}
+
+// scopeToCurrentTopicWindow: the actual trim applied to the "prior inbound texts" window before
+// it reaches hasDayMentionAnywhere / rescheduleFlowActiveWithNoDay. Single-calendar tenants
+// (calendars.length <= 1) are always returned unchanged: there is no second calendar to switch
+// to, so this bug class cannot occur there, and behavior must stay byte-identical (matches every
+// other isMultiCalendar-gated fix in this codebase).
+//
+// Detection: does the CURRENT text clearly name one calendar (lastMentionedCalendar)? If not (a
+// followup with no calendar name, e.g. "wat kost dat?" or "kan het naar dinsdag 19:00"), there is
+// no switch signal at all, keep the FULL window, unchanged from before this fix (a real
+// continuation of the SAME flow must still be able to see its own earlier day/verb mentions).
+// If it does, walk the prior inbound texts NEWEST-FIRST to find the most recent one that also
+// clearly names one calendar. If that calendar differs from the current one, this turn is a
+// genuine topic switch onto a different calendar/service: return an EMPTY window, so the day-scan
+// and reschedule-verb-scan start completely fresh at this message, carrying nothing over from the
+// old flow. If it is the SAME calendar (or no prior message ever named one), this is a
+// continuation, not a switch: return the full window, unchanged.
+export function scopeToCurrentTopicWindow(
+  currentText: string,
+  priorInboundTextsOldestFirst: string[],
+  calendars: Array<{ id: string; name: string }>,
+): string[] {
+  if (calendars.length <= 1) return priorInboundTextsOldestFirst;
+  const currentCal = lastMentionedCalendar(currentText, calendars);
+  if (currentCal === null) return priorInboundTextsOldestFirst;
+  let recentCal: string | null = null;
+  for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
+    recentCal = lastMentionedCalendar(priorInboundTextsOldestFirst[i], calendars);
+    if (recentCal !== null) break;
+  }
+  if (recentCal !== null && recentCal !== currentCal) return [];
+  return priorInboundTextsOldestFirst;
+}

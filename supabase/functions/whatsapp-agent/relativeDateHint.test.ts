@@ -4,6 +4,14 @@
 // Run: deno test relativeDateHint.test.ts
 import { assertEquals, assertMatch } from "jsr:@std/assert";
 import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
+import { scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
+
+const CALENDARS_TEST = [
+  { id: "sanne", name: "Sanne" },
+  { id: "milan", name: "Milan" },
+  { id: "iris", name: "Iris" },
+  { id: "bo", name: "Bo" },
+];
 
 // Minimal stand-in for identityDisambiguationGuard.ts's own RESCHEDULE_VERB_RE (avoids pulling in
 // that whole module just for this regex in a pure-function unit test).
@@ -334,4 +342,52 @@ Deno.test("enforceRescheduleNoDayDisclosure STILL rewrites when reschedule_appoi
     [{ name: "reschedule_appointment", result: { error: "vraag_dag", message: "vraag eerst welke dag" } }],
   );
   assertEquals(out, "Naar welke dag wil je de afspraak verzetten?");
+});
+
+// R98 (DAY/INTENT TOPIC-BLEED fix): composed tests proving the FULL fix (scopeToCurrentTopicWindow
+// feeding hasDayMentionAnywhere / rescheduleFlowActiveWithNoDay), mirroring exactly the two live-
+// confirmed R97 failures, plus the required non-regression checks (R93/R95/R97 must stay intact).
+const NOW_R98 = new Date("2026-07-11T12:00:00Z");
+
+Deno.test("R98: a fresh Bo booking with no day, after an Iris reschedule flow established a day, gets its OWN blockForNoDayNamed=true (booking-flavored, not silently satisfied by Iris's day)", () => {
+  const priorInboundTexts = [
+    "Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?",
+    "Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?",
+    "zondag 2 augustus graag",
+  ];
+  const currentText = "Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?";
+  const window = scopeToCurrentTopicWindow(currentText, priorInboundTexts, CALENDARS_TEST);
+  const blockForNoDayNamed = !hasDayMentionAnywhere(currentText, window, NOW_R98);
+  assertEquals(blockForNoDayNamed, true);
+});
+
+Deno.test("R98: the SAME fresh Bo booking never inherits reschedule flow-type (rescheduleFlowActiveWithNoDay is false, not true with the wrong 'verzetten' verb)", () => {
+  const priorInboundTexts = [
+    "Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?",
+    "Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?",
+    "zondag 2 augustus graag",
+  ];
+  const currentText = "Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?";
+  const window = scopeToCurrentTopicWindow(currentText, priorInboundTexts, CALENDARS_TEST);
+  const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(currentText, window, NOW_R98, RESCHEDULE_VERB_RE_TEST);
+  assertEquals(rescheduleNoDayThisTurn, false);
+});
+
+Deno.test("R98 non-regression: a SAME-calendar Iris reschedule with no day still correctly asks the reschedule day-question (R95 case intact)", () => {
+  const priorInboundTexts = [
+    "Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?",
+    "vrijdag 10 juli graag",
+  ];
+  const currentText = "Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?";
+  const window = scopeToCurrentTopicWindow(currentText, priorInboundTexts, CALENDARS_TEST);
+  const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(currentText, window, NOW_R98, RESCHEDULE_VERB_RE_TEST);
+  assertEquals(rescheduleNoDayThisTurn, true);
+});
+
+Deno.test("R98 non-regression: a clean-history fresh booking (R93 shape, single calendar, no topic switch at all) still asks the day question", () => {
+  const priorInboundTexts: string[] = [];
+  const currentText = "Ik wil graag een afspraak bij Milan boeken, wanneer heb je tijd?";
+  const window = scopeToCurrentTopicWindow(currentText, priorInboundTexts, CALENDARS_TEST);
+  const blockForNoDayNamed = !hasDayMentionAnywhere(currentText, window, NOW_R98);
+  assertEquals(blockForNoDayNamed, true);
 });

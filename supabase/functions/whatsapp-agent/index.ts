@@ -27,7 +27,7 @@ import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, find
 import { computePendingBookInterveningExchange } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
-import { resolveCandidateCalendarIds } from "./preFilterCalendars.ts";
+import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
 
@@ -1156,7 +1156,22 @@ Deno.serve(async (req) => {
     const priorInboundTexts = history
       .filter((m) => m.direction === "inbound")
       .map((m) => m.content ?? "");
-    const blockForNoDayNamed = !hasDayMentionAnywhere(String(message ?? ""), priorInboundTexts, now);
+    // R98 (DAY/INTENT TOPIC-BLEED fix): both hasDayMentionAnywhere below and
+    // rescheduleFlowActiveWithNoDay further down used to scan priorInboundTexts UNCONDITIONALLY,
+    // with no awareness of a mid-conversation topic switch to a different calendar/service. Live-
+    // confirmed R97: a day named for Iris's reschedule falsely satisfied an unrelated fresh Bo
+    // booking's own day requirement, and Iris's reschedule verb bled into a plain Bo "boeken"
+    // request (wrong-flavored clarifying question). scopeToCurrentTopicWindow (preFilterCalendars.ts)
+    // detects a genuine topic switch (this message clearly names a DIFFERENT calendar than the
+    // most recently named one) and returns an EMPTY window in that case, so both day-detection and
+    // reschedule-verb-detection below start completely fresh at this message; a same-topic
+    // continuation (the overwhelmingly common case, including every R93/R95/R97 scenario) is
+    // returned unchanged, byte-identical to before this fix. Single-calendar tenants are always
+    // unchanged (see that function's own header).
+    const dayScanWindowTexts = isMultiCalendar
+      ? scopeToCurrentTopicWindow(String(message ?? ""), priorInboundTexts, calendars)
+      : priorInboundTexts;
+    const blockForNoDayNamed = !hasDayMentionAnywhere(String(message ?? ""), dayScanWindowTexts, now);
     // R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94): a SEPARATE, narrower-scoped
     // flag from blockForNoDayNamed above, deliberately NOT reusing it. blockForNoDayNamed scans
     // the WHOLE conversation, and for a reschedule the original booking request almost always
@@ -1167,7 +1182,11 @@ Deno.serve(async (req) => {
     // the full reasoning. Backstops the drafted reply (enforceRescheduleNoDayDisclosure, further
     // below) for the live-reproduced case where the model never even calls reschedule_appointment
     // at all, instead composing a get_my_appointments-shaped stonewall.
-    const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(String(message ?? ""), priorInboundTexts, now, RESCHEDULE_VERB_RE);
+    // R98: also fed the topic-scoped window (dayScanWindowTexts), not the raw priorInboundTexts,
+    // so a reschedule verb from a PREVIOUS, now-switched-away-from calendar's flow can never make
+    // this flag true for an unrelated fresh request on a different calendar (see the header
+    // comment above dayScanWindowTexts for the full mechanism and live evidence).
+    const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(String(message ?? ""), dayScanWindowTexts, now, RESCHEDULE_VERB_RE);
     // Single source of truth for opening hours = the BOOKABLE schedule of THIS calendar
     // (availability_rules, via getCalendarWeeklyHours). Override the spoken hours that
     // fetchBusinessData derived from the separate, often-stale business_overview.calendars[0]

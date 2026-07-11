@@ -3,7 +3,7 @@
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { resolveCandidateCalendarIds } from "./preFilterCalendars.ts";
+import { resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
 
 const CALENDARS = [
   { id: "sanne", name: "Sanne" },
@@ -94,4 +94,70 @@ Deno.test("a longer common word merely CONTAINING a short name as substring neve
   const r = resolveCandidateCalendarIds("Ik kom net terug van een tripje naar Milaan.", CALENDARS, SERVICES);
   assertEquals(r.matched, false);
   assertEquals(r.candidateIds.size, 4);
+});
+
+// R98 (DAY/INTENT TOPIC-BLEED fix) tests below.
+
+Deno.test("lastMentionedCalendar: no calendar named returns null", () => {
+  assertEquals(lastMentionedCalendar("Wanneer heb je tijd?", CALENDARS), null);
+});
+
+Deno.test("lastMentionedCalendar: single named calendar returned", () => {
+  assertEquals(lastMentionedCalendar("Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?", CALENDARS), "bo");
+});
+
+Deno.test("lastMentionedCalendar: two calendars named, the LAST one (by token position) wins", () => {
+  // Live R97 shape: the customer excludes the old calendar first, then names the real target.
+  assertEquals(
+    lastMentionedCalendar("Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken, wanneer heb je tijd?", CALENDARS),
+    "bo",
+  );
+});
+
+Deno.test("lastMentionedCalendar: 'Milaan' (city, NL spelling) never false-matches calendar Milan", () => {
+  assertEquals(lastMentionedCalendar("Ik kom net terug van Milaan.", CALENDARS), null);
+});
+
+Deno.test("scopeToCurrentTopicWindow: single-calendar tenant always returns the window unchanged", () => {
+  const single = [{ id: "only", name: "Only" }];
+  const prior = ["bericht 1", "bericht 2"];
+  assertEquals(scopeToCurrentTopicWindow("nieuw bericht", prior, single), prior);
+});
+
+Deno.test("scopeToCurrentTopicWindow: current message names no calendar, keeps full window (plain continuation)", () => {
+  const prior = ["Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?", "zondag 2 augustus graag"];
+  assertEquals(scopeToCurrentTopicWindow("Kan het naar 19:00?", prior, CALENDARS), prior);
+});
+
+Deno.test("scopeToCurrentTopicWindow: same calendar named again is a continuation, keeps full window", () => {
+  const prior = ["Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?", "zondag 2 augustus graag"];
+  assertEquals(scopeToCurrentTopicWindow("Kan het bij Iris ook om 19:00?", prior, CALENDARS), prior);
+});
+
+Deno.test("scopeToCurrentTopicWindow: genuine topic switch to a different calendar returns an EMPTY window", () => {
+  // Live R97 case 1 shape: a reschedule flow was active on Iris, day "zondag 2 augustus" was
+  // named there, then a fresh unrelated Bo booking request arrives with no day named. The old
+  // Iris day/verb history must not bleed into this Bo turn.
+  const prior = [
+    "Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?",
+    "Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?",
+    "zondag 2 augustus graag",
+  ];
+  const window = scopeToCurrentTopicWindow("Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?", prior, CALENDARS);
+  assertEquals(window, []);
+});
+
+Deno.test("scopeToCurrentTopicWindow: topic switch detected even when the OLD calendar is also named (live R97 case 2 shape)", () => {
+  const prior = [
+    "Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?",
+    "zondag 2 augustus graag",
+  ];
+  // Names BOTH Iris (to exclude it) and Bo (the real ask); lastMentionedCalendar's "last wins"
+  // rule must resolve this to Bo, so the switch is still detected and the window still empties.
+  const window = scopeToCurrentTopicWindow(
+    "Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken, wanneer heb je tijd?",
+    prior,
+    CALENDARS,
+  );
+  assertEquals(window, []);
 });
