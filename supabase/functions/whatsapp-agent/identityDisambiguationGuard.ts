@@ -624,6 +624,45 @@ export function identityVerificationResolved(
   return containsWholeWord(String(rawMessage ?? ""), token);
 }
 
+// R120 (DOUBLE-CONFIRM-OSCILLATION fix, live-reproduced on the long multi-topic shared test
+// conversation: book request -> naam_verificatie_nodig Q2 -> "Ja, klopt" -> Q2 AGAIN -> "Ja, boek
+// het" -> reverted all the way back to the ORIGINAL preview question, no booking ever committed).
+// ROOT CAUSE: crossIdentityBookRisk (above) fires its pending_book_verification marker for TWO
+// structurally different reasons -- (a) ctx.knownSelfName is a REAL, already-established name that
+// genuinely conflicts with the preview's name (the true R107 phone-handed-mid-flow shape), or (b)
+// knownSelfName is null and ONLY ctx.priorRealBookingExists is true (this conversation was never
+// told a conflicting name at all; the sole evidence is that SOME real booking exists on this phone
+// somewhere in history, a much weaker signal). identityVerificationResolved's release bar is the
+// same for both: a null knownSelfName is treated by nameMismatch as a mismatch against ANY real
+// target name, so release ALWAYS demands the customer literally restate the target's name back --
+// but Q2's own customer-facing wording ("Klopt het dat dit echt geboekt moet worden voor <name>?")
+// reads as a plain yes/no question, and no part of this codebase ever instructs the customer to
+// repeat a name they were never asked to say. For reason (b) this makes release STRUCTURALLY
+// impossible via any bare affirm ("Ja, boek het", "Ja, klopt"): the customer keeps confirming, the
+// marker never releases, and the resulting bookCommitMissed retry regenerates a brand-new preview
+// from scratch (tools.ts's own !committing fallback path), which is exactly the observed "back to
+// Q1" oscillation.
+//
+// FIX: give book_appointment its own release predicate, mirroring crossIdentityBookRisk's own
+// two-tier asymmetry (a real established knownSelfName is strong evidence and keeps the existing,
+// battle-tested identityVerificationResolved bar; a null knownSelfName can only ever mean reason
+// (b) fired, since reason (a) requires isRealName(knownSelfName) to be true in the first place) --
+// so a clean, unambiguous affirm alone is sufficient to release when there was never a genuinely
+// established conflicting identity to restate against. This does NOT touch identityVerificationResolved
+// itself (cancel/reschedule/rename keep the exact R107/R109/R117 behaviour, including the
+// deliberate "null self vs a real DB row's name = still a risk requiring restate" bar, which is
+// correct for THEIR real-third-party-row shape) and does NOT weaken the genuine R107 phone-handoff
+// protection for book_appointment either: whenever knownSelfNameAtRelease IS a real, established,
+// conflicting name, this delegates straight to identityVerificationResolved, unchanged.
+export function bookIdentityVerificationResolved(
+  targetCustomerName: string | null | undefined,
+  knownSelfNameAtRelease: string | null | undefined,
+  rawMessage: string | undefined | null,
+): boolean {
+  if (!isRealName(knownSelfNameAtRelease)) return true;
+  return identityVerificationResolved(targetCustomerName, knownSelfNameAtRelease, rawMessage);
+}
+
 // R102 DETERMINISTIC DISCLOSURE BACKSTOP for get_my_appointments (mirrors this codebase's own
 // established pattern, e.g. refundGuard.ts/priceGuard.ts: a hard correctness guarantee belongs in
 // CODE, not in trusting the model to follow a prompt instruction). Live-tested this round: even

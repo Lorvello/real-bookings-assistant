@@ -15,7 +15,7 @@ import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalseP
 import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, cancelToolCallHadPolicyRefusal, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, bookIdentityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, cancelToolCallHadPolicyRefusal, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -1901,10 +1901,36 @@ Deno.serve(async (req) => {
     // R109: same identityVerificationResolved requirement as above, closing the identical gap on
     // book_appointment's own marker (live-reproduced: a second bare "ja" silently committed the
     // preview under the stale wrong name here too).
+    // R120 (DOUBLE-CONFIRM-OSCILLATION fix, see bookIdentityVerificationResolved's own header in
+    // identityDisambiguationGuard.ts for the full root-cause reasoning): book_appointment's marker
+    // can fire off a null knownName purely from ctx.priorRealBookingExists (weak evidence, no
+    // conflicting identity was ever actually stated in THIS conversation), a structurally different
+    // shape from cancel/reschedule/rename's real-third-party-row case directly above. Using the
+    // plain identityVerificationResolved here made that shape release-impossible via any bare
+    // affirm (a null knownName always reads as "still mismatched"), causing an infinite Q1<->Q2
+    // oscillation with no booking ever committed. bookIdentityVerificationResolved keeps the exact
+    // same strict name-restate bar whenever knownName IS a real, established, genuinely conflicting
+    // name (the true R107 phone-handoff-mid-flow shape), unchanged.
     const pbv = convContext.pending_book_verification as { customer_name?: string | null; at?: number } | undefined;
     const pendingBookVerificationFresh = !!pbv && (typeof pbv.at !== "number" || (Date.now() - pbv.at) < 15 * 60 * 1000);
     const confirmBookVerification = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
-      identityVerificationResolved(pbv?.customer_name ?? null, knownName, String(message));
+      bookIdentityVerificationResolved(pbv?.customer_name ?? null, knownName, String(message));
+    // R120 (DOUBLE-CONFIRM-OSCILLATION fix, continued): the complementary weaker signal tools.ts's
+    // own re-ask guard needs -- "the customer answered Q2 with a clean affirm, but it did not
+    // (yet) resolve the identity check" -- deliberately WITHOUT ctx.confirmBook's own
+    // pendingBookInterveningExchange/DAY_OR_TIME_SHIFT_RE requirement. confirmBook is blocked by
+    // design whenever a genuine intervening customer message exists (R118's GAP 3 protection
+    // against silently COMMITTING a stale abandoned proposal), but Q2's own prior turn IS itself
+    // exactly such an "intervening message" relative to the ORIGINAL preview, so confirmBook is
+    // structurally false on the very next reply to Q2 unless the customer also restates a day/time
+    // -- discovered live this round: a bare "Ja, boek het" answering Q2 could never satisfy
+    // ctx.confirmBook, so tools.ts's re-ask branch (gated on ctx.confirmBook) never fired either,
+    // and the turn fell through to a brand-new fresh preview instead (the exact Q1-reversion
+    // repro). Re-asking Q2 is a pure read (never commits anything), so R118's stale-proposal
+    // protection does not apply here at all; only the SAME clean-affirm bar (AFFIRM_RE/NEGATE_RE/
+    // ambiguousConfirm) every other release signal in this file already requires.
+    const bookVerificationAffirmUnresolved = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      !confirmBookVerification;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
@@ -2249,7 +2275,7 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).

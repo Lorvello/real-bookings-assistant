@@ -256,6 +256,16 @@ export interface ToolContext {
   // is the deterministic alternative that lets book_appointment's commit gate accept it directly
   // instead of forcing an avoidable extra re-preview round-trip.
   confirmBookOwnerRestated?: boolean;
+  // R120 (DOUBLE-CONFIRM-OSCILLATION fix): server-detected (index.ts), true when this turn's raw
+  // message is a clean affirm answering a still-fresh pending_book_verification marker that did
+  // NOT resolve it (i.e. confirmBookVerification is false -- no name restated yet). Deliberately
+  // NOT gated on ctx.confirmBook's own pendingBookInterveningExchange/DAY_OR_TIME_SHIFT_RE
+  // requirement: Q2's own prior turn is itself an "intervening message" relative to the ORIGINAL
+  // preview, so confirmBook is structurally false on the very next bare reply to Q2 unless the
+  // customer also restates a day/time, which they were never asked to do. Used ONLY to decide
+  // whether to RE-ASK Q2 (a pure read, never a commit), so R118's stale-proposal-commit protection
+  // does not need to gate it.
+  bookVerificationAffirmUnresolved?: boolean;
 }
 
 interface UpcomingBooking {
@@ -1780,6 +1790,58 @@ export function createTools(
         const wouldHaveCommitted = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !!pendingBook?.start_time;
         const namePreviewOnly = nameChanged && wouldHaveCommitted;
 
+        // R120 (DOUBLE-CONFIRM-OSCILLATION fix, live-reproduced on the long multi-topic shared test
+        // conversation: book request -> Q1 -> "Ja, klopt" -> naam_verificatie_nodig Q2 -> "Ja, boek
+        // het" -> REVERTED all the way back to Q1, no booking ever committed). ROOT CAUSE: a bare
+        // affirm answering Q2 (no literal name restated) makes ctx.confirmBookVerification false
+        // (identityVerificationResolved correctly still requires the name), so verifiedBypass is
+        // false; that SAME bare affirm is also, independently, a genuine "intervening customer
+        // message" relative to the ORIGINAL preview's own `at` (R118's pendingBookInterveningExchange:
+        // the earlier "Ja, klopt" turn that triggered Q2 in the first place counts as one), which
+        // forces bookInterveningBlock true (its own !verifiedBypass exemption cannot apply, since
+        // verifiedBypass is false here). Both together force `committing` false -- but the
+        // naam_verificatie_nodig RE-ASK gate a few dozen lines below only ever fires INSIDE the
+        // `committing === true` branch, so it is never reached either. Control falls all the way
+        // through to the generic fresh-preview path (serviceId/start/end sourced from args, a brand
+        // new `at` stamped below), which re-asks Q1 verbatim -- discarding the still-unresolved,
+        // still-bound pending_book_verification marker entirely. This is true regardless of WHICH
+        // reason crossIdentityBookRisk originally fired for (a real established knownSelfName
+        // mismatch, or the weaker priorRealBookingExists-only trigger); either way, the customer is
+        // mid-verification and must not be silently bounced back to the very first question.
+        //
+        // FIX: when a fresh pending_book_verification marker is still genuinely BOUND to THIS EXACT
+        // pending_booking (same start_time AND customer_name, never a stale marker left over from a
+        // different, already-abandoned proposal) and this turn's reply is the server-detected
+        // "answering the pending proposal" shape that simply failed to resolve the identity check,
+        // re-surface Q2 again instead of silently rebuilding a fresh preview. Deliberately keyed off
+        // ctx.bookVerificationAffirmUnresolved (NOT ctx.confirmBook): confirmBook is itself blocked
+        // by R118's pendingBookInterveningExchange guard whenever a genuine intervening customer
+        // message exists, and Q2's own PRIOR turn (the reply that triggered Q2 in the first place)
+        // is exactly such an intervening message relative to the ORIGINAL preview -- so ctx.confirmBook
+        // is structurally false on the very next bare reply to Q2, live-reproduced this round.
+        // bookVerificationAffirmUnresolved carries no such requirement (see its own header in
+        // index.ts): re-asking Q2 never commits anything, so R118's stale-proposal-commit protection
+        // does not need to gate it. Never fires when the marker is missing/stale/unbound
+        // (byte-identical behaviour for every other shape), and never fires on a genuinely ambiguous
+        // message (ctx.ambiguousConfirm, already baked into bookVerificationAffirmUnresolved).
+        if (
+          !committing && !namePreviewOnly &&
+          pendingBookVerification?.start_time !== undefined &&
+          pendingBook?.start_time === pendingBookVerification.start_time &&
+          (pendingBook?.customer_name ?? null) === (pendingBookVerification.customer_name ?? null) &&
+          ctx.bookVerificationAffirmUnresolved === true
+        ) {
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: pendingBook!.customer_name,
+            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.customer_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${pendingBook!.customer_name}? Typ ter bevestiging de naam terug, bijv. "Ja, ${pendingBook!.customer_name}".`,
+            message:
+              `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.customer_name}. ` +
+              `De klant heeft dit nog NIET ondubbelzinnig bevestigd. Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${pendingBook!.customer_name}").`,
+            guidance: "NOG NIETS geboekt. Veiligheidscheck staat nog open: stel de vraag opnieuw en wacht op het antwoord met de naam erin.",
+          };
+        }
+
         const serviceId = String(((committing || namePreviewOnly) ? pendingBook!.service_type_id : args.service_type_id) ?? "");
         let start = String(((committing || namePreviewOnly) ? pendingBook!.start_time : args.start_time) ?? "");
         let end = String(((committing || namePreviewOnly) ? pendingBook!.end_time : args.end_time) ?? "");
@@ -2627,11 +2689,21 @@ export function createTools(
             // backstop (identityDisambiguationGuard.ts's enforceVerificationGateDisclosure) whenever
             // the model's own drafted reply fails to disclose the name; kept separate from `message`
             // below (which mixes instructions and is never sent to the customer as-is).
-            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.customer_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${pendingBook!.customer_name}?`,
+            // R120 (DOUBLE-CONFIRM-OSCILLATION fix, continued): explicitly asks the customer to
+            // type the name back, mirroring the SAME instruction cancel/reschedule's own
+            // naam_verificatie_nodig wording already includes ('Typ ter bevestiging de naam terug,
+            // bijv. "Ja, X".'). Before this round, book_appointment's own Q2 wording only asked a
+            // plain yes/no ("Klopt het dat...?"), which a real customer naturally answers with a
+            // bare "Ja" -- exactly the reply identityVerificationResolved can never accept, since it
+            // structurally requires the name present. Without this explicit instruction the customer
+            // has no way to know WHY a bare "ja" doesn't resolve it, making the whole gate
+            // practically unresolvable however many times they repeat it. Same fix applied to the
+            // RE-ASK branch above.
+            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.customer_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${pendingBook!.customer_name}? Typ ter bevestiging de naam terug, bijv. "Ja, ${pendingBook!.customer_name}".`,
             message:
               `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.customer_name}. ` +
-              `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${pendingBook!.customer_name} is die geboekt moet worden.`,
-            guidance: "NOG NIETS geboekt. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
+              `Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${pendingBook!.customer_name}"), een kaal "ja" is niet genoeg.`,
+            guidance: "NOG NIETS geboekt. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord met de naam erin.",
           };
         }
 

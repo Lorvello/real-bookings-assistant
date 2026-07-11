@@ -4,6 +4,7 @@
 // Run: deno test identityDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
 import {
+  bookIdentityVerificationResolved,
   crossIdentityActionRisk,
   crossIdentityBookRisk,
   crossIdentityBookVerificationBypass,
@@ -409,6 +410,23 @@ Deno.test("identityVerificationResolved: no real target name on the marker -> no
 
 Deno.test("identityVerificationResolved: unrelated message content does not accidentally satisfy it", () => {
   assertEquals(identityVerificationResolved("Klaas Bakker", "Piet", "Ok doe donderdag maar"), false);
+});
+
+// ── bookIdentityVerificationResolved (R120 DOUBLE-CONFIRM-OSCILLATION fix) ──────────────────────
+Deno.test("bookIdentityVerificationResolved: null knownSelfName (priorRealBookingExists-only trigger) resolves on a bare clean affirm (the exact oscillation repro shape)", () => {
+  assertEquals(bookIdentityVerificationResolved("Sanne Bakker", null, "Ja, boek het"), true);
+  assertEquals(bookIdentityVerificationResolved("Sanne Bakker", null, "Ja, klopt"), true);
+  assertEquals(bookIdentityVerificationResolved("Sanne Bakker", undefined, "Ja"), true);
+});
+
+Deno.test("bookIdentityVerificationResolved: REAL established conflicting knownSelfName still requires the explicit name-restate (R107 phone-handoff protection preserved)", () => {
+  assertEquals(bookIdentityVerificationResolved("Klaas Bakker", "Piet", "ja"), false);
+  assertEquals(bookIdentityVerificationResolved("Klaas Bakker", "Piet", "Ja, klopt"), false);
+  assertEquals(bookIdentityVerificationResolved("Klaas Bakker", "Piet", "Ja, dat klopt, het is voor Klaas"), true);
+});
+
+Deno.test("bookIdentityVerificationResolved: knownSelfName matching the target -> resolved regardless", () => {
+  assertEquals(bookIdentityVerificationResolved("Klaas Bakker", "Klaas Bakker", "ja"), true);
 });
 
 // ── R68 rescheduleIdentityConfirmedFresh (closes R67's deferred Mechanism 2: the
