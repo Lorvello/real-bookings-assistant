@@ -202,3 +202,29 @@ Deno.test("scopeToCurrentTopicWindow: a DUPLICATE of the current message as the 
   const window = scopeToCurrentTopicWindow(current, prior, CALENDARS, SERVICES);
   assertEquals(window, []);
 });
+
+// R98 (live-verify fix): real production calendar names carry a descriptive parenthetical suffix
+// ("Bo (Nagels)", "Milan (Kleuren)", "Iris (Weekend)", "Sanne (Knippen)"), live-confirmed this
+// round. A customer only ever says the primary name ("bij Bo boeken"), never the full suffixed
+// string, so lastMentionedCalendar/scopeToCurrentTopicWindow must strip the suffix before
+// matching or every calendar-name match silently fails and no switch is ever detected.
+const CALENDARS_WITH_SUFFIX = [
+  { id: "sanne", name: "Sanne (Knippen)" },
+  { id: "bo", name: "Bo (Nagels)" },
+  { id: "iris", name: "Iris (Weekend)" },
+  { id: "milan", name: "Milan (Kleuren)" },
+];
+
+Deno.test("lastMentionedCalendar: matches the PRIMARY name even when the calendar's stored name has a parenthetical suffix", () => {
+  assertEquals(lastMentionedCalendar("bij Bo een afspraak maken", CALENDARS_WITH_SUFFIX), "bo");
+  assertEquals(lastMentionedCalendar("bij Milan boeken", CALENDARS_WITH_SUFFIX), "milan");
+});
+
+Deno.test("scopeToCurrentTopicWindow: genuine topic switch still detected with real suffixed calendar names (live-verify-reproduced gap)", () => {
+  const prior = [
+    "Ik wil graag een afspraak bij Milan boeken op donderdag 6 augustus, wat zijn de tijden?",
+  ];
+  const current = "Los van de Milan-afspraak, wil ik ook nog een keer bij Bo een afspraak maken, wanneer heb je tijd?";
+  const window = scopeToCurrentTopicWindow(current, prior, CALENDARS_WITH_SUFFIX);
+  assertEquals(window, []);
+});

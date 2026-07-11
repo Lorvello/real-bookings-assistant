@@ -144,6 +144,20 @@ function maxTokenMatchIndex(messageTokens: string[], nameTokens: string[]): numb
   return best;
 }
 
+// R98 (live-verify fix): real calendar names in this codebase routinely carry a descriptive
+// parenthetical suffix ("Bo (Nagels)", "Milan (Kleuren)", "Iris (Weekend)", "Sanne (Knippen)"),
+// live-confirmed this round. A customer naming the calendar always says only the PRIMARY name
+// ("bij Bo boeken"), never the full "Bo (Nagels)" string, so tokenizing the whole raw name and
+// requiring it as one contiguous sequence (as maxTokenMatchIndex above does for services) NEVER
+// matches a real customer message for any calendar with such a suffix, silently defeating
+// lastMentionedCalendar's whole purpose. Strip a trailing "(...)" suffix before tokenizing a
+// CALENDAR name specifically (never a service name: service names are the substance of what the
+// customer is booking and are said in full, e.g. "Knippen + Stylen", so they keep the exact,
+// unstripped match above).
+function primaryCalendarNameTokens(name: string): string[] {
+  return tokenize(name.replace(/\s*\([^)]*\)\s*$/, ""));
+}
+
 // lastMentionedCalendar: which calendar is this text actually ABOUT? Checks BOTH the calendar's
 // own NAME (word-boundary match) and its SERVICES' names (also word-boundary/token match here,
 // deliberately NOT resolveCandidateCalendarIds's plain-substring service match above: token
@@ -170,7 +184,7 @@ export function lastMentionedCalendar(
   let bestId: string | null = null;
   let bestIndex = -1;
   for (const cal of calendars) {
-    const nameIdx = maxTokenMatchIndex(messageTokens, tokenize(cal.name));
+    const nameIdx = maxTokenMatchIndex(messageTokens, primaryCalendarNameTokens(cal.name));
     if (nameIdx > bestIndex) { bestIndex = nameIdx; bestId = cal.id; }
     const services = servicesByCalendar?.get(cal.id) ?? [];
     for (const svc of services) {
