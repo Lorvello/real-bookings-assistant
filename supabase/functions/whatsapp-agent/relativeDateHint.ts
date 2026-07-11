@@ -229,3 +229,38 @@ export function formatRelativeDateHint(hint: RelativeDateHint | null): string {
   if (!hint) return "";
   return `\nLET OP (datumherkenning voor DIT bericht): de klant noemt hierin "${hint.matchedPhrase}". Onze eigen berekening, uitsluitend gebaseerd op de ECHTE datum van vandaag (dus NIET op een datum die eerder in dit gesprek al genoemd is), wijst naar ${hint.label} [${hint.iso}]. Gebruik voor DEZE verwijzing ALTIJD deze datum, ook als jij of de klant eerder in dit gesprek een andere datum noemde bij een vergelijkbare verwijzing: die eerdere datum was voor een ANDER moment in het gesprek en is nu niet meer relevant. Twijfel je toch, vertrouw dan deze berekening boven je eigen inschatting of boven de gespreksgeschiedenis.`;
 }
+
+// R93 (SILENT-TODAY-DEFAULT fix, confirmed live bug filed R92): a customer who names NO day at
+// all, anywhere ("Ik wil graag een afspraak bij Milan boeken, wanneer heb je tijd?"), used to get
+// slot times offered as if "today" had been silently agreed, with the assumption disclosed only
+// if the customer happened to ask "welke dag is dat dan?" afterwards. This is a different failure
+// shape than R80/R82 (an explicit day the regex failed to recognize): here there is genuinely
+// NOTHING to hint, so extractRelativeDayHint correctly returns null, and the existing prompt-only
+// "never invent vandaag/morgen" instruction (see prompt.ts, the "ONTBREEKT DE DAG" rule) proved,
+// live, not reliably followed by the 20B model on this phrasing (no explicit day/time ask at all,
+// just an open "wanneer heb je tijd?"). Mirrors the SAME deterministic, code-level discipline this
+// module already uses for date RESOLUTION: instead of trusting the model to remember a prose rule,
+// tools.ts's get_available_slots/book_appointment guards (ctx.blockForNoDayNamed) now REFUSE to
+// run at all when this returns true, forcing an explicit day question, the same "refuse to guess"
+// pattern serviceDisambiguationGuard.ts already established for missing-service/branch ambiguity.
+//
+// hasDayMentionAnywhere scans the CURRENT message plus every prior INBOUND message already loaded
+// into this turn's conversation history (never outbound/agent text, which could itself contain a
+// stray day word) for an explicit day reference, using the exact same extractRelativeDayHint this
+// module already uses for resolution. `now` is the real server "now": for historical messages we
+// only care whether a day phrase is PRESENT (a boolean), never its resolved ISO value, so reusing
+// the current turn's `now` for older messages is safe and keeps this a single source of truth.
+export function hasDayMentionAnywhere(
+  currentText: string,
+  priorInboundTexts: string[],
+  now: Date,
+): boolean {
+  if (extractRelativeDayHint(currentText, now) !== null) return true;
+  return priorInboundTexts.some((t) => extractRelativeDayHint(t, now) !== null);
+}
+
+// Refusal message forcing an explicit day question instead of a silent "today" assumption. NL
+// default; index.ts/tools.ts already translate other refusal messages via the model's own
+// customer-language handling for the surrounding reply, same convention as KIES_DIENST_MESSAGE.
+export const VRAAG_DAG_MESSAGE =
+  "De klant heeft in dit hele gesprek nog GEEN dag genoemd (geen weekdag, geen 'vandaag'/'morgen', geen datum). Neem NOOIT zelf een dag aan (ook niet 'vandaag'): vraag eerst kort en concreet op welke dag de klant de afspraak wil, bijvoorbeeld \"Op welke dag zou je de afspraak willen?\", en roep dan pas opnieuw aan zodra de klant een dag heeft genoemd.";

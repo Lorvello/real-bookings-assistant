@@ -3,7 +3,7 @@
 // Pure extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
 // Run: deno test relativeDateHint.test.ts
 import { assertEquals, assertMatch } from "jsr:@std/assert";
-import { extractRelativeDayHint, formatRelativeDateHint } from "./relativeDateHint.ts";
+import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere } from "./relativeDateHint.ts";
 
 // Fixed reference instant: Thursday 2026-07-09, 10:00 UTC (matches this loop's live fixture
 // "today" at the time of the R28/R29 reproduction).
@@ -176,4 +176,47 @@ Deno.test("formatRelativeDateHint renders the resolved ISO + label + an anti-his
   const text = formatRelativeDateHint(h);
   assertMatch(text, /2026-07-10/);
   assertMatch(text, /eerder in dit gesprek/);
+});
+
+// ── R93: hasDayMentionAnywhere (SILENT-TODAY-DEFAULT fix) ───────────────────────────────────
+
+Deno.test("R92 exact repro: no day named in current message or history -> false (no day mention anywhere)", () => {
+  const found = hasDayMentionAnywhere(
+    "Ik wil graag een afspraak bij Milan boeken, wanneer heb je tijd?",
+    [],
+    THURSDAY,
+  );
+  assertEquals(found, false);
+});
+
+Deno.test("no day named in current message, but an earlier inbound message named a weekday -> true", () => {
+  const found = hasDayMentionAnywhere(
+    "En hoe laat dan precies?",
+    ["Ik wil graag een afspraak op vrijdag."],
+    THURSDAY,
+  );
+  assertEquals(found, true);
+});
+
+Deno.test("current message itself names a day -> true even with no history", () => {
+  const found = hasDayMentionAnywhere("Kan het morgen?", [], THURSDAY);
+  assertEquals(found, true);
+});
+
+Deno.test("current message names a fused weekday+daypart (R82 regression guard) -> true", () => {
+  const found = hasDayMentionAnywhere(
+    "Code: f744eddc Hoi, ik wil graag een afspraak maken bij Iris, dinsdagavond.",
+    [],
+    THURSDAY,
+  );
+  assertEquals(found, true);
+});
+
+Deno.test("neither current message nor any prior inbound message names a day -> false", () => {
+  const found = hasDayMentionAnywhere(
+    "Wanneer heb je tijd?",
+    ["Hoi, ik wil graag een afspraak maken.", "Wat kost een knipbeurt?"],
+    THURSDAY,
+  );
+  assertEquals(found, false);
 });

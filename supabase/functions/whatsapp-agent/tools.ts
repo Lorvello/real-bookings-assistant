@@ -9,6 +9,7 @@ import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
 import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, rescheduleIdentityConfirmedFresh, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
+import { VRAAG_DAG_MESSAGE } from "./relativeDateHint.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -132,6 +133,15 @@ export interface ToolContext {
   // disclosure-and-confirm message above. null/undefined when blockForReturningServiceDefault is
   // false (no history, or already resolved).
   lastServiceForReturningDefault?: string | null;
+  // R93 (SILENT-TODAY-DEFAULT fix, relativeDateHint.ts's hasDayMentionAnywhere): server-detected,
+  // computed once per turn in index.ts from THIS turn's message + every prior INBOUND message in
+  // the loaded conversation history. true ONLY when NO explicit day reference (weekday name,
+  // vandaag/morgen/overmorgen, or an explicit date) has been named anywhere in the conversation
+  // yet. Gates get_available_slots and the book_appointment FRESH preview step (same "refuse to
+  // guess a branch/service" pattern as blockForMissingServiceChoice/blockForAmbiguousBranch above,
+  // applied here to the DAY instead), so a customer who never named a day gets an explicit
+  // clarifying question instead of a silent, undisclosed "today" assumption.
+  blockForNoDayNamed?: boolean;
   // R76 (RENAME-HIJACK-CROSSTHIRDPARTY fix): server-detected, computed once per turn in index.ts,
   // mirroring confirmRename exactly (same AFFIRM_RE/NEGATE_RE/ambiguousConfirm/15-minute-freshness
   // pattern) but keyed off a NEW pending_rename_verification context marker instead of
@@ -1293,6 +1303,14 @@ export function createTools(
         if (ctx.blockForReturningServiceDefault && ctx.lastServiceForReturningDefault) {
           return { error: "bevestig_terugkerende_dienst", message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(ctx.lastServiceForReturningDefault) };
         }
+        // R93 (SILENT-TODAY-DEFAULT fix): refuse a slot lookup entirely when the customer has
+        // never named ANY day, anywhere in the conversation (relativeDateHint.ts's
+        // hasDayMentionAnywhere). Checked after the service/branch/returning-service guards above
+        // (same order of operations: resolve WHAT before WHEN) so a slot query can never silently
+        // run against a model-invented date (typically "today") that the customer never stated.
+        if (ctx.blockForNoDayNamed) {
+          return { error: "vraag_dag", message: VRAAG_DAG_MESSAGE };
+        }
         // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
         // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
         const slotCal = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
@@ -1756,6 +1774,12 @@ export function createTools(
           // default through by going straight to book_appointment either.
           if (ctx.blockForReturningServiceDefault && ctx.lastServiceForReturningDefault) {
             return { error: "bevestig_terugkerende_dienst", message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(ctx.lastServiceForReturningDefault) };
+          }
+          // R93 (SILENT-TODAY-DEFAULT fix): same fresh-preview-only gate as get_available_slots
+          // above, so a customer who never named a day cannot slip a silent "today" assumption
+          // through by going straight to book_appointment either.
+          if (ctx.blockForNoDayNamed) {
+            return { error: "vraag_dag", message: VRAAG_DAG_MESSAGE };
           }
           const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
           if ("needAsk" in bookCal) {
