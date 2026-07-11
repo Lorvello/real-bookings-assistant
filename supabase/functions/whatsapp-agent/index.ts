@@ -1167,9 +1167,17 @@ Deno.serve(async (req) => {
     // reschedule-verb-detection below start completely fresh at this message; a same-topic
     // continuation (the overwhelmingly common case, including every R93/R95/R97 scenario) is
     // returned unchanged, byte-identical to before this fix. Single-calendar tenants are always
-    // unchanged (see that function's own header).
+    // unchanged (see that function's own header). A live topic is routinely carried by the
+    // SERVICE name alone for several turns ("Kan mijn Knippen + Stylen afspraak... verzet
+    // worden?") without the calendar's own name ("Iris") ever being repeated, so
+    // servicesByCalendarForTopicScope (built from the same per-calendar services list already
+    // fetched for calendarsForPrompt, zero extra query) lets scopeToCurrentTopicWindow recognize
+    // that as still being about Iris.
+    const servicesByCalendarForTopicScope = isMultiCalendar && calendarsForPrompt
+      ? new Map(calendarsForPrompt.map((c) => [calendars[c.index - 1].id, c.services]))
+      : undefined;
     const dayScanWindowTexts = isMultiCalendar
-      ? scopeToCurrentTopicWindow(String(message ?? ""), priorInboundTexts, calendars)
+      ? scopeToCurrentTopicWindow(String(message ?? ""), priorInboundTexts, calendars, servicesByCalendarForTopicScope)
       : priorInboundTexts;
     const blockForNoDayNamed = !hasDayMentionAnywhere(String(message ?? ""), dayScanWindowTexts, now);
     // R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94): a SEPARATE, narrower-scoped

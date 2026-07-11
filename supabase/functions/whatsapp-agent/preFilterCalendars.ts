@@ -127,31 +127,55 @@ export function resolveCandidateCalendarIds(
 // ("verzetten") bled into a plain "boeken" request on Bo (wrong-flavored clarifying question:
 // "Naar welke dag wil je de afspraak verzetten?" for a brand-new booking).
 //
-// lastMentionedCalendar: which calendar (by NAME, word-boundary match, never a service-name
-// substring, deliberately narrower than resolveCandidateCalendarIds above) is this text actually
-// ABOUT? Returns the calendar whose name occurs LATEST (by token position) in the text, or null
-// when no calendar name appears at all. "Last mentioned wins" specifically because a customer
-// naming two calendars in one message is, empirically (both live-confirmed cases this round),
-// naming the OLD one only to rule it out and the NEW one as the actual ask ("Los van de
-// Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken..." names Iris first, Bo
-// last, and Bo is unambiguously what this turn is about).
+// Largest start TOKEN INDEX at which `nameTokens` occurs as a contiguous subsequence of
+// `messageTokens`, or -1 if it never occurs. Shared position measure for both calendar-name and
+// service-name matches below (both are tokenized the same way, so their positions are directly
+// comparable on the same scale, unlike mixing token index with raw character offset).
+function maxTokenMatchIndex(messageTokens: string[], nameTokens: string[]): number {
+  if (nameTokens.length === 0) return -1;
+  let best = -1;
+  for (let i = 0; i + nameTokens.length <= messageTokens.length; i++) {
+    let ok = true;
+    for (let j = 0; j < nameTokens.length; j++) {
+      if (messageTokens[i + j] !== nameTokens[j]) { ok = false; break; }
+    }
+    if (ok && i > best) best = i;
+  }
+  return best;
+}
+
+// lastMentionedCalendar: which calendar is this text actually ABOUT? Checks BOTH the calendar's
+// own NAME (word-boundary match) and its SERVICES' names (also word-boundary/token match here,
+// deliberately NOT resolveCandidateCalendarIds's plain-substring service match above: token
+// matching gives a comparable position for services and calendar names alike, needed for the
+// "last mentioned wins" comparison below). A live topic (e.g. a reschedule conversation) is
+// routinely carried by the SERVICE name alone for several turns ("Kan mijn Knippen + Stylen
+// afspraak... verzet worden?") without the calendar's own name ("Iris") ever being repeated;
+// servicesByCalendar lets this function recognize that as still being about Iris. Optional: when
+// omitted (or a calendar has no known services), only the calendar name itself is checked.
+//
+// Returns the calendar whose name OR a service of its own occurs LATEST (by token position) in
+// the text, or null when neither ever occurs. "Last mentioned wins" specifically because a
+// customer naming two calendars/services in one message is, empirically (both live-confirmed
+// cases this round), naming the OLD one only to rule it out and the NEW one as the actual ask
+// ("Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken..." names Iris
+// first, Bo last, and Bo is unambiguously what this turn is about).
 export function lastMentionedCalendar(
   text: string,
   calendars: Array<{ id: string; name: string }>,
+  servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
 ): string | null {
   const messageTokens = tokenize(text ?? "");
   if (messageTokens.length === 0) return null;
   let bestId: string | null = null;
   let bestIndex = -1;
   for (const cal of calendars) {
-    const nameTokens = tokenize(cal.name);
-    if (nameTokens.length === 0) continue;
-    for (let i = 0; i + nameTokens.length <= messageTokens.length; i++) {
-      let ok = true;
-      for (let j = 0; j < nameTokens.length; j++) {
-        if (messageTokens[i + j] !== nameTokens[j]) { ok = false; break; }
-      }
-      if (ok && i > bestIndex) { bestIndex = i; bestId = cal.id; }
+    const nameIdx = maxTokenMatchIndex(messageTokens, tokenize(cal.name));
+    if (nameIdx > bestIndex) { bestIndex = nameIdx; bestId = cal.id; }
+    const services = servicesByCalendar?.get(cal.id) ?? [];
+    for (const svc of services) {
+      const svcIdx = maxTokenMatchIndex(messageTokens, tokenize(svc.name));
+      if (svcIdx > bestIndex) { bestIndex = svcIdx; bestId = cal.id; }
     }
   }
   return bestId;
@@ -163,27 +187,28 @@ export function lastMentionedCalendar(
 // to, so this bug class cannot occur there, and behavior must stay byte-identical (matches every
 // other isMultiCalendar-gated fix in this codebase).
 //
-// Detection: does the CURRENT text clearly name one calendar (lastMentionedCalendar)? If not (a
-// followup with no calendar name, e.g. "wat kost dat?" or "kan het naar dinsdag 19:00"), there is
-// no switch signal at all, keep the FULL window, unchanged from before this fix (a real
-// continuation of the SAME flow must still be able to see its own earlier day/verb mentions).
-// If it does, walk the prior inbound texts NEWEST-FIRST to find the most recent one that also
-// clearly names one calendar. If that calendar differs from the current one, this turn is a
-// genuine topic switch onto a different calendar/service: return an EMPTY window, so the day-scan
-// and reschedule-verb-scan start completely fresh at this message, carrying nothing over from the
-// old flow. If it is the SAME calendar (or no prior message ever named one), this is a
-// continuation, not a switch: return the full window, unchanged.
+// Detection: does the CURRENT text clearly name one calendar or its service (lastMentionedCalendar,
+// servicesByCalendar-aware)? If not (a followup with no calendar/service name, e.g. "wat kost dat?"
+// or "kan het naar dinsdag 19:00"), there is no switch signal at all, keep the FULL window,
+// unchanged from before this fix (a real continuation of the SAME flow must still be able to see
+// its own earlier day/verb mentions). If it does, walk the prior inbound texts NEWEST-FIRST to
+// find the most recent one that also clearly names one calendar/service. If that calendar differs
+// from the current one, this turn is a genuine topic switch onto a different calendar/service:
+// return an EMPTY window, so the day-scan and reschedule-verb-scan start completely fresh at this
+// message, carrying nothing over from the old flow. If it is the SAME calendar (or no prior
+// message ever named one), this is a continuation, not a switch: return the full window, unchanged.
 export function scopeToCurrentTopicWindow(
   currentText: string,
   priorInboundTextsOldestFirst: string[],
   calendars: Array<{ id: string; name: string }>,
+  servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
 ): string[] {
   if (calendars.length <= 1) return priorInboundTextsOldestFirst;
-  const currentCal = lastMentionedCalendar(currentText, calendars);
+  const currentCal = lastMentionedCalendar(currentText, calendars, servicesByCalendar);
   if (currentCal === null) return priorInboundTextsOldestFirst;
   let recentCal: string | null = null;
   for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
-    recentCal = lastMentionedCalendar(priorInboundTextsOldestFirst[i], calendars);
+    recentCal = lastMentionedCalendar(priorInboundTextsOldestFirst[i], calendars, servicesByCalendar);
     if (recentCal !== null) break;
   }
   if (recentCal !== null && recentCal !== currentCal) return [];

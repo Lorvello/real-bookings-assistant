@@ -161,3 +161,27 @@ Deno.test("scopeToCurrentTopicWindow: topic switch detected even when the OLD ca
   );
   assertEquals(window, []);
 });
+
+Deno.test("scopeToCurrentTopicWindow: topic carried by SERVICE NAME alone (no calendar name repeated) is still recognized, real live-reproduced R98 gap", () => {
+  // This is the EXACT shape that first slipped through calendar-name-only matching: the whole
+  // reschedule flow is carried by the service name "Knippen + Stylen" (owned by Iris), the
+  // calendar's own name "Iris" is never repeated after the very first turn. Without
+  // servicesByCalendar awareness, lastMentionedCalendar sees no calendar name at all in these
+  // prior messages and the topic switch to Bo goes UNDETECTED, live-reproduced this round (the
+  // fresh Bo request wrongly got "Op zondag 2 augustus heb ik geen vrije tijden meer", inheriting
+  // Iris's own reschedule-target day).
+  const prior = [
+    "Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden naar donderdag 30 juli 18:00?",
+    "Zondag 2 augustus is goed, 18:00 graag",
+    "12:00 is prima",
+  ];
+  const current = "Los van die Iris-afspraak, ik wil ook nog een keer een afspraak bij Bo boeken, wanneer heb je tijd?";
+  const withoutServices = scopeToCurrentTopicWindow(current, prior, CALENDARS, undefined);
+  // Documents the gap this test itself closes: with NO service map, the middle 2 messages carry
+  // no calendar-name signal at all, so no switch is detected purely from calendar names here
+  // (current still names both Iris and Bo, "last wins" -> Bo; prior messages name neither
+  // explicitly by calendar name, so recentCal stays null and the window is returned unchanged).
+  assertEquals(withoutServices, prior);
+  const withServices = scopeToCurrentTopicWindow(current, prior, CALENDARS, SERVICES);
+  assertEquals(withServices, []);
+});
