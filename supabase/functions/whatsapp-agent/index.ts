@@ -10,7 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
-import { enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
+import { collectTurnSlots, enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
@@ -2910,11 +2910,33 @@ Deno.serve(async (req) => {
         // "grounded" for a claim about Sanne's menu too. Multi-calendar mode relies solely on
         // `calendarsForPrompt`'s own per-calendar `services` (now included in the summary, see
         // businessDataGuard.ts); single-calendar mode is unaffected (still passes its one real list).
+        // R103: businessDataGuard's classifier has no ground truth for THIS turn's real-time
+        // slot-availability check (a "no free slots that day" / booking-preview date+time claim
+        // is grounded in get_available_slots' live RPC result, never in the static business_data
+        // fields the summary otherwise carries). Rule (d) in businessDataGuard.ts's SYSTEM_PROMPT
+        // already tells the classifier to treat "this turn's real tool results" as grounded, but
+        // without this line the classifier has literally nothing to check that instruction
+        // against for a slot/date claim, so a low-reasoning-effort 20B model occasionally guesses
+        // wrong on an otherwise-correct availability reply (root cause of the R99-R102 recurring
+        // "Ik heb daar geen bevestigde informatie over" misfire on routine booking-preview/
+        // availability turns, live-reproduced this round). Reuses collectTurnSlots (slotOfferGuard.
+        // ts), the SAME real-tool-result parser slotOfferGuard itself already trusts as ground
+        // truth, so this can never diverge from what the deterministic slot guard already proved
+        // true this turn. Same pattern as the R17/R18 fix (per-calendar services added to the
+        // summary because the classifier had no ground truth to check attribution against).
+        const turnSlots = collectTurnSlots(result.toolCalls);
+        const slotAvailability = turnSlots.hadQuery
+          ? {
+              queriedDates: turnSlots.queriedDates,
+              freeSlotsByDate: Object.fromEntries(turnSlots.byDate),
+            }
+          : null;
         const groundingSummary = buildGroundingSummary({
           businessData,
           services: calendarsForPrompt ? undefined : priceCheckServices,
           refundDisposition,
           calendars: calendarsForPrompt,
+          slotAvailability,
         });
         const [ownerClf, groundingClf] = await Promise.all([
           skipOwnerClassifier

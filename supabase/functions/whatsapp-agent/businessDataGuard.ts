@@ -151,6 +151,14 @@ export interface GroundingSummaryInput {
   // ever have caught this: the data path did not exist, same class of gap as the R11 installment-
   // disclosure bug (a data-plumbing gap, not a prompting gap).
   calendars?: Array<{ name: string; openingHours?: string | null; cancellationPolicy?: string | null; services?: Array<{ name: string; price?: number | null; durationMin?: number | null }> }> | null;
+  // R103 (index.ts, closes the businessDataGuard misfire seen recurring R99-R102): the REAL
+  // get_available_slots result(s) queried THIS turn, parsed by slotOfferGuard.ts's own
+  // collectTurnSlots (the same deterministic ground truth the slot-offer guard itself trusts).
+  // Without this, the classifier had zero data to check a "no free slots that day" or a specific-
+  // date/time booking-preview claim against, so it had to guess purely from plausibility whether
+  // such a claim was really "this turn's real tool results" (rule (d) below) or an invention -
+  // an unverifiable judgment call for a low-reasoning-effort model on a genuinely correct reply.
+  slotAvailability?: { queriedDates: string[]; freeSlotsByDate: Record<string, string[]> } | null;
 }
 
 const SUMMARY_FIELD_LABELS: Record<string, string> = {
@@ -234,6 +242,17 @@ export function buildGroundingSummary(input: GroundingSummaryInput): string {
   if (input.refundDisposition) {
     lines.push(`refund disposition this turn: ${input.refundDisposition}`);
   }
+  // R103: real-time availability ground truth for THIS turn, see the interface comment above.
+  if (input.slotAvailability) {
+    for (const date of input.slotAvailability.queriedDates) {
+      const free = input.slotAvailability.freeSlotsByDate[date] ?? [];
+      lines.push(
+        free.length > 0
+          ? `availability check this turn for ${date}: FREE SLOTS FOUND at ${free.join(", ")} (a reply naming these times or this date as bookable is grounded, not invented)`
+          : `availability check this turn for ${date}: NO FREE SLOTS FOUND (a reply truthfully saying this day has no free times/is fully booked is grounded, not invented)`,
+      );
+    }
+  }
   if (lines.length === 0) return "(no business data fields are set for this business)";
   return lines.join("\n");
 }
@@ -281,7 +300,13 @@ const SYSTEM_PROMPT =
   "durations that are drawn from BUSINESS_DATA or from this turn's real tool results AND, when " +
   "BUSINESS_DATA lists services per named person/location, correctly attributes each service to " +
   "the person/location BUSINESS_DATA actually lists it under (not this classifier's concern beyond " +
-  "that per-person/location attribution check, only business POLICY/FACT claims are); (e) makes a " +
+  "that per-person/location attribution check, only business POLICY/FACT claims are); when " +
+  "BUSINESS_DATA contains a line starting with 'availability check this turn for', that line IS " +
+  "the real tool result for this turn's date/slot claim, use it directly: a reply saying a date " +
+  "has no free times matches a 'NO FREE SLOTS FOUND' line, and a reply naming specific times or " +
+  "confirming a date as bookable matches a 'FREE SLOTS FOUND' line, both are grounded (answer NO), " +
+  "never guess about a date/slot claim when this line is present, only fall back to general " +
+  "plausibility judgment when no such line covers the date in question; (e) makes a " +
   "bare, non-committal future offer to look into something or check with someone, without asserting " +
   "any outcome as already true; (f) is a plain greeting, acknowledgement, or question with no " +
   "factual assertion at all.\n" +

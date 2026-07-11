@@ -76,6 +76,28 @@ Deno.test("buildGroundingSummary: per-calendar services included, attributed by 
   assertEquals(milanLine.includes("Knippen"), false);
 });
 
+Deno.test("buildGroundingSummary: slot availability ground truth included, no slots (R103 fix)", () => {
+  const summary = buildGroundingSummary({
+    businessData: { business_name: "Salon Iris" },
+    slotAvailability: { queriedDates: ["2026-09-09"], freeSlotsByDate: {} },
+  });
+  assertStringIncludes(summary, "availability check this turn for 2026-09-09: NO FREE SLOTS FOUND");
+  assertStringIncludes(summary, "grounded, not invented");
+});
+
+Deno.test("buildGroundingSummary: slot availability ground truth included, free slots found (R103 fix)", () => {
+  const summary = buildGroundingSummary({
+    businessData: { business_name: "Salon Iris" },
+    slotAvailability: { queriedDates: ["2026-09-12"], freeSlotsByDate: { "2026-09-12": ["09:00", "10:30"] } },
+  });
+  assertStringIncludes(summary, "availability check this turn for 2026-09-12: FREE SLOTS FOUND at 09:00, 10:30");
+});
+
+Deno.test("buildGroundingSummary: no slotAvailability field -> no availability line (backward compatible)", () => {
+  const summary = buildGroundingSummary({ businessData: { business_name: "Salon Iris" } });
+  assertEquals(summary.includes("availability check this turn"), false);
+});
+
 Deno.test("noUngroundedClaimReply: NL with contact, NL without, EN with contact", () => {
   assertStringIncludes(noUngroundedClaimReply(null, "0101234567", "a@b.com"), "0101234567");
   assertStringIncludes(noUngroundedClaimReply(null, null, null), "rechtstreeks contact");
@@ -195,6 +217,47 @@ Deno.test({
     );
     console.log(`[r17-repro-grounded] isUngroundedClaim=${r.isUngroundedClaim} votes=${JSON.stringify(r.votes)} (${r.latencyMs}ms)`);
     assertEquals(r.isUngroundedClaim, false);
+  },
+});
+
+// R103 LIVE proof: root-cause of the R99-R102 recurring "Ik heb daar geen bevestigde informatie
+// over" misfire on routine booking-preview/availability replies (_FULL_JOURNEY_AGENT_SIMULATION_
+// V2_STATE.md R99-R102). WITHOUT the slotAvailability ground-truth line, the classifier has to
+// guess whether a "this day has no free slots" claim is genuinely grounded in a real tool result;
+// WITH the line (this round's fix), it has a direct match. Runs the single-call classifier
+// (not the N=7 robust wrapper) MANY times per condition to get an honest per-call miss-rate
+// comparison, since a single low-reasoning-effort Groq call is documented elsewhere in this file
+// as non-deterministic on close cases; the N=7 any-YES-wins production wrapper mechanically
+// amplifies whatever per-call miss rate exists here (1 - (1-p)^7), so a real per-call improvement
+// here is the structural proof point, not just an anecdote.
+const NO_FREE_SLOTS_REPLY = "Die dag heeft helemaal geen vrije tijden. Wil je een andere dag proberen?";
+const IRIS_GROUND_TRUTH_NO_SLOT_INFO = buildGroundingSummary({
+  businessData: { business_name: "Salon Iris" },
+  calendars: [{ name: "Iris (Weekend)", services: [{ name: "Bruidskapsel", price: 150, durationMin: 90 }] }],
+});
+const IRIS_GROUND_TRUTH_WITH_SLOT_INFO = buildGroundingSummary({
+  businessData: { business_name: "Salon Iris" },
+  calendars: [{ name: "Iris (Weekend)", services: [{ name: "Bruidskapsel", price: 150, durationMin: 90 }] }],
+  slotAvailability: { queriedDates: ["2026-09-09"], freeSlotsByDate: {} },
+});
+
+Deno.test({
+  name: "businessDataGuard LIVE (R103 proof): 'no free slots' reply miss-rate WITHOUT vs WITH slot ground truth",
+  ignore: !GROQ_KEY,
+  fn: async () => {
+    const N = 10;
+    const without = await Promise.all(
+      Array.from({ length: N }, () => classifyBusinessDataGrounding(NO_FREE_SLOTS_REPLY, IRIS_GROUND_TRUTH_NO_SLOT_INFO, GROQ_KEY)),
+    );
+    const withGT = await Promise.all(
+      Array.from({ length: N }, () => classifyBusinessDataGrounding(NO_FREE_SLOTS_REPLY, IRIS_GROUND_TRUTH_WITH_SLOT_INFO, GROQ_KEY)),
+    );
+    const missesWithout = without.filter((r) => r.isUngroundedClaim).length;
+    const missesWith = withGT.filter((r) => r.isUngroundedClaim).length;
+    console.log(`[r103-proof] misses WITHOUT slot ground truth: ${missesWithout}/${N}; WITH: ${missesWith}/${N}`);
+    // WITH the ground-truth line the classifier must never misfire on this exact claim shape;
+    // WITHOUT it, this codebase's own live loop history (R99-R102) shows real, recurring misses.
+    assertEquals(missesWith, 0);
   },
 });
 
