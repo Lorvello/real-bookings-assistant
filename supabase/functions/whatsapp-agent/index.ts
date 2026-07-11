@@ -1062,8 +1062,38 @@ Deno.serve(async (req) => {
     const allServiceNamesForReschedule = isMultiCalendar && calendarsForPrompt
       ? calendarsForPrompt.flatMap((c) => c.services.map((s) => s.name))
       : services.map((s) => s.name);
-    const upcomingBookingServiceName =
-      (upcomingBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
+    // R97 (RESCHEDULE-HIJACK root cause fix, closes R95/R96's own watch-item): the phase-1
+    // upcomingBRes query above (line ~650) is scoped to ONLY the entry calendar_id, which is
+    // correct for a single-calendar business but WRONG for a multi-calendar one. resolveTarget()
+    // in tools.ts (the function that actually PERFORMS a reschedule/cancel/rename) has always
+    // searched the customer's bookings across the OWNER'S WHOLE calendar allowlist
+    // (`.in("calendar_id", ctx.calendars...)`, never just the single entry calendar), but this
+    // guard's OWN currentServiceName read never matched that scope, so on a multi-calendar tenant
+    // it silently resolved to null whenever the customer's real upcoming booking happened to live
+    // on a DIFFERENT calendar than the conversation's entry calendar_id. A null currentServiceName
+    // empties findDistinctServiceForReschedule's `currentWords` exclusion set, and with that set
+    // empty, ANY other configured service name that merely SHARES a word with the customer's own
+    // real service can false-match (the exact R88 substring/word collision, reopened here because
+    // its own exclusion input was empty). Live-reproduced (R94/R95/R96): Iris's "Knippen + Stylen"
+    // booking resolved to null, and Sanne's "Knippen Dames"/"Knippen Heren" plus Bo/Milan's bare
+    // "Knippen" all share the word "knippen" with "Knippen + Stylen" (any one of them could match
+    // via `mentionsDistinguishing`'s word-level check and falsely trigger RESCHEDULE-HIJACK,
+    // stonewalling every reschedule attempt no matter what the customer said). FIX: for a
+    // multi-calendar business, re-resolve the SAME query scoped to the whole `calendars` allowlist
+    // (byte-identical to resolveTarget's own scope), so currentWords always reflects the
+    // customer's real current service regardless of which calendar it lives on. Single-calendar
+    // tenants are untouched (still use the cheap phase-1 result, zero added latency, zero
+    // behavior change) since isMultiCalendar is false there and this query never runs.
+    const upcomingBookingServiceNameAcrossCalendars = isMultiCalendar
+      ? ((await supabase.from("bookings").select("service_types(name)")
+          .eq("customer_phone", phone).in("calendar_id", calendars.map((c) => c.id))
+          .in("status", ["confirmed", "pending"]).gt("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true }).limit(1).maybeSingle()
+        ).data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null
+      : null;
+    const upcomingBookingServiceName = isMultiCalendar
+      ? upcomingBookingServiceNameAcrossCalendars
+      : (upcomingBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
     const distinctServiceForReschedule = allServiceNamesForReschedule.length > 1
       ? findDistinctServiceForReschedule({
         allServiceNames: allServiceNamesForReschedule,

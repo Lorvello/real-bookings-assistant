@@ -321,6 +321,77 @@ Deno.test("R96 does not block: no distinct service names configured (defensive e
   );
 });
 
+// ── R97 RESCHEDULE-HIJACK false-positive suite (multi-calendar cross-collision fix) ──────────
+// Pins the exact live-reproduced Iris "Knippen + Stylen" false hijack (R94/R95/R96's own
+// watch-item): a real, multi-calendar fixture where SEVERAL other calendars offer a service
+// whose name shares the generic word "knippen" with the customer's own current service. Root
+// cause was index.ts's upcomingBookingServiceName resolving to null for a multi-calendar tenant
+// (scoped to only the entry calendar_id, not the whole allowlist resolveTarget() itself uses),
+// which emptied `currentWords` and let a shared word falsely match. These tests pin the guard
+// function's OWN correct behavior GIVEN a correctly-resolved currentServiceName (the index.ts fix
+// makes sure it always gets one); the "null currentServiceName" cases below document the exact
+// false-positive shape that null input reproduces, so this class of bug cannot silently regress.
+const REAL_MULTI_CALENDAR_SERVICES = [
+  "Knippen + Stylen", // Iris
+  "Bruidskapsel", // Iris
+  "Knippen", // Bo / Milan (bare, shared "knippen" word)
+  "Gelnagels", // Bo
+  "Manicure", // Bo
+  "Highlights", // Milan
+  "Volledige kleuring", // Milan
+  "Knippen Dames", // Sanne
+  "Knippen Heren", // Sanne
+];
+
+Deno.test("R97 does not block: Iris 'Knippen + Stylen' reschedule with explicit day+time, correct currentServiceName resolved (the exact live-reproduced Iris shape)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: REAL_MULTI_CALENDAR_SERVICES,
+      currentServiceName: "Knippen + Stylen",
+      recentMessages: inbound("Kan mijn Knippen + Stylen afspraak bij Iris verzet worden naar donderdag 16 juli 19:00?"),
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R97 does not block: same Iris booking, no day named yet (the R95 no-day reschedule case), still no false hijack", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: REAL_MULTI_CALENDAR_SERVICES,
+      currentServiceName: "Knippen + Stylen",
+      recentMessages: inbound("Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?"),
+      modelSuppliedServiceId: false,
+    }),
+    null,
+  );
+});
+
+Deno.test("R97 regression pin: with currentServiceName WRONGLY null (the pre-fix index.ts bug), the SAME message falsely matches an unrelated other-calendar service via the shared 'knippen' word (Sanne's 'Knippen Dames' listed first here to mirror the live-reproduced shape; any of Bo/Milan's bare 'Knippen' or Sanne's 'Knippen Heren' collides identically, first-match-wins scan order is incidental, the point this pins is that null lets ANY of them falsely match at all)", () => {
+  const namesWithKnippenDamesFirst = ["Knippen Dames", ...REAL_MULTI_CALENDAR_SERVICES];
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: namesWithKnippenDamesFirst,
+      currentServiceName: null, // reproduces the pre-fix index.ts scoping bug
+      recentMessages: inbound("Kan mijn Knippen + Stylen afspraak bij Iris verzet worden naar donderdag 16 juli 19:00?"),
+      modelSuppliedServiceId: false,
+    }),
+    "Knippen Dames",
+  );
+});
+
+Deno.test("R97 does not block: a GENUINE distinct-service swap on a different calendar still correctly triggers alongside the fix (Bruidskapsel named, Iris's own OTHER real service)", () => {
+  assertEquals(
+    findDistinctServiceForReschedule({
+      allServiceNames: REAL_MULTI_CALENDAR_SERVICES,
+      currentServiceName: "Knippen + Stylen",
+      recentMessages: inbound("Kan ik in plaats daarvan een Bruidskapsel afspraak, donderdag 16 juli 19:00?"),
+      modelSuppliedServiceId: false,
+    }),
+    "Bruidskapsel",
+  );
+});
+
 // ── R98 DIRECTION-CONFUSION regression suite (3rd bug in this function, R97-verify finding) ──
 // Pins the exact bug: the early-break must ONLY fire on an INBOUND (customer) message mentioning
 // the current service. An OUTBOUND (agent) message mentioning the current service must NEVER
