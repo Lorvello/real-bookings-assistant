@@ -885,3 +885,21 @@ export function enforceRescheduleAmbiguityDisclosure(
   if (replyText.trim().endsWith("?")) return replyText;
   return customerReply;
 }
+
+// R109 (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix, index.ts's own retry-nudge half): a
+// cancel_appointment call that returned te_laat_annuleren or annuleren_niet_toegestaan is a
+// TERMINAL, policy-driven refusal, true for ANY caller regardless of identity, and (as of this
+// round's tools.ts reorder) is now decided BEFORE the cross-identity check ever runs, so it can no
+// longer disturb pending_cancel_verification. It is still, however, a turn where succeededMutation
+// is false, so cancelCommitMissed (index.ts) would otherwise force a second, pointless
+// cancel_appointment retry that can only ever repeat the exact same refusal (mirrors
+// bookCommitMissed's own paymentSetupFailedOnCommit/slotTakenOnCommit exclusions). Used to exclude
+// this shape from cancelCommitMissed so the model's own already-correct, already-honest primary
+// reply ships without an extra wasted LLM round-trip.
+export function cancelToolCallHadPolicyRefusal(toolCalls: VerificationGateToolResult[]): boolean {
+  return toolCalls.some((t) => {
+    if (t.name !== "cancel_appointment" || !t.result || typeof t.result !== "object") return false;
+    const err = (t.result as Record<string, unknown>).error;
+    return err === "te_laat_annuleren" || err === "annuleren_niet_toegestaan";
+  });
+}

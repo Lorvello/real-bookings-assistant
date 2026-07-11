@@ -15,6 +15,7 @@ import {
   findCalendarMismatch,
   hasMultipleDistinctNamesStated,
   identityVerificationResolved,
+  cancelToolCallHadPolicyRefusal,
   isRealName,
   mentionsOwnAppointmentClaim,
   messageNamesPendingBookOwner,
@@ -715,4 +716,49 @@ Deno.test("findCalendarMismatch: empty/blank raw message -> null", () => {
 
 Deno.test("findCalendarMismatch: actualCalendarId not present in the calendars list -> no real name to disclose, conservative no-op", () => {
   assertEquals(findCalendarMismatch(CALENDARS, "bij Milan graag", "cal-unknown"), null);
+});
+
+// ── R109 cancelToolCallHadPolicyRefusal (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix) ──
+// Live-reproduced (booking 19535f4d, Iris, 24h-deadline calendar): a cancel that correctly passed
+// cross-identity verification (cancelVerifiedBypass) but then hit a TERMINAL policy refusal
+// (te_laat_annuleren / annuleren_niet_toegestaan) used to still count as a "missed commit",
+// forcing a pointless retry. This predicate lets index.ts's cancelCommitMissed exclude that shape.
+
+Deno.test("cancelToolCallHadPolicyRefusal: true for te_laat_annuleren", () => {
+  assertEquals(
+    cancelToolCallHadPolicyRefusal([{ name: "cancel_appointment", result: { error: "te_laat_annuleren", message: "..." } }]),
+    true,
+  );
+});
+
+Deno.test("cancelToolCallHadPolicyRefusal: true for annuleren_niet_toegestaan", () => {
+  assertEquals(
+    cancelToolCallHadPolicyRefusal([{ name: "cancel_appointment", result: { error: "annuleren_niet_toegestaan", message: "..." } }]),
+    true,
+  );
+});
+
+Deno.test("cancelToolCallHadPolicyRefusal: false for a genuine identity-verification gate (must still retry)", () => {
+  assertEquals(
+    cancelToolCallHadPolicyRefusal([{ name: "cancel_appointment", result: { error: "naam_verificatie_nodig", current_name: "Testpersoon" } }]),
+    false,
+  );
+});
+
+Deno.test("cancelToolCallHadPolicyRefusal: false on a real success (ok:true, no error field)", () => {
+  assertEquals(
+    cancelToolCallHadPolicyRefusal([{ name: "cancel_appointment", result: { ok: true, cancelled: { service: "Knippen" } } }]),
+    false,
+  );
+});
+
+Deno.test("cancelToolCallHadPolicyRefusal: false when no cancel_appointment call happened this turn", () => {
+  assertEquals(
+    cancelToolCallHadPolicyRefusal([{ name: "get_my_appointments", result: { appointments: [] } }]),
+    false,
+  );
+});
+
+Deno.test("cancelToolCallHadPolicyRefusal: false on an empty tool-call list", () => {
+  assertEquals(cancelToolCallHadPolicyRefusal([]), false);
 });

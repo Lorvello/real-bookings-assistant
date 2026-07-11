@@ -3008,6 +3008,48 @@ export function createTools(
           const cancelCommitCalMismatch: CalendarMismatch | null =
             findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id) ??
             pending?.calendar_mismatch ?? pendingCancelVerification?.calendar_mismatch ?? null;
+          // R109 (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix): the policy checks
+          // (allowCancellations / cancellationDeadlineHours) used to run AFTER the cross-identity
+          // verification check below. Live-reproduced (R108/R109, booking 19535f4d, Iris, 24h
+          // cancellation-deadline calendar): once naam_verificatie_nodig has fired and the customer
+          // correctly restates the name (cancelVerifiedBypass=true, reaching this commit branch),
+          // if the booking is ALSO within the cancellation deadline, the OLD ordering re-checked
+          // identity FIRST (a no-op pass-through, already verified), THEN hit the deadline check,
+          // which correctly refuses with te_laat_annuleren -- but ALSO calls clearPending(), wiping
+          // pending_cancel_verification as a side effect. Debug-logged live: the model, still inside
+          // its own multi-step turn (or via the cancelCommitMissed forced retry, which fires
+          // whenever confirmCancelVerification is true and no mutation succeeded, unaware
+          // te_laat_annuleren is a deliberate, terminal, identity-independent refusal, not a missed
+          // commit), calls cancel_appointment a SECOND time; with the marker now gone, the identity
+          // check fires again as if never verified, re-arming a FRESH pending_cancel_verification
+          // and asking the customer to restate the name AGAIN -- an unresolvable oscillation, since
+          // the deadline (a fact about the clock, not about identity) never changes and will refuse
+          // every subsequent attempt the exact same way. Root cause: a policy refusal is true for
+          // ANY caller regardless of whose booking it is, so it must never be gated behind (or able
+          // to disturb the state of) an identity check that exists to protect a DIFFERENT concern.
+          // Fix: check policy FIRST, before the cross-identity check has any chance to run again or
+          // be disturbed. A blocked cancellation now returns its own terminal, honest reply on the
+          // very first commit attempt, never touches pending_cancel_verification, and the customer
+          // is never sent back into the identity loop. Mirrors the equivalent preview-branch
+          // reordering below (findCalendarMismatch/target resolution unaffected, purely a check-order
+          // change, no new conditions added).
+          const policy = await getCalendarPolicy(supabase, b.calendar_id);
+          if (!policy.allowCancellations) {
+            await clearPending();
+            return {
+              error: "annuleren_niet_toegestaan",
+              message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
+              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
+            };
+          }
+          if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
+            await clearPending();
+            return {
+              error: "te_laat_annuleren",
+              message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk via mij.`,
+              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
+            };
+          }
           // R102 (defense-in-depth): re-check the SAME cross-identity risk at COMMIT time too, not
           // just in the PREVIEW branch above. This guards a pending_cancel marker written BEFORE
           // this fix shipped (a transitional/race case only; every fresh preview after this fix
@@ -3034,25 +3076,6 @@ export function createTools(
                 `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
                 `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging.`,
               guidance: "NIETS geannuleerd. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
-            };
-          }
-          // A2: enforce the policy of the calendar the booking actually lives in (it may be a
-          // non-entry calendar of the same owner), not the entry calendar.
-          const policy = await getCalendarPolicy(supabase, b.calendar_id);
-          if (!policy.allowCancellations) {
-            await clearPending();
-            return {
-              error: "annuleren_niet_toegestaan",
-              message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
-              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
-            };
-          }
-          if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
-            await clearPending();
-            return {
-              error: "te_laat_annuleren",
-              message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk via mij.`,
-              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
             };
           }
           // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
@@ -3170,6 +3193,33 @@ export function createTools(
         // "ja klopt" that no longer restates it.
         const cancelPreviewCalMismatch = findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id);
 
+        // R109 (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix, preview-branch half; see the
+        // commit branch's own R109 comment above for the full live-reproduced root-cause mechanism):
+        // the policy checks (allowCancellations / cancellationDeadlineHours) used to run AFTER the
+        // cross-identity verification check below, so even a customer's VERY FIRST cancel request
+        // for a booking that is already past the cancellation deadline still got dragged through
+        // the "whose booking is this really" identity question first, and (worse) any later commit
+        // attempt could re-arm that same identity question after a terminal policy refusal had
+        // already cleared it, an unresolvable oscillation live-reproduced with booking 19535f4d
+        // (Iris, 24h-deadline calendar). A policy refusal is true for ANY caller regardless of whose
+        // booking it is, so it must be decided BEFORE the identity check ever runs, never after.
+        // Purely a check-order change: same policy fields, same messages, same early return shape.
+        const cancelPreviewPolicy = await getCalendarPolicy(supabase, b.calendar_id);
+        if (!cancelPreviewPolicy.allowCancellations) {
+          return {
+            error: "annuleren_niet_toegestaan",
+            message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
+            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf (telefoon of e-mail uit <business_data> indien aanwezig); verzin geen contactgegevens.",
+          };
+        }
+        if (cancelPreviewPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < cancelPreviewPolicy.cancellationDeadlineHours) {
+          return {
+            error: "te_laat_annuleren",
+            message: `Annuleren kan tot ${formatHoursNL(cancelPreviewPolicy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk.`,
+            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf; bied eventueel aan een andere tijd te zoeken.",
+          };
+        }
+
         // R102 (shared-phone identity fix, R101-1/R101-2/R101-3 + verify-round findings 1/2): the
         // SAME two-condition cross-identity test as update_booking_name's own R76 guard, generalized
         // via identityDisambiguationGuard.ts. Fires when (a) this phone genuinely holds 2+ upcoming
@@ -3226,23 +3276,10 @@ export function createTools(
           await clearPendingCancelVerification(cancelCtx);
         }
 
-        // Honour the "Allow cancellations" + "Cancellation deadline" Operations settings before
-        // offering to cancel (so we never ask to confirm something that can't be cancelled).
-        const cancelPolicy = await getCalendarPolicy(supabase, b.calendar_id);
-        if (!cancelPolicy.allowCancellations) {
-          return {
-            error: "annuleren_niet_toegestaan",
-            message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
-            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf (telefoon of e-mail uit <business_data> indien aanwezig); verzin geen contactgegevens.",
-          };
-        }
-        if (cancelPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < cancelPolicy.cancellationDeadlineHours) {
-          return {
-            error: "te_laat_annuleren",
-            message: `Annuleren kan tot ${formatHoursNL(cancelPolicy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk.`,
-            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf; bied eventueel aan een andere tijd te zoeken.",
-          };
-        }
+        // R109: policy was already checked (and any refusal returned) above, before the
+        // cross-identity check; cancelPreviewPolicy is reused here (cancellation_policy_this_booking
+        // disclosure) rather than re-querying the same row a second time.
+        const cancelPolicy = cancelPreviewPolicy;
 
         // R36: same self-write tracking as the book preview above (lastSelfWrittenCancelAt).
         const cancelPreviewAt = Date.now();

@@ -15,7 +15,7 @@ import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalseP
 import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
+import { enforceAppointmentNameDisclosure, identityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, cancelToolCallHadPolicyRefusal, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
 import { enforcePriceClaim } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
@@ -2262,7 +2262,17 @@ Deno.serve(async (req) => {
     // forcing nudge as any other missed commit, since tools.ts's own gate no longer depends on the
     // model's args.confirmed/only_confirming_previous attestation for this path, but the tool still
     // needs to be CALLED at least once for that gate to run.
-    const cancelCommitMissed = (confirmCancel || confirmCancelVerification) && !succeededMutation;
+    // R109 (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix, follow-up hardening): a cancel
+    // attempt already refused by policy (annuleren_niet_toegestaan / te_laat_annuleren, tools.ts's
+    // own policy checks, now reordered to run BEFORE the identity check, see that file's R109
+    // comment) is a TERMINAL, already-correctly-handled outcome, not a missed commit -- the model's
+    // own primary reply already narrates the honest refusal from the tool's `message`. Forcing a
+    // pointless retry here (as bookCommitMissed already learned to avoid via
+    // paymentSetupFailedOnCommit/slotTakenOnCommit) wastes a full extra LLM round-trip for a result
+    // that can only ever repeat, never succeed differently.
+    const cancelPolicyRefusedOnCommit = (confirmCancel || confirmCancelVerification) &&
+      cancelToolCallHadPolicyRefusal(result.toolCalls);
+    const cancelCommitMissed = (confirmCancel || confirmCancelVerification) && !succeededMutation && !cancelPolicyRefusedOnCommit;
 
     // ITEM 12, Book-commit-missed (mirrors cancelCommitMissed): the customer AFFIRMED a fresh
     // pending booking (server-detected confirmBook) but no booking SUCCEEDED this turn. The model
