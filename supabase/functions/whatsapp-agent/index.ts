@@ -1852,6 +1852,17 @@ Deno.serve(async (req) => {
     const pendingRenameVerificationFresh = !!prv && (typeof prv.at !== "number" || (Date.now() - prv.at) < 15 * 60 * 1000);
     const confirmRenameVerification = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
       identityVerificationResolved(prv?.current_name ?? null, knownName, String(message));
+    // R123 (RENAME-GATE1-BARE-AFFIRM-FALLTHROUGH fix, sev-2, same bug CLASS as R120's
+    // book_appointment double-confirm oscillation, different mechanism): a bare "Ja" answering
+    // Gate 1 (pending_rename_verification) correctly fails identityVerificationResolved (R61, no
+    // name restated), so confirmRenameVerification above is false and tools.ts's usingVerifiedTarget
+    // branch never fires. Before this fix that turn fell all the way through to a fresh, hint-less
+    // resolveTarget() call, which (when 3+ candidates exist) discarded Gate 1 entirely and returned
+    // the unrelated "meerdere afspraken" question. This signal (mirrors bookVerificationAffirmUnresolved
+    // exactly) tells tools.ts "this is a clean affirm answering Gate 1, but it did not resolve the
+    // identity check" so it can RE-ASK Gate 1 using the still-bound marker instead of re-deriving.
+    const renameVerificationAffirmUnresolved = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+      !confirmRenameVerification;
 
     // R102 (shared-phone identity fix, generalizes R76's cross-identity verification to
     // cancel_appointment + reschedule_appointment, see identityDisambiguationGuard.ts header for
@@ -2275,7 +2286,7 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved, renameVerificationAffirmUnresolved });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).

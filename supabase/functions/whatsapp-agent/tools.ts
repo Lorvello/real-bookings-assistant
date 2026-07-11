@@ -266,6 +266,13 @@ export interface ToolContext {
   // whether to RE-ASK Q2 (a pure read, never a commit), so R118's stale-proposal-commit protection
   // does not need to gate it.
   bookVerificationAffirmUnresolved?: boolean;
+  // R123 (RENAME-GATE1-BARE-AFFIRM-FALLTHROUGH fix): server-detected (index.ts), the rename-side
+  // twin of bookVerificationAffirmUnresolved directly above. True when this turn's raw message is
+  // a clean affirm answering a still-fresh pending_rename_verification marker (Gate 1) that did NOT
+  // resolve it (i.e. confirmRenameVerification is false -- no name restated yet). Used ONLY to
+  // decide whether to RE-ASK Gate 1 (a pure read, never a commit) instead of falling through to a
+  // fresh, hint-less resolveTarget() call.
+  renameVerificationAffirmUnresolved?: boolean;
 }
 
 interface UpcomingBooking {
@@ -4271,6 +4278,56 @@ export function createTools(
         const argsNewNameRaw = String(args.new_name ?? "").trim();
         const verificationNewNameMatches = !argsNewNameRaw ||
           argsNewNameRaw.toLowerCase() === String(pendingVerification?.new_name ?? "").trim().toLowerCase();
+        // R123 (RENAME-GATE1-BARE-AFFIRM-FALLTHROUGH fix, sev-2, same bug CLASS as R120's
+        // book_appointment double-confirm oscillation, different mechanism): a bare "Ja" (no name
+        // restated) answering Gate 1's own identity-verification question correctly fails
+        // identityVerificationResolved (R61), so ctx.confirmRenameVerification is false and
+        // usingVerifiedTarget below can never fire. Before this fix, control fell straight through
+        // to the `else` branch a few dozen lines down, which calls resolveTarget() FRESH with no
+        // hint from this bare-affirm turn -- discarding Gate 1 entirely. When 3+ candidate bookings
+        // exist, that fresh resolveTarget() call (correctly, on its own narrow terms) finds the SAME
+        // bookings ambiguous again and returns "meerdere_afspraken", a disambiguation question
+        // wholly unrelated to the identity check the customer was mid-way through answering.
+        // Live-reproduced: a unique-target rename got the Gate 1 question, a bare "Ja" reply got
+        // "meerdere afspraken" instead of a Gate 1 re-ask.
+        //
+        // Fix: mirror R120's bookVerificationAffirmUnresolved shape exactly. When a fresh
+        // pending_rename_verification marker is still bound (and no genuine name CORRECTION was
+        // supplied this turn, verificationNewNameMatches) and ctx.renameVerificationAffirmUnresolved
+        // is true (server-detected: clean affirm answering Gate 1 that did not resolve it), re-ask
+        // Gate 1 again using the marker's OWN stored booking_id/current_name/new_name, never
+        // re-deriving via resolveTarget(). Deliberately does NOT touch the genuinely ambiguous case
+        // with NO Gate 1 in progress (no marker, stale marker, or a real correction supplied): that
+        // legitimate path still falls through unchanged to resolveTarget()'s own "meerdere_afspraken"
+        // response below.
+        if (
+          !!pendingVerification?.booking_id && verificationNewNameMatches && ctx.renameVerificationAffirmUnresolved === true
+        ) {
+          if (ctx.hardReject === true) {
+            if (ctx.conversationId) {
+              const { pending_rename_verification: _dropRejectG1, ...restRejectG1 } = renameCtx;
+              await supabase.from("whatsapp_conversations").update({ context: restRejectG1 }).eq("id", ctx.conversationId);
+            }
+            return {
+              ok: true,
+              cancelled_action: true,
+              message: "Oké, de naam blijft ongewijzigd.",
+              guidance: "Bevestig kort dat er niets is gewijzigd en vraag of er nog iets anders is.",
+            };
+          }
+          const currentNameG1 = pendingVerification.current_name ?? "";
+          return {
+            error: "naam_verificatie_nodig",
+            current_name: pendingVerification.current_name ?? null,
+            customer_reply:
+              `De afspraak die ik vond staat op naam van ${currentNameG1} (${nlWhen(String(pendingVerification.start_time ?? ""))}). ` +
+              `Klopt het dat dit echt de afspraak van ${currentNameG1} is die hernoemd moet worden naar "${pendingVerification.new_name}"? Typ ter bevestiging de naam terug, bijv. "Ja, ${currentNameG1}".`,
+            message:
+              `De klant heeft de identiteitscheck nog NIET ondubbelzinnig bevestigd (geen naam teruggetypt). ` +
+              `Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${currentNameG1}"), een kaal "ja" is niet genoeg.`,
+            guidance: "NIETS gewijzigd. Veiligheidscheck staat nog open: stel de vraag opnieuw en wacht op het antwoord met de naam erin.",
+          };
+        }
         const usingVerifiedTarget = ctx.confirmRenameVerification === true && !!pendingVerification?.booking_id && verificationNewNameMatches;
         const newNameRaw = usingVerifiedTarget
           ? String(pendingVerification!.new_name ?? "").trim()
