@@ -1,7 +1,12 @@
 // Deterministic unit tests for the R118/R119 pending-booking intervening-exchange guard.
 // Run: deno test pendingBookGuard.test.ts
 import { assert, assertEquals } from "jsr:@std/assert";
-import { computePendingBookInterveningExchange, type PendingBookHistoryRow } from "./pendingBookGuard.ts";
+import {
+  computePendingBookInterveningExchange,
+  matchesAbandonPreviousPreview,
+  messageRestatesPendingBookTime,
+  type PendingBookHistoryRow,
+} from "./pendingBookGuard.ts";
 
 const T0 = 1_000_000; // pending_booking.at (preview stored)
 
@@ -103,4 +108,62 @@ Deno.test("defensive: null currentMessageRowId never allows a bare confirm-only 
   ];
   const result = computePendingBookInterveningExchange(history, T0, null);
   assert(result, "with no way to identify the current row, the safer default is to treat any inbound row as intervening");
+});
+
+// ── R105 COMPETING-PREVIEW-STUCK-LOOP fix: matchesAbandonPreviousPreview ────
+// Live-reproduced R104: a customer with an open pending_booking preview (Manicure) starts
+// discussing a different service (Knippen Heren), tools.ts's "vorige_boeking_nog_open" guard asks
+// a confirm-or-abandon question, and EVERY explicit decline the customer sent failed to resolve
+// it, because the old regex only tolerated an EMPTY or "vorige"/"eerste" filler between the
+// article and the verb, never the customer naming the actual service.
+
+Deno.test("R104 exact repro 1: 'Ja, laat de Manicure vervallen.' now matches (service name as filler)", () => {
+  assert(matchesAbandonPreviousPreview("ja, laat de manicure vervallen."));
+});
+
+Deno.test("R104 exact repro 2: 'Laat die Manicure preview vervallen.' now matches (2-word filler)", () => {
+  assert(matchesAbandonPreviousPreview("laat die manicure preview vervallen."));
+});
+
+Deno.test("original bare shape (no filler) still matches, no regression", () => {
+  assert(matchesAbandonPreviousPreview("laat de vorige maar vervallen"));
+  assert(matchesAbandonPreviousPreview("laat maar zitten"));
+});
+
+Deno.test("vergeet/sla variants tolerate a named service as filler too", () => {
+  assert(matchesAbandonPreviousPreview("vergeet de manicure maar"));
+  assert(matchesAbandonPreviousPreview("sla die manicure afspraak maar over"));
+});
+
+Deno.test("unrelated message mentioning 'vervallen' in a different shape does not match", () => {
+  assert(!matchesAbandonPreviousPreview("wat gebeurt er als mijn afspraak komt te vervallen?"));
+});
+
+// ── R105 COMPETING-PREVIEW-STUCK-LOOP fix: messageRestatesPendingBookTime ───
+// Live-reproduced R104: "Ja, bevestig de Manicure preview op vrijdag 14 augustus om 10:00 bij Bo."
+// used to never resolve confirmBook because ANY day/time mention tripped ambiguousConfirm's
+// DAY_OR_TIME_SHIFT_RE, treating a genuine restatement exactly like a request for a different slot.
+
+Deno.test("R104 exact repro: restating the pending preview's own weekday+time is detected", () => {
+  // 2026-08-14 is a Friday (vrijdag).
+  const iso = "2026-08-14T10:00:00.000+02:00";
+  const msg = "ja, bevestig de manicure preview op vrijdag 14 augustus om 10:00 bij bo.";
+  assert(messageRestatesPendingBookTime(iso, msg));
+});
+
+Deno.test("a DIFFERENT day/time mention is NOT treated as a restatement (genuine shift request)", () => {
+  const iso = "2026-08-14T10:00:00.000+02:00"; // vrijdag 10:00
+  const msg = "kan het ook op zaterdag om 14:00?";
+  assert(!messageRestatesPendingBookTime(iso, msg));
+});
+
+Deno.test("weekday alone without the matching time is NOT a restatement", () => {
+  const iso = "2026-08-14T10:00:00.000+02:00"; // vrijdag 10:00
+  const msg = "ja, vrijdag is goed";
+  assert(!messageRestatesPendingBookTime(iso, msg));
+});
+
+Deno.test("null/invalid pendingStartTimeISO -> false (defensive)", () => {
+  assert(!messageRestatesPendingBookTime(null, "ja, vrijdag 14 augustus om 10:00"));
+  assert(!messageRestatesPendingBookTime("not-a-date", "ja, vrijdag 14 augustus om 10:00"));
 });

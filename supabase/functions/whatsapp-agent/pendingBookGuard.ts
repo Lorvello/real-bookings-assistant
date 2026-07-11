@@ -66,3 +66,81 @@ export function computePendingBookInterveningExchange(
     return ts > pendingBookAtMs && m.id !== currentMessageRowId;
   });
 }
+
+// ---------------------------------------------------------------------------
+// R105 (COMPETING-PREVIEW-STUCK-LOOP fix, live-reproduced R104: evidence in
+// _FULL_JOURNEY_AGENT_SIMULATION_V2_STATE.md). When a customer has an open pending_booking
+// preview and starts discussing a DIFFERENT service, tools.ts's own "vorige_boeking_nog_open"
+// guard asks a confirm-or-abandon question: confirm the OLD preview, or abandon it and book the
+// NEW one. R104 found EVERY explicit customer answer (both directions) failed to resolve this,
+// re-asking the same question turn after turn. Two separate root causes, fixed here:
+//
+// (1) DECLINE direction (drop the old preview, proceed with the new one). index.ts's original
+// ABANDON_PREVIOUS_PREVIEW_RE required the filler between the article ("laat de ...") and the verb
+// ("... vervallen") to be EMPTY or exactly "vorige"/"eerste" -- it had no tolerance for the most
+// natural real phrasing, where the customer names the actual service instead ("laat de Manicure
+// vervallen", "laat die Manicure preview vervallen"). Both R104 decline messages used this exact
+// shape and neither matched, so abandonPreviousPreview stayed false and tools.ts's guard fired
+// again unchanged. Fix: matchesAbandonPreviousPreview allows a bounded (<=40 char) filler of any
+// words (a service name, "preview", etc.) between the article/verb anchors, for the Dutch variants
+// where a live repro exists. The English variants are left as an exact list (no live repro to
+// generalize from; over-broadening those on zero evidence would be a shot in the dark).
+//
+// (2) CONFIRM-OLD direction (confirm the still-open preview as-is). index.ts's confirmBook signal
+// requires !ambiguousConfirm, and ambiguousConfirm trips on ANY day/time-shift-shaped mention
+// (DAY_OR_TIME_SHIFT_RE) on the theory that a customer restating a day/time might be requesting a
+// DIFFERENT one. But the most natural way to answer "which of the two do you mean" is to restate
+// the OLD preview's own day/time as proof of which one ("Ja, bevestig de Manicure preview op
+// vrijdag 14 augustus om 10:00 bij Bo") -- exactly the same structural gap R150 already found and
+// fixed for identity-verification markers (ambiguousConfirmForVerification), just never extended to
+// the plain pending_booking confirm path. Fix: messageRestatesPendingBookTime detects when the
+// message's day-name + time exactly match the CURRENTLY-stored pendingBook.start_time (a
+// restatement, not a shift); index.ts uses this to swap in the narrower
+// ambiguousConfirmForVerification-style check (still catches price/hedge/conditional/vague/
+// rejection) instead of the full ambiguousConfirm, ONLY for that one turn.
+
+const ABANDON_FILLER = "[\\p{L}\\p{N}' -]{0,40}?";
+
+export function matchesAbandonPreviousPreview(raw: string): boolean {
+  const re = new RegExp(
+    "\\b(" +
+      `laat\\s+(?:die|de|het)?\\s*${ABANDON_FILLER}\\s*(?:maar\\s+)?(?:vervallen|zitten|schieten)` +
+      `|vergeet\\s+(?:die|de)\\s*${ABANDON_FILLER}\\s*maar` +
+      `|sla\\s+(?:die|de)\\s*${ABANDON_FILLER}\\s*(?:maar\\s+)?over` +
+      "|die\\s+hoeft\\s+niet\\s+meer" +
+      "|let\\s+it\\s+(?:lapse|go)" +
+      "|forget\\s+the\\s+(?:previous|first|other)\\s+one" +
+      "|skip\\s+that\\s+one" +
+      "|never\\s?mind\\s+the\\s+(?:first|previous|other)\\s+one" +
+      "|drop\\s+the\\s+(?:other|first|previous)\\s+one" +
+    ")\\b",
+    "iu",
+  );
+  return re.test(String(raw ?? ""));
+}
+
+// True iff the raw message restates BOTH the weekday name AND the HH:MM time of the currently
+// stored pending_booking.start_time (Europe/Amsterdam wall-clock), the exact shape a customer uses
+// to disambiguate "confirm the OLD one" from a competing preview question. Requires BOTH pieces
+// (not just a bare day/time mention) to keep this narrow and deliberate -- a message that merely
+// contains some unrelated day/time word does not satisfy this.
+export function messageRestatesPendingBookTime(
+  pendingStartTimeISO: string | null | undefined,
+  rawMessage: string | undefined | null,
+): boolean {
+  if (!pendingStartTimeISO) return false;
+  const d = new Date(pendingStartTimeISO);
+  if (Number.isNaN(d.getTime())) return false;
+  const msg = String(rawMessage ?? "").toLowerCase();
+  const weekday = d.toLocaleDateString("nl-NL", { weekday: "long", timeZone: "Europe/Amsterdam" }).toLowerCase();
+  const hhmm = d.toLocaleTimeString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Amsterdam",
+  });
+  const timeDigits = hhmm.replace(/[^0-9:]/g, "");
+  if (!timeDigits.includes(":")) return false;
+  const timeRe = new RegExp(`\\b${timeDigits.replace(":", "[:.]")}\\b`);
+  return msg.includes(weekday) && timeRe.test(msg);
+}

@@ -24,7 +24,7 @@ import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngrounde
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
-import { computePendingBookInterveningExchange } from "./pendingBookGuard.ts";
+import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
 import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
@@ -1701,9 +1701,15 @@ Deno.serve(async (req) => {
     // so it can never fire on an unrelated message that merely happens to contain "vergeet"/
     // "forget" in some other context (the guard's own precondition, not this regex, is the safety
     // boundary here, matching every other confirm* signal's own design in this file).
-    const ABANDON_PREVIOUS_PREVIEW_RE =
-      /\b(laat\s+(?:die|de|het)?\s*(?:vorige|eerste)?\s*(?:maar\s+)?(?:vervallen|zitten|schieten)|vergeet\s+(?:die|de)\s+(?:vorige|eerste)\s+maar|sla\s+(?:die|de)\s+(?:vorige|eerste)?\s*(?:maar\s+)?over|die\s+hoeft\s+niet\s+meer|let\s+it\s+(?:lapse|go)|forget\s+the\s+(?:previous|first|other)\s+one|skip\s+that\s+one|never\s?mind\s+the\s+(?:first|previous|other)\s+one|drop\s+the\s+(?:other|first|previous)\s+one)\b/i;
-    const abandonPreviousPreview = ABANDON_PREVIOUS_PREVIEW_RE.test(msgLower);
+    // R105 (COMPETING-PREVIEW-STUCK-LOOP fix): the original ABANDON_PREVIOUS_PREVIEW_RE required
+    // an EMPTY or exactly "vorige"/"eerste" filler between the article and the verb ("laat de ...
+    // vervallen"), with no tolerance for the customer naming the actual service instead ("laat de
+    // Manicure vervallen"), the most natural real phrasing and the exact shape R104 live-reproduced
+    // as a stuck loop (see pendingBookGuard.ts's matchesAbandonPreviousPreview header for the full
+    // root-cause reasoning). Extracted into pendingBookGuard.ts (mirrors
+    // computePendingBookInterveningExchange) so the bounded-filler regex is unit-testable
+    // independent of index.ts.
+    const abandonPreviousPreview = matchesAbandonPreviousPreview(msgLower);
     // R32 (2nd AFFIRM-CONFIRM taste-fork): the THIRD, purely structural gate. Computed here,
     // before the LLM ever runs, from the RAW (not lowercased/pre-processed) customer message via
     // ./hardConfirmGate.ts, which does its own bounded normalization. Deliberately independent of
@@ -1922,7 +1928,23 @@ Deno.serve(async (req) => {
     // proposal. The common, honest flow (preview immediately followed by a clean "ja", no
     // intervening exchange) is completely unaffected: pendingBookInterveningExchange is false
     // there, so this extra requirement never engages.
-    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel && !ambiguousConfirm &&
+    // R105 (COMPETING-PREVIEW-STUCK-LOOP fix, CONFIRM-OLD direction, live-reproduced R104): the
+    // most natural way a customer confirms the OLD preview while a competing preview question is
+    // open is to restate ITS OWN day/time as proof of which one they mean ("Ja, bevestig de
+    // Manicure preview op vrijdag 14 augustus om 10:00 bij Bo"). ambiguousConfirm's
+    // DAY_OR_TIME_SHIFT_RE check treats ANY day/time mention as "might be requesting a different
+    // slot", which wrongly blocks this exact restatement -- the SAME structural gap R150 already
+    // found and fixed for identity-verification markers (ambiguousConfirmForVerification), never
+    // extended to the plain pending_booking confirm path. messageRestatesPendingBookTime detects
+    // when the message's day-name + time match the CURRENTLY-stored pendingBook.start_time exactly
+    // (a restatement, not a shift); when true, swap in the narrower ambiguousConfirmForVerification
+    // check (still catches price/hedge/conditional/vague-preference/rejection) instead of full
+    // ambiguousConfirm, for this one turn only. Any OTHER day/time mention (a genuine shift
+    // request) still falls through to the full, unchanged ambiguousConfirm gate.
+    const restatesPendingBookOwnTime = pendingBookFresh &&
+      messageRestatesPendingBookTime(pbk?.start_time ?? null, msgLower);
+    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
+      (restatesPendingBookOwnTime ? !ambiguousConfirmForVerification(msgLower) : !ambiguousConfirm) &&
       (!pendingBookInterveningExchange || DAY_OR_TIME_SHIFT_RE.test(msgLower));
 
     // IUX R58 (WHATSAPP-DUPLICATE-CONFIRM-BURST): cross-request idempotency CLAIM, taken BEFORE
