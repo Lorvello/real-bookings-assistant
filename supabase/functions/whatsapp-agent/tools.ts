@@ -173,6 +173,18 @@ export interface ToolContext {
   // service already exists, so it can never fire outside that narrow, already-safety-checked
   // precondition.
   abandonPreviousPreview?: boolean;
+  // R111 (SECOND-BOOKING-DISAMBIGUATION-NEVER-RELEASES fix): server-detected, computed once per
+  // turn in index.ts from the RAW customer message (matchesSecondBookingDifferentPerson,
+  // pendingBookGuard.ts), independent of whether the model itself sets book_appointment's own
+  // args.confirm_second_booking flag (live-reproduced R110: 6 varied natural phrasings all
+  // meaning "different person, book the second one" all failed to release the
+  // "bestaande_afspraak" duplicate guard because the small model unreliably re-sets that arg,
+  // exactly the same failure class R96 already fixed for abandonPreviousPreview). true when the
+  // customer's current message explicitly says this is a different person/customer and/or asks
+  // for the second/extra booking to proceed. Consulted ONLY by book_appointment's own
+  // "bestaande_afspraak" guard, and ONLY when a genuine conflicting existing booking was actually
+  // found, so it can never fire outside that narrow, already-safety-checked precondition.
+  confirmSecondBookingFromMessage?: boolean;
   // R102 (shared-phone identity fix, generalizes R76's rename-only crossIdentityRisk to
   // cancel/reschedule too, see identityDisambiguationGuard.ts header for the full R101 root-cause
   // reasoning): the tenant-scoped name the CURRENT conversation has on file for whoever is
@@ -1995,7 +2007,16 @@ export function createTools(
         // turn blocked genuine second bookings forever, because gpt-4.1-mini rarely re-sets the flag on
         // the "ja" turn (adversarial finding: infinite preview loop). The overlap constraint +
         // validate_booking_security still catch any real slot conflict on insert.
-        if (!committing && !namePreviewOnly && args.confirm_second_booking !== true) {
+        if (
+          !committing && !namePreviewOnly &&
+          args.confirm_second_booking !== true &&
+          // R111: deterministic override (see ToolContext.confirmSecondBookingFromMessage's own
+          // doc comment), the model unreliably re-sets confirm_second_booking on the customer's
+          // very next "different person, book it" reply, live-reproduced R110 across 6 varied
+          // phrasings; a raw-message match releases the guard exactly like abandonPreviousPreview
+          // already does for its own sibling case.
+          ctx.confirmSecondBookingFromMessage !== true
+        ) {
           const { data: existing } = await supabase
             .from("bookings")
             .select("start_time, customer_name")

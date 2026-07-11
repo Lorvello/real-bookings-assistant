@@ -4,6 +4,7 @@ import { assert, assertEquals } from "jsr:@std/assert";
 import {
   computePendingBookInterveningExchange,
   matchesAbandonPreviousPreview,
+  matchesSecondBookingDifferentPerson,
   messageRestatesPendingBookTime,
   type PendingBookHistoryRow,
 } from "./pendingBookGuard.ts";
@@ -166,4 +167,52 @@ Deno.test("weekday alone without the matching time is NOT a restatement", () => 
 Deno.test("null/invalid pendingStartTimeISO -> false (defensive)", () => {
   assert(!messageRestatesPendingBookTime(null, "ja, vrijdag 14 augustus om 10:00"));
   assert(!messageRestatesPendingBookTime("not-a-date", "ja, vrijdag 14 augustus om 10:00"));
+});
+
+// ── R111 (SECOND-BOOKING-DISAMBIGUATION-NEVER-RELEASES fix): matchesSecondBookingDifferentPerson ──
+
+Deno.test("R110-style phrasing: 'nee, het is een andere persoon, boek de tweede afspraak maar' matches", () => {
+  assert(matchesSecondBookingDifferentPerson("nee, het is een andere persoon, boek de tweede afspraak maar"));
+});
+
+Deno.test("R110-style phrasing: 'het is voor een andere collega' matches", () => {
+  assert(matchesSecondBookingDifferentPerson("nee, het is voor een andere collega, dus gewoon inplannen"));
+});
+
+Deno.test("R110-style phrasing: 'nee dat is een ander kind, wil je die extra afspraak inplannen' matches", () => {
+  assert(matchesSecondBookingDifferentPerson("nee dat is een ander kind, wil je die extra afspraak inplannen"));
+});
+
+Deno.test("R110-style phrasing: 'iemand anders, graag een nieuwe afspraak' matches", () => {
+  assert(matchesSecondBookingDifferentPerson("iemand anders, graag een nieuwe afspraak"));
+});
+
+Deno.test("bare 'niet dezelfde' (without the word persoon) still matches", () => {
+  assert(matchesSecondBookingDifferentPerson("nee, niet dezelfde, dit is voor mijn zoon"));
+});
+
+Deno.test("English phrasing: 'it's a different person, please book the second appointment' matches", () => {
+  assert(matchesSecondBookingDifferentPerson("it's a different person, please book the second appointment"));
+});
+
+Deno.test("English phrasing: 'someone else, book another appointment' matches", () => {
+  assert(matchesSecondBookingDifferentPerson("someone else, book another appointment for her"));
+});
+
+Deno.test("a plain 'ja, dat ben ik' (same-person reschedule reply) does NOT match", () => {
+  assert(!matchesSecondBookingDifferentPerson("ja, dat ben ik, verzet 'm maar naar vrijdag"));
+});
+
+Deno.test("an unrelated message that merely contains 'anders' in another sense does not match", () => {
+  assert(!matchesSecondBookingDifferentPerson("kan het anders ook wat later?"));
+});
+
+Deno.test("a bare 'ja' with no new information does not match (no false-positive release)", () => {
+  assert(!matchesSecondBookingDifferentPerson("ja"));
+});
+
+Deno.test("null/empty raw message -> false (defensive)", () => {
+  assert(!matchesSecondBookingDifferentPerson(""));
+  // deno-lint-ignore no-explicit-any
+  assert(!matchesSecondBookingDifferentPerson(null as any));
 });

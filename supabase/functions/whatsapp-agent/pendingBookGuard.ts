@@ -119,6 +119,55 @@ export function matchesAbandonPreviousPreview(raw: string): boolean {
   return re.test(String(raw ?? ""));
 }
 
+// ---------------------------------------------------------------------------
+// R111 (SECOND-BOOKING-DISAMBIGUATION-NEVER-RELEASES fix, live-reproduced R110: 6 distinct
+// natural-language answers all clearly meaning "different person, book the second appointment"
+// were tried across ~7 minutes against the "bestaande_afspraak" duplicate guard (tools.ts
+// ~L1998), and NONE resulted in a completed booking -- the same question re-fired repeatedly.
+//
+// ROOT CAUSE: that guard's ONLY release mechanism is the model itself re-calling book_appointment
+// with args.confirm_second_booking === true. There is no deterministic, server-side detection of
+// "the customer just said this is a genuinely different person" at all -- unlike EVERY sibling
+// guard in this codebase (abandonPreviousPreview above, confirmCancelVerification,
+// confirmRescheduleVerification, confirmBookVerification, ...), which all have a raw-message
+// regex or explicit-name-match fallback so a small model's unreliable tool-arg-setting can never
+// strand the conversation. This is exactly the same failure class R96 already documented and
+// fixed for abandon_previous_preview ("a high-stakes tool-choice decision the model gets wrong
+// needs a DETERMINISTIC server-side signal, not a new prompt/schema field the model must reliably
+// discover") -- confirm_second_booking was simply never given the same treatment.
+//
+// FIX: matchesSecondBookingDifferentPerson, mirroring matchesAbandonPreviousPreview's own bounded-
+// filler regex discipline, detects (from the RAW customer message, independent of any tool arg)
+// the natural ways a customer says "this is someone else" and/or explicitly asks for the second/
+// extra booking to proceed. Consulted ONLY within book_appointment's own "bestaande_afspraak"
+// guard (tools.ts), exactly the same narrow, already-safety-checked precondition
+// abandonPreviousPreview is scoped to -- the guard itself (a genuine conflicting existing booking
+// found) remains the real safety boundary, this only widens the RELEASE signal.
+const SECOND_BOOKING_FILLER = "[\\p{L}\\p{N}' -]{0,40}?";
+
+export function matchesSecondBookingDifferentPerson(raw: string): boolean {
+  const re = new RegExp(
+    "\\b(" +
+      // "andere persoon", "een ander kind", "andere collega", "op andermans naam"
+      `(?:een\\s+)?anders?e?\\s*${SECOND_BOOKING_FILLER}\\s*(?:persoon|kind|collega|naam|klant)` +
+      "|iemand\\s+anders" +
+      "|niet\\s+dezelfde(?:\\s+persoon)?" +
+      // explicit "book/plan/add the second/extra/new appointment"
+      `|(?:boek|maak|plan|voeg)\\w*\\s*${SECOND_BOOKING_FILLER}\\s*(?:de\\s+)?(?:tweede|extra|nieuwe)\\s*${SECOND_BOOKING_FILLER}\\s*(?:afspraak|boeking)` +
+      "|(?:tweede|extra)\\s+(?:afspraak|boeking)" +
+      "|los\\s+van\\s+(?:elkaar|die|de\\s+andere|dat)" +
+      "|apart\\s+(?:boeken|inplannen|van\\s+elkaar)" +
+      // English equivalents
+      "|different\\s+person" +
+      "|someone\\s+else" +
+      "|not\\s+the\\s+same\\s+person" +
+      "|(?:book|add|schedule|plan)\\w*\\s*(?:a\\s+)?(?:second|extra|another)\\s*(?:appointment|booking)" +
+    ")\\b",
+    "iu",
+  );
+  return re.test(String(raw ?? ""));
+}
+
 // True iff the raw message restates BOTH the weekday name AND the HH:MM time of the currently
 // stored pending_booking.start_time (Europe/Amsterdam wall-clock), the exact shape a customer uses
 // to disambiguate "confirm the OLD one" from a competing preview question. Requires BOTH pieces

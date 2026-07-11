@@ -24,7 +24,7 @@ import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngrounde
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
-import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
+import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, matchesSecondBookingDifferentPerson, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
 import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
@@ -1710,6 +1710,14 @@ Deno.serve(async (req) => {
     // computePendingBookInterveningExchange) so the bounded-filler regex is unit-testable
     // independent of index.ts.
     const abandonPreviousPreview = matchesAbandonPreviousPreview(msgLower);
+    // R111 (SECOND-BOOKING-DISAMBIGUATION-NEVER-RELEASES fix, live-reproduced R110): the
+    // "bestaande_afspraak" duplicate guard (tools.ts) only ever released via the model itself
+    // re-setting args.confirm_second_booking:true, which proved just as unreliable as the exact
+    // sibling case R96 already fixed for abandon_previous_preview. Same fix shape: a raw-message,
+    // server-side regex (matchesSecondBookingDifferentPerson, pendingBookGuard.ts), computed here
+    // independent of any tool arg, consulted ONLY inside that guard's own already-safety-checked
+    // precondition (a genuine conflicting existing booking must actually be found first).
+    const confirmSecondBookingFromMessage = matchesSecondBookingDifferentPerson(msgLower);
     // R32 (2nd AFFIRM-CONFIRM taste-fork): the THIRD, purely structural gate. Computed here,
     // before the LLM ever runs, from the RAW (not lowercased/pre-processed) customer message via
     // ./hardConfirmGate.ts, which does its own bounded normalization. Deliberately independent of
@@ -2178,7 +2186,7 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
