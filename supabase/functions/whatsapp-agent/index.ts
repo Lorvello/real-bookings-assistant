@@ -1674,7 +1674,32 @@ Deno.serve(async (req) => {
     // there), not here, so `message` itself stays untouched for msgLower/AFFIRM_RE/the LLM prompt.
     const hardVerdict = classifyHardConfirm(message);
     const hardConfirm = hardVerdict === "confirm";
-    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm;
+    // R99 (PENDING-CANCEL-NO-EXPIRY fix, the cancel-side twin of R118/R119's
+    // pendingBookInterveningExchange): pendingFresh above only checks raw elapsed TIME (15 min)
+    // since pending_cancel was stored, never whether anything UNRELATED happened in between. A
+    // cancel preview left dangling (customer never confirmed nor declined, e.g. abandoned the
+    // flow to ask something else, or a stray/mis-detected cancel_appointment preview from earlier)
+    // stays "fresh" for up to 15 minutes; confirmCancel's own AFFIRM_RE is deliberately broad
+    // (ja/ok/prima/graag/klopt/...) so ANY later, fully unrelated message containing one of those
+    // common words (e.g. "Ja, ik wil graag donderdag een afspraak boeken bij een andere dienst")
+    // silently satisfied confirmCancel, which then drove cancelCommitMissed's forcing nudge
+    // (below) into re-litigating a cancellation the customer was never even talking about anymore
+    // -- a "sticky" stonewall reply that overrides a genuinely unrelated turn. Live-reproduced
+    // during R98's own testing (flagged, not fixed, as task_7a285a8e). Fix, mirroring R118/R119
+    // exactly: detect a genuine INTERVENING exchange (at least one other inbound customer message
+    // strictly between the cancel preview being stored and this turn's own message, identified by
+    // ROW ID per R119, not content) using the SAME 12-message history window already fetched
+    // above. When found, require this turn's message to also restate a day/time reference
+    // (DAY_OR_TIME_SHIFT_RE) or the cancel word itself, before a bare affirm is allowed to drive a
+    // commit/nudge. The common, honest flow (preview immediately followed by a clean "ja", no
+    // intervening exchange) is completely unaffected.
+    const currentMessageRowIdForCancel = sharedMsgsDesc[0]?.id ?? null;
+    const pendingCancelAtMs = typeof pc?.at === "number" ? pc.at : null;
+    const pendingCancelInterveningExchange = pendingFresh &&
+      computePendingBookInterveningExchange(sharedMsgsAsc, pendingCancelAtMs, currentMessageRowIdForCancel);
+    const CANCEL_WORD_RE_FOR_INTERVENING = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i;
+    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm &&
+      (!pendingCancelInterveningExchange || DAY_OR_TIME_SHIFT_RE.test(msgLower) || CANCEL_WORD_RE_FOR_INTERVENING.test(msgLower));
 
     // R40 (update_booking_name): same deterministic server-side detection as confirmCancel, for
     // the SAME reason it exists there. Live testing this round found the small model unreliably
