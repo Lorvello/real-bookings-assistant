@@ -1303,6 +1303,30 @@ export function createTools(
           const nm = showNames && isRealNameShared(b.customer_name) ? b.customer_name : null;
           return nm ? `${svc} op ${when} (op naam ${nm})` : `${svc} op ${when}`;
         });
+        // R134 (DATE-QUALIFIED-MULTI-MATCH-DEAD-END fix): when 2+ upcoming bookings exist AND this
+        // turn's raw message names a calendar date, check whether that date uniquely identifies ONE
+        // of the candidates (same "MM-DD" narrowing resolveTarget() itself already applies to
+        // cancel/reschedule/rename, reused here for the READ-ONLY lookup which previously ignored
+        // the message's own content entirely). Live-reproduced (R133): "... afspraak bij Sanne op 12
+        // juli veranderen in Highlights bij Milan op 20 juli 14:00?" against 3 same-service
+        // candidates (12 juli, 19 juli, 19 juli) got the flat, non-narrowing, question-less
+        // "Er staan meerdere afspraken: ..." listing verbatim from the `message` field below (the
+        // model is told to relay it LETTERLIJK, so a flat statement here was always going to reach
+        // the customer as a flat statement, a dead end regardless of what the model itself drafted).
+        // Two fixes bundled: (1) a uniquely-matching date narrows straight to that ONE booking and
+        // tells the model to proceed with the customer's actual request for it (never re-ask "which
+        // one" when the message itself already answered that); (2) the genuinely-still-ambiguous
+        // case (no date named, or a date that still matches 2+) now gets an explicit QUESTION
+        // ("... Welke bedoel je?") instead of a bare statement, so a real disambiguation flow always
+        // follows, never a dead-end listing.
+        const namedDates = list.length > 1 ? extractMonthDayNL(ctx.userMessage) : [];
+        const dateNarrowedMatches = namedDates.length > 0
+          ? list.filter((b) => namedDates.includes(localMMDD(b.start_time)))
+          : [];
+        const uniqueDateMatch = dateNarrowedMatches.length === 1 ? dateNarrowedMatches[0] : null;
+        const uniqueDateMatchLine = uniqueDateMatch
+          ? appointmentLines[list.indexOf(uniqueDateMatch)]
+          : null;
         return {
           appointments: list.map((b) => ({
             service: b.service_types?.name ?? null,
@@ -1312,13 +1336,24 @@ export function createTools(
             // so the customer/agent can tell apart same-time appointments in different calendars.
             ...(multi ? { agenda: calName(b.calendar_id) } : {}),
             ...(showNames && isRealNameShared(b.customer_name) ? { customer_name: b.customer_name } : {}),
+            ...(uniqueDateMatch && b === uniqueDateMatch ? { matched_by_named_date: true } : {}),
           })),
-          ...(showNames ? {
-            message: list.length === 1
-              ? `Er staat een afspraak: ${appointmentLines[0]}.`
-              : `Er staan meerdere afspraken: ${appointmentLines.join("; ")}.`,
-            guidance: "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' altijd behoudt) in je antwoord. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X', zodat de klant kan zien van wie de afspraak is.",
-          } : {}),
+          ...(showNames ? (
+            uniqueDateMatch
+              ? {
+                message: `De genoemde datum past bij precies een afspraak: ${uniqueDateMatchLine}.`,
+                guidance: "De klant noemde een datum die van de meerdere afspraken hierboven er maar een uniek identificeert (matched_by_named_date:true). Vraag NIET welke afspraak bedoeld wordt, dat is al duidelijk, en herhaal ook niet de hele lijst van meerdere afspraken. Ga verder zoals je altijd zou doen bij een klant met precies een aankomende afspraak: eerst je gebruikelijke controles op wat de klant vraagt (bv. bestaat een genoemde nieuwe dienst echt bij die agenda), en pas daarna, als dat klopt, de bijbehorende tool (reschedule_appointment/cancel_appointment/update_booking_name) met match_time of match_start_time gelijk aan de tijd van deze afspraak om 'm te kiezen.",
+              }
+              : list.length === 1
+              ? {
+                message: `Er staat een afspraak: ${appointmentLines[0]}.`,
+                guidance: "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' altijd behoudt) in je antwoord. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X', zodat de klant kan zien van wie de afspraak is.",
+              }
+              : {
+                message: `Je hebt meerdere afspraken: ${appointmentLines.join("; ")}. Welke bedoel je?`,
+                guidance: "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' EN de afsluitende vraag altijd behoudt) als je antwoord: dit MOET een echte vraag blijven, stel 'm en wacht op het antwoord van de klant voordat je iets annuleert, verzet of wijzigt. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X'."
+              }
+          ) : {}),
         };
       }
 
