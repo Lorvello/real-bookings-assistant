@@ -3,7 +3,7 @@
 // Pure extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
 // Run: deno test relativeDateHint.test.ts
 import { assertEquals, assertMatch } from "jsr:@std/assert";
-import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
+import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
 
 const CALENDARS_TEST = [
@@ -390,4 +390,72 @@ Deno.test("R98 non-regression: a clean-history fresh booking (R93 shape, single 
   const window = scopeToCurrentTopicWindow(currentText, priorInboundTexts, CALENDARS_TEST);
   const blockForNoDayNamed = !hasDayMentionAnywhere(currentText, window, NOW_R98);
   assertEquals(blockForNoDayNamed, true);
+});
+
+// ---------------------------------------------------------------------------
+// R127 (SILENT-DAY-DRIFT fix, live-reproduced R126): extractCarriedForwardDayHint tests.
+const NOW_R127 = new Date("2026-07-12T12:00:00Z"); // Sunday, matches the fixture's real "today".
+
+Deno.test("R127 exact repro shape: bare time-only reply with NO day carries forward the last established day (woensdag)", () => {
+  const priorInboundTexts = [
+    "Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00",
+  ];
+  const hint = extractCarriedForwardDayHint("Wat kost dat trouwens, en doe dan maar 10:00", priorInboundTexts, NOW_R127);
+  assertEquals(hint?.iso, "2026-07-15"); // nearest upcoming Wednesday from Sunday 2026-07-12
+});
+
+Deno.test("R127: plain bare time-only reply (no mixed price question) also carries forward correctly", () => {
+  const priorInboundTexts = [
+    "Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00",
+  ];
+  const hint = extractCarriedForwardDayHint("Doe maar 10:00", priorInboundTexts, NOW_R127);
+  assertEquals(hint?.iso, "2026-07-15");
+});
+
+Deno.test("R127: picks the MOST RECENT prior day mention, not an older stale one further back in history", () => {
+  const priorInboundTexts = [
+    "Ik wil graag Gelnagels boeken, ook Manicure, bij Bo, vrijdag om 14:00",
+    "Laat maar, vergeet dit verzoek, ik wil niks boeken",
+    "Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00",
+  ];
+  const hint = extractCarriedForwardDayHint("doe dan maar 10:00", priorInboundTexts, NOW_R127);
+  assertEquals(hint?.iso, "2026-07-15"); // woensdag (most recent), NOT vrijdag (older, further back)
+});
+
+Deno.test("R127: current message naming its OWN day wins, carried-forward hint never consulted", () => {
+  const priorInboundTexts = ["Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00"];
+  const hint = extractCarriedForwardDayHint("doe maar vrijdag 10:00", priorInboundTexts, NOW_R127);
+  assertEquals(hint, null);
+});
+
+Deno.test("R127: no bare clock time in current message -> null (nothing to carry a day forward for)", () => {
+  const priorInboundTexts = ["Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00"];
+  const hint = extractCarriedForwardDayHint("Wat kost dat eigenlijk?", priorInboundTexts, NOW_R127);
+  assertEquals(hint, null);
+});
+
+Deno.test("R127: no prior day mention anywhere -> null (nothing to carry)", () => {
+  const priorInboundTexts = ["Hallo, wat zijn jullie openingstijden?"];
+  const hint = extractCarriedForwardDayHint("doe maar 10:00", priorInboundTexts, NOW_R127);
+  assertEquals(hint, null);
+});
+
+Deno.test("R127: empty prior history -> null", () => {
+  const hint = extractCarriedForwardDayHint("doe maar 10:00", [], NOW_R127);
+  assertEquals(hint, null);
+});
+
+Deno.test("R127: formatCarriedForwardDayHint renders the real ISO/day and never claims the customer named it this turn", () => {
+  const hint = extractCarriedForwardDayHint(
+    "doe dan maar 10:00",
+    ["Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00"],
+    NOW_R127,
+  );
+  const text = formatCarriedForwardDayHint(hint);
+  assertMatch(text, /2026-07-15/);
+  assertMatch(text, /geen dag/);
+});
+
+Deno.test("R127: formatCarriedForwardDayHint(null) returns empty string", () => {
+  assertEquals(formatCarriedForwardDayHint(null), "");
 });

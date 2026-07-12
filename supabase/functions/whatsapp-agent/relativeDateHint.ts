@@ -230,6 +230,77 @@ export function formatRelativeDateHint(hint: RelativeDateHint | null): string {
   return `\nLET OP (datumherkenning voor DIT bericht): de klant noemt hierin "${hint.matchedPhrase}". Onze eigen berekening, uitsluitend gebaseerd op de ECHTE datum van vandaag (dus NIET op een datum die eerder in dit gesprek al genoemd is), wijst naar ${hint.label} [${hint.iso}]. Gebruik voor DEZE verwijzing ALTIJD deze datum, ook als jij of de klant eerder in dit gesprek een andere datum noemde bij een vergelijkbare verwijzing: die eerdere datum was voor een ANDER moment in het gesprek en is nu niet meer relevant. Twijfel je toch, vertrouw dan deze berekening boven je eigen inschatting of boven de gespreksgeschiedenis.`;
 }
 
+// R127 (SILENT-DAY-DRIFT fix, live-reproduced R126, DB-proven: "Ik wil graag Knippen Dames boeken
+// bij Sanne, woensdag om 10:00" got the normal slot offer "Schikt 10:00 of 10:30?" for the real,
+// correct Wednesday; the customer's NEXT message, "Wat kost dat trouwens, en doe dan maar 10:00"
+// (a mixed price-question + bare time-only confirmation, NO day repeated), got back "Ik zet
+// Knippen Dames op zaterdag 18 juli 10:00 ..." -- the day silently changed from Wednesday to a
+// wholly different Saturday, with zero disclosure, and the price question was also silently
+// dropped). A bare time-only confirmation turn ("10:00 graag", or the R126 mixed shape) has
+// nothing for extractRelativeDayHint to anchor on THIS message, so the day actually used for
+// book_appointment's/get_available_slots'/reschedule_appointment's `date` argument was left
+// ENTIRELY to the model's own free-form reading of the full conversation history. With several
+// different dates already sitting in that history (the R126 thread had an earlier abandoned
+// "donderdag 16 juli" request and a "vrijdag 14:00" combo request further back), the model can
+// mis-anchor onto a stale, unrelated day -- the exact "recency/anchoring bug" class R29 already
+// named and fixed for BARE WEEKDAY phrasing typed directly in the current message; this closes
+// the sibling gap where the CURRENT message names no day reference at all, only a bare time.
+//
+// Live isolation this round (R127) found the plain single-intent shape ("Doe maar 10:00", no
+// price question mixed in) does NOT reliably reproduce the drift -- the 20B model resolves the
+// carried-forward day correctly from short, focused history most of the time. This is consistent
+// with the R29/R54 lesson repeated throughout this file: a prompt-only nudge (or the model's own
+// unaided attention) is not a GUARANTEE, only a probabilistic aid, and "the day a customer already
+// established never silently changes" is exactly the class of guarantee that belongs in
+// deterministic code, not in hoping the model's free-form history read holds up under load (a
+// mixed-intent turn, a longer thread, or any other attention pressure).
+//
+// Mechanism: when the current message contains a bare clock-time reference (a time-only
+// confirmation shape, e.g. "10:00" or "doe dan maar 10:00") and itself names no day
+// (extractRelativeDayHint(currentText) is null, so there is nothing to override that decision),
+// scan prior INBOUND messages (already topic-scoped by the caller, oldest-first, the same
+// dayScanWindowTexts index.ts already builds for hasDayMentionAnywhere/rescheduleFlowActiveWithNoDay)
+// from the END (most recent first) for the LAST message that named an explicit day, and carry
+// that single, most-recent, deterministically-resolved day forward as this turn's hint. index.ts
+// wires this into the SAME ctx.relativeDateHintISO channel extractRelativeDayHint already uses,
+// so tools.ts's existing R29 enforcement (execute(), "the hint wins whenever the model's own date
+// differs") applies unchanged and unconditionally overrides any date the model independently
+// picked for THIS turn's date-bearing tool call -- the model no longer has to get this right on
+// its own at all.
+//
+// Returns null (byte-identical prompt/no override) when: the current message already names its
+// own day (extractRelativeDayHint wins, unchanged, this function is never consulted for that
+// case); the current message has no bare clock time either (an ordinary non-confirmation turn has
+// no established "the day just offered" to carry, and forcibly injecting one could WRONGLY
+// override a legitimate fresh, dayless question); or no prior message in the scanned window names
+// a day at all (nothing to carry forward).
+const BARE_CLOCK_TIME_RE = /\b\d{1,2}[:.]\d{2}\b/;
+
+export function extractCarriedForwardDayHint(
+  currentText: string,
+  priorInboundTextsOldestFirst: string[],
+  now: Date,
+): RelativeDateHint | null {
+  if (extractRelativeDayHint(currentText, now) !== null) return null;
+  if (!BARE_CLOCK_TIME_RE.test(currentText || "")) return null;
+  for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
+    const hint = extractRelativeDayHint(priorInboundTextsOldestFirst[i], now);
+    if (hint) return hint;
+  }
+  return null;
+}
+
+// Prompt-injected wording for the carried-forward case, deliberately distinct from
+// formatRelativeDateHint above: that one describes a phrase the customer JUST typed ("de klant
+// noemt hierin ..."), which would be FALSE here (the customer named no day this turn at all). This
+// instead states plainly that no day was named this turn and names the real, most-recently-
+// established day the confirmation carries forward, with the same "trust this over your own
+// reading of history" closing line.
+export function formatCarriedForwardDayHint(hint: RelativeDateHint | null): string {
+  if (!hint) return "";
+  return `\nLET OP (dag-doorloop voor DIT bericht): de klant noemt in dit bericht ZELF geen dag, alleen een tijd. Uit het gesprek blijkt de laatst vastgestelde dag "${hint.matchedPhrase}" te zijn, wat overeenkomt met ${hint.label} [${hint.iso}]. Gebruik voor DEZE bevestiging ALTIJD deze dag, nooit een andere dag die verder terug in het gesprek genoemd werd. Twijfel je toch, vertrouw dan deze berekening boven je eigen inschatting of boven de gespreksgeschiedenis.`;
+}
+
 // R93 (SILENT-TODAY-DEFAULT fix, confirmed live bug filed R92): a customer who names NO day at
 // all, anywhere ("Ik wil graag een afspraak bij Milan boeken, wanneer heb je tijd?"), used to get
 // slot times offered as if "today" had been silently agreed, with the assumption disclosed only

@@ -12,7 +12,7 @@ import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHours
 import { classifyHardConfirm } from "./hardConfirmGate.ts";
 import { collectTurnSlots, enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
-import { extractRelativeDayHint, formatRelativeDateHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
+import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforceAppointmentNameDisclosure, identityVerificationResolved, bookIdentityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, cancelToolCallHadPolicyRefusal, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
@@ -1283,6 +1283,22 @@ Deno.serve(async (req) => {
       ? scopeToCurrentTopicWindow(String(message ?? ""), priorInboundTexts, calendars, servicesByCalendarForTopicScope)
       : priorInboundTexts;
     const blockForNoDayNamed = !hasDayMentionAnywhere(String(message ?? ""), dayScanWindowTexts, now);
+    // R127 (SILENT-DAY-DRIFT fix, live-reproduced R126): relativeDateHint above is null whenever
+    // the CURRENT message names no day at all (only extractRelativeDayHint(message) feeds it). A
+    // bare time-only confirmation turn ("Doe maar 10:00", or a mixed price-question + time-only
+    // turn) then leaves the model free to pick ANY day from full conversation history for this
+    // turn's date-bearing tool call, which can silently drift onto a stale, unrelated day (see
+    // relativeDateHint.ts's own header on extractCarriedForwardDayHint for the full live repro).
+    // carriedForwardDayHint reuses the SAME topic-scoped dayScanWindowTexts already computed above
+    // for blockForNoDayNamed, so a genuine topic switch to a different calendar/service still
+    // starts this scan completely fresh, same discipline as R98.
+    const carriedForwardDayHint = relativeDateHint === null
+      ? extractCarriedForwardDayHint(String(message ?? ""), dayScanWindowTexts, now)
+      : null;
+    const effectiveDateHint = relativeDateHint ?? carriedForwardDayHint;
+    const effectiveDateHintText = relativeDateHint
+      ? formatRelativeDateHint(relativeDateHint)
+      : formatCarriedForwardDayHint(carriedForwardDayHint);
     // R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94): a SEPARATE, narrower-scoped
     // flag from blockForNoDayNamed above, deliberately NOT reusing it. blockForNoDayNamed scans
     // the WHOLE conversation, and for a reschedule the original booking request almost always
@@ -1520,7 +1536,7 @@ Deno.serve(async (req) => {
       businessData,
       customerLanguage,
       calendarHint,
-      relativeDateHintText: formatRelativeDateHint(relativeDateHint),
+      relativeDateHintText: effectiveDateHintText,
       bookingWindowDays,
       bookingHorizonISO,
       bookingHorizonNL,
@@ -2296,7 +2312,7 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, blockForMultiService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved, renameVerificationAffirmUnresolved });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: effectiveDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, blockForMultiService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved, renameVerificationAffirmUnresolved });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
