@@ -153,8 +153,68 @@ function resolveExplicitDayMonth(
   return { iso, label: dutchLabel(d) };
 }
 
+// R137 (real bug, found by the full-journey agent simulation R136 live repro): "over drie weken"
+// ("in three weeks") from a real server "now" of 2026-07-12 (Sunday) got the reply "3 augustus
+// 2026" (Monday), when the mathematically correct answer (2026-07-12 + 21 days, verified
+// independently via Python date(2026,7,12)+timedelta(days=21)) is 2026-08-02 (Sunday). R137's OWN
+// control test (same live simulator, "over twee weken" from the same "now", a phrase that stays
+// entirely within July and never crosses a month boundary) found an even worse failure on the
+// SAME phrase shape: "26 augustus 2026" instead of the correct 2026-07-26, a wrong MONTH entirely,
+// not merely an off-by-one day. That result ruled out a month-boundary-specific root cause: this
+// whole "over N dag(en)/week(en)" phrase construct was never covered by extractRelativeDayHint at
+// all (only vandaag/morgen/overmorgen, bare/qualified weekday names, and explicit day+month were
+// resolved deterministically here). With no code-level hint AND the <kalender> table capped at a
+// 14-day lookahead (buildCalendarHint, index.ts), the model had to freely compute an N-week-out
+// date entirely unaided, with nothing in the prompt to read it off from, and it reproducibly got
+// this wrong, not only at month boundaries. Fix: resolve this phrase shape deterministically here,
+// the same "ground truth over free model arithmetic" discipline every other phrase shape in this
+// file already applies, using plain Date.UTC day arithmetic (which JS Date itself correctly rolls
+// over across month/year boundaries, exactly like resolveWeekday and buildCalendarHint already
+// rely on) rather than any manual month/day-of-month component math.
+const NL_NUMBER_WORDS: Record<string, number> = {
+  een: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10,
+  elf: 11, twaalf: 12, dertien: 13, veertien: 14, vijftien: 15, zestien: 16, zeventien: 17,
+  achttien: 18, negentien: 19, twintig: 20,
+};
+const NL_NUMBER_WORDS_RE = Object.keys(NL_NUMBER_WORDS).join("|");
+const RELATIVE_COUNT_RE = new RegExp(
+  `\\bover\\s+(\\d{1,3}|${NL_NUMBER_WORDS_RE})\\s+(dag|dagen|week|weken)\\b`,
+  "i",
+);
+
+// Adds `days` real calendar days to `now` (Amsterdam-local), returning the resulting ISO date +
+// Dutch label. Mirrors resolveWeekday's own Date.UTC(y, m-1, d + offset, ...) pattern, which JS
+// Date normalizes correctly across month/year boundaries (verified: 2026-07-12 + 21 -> 2026-08-02,
+// not any manually-carried month/day component).
+function addCalendarDays(now: Date, days: number): { iso: string; label: string } {
+  const todayIso = amsterdamISO(now);
+  const [y, m, d] = todayIso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days, 11, 0, 0));
+  const iso = amsterdamISO(dt);
+  return { iso, label: dutchLabel(dt) };
+}
+
 export function extractRelativeDayHint(text: string, now: Date): RelativeDateHint | null {
   const s = (text || "").toLowerCase();
+
+  // "over N dag(en)/week(en)" (R137): resolved before everything else below, it is just as
+  // explicit/unambiguous as an explicit day+month reference and, unlike weekday/vandaag/morgen
+  // phrasing, has ZERO other deterministic coverage in this file without this block.
+  const countMatch = RELATIVE_COUNT_RE.exec(s);
+  if (countMatch) {
+    const rawCount = countMatch[1];
+    const count = /^\d+$/.test(rawCount) ? Number(rawCount) : NL_NUMBER_WORDS[rawCount];
+    // NB: "weken" (weeks) is NOT a prefix-match of "week" in Dutch spelling (w-e-e-k vs w-e-k-e-n,
+    // the singular's double "ee" shortens to a single "e" when pluralized), so this must compare
+    // the captured unit word against both exact forms rather than use startsWith("week"), which
+    // silently misclassified every plural "weken" match as a 1-day unit (the actual root cause of
+    // this round's live bug, not month-boundary arithmetic at all).
+    const unit = countMatch[2] === "week" || countMatch[2] === "weken" ? 7 : 1;
+    if (count !== undefined && count > 0) {
+      const { iso, label } = addCalendarDays(now, count * unit);
+      return { iso, label, matchedPhrase: countMatch[0].trim() };
+    }
+  }
 
   // Explicit day+month wins over everything else (vandaag/morgen/weekday phrasing): it is the
   // most specific, unambiguous thing the customer could have said, and now that it resolves to a

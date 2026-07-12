@@ -459,3 +459,51 @@ Deno.test("R127: formatCarriedForwardDayHint renders the real ISO/day and never 
 Deno.test("R127: formatCarriedForwardDayHint(null) returns empty string", () => {
   assertEquals(formatCarriedForwardDayHint(null), "");
 });
+
+// R137 (live-reproduced R136, fixed this round): "over N dag(en)/week(en)" had zero deterministic
+// coverage before this fix, so the model computed it freely and got it wrong, including a
+// same-month case (see the goal-loop digest for the live "over twee weken" control-test result).
+// Reference "now" here is the real live fixture instant this bug was found/fixed against: Sunday
+// 2026-07-12.
+const SUNDAY_R137 = new Date("2026-07-12T10:00:00Z");
+
+Deno.test("R137: 'over drie weken' crossing a month boundary resolves to the mathematically correct date", () => {
+  const h = extractRelativeDayHint("Op welke kalenderdatum valt over drie weken vanaf vandaag?", SUNDAY_R137);
+  assertEquals(h?.iso, "2026-08-02");
+});
+
+Deno.test("R137: 'over twee weken' (no month boundary) resolves correctly", () => {
+  const h = extractRelativeDayHint("Op welke kalenderdatum valt over twee weken vanaf vandaag?", SUNDAY_R137);
+  assertEquals(h?.iso, "2026-07-26");
+});
+
+Deno.test("R137: 'over 21 dagen' (digit form) resolves identically to 'over drie weken'", () => {
+  const h = extractRelativeDayHint("Wat is de datum over 21 dagen?", SUNDAY_R137);
+  assertEquals(h?.iso, "2026-08-02");
+});
+
+Deno.test("R137: 'over 1 week' (singular unit) resolves correctly", () => {
+  const h = extractRelativeDayHint("Kan het over 1 week?", SUNDAY_R137);
+  assertEquals(h?.iso, "2026-07-19");
+});
+
+Deno.test("R137: year-boundary crossing ('over vier weken' from late December) rolls into the next year", () => {
+  const lateDec = new Date("2026-12-10T10:00:00Z");
+  const h = extractRelativeDayHint("Kan dat over vier weken?", lateDec);
+  assertEquals(h?.iso, "2027-01-07");
+});
+
+Deno.test("R137: regression, bare weekday phrasing still resolves unaffected by the new relative-count block", () => {
+  const h = extractRelativeDayHint("Kan het op vrijdag?", THURSDAY);
+  assertEquals(h?.iso, "2026-07-10");
+});
+
+Deno.test("R137: regression, 'volgende week vrijdag' still skips to the following week unaffected", () => {
+  const h = extractRelativeDayHint("Liever volgende week vrijdag.", THURSDAY);
+  assertEquals(h?.iso, "2026-07-17");
+});
+
+Deno.test("R137: regression, 'vandaag' still resolves to today unaffected", () => {
+  const h = extractRelativeDayHint("Kan het vandaag nog?", THURSDAY);
+  assertEquals(h?.iso, "2026-07-09");
+});
