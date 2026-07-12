@@ -79,6 +79,23 @@ const INVISIBLE_RE = /[​‌‍‎‏﻿⁠-⁤]/g;
 // check unchanged).
 const LEADING_TRACKING_CODE_RE = /^\s*code:\s*[a-f0-9]{8}\s*/i;
 
+// R132 fix (AMBIGUOUS-RESCHEDULE-CODE-CONFUSION): every inbound message a customer sends is
+// persisted (and re-sent to the LLM as conversation history, see index.ts's `contents` build)
+// WITH the leading "Code: XXXXXXXX" routing token still attached, never stripped before reaching
+// the model (only before this file's own hard-confirm classifier, see normalizeForHardConfirm
+// above). The system prompt never explains what that token means, so the model has no way to know
+// it is pure routing metadata; observed live (R131) hallucinating that the customer is
+// referencing some kind of appointment "code" it cannot find ("Ik zie geen afspraak met die
+// code") instead of asking the real disambiguating question, on a message that was otherwise a
+// completely ordinary, genuinely-ambiguous reschedule request. Exported so index.ts can strip the
+// SAME leading token when building the `contents` array handed to the LLM, without touching
+// `message`/`msgLower` anywhere else (every regex/classifier that reads the raw message,
+// including this file's own hardConfirm gate, is intentionally left byte-identical).
+export function stripLeadingTrackingCode(raw: unknown): string {
+  const s = typeof raw === "string" ? raw : "";
+  return s.normalize("NFC").replace(LEADING_TRACKING_CODE_RE, "");
+}
+
 /** Bounded, fully deterministic normalization: NFC-normalize, strip a leading tracking-code
  * token, strip invisible/bidi-control formatting marks, lowercase (locale-safe), strip edge
  * punctuation/emoji/whitespace (never internal VISIBLE content), collapse internal whitespace

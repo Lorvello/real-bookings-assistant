@@ -9,7 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
 import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
-import { classifyHardConfirm } from "./hardConfirmGate.ts";
+import { classifyHardConfirm, stripLeadingTrackingCode } from "./hardConfirmGate.ts";
 import { collectTurnSlots, enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
 import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
@@ -1596,14 +1596,23 @@ Deno.serve(async (req) => {
 
     // Build conversation turns. History already ends with the current inbound message
     // (persisted by the webhook). Fallback: seed with the message param if empty.
+    // R132 fix (AMBIGUOUS-RESCHEDULE-CODE-CONFUSION): strip the leading "Code: XXXXXXXX" routing
+    // token from every USER turn before it reaches the LLM (stripLeadingTrackingCode, same regex
+    // hardConfirmGate.ts's own normalizeForHardConfirm already uses). Model-authored ("outbound")
+    // turns never carry the token so they pass through unchanged. Deliberately ONLY affects what
+    // the model sees here: `message`/`msgLower` below and every other regex/classifier in this
+    // file keep reading the raw, code-prefixed string unchanged (byte-identical routing/hard-
+    // confirm/disambiguation behaviour). Without this the model saw an unexplained opaque token on
+    // every single turn and, live-reproduced R131, hallucinated that the customer meant some
+    // appointment "code" it could not find, instead of asking the real disambiguating question.
     const contents: Content[] = history
       .map((m): Content => ({
         role: m.direction === "outbound" ? "model" : "user",
-        parts: [{ text: m.content ?? "" }],
+        parts: [{ text: m.direction === "outbound" ? (m.content ?? "") : stripLeadingTrackingCode(m.content ?? "") }],
       }))
       .filter((c) => (c.parts[0] as { text: string }).text.length > 0);
     if (!contents.some((c) => c.role === "user")) {
-      contents.push({ role: "user", parts: [{ text: String(message) }] });
+      contents.push({ role: "user", parts: [{ text: stripLeadingTrackingCode(String(message)) }] });
     }
 
     // Cancel confirmation, detected server-side (the small model won't reliably set
