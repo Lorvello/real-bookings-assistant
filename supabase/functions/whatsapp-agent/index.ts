@@ -25,6 +25,7 @@ import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, matchesSecondBookingDifferentPerson, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
+import { detectDateMismatch, detectThreadHijackNameMismatch, detectThreadHijackWrongOwner, findCommittedBookingDate, writeMonitoringAlert } from "./monitoringAlerts.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
 import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
@@ -3281,6 +3282,90 @@ Deno.serve(async (req) => {
         `one-question-guardrail: reply stacks ${questionCount} questions (expected 1):`,
         JSON.stringify(reply),
       );
+    }
+
+    // MONITORING/ALERTS ITEM 3 (launch-ready-loop/MONITORING_ALERTS_DESIGN.md): strictly
+    // additive/read-only detection for the two proven silent-failure classes. Runs AFTER the real
+    // reply text and tool results already exist, only reads them, and on a match fires a
+    // fire-and-forget INSERT into monitoring_alerts. The whole block is wrapped in try/catch with
+    // the catch doing nothing but a console.error, so a detection bug can never throw, block,
+    // delay, or alter the real customer-facing reply above.
+    try {
+      const turnId = now.toISOString();
+      const dateMismatch = detectDateMismatch({
+        toolCalls: result.toolCalls,
+        finalReplyText: reply,
+        relativeDateHintISO: effectiveDateHint?.iso ?? null,
+        matchedPhrase: effectiveDateHint?.matchedPhrase ?? null,
+        now,
+      });
+      if (dateMismatch) {
+        void writeMonitoringAlert(supabase, {
+          failure_class: dateMismatch.failure_class,
+          conversation_id: conversationId ?? null,
+          contact_phone: phone ?? null,
+          turn_id: turnId,
+          details: {
+            established_iso: dateMismatch.established_iso,
+            committed_iso: dateMismatch.committed_iso,
+            reply_iso: dateMismatch.reply_iso,
+            matched_phrase: dateMismatch.matched_phrase,
+            booking_id: dateMismatch.booking_id,
+            reply_text: reply,
+          },
+        });
+      }
+      // Belt-and-suspenders (design section 3): persist the resolved established_iso per booking
+      // id whenever a deterministic date hint fired for a committed mutation this turn,
+      // REGARDLESS of the in-turn comparison's own outcome, so the pg_cron sweep
+      // (scan_recent_booking_date_drift, 20260713120000_MONITEM3 migration) has a DB-native value
+      // to compare against without re-running any JS regex logic in SQL. Fire-and-forget upsert,
+      // never blocks the reply.
+      const committedForHint = findCommittedBookingDate(result.toolCalls);
+      if (effectiveDateHint?.iso && committedForHint) {
+        void supabase
+          .from("monitoring_alert_hints")
+          .upsert({ booking_id: committedForHint.bookingId, established_iso: effectiveDateHint.iso })
+          .then(() => {}, (e: unknown) => console.error("monitoring-alerts: hint upsert failed:", e));
+      }
+      const nameMismatch = detectThreadHijackNameMismatch({
+        toolCalls: result.toolCalls,
+        knownSelfName: knownName,
+      });
+      if (nameMismatch) {
+        void writeMonitoringAlert(supabase, {
+          failure_class: nameMismatch.failure_class,
+          conversation_id: conversationId ?? null,
+          contact_phone: phone ?? null,
+          turn_id: turnId,
+          details: {
+            stated_name: nameMismatch.stated_name,
+            actual_name: nameMismatch.actual_name,
+            reply_text: reply,
+          },
+        });
+      }
+      // Check B needs one extra single-row read; kept non-blocking (fire-and-forget, issued after
+      // the reply has already been composed) per the design's section 2 placement note.
+      void detectThreadHijackWrongOwner(supabase, result.toolCalls, phone ?? null)
+        .then((wrongOwner) => {
+          if (!wrongOwner) return;
+          void writeMonitoringAlert(supabase, {
+            failure_class: wrongOwner.failure_class,
+            conversation_id: conversationId ?? null,
+            contact_phone: phone ?? null,
+            turn_id: turnId,
+            details: {
+              referenced_booking_id: wrongOwner.referenced_booking_id,
+              booking_owner_phone: wrongOwner.booking_owner_phone,
+              current_phone: wrongOwner.current_phone,
+              reply_text: reply,
+            },
+          });
+        })
+        .catch((e) => console.error("monitoring-alerts: wrong-owner check failed:", e));
+    } catch (e) {
+      console.error("monitoring-alerts: detection failed:", e);
     }
 
     // --- Reply + persist outbound ---
