@@ -85,3 +85,9 @@ verify_jwt = false
 # whatsapp-payment-handler), so the gateway JWT check is disabled here.
 [functions.process-booking-reminders]
 verify_jwt = false
+
+# MONITORING/ALERTS ITEM 4: the alert dispatcher is invoked by pg_cron via pg_net, same posture
+# as process-booking-reminders above (a SQL caller cannot mint a JWT, gated at the app layer by
+# x-internal-secret instead).
+[functions.monitoring-alert-dispatcher]
+verify_jwt = false
