@@ -16,7 +16,7 @@ import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDa
 import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
 import { enforceAppointmentNameDisclosure, identityVerificationResolved, bookIdentityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, cancelToolCallHadPolicyRefusal, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
-import { enforcePriceClaim } from "./priceGuard.ts";
+import { enforcePriceClaim, PRICE_INTENT_RE, buildRealPriceSet, realPriceReply, type PricedService } from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
 import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
 import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
@@ -279,6 +279,54 @@ function appendSecondServiceAck(
   return previewText + (en
     ? ` By the way, I can only schedule one appointment at a time; as soon as this one is confirmed, I'll help you book ${second.serviceName} at ${second.personOrLocation} right after.`
     : ` Ik kan trouwens maar één afspraak tegelijk inplannen; zodra deze bevestigd is, plan ik meteen ook ${second.serviceName} bij ${second.personOrLocation} in.`);
+}
+
+// R128 (SILENT-PRICE-DROP-ON-MIXED-PREVIEW/COMMIT fix, full-journey simulation R126/R127 leftover).
+// Root cause: deterministicPreview above (and deterministicConfirmation below) UNCONDITIONALLY
+// override the model's own prose on a booking preview/commit turn -- the SAME template-overrides-
+// prose shape R20 already fixed for a second, unacknowledged service (see the R20 comment above).
+// When a customer mixes a genuine business question into the SAME message as their time confirmation
+// ("Wat kost dat trouwens, en doe dan maar 10:00": a price question plus a time confirmation), the
+// question part is silently discarded along with the rest of the model's prose, even if the model
+// itself tried to answer it, live-confirmed by R126 (00:50-01:13 UTC conversation, evidence in the
+// state file). Mirrors R20's fix shape exactly: independently detect, from the RAW customer message,
+// a genuine PRICE question (reusing priceGuard's own PRICE_INTENT_RE, the SAME regex this codebase
+// already trusts for this exact detection in the FQ-R2-CLAIM guard) and deterministically APPEND an
+// honest, server-known price answer to the templated preview/confirmation, so the question is never
+// silently dropped -- but the booking confirmation itself is never delayed or blocked, both ship
+// together in one reply. The appended answer is priceGuard's own realPriceReply (the SAME
+// authoritative price line the false-price guard uses elsewhere), so a mixed question can never
+// surface a fabricated price. When no service has a server-known price at all (buildRealPriceSet
+// empty), this is a no-op: it appends nothing rather than a bald "ik heb geen prijsinformatie" that
+// would forbid the honest option 5B of this fix's spec from ever engaging where real data truly is
+// absent -- realPriceReply always has at least one real price when this fires, since the empty-set
+// case already returns false from findMixedPriceQuestion below.
+function findMixedPriceQuestion(rawMessage: string, priceServices: PricedService[]): boolean {
+  if (!rawMessage.trim()) return false;
+  if (!PRICE_INTENT_RE.test(rawMessage)) return false;
+  return buildRealPriceSet(priceServices).size > 0;
+}
+
+// Narrow the full cross-calendar price list down to the ONE service actually being booked, when we
+// know its name (previewedServiceName on a preview, commitSvcName on a commit). Answering "wat kost
+// dat" with a full price dump of every service across every calendar/multi-branch business (instead
+// of just the one the customer is mid-booking for) would be a confusing, off-target answer even
+// though it is not a false one; a single-service scope reads like a real receptionist's answer.
+// Falls back to the FULL service list when the name is unknown or matches nothing real, so the
+// question is still answered honestly rather than silently skipped.
+function scopeToBookedService(priceServices: PricedService[], serviceName: string | null): PricedService[] {
+  if (!serviceName) return priceServices;
+  const norm = serviceName.trim().toLowerCase();
+  const match = priceServices.filter((s) => s.name.trim().toLowerCase() === norm);
+  return match.length ? match : priceServices;
+}
+
+function appendPriceAnswer(
+  baseText: string,
+  priceServices: PricedService[],
+  customerLanguage: string | null,
+): string {
+  return `${baseText} ${realPriceReply(priceServices, customerLanguage)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -2745,6 +2793,27 @@ Deno.serve(async (req) => {
     const committed = result.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
     if (committed) {
       replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || replyText;
+      // R128: a customer can equally mix a genuine price question into the FINAL confirm turn
+      // ("ja doe maar, trouwens wat kost het") -- same silent-drop shape as the preview case above,
+      // same fix. Only appends when there IS server-known price data; a no-op otherwise.
+      {
+        const priceCheckServicesForCommit = calendarsForPrompt
+          ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
+          : services;
+        if (findMixedPriceQuestion(String(message), priceCheckServicesForCommit)) {
+          const bookedOk = result.toolCalls.find((t) =>
+            t.name === "book_appointment" && t.result && typeof t.result === "object" && (t.result as Record<string, unknown>).ok === true
+          );
+          const bookedServiceName = bookedOk
+            ? ((bookedOk.result as Record<string, unknown>).service as string | undefined) ?? null
+            : null;
+          replyText = appendPriceAnswer(
+            replyText,
+            scopeToBookedService(priceCheckServicesForCommit, bookedServiceName),
+            customerLanguage,
+          );
+        }
+      }
       // R96 (PHANTOM-SUCCESS-ZERO-MUTATION fix, NEW-1): verify the claimed commit against a real
       // row in the database THIS SAME TURN, before the reply ships. Single cheap indexed lookup
       // (id + status only), only ever runs on an already-rare commit turn (never on the far more
@@ -2803,6 +2872,18 @@ Deno.serve(async (req) => {
           ? findUnacknowledgedSecondService(calendarsForPrompt, previewedServiceName, String(message))
           : null;
         replyText = appendSecondServiceAck(preview, secondService, customerLanguage);
+        // R128: never silently drop a genuine price question the customer mixed into this SAME
+        // message as the time confirmation that produced this preview (see the fix header above).
+        const priceCheckServicesForPreview = calendarsForPrompt
+          ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
+          : services;
+        if (findMixedPriceQuestion(String(message), priceCheckServicesForPreview)) {
+          replyText = appendPriceAnswer(
+            replyText,
+            scopeToBookedService(priceCheckServicesForPreview, previewedServiceName),
+            customerLanguage,
+          );
+        }
       } else if (!replyText) {
         const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
         if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || "";

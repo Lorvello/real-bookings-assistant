@@ -2752,8 +2752,15 @@ export function createTools(
         // preview-that-immediately-commits-nothing path this still runs (committing implies a
         // pendingBook exists), so this read only ever happens once per real commit, no added cost
         // on the common non-committing preview turn.
+        // R128 (SILENT-PRICE-DROP fix companion): also read `name` in this same commit-time
+        // service_types lookup (was price-only) so the ok:true commit result can echo `service`
+        // just like the preview's own `proposal.service` already does. index.ts's mixed-question
+        // price-answer append (findMixedPriceQuestion/appendPriceAnswer) uses this to scope the
+        // honest price answer to the ONE service actually booked, instead of dumping every service
+        // across every calendar when a customer mixes a price question into the final commit turn.
         const { data: commitSvcRow } = await supabase
-          .from("service_types").select("price").eq("id", serviceId).maybeSingle();
+          .from("service_types").select("name, price").eq("id", serviceId).maybeSingle();
+        const commitSvcName = (commitSvcRow as { name?: string } | null)?.name ?? null;
         const commitPriceRaw = (commitSvcRow as { price?: unknown } | null)?.price;
         const commitPrice = typeof commitPriceRaw === "number"
           ? commitPriceRaw
@@ -2868,6 +2875,7 @@ export function createTools(
             booking_id: booking.id,
             start_time: booking.start_time,
             when: whenNL,
+            service: commitSvcName,
             ...(priceChanged
               ? {
                 price_changed: true,
@@ -2979,6 +2987,7 @@ export function createTools(
           when: whenPayNL,
           payment_required: true,
           payment_url: payUrl,
+          service: commitSvcName,
           ...(priceChanged
             ? {
               price_changed: true,

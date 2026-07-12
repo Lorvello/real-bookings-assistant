@@ -101,9 +101,13 @@ const LONE_NUMBER_REPLY_RE =
   /^\s*(?:the\s+price\s+is\s+|de\s+prijs\s+is\s+|it'?s\s+|het\s+is\s+)?(?:€|eur|euro)?\s*(\d{1,4})(?:[.,](\d{1,2}|-))?\s*(?:€|eur|euros?)?\s*[.!]*\s*$/i;
 
 // The customer's turn is a PRICE question ("wat kost", "hoeveel kost", "prijs", "how much", "price",
-// "cost", "tarief", "rate"). Only used to gate the risky lone-bare-number case, never the euro-marked
-// or verb cases. Kept broad but anchored to price wording so a non-price turn never triggers it.
-const PRICE_INTENT_RE =
+// "cost", "tarief", "rate"). Used to gate the risky lone-bare-number case (below), never the euro-marked
+// or verb cases, AND reused by index.ts's R128 mixed-question-in-a-booking-preview detection (see
+// findMixedPriceQuestion there): the SAME wording that already safely detects "is this turn a price
+// question" for the false-price guard is the right detector for "did the customer ALSO ask about price
+// this turn", so this is exported rather than duplicated. Kept broad but anchored to price wording so a
+// non-price turn never triggers either use.
+export const PRICE_INTENT_RE =
   /\b(kost|kosten|kostte|prijs|prijzen|tarief|tarieven|hoeveel|how\s+much|price|priced|costs?|cost|rate|charge|fee|expensive|duur\b)\b/i;
 
 // Wording that means the euro amount is NOT a service price (a deposit / fee / refund / discount line):
