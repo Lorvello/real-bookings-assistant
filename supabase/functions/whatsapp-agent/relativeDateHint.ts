@@ -177,8 +177,25 @@ const NL_NUMBER_WORDS: Record<string, number> = {
   achttien: 18, negentien: 19, twintig: 20,
 };
 const NL_NUMBER_WORDS_RE = Object.keys(NL_NUMBER_WORDS).join("|");
+// R139 (real bug, found by the full-journey agent simulation R138 live repro): "over N maand(en)"
+// ("in N months") had ZERO deterministic coverage here, only dag/dagen/week/weken (R137). "over een
+// maand" happened to get lucky (correct answer), but "over twee maanden" got an outright stonewall
+// refusal ("Ik heb daar geen bevestigde informatie over..."), because the model had nothing at all
+// to resolve it from (same root class as R137: no code-level hint, 14-day <kalender> table cap,
+// model left to freely compute unaided). Fix: add maand/maanden (and jaar/jaren while in the area,
+// same fix shape) to the unit alternation, and resolve months/years with CALENDAR-MONTH arithmetic
+// (Date.UTC(y, m-1+N, d, ...)), NOT a naive 30-day multiplication: a month is not a fixed number of
+// days (Date.UTC correctly handles both shorter months, e.g. Jan 31 + 1 month rolling into the
+// correct end-of-Feb-adjacent date via JS's own day-overflow normalization, and year rollover when
+// N crosses into the next year).
+//
+// Spelling-trap check (the exact class that caused R137's own bug, "weken" not being a prefix-match
+// of "week"): "maand" -> "maanden" is a plain suffix add, no vowel shortening (unlike week -> weken,
+// w-e-e-k -> w-e-k-e-n). Verified explicitly. Still, this uses exact-match alternation against both
+// literal forms below (never startsWith/prefix logic) for both maand-unit and jaar-unit, to stay
+// safe regardless.
 const RELATIVE_COUNT_RE = new RegExp(
-  `\\bover\\s+(\\d{1,3}|${NL_NUMBER_WORDS_RE})\\s+(dag|dagen|week|weken)\\b`,
+  `\\bover\\s+(\\d{1,3}|${NL_NUMBER_WORDS_RE})\\s+(dag|dagen|week|weken|maand|maanden|jaar|jaren)\\b`,
   "i",
 );
 
@@ -192,6 +209,27 @@ function addCalendarDays(now: Date, days: number): { iso: string; label: string 
   const dt = new Date(Date.UTC(y, m - 1, d + days, 11, 0, 0));
   const iso = amsterdamISO(dt);
   return { iso, label: dutchLabel(dt) };
+}
+
+// Adds `months` calendar months to `now` (Amsterdam-local), returning the resulting ISO date +
+// Dutch label. Uses Date.UTC(y, m-1+months, d, ...) (calendar-month arithmetic, not a fixed-day
+// multiplication like 30*N): JS Date.UTC correctly normalizes the month component across year
+// boundaries (month index > 11 rolls into the following year(s) automatically) and correctly
+// handles a day-of-month that overflows a shorter target month (e.g. 31 Jan + 1 month normalizes
+// forward into early March, the same well-defined JS Date overflow behavior resolveWeekday/
+// addCalendarDays above already rely on for day overflow, applied here to the month component).
+function addCalendarMonths(now: Date, months: number): { iso: string; label: string } {
+  const todayIso = amsterdamISO(now);
+  const [y, m, d] = todayIso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1 + months, d, 11, 0, 0));
+  const iso = amsterdamISO(dt);
+  return { iso, label: dutchLabel(dt) };
+}
+
+// Adds `years` calendar years to `now` (Amsterdam-local). Delegates to addCalendarMonths (years *
+// 12) so leap-year/day-overflow normalization stays a single code path with the month case above.
+function addCalendarYears(now: Date, years: number): { iso: string; label: string } {
+  return addCalendarMonths(now, years * 12);
 }
 
 export function extractRelativeDayHint(text: string, now: Date): RelativeDateHint | null {
@@ -208,9 +246,20 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
     // the singular's double "ee" shortens to a single "e" when pluralized), so this must compare
     // the captured unit word against both exact forms rather than use startsWith("week"), which
     // silently misclassified every plural "weken" match as a 1-day unit (the actual root cause of
-    // this round's live bug, not month-boundary arithmetic at all).
-    const unit = countMatch[2] === "week" || countMatch[2] === "weken" ? 7 : 1;
+    // this round's live bug, not month-boundary arithmetic at all). R139: same exact-match
+    // discipline applied to maand/maanden and jaar/jaren (verified no analogous vowel-shortening
+    // trap on either, but exact-match alternation is used regardless, never a prefix check).
+    const rawUnit = countMatch[2];
     if (count !== undefined && count > 0) {
+      if (rawUnit === "maand" || rawUnit === "maanden") {
+        const { iso, label } = addCalendarMonths(now, count);
+        return { iso, label, matchedPhrase: countMatch[0].trim() };
+      }
+      if (rawUnit === "jaar" || rawUnit === "jaren") {
+        const { iso, label } = addCalendarYears(now, count);
+        return { iso, label, matchedPhrase: countMatch[0].trim() };
+      }
+      const unit = rawUnit === "week" || rawUnit === "weken" ? 7 : 1;
       const { iso, label } = addCalendarDays(now, count * unit);
       return { iso, label, matchedPhrase: countMatch[0].trim() };
     }
