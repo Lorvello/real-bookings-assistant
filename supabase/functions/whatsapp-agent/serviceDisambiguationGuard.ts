@@ -174,6 +174,91 @@ export const KIES_DIENST_MESSAGE =
 export const KIES_LOCATIE_MESSAGE =
   "De klant noemde een dienst die bij meerdere medewerkers/locaties wordt aangeboden met een ECHT andere prijs en/of duur, maar noemde nog geen specifieke medewerker/locatie. Roep get_available_slots of book_appointment NIET aan; vraag EERST kort en menselijk bij wie of waar de klant de afspraak wil (bijvoorbeeld \"bij wie/waar wil je de afspraak?\"), en noem de opties als personen/plekken in natuurlijke taal (nooit \"agenda's\" of technische namen). Zodra de klant een persoon/locatie noemt, mag je gewoon doorgaan.";
 
+// R125 MULTI-SERVICE-IN-ONE-MESSAGE GUARD (closes R124's live-reproduced bug).
+//
+// R124 reproduced (2/2, real fixture, same calendar "Sanne"): "Ik wil graag Knippen Dames EN
+// Knippen Heren boeken bij Sanne, woensdag om 10:00" silently fell through to businessDataGuard's
+// generic "Ik heb daar geen bevestigde informatie over" fallback instead of ever asking a
+// clarifying question or booking anything -- zero acknowledgment that two services were even
+// named. Root cause: prompt.ts's <kalenders> "SAMENGESTELD VERZOEK" rule (added R19/R20 for the
+// cross-calendar case, e.g. "dienst A bij Sanne EN dienst B bij Milan") is PROMPT-ONLY steering,
+// and this codebase has repeatedly proven (R71/R72/R93/R111, same file) that prompt-only steering
+// does not reliably close a "the model must refuse to guess and ask instead" guarantee against
+// this low-reasoning-effort model; the model instead free-lanced a reply that asserted an
+// unconfirmed booking-preview-shaped claim with no backing tool call this turn, which
+// businessDataGuard (fed by this turn's real tool results only) correctly, if unhelpfully, could
+// not verify and rewrote to the safe generic fallback -- a real regression in the OUTCOME even
+// though every individual guard behaved per its own contract.
+//
+// FIX: the SAME server-side "refuse to guess, ask" gate pattern as shouldBlockForMissingService
+// Choice/shouldBlockForAmbiguousBranch above, applied to a NEW condition: the CURRENT message
+// alone names 2+ distinct real configured service names (any calendar, not just the same one --
+// covers both R124's same-calendar repro and R19/R20's original cross-calendar case uniformly).
+// Deliberately scoped to the CURRENT message only (not the whole inbound history like the sibling
+// guards): a customer who named a second service several turns ago in an already-resolved,
+// already-booked flow must never be re-asked; only a genuinely compound single-message request
+// is this guard's concern. Works in BOTH single- and multi-calendar mode (unlike the sibling
+// guards above, which are multi-calendar-only): a single-calendar business can just as easily
+// receive "ik wil A en B boeken" and deserves the same clarifying question, not a silent auto-
+// pick or the generic fallback. Never auto-splits (that risks silently picking the wrong
+// interpretation, per this round's explicit mandate) -- always asks losstaand-vs-gecombineerd.
+// STRICT matcher, not the looser `mentionsAny` the sibling guards above use: two configured
+// service names very often share a word ("Knippen Dames" / "Knippen Heren" both share "Knippen"),
+// and `mentionsAny`'s per-word check would false-positive-match BOTH names off a message naming
+// only one of them (a message naming only "Knippen Dames" contains the bare word "Knippen", which
+// `mentionsAny` would also count as a match for "Knippen Heren"). Live-caught in this round's own
+// unit tests before deploy. Reuses `distinguishingWordsFor` (defined below, same technique
+// `mentionsServiceNameStrict` already uses for the returning-service-default guard, a sibling
+// high-precision context): a word only counts if it is NOT shared with any other configured name
+// in the same set, so "Knippen" never counts alone but "Dames"/"Heren" do.
+function mentionsServiceNameStrictAgainst(text: string, name: string, allServiceNames: string[]): boolean {
+  const lower = text.toLowerCase();
+  const trimmed = name.trim();
+  if (trimmed.length >= 2 && lower.includes(trimmed.toLowerCase())) return true;
+  for (const word of distinguishingWordsFor(trimmed, allServiceNames)) {
+    if (new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(lower)) return true;
+  }
+  return false;
+}
+
+export function shouldBlockForMultiServiceRequest(input: {
+  allServiceNames: string[];
+  currentMessage: string;
+}): string[] | null {
+  const { allServiceNames, currentMessage } = input;
+  const seen = new Set<string>();
+  const matched: string[] = [];
+  for (const name of allServiceNames) {
+    const trimmed = name.trim();
+    if (!trimmed) continue;
+    const norm = normServiceName(trimmed);
+    if (seen.has(norm)) continue; // same service configured on 2+ calendars: count once
+    if (mentionsServiceNameStrictAgainst(currentMessage, trimmed, allServiceNames)) {
+      seen.add(norm);
+      matched.push(trimmed);
+    }
+  }
+  // SUBSTRING-SUBSUMPTION FILTER (live-caught this round, see IUX): a SHORT configured service
+  // name (e.g. bare "Knippen", a real distinct service on OTHER calendars in this same business)
+  // is textually a substring of a LONGER matched name (e.g. "Knippen Dames"), so a message naming
+  // ONLY "Knippen Dames" would otherwise double-count as ALSO naming bare "Knippen", falsely
+  // reporting 2 distinct services from a single-service message. Drop any matched name that is
+  // wholly a case-insensitive substring of a DIFFERENT, longer matched name: the longer, more
+  // specific name is what the customer actually said, the shorter one is not a separate mention.
+  const filtered = matched.filter((name) => {
+    const norm = normServiceName(name);
+    return !matched.some((other) => {
+      if (other === name) return false;
+      const otherNorm = normServiceName(other);
+      return otherNorm.length > norm.length && otherNorm.includes(norm);
+    });
+  });
+  return filtered.length >= 2 ? filtered : null;
+}
+
+export const MULTI_SERVICE_MESSAGE = (services: string[]) =>
+  `De klant noemt in dit ENE bericht meerdere diensten tegelijk voor een boekingsverzoek (${services.join(", ")}). Roep get_available_slots of book_appointment NIET aan. Erken EERST expliciet dat je beide diensten hebt gezien (noem ze met naam) en vraag kort en menselijk of de klant deze los wil boeken (twee aparte afspraken, één voor één) of dat het om één gecombineerde behandeling gaat, bijvoorbeeld: "Ik zie dat je ${services.join(" en ")} wilt boeken. Wil je deze los boeken (twee aparte afspraken) of gaat het om één gecombineerde behandeling?". Boek NIETS totdat de klant dat heeft aangegeven. Kiest de klant "los boeken"? Ga dan door zoals bij een gewoon samengesteld verzoek: boek eerst de EERST genoemde dienst (of de dienst die de klant als eerste wil), en zeg er expliciet bij dat je de tweede meteen oppakt zodra de eerste bevestigd is. Verzin NOOIT zelf welke interpretatie de klant bedoelt.`;
+
 // R96 RESCHEDULE-VS-SECOND-SERVICE GUARD (RESCHEDULE-HIJACK, sev-2, PREEMPT, R95-1).
 //
 // R95-1 (live-reproduced, evidence/IUX_r95.md + IUX_r96.md): a customer who already has an

@@ -6,7 +6,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
-import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
+import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, MULTI_SERVICE_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
 import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, rescheduleIdentityConfirmedFresh, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
 import { hasDayMentionAnywhere, VRAAG_DAG_MESSAGE, VRAAG_DAG_RESCHEDULE_MESSAGE } from "./relativeDateHint.ts";
@@ -142,6 +142,17 @@ export interface ToolContext {
   // applied here to the DAY instead), so a customer who never named a day gets an explicit
   // clarifying question instead of a silent, undisclosed "today" assumption.
   blockForNoDayNamed?: boolean;
+  // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix, serviceDisambiguationGuard.ts's
+  // shouldBlockForMultiServiceRequest): server-detected, computed once per turn in index.ts from
+  // THIS turn's message alone against every configured service name (single- or multi-calendar).
+  // Holds the matched distinct service names (2+) when the CURRENT message names two or more real
+  // configured services in one compound booking request (e.g. "Knippen Dames EN Knippen Heren
+  // boeken bij Sanne"), null/undefined otherwise. Gates get_available_slots and the book_appointment
+  // FRESH preview step with the same "refuse to guess, ask" pattern as the sibling gates above:
+  // closes R124's live-reproduced bug where a compound request silently fell through to
+  // businessDataGuard's generic no-info fallback instead of ever asking which interpretation
+  // (split vs combined) the customer meant.
+  blockForMultiService?: string[] | null;
   // R76 (RENAME-HIJACK-CROSSTHIRDPARTY fix): server-detected, computed once per turn in index.ts,
   // mirroring confirmRename exactly (same AFFIRM_RE/NEGATE_RE/ambiguousConfirm/15-minute-freshness
   // pattern) but keyed off a NEW pending_rename_verification context marker instead of
@@ -1325,6 +1336,12 @@ export function createTools(
         if (ctx.blockForAmbiguousBranch) {
           return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
         }
+        // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix): the customer's CURRENT message names 2+ real
+        // configured services in one compound request. Refuse and ask split-vs-combined before any
+        // slot lookup, same refuse-and-ask pattern as the sibling conditions above.
+        if (ctx.blockForMultiService && ctx.blockForMultiService.length >= 2) {
+          return { error: "meerdere_diensten", message: MULTI_SERVICE_MESSAGE(ctx.blockForMultiService) };
+        }
         // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): a returning customer's last-booked service
         // is context ONLY, never a silent assumption. Refuse the slot lookup (which would itself
         // silently bake in an assumed date on top of the assumed service) until the model has
@@ -1875,6 +1892,12 @@ export function createTools(
           // branch/price/duration through by going straight to book_appointment.
           if (ctx.blockForAmbiguousBranch) {
             return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
+          }
+          // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix): same fresh-preview-only gate as
+          // get_available_slots above, so a customer cannot slip a silent compound-request
+          // fall-through by going straight to book_appointment either.
+          if (ctx.blockForMultiService && ctx.blockForMultiService.length >= 2) {
+            return { error: "meerdere_diensten", message: MULTI_SERVICE_MESSAGE(ctx.blockForMultiService) };
           }
           // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): same fresh-preview-only gate as
           // get_available_slots above, so a customer cannot slip the silent returning-service

@@ -3,7 +3,7 @@
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
 import { assertEquals } from "jsr:@std/assert";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, mentionsDistinguishing, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, mentionsDistinguishing, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
 import { scopeToCurrentTopicWindow, type PreFilterServiceInfo } from "./preFilterCalendars.ts";
 
 // R98 helper: build an all-inbound recency window from plain strings (the common case for tests
@@ -1077,4 +1077,78 @@ Deno.test("R88-4 findUnacknowledgedSecondService-shaped repro via findServiceSwi
     currentMessage: "Ik wil Knippen + Stylen bij Iris boeken, zondag 26 juli om 15:00, naam R87HedgeC",
   });
   assertEquals(out, null);
+});
+
+// R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix, closes R124's live-reproduced bug: "Ik wil graag
+// Knippen Dames EN Knippen Heren boeken bij Sanne, woensdag om 10:00" fell through to
+// businessDataGuard's generic no-info fallback instead of asking a clarifying question).
+Deno.test("R125-1 blocks: two distinct services named in one message, same calendar (exact R124 repro)", () => {
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames: ["Knippen Dames", "Knippen Heren", "Highlights"],
+    currentMessage: "Ik wil graag Knippen Dames EN Knippen Heren boeken bij Sanne, woensdag om 10:00",
+  });
+  assertEquals(out, ["Knippen Dames", "Knippen Heren"]);
+});
+
+Deno.test("R125-2 blocks: comma-separated phrasing ('ook')", () => {
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames: ["Knippen Dames", "Knippen Heren"],
+    currentMessage: "Knippen Dames boeken bij Sanne, ook Knippen Heren graag, woensdag 10:00",
+  });
+  assertEquals(out, ["Knippen Dames", "Knippen Heren"]);
+});
+
+Deno.test("R125-3 blocks: two services across different calendars (original R19/R20 cross-calendar shape)", () => {
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames: ["Knippen Dames", "Highlights"],
+    currentMessage: "Knippen Dames bij Sanne EN Highlights bij Milan graag",
+  });
+  assertEquals(out, ["Knippen Dames", "Highlights"]);
+});
+
+Deno.test("R125-4 does not block: single-service booking request (control, must stay unaffected)", () => {
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames: ["Knippen Dames", "Knippen Heren"],
+    currentMessage: "Ik wil graag Knippen Dames boeken bij Sanne, woensdag om 10:00",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R125-5 does not block: same service configured on 2+ calendars, mentioned once (not a compound request)", () => {
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames: ["Knippen", "Knippen"],
+    currentMessage: "Ik wil Knippen boeken, woensdag 10:00",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R125-6 does not block: no configured service named at all", () => {
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames: ["Knippen Dames", "Knippen Heren"],
+    currentMessage: "heb je morgen nog plek?",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R125-7 does not block: bare short service name ('Knippen') is a substring of the matched longer name ('Knippen Dames'), must not double-count", () => {
+  // Live-caught this round: the real fixture also configures a bare 'Knippen' service on OTHER
+  // calendars (Bo/Milan). A message naming only 'Knippen Dames' textually contains 'knippen',
+  // which would otherwise falsely also match the bare 'Knippen' service, reporting 2 services
+  // from a genuinely single-service message and getting the customer stuck in a repeated
+  // clarifying-question loop (observed live before this fix).
+  const allServiceNames = ["Gelnagels", "Knippen", "Manicure", "Bruidskapsel", "Knippen + Stylen", "Highlights", "Volledige kleuring", "Knippen Dames", "Knippen Heren"];
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames,
+    currentMessage: "Vergeet de vorige boeking maar, ik wil gewoon alleen Knippen Dames boeken bij Sanne, donderdag om 11:00",
+  });
+  assertEquals(out, null);
+});
+
+Deno.test("R125-8 still blocks: genuine two-service message survives the substring-subsumption filter (regression guard for R125-7's fix)", () => {
+  const allServiceNames = ["Gelnagels", "Knippen", "Manicure", "Bruidskapsel", "Knippen + Stylen", "Highlights", "Volledige kleuring", "Knippen Dames", "Knippen Heren"];
+  const out = shouldBlockForMultiServiceRequest({
+    allServiceNames,
+    currentMessage: "Ik wil graag Knippen Dames EN Knippen Heren boeken bij Sanne, woensdag om 10:00",
+  });
+  assertEquals(out, ["Knippen Dames", "Knippen Heren"]);
 });

@@ -23,7 +23,7 @@ import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.
 import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
+import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, matchesSecondBookingDifferentPerson, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
@@ -1031,6 +1031,16 @@ Deno.serve(async (req) => {
       ? calendarsForPrompt.flatMap((c) => c.services.map((s) => s.name))
       : services.map((s) => s.name);
     const returningServiceConfirmed = convContext.returning_service_confirmed === true;
+    // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix, closes R124's live-reproduced bug): the customer's
+    // CURRENT message alone names 2+ distinct real configured services in one compound booking
+    // request (e.g. "Knippen Dames EN Knippen Heren boeken bij Sanne"). Works in both single- and
+    // multi-calendar mode (allServiceNamesForReturning already covers both shapes). See
+    // serviceDisambiguationGuard.ts's shouldBlockForMultiServiceRequest header for the full
+    // root-cause writeup and why this is a server-side gate, not prompt-only steering.
+    const blockForMultiService = shouldBlockForMultiServiceRequest({
+      allServiceNames: allServiceNamesForReturning,
+      currentMessage: String(message ?? ""),
+    });
     // R118 (STALE-SERVICE-DEFAULT-OVERRIDE fix, closes full-journey-simulation R23): a small,
     // deliberately bounded window of the most recent customer messages (reuses `inboundTexts`,
     // R71's own wide inbound-only fetch when available, else just this turn's own message for a
@@ -2286,7 +2296,7 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved, renameVerificationAffirmUnresolved });
+    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: relativeDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, blockForMultiService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved, renameVerificationAffirmUnresolved });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
