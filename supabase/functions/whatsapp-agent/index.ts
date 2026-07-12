@@ -3005,9 +3005,32 @@ Deno.serve(async (req) => {
         // despite the tool result carrying customer_name + guidance), so this is rewritten here
         // deterministically, mirroring enforceRefundPolicy/enforcePriceClaim below. No-op unless a
         // get_my_appointments call actually ran this turn with a real, undisclosed name mismatch.
+        // R130 (APPOINTMENT-DISCLOSURE-HIJACKS-UNRELATED-REPLY fix, live-reproduced 10x in one
+        // session): both branches below rewrite the drafted reply into the full "Er staan
+        // meerdere afspraken: ..." listing based ONLY on the SHAPE of get_my_appointments'
+        // result / the drafted reply text, with ZERO check of what the CUSTOMER'S CURRENT
+        // message actually asked. Live-reproduced: a plain, fresh availability question
+        // ("Welke dagen heeft Iris nog vrij deze maand voor Knippen + Stylen?", zero booking/
+        // reschedule/cancel/rename intent) got the customer's real question silently discarded
+        // and replaced with an unrelated multi-appointment disclosure, because either (a) the
+        // model mis-called get_my_appointments for a pure availability question, or (b) the
+        // fallback's regex matched a confused phrase in the model's own drafted reply. Neither
+        // path has anything to do with whether the CUSTOMER actually asked about an existing
+        // booking. FIX: only allow either branch to engage when this turn's raw inbound message
+        // does not itself read as a fresh availability/new-booking request (the exact shape that
+        // reproduced this bug); a genuine "wat heb ik geboekt"/"hoe laat ook alweer"/reschedule/
+        // cancel/rename follow-up never uses this fresh-request phrasing, so disclosure still
+        // fires correctly for every one of those (regression-verified below).
+        const looksLikeFreshAvailabilityOrBookingRequest =
+          /\b(nog vrij|vrije?\s*(tijden|momenten|plek\w*|slots?)|beschikbaar\w*|welke dag(en)?|wanneer kan ik|kan ik(?:.{0,20})?(boeken|inplannen)|wil(?:.{0,15})?afspraak(?:.{0,15})?(maken|boeken|inplannen)|ruimte|plekje|available|any\s+(time|slot)s?|book\s+(a|an)?\s*appointment)\b/i
+            .test(String(message ?? ""));
         const lastAppointmentsResult = result.toolCalls.filter((t) => t.name === "get_my_appointments").pop()?.result as
           { appointments?: AppointmentForDisclosure[] } | undefined;
-        if (lastAppointmentsResult?.appointments) {
+        if (looksLikeFreshAvailabilityOrBookingRequest) {
+          // No-op: this turn's own message is a fresh availability/booking request, never an
+          // own-appointment-status/reschedule/cancel/rename intent, so neither disclosure branch
+          // may override the drafted reply.
+        } else if (lastAppointmentsResult?.appointments) {
           replyText = enforceAppointmentNameDisclosure(replyText, lastAppointmentsResult.appointments, customerLanguage);
         } else if (mentionsOwnAppointmentClaim(replyText)) {
           // R107 (NO-FRESH-TOOL-CALL coverage gap fix): the model answered a possessive-booking-
