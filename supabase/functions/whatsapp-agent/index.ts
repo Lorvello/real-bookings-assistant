@@ -3331,6 +3331,7 @@ Deno.serve(async (req) => {
       const nameMismatch = detectThreadHijackNameMismatch({
         toolCalls: result.toolCalls,
         knownSelfName: knownName,
+        finalReplyText: reply,
       });
       if (nameMismatch) {
         void writeMonitoringAlert(supabase, {

@@ -183,6 +183,10 @@ function normalizeNameForCompare(n: string): string {
 export interface ThreadHijackNameMismatchTurnCtx {
   toolCalls: MonitoringToolCall[];
   knownSelfName: string | null | undefined;
+  // R7 FIX: the final customer-facing reply for this turn. Optional/nullable so existing
+  // mechanism-level callers (Item 5/6 proofs, older tests) that never populate it keep their prior
+  // behavior (an empty reply never matches CONFIRMATION_REQUEST_RE, so the alert still fires).
+  finalReplyText?: string | null;
 }
 
 export interface ThreadHijackNameMismatchAlert {
@@ -190,6 +194,17 @@ export interface ThreadHijackNameMismatchAlert {
   stated_name: string;
   actual_name: string;
 }
+
+const MUTATION_OWNER_TOOLS = new Set(["book_appointment", "reschedule_appointment", "cancel_appointment"]);
+
+// R7 FALSE-POSITIVE FIX (see _BA_MONITORING_ALERTS_STATE.md R7 finding + orchestrator verify):
+// the naam_verificatie_nodig gate firing is the R130 fix WORKING correctly (it always blocks the
+// mutation server-side), not the bug. tools.ts's own `customer_reply` field on all 5
+// naam_verificatie_nodig call sites always composes a disclosure-and-confirm question sharing this
+// phrasing family ("Klopt het dat...", "Moet dit ECHT gewijzigd worden...", "Typ ter bevestiging de
+// naam terug..."). A reply matching this pattern is the gate doing its job, not a hijack.
+const CONFIRMATION_REQUEST_RE =
+  /\bklopt het\b|\bter bevestiging\b|\bmoet dit\b[^.?!]*\b(gewijzigd|wijzigen)\b|\bwil je dat ik\b/i;
 
 // Check A: surfaces the SAME "naam_verificatie_nodig" gate signal
 // enforceVerificationGateDisclosure (identityDisambiguationGuard.ts) already consumes to build the
@@ -211,12 +226,23 @@ export function detectThreadHijackNameMismatch(
     const statedName = String(ctx.knownSelfName);
     const actualName = String(actual);
     if (normalizeNameForCompare(statedName) === normalizeNameForCompare(actualName)) return null;
+    // R7 FIX: only the actual R130 bug shape alerts - either (a) a mutation tool reports ok:true
+    // LATER in this same turn despite this unresolved gate (the hijack actually completing anyway),
+    // or (b) the final reply does NOT match the gate's own confirmation-request phrasing (proceeding
+    // /disclosing silently instead of asking). A reply that DOES ask for confirmation is the gate
+    // working as designed and must never alert.
+    const mutationSucceededAfterGate = ctx.toolCalls.slice(i + 1).some((t) => {
+      if (!MUTATION_OWNER_TOOLS.has(t.name)) return false;
+      const rr = t.result;
+      return !!rr && typeof rr === "object" && (rr as Record<string, unknown>).ok === true;
+    });
+    if (!mutationSucceededAfterGate && CONFIRMATION_REQUEST_RE.test(ctx.finalReplyText ?? "")) {
+      return null; // gate fired and the reply properly asked for confirmation - benign, not a hijack
+    }
     return { failure_class: "thread_hijack_name_mismatch", stated_name: statedName, actual_name: actualName };
   }
   return null;
 }
-
-const MUTATION_OWNER_TOOLS = new Set(["book_appointment", "reschedule_appointment", "cancel_appointment"]);
 
 function extractReferencedBookingId(toolCalls: MonitoringToolCall[]): string | null {
   for (let i = toolCalls.length - 1; i >= 0; i--) {
