@@ -490,7 +490,7 @@ Deno.test("thread hijack read-only disclosure: R17 fix - marker immediately adja
 
 // Stubbed Supabase client, no live project touched. Mirrors the design's Path B "hand-constructed
 // synthetic inputs" discipline for Check B.
-function stubSupabase(row: { customer_phone: string | null } | null): SupabaseClient {
+function stubSupabase(row: { customer_phone: string | null; customer_name?: string | null } | null): SupabaseClient {
   return {
     from(_table: string) {
       return {
@@ -514,7 +514,7 @@ function stubSupabase(row: { customer_phone: string | null } | null): SupabaseCl
 }
 
 Deno.test("thread hijack wrong owner: fires when the referenced booking belongs to a different phone", async () => {
-  const supabase = stubSupabase({ customer_phone: "31600000001" });
+  const supabase = stubSupabase({ customer_phone: "31600000001", customer_name: "Fatima" });
   const alert = await detectThreadHijackWrongOwner(
     supabase,
     [{ name: "cancel_appointment", result: { ok: true, booking_id: "b9" } }],
@@ -523,6 +523,9 @@ Deno.test("thread hijack wrong owner: fires when the referenced booking belongs 
   assertEquals(alert?.failure_class, "thread_hijack_wrong_owner");
   assertEquals(alert?.referenced_booking_id, "b9");
   assertEquals(alert?.booking_owner_phone, "31600000001");
+  // R23 FIX (gap 2): booking_owner_name is the new identity field pickThreadHijackAlert uses to
+  // tell whether a wrong_owner hit and a name-based hit are the SAME real incident.
+  assertEquals(alert?.booking_owner_name, "Fatima");
   assertEquals(alert?.current_phone, "31600000002");
 });
 
@@ -546,15 +549,25 @@ Deno.test("thread hijack wrong owner: no alert when no mutation committed this t
   assertEquals(alert, null);
 });
 
-// --- R21 fix 2: thread-hijack per-turn dedup --------------------------------
-// (see _BA_MONITORING_ALERTS_STATE.md R20 finding 2 / R21 remediation item 2). Checks A/B/C can
-// each independently fire for one real hijack turn; pickThreadHijackAlert must return AT MOST ONE
-// result, by priority wrong_owner > name_mismatch > readonly_disclosure.
+// --- R21 fix 2 / R23 fix 1+2: thread-hijack per-turn dedup -------------------
+// (see _BA_MONITORING_ALERTS_STATE.md R20 finding 2 / R21 remediation item 2, and R22 finding 1+2 /
+// R23 remediation item 1+2). Checks A/B/C can each independently fire for one real hijack turn.
+// pickThreadHijackAlert now returns one entry PER DISTINCT INCIDENT (grouped by a best-effort
+// identity name), deduping only within a group (by priority wrong_owner > name_mismatch >
+// readonly_disclosure) and merging losers' fields into the winner's `supplementary` (gap 1) -
+// instead of R21's old behavior of always collapsing to a single global winner and silently
+// dropping everything else, even a genuinely different second incident (gap 2).
 
+// Genuinely the SAME real incident: all 3 checks resolve to the same person, "Fatima" - wrong_owner
+// via the new booking_owner_name field, name_mismatch via actual_name, readonly_disclosure via
+// disclosed_name. This is the original R21 test shape, updated so its 3 fixtures actually represent
+// one incident (R21's own fixtures used 3 different names, which R23 gap 2 identified was never a
+// meaningful same-incident test to begin with).
 const WRONG_OWNER_FIXTURE = {
   failure_class: "thread_hijack_wrong_owner" as const,
   referenced_booking_id: "b9",
   booking_owner_phone: "31600000001",
+  booking_owner_name: "Fatima",
   current_phone: "31600000002",
 };
 const NAME_MISMATCH_FIXTURE = {
@@ -565,47 +578,107 @@ const NAME_MISMATCH_FIXTURE = {
 const READONLY_DISCLOSURE_FIXTURE = {
   failure_class: "thread_hijack_readonly_disclosure" as const,
   known_self_name: "Peter",
+  disclosed_name: "Fatima",
+};
+
+// A genuinely DIFFERENT second incident referenced only through Check C (get_my_appointments),
+// disclosing an unrelated person, "Sophie" - used by the new gap-2 test below.
+const READONLY_DISCLOSURE_DIFFERENT_INCIDENT_FIXTURE = {
+  failure_class: "thread_hijack_readonly_disclosure" as const,
+  known_self_name: "Peter",
   disclosed_name: "Sophie",
 };
 
-Deno.test("thread hijack dedup: all 3 checks firing in one turn yields exactly 1 winner (wrong_owner priority)", () => {
-  const winner = pickThreadHijackAlert({
+Deno.test("thread hijack dedup: all 3 checks firing for the SAME incident yields exactly 1 written alert (wrong_owner priority), losers merged as supplementary", () => {
+  const toWrite = pickThreadHijackAlert({
     wrongOwner: WRONG_OWNER_FIXTURE,
     nameMismatch: NAME_MISMATCH_FIXTURE,
     readOnlyDisclosure: READONLY_DISCLOSURE_FIXTURE,
   });
-  assertEquals(winner?.failure_class, "thread_hijack_wrong_owner");
+  assertEquals(toWrite.length, 1);
+  assertEquals(toWrite[0].alert.failure_class, "thread_hijack_wrong_owner");
+  // Gap 1: the losing checks' distinguishing fields are not discarded, they ride along as
+  // supplementary context on the winning alert.
+  assertEquals(toWrite[0].supplementary.also_detected_name_mismatch, {
+    stated_name: "Peter",
+    actual_name: "Fatima",
+  });
+  assertEquals(toWrite[0].supplementary.also_detected_readonly_disclosure, {
+    known_self_name: "Peter",
+    disclosed_name: "Fatima",
+  });
 });
 
-Deno.test("thread hijack dedup: name_mismatch + readonly_disclosure (no wrong_owner) picks name_mismatch", () => {
-  const winner = pickThreadHijackAlert({
+Deno.test("thread hijack dedup GAP 2 (R23 critical fix): 2 GENUINELY DIFFERENT incidents in one turn both get written, not just the highest-priority one", () => {
+  // Check A fires on "Fatima" (a mutation hit the naam_verificatie_nodig gate), Check C
+  // independently discloses an unrelated "Sophie" via a read-only get_my_appointments call in the
+  // SAME turn - two real, distinct people/bookings, not a duplicate detection of one incident. The
+  // pre-R23 code would have picked only name_mismatch (higher priority) and silently thrown away
+  // the Sophie evidence entirely - the exact silent-loss regression this fix closes.
+  const toWrite = pickThreadHijackAlert({
+    wrongOwner: null,
+    nameMismatch: NAME_MISMATCH_FIXTURE, // actual_name: Fatima
+    readOnlyDisclosure: READONLY_DISCLOSURE_DIFFERENT_INCIDENT_FIXTURE, // disclosed_name: Sophie
+  });
+  assertEquals(toWrite.length, 2);
+  const classes = toWrite.map((w) => w.alert.failure_class).sort();
+  assertEquals(classes, ["thread_hijack_name_mismatch", "thread_hijack_readonly_disclosure"]);
+  // Neither entry absorbed the other as supplementary - they are genuinely separate incidents.
+  for (const w of toWrite) assertEquals(w.supplementary, {});
+});
+
+Deno.test("thread hijack dedup: name_mismatch + readonly_disclosure, same incident (both Fatima), picks name_mismatch", () => {
+  const toWrite = pickThreadHijackAlert({
     wrongOwner: null,
     nameMismatch: NAME_MISMATCH_FIXTURE,
     readOnlyDisclosure: READONLY_DISCLOSURE_FIXTURE,
   });
-  assertEquals(winner?.failure_class, "thread_hijack_name_mismatch");
+  assertEquals(toWrite.length, 1);
+  assertEquals(toWrite[0].alert.failure_class, "thread_hijack_name_mismatch");
+  assertEquals(toWrite[0].supplementary.also_detected_readonly_disclosure, {
+    known_self_name: "Peter",
+    disclosed_name: "Fatima",
+  });
 });
 
 Deno.test("thread hijack dedup: only readonly_disclosure fires, still returns it", () => {
-  const winner = pickThreadHijackAlert({
+  const toWrite = pickThreadHijackAlert({
     wrongOwner: null,
     nameMismatch: null,
     readOnlyDisclosure: READONLY_DISCLOSURE_FIXTURE,
   });
-  assertEquals(winner?.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(toWrite.length, 1);
+  assertEquals(toWrite[0].alert.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(toWrite[0].supplementary, {});
 });
 
-Deno.test("thread hijack dedup: nothing fires, returns null", () => {
-  const winner = pickThreadHijackAlert({ wrongOwner: null, nameMismatch: null, readOnlyDisclosure: null });
-  assertEquals(winner, null);
+Deno.test("thread hijack dedup: nothing fires, returns an empty array", () => {
+  const toWrite = pickThreadHijackAlert({ wrongOwner: null, nameMismatch: null, readOnlyDisclosure: null });
+  assertEquals(toWrite, []);
 });
 
 Deno.test("thread hijack dedup: wrong_owner alone still wins over nothing else firing", () => {
-  const winner = pickThreadHijackAlert({
+  const toWrite = pickThreadHijackAlert({
     wrongOwner: WRONG_OWNER_FIXTURE,
     nameMismatch: null,
     readOnlyDisclosure: null,
   });
-  assertEquals(winner?.failure_class, "thread_hijack_wrong_owner");
-  assertEquals((winner as typeof WRONG_OWNER_FIXTURE).referenced_booking_id, "b9");
+  assertEquals(toWrite.length, 1);
+  assertEquals(toWrite[0].alert.failure_class, "thread_hijack_wrong_owner");
+  assertEquals((toWrite[0].alert as typeof WRONG_OWNER_FIXTURE).referenced_booking_id, "b9");
+});
+
+Deno.test("thread hijack dedup: wrong_owner with an unresolvable identity name (null) stays its own group, never silently merged", () => {
+  // A wrong_owner hit on a booking whose stored customer_name is null cannot be name-matched
+  // against anything - conservatively kept as its own separate incident rather than guessed into
+  // the name_mismatch group, per the header comment's "fail open toward more alerts" rule.
+  const wrongOwnerNoName = { ...WRONG_OWNER_FIXTURE, booking_owner_name: null };
+  const toWrite = pickThreadHijackAlert({
+    wrongOwner: wrongOwnerNoName,
+    nameMismatch: NAME_MISMATCH_FIXTURE,
+    readOnlyDisclosure: null,
+  });
+  assertEquals(toWrite.length, 2);
+  const classes = toWrite.map((w) => w.alert.failure_class).sort();
+  assertEquals(classes, ["thread_hijack_name_mismatch", "thread_hijack_wrong_owner"]);
 });

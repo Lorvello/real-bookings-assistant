@@ -3332,11 +3332,21 @@ Deno.serve(async (req) => {
         // R15 GAP A FIX: routed through runInBackground, same reasoning as the writeMonitoringAlert
         // call sites above/below - this hint upsert is the pg_cron sweep's own DB-native comparison
         // value, losing it silently would blind the sweep for this booking too.
+        // R23 FIX (gap 3, see _BA_MONITORING_ALERTS_STATE.md R22 finding 3 / R23 remediation item 3
+        // + the new 20260713170000_MONITEM3_R23_hint_staleness_fix.sql migration): explicitly stamps
+        // `updated_at` on every real upsert (a bare .upsert() only applies a column DEFAULT on
+        // INSERT, never on UPDATE/conflict, so without this the column would silently stay frozen at
+        // row-creation time forever). This is what lets the sweep tell a hint that was genuinely
+        // refreshed this turn apart from a stale hint left over from an earlier turn.
         runInBackground(
           Promise.resolve(
             supabase
               .from("monitoring_alert_hints")
-              .upsert({ booking_id: committedForHint.bookingId, established_iso: effectiveDateHint.iso }),
+              .upsert({
+                booking_id: committedForHint.bookingId,
+                established_iso: effectiveDateHint.iso,
+                updated_at: now.toISOString(),
+              }),
           ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: hint upsert failed:", e)),
         );
       }
@@ -3361,10 +3371,22 @@ Deno.serve(async (req) => {
       // dedup), which is true-positive noise, not a detection gap - up to 3 separate emails for one
       // real incident. Check B (detectThreadHijackWrongOwner) needs an extra async DB read, so it is
       // awaited here alongside A/C's already-computed synchronous results, and pickThreadHijackAlert
-      // (monitoringAlerts.ts) picks AT MOST ONE to actually write, by priority
-      // wrong_owner > name_mismatch > readonly_disclosure (wrong_owner is the strongest signal, a
-      // direct DB-level ownership check rather than a heuristic read of tool/reply text). Each
-      // check's own detection logic above is completely untouched; only the write step is deduped.
+      // (monitoringAlerts.ts) groups them by best-effort incident identity first, dedups WITHIN a
+      // group by priority wrong_owner > name_mismatch > readonly_disclosure (wrong_owner is the
+      // strongest signal, a direct DB-level ownership check rather than a heuristic read of tool/
+      // reply text), and returns one entry PER DISTINCT incident.
+      // R23 FIX (gap 2, see monitoringAlerts.ts header comment above pickThreadHijackAlert): this
+      // now WRITES EVERY entry returned, not just the first/highest-priority one - a turn with 2
+      // genuinely different real incidents (e.g. Check A firing on one booking, Check C disclosing
+      // an unrelated second person's booking) now persists BOTH as separate monitoring_alerts rows/
+      // emails instead of the earlier code silently keeping only one and dropping the other's
+      // evidence entirely. Each check's own detection logic above is completely untouched; only the
+      // write step changed.
+      // R23 FIX (gap 1): each written alert's `details` now also includes `supplementary` - the
+      // distinguishing fields of any other same-incident check that fired but lost priority within
+      // its group (e.g. a co-firing name_mismatch's stated_name/actual_name attached to a winning
+      // wrong_owner alert), instead of those fields being silently discarded on a same-incident
+      // dedup.
       // R15 GAP A FIX: the whole chain (the read + the dependent writeMonitoringAlert) is routed
       // through runInBackground so it is not killed the instant the HTTP response is written.
       runInBackground(
@@ -3374,27 +3396,30 @@ Deno.serve(async (req) => {
             return null;
           })
           .then((wrongOwner) => {
-            const winner = pickThreadHijackAlert({ wrongOwner, nameMismatch, readOnlyDisclosure });
-            if (!winner) return;
-            const details: Record<string, unknown> = { reply_text: reply };
-            if (winner.failure_class === "thread_hijack_wrong_owner") {
-              details.referenced_booking_id = winner.referenced_booking_id;
-              details.booking_owner_phone = winner.booking_owner_phone;
-              details.current_phone = winner.current_phone;
-            } else if (winner.failure_class === "thread_hijack_name_mismatch") {
-              details.stated_name = winner.stated_name;
-              details.actual_name = winner.actual_name;
-            } else {
-              details.known_self_name = winner.known_self_name;
-              details.disclosed_name = winner.disclosed_name;
-            }
-            return writeMonitoringAlert(supabase, {
-              failure_class: winner.failure_class,
-              conversation_id: conversationId ?? null,
-              contact_phone: phone ?? null,
-              turn_id: turnId,
-              details,
-            });
+            const toWrite = pickThreadHijackAlert({ wrongOwner, nameMismatch, readOnlyDisclosure });
+            if (toWrite.length === 0) return;
+            return Promise.all(toWrite.map(({ alert, supplementary }) => {
+              const details: Record<string, unknown> = { reply_text: reply, ...supplementary };
+              if (alert.failure_class === "thread_hijack_wrong_owner") {
+                details.referenced_booking_id = alert.referenced_booking_id;
+                details.booking_owner_phone = alert.booking_owner_phone;
+                details.booking_owner_name = alert.booking_owner_name;
+                details.current_phone = alert.current_phone;
+              } else if (alert.failure_class === "thread_hijack_name_mismatch") {
+                details.stated_name = alert.stated_name;
+                details.actual_name = alert.actual_name;
+              } else {
+                details.known_self_name = alert.known_self_name;
+                details.disclosed_name = alert.disclosed_name;
+              }
+              return writeMonitoringAlert(supabase, {
+                failure_class: alert.failure_class,
+                conversation_id: conversationId ?? null,
+                contact_phone: phone ?? null,
+                turn_id: turnId,
+                details,
+              });
+            }));
           })
           .catch((e) => console.error("monitoring-alerts: thread-hijack dedup write failed:", e)),
       );

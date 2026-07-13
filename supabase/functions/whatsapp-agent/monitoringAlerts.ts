@@ -495,6 +495,12 @@ export interface ThreadHijackWrongOwnerAlert {
   failure_class: "thread_hijack_wrong_owner";
   referenced_booking_id: string;
   booking_owner_phone: string | null;
+  // R23 FIX (gap 2, see below): also carries the booking owner's stored name, fetched off the
+  // SAME single select this check already ran (zero extra queries) - Check A/C's alerts only ever
+  // carry a name (naam_verificatie_nodig results never carry a booking_id, confirmed by grepping
+  // every call site in tools.ts), so this field gives pickThreadHijackAlert a name it can actually
+  // compare against theirs. Never shown to the customer, monitoring-only.
+  booking_owner_name: string | null;
   current_phone: string;
 }
 
@@ -513,16 +519,18 @@ export async function detectThreadHijackWrongOwner(
   if (!bookingId) return null;
   const { data, error } = await supabase
     .from("bookings")
-    .select("customer_phone")
+    .select("customer_phone, customer_name")
     .eq("id", bookingId)
     .maybeSingle();
   if (error || !data) return null;
-  const ownerPhone = (data as { customer_phone?: string | null }).customer_phone ?? null;
+  const row = data as { customer_phone?: string | null; customer_name?: string | null };
+  const ownerPhone = row.customer_phone ?? null;
   if (ownerPhone && ownerPhone !== currentPhone) {
     return {
       failure_class: "thread_hijack_wrong_owner",
       referenced_booking_id: bookingId,
       booking_owner_phone: ownerPhone,
+      booking_owner_name: row.customer_name ?? null,
       current_phone: currentPhone,
     };
   }
@@ -535,12 +543,39 @@ export async function detectThreadHijackWrongOwner(
 // detectThreadHijackReadOnlyDisclosure) all read the SAME turn's toolCalls and can each
 // independently detect the same real hijack, so one true incident could write up to 3 separate
 // monitoring_alerts rows and trigger up to 3 separate emails. This is true-positive noise (not a
-// detection gap - nothing is missed), but still worth deduping cheaply. pickThreadHijackAlert picks
-// AT MOST ONE result per turn to actually write, by priority: wrong_owner (Check B) is the
-// strongest signal since it is a direct DB-level ownership check, not a heuristic read of tool/reply
-// text, so it wins over name_mismatch (Check A) and readonly_disclosure (Check C) when more than
-// one fires. Each check's own detection logic above is completely untouched by this function; it
-// only decides which already-computed result gets persisted.
+// detection gap - nothing is missed), but still worth deduping cheaply.
+//
+// R23 FIX (gap 2, see _BA_MONITORING_ALERTS_STATE.md R22 finding 2 / R23 remediation item 2,
+// orchestrator-upgraded to effectively MUST-FIX): R21's pickThreadHijackAlert unconditionally kept
+// only the single highest-priority result and silently DISCARDED the rest, even when the fired
+// checks represent 2 genuinely different real incidents in the same turn - Check A reads
+// naam_verificatie_nodig gate results off MUTATION tool calls, Check C reads get_my_appointments
+// (a READ-ONLY tool), and nothing stopped them referencing two entirely different bookings/people
+// in one turn. That regressed R21's own fix from "noisy duplicate true-positives" (nothing lost) to
+// "can silently lose a genuine second incident's evidence entirely" - the exact class of
+// silent-failure risk this whole run-spec exists to prevent.
+//
+// Fix: group the fired results by a best-effort INCIDENT IDENTITY before picking a winner, and
+// dedup only WITHIN a group (genuinely the same incident), never across groups. The identity signal
+// used is the normalized name of the "other" person whose booking was touched this turn:
+// name_mismatch's actual_name (the real owner the gate reported), readonly_disclosure's
+// disclosed_name (the other customer's name surfaced by get_my_appointments), and - the one gap a
+// naive name-only comparison would have - wrong_owner's booking_owner_name. That last field did not
+// exist before this round: naam_verificatie_nodig results never carry a booking_id (confirmed by
+// grepping every call site in tools.ts), so a booking_id-based identity key is structurally
+// unavailable for 2 of the 3 checks; extending detectThreadHijackWrongOwner's already-existing
+// single `bookings` select to also fetch `customer_name` (zero extra queries, see that function
+// above) gives all 3 checks a genuinely comparable identity field instead.
+// Two alerts are only merged into one group when BOTH resolve to a name and those names match
+// (case/diacritic-insensitive via normalizeNameForCompare, same helper every other check in this
+// file already uses). An alert whose identity name cannot be resolved (e.g. a wrong_owner hit on a
+// booking whose stored customer_name is null) is conservatively kept in its OWN group rather than
+// silently folded into another - this fails open toward writing more alerts, never fewer, which is
+// the safe direction for a monitoring system. Within a group, the same wrong_owner > name_mismatch
+// > readonly_disclosure priority R21 established still decides which alert in that group is the
+// one actually written; the others in the group contribute their own distinguishing fields as
+// SUPPLEMENTARY context on the winner's details (gap 1, see _BA_MONITORING_ALERTS_STATE.md R22
+// finding 1) instead of being discarded outright.
 // ---------------------------------------------------------------------------
 
 export type ThreadHijackAnyAlert =
@@ -554,11 +589,73 @@ export interface ThreadHijackDedupInput {
   readOnlyDisclosure: ThreadHijackReadOnlyDisclosureAlert | null;
 }
 
-export function pickThreadHijackAlert(input: ThreadHijackDedupInput): ThreadHijackAnyAlert | null {
-  if (input.wrongOwner) return input.wrongOwner;
-  if (input.nameMismatch) return input.nameMismatch;
-  if (input.readOnlyDisclosure) return input.readOnlyDisclosure;
-  return null;
+// One entry per DISTINCT incident this turn actually produced. `supplementary` (gap 1) carries the
+// distinguishing fields of any other same-incident check that also fired but lost priority to
+// `alert` - purely additive human-readable context, never changes which alert wins.
+export interface ThreadHijackAlertToWrite {
+  alert: ThreadHijackAnyAlert;
+  supplementary: Record<string, unknown>;
+}
+
+function alertIdentityName(alert: ThreadHijackAnyAlert): string | null {
+  if (alert.failure_class === "thread_hijack_wrong_owner") return alert.booking_owner_name;
+  if (alert.failure_class === "thread_hijack_name_mismatch") return alert.actual_name;
+  return alert.disclosed_name;
+}
+
+function alertPriorityRank(alert: ThreadHijackAnyAlert): number {
+  if (alert.failure_class === "thread_hijack_wrong_owner") return 0;
+  if (alert.failure_class === "thread_hijack_name_mismatch") return 1;
+  return 2;
+}
+
+export function pickThreadHijackAlert(input: ThreadHijackDedupInput): ThreadHijackAlertToWrite[] {
+  const fired: ThreadHijackAnyAlert[] = [input.wrongOwner, input.nameMismatch, input.readOnlyDisclosure]
+    .filter((a): a is ThreadHijackAnyAlert => a !== null);
+  if (fired.length === 0) return [];
+
+  // Group by resolvable, normalized identity name. An unresolvable name always starts its own
+  // fresh group (never merged with anything, including another unresolvable one) - see the header
+  // comment above for why that is the conservative/safe choice.
+  const groups: ThreadHijackAnyAlert[][] = [];
+  for (const alert of fired) {
+    const name = alertIdentityName(alert);
+    const normalized = name ? normalizeNameForCompare(name) : null;
+    const existingGroup = normalized
+      ? groups.find((g) => {
+        const gName = alertIdentityName(g[0]);
+        return gName != null && normalizeNameForCompare(gName) === normalized;
+      })
+      : undefined;
+    if (existingGroup) existingGroup.push(alert);
+    else groups.push([alert]);
+  }
+
+  return groups.map((group) => {
+    const winner = group.slice().sort((a, b) => alertPriorityRank(a) - alertPriorityRank(b))[0];
+    const supplementary: Record<string, unknown> = {};
+    for (const loser of group) {
+      if (loser === winner) continue;
+      if (loser.failure_class === "thread_hijack_wrong_owner") {
+        supplementary.also_detected_wrong_owner = {
+          referenced_booking_id: loser.referenced_booking_id,
+          booking_owner_phone: loser.booking_owner_phone,
+          booking_owner_name: loser.booking_owner_name,
+        };
+      } else if (loser.failure_class === "thread_hijack_name_mismatch") {
+        supplementary.also_detected_name_mismatch = {
+          stated_name: loser.stated_name,
+          actual_name: loser.actual_name,
+        };
+      } else {
+        supplementary.also_detected_readonly_disclosure = {
+          known_self_name: loser.known_self_name,
+          disclosed_name: loser.disclosed_name,
+        };
+      }
+    }
+    return { alert: winner, supplementary };
+  });
 }
 
 // ---------------------------------------------------------------------------
