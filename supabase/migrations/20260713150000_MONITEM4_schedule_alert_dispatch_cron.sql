@@ -17,9 +17,13 @@
 -- vault secret is ever absent the job sends no x-internal-secret header and the function returns
 -- 401 (fails closed, no unauthenticated send).
 --
--- The function itself only ever sends when monitoring_alert_config.enabled = true AND
+-- The function only sends normal anomaly alerts when monitoring_alert_config.enabled = true AND
 -- alert_email is set (see index.ts), so this schedule is safe to activate even while enabled
--- stays false; it simply no-ops every tick until a human explicitly flips the flag.
+-- stays false; it simply no-ops those rows every tick until a human explicitly flips the flag.
+-- UPDATE (R17/R18 Gap B fix, see launch-ready-loop/_BA_MONITORING_ALERTS_STATE.md): one exception -
+-- monitor_heartbeat_missing rows with reason='config_disabled' are dispatched unconditionally,
+-- independent of the enabled gate, since that alert exists specifically to warn a human the config
+-- got disabled and would otherwise be unable to ever reach an inbox.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
