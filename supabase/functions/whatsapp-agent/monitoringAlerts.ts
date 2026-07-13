@@ -246,11 +246,27 @@ const CONFIRMATION_KEYWORDS_RE =
 // exists anywhere in tools.ts/identityDisambiguationGuard.ts to duplicate byte-for-byte (checked
 // both files during this fix), so this pattern is the same kind of broad-but-scoped keyword set
 // the Dutch one already is: the recurring English confirmation-question markers a translated
-// disclose-and-confirm question realistically uses ("is this", "confirm", "would you like",
-// "please confirm", "type back", "or did you mean"), still gated by isConfirmationRequest's own
+// disclose-and-confirm question realistically uses, still gated by isConfirmationRequest's own
 // "?" requirement below so a bare keyword mention without an actual question never matches.
+//
+// R11 GAP B FIX (adversarial round found: "should i", "is this", "does this" are generic
+// conversational fragments that can appear in an unrelated trailing question the model stacks
+// onto a reply - see index.ts's own ITEM 4 comment ~line 3273, which documents this model's real,
+// observed tendency to bundle 2+ questions into one reply, e.g. "...service + day/time + staff
+// into one message"). A hijack reply that never properly asks for confirmation but happens to
+// stack an unrelated "is this a good time?" or "should I also check Tuesday?" question would have
+// false-suppressed a REAL hijack alert under the old set. Tightened to mirror the Dutch set's own
+// domain specificity (klopt/bevestig/wil je/moet dit/typ/of toch/of blijft/of bedoelde je are all
+// booking-confirmation vocabulary, not generic conversational fragments): dropped the three bare
+// generic fragments outright, and narrowed "is this"/"is that" to the specific confirmation-framing
+// phrase "is this/that correct/right" (mirrors the Dutch "Klopt het dat..." semantics) and "type
+// back" to "type the/your name back" (mirrors the Dutch "Typ ter bevestiging de naam terug..."
+// instruction verbatim in tools.ts's own customer_reply templates, e.g. line 1898/2769/3291/3477/
+// 4542). "confirm"/"would you like"/"please confirm"/"or did you mean" kept as-is - already
+// domain-specific enough (a stacked unrelated question is very unlikely to contain "would you
+// like" or "or did you mean" by coincidence, unlike the three removed fragments).
 const CONFIRMATION_KEYWORDS_RE_EN =
-  /\bis this\b|\bis that\b|\bconfirm\b|\bwould you like\b|\bplease confirm\b|\btype back\b|\bor did you mean\b|\bdoes this\b|\bshould i\b/i;
+  /\bconfirm\b|\bwould you like\b|\bor did you mean\b|\btype (?:the |your )?name back\b|\bis (?:this|that) (?:correct|right)\b/i;
 function isConfirmationRequest(replyText: string): boolean {
   return replyText.includes("?") &&
     (CONFIRMATION_KEYWORDS_RE.test(replyText) || CONFIRMATION_KEYWORDS_RE_EN.test(replyText));
@@ -311,9 +327,39 @@ export function detectThreadHijackNameMismatch(
 // monitoring_alerts with noise unrelated to any hijack.
 const READ_ONLY_APPOINTMENT_TOOLS = new Set(["get_my_appointments"]);
 
+// R11 GAP A FIX (adversarial round found: Check C fired on the correctly-designed shared-phone
+// disclosure, not just a hijack - see tools.ts's own "GEDEELD NUMMER" rule, referenced 15+ times:
+// "staat een afspraak op een ANDERE naam dan de huidige klant, presenteer die dan ALTIJD als 'de
+// afspraak van [naam]', nooit als 'jouw afspraak'"). A mismatched customer_name inside a
+// get_my_appointments result is NORMAL, everyday, correct behavior whenever 2+ bookings share a
+// phone number - it is only the R130-shaped bug when the agent's own reply fails to properly
+// attribute the disclosed name (i.e. presents the other person's booking as if it were the current
+// customer's own). Mirrors Check A's own `finalReplyText`-gated shape (R7/R8 fix): the raw tool
+// result alone is never enough to alert, the reply's own attribution must ALSO be checked.
+// `replyProperlyAttributesDisclosedName` is deliberately a small mechanical substring check (the
+// disclosed name appearing anywhere in the reply, normalized for case/diacritics) rather than a
+// strict phrase match on "de afspraak van [naam]" - the model paraphrases (same fact R7/R8/R9
+// already documented for the Dutch and English confirmation wording), so requiring the exact
+// locked phrase would just reintroduce a narrower version of the same false-positive class this
+// fix exists to close. If the disclosed name is named anywhere in the reply, that is the agent
+// correctly surfacing whose booking it is (the GEDEELD NUMMER design working as intended); if the
+// name never appears at all, the booking was presented without attribution - the actual hijack
+// shape. `finalReplyText` is optional/nullable, matching Check A's own established convention
+// (ThreadHijackNameMismatchTurnCtx): a missing/empty reply never attributes anything, so older
+// mechanism-level callers that never populate it keep firing exactly as before.
+function replyProperlyAttributesDisclosedName(
+  replyText: string | null | undefined,
+  disclosedName: string,
+): boolean {
+  if (!replyText) return false;
+  return normalizeNameForCompare(replyText).includes(normalizeNameForCompare(disclosedName));
+}
+
 export interface ThreadHijackReadOnlyDisclosureTurnCtx {
   toolCalls: MonitoringToolCall[];
   knownSelfName: string | null | undefined;
+  // R11 GAP A FIX: see the block comment above `replyProperlyAttributesDisclosedName`.
+  finalReplyText?: string | null;
 }
 
 export interface ThreadHijackReadOnlyDisclosureAlert {
@@ -339,6 +385,9 @@ export function detectThreadHijackReadOnlyDisclosure(
       if (!isRealName(name)) continue;
       const nameStr = String(name);
       if (normalizeNameForCompare(nameStr) === normalizeNameForCompare(selfName)) continue;
+      // R11 GAP A FIX: the reply DID properly attribute the disclosed name (the GEDEELD NUMMER
+      // design working as intended, e.g. "de afspraak van R112ProofX") - benign, never alert.
+      if (replyProperlyAttributesDisclosedName(ctx.finalReplyText, nameStr)) continue;
       return {
         failure_class: "thread_hijack_readonly_disclosure",
         known_self_name: selfName,

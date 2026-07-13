@@ -3349,9 +3349,13 @@ Deno.serve(async (req) => {
       // Check C (R9 gap 3 fix): the SAME cross-identity signal Check A surfaces, this time read off
       // get_my_appointments' own READ-ONLY result (no mutation call required this turn), so a
       // hijack disclosed purely through the read-only lookup channel is no longer unguarded.
+      // R11 GAP A FIX: also passes `reply` so the detector can suppress the correctly-designed
+      // GEDEELD NUMMER disclosure (tools.ts) and only alert when the reply fails to properly
+      // attribute the disclosed name to its real owner.
       const readOnlyDisclosure = detectThreadHijackReadOnlyDisclosure({
         toolCalls: result.toolCalls,
         knownSelfName: knownName,
+        finalReplyText: reply,
       });
       if (readOnlyDisclosure) {
         void writeMonitoringAlert(supabase, {

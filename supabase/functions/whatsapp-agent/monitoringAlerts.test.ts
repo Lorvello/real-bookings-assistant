@@ -245,6 +245,41 @@ Deno.test("thread hijack name mismatch: English reply that does NOT ask for conf
   assertEquals(alert?.actual_name, "Fatima");
 });
 
+// --- Class 2, Check A, R11 gap B fix: tightened EN keyword set -------------------------------
+// R9's CONFIRMATION_KEYWORDS_RE_EN included generic conversational fragments ("should i", "is
+// this", "does this") that could match an unrelated trailing question the model stacks onto a
+// reply (index.ts's own ITEM 4 comment documents this model's real tendency to bundle 2+
+// questions). Genuine confirmation phrasing must still suppress; a stacked unrelated question
+// using one of the removed generic fragments must no longer false-suppress a real hijack.
+
+Deno.test("thread hijack name mismatch: still no alert on a genuine tightened English confirmation phrase (gap B, true-negative preserved)", () => {
+  const alert = detectThreadHijackNameMismatch({
+    toolCalls: [
+      { name: "reschedule_appointment", result: { error: "naam_verificatie_nodig", current_name: "R112ProofX" } },
+    ],
+    knownSelfName: "Someone Else",
+    finalReplyText:
+      'Is this correct, that this is really the appointment for R112ProofX? Please type the name back to confirm, e.g. "Yes, R112ProofX".',
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack name mismatch: fires despite a stacked unrelated generic question that the OLD English keyword set would have false-suppressed (gap B fix)", () => {
+  const alert = detectThreadHijackNameMismatch({
+    toolCalls: [
+      { name: "reschedule_appointment", result: { error: "naam_verificatie_nodig", current_name: "Fatima" } },
+    ],
+    knownSelfName: "Peter",
+    // No genuine confirmation-question phrasing at all - the agent silently proceeded and merely
+    // stacked an unrelated generic question. Under the OLD regex ("is this"/"does this"/"should i")
+    // this would have matched and wrongly suppressed a real hijack alert.
+    finalReplyText: "Your appointment has been moved to Friday 14:00. Is this a good time for you? Should I also block Tuesday?",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_name_mismatch");
+  assertEquals(alert?.stated_name, "Peter");
+  assertEquals(alert?.actual_name, "Fatima");
+});
+
 // --- Class 2, Check C: read-only tool result disclosure (R9 gap 3 fix) -----
 
 Deno.test("thread hijack read-only disclosure: fires when get_my_appointments discloses a name differing from the known identity", () => {
@@ -297,6 +332,47 @@ Deno.test("thread hijack read-only disclosure: no alert on other read-only tools
     knownSelfName: "Peter",
   });
   assertEquals(alert, null);
+});
+
+// --- Class 2, Check C, R11 gap A fix: benign GEDEELD NUMMER disclosure vs actual hijack ---------
+// tools.ts's own "GEDEELD NUMMER" rule (referenced 15+ times) makes a mismatched customer_name a
+// NORMAL, everyday, correct disclosure - the agent is supposed to say "de afspraak van [naam]".
+// Check C must suppress that case and only fire when the reply fails to attribute the name.
+
+Deno.test("thread hijack read-only disclosure: no alert when the reply correctly attributes the disclosed name (gap A, benign GEDEELD NUMMER shape)", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "R112ProofX" }] } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText:
+      "Onder dit nummer staat ook de afspraak van R112ProofX (Knippen, vrijdag 14:00). Wil je die inzien of gaat het om jouw eigen afspraak?",
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack read-only disclosure: still fires when the reply presents the disclosed booking as the customer's own (gap A, actual hijack shape)", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Fatima" }] } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText: "Jouw afspraak staat gepland voor vrijdag 14:00, tot dan!",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(alert?.known_self_name, "Peter");
+  assertEquals(alert?.disclosed_name, "Fatima");
+});
+
+Deno.test("thread hijack read-only disclosure: still fires when no reply text is available at all (matches Check A's own established convention)", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Fatima" }] } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText: undefined,
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
 });
 
 // Stubbed Supabase client, no live project touched. Mirrors the design's Path B "hand-constructed
