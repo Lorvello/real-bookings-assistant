@@ -3446,11 +3446,16 @@ Deno.serve(async (req) => {
       // R15 GAP A FIX: routed through runInBackground - the heartbeat write is exactly the kind of
       // write this fix exists to protect (a bare `void` losing it would silently defeat the whole
       // dead-man's-switch the moment an isolate is recycled quickly after the response).
+      // R26 FIX (Finding 2, low-severity/consistency): this used to reuse the request-start `now`
+      // (frozen at line ~1294, before the LLM/tool-call loop runs) instead of a timestamp captured
+      // fresh at the actual write point. Negligible in practice given the 1-hour staleness cutoff,
+      // but fixed for consistency with the R25 principle (fresh timestamp at point of write, never
+      // a frozen request-start one). No other use of `now` in this function changed.
       runInBackground(
         Promise.resolve(
           supabase
             .from("monitoring_heartbeat")
-            .upsert({ id: true, last_beat: now.toISOString() }),
+            .upsert({ id: true, last_beat: new Date().toISOString() }),
         ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: heartbeat upsert failed:", e)),
       );
     } catch (e) {
@@ -3460,12 +3465,14 @@ Deno.serve(async (req) => {
       // throwing every turn, defeating the whole point of a dead-man's-switch. Best-effort, never
       // rethrows.
       // R15 GAP A FIX: routed through runInBackground, same reasoning as the success-path heartbeat.
+      // R26 FIX (Finding 2, low-severity/consistency): same fresh-timestamp fix as the success-path
+      // heartbeat write above - fresh `new Date()` at the write point instead of the frozen `now`.
       try {
         runInBackground(
           Promise.resolve(
             supabase
               .from("monitoring_heartbeat")
-              .upsert({ id: true, last_beat: now.toISOString() }),
+              .upsert({ id: true, last_beat: new Date().toISOString() }),
           ).then(() => {}, () => {}),
         );
       } catch (_e2) {
