@@ -530,6 +530,38 @@ export async function detectThreadHijackWrongOwner(
 }
 
 // ---------------------------------------------------------------------------
+// R21 FIX 2 (see _BA_MONITORING_ALERTS_STATE.md R20 finding 2 / R21 remediation item 2): Checks
+// A/B/C (detectThreadHijackNameMismatch, detectThreadHijackWrongOwner,
+// detectThreadHijackReadOnlyDisclosure) all read the SAME turn's toolCalls and can each
+// independently detect the same real hijack, so one true incident could write up to 3 separate
+// monitoring_alerts rows and trigger up to 3 separate emails. This is true-positive noise (not a
+// detection gap - nothing is missed), but still worth deduping cheaply. pickThreadHijackAlert picks
+// AT MOST ONE result per turn to actually write, by priority: wrong_owner (Check B) is the
+// strongest signal since it is a direct DB-level ownership check, not a heuristic read of tool/reply
+// text, so it wins over name_mismatch (Check A) and readonly_disclosure (Check C) when more than
+// one fires. Each check's own detection logic above is completely untouched by this function; it
+// only decides which already-computed result gets persisted.
+// ---------------------------------------------------------------------------
+
+export type ThreadHijackAnyAlert =
+  | ThreadHijackWrongOwnerAlert
+  | ThreadHijackNameMismatchAlert
+  | ThreadHijackReadOnlyDisclosureAlert;
+
+export interface ThreadHijackDedupInput {
+  wrongOwner: ThreadHijackWrongOwnerAlert | null;
+  nameMismatch: ThreadHijackNameMismatchAlert | null;
+  readOnlyDisclosure: ThreadHijackReadOnlyDisclosureAlert | null;
+}
+
+export function pickThreadHijackAlert(input: ThreadHijackDedupInput): ThreadHijackAnyAlert | null {
+  if (input.wrongOwner) return input.wrongOwner;
+  if (input.nameMismatch) return input.nameMismatch;
+  if (input.readOnlyDisclosure) return input.readOnlyDisclosure;
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Storage: fire-and-forget insert, never throws
 // ---------------------------------------------------------------------------
 

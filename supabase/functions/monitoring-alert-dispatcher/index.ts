@@ -144,9 +144,15 @@ async function dispatchPendingAlerts(): Promise<{
   sent: number;
   failed: number;
 }> {
+  // R21 FIX (see _BA_MONITORING_ALERTS_STATE.md R21 remediation item 3): added
+  // .order("updated_at", { ascending: false }) to match the heartbeat sweep's own safer
+  // `ORDER BY updated_at DESC LIMIT 1` pattern (scan_monitoring_heartbeat,
+  // 20260713150000_MONITEM3_R9_gap4_heartbeat.sql), so a hypothetical future duplicate config row
+  // can never be read nondeterministically.
   const { data: config, error: configErr } = await supabase
     .from("monitoring_alert_config")
     .select("alert_email, enabled")
+    .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 

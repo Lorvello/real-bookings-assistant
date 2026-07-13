@@ -11,6 +11,7 @@ import {
   detectThreadHijackReadOnlyDisclosure,
   detectThreadHijackWrongOwner,
   extractDateFromReplyText,
+  pickThreadHijackAlert,
 } from "./monitoringAlerts.ts";
 
 const NOW = new Date("2026-07-15T10:00:00Z"); // Wednesday
@@ -543,4 +544,68 @@ Deno.test("thread hijack wrong owner: no alert when no mutation committed this t
     "31600000002",
   );
   assertEquals(alert, null);
+});
+
+// --- R21 fix 2: thread-hijack per-turn dedup --------------------------------
+// (see _BA_MONITORING_ALERTS_STATE.md R20 finding 2 / R21 remediation item 2). Checks A/B/C can
+// each independently fire for one real hijack turn; pickThreadHijackAlert must return AT MOST ONE
+// result, by priority wrong_owner > name_mismatch > readonly_disclosure.
+
+const WRONG_OWNER_FIXTURE = {
+  failure_class: "thread_hijack_wrong_owner" as const,
+  referenced_booking_id: "b9",
+  booking_owner_phone: "31600000001",
+  current_phone: "31600000002",
+};
+const NAME_MISMATCH_FIXTURE = {
+  failure_class: "thread_hijack_name_mismatch" as const,
+  stated_name: "Peter",
+  actual_name: "Fatima",
+};
+const READONLY_DISCLOSURE_FIXTURE = {
+  failure_class: "thread_hijack_readonly_disclosure" as const,
+  known_self_name: "Peter",
+  disclosed_name: "Sophie",
+};
+
+Deno.test("thread hijack dedup: all 3 checks firing in one turn yields exactly 1 winner (wrong_owner priority)", () => {
+  const winner = pickThreadHijackAlert({
+    wrongOwner: WRONG_OWNER_FIXTURE,
+    nameMismatch: NAME_MISMATCH_FIXTURE,
+    readOnlyDisclosure: READONLY_DISCLOSURE_FIXTURE,
+  });
+  assertEquals(winner?.failure_class, "thread_hijack_wrong_owner");
+});
+
+Deno.test("thread hijack dedup: name_mismatch + readonly_disclosure (no wrong_owner) picks name_mismatch", () => {
+  const winner = pickThreadHijackAlert({
+    wrongOwner: null,
+    nameMismatch: NAME_MISMATCH_FIXTURE,
+    readOnlyDisclosure: READONLY_DISCLOSURE_FIXTURE,
+  });
+  assertEquals(winner?.failure_class, "thread_hijack_name_mismatch");
+});
+
+Deno.test("thread hijack dedup: only readonly_disclosure fires, still returns it", () => {
+  const winner = pickThreadHijackAlert({
+    wrongOwner: null,
+    nameMismatch: null,
+    readOnlyDisclosure: READONLY_DISCLOSURE_FIXTURE,
+  });
+  assertEquals(winner?.failure_class, "thread_hijack_readonly_disclosure");
+});
+
+Deno.test("thread hijack dedup: nothing fires, returns null", () => {
+  const winner = pickThreadHijackAlert({ wrongOwner: null, nameMismatch: null, readOnlyDisclosure: null });
+  assertEquals(winner, null);
+});
+
+Deno.test("thread hijack dedup: wrong_owner alone still wins over nothing else firing", () => {
+  const winner = pickThreadHijackAlert({
+    wrongOwner: WRONG_OWNER_FIXTURE,
+    nameMismatch: null,
+    readOnlyDisclosure: null,
+  });
+  assertEquals(winner?.failure_class, "thread_hijack_wrong_owner");
+  assertEquals((winner as typeof WRONG_OWNER_FIXTURE).referenced_booking_id, "b9");
 });

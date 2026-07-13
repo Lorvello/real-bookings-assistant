@@ -48,8 +48,16 @@ ALTER TABLE public.monitoring_alert_config ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.monitoring_alert_config FROM PUBLIC, anon, authenticated;
 GRANT ALL ON public.monitoring_alert_config TO service_role;
 
+-- R21 REMEDIATION (documentation/future-safety only, see _BA_MONITORING_ALERTS_STATE.md R21 item
+-- 3): ON CONFLICT DO NOTHING makes this INSERT safe if this migration file were ever re-run. This
+-- file is already applied to the live DB (out-of-band via the Management API, not tracked in
+-- supabase_migrations.schema_migrations - confirmed via a direct query during the R21 round), so
+-- this edit has no effect on the current deployment; it only hardens the source for any future
+-- re-run. monitoring_alert_config has no natural unique key on (alert_email) today, so this guard
+-- is a no-op unless a unique constraint is added later - kept anyway as the documented intent.
 INSERT INTO public.monitoring_alert_config (alert_email, enabled)
-VALUES ('business01003@gmail.com', false);
+VALUES ('business01003@gmail.com', false)
+ON CONFLICT DO NOTHING;
 
 -- 3. monitoring_alert_hints: the small side table design section 3 flagged as an open choice for
 -- Item 3 to decide (side table vs a new column on bookings). Decided here: a side table, since

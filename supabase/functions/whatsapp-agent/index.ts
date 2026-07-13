@@ -25,7 +25,7 @@ import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, matchesSecondBookingDifferentPerson, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
-import { detectDateMismatch, detectThreadHijackNameMismatch, detectThreadHijackReadOnlyDisclosure, detectThreadHijackWrongOwner, findCommittedBookingDate, writeMonitoringAlert } from "./monitoringAlerts.ts";
+import { detectDateMismatch, detectThreadHijackNameMismatch, detectThreadHijackReadOnlyDisclosure, detectThreadHijackWrongOwner, findCommittedBookingDate, pickThreadHijackAlert, writeMonitoringAlert } from "./monitoringAlerts.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
 import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
@@ -3345,20 +3345,6 @@ Deno.serve(async (req) => {
         knownSelfName: knownName,
         finalReplyText: reply,
       });
-      if (nameMismatch) {
-        // R15 GAP A FIX: routed through runInBackground (see comment on the first call site above).
-        runInBackground(writeMonitoringAlert(supabase, {
-          failure_class: nameMismatch.failure_class,
-          conversation_id: conversationId ?? null,
-          contact_phone: phone ?? null,
-          turn_id: turnId,
-          details: {
-            stated_name: nameMismatch.stated_name,
-            actual_name: nameMismatch.actual_name,
-            reply_text: reply,
-          },
-        }));
-      }
       // Check C (R9 gap 3 fix): the SAME cross-identity signal Check A surfaces, this time read off
       // get_my_appointments' own READ-ONLY result (no mutation call required this turn), so a
       // hijack disclosed purely through the read-only lookup channel is no longer unguarded.
@@ -3370,42 +3356,47 @@ Deno.serve(async (req) => {
         knownSelfName: knownName,
         finalReplyText: reply,
       });
-      if (readOnlyDisclosure) {
-        // R15 GAP A FIX: routed through runInBackground (see comment on the first call site above).
-        runInBackground(writeMonitoringAlert(supabase, {
-          failure_class: readOnlyDisclosure.failure_class,
-          conversation_id: conversationId ?? null,
-          contact_phone: phone ?? null,
-          turn_id: turnId,
-          details: {
-            known_self_name: readOnlyDisclosure.known_self_name,
-            disclosed_name: readOnlyDisclosure.disclosed_name,
-            reply_text: reply,
-          },
-        }));
-      }
-      // Check B needs one extra single-row read; kept non-blocking (fire-and-forget, issued after
-      // the reply has already been composed) per the design's section 2 placement note.
-      // R15 GAP A FIX: the whole chain (the read + its dependent writeMonitoringAlert) is routed
+      // R21 FIX 2 (see _BA_MONITORING_ALERTS_STATE.md R20 finding 2 / R21 remediation item 2):
+      // Checks A/B/C can each independently fire for the SAME real hijack turn (no cross-check
+      // dedup), which is true-positive noise, not a detection gap - up to 3 separate emails for one
+      // real incident. Check B (detectThreadHijackWrongOwner) needs an extra async DB read, so it is
+      // awaited here alongside A/C's already-computed synchronous results, and pickThreadHijackAlert
+      // (monitoringAlerts.ts) picks AT MOST ONE to actually write, by priority
+      // wrong_owner > name_mismatch > readonly_disclosure (wrong_owner is the strongest signal, a
+      // direct DB-level ownership check rather than a heuristic read of tool/reply text). Each
+      // check's own detection logic above is completely untouched; only the write step is deduped.
+      // R15 GAP A FIX: the whole chain (the read + the dependent writeMonitoringAlert) is routed
       // through runInBackground so it is not killed the instant the HTTP response is written.
       runInBackground(
         detectThreadHijackWrongOwner(supabase, result.toolCalls, phone ?? null)
+          .catch((e) => {
+            console.error("monitoring-alerts: wrong-owner check failed:", e);
+            return null;
+          })
           .then((wrongOwner) => {
-            if (!wrongOwner) return;
+            const winner = pickThreadHijackAlert({ wrongOwner, nameMismatch, readOnlyDisclosure });
+            if (!winner) return;
+            const details: Record<string, unknown> = { reply_text: reply };
+            if (winner.failure_class === "thread_hijack_wrong_owner") {
+              details.referenced_booking_id = winner.referenced_booking_id;
+              details.booking_owner_phone = winner.booking_owner_phone;
+              details.current_phone = winner.current_phone;
+            } else if (winner.failure_class === "thread_hijack_name_mismatch") {
+              details.stated_name = winner.stated_name;
+              details.actual_name = winner.actual_name;
+            } else {
+              details.known_self_name = winner.known_self_name;
+              details.disclosed_name = winner.disclosed_name;
+            }
             return writeMonitoringAlert(supabase, {
-              failure_class: wrongOwner.failure_class,
+              failure_class: winner.failure_class,
               conversation_id: conversationId ?? null,
               contact_phone: phone ?? null,
               turn_id: turnId,
-              details: {
-                referenced_booking_id: wrongOwner.referenced_booking_id,
-                booking_owner_phone: wrongOwner.booking_owner_phone,
-                current_phone: wrongOwner.current_phone,
-                reply_text: reply,
-              },
+              details,
             });
           })
-          .catch((e) => console.error("monitoring-alerts: wrong-owner check failed:", e)),
+          .catch((e) => console.error("monitoring-alerts: thread-hijack dedup write failed:", e)),
       );
       // R9 GAP 4 FIX: dead-man's-switch heartbeat. Stamped on every turn this block REACHES this
       // point (i.e. ran to completion without throwing), fire-and-forget, never blocks/delays the
