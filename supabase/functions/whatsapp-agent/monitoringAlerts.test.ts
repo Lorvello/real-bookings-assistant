@@ -452,6 +452,41 @@ Deno.test("thread hijack read-only disclosure: R15 fix - 'Wil' the actual disclo
   assertEquals(alert, null);
 });
 
+// --- Class 2, Check C, R17 fix: zero-slack immediate-adjacency attribution match -----------------
+// R17 found R16's 3-token lookback let ANY marker occurrence within 3 tokens before the name count
+// as attribution, without checking it actually governs the name. Real shape: "Zal ik dit voor je
+// bevestigen, Sophie?" is a plain generic customer-service sentence, zero real attribution, but
+// "voor" sits at distance 3 from "Sophie" and wrongly suppressed a genuine hijack. These two tests
+// cover both directions: the filler-word false-positive must now correctly fire, and a genuine
+// immediate-adjacency attribution ("voor Sophie" with no filler between marker and name) must
+// still correctly suppress.
+
+Deno.test("thread hijack read-only disclosure: R17 fix - marker separated from the name by filler words no longer counts as attribution, hijack fires", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Sophie" }] } },
+    ],
+    knownSelfName: "Peter",
+    // "voor" is 3 tokens back from "Sophie" ("voor je bevestigen, Sophie") - a generic sentence,
+    // not real attribution. R16's lookback wrongly suppressed this; R17 must fire.
+    finalReplyText: "Zal ik dit voor je bevestigen, Sophie?",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(alert?.disclosed_name, "Sophie");
+});
+
+Deno.test("thread hijack read-only disclosure: R17 fix - marker immediately adjacent to the name (zero slack) still correctly suppresses", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Sophie" }] } },
+    ],
+    knownSelfName: "Peter",
+    // "voor Sophie" - marker directly precedes the name, genuine attribution, no filler between.
+    finalReplyText: "Deze afspraak is voor Sophie, klopt dat?",
+  });
+  assertEquals(alert, null);
+});
+
 // Stubbed Supabase client, no live project touched. Mirrors the design's Path B "hand-constructed
 // synthetic inputs" discipline for Check B.
 function stubSupabase(row: { customer_phone: string | null } | null): SupabaseClient {

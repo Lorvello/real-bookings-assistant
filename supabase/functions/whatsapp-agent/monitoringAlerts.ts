@@ -390,8 +390,21 @@ const READ_ONLY_APPOINTMENT_TOOLS = new Set(["get_my_appointments"]);
 // old check could never catch: a reply that misattributes on purpose, e.g. "Wil, dit is jouw
 // afspraak" (the name IS mentioned, but framed as "jouw" - the actual R130 hijack shape) - the name
 // still has no attribution marker in front of it, so it correctly still fires.
+// R17 FIX (see _BA_MONITORING_ALERTS_STATE.md R17 finding): R16's 3-token lookback let ANY
+// occurrence of a marker within 3 tokens before the name count as attribution, without checking
+// the marker actually grammatically governs the name. Confirmed real: "Zal ik dit voor je
+// bevestigen, Sophie?" is a completely generic customer-service sentence with zero real
+// attribution, yet "voor" sits at distance 3 from "Sophie" and wrongly suppressed a genuine
+// hijack alert. This is the 4th refinement of this exact function (R11 substring, R12 substring,
+// R14 word-boundary, R16 attribution-position with slack). Rather than another lookback-tuning
+// pass, this tightens the rule's SHAPE to zero slack: the marker must be the token IMMEDIATELY
+// before the name (distance 1), e.g. "van Wil"/"voor Wil"/"of Wil"/"for Wil" - not "voor je
+// bevestigen, Sophie" where filler words sit between the marker and the name. Verified against
+// every existing Check C fixture in monitoringAlerts.test.ts (R11/R13/R15 sections): every real
+// attribution shape in this codebase's own templates ("de afspraak van ${name}", "op naam van
+// ${name}", "geboekt worden voor ${name}") already places the marker directly adjacent to the
+// name with no filler word between, so zero-slack does not reopen any prior round's fixture.
 const ATTRIBUTION_MARKERS = new Set(["van", "voor", "of", "for"]);
-const ATTRIBUTION_LOOKBACK = 3; // marker + up to 2 filler words between marker and the name token
 
 function nameIsAttributedInReply(normalizedReply: string, nameToken: string): boolean {
   // Strip residual leading/trailing punctuation per token (e.g. "Wil?" / "(Wil)" / "Wil,") so
@@ -403,11 +416,9 @@ function nameIsAttributedInReply(normalizedReply: string, nameToken: string): bo
     .map((t) => t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""));
   for (let i = 0; i < tokens.length; i++) {
     if (tokens[i] !== nameToken) continue;
-    for (let back = 1; back <= ATTRIBUTION_LOOKBACK; back++) {
-      const idx = i - back;
-      if (idx < 0) break;
-      if (ATTRIBUTION_MARKERS.has(tokens[idx])) return true;
-    }
+    const idx = i - 1;
+    if (idx < 0) continue;
+    if (ATTRIBUTION_MARKERS.has(tokens[idx])) return true;
   }
   return false;
 }
