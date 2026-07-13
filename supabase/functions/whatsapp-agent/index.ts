@@ -3338,6 +3338,22 @@ Deno.serve(async (req) => {
         // INSERT, never on UPDATE/conflict, so without this the column would silently stay frozen at
         // row-creation time forever). This is what lets the sweep tell a hint that was genuinely
         // refreshed this turn apart from a stale hint left over from an earlier turn.
+        // R25 FIX (see _BA_MONITORING_ALERTS_STATE.md R24 finding / R25 remediation): this used to
+        // reuse the request-start `now` (frozen at line ~1294, before the LLM/tool-call loop runs),
+        // while a booking's own mutation-commit updated_at (tools.ts, several call sites) is always
+        // stamped with a genuinely fresh `new Date()` at actual write time, which happens
+        // structurally LATER in wall-clock terms within the same turn. That made h.updated_at always
+        // precede b.updated_at for a real same-turn drift, so the SQL guard's `h.updated_at >=
+        // b.updated_at` was false for exactly the true-positive case it exists to catch. Fix: capture
+        // a genuinely fresh timestamp here, at the point of the upsert, instead of the frozen `now`.
+        // This block already runs AFTER the reply text and tool results exist (see the comment at the
+        // top of this try block), so this fresh stamp is naturally at or after the booking's own
+        // mutation-commit timestamp for a genuine same-turn drift. Confirmed safe: `now` is still used
+        // unchanged everywhere else in this function (relativeDateHint parsing, calendarHint, TTL/
+        // freshness windows, turnId, heartbeat) - only this one write site needed a fresh value, since
+        // it is the one place being compared against another independently-fresh-stamped write
+        // (bookings.updated_at) rather than against `now` itself.
+        const hintUpsertTimestamp = new Date().toISOString();
         runInBackground(
           Promise.resolve(
             supabase
@@ -3345,7 +3361,7 @@ Deno.serve(async (req) => {
               .upsert({
                 booking_id: committedForHint.bookingId,
                 established_iso: effectiveDateHint.iso,
-                updated_at: now.toISOString(),
+                updated_at: hintUpsertTimestamp,
               }),
           ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: hint upsert failed:", e)),
         );
