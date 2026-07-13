@@ -364,11 +364,52 @@ const READ_ONLY_APPOINTMENT_TOOLS = new Set(["get_my_appointments"]);
 // purpose, matching every other guard module's independence, no cross-file coupling): unicode-
 // aware word-boundary check via lookaround rather than `\b` (which only understands ASCII word
 // chars and would misbehave on names with residual non-ASCII characters).
-function containsWholeWord(haystack: string, needle: string): boolean {
-  if (!needle) return false;
-  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "u");
-  return re.test(haystack);
+// R15 FIX (see _BA_MONITORING_ALERTS_STATE.md R15 finding): R14's word-boundary match closed R13's
+// substring-collision class, but R15 found a collision ONE LEVEL UP - a short real Dutch first name
+// can itself be an ordinary Dutch word. Concretely "Wil" (a real first name, >=3 chars, passes the
+// length filter) is also the modal verb "wil" ("wants"). A bare hijack reply with zero real
+// attribution, e.g. "Wil je deze bevestigen?", has the word "wil" appear as a genuine standalone
+// word, so the old word-boundary-only check would wrongly mark it as properly attributed and
+// suppress a real alert.
+// This is the third refinement on this exact function (R11: raw substring, R14: word-boundary,
+// R15/this fix: word-boundary still not enough), so instead of special-casing "wil" (which would
+// only defer the same bug to the next coincidental name/common-word pair, e.g. a future customer
+// named "Al" or "Ben") this changes the check's SHAPE: instead of asking "does the disclosed name
+// appear anywhere as a whole word", it asks "does the disclosed name appear in an actual ATTRIBUTION
+// POSITION" - immediately preceded (allowing a couple of filler words) by one of the real
+// possessive/attribution markers this codebase's own instructions and templates use for this exact
+// disclosure sentence: Dutch "van" (tools.ts's GEDEELD NUMMER rule, line 963: "presenteer die dan
+// ALTIJD als 'de afspraak van [naam]'"; also literally used in the customer_reply templates, e.g.
+// lines 1898/1900/3291/3477/4542: "staat op naam van ${name}") and "voor" (the booking-preview
+// confirm template, line 1897: "geboekt worden voor ${name}"), plus the English equivalents "of"/
+// "for" for replies composed in English (no single locked English template exists for this specific
+// disclosure - same fact R9/R10 already documented for the other Check C/A wording - so these two
+// markers are kept generic on purpose, mirroring their Dutch counterparts). A bare name mention with
+// no attribution marker in front of it (e.g. "Wil je...", where "Wil" opens the sentence with
+// nothing preceding it) no longer counts as attribution. This also fixes a second, related shape the
+// old check could never catch: a reply that misattributes on purpose, e.g. "Wil, dit is jouw
+// afspraak" (the name IS mentioned, but framed as "jouw" - the actual R130 hijack shape) - the name
+// still has no attribution marker in front of it, so it correctly still fires.
+const ATTRIBUTION_MARKERS = new Set(["van", "voor", "of", "for"]);
+const ATTRIBUTION_LOOKBACK = 3; // marker + up to 2 filler words between marker and the name token
+
+function nameIsAttributedInReply(normalizedReply: string, nameToken: string): boolean {
+  // Strip residual leading/trailing punctuation per token (e.g. "Wil?" / "(Wil)" / "Wil,") so
+  // position-based comparison still recognizes the name; normalizedReply is already lowercased/
+  // diacritic-stripped by normalizeNameForCompare, so nameToken (same normalization) compares
+  // case/diacritic-insensitively.
+  const tokens = normalizedReply
+    .split(/\s+/)
+    .map((t) => t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""));
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i] !== nameToken) continue;
+    for (let back = 1; back <= ATTRIBUTION_LOOKBACK; back++) {
+      const idx = i - back;
+      if (idx < 0) break;
+      if (ATTRIBUTION_MARKERS.has(tokens[idx])) return true;
+    }
+  }
+  return false;
 }
 
 function replyProperlyAttributesDisclosedName(
@@ -381,7 +422,7 @@ function replyProperlyAttributesDisclosedName(
     .split(/\s+/)
     .filter((t) => t.length >= 3);
   if (tokens.length === 0) return false;
-  return tokens.some((t) => containsWholeWord(normalizedReply, t));
+  return tokens.some((t) => nameIsAttributedInReply(normalizedReply, t));
 }
 
 export interface ThreadHijackReadOnlyDisclosureTurnCtx {

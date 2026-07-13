@@ -3300,7 +3300,13 @@ Deno.serve(async (req) => {
         now,
       });
       if (dateMismatch) {
-        void writeMonitoringAlert(supabase, {
+        // R15 GAP A FIX (see _BA_MONITORING_ALERTS_STATE.md R15 finding): route through
+        // runInBackground (EdgeRuntime.waitUntil) instead of a bare `void` fire-and-forget. A bare
+        // `void` promise has no guarantee the isolate stays alive long enough for it to finish once
+        // the HTTP response is written - runInBackground is this codebase's own proven pattern
+        // (already used for the WhatsApp send below) for keeping a background promise alive without
+        // blocking/delaying the reply.
+        runInBackground(writeMonitoringAlert(supabase, {
           failure_class: dateMismatch.failure_class,
           conversation_id: conversationId ?? null,
           contact_phone: phone ?? null,
@@ -3313,7 +3319,7 @@ Deno.serve(async (req) => {
             booking_id: dateMismatch.booking_id,
             reply_text: reply,
           },
-        });
+        }));
       }
       // Belt-and-suspenders (design section 3): persist the resolved established_iso per booking
       // id whenever a deterministic date hint fired for a committed mutation this turn,
@@ -3323,10 +3329,16 @@ Deno.serve(async (req) => {
       // never blocks the reply.
       const committedForHint = findCommittedBookingDate(result.toolCalls);
       if (effectiveDateHint?.iso && committedForHint) {
-        void supabase
-          .from("monitoring_alert_hints")
-          .upsert({ booking_id: committedForHint.bookingId, established_iso: effectiveDateHint.iso })
-          .then(() => {}, (e: unknown) => console.error("monitoring-alerts: hint upsert failed:", e));
+        // R15 GAP A FIX: routed through runInBackground, same reasoning as the writeMonitoringAlert
+        // call sites above/below - this hint upsert is the pg_cron sweep's own DB-native comparison
+        // value, losing it silently would blind the sweep for this booking too.
+        runInBackground(
+          Promise.resolve(
+            supabase
+              .from("monitoring_alert_hints")
+              .upsert({ booking_id: committedForHint.bookingId, established_iso: effectiveDateHint.iso }),
+          ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: hint upsert failed:", e)),
+        );
       }
       const nameMismatch = detectThreadHijackNameMismatch({
         toolCalls: result.toolCalls,
@@ -3334,7 +3346,8 @@ Deno.serve(async (req) => {
         finalReplyText: reply,
       });
       if (nameMismatch) {
-        void writeMonitoringAlert(supabase, {
+        // R15 GAP A FIX: routed through runInBackground (see comment on the first call site above).
+        runInBackground(writeMonitoringAlert(supabase, {
           failure_class: nameMismatch.failure_class,
           conversation_id: conversationId ?? null,
           contact_phone: phone ?? null,
@@ -3344,7 +3357,7 @@ Deno.serve(async (req) => {
             actual_name: nameMismatch.actual_name,
             reply_text: reply,
           },
-        });
+        }));
       }
       // Check C (R9 gap 3 fix): the SAME cross-identity signal Check A surfaces, this time read off
       // get_my_appointments' own READ-ONLY result (no mutation call required this turn), so a
@@ -3358,7 +3371,8 @@ Deno.serve(async (req) => {
         finalReplyText: reply,
       });
       if (readOnlyDisclosure) {
-        void writeMonitoringAlert(supabase, {
+        // R15 GAP A FIX: routed through runInBackground (see comment on the first call site above).
+        runInBackground(writeMonitoringAlert(supabase, {
           failure_class: readOnlyDisclosure.failure_class,
           conversation_id: conversationId ?? null,
           contact_phone: phone ?? null,
@@ -3368,46 +3382,60 @@ Deno.serve(async (req) => {
             disclosed_name: readOnlyDisclosure.disclosed_name,
             reply_text: reply,
           },
-        });
+        }));
       }
       // Check B needs one extra single-row read; kept non-blocking (fire-and-forget, issued after
       // the reply has already been composed) per the design's section 2 placement note.
-      void detectThreadHijackWrongOwner(supabase, result.toolCalls, phone ?? null)
-        .then((wrongOwner) => {
-          if (!wrongOwner) return;
-          void writeMonitoringAlert(supabase, {
-            failure_class: wrongOwner.failure_class,
-            conversation_id: conversationId ?? null,
-            contact_phone: phone ?? null,
-            turn_id: turnId,
-            details: {
-              referenced_booking_id: wrongOwner.referenced_booking_id,
-              booking_owner_phone: wrongOwner.booking_owner_phone,
-              current_phone: wrongOwner.current_phone,
-              reply_text: reply,
-            },
-          });
-        })
-        .catch((e) => console.error("monitoring-alerts: wrong-owner check failed:", e));
+      // R15 GAP A FIX: the whole chain (the read + its dependent writeMonitoringAlert) is routed
+      // through runInBackground so it is not killed the instant the HTTP response is written.
+      runInBackground(
+        detectThreadHijackWrongOwner(supabase, result.toolCalls, phone ?? null)
+          .then((wrongOwner) => {
+            if (!wrongOwner) return;
+            return writeMonitoringAlert(supabase, {
+              failure_class: wrongOwner.failure_class,
+              conversation_id: conversationId ?? null,
+              contact_phone: phone ?? null,
+              turn_id: turnId,
+              details: {
+                referenced_booking_id: wrongOwner.referenced_booking_id,
+                booking_owner_phone: wrongOwner.booking_owner_phone,
+                current_phone: wrongOwner.current_phone,
+                reply_text: reply,
+              },
+            });
+          })
+          .catch((e) => console.error("monitoring-alerts: wrong-owner check failed:", e)),
+      );
       // R9 GAP 4 FIX: dead-man's-switch heartbeat. Stamped on every turn this block REACHES this
       // point (i.e. ran to completion without throwing), fire-and-forget, never blocks/delays the
       // reply. scan_monitoring_heartbeat (20260713150000_MONITEM3_R9_gap4_heartbeat migration)
       // alerts separately (failure_class=monitor_heartbeat_missing) if this stops updating.
-      void supabase
-        .from("monitoring_heartbeat")
-        .upsert({ id: true, last_beat: now.toISOString() })
-        .then(() => {}, (e: unknown) => console.error("monitoring-alerts: heartbeat upsert failed:", e));
+      // R15 GAP A FIX: routed through runInBackground - the heartbeat write is exactly the kind of
+      // write this fix exists to protect (a bare `void` losing it would silently defeat the whole
+      // dead-man's-switch the moment an isolate is recycled quickly after the response).
+      runInBackground(
+        Promise.resolve(
+          supabase
+            .from("monitoring_heartbeat")
+            .upsert({ id: true, last_beat: now.toISOString() }),
+        ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: heartbeat upsert failed:", e)),
+      );
     } catch (e) {
       console.error("monitoring-alerts: detection failed:", e);
       // R9 GAP 4 FIX: also stamp the heartbeat from the catch branch - a heartbeat that only ever
       // updates on the success path would itself go silently stale the moment detection starts
       // throwing every turn, defeating the whole point of a dead-man's-switch. Best-effort, never
       // rethrows.
+      // R15 GAP A FIX: routed through runInBackground, same reasoning as the success-path heartbeat.
       try {
-        void supabase
-          .from("monitoring_heartbeat")
-          .upsert({ id: true, last_beat: now.toISOString() })
-          .then(() => {}, () => {});
+        runInBackground(
+          Promise.resolve(
+            supabase
+              .from("monitoring_heartbeat")
+              .upsert({ id: true, last_beat: now.toISOString() }),
+          ).then(() => {}, () => {}),
+        );
       } catch (_e2) {
         // best-effort only
       }

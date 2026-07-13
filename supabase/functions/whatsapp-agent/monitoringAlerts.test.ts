@@ -418,6 +418,40 @@ Deno.test("thread hijack read-only disclosure: R13 fix - exact full-name match (
   assertEquals(alert, null);
 });
 
+// --- Class 2, Check C, R15 fix: attribution-marker proximity, "Wil"/"wil" name/word collision -----
+// R15 found R14's word-boundary match still has a real collision: a short Dutch first name can
+// itself be an ordinary Dutch word. "Wil" is a real first name AND the modal verb "wil" ("wants").
+// A genuinely unattributed hijack reply like "Wil je deze bevestigen?" has zero real attribution,
+// yet the word "wil" appears as a standalone word - the old check would wrongly call that "properly
+// attributed". These two tests cover both directions: the verb-collision hijack must still fire, and
+// a genuine "Wil"-the-name disclosure, properly attributed via "van", must still be suppressed.
+
+Deno.test("thread hijack read-only disclosure: R15 fix - 'Wil' the name colliding with 'wil' the modal verb, unattributed hijack still fires", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Wil" }] } },
+    ],
+    knownSelfName: "Peter",
+    // Ordinary sentence, zero name-attribution - "wil" here is only the modal verb, not a reference
+    // to the disclosed name "Wil". Old word-boundary-only check would have wrongly suppressed this.
+    finalReplyText: "Wil je deze bevestigen?",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(alert?.disclosed_name, "Wil");
+});
+
+Deno.test("thread hijack read-only disclosure: R15 fix - 'Wil' the actual disclosed name, properly attributed via 'van', correctly suppressed", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Wil" }] } },
+    ],
+    knownSelfName: "Peter",
+    // Real GEDEELD NUMMER disclosure shape, name preceded by "van" - genuine attribution.
+    finalReplyText: "Onder dit nummer staat ook de afspraak van Wil (Knippen, vrijdag 14:00). Wil je die inzien of gaat het om jouw eigen afspraak?",
+  });
+  assertEquals(alert, null);
+});
+
 // Stubbed Supabase client, no live project touched. Mirrors the design's Path B "hand-constructed
 // synthetic inputs" discipline for Check B.
 function stubSupabase(row: { customer_phone: string | null } | null): SupabaseClient {
