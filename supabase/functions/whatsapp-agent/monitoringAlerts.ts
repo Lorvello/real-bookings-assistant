@@ -200,11 +200,21 @@ const MUTATION_OWNER_TOOLS = new Set(["book_appointment", "reschedule_appointmen
 // R7 FALSE-POSITIVE FIX (see _BA_MONITORING_ALERTS_STATE.md R7 finding + orchestrator verify):
 // the naam_verificatie_nodig gate firing is the R130 fix WORKING correctly (it always blocks the
 // mutation server-side), not the bug. tools.ts's own `customer_reply` field on all 5
-// naam_verificatie_nodig call sites always composes a disclosure-and-confirm question sharing this
-// phrasing family ("Klopt het dat...", "Moet dit ECHT gewijzigd worden...", "Typ ter bevestiging de
-// naam terug..."). A reply matching this pattern is the gate doing its job, not a hijack.
-const CONFIRMATION_REQUEST_RE =
-  /\bklopt het\b|\bter bevestiging\b|\bmoet dit\b[^.?!]*\b(gewijzigd|wijzigen)\b|\bwil je dat ik\b/i;
+// naam_verificatie_nodig call sites always composes a disclosure-and-confirm QUESTION, but the
+// model is free to paraphrase it (enforceVerificationGateDisclosure only force-rewrites when the
+// model's own text drops the target name entirely, see identityDisambiguationGuard.ts). A live
+// replay during this fix's own re-verification surfaced one such paraphrase the first, narrower
+// version of this regex missed ("Wil je die echt annuleren? Typ de naam terug..."), so the pattern
+// below is deliberately two-part and broader: ANY of the recurring Dutch confirmation-question
+// markers this codebase's own customer_reply templates use, combined with the reply actually being
+// phrased as a question (containing "?"). Both must hold - a bare "?" alone is not enough (would
+// swallow real proceeded-and-asked-something-else replies), and a keyword without "?" is not enough
+// either (would swallow a statement that merely mentions "klopt" without asking anything).
+const CONFIRMATION_KEYWORDS_RE =
+  /\bklopt\b|\bbevestig\b|\bwil je\b|\bmoet dit\b|\btyp\b|\bof toch\b|\bof blijft\b|\bof bedoelde je\b/i;
+function isConfirmationRequest(replyText: string): boolean {
+  return replyText.includes("?") && CONFIRMATION_KEYWORDS_RE.test(replyText);
+}
 
 // Check A: surfaces the SAME "naam_verificatie_nodig" gate signal
 // enforceVerificationGateDisclosure (identityDisambiguationGuard.ts) already consumes to build the
@@ -236,7 +246,7 @@ export function detectThreadHijackNameMismatch(
       const rr = t.result;
       return !!rr && typeof rr === "object" && (rr as Record<string, unknown>).ok === true;
     });
-    if (!mutationSucceededAfterGate && CONFIRMATION_REQUEST_RE.test(ctx.finalReplyText ?? "")) {
+    if (!mutationSucceededAfterGate && isConfirmationRequest(ctx.finalReplyText ?? "")) {
       return null; // gate fired and the reply properly asked for confirmation - benign, not a hijack
     }
     return { failure_class: "thread_hijack_name_mismatch", stated_name: statedName, actual_name: actualName };

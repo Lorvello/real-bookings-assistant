@@ -126,6 +126,22 @@ Deno.test("thread hijack name mismatch: no alert when the gate fires and the rep
   assertEquals(alert, null);
 });
 
+// Live-replay finding during this fix's own Item 7 re-verification: the model's own paraphrase of
+// the gate's disclosure-and-confirm question, real reply text captured live against the deployed
+// fixture ("Wil je die echt annuleren? Typ de naam terug, bijv. \"Ja, R112ProofX\"."). The first,
+// narrower regex version of this fix missed this exact shape (produced one extra false-positive
+// row during re-verification, since cleaned up). Must return null.
+Deno.test("thread hijack name mismatch: no alert on a paraphrased confirmation question (live-replay finding)", () => {
+  const alert = detectThreadHijackNameMismatch({
+    toolCalls: [
+      { name: "cancel_appointment", result: { error: "naam_verificatie_nodig", current_name: "R112ProofX" } },
+    ],
+    knownSelfName: "Someone Else",
+    finalReplyText: 'Wil je die echt annuleren? Typ de naam terug, bijv. "Ja, R112ProofX".',
+  });
+  assertEquals(alert, null);
+});
+
 // Original R130 true-positive shape (Item 6/R6 proof): gate fires but the reply does NOT ask for
 // confirmation - proceeds/discloses silently instead. Must still correctly fire.
 Deno.test("thread hijack name mismatch: still fires when the gate fires and the reply does not ask for confirmation", () => {
