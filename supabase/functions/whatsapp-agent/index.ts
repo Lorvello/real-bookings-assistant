@@ -25,7 +25,7 @@ import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
 import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, matchesSecondBookingDifferentPerson, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
-import { detectDateMismatch, detectThreadHijackNameMismatch, detectThreadHijackWrongOwner, findCommittedBookingDate, writeMonitoringAlert } from "./monitoringAlerts.ts";
+import { detectDateMismatch, detectThreadHijackNameMismatch, detectThreadHijackReadOnlyDisclosure, detectThreadHijackWrongOwner, findCommittedBookingDate, writeMonitoringAlert } from "./monitoringAlerts.ts";
 import { runAgent, type Content } from "./llm.ts";
 import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
 import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
@@ -3346,6 +3346,26 @@ Deno.serve(async (req) => {
           },
         });
       }
+      // Check C (R9 gap 3 fix): the SAME cross-identity signal Check A surfaces, this time read off
+      // get_my_appointments' own READ-ONLY result (no mutation call required this turn), so a
+      // hijack disclosed purely through the read-only lookup channel is no longer unguarded.
+      const readOnlyDisclosure = detectThreadHijackReadOnlyDisclosure({
+        toolCalls: result.toolCalls,
+        knownSelfName: knownName,
+      });
+      if (readOnlyDisclosure) {
+        void writeMonitoringAlert(supabase, {
+          failure_class: readOnlyDisclosure.failure_class,
+          conversation_id: conversationId ?? null,
+          contact_phone: phone ?? null,
+          turn_id: turnId,
+          details: {
+            known_self_name: readOnlyDisclosure.known_self_name,
+            disclosed_name: readOnlyDisclosure.disclosed_name,
+            reply_text: reply,
+          },
+        });
+      }
       // Check B needs one extra single-row read; kept non-blocking (fire-and-forget, issued after
       // the reply has already been composed) per the design's section 2 placement note.
       void detectThreadHijackWrongOwner(supabase, result.toolCalls, phone ?? null)
@@ -3365,8 +3385,28 @@ Deno.serve(async (req) => {
           });
         })
         .catch((e) => console.error("monitoring-alerts: wrong-owner check failed:", e));
+      // R9 GAP 4 FIX: dead-man's-switch heartbeat. Stamped on every turn this block REACHES this
+      // point (i.e. ran to completion without throwing), fire-and-forget, never blocks/delays the
+      // reply. scan_monitoring_heartbeat (20260713150000_MONITEM3_R9_gap4_heartbeat migration)
+      // alerts separately (failure_class=monitor_heartbeat_missing) if this stops updating.
+      void supabase
+        .from("monitoring_heartbeat")
+        .upsert({ id: true, last_beat: now.toISOString() })
+        .then(() => {}, (e: unknown) => console.error("monitoring-alerts: heartbeat upsert failed:", e));
     } catch (e) {
       console.error("monitoring-alerts: detection failed:", e);
+      // R9 GAP 4 FIX: also stamp the heartbeat from the catch branch - a heartbeat that only ever
+      // updates on the success path would itself go silently stale the moment detection starts
+      // throwing every turn, defeating the whole point of a dead-man's-switch. Best-effort, never
+      // rethrows.
+      try {
+        void supabase
+          .from("monitoring_heartbeat")
+          .upsert({ id: true, last_beat: now.toISOString() })
+          .then(() => {}, () => {});
+      } catch (_e2) {
+        // best-effort only
+      }
     }
 
     // --- Reply + persist outbound ---

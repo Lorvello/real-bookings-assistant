@@ -8,6 +8,7 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0
 import {
   detectDateMismatch,
   detectThreadHijackNameMismatch,
+  detectThreadHijackReadOnlyDisclosure,
   detectThreadHijackWrongOwner,
   extractDateFromReplyText,
 } from "./monitoringAlerts.ts";
@@ -74,6 +75,49 @@ Deno.test("extractDateFromReplyText: vandaag/morgen/weekday/explicit all resolve
   assertEquals(extractDateFromReplyText("dan morgen om 10:00", NOW), "2026-07-16");
   assertEquals(extractDateFromReplyText("geen datum genoemd", NOW), null);
   assertEquals(extractDateFromReplyText("op 3 augustus is er plek", NOW), "2026-08-03");
+});
+
+// R9 GAP 1 FIX: enWhen (index.ts ~line 145) renders every English confirmation as
+// "<Weekday> <day> <Month> <HH:MM>" (en-GB toLocaleDateString weekday:long/day:numeric/month:long,
+// no comma, then 24h time) - e.g. deterministicConfirmation's "Done! You're booked for Tuesday 21
+// July 14:00. 🎉". extractDateFromReplyText must resolve that exact shape.
+Deno.test("extractDateFromReplyText: English explicit date (enWhen's exact rendered shape) resolves", () => {
+  assertEquals(extractDateFromReplyText("Done! You're booked for Tuesday 21 July 14:00. 🎉", NOW), "2026-07-21");
+  assertEquals(extractDateFromReplyText("We can do today at 10:00", NOW), "2026-07-15");
+  assertEquals(extractDateFromReplyText("How about tomorrow at 10:00", NOW), "2026-07-16");
+  assertEquals(extractDateFromReplyText("no date mentioned here", NOW), null);
+});
+
+// R9 GAP 1 FIX, combined with class-1 detection: an English customer (customerLanguage != null
+// upstream) whose committed booking and reply text disagree must now be caught, matching the
+// existing Dutch true-positive test above.
+Deno.test("date mismatch: fires for an English reply naming a different date than the committed booking", () => {
+  const alert = detectDateMismatch({
+    toolCalls: [
+      { name: "book_appointment", result: { ok: true, booking_id: "b3", start_time: "2026-07-15T09:00:00Z" } },
+    ],
+    finalReplyText: "Done! You're booked for Tuesday 21 July 14:00. 🎉",
+    relativeDateHintISO: "2026-07-15",
+    matchedPhrase: "today",
+    now: NOW,
+  });
+  assertEquals(alert?.failure_class, "date_mismatch");
+  assertEquals(alert?.committed_iso, "2026-07-15");
+  assertEquals(alert?.reply_iso, "2026-07-21");
+  assertEquals(alert?.booking_id, "b3");
+});
+
+Deno.test("date mismatch: no alert for an English reply whose date matches the committed booking", () => {
+  const alert = detectDateMismatch({
+    toolCalls: [
+      { name: "book_appointment", result: { ok: true, booking_id: "b3", start_time: "2026-07-21T13:00:00Z" } },
+    ],
+    finalReplyText: "Done! You're booked for Tuesday 21 July 15:00. 🎉",
+    relativeDateHintISO: null,
+    matchedPhrase: null,
+    now: NOW,
+  });
+  assertEquals(alert, null);
 });
 
 // --- Class 2: wrong-thread hijack -------------------------------------------
@@ -169,6 +213,90 @@ Deno.test("thread hijack name mismatch: fires when a mutation succeeds later in 
     finalReplyText: "Klopt het dat dit echt de afspraak van Fatima is die verzet moet worden?",
   });
   assertEquals(alert?.failure_class, "thread_hijack_name_mismatch");
+});
+
+// R9 GAP 2 FIX: naam_verificatie_nodig fires for an English customer, the model paraphrases the
+// gate's disclosure-and-confirm question into English (no locked English template exists to
+// duplicate verbatim - checked tools.ts/identityDisambiguationGuard.ts during this fix). Must
+// correctly return null (gate working as designed), matching the Dutch equivalent test above -
+// without the fix, CONFIRMATION_KEYWORDS_RE_EN did not exist and this reintroduced R7's bug.
+Deno.test("thread hijack name mismatch: no alert on an English confirmation-request paraphrase (gap 2 fix)", () => {
+  const alert = detectThreadHijackNameMismatch({
+    toolCalls: [
+      { name: "reschedule_appointment", result: { error: "naam_verificatie_nodig", current_name: "R112ProofX" } },
+    ],
+    knownSelfName: "Someone Else",
+    finalReplyText:
+      'Is this really the appointment for R112ProofX that should be rescheduled? Please confirm by typing the name back, e.g. "Yes, R112ProofX".',
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack name mismatch: English reply that does NOT ask for confirmation still fires (gap 2, true-positive shape)", () => {
+  const alert = detectThreadHijackNameMismatch({
+    toolCalls: [
+      { name: "reschedule_appointment", result: { error: "naam_verificatie_nodig", current_name: "Fatima" } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText: "Your appointment has been moved to Friday 14:00.",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_name_mismatch");
+  assertEquals(alert?.stated_name, "Peter");
+  assertEquals(alert?.actual_name, "Fatima");
+});
+
+// --- Class 2, Check C: read-only tool result disclosure (R9 gap 3 fix) -----
+
+Deno.test("thread hijack read-only disclosure: fires when get_my_appointments discloses a name differing from the known identity", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Fatima" }] } },
+    ],
+    knownSelfName: "Peter",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(alert?.known_self_name, "Peter");
+  assertEquals(alert?.disclosed_name, "Fatima");
+});
+
+Deno.test("thread hijack read-only disclosure: no alert when the disclosed name matches the known identity", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Peter" }] } },
+    ],
+    knownSelfName: "Peter",
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack read-only disclosure: no alert when no self identity is established yet (normal first-turn shape)", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Fatima" }] } },
+    ],
+    knownSelfName: null,
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack read-only disclosure: no alert when get_my_appointments carries no customer_name (single-attendee, no cross-identity signal)", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed" }] } },
+    ],
+    knownSelfName: "Peter",
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack read-only disclosure: no alert on other read-only tools (e.g. get_available_slots)", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_available_slots", result: { slots: ["2026-07-21T13:00:00Z"] } },
+    ],
+    knownSelfName: "Peter",
+  });
+  assertEquals(alert, null);
 });
 
 // Stubbed Supabase client, no live project touched. Mirrors the design's Path B "hand-constructed

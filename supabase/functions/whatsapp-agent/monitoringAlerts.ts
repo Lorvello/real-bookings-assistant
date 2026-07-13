@@ -92,6 +92,26 @@ const NL_WEEKDAYS: Record<string, number> = {
 };
 const NL_WEEKDAY_RE = new RegExp(`\\b(${Object.keys(NL_WEEKDAYS).join("|")})\\b`, "i");
 
+// R9 GAP 1 FIX (see _BA_MONITORING_ALERTS_STATE.md R9 finding 1): index.ts's enWhen() (~line 145)
+// renders EVERY committed-mutation confirmation in English whenever customerLanguage != null (15+
+// call sites, deterministicConfirmation/deterministicPreview's own `en` flag), in the exact shape
+// "Tuesday 15 July 14:00" (en-GB toLocaleDateString weekday:long/day:numeric/month:long, no comma,
+// then HH:MM 24h). The Dutch-only regexes above never matched that shape, so detectDateMismatch
+// was structurally blind for every English customer. Deliberately duplicated (not merged into one
+// combined regex) to keep the NL and EN literal tables independently readable/auditable, matching
+// this file's own established "kept independent/duplicated on purpose" convention (see header).
+const EN_MONTH_NAMES =
+  "january|february|march|april|may|june|july|august|september|october|november|december";
+const EN_MONTHS: Record<string, number> = {
+  january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+  july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
+};
+const EXPLICIT_DATE_RE_EN = new RegExp(`\\b(\\d{1,2})\\s+(${EN_MONTH_NAMES})(?:\\s+(\\d{4}))?\\b`, "i");
+const EN_WEEKDAYS: Record<string, number> = {
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+};
+const EN_WEEKDAY_RE = new RegExp(`\\b(${Object.keys(EN_WEEKDAYS).join("|")})\\b`, "i");
+
 function inferYear(now: Date, month: number, day: number): number {
   const y = now.getFullYear();
   const candidate = new Date(y, month, day, 12);
@@ -105,24 +125,29 @@ function inferYear(now: Date, month: number, day: number): number {
 export function extractDateFromReplyText(text: string | null | undefined, now: Date): string | null {
   if (!text) return null;
   const t = text.toLowerCase();
-  if (/\bvandaag\b/.test(t)) return dateOnlyAmsterdam(now);
-  if (/\bmorgen\b/.test(t) && !/\bovermorgen\b/.test(t)) {
+  if (/\bvandaag\b/.test(t) || /\btoday\b/.test(t)) return dateOnlyAmsterdam(now);
+  if (
+    (/\bmorgen\b/.test(t) && !/\bovermorgen\b/.test(t)) ||
+    (/\btomorrow\b/.test(t))
+  ) {
     const d = new Date(now);
     d.setDate(d.getDate() + 1);
     return dateOnlyAmsterdam(d);
   }
-  const explicit = t.match(EXPLICIT_DATE_RE);
+  const explicit = t.match(EXPLICIT_DATE_RE) ?? t.match(EXPLICIT_DATE_RE_EN);
   if (explicit) {
     const day = parseInt(explicit[1], 10);
-    const month = NL_MONTHS[explicit[2]];
+    const monthKey = explicit[2];
+    const month = NL_MONTHS[monthKey] ?? EN_MONTHS[monthKey];
     if (month !== undefined && day >= 1 && day <= 31) {
       const year = explicit[3] ? parseInt(explicit[3], 10) : inferYear(now, month, day);
       return dateOnlyAmsterdam(new Date(year, month, day, 12));
     }
   }
-  const wm = t.match(NL_WEEKDAY_RE);
+  const wm = t.match(NL_WEEKDAY_RE) ?? t.match(EN_WEEKDAY_RE);
   if (wm) {
-    const targetDow = NL_WEEKDAYS[wm[1].toLowerCase()];
+    const key = wm[1].toLowerCase();
+    const targetDow = NL_WEEKDAYS[key] ?? EN_WEEKDAYS[key];
     const d = new Date(now);
     const curDow = d.getDay();
     let delta = (targetDow - curDow + 7) % 7;
@@ -212,8 +237,23 @@ const MUTATION_OWNER_TOOLS = new Set(["book_appointment", "reschedule_appointmen
 // either (would swallow a statement that merely mentions "klopt" without asking anything).
 const CONFIRMATION_KEYWORDS_RE =
   /\bklopt\b|\bbevestig\b|\bwil je\b|\bmoet dit\b|\btyp\b|\bof toch\b|\bof blijft\b|\bof bedoelde je\b/i;
+
+// R9 GAP 2 FIX (see _BA_MONITORING_ALERTS_STATE.md R9 finding 2): the Dutch-only regex above
+// reintroduces the exact R7 false-positive bug for English customers - naam_verificatie_nodig's
+// `customer_reply` template is Dutch source text (tools.ts), but the model paraphrases/translates
+// it into English whenever customerLanguage != null (the same "model free to paraphrase" fact R7's
+// own fix comment already documents for Dutch). No single locked English customer_reply string
+// exists anywhere in tools.ts/identityDisambiguationGuard.ts to duplicate byte-for-byte (checked
+// both files during this fix), so this pattern is the same kind of broad-but-scoped keyword set
+// the Dutch one already is: the recurring English confirmation-question markers a translated
+// disclose-and-confirm question realistically uses ("is this", "confirm", "would you like",
+// "please confirm", "type back", "or did you mean"), still gated by isConfirmationRequest's own
+// "?" requirement below so a bare keyword mention without an actual question never matches.
+const CONFIRMATION_KEYWORDS_RE_EN =
+  /\bis this\b|\bis that\b|\bconfirm\b|\bwould you like\b|\bplease confirm\b|\btype back\b|\bor did you mean\b|\bdoes this\b|\bshould i\b/i;
 function isConfirmationRequest(replyText: string): boolean {
-  return replyText.includes("?") && CONFIRMATION_KEYWORDS_RE.test(replyText);
+  return replyText.includes("?") &&
+    (CONFIRMATION_KEYWORDS_RE.test(replyText) || CONFIRMATION_KEYWORDS_RE_EN.test(replyText));
 }
 
 // Check A: surfaces the SAME "naam_verificatie_nodig" gate signal
@@ -250,6 +290,61 @@ export function detectThreadHijackNameMismatch(
       return null; // gate fired and the reply properly asked for confirmation - benign, not a hijack
     }
     return { failure_class: "thread_hijack_name_mismatch", stated_name: statedName, actual_name: actualName };
+  }
+  return null;
+}
+
+// R9 GAP 3 FIX (see _BA_MONITORING_ALERTS_STATE.md R9 finding 3): Check A only inspects a
+// MUTATION tool's own `error: naam_verificatie_nodig` field; Check B only inspects a MUTATION
+// tool's own `ok: true` field. get_my_appointments is READ-ONLY (tools.ts: "NO side effects") and
+// was never inspected by either check, yet it carries the exact same cross-identity signal Check A
+// surfaces: R102's own fix (identityDisambiguationGuard.ts / tools.ts get_my_appointments) already
+// deliberately discloses a booking's stored customer_name in the reply whenever it differs from
+// ctx.knownSelfName, precisely so a shared-phone customer never silently reads someone else's
+// appointment as "jouw afspraak". That disclosure is correct, designed behavior, not itself a bug -
+// but until now a hijack surfaced ONLY through that read-only channel (no mutation call this turn,
+// so Check A/B never even run) had zero monitoring visibility. Mirrors Check A: zero new judgment,
+// only surfaces the SAME cross-identity signal get_my_appointments' own result already carries.
+// Gated on isRealName(knownSelfName) (same bar Check A uses) so the extremely common "self name not
+// established yet" first-turn shape (get_my_appointments called before any name is known) never
+// fires - that is normal conversation flow, not a mismatch, and firing on it would flood
+// monitoring_alerts with noise unrelated to any hijack.
+const READ_ONLY_APPOINTMENT_TOOLS = new Set(["get_my_appointments"]);
+
+export interface ThreadHijackReadOnlyDisclosureTurnCtx {
+  toolCalls: MonitoringToolCall[];
+  knownSelfName: string | null | undefined;
+}
+
+export interface ThreadHijackReadOnlyDisclosureAlert {
+  failure_class: "thread_hijack_readonly_disclosure";
+  known_self_name: string;
+  disclosed_name: string;
+}
+
+export function detectThreadHijackReadOnlyDisclosure(
+  ctx: ThreadHijackReadOnlyDisclosureTurnCtx,
+): ThreadHijackReadOnlyDisclosureAlert | null {
+  if (!isRealName(ctx.knownSelfName)) return null;
+  const selfName = String(ctx.knownSelfName);
+  for (const t of ctx.toolCalls) {
+    if (!READ_ONLY_APPOINTMENT_TOOLS.has(t.name)) continue;
+    const r = t.result;
+    if (!r || typeof r !== "object") continue;
+    const appts = (r as Record<string, unknown>).appointments;
+    if (!Array.isArray(appts)) continue;
+    for (const a of appts) {
+      if (!a || typeof a !== "object") continue;
+      const name = (a as Record<string, unknown>).customer_name;
+      if (!isRealName(name)) continue;
+      const nameStr = String(name);
+      if (normalizeNameForCompare(nameStr) === normalizeNameForCompare(selfName)) continue;
+      return {
+        failure_class: "thread_hijack_readonly_disclosure",
+        known_self_name: selfName,
+        disclosed_name: nameStr,
+      };
+    }
   }
   return null;
 }
