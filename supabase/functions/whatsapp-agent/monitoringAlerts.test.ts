@@ -375,6 +375,49 @@ Deno.test("thread hijack read-only disclosure: still fires when no reply text is
   assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
 });
 
+// --- Class 2, Check C, R13 fix: replyProperlyAttributesDisclosedName word-boundary matching -----
+// R13 found the previous raw `.includes()` substring check was unanchored in both directions - see
+// _BA_MONITORING_ALERTS_STATE.md R13 finding. These three tests cover: (a) the false-negative shape
+// (short disclosed name "An" accidentally substring-matching inside an unrelated word, silently
+// swallowing a genuine hijack), (b) the false-positive shape (multi-part stored name "Anna de
+// Vries" shortened to just "Anna" in a correctly-attributed reply, wrongly reopening R11's bug),
+// (c) the original R11/R12 exact full-name match still passing (regression guard).
+
+Deno.test("thread hijack read-only disclosure: R13 fix - short name 'An' does NOT falsely match inside an unrelated word, genuine hijack still fires", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "maandag 14:00", status: "confirmed", customer_name: "An" }] } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText: "Jouw afspraak staat gepland voor maandag 14:00, tot dan!",
+  });
+  assertEquals(alert?.failure_class, "thread_hijack_readonly_disclosure");
+  assertEquals(alert?.disclosed_name, "An");
+});
+
+Deno.test("thread hijack read-only disclosure: R13 fix - multi-part name 'Anna de Vries' correctly matches via the 'Anna' token, benign disclosure suppressed", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "Anna de Vries" }] } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText: "Onder dit nummer staat ook de afspraak van Anna (Knippen, vrijdag 14:00). Wil je die inzien of gaat het om jouw eigen afspraak?",
+  });
+  assertEquals(alert, null);
+});
+
+Deno.test("thread hijack read-only disclosure: R13 fix - exact full-name match (R11/R12 shape) still passes as benign", () => {
+  const alert = detectThreadHijackReadOnlyDisclosure({
+    toolCalls: [
+      { name: "get_my_appointments", result: { appointments: [{ service: "Knippen", when: "vrijdag 14:00", status: "confirmed", customer_name: "R112ProofX" }] } },
+    ],
+    knownSelfName: "Peter",
+    finalReplyText:
+      "Onder dit nummer staat ook de afspraak van R112ProofX (Knippen, vrijdag 14:00). Wil je die inzien of gaat het om jouw eigen afspraak?",
+  });
+  assertEquals(alert, null);
+});
+
 // Stubbed Supabase client, no live project touched. Mirrors the design's Path B "hand-constructed
 // synthetic inputs" discipline for Check B.
 function stubSupabase(row: { customer_phone: string | null } | null): SupabaseClient {

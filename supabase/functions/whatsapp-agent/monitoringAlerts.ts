@@ -347,12 +347,41 @@ const READ_ONLY_APPOINTMENT_TOOLS = new Set(["get_my_appointments"]);
 // shape. `finalReplyText` is optional/nullable, matching Check A's own established convention
 // (ThreadHijackNameMismatchTurnCtx): a missing/empty reply never attributes anything, so older
 // mechanism-level callers that never populate it keep firing exactly as before.
+// R13 FIX (see _BA_MONITORING_ALERTS_STATE.md R13 finding): the raw `.includes()` substring check
+// above was unanchored in both directions. False-negative: a short disclosed name like "An" is a
+// substring of many unrelated Dutch words (e.g. "maandag" contains "an"), so a genuine silent
+// hijack with zero real attribution could get wrongly marked as "properly attributed" and the
+// alert suppressed - defeating the whole point of the check. False-positive: a multi-part stored
+// name like "Anna de Vries" that the agent naturally shortens to just "Anna" in a correctly-
+// attributed reply wouldn't match the full string, wrongly flagging a benign GEDEELD NUMMER
+// disclosure (reopening the exact R11/R12 false-positive bug). Fix: tokenize disclosedName on
+// whitespace, require at least one token of length >= 3 (long enough to not be pure filler like
+// "de"/"a") to appear in replyText as a whole word via a word-boundary regex - "Anna de Vries"
+// matches on the "anna" token appearing as a standalone word ("...van Anna..."), "An" produces no
+// token >= 3 chars so it never spuriously matches inside "maandag". Same normalization
+// (normalizeNameForCompare) as the rest of this file, so case/diacritics still don't matter.
+// Mirrors identityDisambiguationGuard.ts's own containsWholeWord (kept independent/duplicated on
+// purpose, matching every other guard module's independence, no cross-file coupling): unicode-
+// aware word-boundary check via lookaround rather than `\b` (which only understands ASCII word
+// chars and would misbehave on names with residual non-ASCII characters).
+function containsWholeWord(haystack: string, needle: string): boolean {
+  if (!needle) return false;
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "u");
+  return re.test(haystack);
+}
+
 function replyProperlyAttributesDisclosedName(
   replyText: string | null | undefined,
   disclosedName: string,
 ): boolean {
   if (!replyText) return false;
-  return normalizeNameForCompare(replyText).includes(normalizeNameForCompare(disclosedName));
+  const normalizedReply = normalizeNameForCompare(replyText);
+  const tokens = normalizeNameForCompare(disclosedName)
+    .split(/\s+/)
+    .filter((t) => t.length >= 3);
+  if (tokens.length === 0) return false;
+  return tokens.some((t) => containsWholeWord(normalizedReply, t));
 }
 
 export interface ThreadHijackReadOnlyDisclosureTurnCtx {
