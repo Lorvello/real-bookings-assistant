@@ -1,0 +1,13 @@
+-- R4 cleanup (Full-Journey Agent Simulation V3, see
+-- ../../../Bookings Assistant/launch-ready-loop/_FULL_JOURNEY_AGENT_SIMULATION_V3_STATE.md R4).
+--
+-- Drops the temporary diagnostic table created in 20260713210000_R4_temp_slot_guard_trace.sql.
+-- It served its purpose: 12 live fixture-owner turns proved get_available_slots was called on
+-- every turn (turnSlots.hadQuery=true throughout) and both observed failures showed
+-- grounding_clf_reason="timeout" on businessDataGuard's classifier, root-causing the bug as
+-- guard-side (a Groq-infra-latency-driven fail-closed timeout amplified by the any-YES-wins N=7
+-- vote), never an upstream tool-selection gap. The narrow fix (skip businessDataGuard's grounding
+-- classifier when turnSlots ground truth already exists this turn, see whatsapp-agent/index.ts)
+-- is deployed and live-verified (0/12 failures post-fix). Its own index.ts call site was removed
+-- in the same commit as this drop.
+DROP TABLE IF EXISTS public.r4_temp_slot_guard_trace;

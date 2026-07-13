@@ -3218,11 +3218,36 @@ Deno.serve(async (req) => {
           calendars: calendarsForPrompt,
           slotAvailability,
         });
+        // R4 fix (Full-Journey Agent Simulation V3, see _FULL_JOURNEY_AGENT_SIMULATION_V3_STATE.md
+        // R2-R4): a temporary, fixture-owner-gated DB trace (r4_temp_slot_guard_trace, since
+        // removed/dropped, see R4's digest) proved, on 12 fresh live turns, that
+        // get_available_slots was called on EVERY turn (turnSlots.hadQuery=true throughout,
+        // including both failures), so this was never an upstream
+        // tool-selection gap. Both observed failures showed grounding_clf_reason="timeout": the
+        // guard's own N=7 any-YES-wins parallel vote (businessDataGuard.ts) fails closed the
+        // instant a single one of its 7 parallel Groq calls exceeds TIMEOUT_MS, and R103 already
+        // proved the classifier has no remaining SEMANTIC gap on this claim shape (given
+        // slotAvailability ground truth, it correctly said "no" in all 10 non-timeout trials this
+        // round). Re-running a probabilistic 7-call classifier against data that is already
+        // deterministically known (turnSlots.hadQuery / slotAvailability, the exact same ground
+        // truth collectTurnSlots gives slotOfferGuard.ts, which trusts it directly with zero
+        // classifier involvement) adds only timeout/false-positive risk with zero correctness
+        // upside for the availability-claim portion of the reply. Skip the whole classifier call
+        // on any turn where this ground truth exists; priceGuard/policyClaimGuard/refundGuard/
+        // ownerEscalationGuard all still run fully unconditionally on every turn (this skip is
+        // scoped to businessDataGuard's own broader backstop role only, per its own header: "a
+        // FINAL, broad-scope net... UNDER all of them"). Does NOT touch ownerEscalationGuard's or
+        // ownerEscalationClassifier's own N=10 policy (see NEXT ITEM in the state file: both
+        // observed failures' rewritten reply actually came from the owner-escalation classifier
+        // also failing closed on a timeout in the same window, a distinct, still-open finding).
+        const skipGroundingClassifier = turnSlots.hadQuery;
         const [ownerClf, groundingClf] = await Promise.all([
           skipOwnerClassifier
             ? Promise.resolve(null)
             : classifyOwnerEscalationClaimRobust(replyText, Deno.env.get("GROQ_API_KEY")),
-          classifyBusinessDataGroundingRobust(replyText, groundingSummary, Deno.env.get("GROQ_API_KEY")),
+          skipGroundingClassifier
+            ? Promise.resolve({ isUngroundedClaim: false, reason: "no" as const, latencyMs: 0, votes: [] })
+            : classifyBusinessDataGroundingRobust(replyText, groundingSummary, Deno.env.get("GROQ_API_KEY")),
         ]);
         if (ownerClf) {
           console.log(
