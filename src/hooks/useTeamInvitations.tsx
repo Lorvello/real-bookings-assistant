@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getOrCreateTeamInvitationRequestId } from '@/utils/teamInvitationRequest';
 
 interface TeamInvitation {
   id: string;
@@ -22,8 +23,9 @@ export const useTeamInvitations = (calendarId?: string) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useTranslation('notifications');
+  const pendingResendRequestIds = useRef(new Map<string, string>());
 
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     try {
       setLoading(true);
       let query = supabase
@@ -53,7 +55,7 @@ export const useTeamInvitations = (calendarId?: string) => {
       // interval (see cleanupExpiredInvitations below) or the server cron. Neither is guaranteed to
       // have run yet for a given session, so display must not depend on either: a row whose
       // expires_at has already passed is shown as expired immediately, in any session, on first load.
-      const withDerivedExpiry = (data || []).map((inv: any) => {
+      const withDerivedExpiry = (data || []).map((inv) => {
         if (inv.status === 'pending' && new Date(inv.expires_at).getTime() <= Date.now()) {
           return { ...inv, status: 'expired' as const };
         }
@@ -71,7 +73,7 @@ export const useTeamInvitations = (calendarId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [calendarId, t, toast]);
 
   const cancelInvitation = async (invitationId: string) => {
     try {
@@ -110,14 +112,26 @@ export const useTeamInvitations = (calendarId?: string) => {
       if (fetchError || !invitation) {
         throw new Error('Could not find invitation');
       }
+      const invitationRole = invitation.role === 'editor' ? 'editor' : 'viewer';
+
+      const request = getOrCreateTeamInvitationRequestId(
+        pendingResendRequestIds.current,
+        {
+          calendarId: invitation.calendar_id,
+          email: invitation.email,
+          fullName: invitation.full_name || '',
+          role: invitationRole,
+        },
+      );
 
       // Use the edge function to resend invitation
       const { error } = await supabase.functions.invoke('send-team-invitation', {
         body: {
+          request_id: request.requestId,
           calendar_id: invitation.calendar_id,
           email: invitation.email,
           full_name: invitation.full_name || '',
-          role: invitation.role
+          role: invitationRole
         }
       });
 
@@ -125,44 +139,29 @@ export const useTeamInvitations = (calendarId?: string) => {
         throw new Error(error.message);
       }
 
+      pendingResendRequestIds.current.delete(request.key);
+
       toast({
         title: t('teamInvitations.resentTitle', 'Invitation resent! 📧'),
         description: t('teamInvitations.resentDescription', 'A new invitation has been sent to {{email}}', { email: invitation.email }),
       });
 
       fetchInvitations();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error resending invitation:', error);
       toast({
         title: t('teamInvitations.resendErrorTitle', 'Error resending'),
-        description: error.message || t('teamInvitations.resendErrorDescription', 'Could not resend invitation'),
+        description: error instanceof Error
+          ? error.message
+          : t('teamInvitations.resendErrorDescription', 'Could not resend invitation'),
         variant: "destructive",
       });
     }
   };
 
-  const cleanupExpiredInvitations = async () => {
-    try {
-      // Best-effort write-through of the stored `status` column while this tab happens to be
-      // open. NOT relied upon for correctness: display already derives real expiry from
-      // expires_at in fetchInvitations above, and a server-side pg_cron job
-      // ('cleanup-expired-invitations', see supabase/migrations) keeps the stored column
-      // coherent even when no owner has this tab open at all.
-      await supabase.rpc('cleanup_expired_invitations');
-      fetchInvitations();
-    } catch (error) {
-      console.error('Error cleaning up expired invitations:', error);
-    }
-  };
-
   useEffect(() => {
-    fetchInvitations();
-
-    // Set up periodic cleanup of expired invitations
-    const cleanup = setInterval(cleanupExpiredInvitations, 60000); // Every minute
-
-    return () => clearInterval(cleanup);
-  }, [calendarId]);
+    void fetchInvitations();
+  }, [fetchInvitations]);
 
   // Calculate invitation stats
   const stats = {

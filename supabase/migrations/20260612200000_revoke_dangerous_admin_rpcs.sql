@@ -20,25 +20,49 @@
 -- exposed them was the default PUBLIC grant (proacl shows `=X/postgres`), so we
 -- must revoke from PUBLIC — revoking from authenticated/anon alone is a no-op.
 
-REVOKE EXECUTE ON FUNCTION public.admin_clear_user_data(uuid) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_developer_update_user_subscription(uuid, text, text, text, text, text, text) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_set_user_status(uuid, text) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_set_user_status(uuid, text, boolean, boolean) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.update_user_status(uuid, text, text, timestamp with time zone) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_generate_mock_data(uuid, text) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_generate_comprehensive_mock_data(uuid, text) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.generate_mock_data(uuid, text) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_ensure_user_has_calendar(uuid) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.ensure_user_has_calendar_and_service(uuid) FROM PUBLIC, anon, authenticated;
-
 -- admin_update_user_subscription: 2 of its 3 overloads have NO is_admin() guard
 -- (escalation: set any user's subscription_tier). The dev dashboard uses
 -- admin_apply_developer_status (is_admin-guarded), NOT these. Revoke the two
 -- unguarded overloads; the guarded 3rd (p_subscription_tier subscription_tier) is
 -- left intact.
-REVOKE EXECUTE ON FUNCTION public.admin_update_user_subscription(uuid, text, text, timestamp with time zone, timestamp with time zone) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.admin_update_user_subscription(uuid, text, text, text, text, text, text) FROM PUBLIC, anon, authenticated;
-
 -- get_user_subscription_details: no authz -> any authenticated user could read
 -- ANOTHER user's subscription status/tier by user_id (cross-tenant info leak).
-REVOKE EXECUTE ON FUNCTION public.get_user_subscription_details(uuid) FROM PUBLIC, anon, authenticated;
+--
+-- A clean bootstrap does not contain every function that existed in the live
+-- database when this migration was authored. Resolve each exact overload first
+-- so the security lock-down is applied wherever the function exists without
+-- making a fresh database fail on a live-only historical function.
+DO $migration$
+DECLARE
+  v_signature text;
+  v_function regprocedure;
+BEGIN
+  FOREACH v_signature IN ARRAY ARRAY[
+    'public.admin_clear_user_data(uuid)',
+    'public.admin_developer_update_user_subscription(uuid,text,text,text,text,text,text)',
+    'public.admin_set_user_status(uuid,text)',
+    'public.admin_set_user_status(uuid,text,boolean,boolean)',
+    'public.update_user_status(uuid,text,text,timestamp with time zone)',
+    'public.admin_generate_mock_data(uuid,text)',
+    'public.admin_generate_comprehensive_mock_data(uuid,text)',
+    'public.generate_mock_data(uuid,text)',
+    'public.admin_ensure_user_has_calendar(uuid)',
+    'public.ensure_user_has_calendar_and_service(uuid)',
+    'public.admin_update_user_subscription(uuid,text,text,timestamp with time zone,timestamp with time zone)',
+    'public.admin_update_user_subscription(uuid,text,text,text,text,text,text)',
+    'public.get_user_subscription_details(uuid)'
+  ]
+  LOOP
+    v_function := to_regprocedure(v_signature);
+
+    IF v_function IS NULL THEN
+      RAISE NOTICE 'Skipping absent historical function: %', v_signature;
+    ELSE
+      EXECUTE format(
+        'REVOKE EXECUTE ON FUNCTION %s FROM PUBLIC, anon, authenticated',
+        v_function
+      );
+    END IF;
+  END LOOP;
+END;
+$migration$;

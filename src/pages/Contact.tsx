@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,6 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { buildGeneralContactPayload } from '@/utils/contactFormPayload';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -128,6 +129,14 @@ const Contact = () => {
       meetingTime: '',
     },
   });
+  const submissionIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      submissionIdRef.current = null;
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const watchRequestMeeting = form.watch('requestMeeting');
   const watchMeetingDate = form.watch('meetingDate');
@@ -186,6 +195,8 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
+      const submissionId = submissionIdRef.current ?? crypto.randomUUID();
+      submissionIdRef.current = submissionId;
       if (data.requestMeeting) {
         if (!data.meetingDate || !data.meetingTime) {
           toast({
@@ -212,24 +223,10 @@ const Contact = () => {
           return;
         }
 
-        const { error: meetingError } = await supabase
-          .from('contact_meetings')
-          .insert({
-            name: data.name,
-            email: data.email,
-            company: data.company || null,
-            subject: data.subject,
-            budget: data.budget || null,
-            message: data.message,
-            meeting_date: format(data.meetingDate, 'yyyy-MM-dd'),
-            meeting_time: data.meetingTime,
-          });
-
-        if (meetingError) throw meetingError;
       }
 
       const { error } = await supabase.functions.invoke('submit-contact-form', {
-        body: {
+        body: buildGeneralContactPayload(submissionId, {
           name: data.name,
           email: data.email,
           company: data.company,
@@ -240,16 +237,30 @@ const Contact = () => {
           requestMeeting: data.requestMeeting,
           meetingDate: data.meetingDate ? format(data.meetingDate, 'yyyy-MM-dd') : null,
           meetingTime: data.meetingTime,
-        },
+        }),
       });
 
-      if (error) throw error;
+      if (error) {
+        const responseStatus = 'context' in error && error.context instanceof Response
+          ? error.context.status
+          : undefined;
+        if (responseStatus === 409) {
+          toast({
+            title: t('contact.toast.slotTakenTitle', 'Time slot no longer available'),
+            description: t('contact.toast.slotTakenDesc', 'This time slot was just booked. Please select another time.'),
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
 
+      submissionIdRef.current = null;
       setIsSuccess(true);
       toast({
         title: data.requestMeeting ? t('contact.toast.meetingScheduledTitle', 'Meeting scheduled!') : t('contact.toast.messageSentTitle', 'Message sent!'),
         description: data.requestMeeting
-          ? t('contact.toast.meetingScheduledDesc', 'Your meeting is scheduled for {{date}} at {{time}} CET.', { date: format(data.meetingDate!, 'PPP'), time: data.meetingTime })
+          ? t('contact.toast.meetingScheduledDesc', 'Your meeting is scheduled for {{date}} at {{time}} Amsterdam time.', { date: format(data.meetingDate!, 'PPP'), time: data.meetingTime })
           : t('contact.toast.messageSentDesc', "We'll get back to you as soon as possible."),
       });
 
@@ -578,7 +589,7 @@ const Contact = () => {
                               <FormItem className="flex flex-col">
                                 <FormLabel className="text-slate-300 mb-2">
                                   <Clock className="inline h-4 w-4 mr-1 text-emerald-400" />
-                                  {t('contact.form.times', 'Available Times (CET) *')}
+                                  {t('contact.form.times', 'Available Times (Amsterdam time) *')}
                                 </FormLabel>
                                 <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 flex-1">
                                   {watchMeetingDate ? (
@@ -626,7 +637,7 @@ const Contact = () => {
                           <div className="flex items-center gap-2 p-3 bg-emerald-500/20 rounded-lg border border-emerald-500/30">
                             <CheckCircle className="h-4 w-4 text-emerald-400" />
                             <span className="text-emerald-300 text-sm">
-                              {t('contact.form.meetingConfirm', 'Meeting: {{date}} at {{time}} CET', { date: format(watchMeetingDate, 'PPP'), time: form.watch('meetingTime') })}
+                              {t('contact.form.meetingConfirm', 'Meeting: {{date}} at {{time}} Amsterdam time', { date: format(watchMeetingDate, 'PPP'), time: form.watch('meetingTime') })}
                             </span>
                           </div>
                         )}

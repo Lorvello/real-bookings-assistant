@@ -2,15 +2,20 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import {
+  isAccountOwnerRequiredError,
+  requireAccountOwner,
+} from "../_shared/accountOwnerGuard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Helper logging function
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SYNC-PAYOUT-SETTINGS] ${step}${detailsStr}`);
 };
 
@@ -47,7 +52,7 @@ serve(async (req) => {
     // the client body. This fn previously read `testMode` from the request body, so
     // an authed user could send testMode:false in a TEST deployment and change payout
     // schedule on a LIVE Stripe account. validateStripeMode() defaults to test.
-    const testMode = validateStripeMode().mode === 'test';
+    const testMode = validateStripeMode().mode === "test";
 
     if (!calendarId || !payoutOption) {
       throw new Error("Missing calendarId or payoutOption");
@@ -65,22 +70,33 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseClient.auth
+      .getUser(token);
     if (userError || !userData.user) {
-      throw new Error(`Authentication error: ${userError?.message || 'User not found'}`);
+      throw new Error(
+        `Authentication error: ${userError?.message || "User not found"}`,
+      );
     }
 
     logStep("User authenticated", { userId: userData.user.id });
 
-    // Get account owner ID
-    const { data: accountOwnerData, error: accountOwnerError } = await supabaseClient
-      .rpc('get_account_owner_id', { p_user_id: userData.user.id });
-
-    if (accountOwnerError) {
-      throw new Error(`Failed to get account owner: ${accountOwnerError.message}`);
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("users")
+      .select("account_owner_id")
+      .eq("id", userData.user.id)
+      .single();
+    if (profileError || !profile) {
+      throw new Error(
+        `Failed to fetch user profile: ${
+          profileError?.message ?? "profile missing"
+        }`,
+      );
     }
 
-    const accountOwnerId = accountOwnerData;
+    const accountOwnerId = requireAccountOwner(
+      profile.account_owner_id,
+      userData.user.id,
+    );
     logStep("Account owner determined", { accountOwnerId });
 
     // Initialize Stripe
@@ -94,67 +110,73 @@ serve(async (req) => {
     logStep("Platform account retrieved", { platformAccountId });
 
     // Get Stripe account for this calendar/user
-    const environment = testMode ? 'test' : 'live';
-    const { data: stripeAccount, error: stripeAccountError } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('stripe_account_id, account_status')
-      .eq('account_owner_id', accountOwnerId)
-      .eq('environment', environment)
-      .eq('platform_account_id', platformAccountId)
-      .eq('onboarding_completed', true)
-      .eq('charges_enabled', true)
-      .single();
+    const environment = testMode ? "test" : "live";
+    const { data: stripeAccount, error: stripeAccountError } =
+      await supabaseClient
+        .from("business_stripe_accounts")
+        .select("stripe_account_id, account_status")
+        .eq("account_owner_id", accountOwnerId)
+        .eq("environment", environment)
+        .eq("platform_account_id", platformAccountId)
+        .eq("onboarding_completed", true)
+        .eq("charges_enabled", true)
+        .single();
 
     if (stripeAccountError || !stripeAccount) {
-      throw new Error("No active Stripe account found. Please complete Stripe onboarding first.");
+      throw new Error(
+        "No active Stripe account found. Please complete Stripe onboarding first.",
+      );
     }
 
-    logStep("Stripe account found", { stripeAccountId: stripeAccount.stripe_account_id });
+    logStep("Stripe account found", {
+      stripeAccountId: stripeAccount.stripe_account_id,
+    });
 
     // Update Stripe account payout settings
-    const payoutSchedule = payoutOption === 'instant' ? 'daily' : 'weekly';
-    
+    const payoutSchedule = payoutOption === "instant" ? "daily" : "weekly";
+
     await stripe.accounts.update(stripeAccount.stripe_account_id, {
       settings: {
         payouts: {
           schedule: {
             interval: payoutSchedule,
-            ...(payoutSchedule === 'weekly' && { weekly_anchor: 'monday' })
-          }
-        }
-      }
+            ...(payoutSchedule === "weekly" && { weekly_anchor: "monday" }),
+          },
+        },
+      },
     });
 
-    logStep("Stripe payout settings updated", { 
-      stripeAccountId: stripeAccount.stripe_account_id, 
-      schedule: payoutSchedule 
+    logStep("Stripe payout settings updated", {
+      stripeAccountId: stripeAccount.stripe_account_id,
+      schedule: payoutSchedule,
     });
 
     return new Response(
       JSON.stringify({
         success: true,
         message: `Payout settings updated to ${payoutOption}`,
-        stripeAccountId: stripeAccount.stripe_account_id
+        stripeAccountId: stripeAccount.stripe_account_id,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const ownerDenied = isAccountOwnerRequiredError(error);
     logStep("ERROR", { message: errorMessage });
-    
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage
+        error: errorMessage,
+        ...(ownerDenied ? { code: error.code } : {}),
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+        status: ownerDenied ? error.status : 500,
+      },
     );
   }
 });

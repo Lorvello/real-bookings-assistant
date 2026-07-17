@@ -569,6 +569,7 @@
     "saveSuccessDescription": "De termijninstellingen zijn succesvol bijgewerkt.",
     "saveErrorTitle": "Fout bij opslaan instellingen",
     "saveErrorDescription": "Kan de termijninstellingen niet opslaan.",
+    "saveBlockedUntilLoaded": "Laad de officiële termijninstellingen opnieuw voordat je wijzigingen opslaat.",
     "tierRequiredTitle": "Upgrade naar Professional",
     "tierRequiredDescription": "Termijnbetalingen zijn beschikbaar op het Professional-abonnement of hoger."
   },

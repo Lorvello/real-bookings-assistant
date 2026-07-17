@@ -52,9 +52,33 @@ export const OSS_BUCKET_KEY = "EU_OSS";
  * "register for OSS" guard message can NEVER diverge.
  */
 export const EU_MEMBER_STATES: ReadonlySet<string> = new Set([
-  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
-  "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
-  "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+  "AT",
+  "BE",
+  "BG",
+  "HR",
+  "CY",
+  "CZ",
+  "DK",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "HU",
+  "IE",
+  "IT",
+  "LV",
+  "LT",
+  "LU",
+  "MT",
+  "NL",
+  "PL",
+  "PT",
+  "RO",
+  "SK",
+  "SI",
+  "ES",
+  "SE",
 ]);
 
 /** True when an ISO-3166 alpha-2 country is an EU member state (case-insensitive). */
@@ -81,7 +105,7 @@ export interface BookingPaymentRowLike {
    * (booking_payments.tax_breakdown). Used to derive the net/taxable amount.
    */
   tax_breakdown?: unknown;
-  /** Payment status; only succeeded/paid rows count toward the threshold. */
+  /** Payment status; only settled rows with retained money count toward the threshold. */
   status?: string | null;
   /**
    * CB-N-2: ISO-4217 currency of the charge (booking_payments.currency). The EUR10,000
@@ -101,7 +125,9 @@ export const OSS_BUCKET_CURRENCY = "eur";
  * so a null/blank currency is treated as EUR (backward-compat with existing rows). A
  * row in any other currency must NOT be summed cents-for-cents into the EUR threshold.
  */
-export function isOssBucketCurrency(currency: string | null | undefined): boolean {
+export function isOssBucketCurrency(
+  currency: string | null | undefined,
+): boolean {
   if (currency == null || currency === "") return true; // assume EUR (EUR-only product)
   return currency.toLowerCase() === OSS_BUCKET_CURRENCY;
 }
@@ -165,8 +191,11 @@ export function taxCentsFromBreakdown(breakdown: unknown): number {
  *
  * The OSS EUR10k threshold is measured on the taxable value of the cross-border B2C
  * supplies. booking_payments has no dedicated net column, so we derive:
- *   net = amount_cents - tax(tax_breakdown) - refund_amount_cents
- * floored at 0.
+ *   kept gross = amount_cents - refund_amount_cents
+ *   kept tax   = original tax * (kept gross / original gross)
+ *   kept net   = kept gross - kept tax
+ * floored at 0. Refunds are gross amounts, so the original VAT must be prorated too;
+ * subtracting both the full original VAT and a gross refund would undercount retained net.
  *
  * DOCUMENTED FIELD CHOICE: amount_cents is the gross charge; tax comes from the
  * persisted Stripe tax_breakdown; refunds are subtracted so a refunded cross-border
@@ -176,17 +205,34 @@ export function taxCentsFromBreakdown(breakdown: unknown): number {
  * once collection is enabled the tax is correctly excluded.
  */
 export function taxableCents(row: BookingPaymentRowLike): number {
-  const gross = Number.isFinite(row.amount_cents) ? row.amount_cents : 0;
-  const tax = taxCentsFromBreakdown(row.tax_breakdown);
-  const refund = typeof row.refund_amount_cents === "number" && row.refund_amount_cents > 0
-    ? row.refund_amount_cents
+  const gross = Number.isFinite(row.amount_cents) && row.amount_cents > 0
+    ? row.amount_cents
     : 0;
-  const net = gross - tax - refund;
+  if (gross === 0) return 0;
+
+  const originalTax = Math.min(taxCentsFromBreakdown(row.tax_breakdown), gross);
+  const refund =
+    typeof row.refund_amount_cents === "number" && row.refund_amount_cents > 0
+      ? Math.min(row.refund_amount_cents, gross)
+      : 0;
+  const keptGross = gross - refund;
+  if (keptGross === 0) return 0;
+
+  const keptTax = Math.min(
+    Math.round((originalTax * keptGross) / gross),
+    keptGross,
+  );
+  const net = keptGross - keptTax;
   return net > 0 ? net : 0;
 }
 
 /** Only these payment statuses count toward the threshold (settled money). */
-const COUNTED_STATUSES = new Set(["succeeded", "paid", "completed"]);
+const COUNTED_STATUSES = new Set([
+  "succeeded",
+  "paid",
+  "completed",
+  "partially_refunded",
+]);
 
 export function isCountedStatus(status: string | null | undefined): boolean {
   if (!status) return false;
@@ -247,7 +293,9 @@ export function computeOssBucket(
 
   const thresholdCents = OSS_PAN_EU_THRESHOLD_CENTS;
   const remainingCents = Math.max(thresholdCents - cumulativeCents, 0);
-  const rawPct = thresholdCents > 0 ? (cumulativeCents / thresholdCents) * 100 : 0;
+  const rawPct = thresholdCents > 0
+    ? (cumulativeCents / thresholdCents) * 100
+    : 0;
   const percentage = Math.min(rawPct, 100);
   const registrationRequired = cumulativeCents >= thresholdCents;
   const status: "under" | "near" | "exceeded" = registrationRequired

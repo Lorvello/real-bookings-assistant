@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,21 +31,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { buildEnterpriseContactPayload } from '@/utils/contactFormPayload';
 import { Building2, Phone, Mail, Globe, Users, MessageSquare, X } from 'lucide-react';
-
-// Canonical English feature/size values: these are submitted to the backend, so
-// they must stay stable regardless of UI language. The visible label is what the
-// i18n layer translates (value -> form data; label -> what the user reads).
-const ENTERPRISE_FEATURE_DEFS: Array<[key: string, value: string]> = [
-  ['enterpriseForm.features.f1', 'Complete professional suite included'],
-  ['enterpriseForm.features.f2', 'Unlimited enterprise user access management'],
-  ['enterpriseForm.features.f3', 'Dedicated WhatsApp Business API with custom branding'],
-  ['enterpriseForm.features.f4', 'Intelligent voice call routing & distribution'],
-  ['enterpriseForm.features.f5', 'Omnichannel social media DM orchestration'],
-  ['enterpriseForm.features.f6', 'Advanced reputation management & review analytics'],
-  ['enterpriseForm.features.f7', 'Enterprise SLA with dedicated success management'],
-  ['enterpriseForm.features.f8', 'White-glove onboarding & strategic integration consulting'],
-];
+import {
+  getPublicEnterpriseClaims,
+  getPublicFeatureAvailability,
+} from '@/config/publicFeatureAvailability';
 
 const COMPANY_SIZE_DEFS: Array<[value: string, key: string, label: string]> = [
   ['1-10', 'enterpriseForm.sizes.s1', '1-10 employees'],
@@ -89,10 +80,16 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation('common');
+  const { t: tHome } = useTranslation('home');
+  const publicFeatureAvailability = getPublicFeatureAvailability();
 
-  const enterpriseFeatures = ENTERPRISE_FEATURE_DEFS.map(([key, value]) => ({
-    value,
-    label: t(key, value),
+  const enterpriseFeatures = getPublicEnterpriseClaims(publicFeatureAvailability, {
+    canonical: (key, fallback) => tHome(key, fallback),
+    legacy: (key, fallback) => tHome(key, fallback),
+    surface: 'home',
+  }).map(({ submissionValue, text }) => ({
+    value: submissionValue,
+    label: text,
   }));
   const companySizeOptions = COMPANY_SIZE_DEFS.map(([value, key, label]) => ({
     value,
@@ -113,6 +110,14 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
       requestMeeting: true,
     },
   });
+  const submissionIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      submissionIdRef.current = null;
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const onSubmit = async (data: FormData) => {
     // Client-side rate limit check
@@ -128,14 +133,20 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
 
     setIsSubmitting(true);
     try {
+      const submissionId = submissionIdRef.current ?? crypto.randomUUID();
+      submissionIdRef.current = submissionId;
       const { error } = await supabase.functions.invoke('submit-contact-form', {
-        body: {
+        body: buildEnterpriseContactPayload(submissionId, {
           name: data.fullName,
           email: data.email,
           company: data.companyName,
+          companyWebsite: data.companyWebsite,
+          phone: data.phoneNumber,
+          companySize: data.companySize,
+          selectedFeatures: data.selectedFeatures,
           message: data.message,
-          formType: 'enterprise'
-        },
+          requestMeeting: data.requestMeeting,
+        }),
       });
 
       if (error) {
@@ -153,9 +164,15 @@ export const EnterpriseContactForm: React.FC<EnterpriseContactFormProps> = ({
 
       toast({
         title: t('enterpriseForm.toast.successTitle', 'Enterprise Inquiry Submitted'),
-        description: t('enterpriseForm.toast.successDesc', 'Thank you for your interest! Our enterprise team will contact you within 24 hours.'),
+        description: publicFeatureAvailability.enterpriseContactResponseWithin24Hours
+          ? t('enterpriseForm.toast.successDesc', 'Thank you for your interest! Our enterprise team will contact you within 24 hours.')
+          : tHome(
+              'pricing.plans.enterprise.contactSuccess',
+              'Thank you for your interest. If your request is a fit, we will follow up using the details you provided.',
+            ),
       });
 
+      submissionIdRef.current = null;
       form.reset();
       onOpenChange(false);
     } catch (error) {

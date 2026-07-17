@@ -1,17 +1,27 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { computePerJurisdictionReport, computeRefundAdjustedRow, computeReportPeriod, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
+import {
+  computePerJurisdictionReport,
+  computeRefundAdjustedRow,
+  computeReportPeriod,
+  type JurisdictionRowInput,
+  resolvePaymentTaxCents,
+  resolveRefundedCents,
+  retrieveBookingPaymentIntent,
+} from "../_shared/taxReport.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[GENERATE-TAX-REPORT] ${step}${detailsStr}`);
 };
 
@@ -20,31 +30,32 @@ const logStep = (step: string, details?: any) => {
 // drops any extra body fields (including a stale test_mode) without erroring.
 const reportRequestSchema = z.object({
   calendar_id: z.string().uuid().optional(),
-  report_type: z.enum(['quarterly', 'monthly', 'annual']).default('quarterly'),
+  report_type: z.enum(["quarterly", "monthly", "annual"]).default("quarterly"),
   year: z.number().int().min(2000).max(2100).optional(),
   quarter: z.number().int().min(1).max(4).optional(),
   month: z.number().int().min(1).max(12).optional(),
 });
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
     );
 
     // Authenticate the user
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
+    const authHeader = req.headers.get("Authorization")!;
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabaseClient.auth
+      .getUser(token);
+
     if (userError || !user) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
 
     const rawBody = await req.json().catch(() => ({}));
@@ -53,11 +64,14 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          code: 'INVALID_INPUT',
-          error: parsed.error.errors[0]?.message || 'Invalid report request',
+          code: "INVALID_INPUT",
+          error: parsed.error.errors[0]?.message || "Invalid report request",
           details: parsed.error.flatten().fieldErrors,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
     const {
@@ -70,13 +84,13 @@ serve(async (req) => {
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
     // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
-    const test_mode = validateStripeMode().mode === 'test';
+    const test_mode = validateStripeMode().mode === "test";
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient
-      .from('users')
-      .select('subscription_tier, account_owner_id, business_name')
-      .eq('id', user.id)
+      .from("users")
+      .select("subscription_tier, account_owner_id, business_name")
+      .eq("id", user.id)
       .single();
 
     if (userDataError) {
@@ -84,55 +98,73 @@ serve(async (req) => {
     }
 
     // Only Professional and Enterprise users can generate tax reports
-    if (!userData?.subscription_tier || !['professional', 'enterprise'].includes(userData.subscription_tier)) {
+    if (
+      !userData?.subscription_tier ||
+      !["professional", "enterprise"].includes(userData.subscription_tier)
+    ) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Tax reporting features require Professional or Enterprise subscription' 
+        JSON.stringify({
+          success: false,
+          error:
+            "Tax reporting features require Professional or Enterprise subscription",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        },
       );
     }
 
     const accountOwnerId = userData.account_owner_id || user.id;
 
     // Initialize Stripe
-    const stripeSecretKey = test_mode 
+    const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+
     if (!stripeSecretKey) {
-      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
+      throw new Error(
+        `Missing Stripe secret key for ${test_mode ? "test" : "live"} mode`,
+      );
     }
-    
+
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get platform account
     const platformAccount = await stripe.accounts.retrieve();
     const platformAccountId = platformAccount.id;
-    const environment = test_mode ? 'test' : 'live';
+    const environment = test_mode ? "test" : "live";
 
     // Get user's Stripe account
     const { data: stripeAccount } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('*')
-      .eq('account_owner_id', accountOwnerId)
-      .eq('environment', environment)
-      .eq('platform_account_id', platformAccountId)
-      .eq('charges_enabled', true)
+      .from("business_stripe_accounts")
+      .select("*")
+      .eq("account_owner_id", accountOwnerId)
+      .eq("environment", environment)
+      .eq("platform_account_id", platformAccountId)
+      .eq("charges_enabled", true)
       .single();
 
     if (!stripeAccount) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'No active Stripe account found. Please complete Stripe onboarding first.' 
+        JSON.stringify({
+          success: false,
+          error:
+            "No active Stripe account found. Please complete Stripe onboarding first.",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        },
       );
     }
 
-    logStep('Generating tax report', { reportType: report_type, year, quarter, month });
+    logStep("Generating tax report", {
+      reportType: report_type,
+      year,
+      quarter,
+      month,
+    });
 
     // CB-F-11: half-open filing-period window [start, nextPeriodStart) in UTC via the
     // shared canonical helper, so the LAST DAY of every quarter/month/year is fully
@@ -147,7 +179,7 @@ serve(async (req) => {
 
     // Get payment data from database
     let bookingQuery = supabaseClient
-      .from('booking_payments')
+      .from("booking_payments")
       .select(`
         *,
         bookings!inner(
@@ -158,21 +190,21 @@ serve(async (req) => {
           service_types(name, price)
         )
       `)
-      .eq('stripe_account_id', stripeAccount.stripe_account_id)
-      .gte('created_at', period.startIso)
+      .eq("stripe_account_id", stripeAccount.stripe_account_id)
+      .gte("created_at", period.startIso)
       // CB-F-11: strict `<` on the EXCLUSIVE next-period start (was `<= last-day-00:00:00`).
-      .lt('created_at', period.endExclusiveIso)
-      .in('status', ['succeeded', 'completed']);
+      .lt("created_at", period.endExclusiveIso)
+      .in("status", ["succeeded", "completed", "partially_refunded"]);
 
     if (calendar_id) {
-      bookingQuery = bookingQuery.eq('bookings.calendar_id', calendar_id);
+      bookingQuery = bookingQuery.eq("bookings.calendar_id", calendar_id);
     }
 
     const { data: payments, error: paymentsError } = await bookingQuery;
 
     if (paymentsError) {
-      logStep('Error fetching payments', paymentsError);
-      throw new Error('Failed to fetch payment data');
+      logStep("Error fetching payments", paymentsError);
+      throw new Error("Failed to fetch payment data");
     }
 
     // Process payments and generate detailed report data
@@ -200,7 +232,7 @@ serve(async (req) => {
           stripe,
           payment.stripe_payment_intent_id,
           stripeAccount.stripe_account_id,
-          ['latest_charge'],
+          ["latest_charge"],
         );
 
         // F-TAX-02: gross = the charged total; tax from the authoritative source
@@ -212,7 +244,11 @@ serve(async (req) => {
         const grossOrigCents = paymentIntent.amount;
         const taxOrigCents = resolvePaymentTaxCents(paymentIntent);
         const refundedCents = resolveRefundedCents(paymentIntent);
-        const row = computeRefundAdjustedRow(grossOrigCents, taxOrigCents, refundedCents);
+        const row = computeRefundAdjustedRow(
+          grossOrigCents,
+          taxOrigCents,
+          refundedCents,
+        );
 
         const grossAmount = row.grossCents / 100;
         const taxAmount = row.taxCents / 100;
@@ -227,7 +263,9 @@ serve(async (req) => {
         // X6: collect this row's per-jurisdiction input from the AUTHORITATIVE persisted
         // columns + the refund-adjusted figures (so per-country VAT nets refunds exactly).
         jurisdictionRows.push({
-          customerCountry: typeof payment.customer_country === 'string' ? payment.customer_country : null,
+          customerCountry: typeof payment.customer_country === "string"
+            ? payment.customer_country
+            : null,
           taxBreakdown: payment.tax_breakdown ?? null,
           reverseCharge: payment.reverse_charge === true,
           grossCents: row.grossCents,
@@ -238,45 +276,57 @@ serve(async (req) => {
         reportDetails.push({
           date: payment.created_at,
           transactionId: payment.stripe_payment_intent_id,
-          customerName: payment.bookings?.customer_name || 'Unknown',
-          customerEmail: payment.bookings?.customer_email || '',
-          serviceName: payment.bookings?.service_types?.name || 'Unknown Service',
+          customerName: payment.bookings?.customer_name || "Unknown",
+          customerEmail: payment.bookings?.customer_email || "",
+          serviceName: payment.bookings?.service_types?.name ||
+            "Unknown Service",
           grossAmount,
           taxAmount,
           netAmount,
           refundedAmount,
           fullyRefunded: row.fullyRefunded,
-          taxRate: taxAmount > 0 && netAmount > 0 ? Math.round((taxAmount / netAmount) * 100 * 100) / 100 : 0,
+          taxRate: taxAmount > 0 && netAmount > 0
+            ? Math.round((taxAmount / netAmount) * 100 * 100) / 100
+            : 0,
           // X6: per-row destination country + reverse-charge marker, so a transaction
           // line is auditable per-jurisdiction (read from the authoritative X1 columns).
-          customerCountry: typeof payment.customer_country === 'string' ? payment.customer_country : null,
+          customerCountry: typeof payment.customer_country === "string"
+            ? payment.customer_country
+            : null,
           reverseCharge: payment.reverse_charge === true,
           currency: payment.currency.toUpperCase(),
-          paymentMethod: payment.payment_method_type || 'card'
+          paymentMethod: payment.payment_method_type || "card",
         });
-
       } catch (stripeError) {
         // F-TAX-21: surface (do NOT silently swallow) a PI that could not be retrieved
         // in either account context. Count it so the report can report data quality,
         // but keep generating the rest of the report (one bad PI must not 500 the whole
         // filing report).
         droppedTransactions += 1;
-        logStep('DROPPED transaction: payment intent unreadable in any account context', {
-          paymentId: payment.stripe_payment_intent_id,
-          error: stripeError.message
-        });
+        logStep(
+          "DROPPED transaction: payment intent unreadable in any account context",
+          {
+            paymentId: payment.stripe_payment_intent_id,
+            error: errorMessage(stripeError),
+          },
+        );
       }
     }
 
     // Sort by date
-    reportDetails.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    reportDetails.sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
     // X6: per-jurisdiction VAT summary + reverse-charge markers + OSS-eligible bucket.
     // merchantCountry = the merchant's home country (the OSS cross-border boundary,
     // matching the X5 isCrossBorderB2C definition); same source as complianceInfo
     // jurisdiction below. PURE resolver over the authoritative persisted columns.
-    const merchantCountry = stripeAccount.country || 'NL';
-    const perJurisdiction = computePerJurisdictionReport(jurisdictionRows, merchantCountry);
+    const merchantCountry = stripeAccount.country || "NL";
+    const perJurisdiction = computePerJurisdictionReport(
+      jurisdictionRows,
+      merchantCountry,
+    );
 
     // Generate report summary
     const reportData = {
@@ -290,17 +340,17 @@ serve(async (req) => {
           end: endInclusiveDisplay.toISOString(),
           endExclusive: endExclusive.toISOString(),
           year,
-          quarter: report_type === 'quarterly' ? quarter : undefined,
-          month: report_type === 'monthly' ? month : undefined
+          quarter: report_type === "quarterly" ? quarter : undefined,
+          month: report_type === "monthly" ? month : undefined,
         },
         generatedAt: new Date().toISOString(),
-        businessName: userData.business_name || 'Business',
+        businessName: userData.business_name || "Business",
         stripeAccountId: stripeAccount.stripe_account_id,
         environment,
         transactionCount: reportDetails.length,
         // F-TAX-21: number of payments that could not be read from Stripe in any
         // account context (surfaced, not silently swallowed). 0 in a healthy report.
-        droppedTransactions
+        droppedTransactions,
       },
       summary: {
         // F-TAX-17: totalRevenue/totalTax/totalNet are NET OF REFUNDS (each row
@@ -310,10 +360,16 @@ serve(async (req) => {
         totalTax: Math.round(totalTax * 100) / 100,
         totalNet: Math.round(totalNet * 100) / 100,
         totalRefunded: Math.round(totalRefunded * 100) / 100,
-        averageTransactionValue: reportDetails.length > 0 ? Math.round((totalRevenue / reportDetails.length) * 100) / 100 : 0,
-        taxableTransactions: reportDetails.filter(d => d.taxAmount > 0).length,
-        taxRate: totalNet > 0 ? Math.round((totalTax / totalNet) * 100 * 100) / 100 : 0,
-        currency: 'EUR'
+        averageTransactionValue: reportDetails.length > 0
+          ? Math.round((totalRevenue / reportDetails.length) * 100) / 100
+          : 0,
+        taxableTransactions: reportDetails.filter((d) =>
+          d.taxAmount > 0
+        ).length,
+        taxRate: totalNet > 0
+          ? Math.round((totalTax / totalNet) * 100 * 100) / 100
+          : 0,
+        currency: "EUR",
       },
       transactions: reportDetails,
       taxBreakdown: {
@@ -321,11 +377,13 @@ serve(async (req) => {
           // Effective rate = total tax / total net (the taxable base), rounded to 2 dp.
           // BACK-COMPAT (X6): the blended single-figure behavior is unchanged so any
           // existing consumer keeps working; the per-jurisdiction detail is ADDITIVE below.
-          rate: totalNet > 0 ? Math.round((totalTax / totalNet) * 100 * 100) / 100 : 0,
+          rate: totalNet > 0
+            ? Math.round((totalTax / totalNet) * 100 * 100) / 100
+            : 0,
           netAmount: Math.round(totalNet * 100) / 100,
           taxAmount: Math.round(totalTax * 100) / 100,
-          grossAmount: Math.round(totalRevenue * 100) / 100
-        }
+          grossAmount: Math.round(totalRevenue * 100) / 100,
+        },
       },
       // X6: per-jurisdiction VAT summary (one line per destination country + line type),
       // reverse-charge 0% lines marked DISTINCTLY from not_collecting 0%, and the
@@ -335,12 +393,15 @@ serve(async (req) => {
       perJurisdiction: {
         merchantCountry,
         countryCount: perJurisdiction.countryCount,
-        reverseChargeTransactionCount: perJurisdiction.reverseChargeTransactionCount,
+        reverseChargeTransactionCount:
+          perJurisdiction.reverseChargeTransactionCount,
         // CB-F-10: EU "register for OSS" guard count (EU destinations only).
-        crossBorderGuardTransactionCount: perJurisdiction.crossBorderGuardTransactionCount,
+        crossBorderGuardTransactionCount:
+          perJurisdiction.crossBorderGuardTransactionCount,
         // CB-F-10: NON-EU cross-border count (US/GB/CH...), outside OSS scope, NOT "register for OSS".
         nonEuTransactionCount: perJurisdiction.nonEuTransactionCount,
-        totalCollectedTax: Math.round(perJurisdiction.totalCollectedTaxCents) / 100,
+        totalCollectedTax: Math.round(perJurisdiction.totalCollectedTaxCents) /
+          100,
         lines: perJurisdiction.lines.map((l) => ({
           country: l.country,
           lineType: l.lineType,
@@ -356,45 +417,48 @@ serve(async (req) => {
           grossAmount: Math.round(perJurisdiction.ossEligible.grossCents) / 100,
           // The TAXABLE value the OSS EUR10k threshold is measured on (net-of-VAT,
           // net-of-refund); reconciles with get-tax-thresholds' cumulative.
-          taxableAmount: Math.round(perJurisdiction.ossEligible.taxableCents) / 100,
+          taxableAmount: Math.round(perJurisdiction.ossEligible.taxableCents) /
+            100,
           countries: perJurisdiction.ossEligible.countries,
         },
       },
       complianceInfo: {
         automaticTaxEnabled: true,
-        jurisdiction: stripeAccount.country || 'NL',
-        taxSystem: 'VAT',
-        reportingCurrency: 'EUR',
-        complianceStatus: reportDetails.length > 0 ? 'compliant' : 'no_transactions'
-      }
+        jurisdiction: stripeAccount.country || "NL",
+        taxSystem: "VAT",
+        reportingCurrency: "EUR",
+        complianceStatus: reportDetails.length > 0
+          ? "compliant"
+          : "no_transactions",
+      },
     };
 
-    logStep('Tax report generated', {
+    logStep("Tax report generated", {
       transactionCount: reportDetails.length,
       totalRevenue,
       totalTax,
-      period: `[${startDate.toISOString()}, ${endExclusive.toISOString()})`
+      period: `[${startDate.toISOString()}, ${endExclusive.toISOString()})`,
     });
 
     return new Response(
       JSON.stringify(reportData),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
-
   } catch (error) {
-    logStep('ERROR', { message: error.message });
+    const message = errorMessage(error);
+    logStep("ERROR", { message });
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message 
+      JSON.stringify({
+        success: false,
+        error: message,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

@@ -88,6 +88,8 @@ interface PaymentFlexibilitySectionProps {
    * can never fire the call the backend would reject.
    */
   canUseInstallments: boolean;
+  /** True only after the authoritative installment snapshot loaded successfully. */
+  installmentsReady: boolean;
   installmentConfigOpen: boolean;
   onToggleInstallmentConfig: () => void;
   /** The InstallmentSettings editor, rendered by the orchestrator (needs profile + handlers). */
@@ -184,6 +186,7 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
     installmentsEnabled,
     onToggleInstallments,
     canUseInstallments,
+    installmentsReady,
     installmentConfigOpen,
     onToggleInstallmentConfig,
     installmentSlot,
@@ -319,14 +322,14 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
 
         {/* Require vs optional master toggle */}
         <FlexRow
-          title={t('settings.payments.flexibility.makeOptionalTitle', 'Make payment optional')}
-          description={t('settings.payments.flexibility.makeOptionalDescription', 'On: customers choose when to pay. Off: payment is required upfront before a booking is confirmed.')}
+          title={t('settings.payments.flexibility.makeOptionalTitle', 'Allow booking without online payment')}
+          description={t('settings.payments.flexibility.makeOptionalDescription', 'On: the public booking page confirms without taking an online payment; WhatsApp can use the enabled options below. Off: full online payment is required before confirmation.')}
           control={
             <Switch
               checked={!paymentRequired}
               onCheckedChange={onToggleOptional}
               disabled={saving}
-              aria-label={t('settings.payments.flexibility.makeOptionalAria', 'Make payment optional')}
+              aria-label={t('settings.payments.flexibility.makeOptionalAria', 'Allow booking without online payment')}
             />
           }
         />
@@ -380,13 +383,13 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">{t('settings.payments.flexibility.chooseOptions', 'Choose which payment options customers can pick from:')}</p>
+            <p className="text-sm text-muted-foreground">{t('settings.payments.flexibility.chooseOptions', 'WhatsApp payment behavior when full upfront payment is optional:')}</p>
 
             <TimingRow
               active
               activeColor="bg-success"
               title={t('settings.payments.flexibility.payNowTitle', 'Pay now')}
-              description={t('settings.payments.flexibility.payNowDescription', 'Pay online immediately')}
+              description={t('settings.payments.flexibility.payNowDescription', 'Offer immediate online payment in WhatsApp')}
               control={
                 <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2 py-0.5 text-xs text-subtle-foreground">
                   {t('settings.payments.flexibility.alwaysOn', 'Always on')}
@@ -398,7 +401,7 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
               active={payOnSiteEnabled}
               activeColor="bg-warning"
               title={t('settings.payments.flexibility.payOnSiteTitle', 'Pay on-site')}
-              description={t('settings.payments.flexibility.payOnSiteDescription', 'Pay when the service is provided')}
+              description={t('settings.payments.flexibility.payOnSiteDescription', 'Allow WhatsApp bookings to defer payment until the service is provided')}
               control={
                 <Switch
                   checked={payOnSiteEnabled}
@@ -412,8 +415,8 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
             <TimingRow
               active={installmentsEnabled && canUseInstallments}
               activeColor="bg-primary"
-              title={t('settings.payments.flexibility.installmentsTitle', 'Pay in installments')}
-              description={t('settings.payments.flexibility.installmentsDescription', 'Split into multiple payments')}
+              title={t('settings.payments.flexibility.installmentsTitle', 'WhatsApp deposit plan')}
+              description={t('settings.payments.flexibility.installmentsDescription', 'Require the configured first payment online and record the remainder on-site')}
               badge={
                 !canUseInstallments ? (
                   <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold-foreground">
@@ -423,7 +426,7 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
               }
               control={
                 <>
-                  {installmentsEnabled && canUseInstallments && (
+                  {installmentsEnabled && canUseInstallments && installmentsReady && (
                     <Button variant="ghost" size="sm" onClick={onToggleInstallmentConfig} className="text-xs">
                       <SettingsIcon className="mr-1 h-3 w-3" />
                       {t('settings.payments.flexibility.configure', 'Configure')}
@@ -432,8 +435,8 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
                   <Switch
                     checked={installmentsEnabled && canUseInstallments}
                     onCheckedChange={onToggleInstallments}
-                    disabled={saving || !canUseInstallments}
-                    aria-label={t('settings.payments.flexibility.installmentsAria', 'Allow installment payments')}
+                    disabled={saving || !canUseInstallments || !installmentsReady}
+                    aria-label={t('settings.payments.flexibility.installmentsAria', 'Configure a WhatsApp deposit plan')}
                     aria-describedby={!canUseInstallments ? 'installments-upgrade-hint' : undefined}
                   />
                 </>
@@ -444,11 +447,17 @@ export function PaymentFlexibilitySection(props: PaymentFlexibilitySectionProps)
                 screen readers announce WHY it is disabled, not just that it is greyed. */}
             {!canUseInstallments && (
               <p id="installments-upgrade-hint" className="px-4 text-xs text-muted-foreground">
-                {t('settings.payments.flexibility.installmentsUpgradeHint', 'Available on the Professional plan. Upgrade to let customers split payments.')}
+                {t('settings.payments.flexibility.installmentsUpgradeHint', 'Available on the Professional plan for WhatsApp bookings.')}
               </p>
             )}
 
-            {installmentsEnabled && canUseInstallments && installmentConfigOpen && (
+            {canUseInstallments && !installmentsReady && (
+              <p className="px-4 text-xs text-destructive" role="status">
+                {t('settings.payments.flexibility.installmentsUnavailable', 'Installment settings could not be loaded. Reload before changing them.')}
+              </p>
+            )}
+
+            {installmentsEnabled && canUseInstallments && installmentsReady && installmentConfigOpen && (
               <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">{installmentSlot}</div>
             )}
           </div>

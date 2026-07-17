@@ -1,14 +1,6 @@
 [
   {
     "anon_exec": false,
-    "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier text, p_trial_end_date text, p_subscription_end_date text, p_business_name text, p_business_type text",
-    "authenticated_exec": false,
-    "function_name": "admin_developer_update_user_subscription",
-    "security_definer": true,
-    "service_role_exec": true
-  },
-  {
-    "anon_exec": false,
     "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier subscription_tier, p_trial_end_date timestamp with time zone, p_subscription_end_date timestamp with time zone, p_business_name text, p_business_type text",
     "authenticated_exec": false,
     "function_name": "admin_update_user_subscription",
@@ -21,13 +13,69 @@
     "authenticated_exec": false,
     "function_name": "admin_update_user_subscription",
     "security_definer": true,
-    "service_role_exec": true
+    "service_role_exec": false
   },
   {
     "anon_exec": false,
     "args": "p_user_id uuid, p_subscription_status text, p_subscription_tier text, p_trial_end_date timestamp with time zone, p_subscription_end_date timestamp with time zone",
     "authenticated_exec": false,
     "function_name": "admin_update_user_subscription",
+    "security_definer": true,
+    "service_role_exec": false
+  },
+  {
+    "anon_exec": false,
+    "args": "p_event_id text, p_event_created bigint, p_stripe_mode text, p_event_kind text, p_subscription_id text, p_customer_id text, p_user_id uuid, p_user_email text, p_stripe_status text, p_tier text, p_period_end timestamp with time zone, p_cancel_at_period_end boolean",
+    "authenticated_exec": false,
+    "function_name": "apply_stripe_subscription_event",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_event_id text, p_event_created bigint, p_stripe_mode text, p_subscription_id text, p_outcome text",
+    "authenticated_exec": false,
+    "function_name": "apply_stripe_subscription_invoice_event",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_provider_kind text, p_provider_object_id text, p_generation integer, p_request_fingerprint text, p_payment_intent_id text, p_amount_cents integer, p_currency text, p_stripe_mode text, p_destination_account_id text",
+    "authenticated_exec": false,
+    "function_name": "authorize_booking_payment_provider_settlement",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint, p_schedule_generation uuid, p_claim_token uuid, p_channel text, p_delivery_mode text, p_delivery_key text",
+    "authenticated_exec": false,
+    "function_name": "begin_booking_reminder_attempt_v2",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint, p_channel text, p_delivery_mode text, p_delivery_key text",
+    "authenticated_exec": false,
+    "function_name": "begin_booking_reminder_provider_attempt",
+    "security_definer": true,
+    "service_role_exec": false
+  },
+  {
+    "anon_exec": false,
+    "args": "p_limit integer, p_lease_seconds integer",
+    "authenticated_exec": false,
+    "function_name": "claim_booking_payment_provider_cleanup",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_channel text, p_provider_kind text, p_amount_cents integer, p_total_due_cents integer, p_currency text, p_stripe_mode text, p_destination_account_id text, p_platform_account_id text, p_tax_calculation_id text, p_request_fingerprint text, p_claim_ttl_seconds integer",
+    "authenticated_exec": false,
+    "function_name": "claim_booking_payment_provider_reservation",
     "security_definer": true,
     "service_role_exec": true
   },
@@ -37,6 +85,86 @@
     "authenticated_exec": false,
     "function_name": "claim_booking_reminder",
     "security_definer": true,
+    "service_role_exec": false
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint",
+    "authenticated_exec": false,
+    "function_name": "claim_booking_reminder_v2",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_conversation_id uuid, p_service_type_id uuid, p_calendar_id uuid, p_amount_cents integer, p_currency text, p_stripe_mode text, p_payment_type text, p_installment_plan jsonb, p_request_fingerprint text, p_expires_at timestamp with time zone, p_claim_ttl_seconds integer",
+    "authenticated_exec": false,
+    "function_name": "claim_whatsapp_payment_attempt",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_calendar_slug text, p_service_type_id uuid, p_start_time timestamp with time zone, p_customer_name text, p_customer_email text, p_customer_phone text, p_notes text, p_customer_country text, p_customer_vat_id text, p_customer_locale text",
+    "authenticated_exec": false,
+    "function_name": "commit_public_booking",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_job_id uuid, p_claim_token uuid, p_succeeded boolean, p_provider_result text, p_error_code text, p_retry_delay_seconds integer",
+    "authenticated_exec": false,
+    "function_name": "finalize_booking_payment_provider_cleanup",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reservation_id uuid, p_claim_token uuid, p_generation integer, p_request_fingerprint text, p_stripe_mode text, p_provider_object_id text, p_provider_url text, p_provider_expires_at timestamp with time zone",
+    "authenticated_exec": false,
+    "function_name": "finalize_booking_payment_provider_reservation",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_stripe_payment_intent_id text, p_payment_kind text, p_paid_at timestamp with time zone",
+    "authenticated_exec": false,
+    "function_name": "finalize_booking_payment_success",
+    "security_definer": true,
+    "service_role_exec": false
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_stripe_payment_intent_id text, p_payment_kind text, p_paid_at timestamp with time zone, p_stripe_mode text",
+    "authenticated_exec": false,
+    "function_name": "finalize_booking_payment_success_v2",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_claim_token uuid, p_attempt_generation integer, p_request_fingerprint text, p_stripe_mode text, p_stripe_session_id text, p_payment_url text",
+    "authenticated_exec": false,
+    "function_name": "finalize_whatsapp_payment_attempt",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_claim_token uuid, p_request_fingerprint text, p_stripe_mode text, p_stripe_session_id text, p_payment_url text",
+    "authenticated_exec": false,
+    "function_name": "finalize_whatsapp_payment_attempt",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_calendar_id uuid",
+    "authenticated_exec": true,
+    "function_name": "get_dashboard_metrics",
+    "security_definer": true,
     "service_role_exec": true
   },
   {
@@ -44,6 +172,14 @@
     "args": "",
     "authenticated_exec": false,
     "function_name": "get_due_booking_reminders",
+    "security_definer": true,
+    "service_role_exec": false
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_limit integer",
+    "authenticated_exec": false,
+    "function_name": "get_due_booking_reminders_v2",
     "security_definer": true,
     "service_role_exec": true
   },
@@ -53,12 +189,12 @@
     "authenticated_exec": false,
     "function_name": "get_user_subscription_details",
     "security_definer": true,
-    "service_role_exec": true
+    "service_role_exec": false
   },
   {
-    "anon_exec": true,
+    "anon_exec": false,
     "args": "user_uuid uuid",
-    "authenticated_exec": true,
+    "authenticated_exec": false,
     "function_name": "get_user_subscription_tier",
     "security_definer": true,
     "service_role_exec": true
@@ -73,9 +209,73 @@
   },
   {
     "anon_exec": false,
-    "args": "p_booking_id uuid, p_reminder_number smallint, p_delivered boolean, p_max_attempts integer, p_failure_reason text, p_channel text",
+    "args": "",
+    "authenticated_exec": false,
+    "function_name": "reconcile_booking_reminders_v2",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_attempt_generation integer, p_request_fingerprint text, p_stripe_mode text, p_stripe_session_id text, p_provider_status text, p_provider_payment_status text, p_provider_expires_at timestamp with time zone, p_payment_url text, p_new_expires_at timestamp with time zone, p_claim_ttl_seconds integer",
+    "authenticated_exec": false,
+    "function_name": "reconcile_or_renew_whatsapp_payment_attempt",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_stripe_session_id text, p_stripe_mode text, p_failed_at timestamp with time zone",
+    "authenticated_exec": false,
+    "function_name": "record_booking_checkout_failure",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_stripe_payment_intent_id text, p_stripe_mode text, p_failed_at timestamp with time zone",
+    "authenticated_exec": false,
+    "function_name": "record_booking_payment_failure",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint, p_delivered boolean, p_max_attempts integer, p_failure_reason text, p_channel text, p_delivery_mode text, p_provider_message_id text, p_delivery_key text",
     "authenticated_exec": false,
     "function_name": "record_booking_reminder_result",
+    "security_definer": true,
+    "service_role_exec": false
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reminder_number smallint, p_schedule_generation uuid, p_claim_token uuid, p_provider_accepted boolean, p_max_attempts integer, p_failure_reason text, p_channel text, p_delivery_mode text, p_provider_message_id text, p_delivery_key text",
+    "authenticated_exec": false,
+    "function_name": "record_booking_reminder_result_v2",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_provider_kind text, p_provider_object_id text, p_generation integer, p_request_fingerprint text, p_stripe_mode text, p_failure_code text",
+    "authenticated_exec": false,
+    "function_name": "release_booking_payment_provider_after_failure",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reservation_id uuid, p_generation integer, p_request_fingerprint text, p_stripe_mode text, p_provider_object_id text, p_provider_status text, p_provider_payment_status text, p_claim_ttl_seconds integer",
+    "authenticated_exec": false,
+    "function_name": "renew_booking_payment_provider_after_expiry",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_reservation_id uuid, p_generation integer, p_request_fingerprint text, p_provider_object_id text, p_reason_code text",
+    "authenticated_exec": false,
+    "function_name": "require_booking_payment_provider_cleanup",
     "security_definer": true,
     "service_role_exec": true
   },
@@ -84,6 +284,22 @@
     "args": "p_booking_id uuid, p_new_start timestamp with time zone, p_new_end timestamp with time zone, p_service_type_id uuid, p_calendar_id uuid, p_conversation_id uuid",
     "authenticated_exec": false,
     "function_name": "reschedule_booking_atomic",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_job_id uuid, p_claim_token uuid",
+    "authenticated_exec": false,
+    "function_name": "verify_booking_payment_provider_cleanup_claim",
+    "security_definer": true,
+    "service_role_exec": true
+  },
+  {
+    "anon_exec": false,
+    "args": "p_booking_id uuid, p_channel text, p_provider_kind text, p_amount_cents integer, p_total_due_cents integer, p_currency text, p_stripe_mode text, p_destination_account_id text, p_platform_account_id text, p_tax_calculation_id text, p_request_fingerprint text, p_provider_object_id text",
+    "authenticated_exec": false,
+    "function_name": "verify_booking_payment_provider_reservation",
     "security_definer": true,
     "service_role_exec": true
   }

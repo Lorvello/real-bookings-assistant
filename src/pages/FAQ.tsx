@@ -14,10 +14,12 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, Zap, Shield, Star, CheckCircle, HelpCircle, Phone, Mail, Search } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
 import { FAQSchema } from '@/components/SEO/StructuredData';
+import { getPublicFeatureAvailability } from '@/config/publicFeatureAvailability';
 
 const FAQ = () => {
   const { t, i18n } = useTranslation('faq');
   useVoiceflowChatbot();
+  const { voiceflowProjectId, providesWhatsAppNumber } = getPublicFeatureAvailability();
   const [searchTerm, setSearchTerm] = useState('');
 
   useSEO({
@@ -69,7 +71,9 @@ const FAQ = () => {
       items: [
         {
           question: t('faq.tech.q1', "Do you provide the WhatsApp number and calendar?"),
-          answer: t('faq.tech.a1', "Yes. We provide a professional WhatsApp Business number and a complete calendar system, so you can get started without needing any extra tools.")
+          answer: providesWhatsAppNumber
+            ? t('faq.tech.a1', "Yes. We provide a professional WhatsApp Business number and a complete calendar system, so you can get started without needing any extra tools.")
+            : t('faq.tech.a1OwnNumber', "The calendar system is included. During onboarding, you connect your own WhatsApp Business number; any number-provisioning option is confirmed separately before setup.")
         },
         {
           question: t('faq.tech.q2', "Does it work in multiple languages?"),
@@ -147,7 +151,9 @@ const FAQ = () => {
       items: [
         {
           question: t('faq.support.q1', "What type of support can I get?"),
-          answer: t('faq.support.a1', "You can reach us by email, and there's a built-in chatbot for quick questions. Professional and Enterprise plans get priority support.")
+          answer: voiceflowProjectId
+            ? t('faq.support.a1', "You can reach us by email, and there's a built-in chatbot for quick questions. Professional and Enterprise plans get priority support.")
+            : t('faq.support.a1EmailOnly', "You can reach us by email. Professional and Enterprise plans get priority support.")
         },
         {
           question: t('faq.support.q2', "How quickly do I get a response?"),

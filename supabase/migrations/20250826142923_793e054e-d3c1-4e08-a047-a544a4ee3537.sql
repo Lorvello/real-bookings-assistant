@@ -82,61 +82,22 @@ BEGIN
 END;
 $function$;
 
--- Secure materialized views - remove public access
--- Drop public policies on materialized views if they exist
-DROP POLICY IF EXISTS "public_read_dashboard_metrics" ON public.dashboard_metrics_mv;
+-- PostgreSQL does not support RLS policies directly on views or materialized
+-- views. Prevent direct access to the materialized data and make ordinary
+-- views run with the caller's permissions so the underlying table policies
+-- remain the authorization boundary.
+REVOKE ALL ON public.dashboard_metrics_mv FROM anon, authenticated;
 
--- Ensure materialized views can only be accessed by authenticated users who own the calendar
-CREATE POLICY "dashboard_metrics_owner_only" ON public.dashboard_metrics_mv
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = dashboard_metrics_mv.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
+ALTER VIEW public.daily_booking_stats SET (security_invoker = on);
+ALTER VIEW public.service_popularity_stats SET (security_invoker = on);
+ALTER VIEW public.user_status_overview SET (security_invoker = on);
+ALTER VIEW public.available_slots_view SET (security_invoker = on);
 
--- Add RLS to other views that might be exposed
-ALTER TABLE public.daily_booking_stats ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "daily_booking_stats_owner_only" ON public.daily_booking_stats
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = daily_booking_stats.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
+REVOKE ALL ON public.daily_booking_stats FROM anon;
+REVOKE ALL ON public.service_popularity_stats FROM anon;
+REVOKE ALL ON public.user_status_overview FROM anon;
 
-ALTER TABLE public.service_popularity_stats ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "service_popularity_stats_owner_only" ON public.service_popularity_stats
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = service_popularity_stats.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
-
--- Secure the user_status_overview view
-ALTER TABLE public.user_status_overview ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "user_status_overview_own_only" ON public.user_status_overview
-FOR SELECT USING (auth.uid() = id);
-
--- Secure the available_slots_view
-ALTER TABLE public.available_slots_view ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "available_slots_view_public_or_owner" ON public.available_slots_view
-FOR SELECT USING (
-  -- Public can view for active calendars
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.slug = available_slots_view.calendar_slug 
-    AND calendars.is_active = true
-  )
-  OR
-  -- Owners can always view their calendar slots
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = available_slots_view.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
+GRANT SELECT ON public.daily_booking_stats TO authenticated;
+GRANT SELECT ON public.service_popularity_stats TO authenticated;
+GRANT SELECT ON public.user_status_overview TO authenticated;
+GRANT SELECT ON public.available_slots_view TO anon, authenticated;

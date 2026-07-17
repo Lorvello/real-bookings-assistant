@@ -7,8 +7,7 @@ import { ConversationCalendarProvider } from '@/contexts/ConversationCalendarCon
 import { UserStatusProvider } from '@/contexts/UserStatusContext';
 import { NavigationGuardProvider } from '@/contexts/NavigationGuardContext';
 import { useEffect, Suspense } from 'react';
-import { useWebhookAutoProcessor } from '@/hooks/useWebhookAutoProcessor';
-import { useAuth, AuthProvider } from '@/hooks/useAuth';
+import { AuthProvider } from '@/hooks/useAuth';
 import SecurityAlertsMonitor from '@/components/security/SecurityAlertsMonitor';
 import { lazyWithRetry } from '@/utils/lazyWithRetry';
 
@@ -65,20 +64,6 @@ const DeveloperOverlay = lazyWithRetry(() =>
 
 
 const queryClient = new QueryClient();
-
-// Global webhook processor component
-function GlobalWebhookProcessor() {
-  const { user } = useAuth();
-  
-  // Start global webhook auto-processor when user is authenticated
-  // OPTIMIZED: Reduced from 3s to 15s for better performance
-  useWebhookAutoProcessor({ 
-    enabled: !!user,
-    intervalMs: 15000 // Process every 15 seconds globally
-  });
-
-  return null; // This component doesn't render anything
-}
 
 // Redirect ONLY password recovery links to /reset-password
 // DO NOT redirect OAuth errors - those are handled by AuthCallback
@@ -137,7 +122,6 @@ function App() {
                     overscrollBehavior: 'none'
                   }}
                 >
-                  <GlobalWebhookProcessor />
                   <RecoveryRedirector />
                   <PagePrefetcher />
                   <OfflineIndicator />
@@ -173,74 +157,94 @@ function App() {
                       </RouteErrorBoundary>
                     } />
                     <Route path="/profile" element={
-                      <RouteErrorBoundary routeName="Profile">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Profile />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Profile">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <Profile />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/dashboard" element={
-                      <RouteErrorBoundary routeName="Dashboard">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Dashboard />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Dashboard">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <Dashboard />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/success" element={
-                      <RouteErrorBoundary routeName="Success">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Success />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Success">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <Success />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/calendar" element={
-                      <RouteErrorBoundary routeName="Calendar">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Calendar />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Calendar">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <Calendar />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/bookings" element={
-                      <RouteErrorBoundary routeName="Bookings">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Bookings />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Bookings">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <Bookings />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/availability" element={
-                      <RouteErrorBoundary routeName="Availability">
-                        <Suspense fallback={<InlineRouteSpinner />}>
-                          <Availability />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Availability">
+                          <Suspense fallback={<InlineRouteSpinner />}>
+                            <Availability />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/conversations" element={
-                      <RouteErrorBoundary routeName="Conversations">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <Conversations />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Conversations">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <Conversations />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/whatsapp-booking-assistant" element={
-                      <RouteErrorBoundary routeName="WhatsApp Booking Assistant">
-                        <Suspense fallback={<InlineRouteSpinner />}>
-                          <WhatsAppBookingAssistantPage />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="WhatsApp Booking Assistant">
+                          <Suspense fallback={<InlineRouteSpinner />}>
+                            <WhatsAppBookingAssistantPage />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/test-ai-agent" element={
-                      <RouteErrorBoundary routeName="Test AI Agent">
-                        <Suspense fallback={<InlineRouteSpinner />}>
-                          <TestAIAgent />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Test AI Agent">
+                          <Suspense fallback={<InlineRouteSpinner />}>
+                            <TestAIAgent />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/settings" element={
-                      <RouteErrorBoundary routeName="Settings">
-                        <Suspense fallback={<InlineRouteSpinner />}>
-                          <Settings />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary routeName="Settings">
+                          <Suspense fallback={<InlineRouteSpinner />}>
+                            <Settings />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/team-invite" element={
                       <RouteErrorBoundary routeName="Team Invite">
@@ -299,11 +303,13 @@ function App() {
                       </RouteErrorBoundary>
                     } />
                     <Route path="/stripe/go" element={
-                      <RouteErrorBoundary routeName="Stripe">
-                        <Suspense fallback={<FullPageLoadingSkeleton />}>
-                          <StripeGo />
-                        </Suspense>
-                      </RouteErrorBoundary>
+                      <ProtectedRoute requireAccountOwner>
+                        <RouteErrorBoundary routeName="Stripe">
+                          <Suspense fallback={<FullPageLoadingSkeleton />}>
+                            <StripeGo />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
                     } />
                     <Route path="/business-search" element={
                       <RouteErrorBoundary routeName="Business Search">

@@ -7,6 +7,7 @@ import { EnterpriseContactForm } from '@/components/EnterpriseContactForm';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 import { useBillingData } from '@/hooks/useBillingData';
+import { useAccountRole } from '@/hooks/useAccountRole';
 import { useSettingsContext } from '@/contexts/SettingsContext';
 import { UsageSummary } from '@/components/ui/UsageSummary';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,10 +16,17 @@ import { getStripeConfig, isTestMode, getPriceId } from '@/utils/stripeConfig';
 import { CurrentPlanSection, type BillingTimeline } from '@/components/settings/billing/CurrentPlanSection';
 import { BillingHistorySection, type BillingInvoice } from '@/components/settings/billing/BillingHistorySection';
 import { AvailablePlansSection, type PlanTile } from '@/components/settings/billing/AvailablePlansSection';
+import {
+  getPublicEnterpriseClaims,
+  getPublicFeatureAvailability,
+} from '@/config/publicFeatureAvailability';
 
 // Feature lists kept in sync with the public homepage pricing.
 type TFn = ReturnType<typeof useTranslation<'settings'>>['t'];
-const getPlanFeatures = (t: TFn): Record<string, string[]> => ({
+const getPlanFeatures = (
+  t: TFn,
+  enterpriseFeatures: string[],
+): Record<string, string[]> => ({
   starter: [
     t('settings.billing.planFeatures.starter.0', 'Unlimited WhatsApp contact management'),
     t('settings.billing.planFeatures.starter.1', 'Dual-calendar orchestration system'),
@@ -38,20 +46,50 @@ const getPlanFeatures = (t: TFn): Record<string, string[]> => ({
     t('settings.billing.planFeatures.professional.6', 'Complete analytics suite: Business Intelligence, Performance tracking & Future Insights'),
     t('settings.billing.planFeatures.professional.7', 'Dedicated priority customer success'),
   ],
-  enterprise: [
-    t('settings.billing.planFeatures.enterprise.0', 'Complete professional suite included'),
-    t('settings.billing.planFeatures.enterprise.1', 'Unlimited enterprise user access management'),
-    t('settings.billing.planFeatures.enterprise.2', 'Dedicated WhatsApp Business API with custom branding'),
-    t('settings.billing.planFeatures.enterprise.3', 'Intelligent voice call routing & distribution'),
-    t('settings.billing.planFeatures.enterprise.4', 'Omnichannel social media DM orchestration'),
-    t('settings.billing.planFeatures.enterprise.5', 'Advanced reputation management & review analytics'),
-    t('settings.billing.planFeatures.enterprise.6', 'Enterprise SLA with dedicated success management'),
-    t('settings.billing.planFeatures.enterprise.7', 'White-glove onboarding & strategic integration consulting'),
-  ],
+  enterprise: enterpriseFeatures,
 });
 
 export const BillingTab: React.FC = () => {
   const { t } = useTranslation('settings');
+  const { isAccountOwner, accountOwnerId, loading, error, retry } = useAccountRole();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[12rem] items-center justify-center" role="status" aria-live="polite">
+        {t('settings.billing.checkingOwnership', 'Checking account ownership…')}
+      </div>
+    );
+  }
+
+  if (error || (isAccountOwner && !accountOwnerId)) {
+    return (
+      <div
+        className="flex min-h-[12rem] flex-col items-center justify-center gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-6 text-center"
+        role="alert"
+      >
+        <AlertCircle aria-hidden="true" className="h-6 w-6 text-destructive-foreground" />
+        <p>{t('settings.billing.ownerCheckError', 'We could not verify account ownership.')}</p>
+        <Button type="button" variant="outline" size="sm" onClick={retry}>
+          {t('settings.billing.retryOwnerCheck', 'Try again')}
+        </Button>
+      </div>
+    );
+  }
+
+  if (!isAccountOwner) {
+    return (
+      <div className="rounded-xl border border-border bg-muted/20 px-6 py-5" role="alert">
+        {t('settings.billing.ownerOnly', 'Only account owners can view billing and manage the subscription.')}
+      </div>
+    );
+  }
+
+  return <BillingTabContent />;
+};
+
+const BillingTabContent: React.FC = () => {
+  const { t } = useTranslation('settings');
+  const { t: tHome } = useTranslation('home');
   const { userStatus } = useUserStatus();
   const { tiers, isLoading: tiersLoading } = useSubscriptionTiers();
   const { billingData, isLoading: billingLoading, error: billingError, refetch } = useBillingData();
@@ -61,6 +99,16 @@ export const BillingTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+  const publicFeatureAvailability = getPublicFeatureAvailability();
+  const enterpriseClaims = getPublicEnterpriseClaims(publicFeatureAvailability, {
+    canonical: (key, fallback) => tHome(key, fallback),
+    legacy: (key, fallback) => t(key, fallback),
+    surface: 'billing',
+  });
+  const planFeatures = getPlanFeatures(
+    t,
+    enterpriseClaims.map(({ text }) => text),
+  );
 
   const hasNoSubscription =
     userStatus.userType === 'expired_trial' || userStatus.userType === 'canceled_and_inactive';
@@ -88,16 +136,17 @@ export const BillingTab: React.FC = () => {
         };
         checkForUpdates();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error opening billing portal:', error);
+      const message = error instanceof Error ? error.message : '';
       const errorMessage =
-        error?.message?.includes('portal') || error?.message?.includes('Portal')
+        message.includes('portal') || message.includes('Portal')
           ? t('settings.billing.errors.portalSetupError', 'Subscription management is currently being set up. Please contact support for assistance.')
           : t('settings.billing.errors.portalError', 'Failed to open billing portal. Please try again.');
       toast({
         title: t('settings.billing.toast.notice', 'Notice'),
         description: errorMessage,
-        variant: error?.message?.includes('portal') ? 'default' : 'destructive',
+        variant: message.includes('portal') ? 'default' : 'destructive',
       });
     } finally {
       setLoading(false);
@@ -231,8 +280,8 @@ export const BillingTab: React.FC = () => {
   // ---- Billing history derivation ---------------------------------------------
   const invoices: BillingInvoice[] = Array.isArray(billingData?.billing_history)
     ? billingData!.billing_history
-        .filter((inv: any) => inv && inv.id)
-        .map((inv: any) => ({
+        .filter((inv) => inv && inv.id)
+        .map((inv) => ({
           id: inv.id,
           date: inv.date ? format(new Date(inv.date), 'MMM d, yyyy') : 'Date unavailable',
           amount:
@@ -270,7 +319,7 @@ export const BillingTab: React.FC = () => {
     .map((tier) => {
       const isEnterprise = tier.tier_name === 'enterprise';
       let displayPrice: string;
-      let billingText = t('settings.billing.planTile.perMonth', '/month');
+      const billingText = t('settings.billing.planTile.perMonth', '/month');
       let savingsText: string | undefined;
 
       if (isEnterprise) {
@@ -297,7 +346,7 @@ export const BillingTab: React.FC = () => {
         displayPrice,
         billingText,
         savingsText,
-        features: getPlanFeatures(t)[tier.tier_name] ?? getPlanFeatures(t).starter,
+        features: planFeatures[tier.tier_name] ?? planFeatures.starter,
         isCurrent: tier.tier_name === currentPlan?.tier_name,
         isEnterprise,
         highlightPrice: billingCycle === 'yearly' && !isEnterprise,

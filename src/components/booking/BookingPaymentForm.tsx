@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
+import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 import { supabase } from '@/integrations/supabase/client';
 import { getPublishableKeyForMode } from '@/utils/stripeConfig';
 import { Button } from '@/components/ui/button';
@@ -12,19 +13,20 @@ interface BookingPaymentFormProps {
   onPaid: () => void;
 }
 
-// Raw Stripe.js (no @stripe/react-stripe-js needed) Card Element checkout for the
-// public booking page. The PaymentIntent is created server-side by
+// Raw Stripe.js (no @stripe/react-stripe-js needed) Payment Element checkout for
+// the public booking page. The PaymentIntent is created server-side by
 // create-booking-payment, which pins the Stripe mode and returns it so we load the
-// MATCHING publishable key. On success the stripe-webhook (payment_intent.succeeded
-// -> confirmBookingPaid) confirms the booking + sends the confirmation email.
+// matching publishable key and exactly the owner's enabled, currency-compatible
+// payment methods. On success the stripe-webhook confirms the booking and sends
+// the confirmation email.
 export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaymentFormProps) {
   const { t } = useTranslation('publicBooking');
-  const cardRef = useRef<HTMLDivElement>(null);
-  const stripeRef = useRef<any>(null);
-  const cardElRef = useRef<any>(null);
-  const clientSecretRef = useRef<string | null>(null);
+  const paymentElementRef = useRef<HTMLDivElement>(null);
+  const stripeRef = useRef<Stripe | null>(null);
+  const elementsRef = useRef<StripeElements | null>(null);
+  const mountedPaymentElementRef = useRef<StripePaymentElement | null>(null);
 
-  const [status, setStatus] = useState<'init' | 'ready' | 'paying' | 'error'>('init');
+  const [status, setStatus] = useState<'init' | 'ready' | 'paying' | 'processing' | 'error'>('init');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,48 +49,58 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
         const stripe = await loadStripe(getPublishableKeyForMode(data.mode === 'live' ? 'live' : 'test'));
         if (!stripe || cancelled) return;
 
-        // 3. Mount the Card Element.
-        const elements = stripe.elements();
-        const card = elements.create('card', {
-          style: {
-            base: {
-              color: '#ffffff',
+        // 3. Mount the Payment Element using the server-created intent. Unlike the
+        // old Card Element, this can complete iDEAL and other configured redirect
+        // methods without silently ignoring the owner's payment-method settings.
+        const elements = stripe.elements({
+          clientSecret: data.client_secret,
+          appearance: {
+            theme: 'night',
+            variables: {
+              colorPrimary: '#22c55e',
+              colorBackground: '#101827',
+              colorText: '#ffffff',
+              colorDanger: '#f87171',
+              borderRadius: '12px',
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              fontSize: '16px',
-              '::placeholder': { color: 'rgba(255,255,255,0.4)' },
             },
-            invalid: { color: '#f87171' },
           },
         });
-        if (cardRef.current) card.mount(cardRef.current);
+        const paymentElement = elements.create('payment', { layout: 'tabs' });
+        if (paymentElementRef.current) paymentElement.mount(paymentElementRef.current);
 
         stripeRef.current = stripe;
-        cardElRef.current = card;
-        clientSecretRef.current = data.client_secret;
+        elementsRef.current = elements;
+        mountedPaymentElementRef.current = paymentElement;
         if (!cancelled) setStatus('ready');
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!cancelled) {
-          setError(e.message || t('publicBooking.pay.errStartRetry', 'Could not start the payment. Please try again.'));
+          setError(e instanceof Error && e.message
+            ? e.message
+            : t('publicBooking.pay.errStartRetry', 'Could not start the payment. Please try again.'));
           setStatus('error');
         }
       }
     })();
     return () => {
       cancelled = true;
-      try { cardElRef.current?.unmount(); } catch { /* noop */ }
+      try { mountedPaymentElementRef.current?.unmount(); } catch { /* noop */ }
     };
-  }, [booking.id, booking.calendar_id, booking.confirmation_token]);
+  }, [booking.id, booking.calendar_id, booking.confirmation_token, t]);
 
   const pay = async () => {
     const stripe = stripeRef.current;
-    const card = cardElRef.current;
-    const clientSecret = clientSecretRef.current;
-    if (!stripe || !card || !clientSecret) return;
+    const elements = elementsRef.current;
+    if (!stripe || !elements) return;
 
     setStatus('paying');
     setError(null);
-    const { error: payErr, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: { card },
+    const { error: payErr, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/payment-success`,
+      },
+      redirect: 'if_required',
     });
 
     if (payErr) {
@@ -98,6 +110,8 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
     }
     if (paymentIntent?.status === 'succeeded') {
       onPaid();
+    } else if (paymentIntent?.status === 'processing') {
+      setStatus('processing');
     } else {
       setError(t('publicBooking.pay.errNotCompleted', 'Payment not completed. Please try again.'));
       setStatus('error');
@@ -126,13 +140,18 @@ export function BookingPaymentForm({ booking, serviceName, onPaid }: BookingPaym
         {/* Card Element mounts here (kept rendered so the ref exists once ready). */}
         <div className={status === 'init' ? 'hidden' : ''}>
           <div
-            ref={cardRef}
+            ref={paymentElementRef}
             className="rounded-xl border border-white/15 bg-white/[0.04] px-3 py-3"
           />
           {error && <p role="alert" className="mt-2 text-sm text-red-300">{error}</p>}
+          {status === 'processing' && (
+            <p role="status" className="mt-2 text-sm text-white/65">
+              {t('publicBooking.pay.processing', 'Your payment is processing. You may close this page after receiving confirmation.')}
+            </p>
+          )}
           <Button
             onClick={pay}
-            disabled={status === 'paying' || status === 'init'}
+            disabled={status === 'paying' || status === 'processing' || status === 'init'}
             className="mt-4 w-full"
             size="lg"
           >

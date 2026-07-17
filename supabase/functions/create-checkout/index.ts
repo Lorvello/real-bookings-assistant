@@ -2,350 +2,410 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeConfig } from "../_shared/stripeValidation.ts";
-import { calculateApplicationFee } from "../_shared/feeCalculator.ts";
+import {
+  isAccountOwnerRequiredError,
+  requireAccountOwner,
+} from "../_shared/accountOwnerGuard.ts";
+import { evaluatePaymentLaunchGate } from "../_shared/paymentLaunchGate.ts";
+import {
+  isAllowedCheckoutUrl,
+  resolveSubscriptionPriceId,
+  subscriptionCheckoutSchema,
+  type SubscriptionTierPriceRow,
+} from "./subscriptionCheckout.ts";
+import {
+  blocksNewSubscriptionCheckout,
+  parseSubscriptionCheckoutClaim,
+} from "../_shared/subscriptionCheckoutGuard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
-};
+function jsonResponse(
+  body: Record<string, unknown>,
+  status: number,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function logStep(step: string, details?: Record<string, unknown>) {
+  console.log(
+    `[CREATE-CHECKOUT] ${step}${
+      details ? ` - ${JSON.stringify(details)}` : ""
+    }`,
+  );
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
+  }
 
   try {
-    logStep("Function started");
+    const parsedBody = subscriptionCheckoutSchema.safeParse(
+      await req.json().catch(() => null),
+    );
+    if (!parsedBody.success) {
+      return jsonResponse({
+        error: "Invalid subscription checkout request",
+        code: "INVALID_SUBSCRIPTION_CHECKOUT",
+      }, 400);
+    }
+    const body = parsedBody.data;
 
-    // Parse request body first to get mode and service information
-    const { 
-      priceId, 
-      tier_name, 
-      price, 
-      is_annual, 
-      success_url, 
-      cancel_url, 
-      mode, 
-      serviceIds = [], 
-      automaticTax = false,
-      calendarId,
-      bookingId,
-      paymentMethod = 'card',
-    } = await req.json();
-    
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+      return jsonResponse({
+        error: "Subscription checkout is not configured",
+        code: "SUBSCRIPTION_CHECKOUT_NOT_CONFIGURED",
+      }, 503);
+    }
 
-    // Create Supabase clients
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } });
-
-    // Authenticate user FIRST — the mode validation below needs to know whether the
-    // caller is the developer (who may simulate test↔live from the dev dashboard).
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Authentication required" }, 401);
+    }
+
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false },
+    });
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false },
+    });
+    const token = authHeader.slice("Bearer ".length);
+    const { data: userData, error: userError } = await supabaseAuth.auth
+      .getUser(
+        token,
+      );
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    if (userError || !user?.id || !user.email) {
+      return jsonResponse({ error: "Authentication required" }, 401);
+    }
 
-    // Developers/admins drive test↔live via the dashboard StripeModeIndicator and
-    // may use whichever mode they request. Normal users stay pinned to the server's
-    // STRIPE_MODE (anti-tamper: a user must not be able to force test mode to obtain
-    // a free subscription via a test-card "payment").
-    let isDeveloper = false;
-    try {
-      const { data: adminFlag } = await supabaseAdmin.rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      isDeveloper = adminFlag === true;
-    } catch (_) { isDeveloper = false; }
-
-    // SECURITY: Server-side validation of Stripe mode
-    const stripeConfig = await validateStripeConfig(
-      mode as 'test' | 'live' | undefined,
-      supabaseUrl,
-      supabaseAnonKey,
-      isDeveloper
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("users")
+      .select("account_owner_id")
+      .eq("id", user.id)
+      .single();
+    if (profileError || !profile) {
+      throw new Error("SUBSCRIPTION_PROFILE_MISSING");
+    }
+    const accountOwnerId = requireAccountOwner(
+      profile.account_owner_id,
+      user.id,
     );
 
+    // This server-owned path gate is evaluated before key selection or any Stripe
+    // API call. Request-body fields, developer roles and runtime UI switches have
+    // no override path.
+    const gate = await evaluatePaymentLaunchGate(
+      "subscription",
+      accountOwnerId,
+    );
+    if (!gate.allowed) {
+      logStep("Subscription gate blocked request", {
+        tenantId: accountOwnerId,
+        state: gate.state,
+        code: gate.code,
+        configurationHash: gate.configurationHash,
+      });
+      return jsonResponse({
+        error: gate.reason,
+        code: gate.code,
+        payment_path: gate.path,
+        gate_state: gate.state,
+        gate_configuration_hash: gate.configurationHash,
+      }, 503);
+    }
+
+    // Server mode is authoritative. A body mismatch is rejected; no admin or
+    // developer can select a different Stripe key at request time.
+    const stripeConfig = await validateStripeConfig(
+      body.mode,
+      supabaseUrl,
+      supabaseServiceKey,
+    );
     const stripeMode = stripeConfig.mode;
-    const stripeKey = stripeConfig.secretKey;
-    const isTestMode = stripeMode === 'test';
 
-    logStep("Stripe configuration validated", { mode: stripeMode, isTestMode, clientRequested: mode, isDeveloper });
+    const { data: tier, error: tierError } = await supabaseAdmin
+      .from("subscription_tiers")
+      .select(
+        "tier_name,is_active,stripe_test_monthly_price_id,stripe_test_yearly_price_id,stripe_live_monthly_price_id,stripe_live_yearly_price_id",
+      )
+      .eq("tier_name", body.tier_name)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (tierError || !tier) {
+      return jsonResponse({
+        error: "Selected subscription tier is unavailable",
+        code: "SUBSCRIPTION_TIER_UNAVAILABLE",
+      }, 409);
+    }
 
-    // SECURITY: success_url/cancel_url end up as Stripe Checkout redirect targets.
-    // Taking them straight from the request body (or from a spoofable Origin
-    // header) is an open-redirect/phishing vector: an attacker could craft a
-    // checkout link that sends the victim to evil.com after a trusted-looking
-    // bookingsassistant.com payment. Only allow our own hosts; otherwise fall back
-    // to the canonical domain.
-    const ALLOWED_REDIRECT_HOSTS = ['bookingsassistant.com', 'www.bookingsassistant.com', 'localhost', '127.0.0.1'];
-    const isAllowedUrl = (u: string | undefined): boolean => {
-      if (!u) return false;
-      try { return ALLOWED_REDIRECT_HOSTS.includes(new URL(u).hostname); } catch { return false; }
-    };
-    const headerOrigin = req.headers.get("origin");
-    const origin = isAllowedUrl(headerOrigin ?? undefined) ? headerOrigin! : "https://bookingsassistant.com";
-    const finalSuccessUrl = isAllowedUrl(success_url) ? success_url : `${origin}/success`;
-    const finalCancelUrl = isAllowedUrl(cancel_url) ? cancel_url : `${origin}/dashboard`;
-    
-    logStep("Request data parsed", { 
-      priceId, tier_name, price, is_annual, 
-      calendarId, bookingId,
-      mode: stripeMode 
+    const authoritativePriceId = resolveSubscriptionPriceId(
+      tier as SubscriptionTierPriceRow,
+      stripeMode,
+      body.is_annual,
+    );
+    if (body.priceId && body.priceId !== authoritativePriceId) {
+      return jsonResponse({
+        error: "Subscription price does not match the selected tier",
+        code: "SUBSCRIPTION_PRICE_MISMATCH",
+      }, 409);
+    }
+
+    const headerOrigin = req.headers.get("origin") ?? undefined;
+    const origin = isAllowedCheckoutUrl(headerOrigin)
+      ? headerOrigin!
+      : "https://bookingsassistant.com";
+    const successUrl = isAllowedCheckoutUrl(body.success_url)
+      ? body.success_url!
+      : `${origin}/success`;
+    const cancelUrl = isAllowedCheckoutUrl(body.cancel_url)
+      ? body.cancel_url!
+      : `${origin}/dashboard`;
+
+    const stripe = new Stripe(stripeConfig.secretKey, {
+      apiVersion: "2023-10-16",
     });
 
-    // Initialize Stripe
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-
-    // Check if customer exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Existing customer found", { customerId });
-    } else {
-      logStep("No existing customer found, will create new one in checkout");
+    const { data: localSubscriber, error: localSubscriberError } =
+      await supabaseAdmin
+        .from("subscribers")
+        .select(
+          "stripe_subscription_id,stripe_customer_id,stripe_mode,subscribed",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle();
+    if (localSubscriberError) {
+      throw new Error(
+        `SUBSCRIPTION_STATE_READ_FAILED:${localSubscriberError.message}`,
+      );
+    }
+    if (
+      localSubscriber?.stripe_mode &&
+      localSubscriber.stripe_mode !== stripeMode
+    ) {
+      return jsonResponse({
+        error: "Existing subscription belongs to another Stripe environment",
+        code: "SUBSCRIPTION_MODE_CONFLICT",
+      }, 409);
     }
 
-    // Determine if this is a service-based booking checkout (needs destination charge)
-    const isServiceBooking = serviceIds.length > 0 || (calendarId && bookingId);
-    let stripeAccount = null;
-    let paymentSettings = null;
-    let feeCalculation = null;
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+    const customerId = localSubscriber?.stripe_mode === stripeMode
+      ? (localSubscriber.stripe_customer_id || customers.data[0]?.id)
+      : customers.data[0]?.id;
 
-    if (isServiceBooking && calendarId) {
-      // Get the calendar owner for Stripe account lookup
-      const { data: calendarOwner } = await supabaseAdmin
-        .from("calendars")
-        .select("user_id")
-        .eq("id", calendarId)
-        .single();
-
-      if (calendarOwner) {
-        // Get account_owner_id from users table (may be null for solo users)
-        const { data: ownerData } = await supabaseAdmin
-          .from("users")
-          .select("account_owner_id")
-          .eq("id", calendarOwner.user_id)
-          .single();
-
-        const accountOwnerId = ownerData?.account_owner_id || calendarOwner.user_id;
-        logStep("Account owner determined", { calendarUserId: calendarOwner.user_id, accountOwnerId });
-
-        // Get Stripe connected account by account_owner_id
-        const { data: account } = await supabaseAdmin
-          .from("business_stripe_accounts")
-          .select("*")
-          .eq("account_owner_id", accountOwnerId)
-          .eq("environment", isTestMode ? 'test' : 'live')
-          .eq("charges_enabled", true)
-          .eq("onboarding_completed", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-
-        if (account) {
-          stripeAccount = account;
-          logStep("Connected Stripe account found", { accountId: account.stripe_account_id });
+    if (localSubscriber?.stripe_subscription_id) {
+      try {
+        const existing = await stripe.subscriptions.retrieve(
+          localSubscriber.stripe_subscription_id,
+        );
+        if (blocksNewSubscriptionCheckout(existing.status)) {
+          return jsonResponse({
+            error: "Use the billing portal to change an existing subscription",
+            code: "SUBSCRIPTION_ALREADY_EXISTS_USE_PORTAL",
+          }, 409);
         }
-      }
-
-      // Get payment settings
-      const { data: settings } = await supabaseAdmin
-        .from("payment_settings")
-        .select("*")
-        .eq("calendar_id", calendarId)
-        .single();
-
-      if (settings) {
-        paymentSettings = settings;
-        logStep("Payment settings found", { 
-          platformFee: settings.platform_fee_percentage,
-          payoutOption: settings.payout_option 
-        });
+      } catch (providerError) {
+        const code = (providerError as { code?: string })?.code;
+        if (code !== "resource_missing") throw providerError;
       }
     }
 
-    // Create product name based on tier
-    const productNames = {
-      starter: "Starter Plan",
-      professional: "Professional Plan",
-      enterprise: "Enterprise Plan"
-    };
-
-    const productName = productNames[tier_name as keyof typeof productNames] || "Subscription Plan";
-    
-    // Convert price to cents
-    const unitAmount = Math.round(price * 100);
-
-    // Handle service-based bookings with Stripe Price IDs
-    let finalLineItems = [];
-    let totalAmountCents = 0;
-    
-    if (serviceIds.length > 0) {
-      logStep("Fetching service information for checkout", { serviceIds });
-      
-      const { data: services, error: serviceError } = await supabaseAdmin
-        .from('service_types')
-        .select('id, stripe_test_price_id, stripe_live_price_id, name, price, tax_enabled')
-        .in('id', serviceIds);
-
-      if (serviceError) {
-        throw new Error('Failed to fetch service information: ' + serviceError.message);
-      }
-
-      finalLineItems = services.map((service: any) => {
-        const stripePriceId = isTestMode ? service.stripe_test_price_id : service.stripe_live_price_id;
-        totalAmountCents += Math.round(service.price * 100);
-        
-        if (!stripePriceId) {
-          throw new Error(`No Stripe Price ID found for service: ${service.name}`);
-        }
-        
-        return {
-          price: stripePriceId,
-          quantity: 1
-        };
+    if (customerId) {
+      const providerSubscriptions = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "all",
+        limit: 10,
       });
-      
-      logStep("Service line items prepared", { finalLineItems, totalAmountCents });
-    }
-
-    // Calculate application fee if this is a service booking with connected account
-    if (isServiceBooking && stripeAccount && totalAmountCents > 0) {
-      feeCalculation = calculateApplicationFee({
-        amountCents: totalAmountCents,
-        paymentMethod,
-        payoutOption: (paymentSettings?.payout_option as 'standard' | 'instant') || 'standard',
-        platformFeePercentage: (paymentSettings?.platform_fee_percentage || 1.9) / 100,
-      });
-      
-      logStep("Application fee calculated", {
-        amount: totalAmountCents / 100,
-        applicationFee: feeCalculation.applicationFeeCents / 100,
-      });
-    }
-
-    // Create checkout session
-    const sessionConfig: any = {
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      client_reference_id: user.id,
-      mode: serviceIds.length > 0 ? "payment" : "subscription",
-      success_url: `${finalSuccessUrl}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: finalCancelUrl,
-      metadata: {
-        user_id: user.id,
-        tier_name: tier_name || 'unknown',
-        is_annual: is_annual ? 'true' : 'false',
-        service_ids: serviceIds.join(','),
-        calendar_id: calendarId || '',
-        booking_id: bookingId || '',
+      if (
+        providerSubscriptions.data.some((subscription: Stripe.Subscription) =>
+          blocksNewSubscriptionCheckout(subscription.status)
+        )
+      ) {
+        return jsonResponse({
+          error: "Use the billing portal to change an existing subscription",
+          code: "SUBSCRIPTION_ALREADY_EXISTS_USE_PORTAL",
+        }, 409);
       }
-    };
-
-    // Enable automatic tax if requested or if services have tax enabled
-    if (automaticTax || serviceIds.length > 0) {
-      sessionConfig.automatic_tax = { enabled: true };
-      sessionConfig.billing_address_collection = 'required';
-      logStep("Automatic tax enabled for checkout");
     }
 
-    // Add payment intent data for destination charges (service bookings)
-    if (isServiceBooking && stripeAccount && feeCalculation) {
-      sessionConfig.payment_intent_data = {
-        application_fee_amount: feeCalculation.applicationFeeCents,
-        transfer_data: {
-          destination: stripeAccount.stripe_account_id,
+    const cadence = body.is_annual ? "year" : "month";
+    const { data: rawClaim, error: claimError } = await supabaseAdmin.rpc(
+      "claim_subscription_checkout",
+      {
+        p_user_id: user.id,
+        p_stripe_mode: stripeMode,
+        p_tier_name: body.tier_name,
+        p_cadence: cadence,
+        p_lease_seconds: 120,
+      },
+    );
+    if (claimError) {
+      throw new Error(
+        `SUBSCRIPTION_CHECKOUT_CLAIM_FAILED:${claimError.message}`,
+      );
+    }
+    const checkoutClaim = parseSubscriptionCheckoutClaim(rawClaim);
+    if (checkoutClaim.kind === "replay") {
+      return jsonResponse({
+        url: checkoutClaim.checkoutUrl,
+        session_id: checkoutClaim.sessionId,
+        mode: stripeMode,
+        replay: true,
+        gate_state: gate.state,
+        gate_configuration_hash: gate.configurationHash,
+      }, 200);
+    }
+    if (checkoutClaim.kind === "in_progress") {
+      return jsonResponse({
+        error: "A subscription checkout is already being prepared",
+        code: "SUBSCRIPTION_CHECKOUT_IN_PROGRESS",
+      }, 409);
+    }
+    if (checkoutClaim.kind === "existing_session") {
+      return jsonResponse({
+        error: "An unexpired subscription checkout already exists",
+        code: "SUBSCRIPTION_CHECKOUT_ALREADY_CREATED",
+      }, 409);
+    }
+
+    const idempotencyKey = [
+      "subscription-checkout",
+      user.id,
+      stripeMode,
+      body.tier_name,
+      cadence,
+      checkoutClaim.claimToken,
+    ].join("-");
+
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        client_reference_id: user.id,
+        mode: "subscription",
+        line_items: [{ price: authoritativePriceId, quantity: 1 }],
+        success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: cancelUrl,
+        subscription_data: {
+          metadata: {
+            user_id: user.id,
+            tier_name: body.tier_name,
+            is_annual: body.is_annual ? "true" : "false",
+            gate_configuration_hash: gate.configurationHash,
+          },
         },
-        metadata: {
-          calendar_id: calendarId,
-          booking_id: bookingId || '',
-          platform_fee_percentage: (paymentSettings?.platform_fee_percentage || 1.9).toString(),
-          payout_option: paymentSettings?.payout_option || 'standard',
-        },
-      };
-      logStep("Destination charge configured", { 
-        destination: stripeAccount.stripe_account_id,
-        applicationFee: feeCalculation.applicationFeeCents 
-      });
-    }
-
-    // Add subscription data only for subscription mode
-    if (sessionConfig.mode === "subscription") {
-      sessionConfig.subscription_data = {
         metadata: {
           user_id: user.id,
-          tier_name: tier_name || 'unknown',
-          is_annual: is_annual ? 'true' : 'false'
-        }
-      };
+          tier_name: body.tier_name,
+          is_annual: body.is_annual ? "true" : "false",
+          stripe_mode: stripeMode,
+          gate_configuration_hash: gate.configurationHash,
+        },
+      }, { idempotencyKey });
+    } catch (providerError) {
+      await supabaseAdmin.rpc("fail_subscription_checkout", {
+        p_user_id: user.id,
+        p_stripe_mode: stripeMode,
+        p_claim_token: checkoutClaim.claimToken,
+        p_error_code: "stripe_session_create_failed",
+      });
+      throw providerError;
     }
 
-    // Configure line items
-    if (finalLineItems.length > 0) {
-      sessionConfig.line_items = finalLineItems;
-      logStep("Using service-based line items", { count: finalLineItems.length });
-    } else if (priceId) {
-      sessionConfig.line_items = [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ];
-      logStep("Using predefined Price ID", { priceId });
-    } else {
-      sessionConfig.line_items = [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: { 
-              name: productName,
-              description: `${tier_name.charAt(0).toUpperCase() + tier_name.slice(1)} subscription plan`
-            },
-            unit_amount: unitAmount,
-            recurring: { interval: is_annual ? 'year' : 'month' },
-          },
-          quantity: 1,
-        },
-      ];
-      logStep("Using dynamic pricing", { productName, unitAmount, interval: is_annual ? 'year' : 'month' });
+    if (!session.url || !session.expires_at) {
+      await supabaseAdmin.rpc("fail_subscription_checkout", {
+        p_user_id: user.id,
+        p_stripe_mode: stripeMode,
+        p_claim_token: checkoutClaim.claimToken,
+        p_error_code: "stripe_session_incomplete",
+      });
+      throw new Error("SUBSCRIPTION_CHECKOUT_SESSION_INCOMPLETE");
     }
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
+    const { data: completed, error: completionError } = await supabaseAdmin.rpc(
+      "complete_subscription_checkout",
+      {
+        p_user_id: user.id,
+        p_stripe_mode: stripeMode,
+        p_claim_token: checkoutClaim.claimToken,
+        p_session_id: session.id,
+        p_checkout_url: session.url,
+        p_expires_at: new Date(session.expires_at * 1000).toISOString(),
+      },
+    );
+    if (completionError || completed !== true) {
+      throw new Error(
+        `SUBSCRIPTION_CHECKOUT_COMPLETE_FAILED:${
+          completionError?.message ?? "claim_not_current"
+        }`,
+      );
+    }
 
-    logStep("Checkout session created successfully", { 
-      sessionId: session.id, 
-      url: session.url,
-      applicationFee: feeCalculation?.applicationFeeCents 
+    logStep("Subscription checkout created", {
+      sessionId: session.id,
+      tenantId: accountOwnerId,
+      tier: body.tier_name,
+      cadence: body.is_annual ? "year" : "month",
+      mode: stripeMode,
+      gateState: gate.state,
+      configurationHash: gate.configurationHash,
     });
 
-    return new Response(JSON.stringify({ 
+    return jsonResponse({
       url: session.url,
       session_id: session.id,
-      application_fee: feeCalculation?.applicationFeeCents,
-      fee_breakdown: feeCalculation,
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-
+      mode: stripeMode,
+      gate_state: gate.state,
+      gate_configuration_hash: gate.configurationHash,
+    }, 200);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in create-checkout", { message: errorMessage });
-    
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    const ownerDenied = isAccountOwnerRequiredError(error);
+    const message = error instanceof Error ? error.message : String(error);
+    logStep("Request failed", { message });
+
+    if (ownerDenied) {
+      return jsonResponse({
+        error: error.message,
+        code: error.code,
+      }, error.status);
+    }
+    if (message.includes("Mode mismatch")) {
+      return jsonResponse({
+        error: "Requested Stripe mode does not match server configuration",
+        code: "STRIPE_MODE_MISMATCH",
+      }, 409);
+    }
+    if (
+      message === "SUBSCRIPTION_PRICE_NOT_CONFIGURED" ||
+      message === "SUBSCRIPTION_TIER_INACTIVE"
+    ) {
+      return jsonResponse({
+        error: "Subscription checkout is not configured for this tier",
+        code: message,
+      }, 503);
+    }
+    return jsonResponse({
+      error: "Unable to create subscription checkout",
+      code: "SUBSCRIPTION_CHECKOUT_FAILED",
+    }, 500);
   }
 });

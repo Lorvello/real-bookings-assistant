@@ -1,8 +1,8 @@
 {
   "payment": {
     "success": {
-      "title": "Betaling geslaagd",
-      "body": "Je betaling is ontvangen en je afspraak is bevestigd. Je ontvangt een bevestiging per e-mail.",
+      "title": "Betaling ingediend",
+      "body": "We controleren de definitieve betaalstatus. Je afspraak wordt pas bevestigd na succesvolle verwerking; je ontvangt daarna een bevestiging per e-mail.",
       "closeHint": "Je kunt dit venster sluiten."
     },
     "cancelled": {
@@ -12,14 +12,19 @@
     },
     "subscription": {
       "documentTitle": "Betaling geslaagd",
+      "verifyingDocumentTitle": "Betaling verifiëren",
+      "errorDocumentTitle": "Betaling kon niet worden geverifieerd",
       "successTitle": "Betaling geslaagd!",
       "verifyingTitle": "Abonnement verifiëren...",
       "checkingStatus": "We controleren de status van je abonnement...",
+      "errorTitle": "Betaling kon niet worden geverifieerd",
+      "errorDescription": "We konden deze betaling niet verifiëren. Er is geen activering van het abonnement bevestigd.",
+      "retryVerification": "Opnieuw proberen",
       "descActivatedTier": "Je {{tier}}-abonnement is succesvol geactiveerd.",
       "descActivated": "Je abonnement is succesvol geactiveerd.",
       "toastActivatedDesc": "Je {{tier}}-abonnement is geactiveerd.",
       "toastIssueTitle": "Verificatieprobleem",
-      "toastIssueDesc": "Je betaling is geslaagd! Controleer je dashboard of neem contact op met support als dat nodig is.",
+      "toastIssueDesc": "We konden je betaling niet verifiëren. Probeer het opnieuw of neem contact op met support.",
       "accessTo": "Je hebt nu toegang tot:",
       "goToDashboard": "Naar dashboard",
       "redirectInOne": "Automatisch doorsturen over {{count}} seconde...",

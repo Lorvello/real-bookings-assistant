@@ -1,417 +1,358 @@
-import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
-import Stripe from 'https://esm.sh/stripe@14.21.0';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
-import { validateStripeMode } from '../_shared/stripeValidation.ts';
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { z } from "https://esm.sh/zod@3.23.8";
+import {
+  calculateInstallmentSchedule,
+  installmentPlanSchema,
+  planFromStoredInstallmentConfig,
+} from "../_shared/installmentPlan.ts";
+import {
+  isAccountOwnerRequiredError,
+  requireAccountOwner,
+} from "../_shared/accountOwnerGuard.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[MANAGE-INSTALLMENT-SETTINGS] ${step}${detailsStr}`);
-};
+const serviceInstallmentConfigSchema = z.object({
+  serviceTypeId: z.string().uuid(),
+  enabled: z.boolean(),
+  plan: installmentPlanSchema,
+  // Accepted for backwards-compatible parsing only. The current product does not
+  // expose a consistent customer-choice journey, so saves canonicalize this to false.
+  allowCustomerChoice: z.boolean().default(false),
+}).strict();
 
-interface InstallmentPlan {
-  type: 'preset' | 'custom';
-  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
-  deposits?: Array<{
-    percentage?: number;
-    amount?: number;
-    timing: 'now' | 'appointment' | 'hours_after';
-    hours?: number;
-  }>;
-  fixed_deposit_amount?: number;
+const installmentSettingsRequestSchema = z.object({
+  action: z.literal("save").optional(),
+  enabled: z.boolean(),
+  allowCustomerChoice: z.boolean().default(false),
+  defaultPlan: installmentPlanSchema,
+  applyToServices: z.enum(["all", "selected"]).default("all"),
+  selectedServices: z.array(z.string().uuid()).max(100).optional(),
+  serviceConfigs: z.array(serviceInstallmentConfigSchema).max(100).optional(),
+  // Backwards-compatible input only. This endpoint no longer touches Stripe,
+  // and a request can never choose a provider mode.
+  test_mode: z.boolean().optional(),
+}).strict();
+
+const installmentSettingsReadSchema = z.object({
+  action: z.literal("read"),
+}).strict();
+
+function jsonResponse(
+  body: Record<string, unknown>,
+  status: number,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
-interface ServiceInstallmentConfig {
-  serviceTypeId: string;
-  enabled: boolean;
-  plan: InstallmentPlan;
-  allowCustomerChoice: boolean;
+function logStep(step: string, details?: Record<string, unknown>) {
+  console.log(
+    `[MANAGE-INSTALLMENT-SETTINGS] ${step}${
+      details ? ` - ${JSON.stringify(details)}` : ""
+    }`,
+  );
 }
 
-interface InstallmentSettingsRequest {
-  enabled: boolean;
-  allowCustomerChoice: boolean;
-  defaultPlan: InstallmentPlan;
-  applyToServices: 'all' | 'selected';
-  selectedServices?: string[];
-  serviceConfigs?: ServiceInstallmentConfig[];
-  test_mode?: boolean;
+function priceCents(raw: unknown): number {
+  const price = typeof raw === "number" ? raw : Number(raw);
+  const cents = Math.round(price * 100);
+  if (!Number.isFinite(cents) || cents <= 0) {
+    throw new Error("INSTALLMENT_SERVICE_PRICE_INVALID");
+  }
+  return cents;
+}
+
+async function loadInstallmentSettings(
+  supabaseClient: SupabaseClient,
+  ownerId: string,
+) {
+  const { data: profile, error: profileError } = await supabaseClient
+    .from("users")
+    .select(
+      "installments_enabled,default_installment_plan,allow_customer_installment_choice,installment_scope",
+    )
+    .eq("id", ownerId)
+    .single();
+  if (profileError || !profile) {
+    throw new Error("INSTALLMENT_PROFILE_MISSING");
+  }
+
+  const { data: calendars, error: calendarError } = await supabaseClient
+    .from("calendars")
+    .select("id")
+    .eq("user_id", ownerId);
+  if (calendarError) {
+    throw new Error("INSTALLMENT_CALENDARS_UNAVAILABLE");
+  }
+  const calendarIds = (calendars ?? []).map((calendar) => calendar.id);
+
+  const { data: services, error: serviceError } = calendarIds.length > 0
+    ? await supabaseClient
+      .from("service_types")
+      .select("id")
+      .in("calendar_id", calendarIds)
+    : { data: [], error: null };
+  if (serviceError) {
+    throw new Error("INSTALLMENT_SERVICES_UNAVAILABLE");
+  }
+  const serviceIds = (services ?? []).map((service) => service.id);
+
+  const { data: storedConfigs, error: configError } = serviceIds.length > 0
+    ? await supabaseClient
+      .from("service_installment_configs")
+      .select(
+        "service_type_id,enabled,plan_type,preset_plan,custom_deposits,fixed_deposit_amount,allow_customer_choice",
+      )
+      .in("service_type_id", serviceIds)
+      .order("service_type_id")
+    : { data: [], error: null };
+  if (configError) {
+    throw new Error("INSTALLMENT_CONFIGS_UNAVAILABLE");
+  }
+
+  const serviceConfigs = (storedConfigs ?? []).map((config) => {
+    const stored = config as {
+      service_type_id: string;
+      enabled: boolean | null;
+      plan_type: string | null;
+      preset_plan: string | null;
+      custom_deposits: unknown;
+      fixed_deposit_amount: number | string | null;
+      allow_customer_choice: boolean | null;
+    };
+    return {
+      serviceTypeId: stored.service_type_id,
+      enabled: stored.enabled === true,
+      plan: planFromStoredInstallmentConfig(stored),
+      allowCustomerChoice: false,
+    };
+  });
+
+  return {
+    enabled: profile.installments_enabled === true,
+    allowCustomerChoice: false,
+    defaultPlan: installmentPlanSchema.parse(profile.default_installment_plan),
+    applyToServices: profile.installment_scope === "selected"
+      ? "selected" as const
+      : "all" as const,
+    selectedServices: serviceConfigs.map((config) => config.serviceTypeId),
+    serviceConfigs,
+  };
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
+  }
 
   try {
-    logStep("Function started");
-    
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
     );
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Authentication required');
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Authentication required" }, 401);
+    }
+    const { data: authData, error: authError } = await supabaseClient.auth
+      .getUser(authHeader.slice("Bearer ".length));
+    const user = authData.user;
+    if (authError || !user?.id) {
+      return jsonResponse({ error: "Authentication required" }, 401);
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !userData.user) {
-      throw new Error('Invalid authentication');
-    }
-    logStep("User authenticated", { userId: userData.user.id });
-
-    // Check subscription tier - installments require Professional or Enterprise.
-    // FQ-7 fix: gate on the RESOLVED access status (get_user_status_type), NOT the raw
-    // users.subscription_tier column. When a tenant lapses (trial expires, subscription
-    // cancels, grace runs out) the status flips but subscription_tier is left intact
-    // (cancel keeps tier='professional'), so a raw-column check let a downgraded Free
-    // tenant keep enabling Pro-only installments via this API even though the dashboard
-    // hides it. We mirror the freemium-downgrade access model exactly the way the
-    // enforce_calendar_limit trigger does: lapsed -> Free (no installments); grace keeps
-    // the tier; paid/trial keep their tier. This is the authoritative server-side gate.
-    const { data: userProfile, error: profileError } = await supabaseClient
-      .from('users')
-      .select('subscription_tier, grace_period_end')
-      .eq('id', userData.user.id)
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("users")
+      .select(
+        "subscription_tier,grace_period_end,account_owner_id",
+      )
+      .eq("id", user.id)
       .single();
+    if (profileError || !profile) {
+      throw new Error("INSTALLMENT_PROFILE_MISSING");
+    }
+    requireAccountOwner(profile.account_owner_id, user.id);
 
-    if (profileError || !userProfile) {
-      throw new Error('User profile not found');
+    const rawBody = await req.json().catch(() => null);
+    const readRequest = installmentSettingsReadSchema.safeParse(rawBody);
+    if (readRequest.success) {
+      return jsonResponse({
+        success: true,
+        settings: await loadInstallmentSettings(supabaseClient, user.id),
+      }, 200);
     }
 
-    let effectiveTier: string | null = userProfile.subscription_tier ?? null;
-    const { data: statusVal, error: statusErr } = await supabaseClient
-      .rpc('get_user_status_type', { p_user_id: userData.user.id });
-    if (!statusErr && typeof statusVal === 'string') {
-      // Lapsed states drop to Free; missed_payment keeps its tier only while in grace.
-      if (statusVal === 'expired_trial' || statusVal === 'canceled_and_inactive') {
-        effectiveTier = 'free';
-      } else if (statusVal === 'missed_payment') {
-        const graceEnd = userProfile.grace_period_end ? new Date(userProfile.grace_period_end) : null;
-        if (!graceEnd || graceEnd.getTime() <= Date.now()) {
-          effectiveTier = 'free';
-        }
+    const { data: statusValue, error: statusError } = await supabaseClient.rpc(
+      "get_user_status_type",
+      { p_user_id: user.id },
+    );
+    if (statusError || typeof statusValue !== "string") {
+      throw new Error("INSTALLMENT_ACCESS_STATUS_UNAVAILABLE");
+    }
+
+    let effectiveTier = profile.subscription_tier ?? "free";
+    if (
+      statusValue === "expired_trial" ||
+      statusValue === "canceled_and_inactive"
+    ) {
+      effectiveTier = "free";
+    } else if (statusValue === "missed_payment") {
+      const graceEnd = profile.grace_period_end
+        ? new Date(profile.grace_period_end).getTime()
+        : 0;
+      if (!Number.isFinite(graceEnd) || graceEnd <= Date.now()) {
+        effectiveTier = "free";
       }
-      // active_trial / paid_subscriber / canceled_but_active / missed_payment_grace
-      // and setup_incomplete keep the raw subscription_tier column (a genuinely Pro
-      // tenant mid-setup or in grace stays Pro); the final allow-list does the gating.
     }
-    // statusErr (RPC failed) falls back to the raw column = no weaker than before.
-
-    if (!effectiveTier || !['professional', 'enterprise'].includes(effectiveTier)) {
-      // Expected business rule, NOT a server fault: installments are a Professional/
-      // Enterprise feature. Return a TYPED 403 (not a thrown 500) so the client can
-      // render a clean "upgrade to Pro" state instead of a red "non-2xx" toast. The
-      // body leaks no PII or secret (only the rule and the required tier). This is the
-      // authoritative server-side gate; the UI also disables the toggle, but THIS check
-      // is what actually protects the feature and cannot be bypassed client-side.
-      logStep("Subscription tier insufficient", { tier: userProfile.subscription_tier ?? null, effectiveTier });
-      return new Response(JSON.stringify({
+    if (!["professional", "enterprise"].includes(effectiveTier)) {
+      return jsonResponse({
         success: false,
-        error: 'tier_required',
-        required_tier: 'professional',
-        message: 'Installment payments require the Professional plan or higher.'
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403,
-      });
+        error: "tier_required",
+        required_tier: "professional",
+        message:
+          "Installment payments require the Professional plan or higher.",
+      }, 403);
     }
-    logStep("Subscription tier validated", { tier: userProfile.subscription_tier, effectiveTier });
 
-    const settings: InstallmentSettingsRequest = await req.json();
-    logStep("Settings received", { enabled: settings.enabled, applyToServices: settings.applyToServices });
-
-    // Update user's global installment settings
-    const { error: userUpdateError } = await supabaseClient
-      .from('users')
-      .update({
-        installments_enabled: settings.enabled,
-        default_installment_plan: settings.defaultPlan,
-        allow_customer_installment_choice: settings.allowCustomerChoice
-      })
-      .eq('id', userData.user.id);
-
-    if (userUpdateError) {
-      throw new Error('Failed to update user settings: ' + userUpdateError.message);
+    const parsedSettings = installmentSettingsRequestSchema.safeParse(rawBody);
+    if (!parsedSettings.success) {
+      return jsonResponse({
+        success: false,
+        error: "invalid_installment_settings",
+      }, 400);
     }
-    logStep("User settings updated");
+    const settings = parsedSettings.data;
 
-    // SECURITY (F-V05/F-V08/F-V09 mode-bypass class): pin the Stripe mode to the
-    // server's STRIPE_MODE, NEVER the client body. This fn previously read
-    // `settings.test_mode` from the request body, so an authed pro/enterprise user
-    // could send test_mode:false in a TEST deployment to instantiate a LIVE Stripe
-    // client and mint LIVE installment prices. validateStripeMode() defaults to test
-    // when STRIPE_MODE is unset. The body's `test_mode` field is now ignored.
-    const isTestMode = validateStripeMode().mode === 'test';
-
-    // Initialize Stripe with test/live key based on the server-pinned mode
-    const stripeKey = isTestMode
-      ? Deno.env.get('STRIPE_SECRET_KEY_TEST')
-      : Deno.env.get('STRIPE_SECRET_KEY_LIVE');
-
-    if (!stripeKey) {
-      throw new Error(`Stripe ${isTestMode ? 'test' : 'live'} key is not configured`);
-    }
-    logStep("Stripe key found", { mode: isTestMode ? 'test' : 'live' });
-    
-    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
-
-    // Get user's calendar IDs first (service_types are linked via calendar_id, not user_id)
-    const { data: userCalendars, error: calendarError } = await supabaseClient
-      .from('calendars')
-      .select('id')
-      .eq('user_id', userData.user.id);
-
+    const { data: calendars, error: calendarError } = await supabaseClient
+      .from("calendars")
+      .select("id")
+      .eq("user_id", user.id);
     if (calendarError) {
-      throw new Error('Failed to fetch user calendars: ' + calendarError.message);
+      throw new Error("INSTALLMENT_CALENDARS_UNAVAILABLE");
+    }
+    const calendarIds = (calendars ?? []).map((calendar) => calendar.id);
+
+    const { data: services, error: serviceError } = calendarIds.length > 0
+      ? await supabaseClient
+        .from("service_types")
+        .select("id,price")
+        .in("calendar_id", calendarIds)
+      : { data: [], error: null };
+    if (serviceError) {
+      throw new Error("INSTALLMENT_SERVICES_UNAVAILABLE");
+    }
+    const ownedServices = new Map(
+      (services ?? []).map((service) => [service.id, service]),
+    );
+
+    const selectedConfigs = settings.serviceConfigs ?? [];
+    if (
+      settings.enabled && settings.applyToServices === "selected" &&
+      selectedConfigs.length === 0
+    ) {
+      return jsonResponse({
+        success: false,
+        error: "selected_services_required",
+      }, 400);
     }
 
-    const userCalendarIds = (userCalendars || []).map(c => c.id);
-    logStep("User calendars fetched", { count: userCalendarIds.length });
-
-    // Get user's Stripe account using account_owner_id (consistent with other edge functions)
-    const { data: stripeAccount } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('stripe_account_id')
-      .eq('account_owner_id', userData.user.id)
-      .eq('account_status', 'active')
-      .single();
-
-    if (!stripeAccount && settings.enabled) {
-      logStep("Warning: No active Stripe account found");
-      // Don't throw error, just log warning - user might set up later
-    }
-
-    // Handle service-specific configurations
-    if (settings.enabled && settings.applyToServices === 'selected' && settings.serviceConfigs) {
-      logStep("Processing service-specific configurations", { count: settings.serviceConfigs.length });
-      
-      for (const config of settings.serviceConfigs) {
-        // Get service type details - filter by calendar_id (not user_id which doesn't exist)
-        const { data: serviceType, error: serviceError } = await supabaseClient
-          .from('service_types')
-          .select('*')
-          .eq('id', config.serviceTypeId)
-          .in('calendar_id', userCalendarIds)
-          .single();
-
-        if (serviceError || !serviceType) {
-          logStep("Service type not found or not owned by user", { serviceTypeId: config.serviceTypeId });
-          continue;
-        }
-
-        // Upsert service installment configuration
-        const { error: configError } = await supabaseClient
-          .from('service_installment_configs')
-          .upsert({
-            service_type_id: config.serviceTypeId,
-            enabled: config.enabled,
-            plan_type: config.plan.type,
-            preset_plan: config.plan.preset,
-            custom_deposits: config.plan.deposits || [],
-            fixed_deposit_amount: config.plan.fixed_deposit_amount,
-            allow_customer_choice: config.allowCustomerChoice
-          });
-
-        if (configError) {
-          logStep("Error updating service config", { serviceTypeId: config.serviceTypeId, error: configError.message });
-          continue;
-        }
-
-        // Create Stripe products for installment options if enabled and Stripe is configured
-        if (config.enabled && stripeAccount && serviceType.price) {
-          await createInstallmentStripeProducts(stripe, stripeAccount.stripe_account_id, serviceType, config.plan);
-        }
-
-        logStep("Service configuration updated", { serviceTypeId: config.serviceTypeId });
+    const seenServiceIds = new Set<string>();
+    for (const config of selectedConfigs) {
+      if (seenServiceIds.has(config.serviceTypeId)) {
+        return jsonResponse({
+          success: false,
+          error: "duplicate_service_installment_config",
+        }, 400);
       }
-    } else if (settings.enabled && settings.applyToServices === 'all') {
-      // Apply to all services - update service_types table via calendar_id
-      if (userCalendarIds.length > 0) {
-        const { error: allServicesError } = await supabaseClient
-          .from('service_types')
-          .update({
-            installments_enabled: true,
-            custom_installment_plan: settings.defaultPlan
-          })
-          .in('calendar_id', userCalendarIds);
-
-        if (allServicesError) {
-          logStep("Error updating all services", { error: allServicesError.message });
-        } else {
-          logStep("All services updated with installments");
-        }
-      } else {
-        logStep("No calendars found, skipping service updates");
+      seenServiceIds.add(config.serviceTypeId);
+      const service = ownedServices.get(config.serviceTypeId);
+      if (!service) {
+        return jsonResponse({
+          success: false,
+          error: "service_not_owned",
+        }, 403);
+      }
+      if (settings.enabled && config.enabled) {
+        calculateInstallmentSchedule(
+          config.plan,
+          priceCents(service.price),
+        );
       }
     }
 
-    logStep("Settings saved successfully");
+    if (settings.enabled && settings.applyToServices === "all") {
+      for (const service of ownedServices.values()) {
+        const numericPrice = Number(service.price);
+        if (Number.isFinite(numericPrice) && numericPrice > 0) {
+          calculateInstallmentSchedule(
+            settings.defaultPlan,
+            priceCents(numericPrice),
+          );
+        }
+      }
+    }
 
-    return new Response(JSON.stringify({
+    // One service-role-only RPC owns the complete replacement. Postgres executes the
+    // service rows, overrides and owner row in one transaction, so any late failure
+    // rolls the entire save back instead of exposing a half-switched payment policy.
+    const { data: applyResult, error: applyError } = await supabaseClient.rpc(
+      "apply_installment_settings",
+      {
+        p_owner_id: user.id,
+        p_enabled: settings.enabled,
+        // The legacy field stays in the RPC signature for rolling deployment
+        // compatibility, but unsupported customer choice must never be activated.
+        p_allow_customer_choice: false,
+        p_default_plan: settings.defaultPlan,
+        p_apply_to_services: settings.applyToServices,
+        p_service_configs: selectedConfigs,
+      },
+    );
+    if (applyError || !applyResult) {
+      throw new Error("INSTALLMENT_SETTINGS_ATOMIC_WRITE_FAILED");
+    }
+
+    logStep("Settings saved", {
+      userId: user.id,
+      enabled: settings.enabled,
+      scope: settings.applyToServices,
+      configuredServices: selectedConfigs.length,
+    });
+    return jsonResponse({
       success: true,
-      message: 'Installment settings updated successfully'
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-
+      message: "Installment settings updated successfully",
+      settings: await loadInstallmentSettings(supabaseClient, user.id),
+    }, 200);
   } catch (error) {
-    logStep("ERROR", { message: error.message });
-    return new Response(JSON.stringify({ 
-      success: false,
-      error: error.message 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+    if (isAccountOwnerRequiredError(error)) {
+      return jsonResponse({
+        error: error.message,
+        code: error.code,
+      }, error.status);
+    }
+    logStep("Request failed", {
+      message: error instanceof Error ? error.message : String(error),
     });
+    return jsonResponse({
+      success: false,
+      error: "Installment settings could not be updated.",
+      code: "INSTALLMENT_SETTINGS_FAILED",
+    }, 500);
   }
 });
-
-async function createInstallmentStripeProducts(
-  stripe: Stripe, 
-  stripeAccountId: string, 
-  serviceType: any, 
-  plan: InstallmentPlan
-) {
-  try {
-    logStep("Creating Stripe installment products", { serviceTypeId: serviceType.id, planType: plan.type });
-    
-    const servicePriceCents = Math.round((serviceType.price || 0) * 100);
-    
-    // Calculate installment amounts
-    const installments = calculateInstallments(plan, servicePriceCents);
-    
-    for (let i = 0; i < installments.length; i++) {
-      const installment = installments[i];
-      
-      // Skip cash payments - only create Stripe products for online payments
-      if (installment.payment_method === 'cash') continue;
-      
-      const productName = `${serviceType.name} - Installment ${i + 1}/${installments.length}`;
-      
-      // Create Stripe price for this installment
-      const price = await stripe.prices.create({
-        currency: 'eur',
-        unit_amount: installment.amount_cents,
-        product_data: {
-          name: productName,
-          description: `${installment.timing} payment for ${serviceType.name}`,
-          metadata: {
-            service_type_id: serviceType.id,
-            installment_number: (i + 1).toString(),
-            total_installments: installments.length.toString(),
-            payment_timing: installment.timing
-          }
-        }
-      }, {
-        stripeAccount: stripeAccountId
-      });
-      
-      logStep("Created Stripe price for installment", { 
-        priceId: price.id, 
-        installmentNumber: i + 1,
-        amount: installment.amount_cents 
-      });
-    }
-    
-  } catch (error) {
-    logStep("Error creating Stripe products", { error: error.message });
-  }
-}
-
-function calculateInstallments(plan: InstallmentPlan, servicePriceCents: number) {
-  const installments = [];
-  
-  if (plan.type === 'preset') {
-    switch (plan.preset) {
-      case '100_at_booking':
-        installments.push({
-          amount_cents: servicePriceCents,
-          timing: 'now',
-          payment_method: 'online'
-        });
-        break;
-        
-      case '50_50': {
-        // Last installment is the exact remainder so the two halves sum to the
-        // service price (round(servicePriceCents*0.5) twice would over/undercharge
-        // by a cent for odd-cent prices, e.g. €99.99 -> €100.00).
-        const firstHalf = Math.round(servicePriceCents * 0.5);
-        installments.push({
-          amount_cents: firstHalf,
-          timing: 'now',
-          payment_method: 'online'
-        });
-        installments.push({
-          amount_cents: servicePriceCents - firstHalf,
-          timing: 'appointment',
-          payment_method: 'cash'
-        });
-        break;
-      }
-
-      case '25_25_50': {
-        // Last installment is the exact remainder so the parts sum to the service
-        // price regardless of cent rounding.
-        const q1 = Math.round(servicePriceCents * 0.25);
-        const q2 = Math.round(servicePriceCents * 0.25);
-        installments.push({
-          amount_cents: q1,
-          timing: 'now',
-          payment_method: 'online'
-        });
-        installments.push({
-          amount_cents: q2,
-          timing: 'appointment',
-          payment_method: 'cash'
-        });
-        installments.push({
-          amount_cents: servicePriceCents - q1 - q2,
-          timing: 'appointment',
-          payment_method: 'cash'
-        });
-        break;
-      }
-        
-      case 'fixed_deposit':
-        const depositCents = Math.round((plan.fixed_deposit_amount || 50) * 100);
-        const remainderCents = servicePriceCents - depositCents;
-        
-        installments.push({
-          amount_cents: depositCents,
-          timing: 'now',
-          payment_method: 'online'
-        });
-        installments.push({
-          amount_cents: remainderCents,
-          timing: 'appointment',
-          payment_method: 'cash'
-        });
-        break;
-    }
-  } else {
-    // Custom plan
-    plan.deposits?.forEach((deposit) => {
-      const amountCents = deposit.amount ? 
-        Math.round(deposit.amount * 100) : 
-        Math.round((servicePriceCents * (deposit.percentage || 0)) / 100);
-      
-      installments.push({
-        amount_cents: amountCents,
-        timing: deposit.timing,
-        payment_method: deposit.timing === 'now' ? 'online' : 'cash'
-      });
-    });
-  }
-  
-  return installments;
-}

@@ -391,6 +391,10 @@
       "cancel": "Annuleren"
     },
     "billing": {
+      "checkingOwnership": "Accounteigenaarschap controleren…",
+      "ownerCheckError": "We konden het accounteigenaarschap niet verifiëren.",
+      "retryOwnerCheck": "Opnieuw proberen",
+      "ownerOnly": "Alleen accounteigenaren kunnen de facturering bekijken en het abonnement beheren.",
       "availablePlans": {
         "description": "Kies het abonnement dat het beste bij je behoeften past.",
         "title": "Beschikbare abonnementen"
@@ -756,6 +760,9 @@
     },
     "payments": {
       "loadingLabel": "Betaalinstellingen laden",
+      "checkingOwnership": "Accounteigenaarschap controleren…",
+      "ownerCheckError": "We konden het accounteigenaarschap niet verifiëren.",
+      "retryOwnerCheck": "Opnieuw proberen",
       "setting": {
         "autoCancel": "Onbetaalde boekingen automatisch annuleren"
       },
@@ -849,7 +856,7 @@
             "description": "Universele acceptatie en een vertrouwde ervaring.",
             "bullet1": "Ideaal voor internationale klanten en terugkerende kopers",
             "bullet2": "Ondersteunt opgeslagen kaarten en abonnementen",
-            "bullet3": "Gestaffelde tarieven: EER-kaarten (1.5% + €0.25), VK-kaarten (2.5% + €0.25), internationale kaarten (3.25% + €0.25)"
+            "bullet3": "Stripe-tarieven verschillen per kaartregio; ze worden niet boven op de boekingsfee van 1,9% gezet."
           }
         },
         "applePay": {
@@ -857,7 +864,7 @@
           "modal": {
             "description": "Met één tik afrekenen op Apple-apparaten; biometrische verificatie.",
             "bullet1": "Wrijvingsloze mobiele ervaring en sterke conversie op iOS",
-            "bullet2": "Gebruikt de kaartinfrastructuur; zelfde tarieven als kaarten",
+            "bullet2": "Gebruikt de kaartinfrastructuur en ondersteunt snelle walletbetalingen",
             "bullet3": "Ideaal voor een mobile-first publiek"
           }
         },
@@ -945,9 +952,9 @@
         "googlePay": {
           "description": "Met één tik afrekenen op Android/Chrome",
           "modal": {
-            "description": "Met één tik afrekenen op Android/Chrome; zelfde tarieven als kaarten; uitstekende mobiele conversie.",
+            "description": "Met één tik afrekenen op Android/Chrome via de kaartinfrastructuur, met een snelle mobiele betaalervaring.",
             "bullet1": "Met één tik afrekenen op Android/Chrome",
-            "bullet2": "Zelfde tarieven als kaarten; uitstekende mobiele conversie",
+            "bullet2": "Snelle mobiele betaalervaring via de kaartinfrastructuur",
             "bullet3": "Ideaal voor een mobile-first publiek en Android-gebruikers"
           }
         }
@@ -958,9 +965,10 @@
         "speedAria": "Uitbetalingssnelheid",
         "viewBreakdown": "Bekijk voorbeeld van de kostenuitsplitsing",
         "platformFeeLabel": "Platformkosten Bookings Assistant",
-        "transactionFee": "Transactiekosten",
-        "examplePaymentMethodAria": "Voorbeeld betaalmethode",
-        "totalFee": "Totale kosten",
+        "stripeFeePayerLabel": "Stripe-verwerkingskosten",
+        "stripeFeePayerValue": "Betaald vanuit het platformtegoed van Bookings Assistant",
+        "bookingDeduction": "Ingehouden per boeking",
+        "separateStripeCosts": "Eventuele aparte account- of uitbetalingskosten worden door Stripe bepaald en getoond; ze worden niet bij deze boekingsfee opgeteld.",
         "selectedLabel": "Geselecteerd:",
         "selectedStandard": "Standaard (3 werkdagen)",
         "selectedInstant": "Direct (binnen enkele minuten)",
@@ -968,13 +976,11 @@
         "saveChanges": "Wijzigingen opslaan",
         "standard": {
           "title": "Standaard uitbetaling",
-          "subtitle": "3 werkdagen naar je rekening",
-          "processingLabel": "Stripe-verwerkingskosten"
+          "subtitle": "3 werkdagen naar je rekening"
         },
         "instant": {
           "title": "Directe uitbetaling",
-          "subtitle": "Komt binnen enkele minuten aan",
-          "processingLabel": "Stripe directe-uitbetalingskosten"
+          "subtitle": "Komt binnen enkele minuten aan"
         }
       },
       "flexibility": {
@@ -994,9 +1000,9 @@
         },
         "saving": "Opslaan…",
         "savePolicy": "Beleid opslaan",
-        "makeOptionalTitle": "Betaling optioneel maken",
-        "makeOptionalDescription": "Aan: klanten kiezen wanneer ze betalen. Uit: betaling is vooraf verplicht voordat een boeking wordt bevestigd.",
-        "makeOptionalAria": "Betaling optioneel maken",
+        "makeOptionalTitle": "Boeken zonder online betaling toestaan",
+        "makeOptionalDescription": "Aan: de publieke boekingspagina bevestigt zonder online betaling; WhatsApp kan de hieronder ingeschakelde opties gebruiken. Uit: volledige online betaling is verplicht vóór bevestiging.",
+        "makeOptionalAria": "Boeken zonder online betaling toestaan",
         "requiredUpfrontTitle": "Betaling vooraf verplicht",
         "requiredUpfrontBody": "klanten moeten online betalen voordat hun boeking wordt bevestigd.",
         "deadlineTitle": "Betaaltermijn",
@@ -1006,19 +1012,20 @@
         "autoCancelTitle": "Onbetaalde boekingen automatisch annuleren",
         "autoCancelDescription": "Geef het tijdslot automatisch vrij wanneer de termijn verstrijkt zonder betaling.",
         "autoCancelAria": "Onbetaalde boekingen automatisch annuleren",
-        "chooseOptions": "Kies uit welke betaalopties klanten kunnen kiezen:",
+        "chooseOptions": "Betaalgedrag in WhatsApp wanneer volledige vooruitbetaling optioneel is:",
         "payNowTitle": "Nu betalen",
-        "payNowDescription": "Direct online betalen",
+        "payNowDescription": "Direct online betalen aanbieden in WhatsApp",
         "alwaysOn": "Altijd aan",
         "payOnSiteTitle": "Ter plaatse betalen",
-        "payOnSiteDescription": "Betalen wanneer de dienst wordt geleverd",
+        "payOnSiteDescription": "WhatsApp-boekingen laten betalen wanneer de dienst wordt geleverd",
         "payOnSiteAria": "Ter plaatse betalen toestaan",
-        "installmentsTitle": "In termijnen betalen",
-        "installmentsDescription": "Opsplitsen in meerdere betalingen",
+        "installmentsTitle": "Aanbetalingsplan voor WhatsApp",
+        "installmentsDescription": "De ingestelde eerste betaling online verplichten en het restant op locatie registreren",
         "proBadge": "Pro",
         "configure": "Configureren",
-        "installmentsAria": "Termijnbetalingen toestaan",
-        "installmentsUpgradeHint": "Beschikbaar op het Professional-abonnement. Upgrade om klanten betalingen te laten opsplitsen."
+        "installmentsAria": "Aanbetalingsplan voor WhatsApp configureren",
+        "installmentsUnavailable": "De termijninstellingen konden niet worden geladen. Laad opnieuw voordat je ze wijzigt.",
+        "installmentsUpgradeHint": "Beschikbaar op het Professional-abonnement voor WhatsApp-boekingen."
       },
       "fundFlow": {
         "title": "Geldstroom (hoe geld beweegt)",
@@ -1031,7 +1038,7 @@
           },
           "connected": {
             "label": "Gekoppeld account",
-            "caption": "Bruto bedrag ontvangen in accountvaluta"
+            "caption": "Boekingsbedrag min de boekingsfee van 1,9%"
           },
           "bank": {
             "label": "Bankrekening",
@@ -1039,31 +1046,27 @@
           }
         },
         "bullets": {
-          "startCurrency": "Betalingen beginnen altijd in de valuta van de klant.",
-          "conversionFee": "Als die afwijkt van je accountvaluta, rekent Stripe 2% conversiekosten.",
-          "feesDeducted": "Betaalmethodekosten, Stripe-kosten en platformkosten worden allemaal automatisch ingehouden vóór uitbetaling.",
-          "finalPayout": "Definitieve uitbetaling = nettosaldo overgemaakt naar je bank (standaard of direct)."
+          "startCurrency": "De klant betaalt het boekingsbedrag via Stripe.",
+          "applicationFee": "Bookings Assistant houdt exact 1,9% in als boekingsfee.",
+          "platformPaysStripe": "Bij deze destination-charge-stroom worden Stripe-verwerkingskosten van het platformtegoed van Bookings Assistant afgeschreven, niet extra van jouw boekingsbedrag.",
+          "finalPayout": "Je gekoppelde Stripe-tegoed ontvangt het boekingsbedrag min 1,9%, vóór eventuele aparte account- of uitbetalingscorrecties van Stripe."
         },
         "processing": {
           "title": "Betalingsverwerking",
-          "conversion": {
-            "label": "Valutaconversie",
-            "description": "+2% kosten als de betaalvaluta afwijkt van je accountvaluta"
-          },
-          "methodFee": {
-            "label": "Betaalmethodekosten",
-            "description": "Op basis van de gekozen methode (iDEAL: €0.29, kaarten: 1.5–2.5% + €0.25)"
-          },
           "platformFee": {
-            "label": "Platformkosten",
-            "description": "1.9% + €0.25/€0.35 ingehouden door Bookings Assistant"
+            "label": "Boekingsfee",
+            "description": "Exact 1,9% ingehouden door Bookings Assistant"
+          },
+          "stripeFeePayer": {
+            "label": "Betaler Stripe-verwerkingskosten",
+            "description": "Het platformtegoed van Bookings Assistant"
           }
         },
         "stripeProcessing": {
-          "title": "Stripe-verwerking",
+          "title": "Stripe-uitbetaling",
           "fee": {
-            "label": "Stripe-verwerkingskosten",
-            "description": "0.25% + €0.10 standaard uitbetaling, 1% directe uitbetaling"
+            "label": "Aparte Stripe-kosten",
+            "description": "Door Stripe bepaald en getoond; niet opgeteld bij de boekingsfee van 1,9%"
           }
         }
       },
@@ -1097,52 +1100,32 @@
       },
       "fees": {
         "title": "Kosten",
-        "subtitle": "Overzicht van de betalingsverwerkingskosten",
-        "methodFeesHeading": "Betaalmethodekosten",
-        "sameAsCards": "Zelfde als kaarten",
-        "currencyConversionHeading": "Valutaconversiekosten",
-        "currencyConversionAria": "Over de valutaconversiekosten",
-        "currencyConversionBody": "Er gelden 2% extra kosten wanneer de betaalvaluta van de klant afwijkt van je accountvaluta (waarschijnlijker bij de hierboven gemarkeerde kaartmethoden).",
-        "structureHeading": "Kostenstructuur",
-        "exampleHeading": "Voorbeeld kostenimpact",
-        "deductedNote": "Alle kosten worden vóór uitbetaling van het boekingsbedrag afgetrokken.",
-        "structure": {
-          "stripe": {
-            "term": "Stripe-verwerkingskosten",
-            "standard": "• Standaard uitbetaling: 0.25% + €0.10 per transactie",
-            "instant": "• Directe uitbetaling: 1% per transactie"
-          },
-          "platform": {
-            "term": "Platformkosten",
-            "standard": "• Standaard uitbetaling: 1.9% + €0.25 per boeking",
-            "instant": "• Directe uitbetaling: 1.9% + €0.35 per boeking"
-          },
-          "method": {
-            "term": "Betaalmethodekosten",
-            "body": "Verschillen per methode (bijv. iDEAL €0.29, kaartkosten variëren)"
-          }
-        },
+        "subtitle": "Exacte boekingsaftrek voor het huidige betaalmodel",
+        "applicationFeeLabel": "Boekingsfee Bookings Assistant",
+        "stripeFeePayerLabel": "Betaler Stripe-verwerkingskosten",
+        "stripeFeePayerValue": "Het platformtegoed van Bookings Assistant",
+        "exampleHeading": "Voorbeeld bij een boeking van €100",
+        "architectureNote": "Dit is de exacte boekingsaftrek in de huidige destination-charge-stroom. Eventuele aparte account- of uitbetalingscorrecties worden door Stripe beheerd en getoond; Bookings Assistant schat ze hier niet en telt ze niet op.",
         "example": {
           "bookingAmount": "Boekingsbedrag",
-          "methodFee": "Betaalmethodekosten (iDEAL)",
-          "platformFee": "Platformkosten (1.9% + €0.25)",
-          "stripeProcessing": "Stripe-verwerking (0.25% + €0.10)",
-          "netPayout": "Netto-uitbetaling"
+          "platformFee": "Boekingsfee (1,9%)",
+          "connectedBalance": "Overgemaakt naar gekoppeld Stripe-tegoed"
         }
       },
       "currencyDialog": {
-        "title": "Valutaconversiekosten",
-        "tip": "Tip: vermijd deze kosten door te factureren in dezelfde valuta als je Stripe-account.",
+        "title": "Valutaconversie via Stripe",
+        "tip": "Bekijk de actuele voorwaarden en eventuele kosten in je Stripe-account.",
         "points": {
-          "extraFee": "Stripe rekent 2% extra kosten als de betaalvaluta afwijkt van je accountvaluta.",
-          "example": "Voorbeeld: een klant in het VK betaalt £100 in GBP, het bedrag wordt omgezet naar EUR met een opslag van 2% op de wisselkoers.",
-          "onTop": "Deze kosten komen boven op de normale betalingsverwerkingskosten.",
-          "ownCurrency": "Klanten zien de afschrijving altijd in hun eigen valuta; de conversie gebeurt aan jouw kant als verkoper.",
-          "sameCurrency": "Als de klant in dezelfde valuta als je account betaalt (bijv. EUR), gelden deze kosten niet."
+          "extraFee": "Stripe bepaalt of valutaconversie nodig is en welke actuele voorwaarden gelden.",
+          "example": "De betaalvaluta en de valuta van het gekoppelde Stripe-account bepalen of conversie plaatsvindt.",
+          "onTop": "Deze providerkosten worden niet door Bookings Assistant als extra boekingsfee berekend.",
+          "ownCurrency": "De klant ziet vóór bevestiging de valuta waarin de betaling wordt uitgevoerd.",
+          "sameCurrency": "Betalen en afwikkelen in dezelfde valuta voorkomt doorgaans conversie."
         }
       },
       "installments": {
         "free": "Gratis",
+        "channelScopeNotice": "Huidige scope: termijnplannen gelden voor WhatsApp-boekingen. De ingestelde eerste betaling is online verplicht; het restant wordt pas op locatie geregistreerd nadat het echt is ontvangen. De publieke boekingspagina gebruikt volledige online betaling wanneer vooruitbetaling verplicht is, of bevestigt zonder online betaling wanneer die optioneel is. Er wordt geen latere betaling automatisch geïnd.",
         "applyToServices": "Toepassen op diensten",
         "enableAllServices": "Inschakelen voor alle dienstsoorten",
         "choosePerService": "Per dienstsoort kiezen",
@@ -1158,14 +1141,12 @@
         "addPayment": "Betaling toevoegen",
         "percentage": "Percentage",
         "when": "Wanneer",
-        "hoursAfterBooking": "Uren na boeking",
         "total": "Totaal:",
         "savingInstallments": "Opslaan...",
         "saveInstallments": "Termijninstellingen opslaan",
         "timing": {
           "atBooking": "Bij boeking",
-          "onLocation": "Op locatie",
-          "hoursAfter": "Uren na boeking"
+          "onLocation": "Op locatie"
         },
         "presets": {
           "fullAtBooking": {
@@ -1175,10 +1156,6 @@
           "split5050": {
             "name": "50/50-verdeling",
             "description": "50% bij boeking, 50% op locatie"
-          },
-          "split252550": {
-            "name": "25/25/50-verdeling",
-            "description": "25% bij boeking, 25% een week later, 50% op locatie"
           },
           "fixedDeposit": {
             "name": "Vaste aanbetaling plus restant",

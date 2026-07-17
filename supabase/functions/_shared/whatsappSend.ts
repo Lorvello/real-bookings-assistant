@@ -6,22 +6,25 @@
 // phoneNumberId defaults to the live BA number (audit-confirmed) but can be
 // overridden via WHATSAPP_PHONE_NUMBER_ID.
 
+import { composeAbortSignal } from "./abortSignal.ts";
+
 const GRAPH_VERSION = "v22.0";
-const PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") || "1204872446033001";
+const PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") ||
+  "1204872446033001";
 
 // SEQP1R48 (fix for R47-1): the reminder claim mechanism (SEQP1R42, claim_booking_reminder's
-// claimed_at lease) uses a 3-minute TTL specifically to distinguish "a crashed invocation"
+// claim lease uses a 90-second TTL specifically to distinguish "a crashed invocation"
 // from "a still-genuinely-in-flight send", but that distinction only holds if a real send can
-// never legitimately approach 3 minutes. Before this fix, NEITHER the Resend client nor these
+// never legitimately approach that lease. Before this fix, NEITHER the Resend client nor these
 // Meta Graph API fetch() calls carried any explicit timeout, so a stalled DNS/TLS handshake or
 // a degraded upstream could let a single item's send genuinely still be running when the lease
 // expired, letting a second invocation validly re-claim and also send (reproduced live,
 // evidence/SEQ_P1_r47.md + r48.md). EXTERNAL_SEND_TIMEOUT_MS bounds every outbound Resend/Meta
-// call to comfortably under the 3-minute lease: once this fires, the calling code's own
+// call to comfortably under the 90-second lease: once this fires, the calling code's own
 // try/catch (process-booking-reminders/index.ts) treats the abort as a normal send failure and
 // commits a definite record_booking_reminder_result outcome (sent, or a retryable/terminal
 // failure) well before the lease window closes, so a call can no longer sit in an ambiguous
-// "still might be in-flight" state all the way out to 3 minutes. Exported so index.ts's own
+// "still might be in-flight" state all the way to lease expiry. Exported so index.ts's own
 // resend.emails.send() call uses the exact same bound (one source of truth), mirroring the
 // existing STRIPE_CHECK_TIMEOUT_MS pattern in _shared/stripeRefundCheck.ts (a single, named,
 // per-call timeout constant, no SDK-level retries hidden behind it).
@@ -33,7 +36,9 @@ const PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") || "12048724460
 // outliving its own lease with no bound at all); it does not claim to make external delivery
 // itself exactly-once, which no client-side timeout can guarantee against an at-least-once
 // upstream with no dedup key.
-export const EXTERNAL_SEND_TIMEOUT_MS = 45_000;
+// The reminder cron's HTTP budget is 55 seconds. Keep one provider call comfortably below
+// that ceiling even after the bounded Stripe freshness check and database finalization.
+export const EXTERNAL_SEND_TIMEOUT_MS = 8_000;
 
 export interface WhatsAppSendResult {
   ok: boolean;
@@ -102,7 +107,9 @@ export function normalizePhoneForMeta(raw: string): string | null {
   // otherwise its "0" would get kept as a real digit and corrupt an otherwise-valid
   // international number. Applied whenever the input already declared itself international
   // via EITHER "+" or "00" (never used to GUESS a country for an ambiguous bare-local number).
-  const cleanedRaw = (hadPlus || had00) ? trimmed.replace(/\(0\)/g, "") : trimmed;
+  const cleanedRaw = (hadPlus || had00)
+    ? trimmed.replace(/\(0\)/g, "")
+    : trimmed;
 
   // Strip everything except digits (drops "+", spaces, hyphens, parens, dots: all of which
   // Meta's own docs list as tolerated-but-ignorable punctuation anyway).
@@ -152,10 +159,13 @@ export function normalizePhoneForMeta(raw: string): string | null {
 // activity (blue ticks + typing) instead of dead silence. Best-effort: it never
 // throws and is not on the reply's critical path. Needs the inbound message id
 // (wamid). Docs: developers.facebook.com/docs/whatsapp/cloud-api/typing-indicators
-export async function sendReadReceiptWithTyping(inboundMessageId: string): Promise<void> {
+export async function sendReadReceiptWithTyping(
+  inboundMessageId: string,
+): Promise<void> {
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
   if (!token || !inboundMessageId) return;
-  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+  const url =
+    `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
   try {
     const resp = await fetch(url, {
       method: "POST",
@@ -177,7 +187,11 @@ export async function sendReadReceiptWithTyping(inboundMessageId: string): Promi
     });
     if (!resp.ok) {
       const data = await resp.json().catch(() => ({}));
-      console.error("WhatsApp typing/read mislukt", resp.status, JSON.stringify(data).slice(0, 200));
+      console.error(
+        "WhatsApp typing/read mislukt",
+        resp.status,
+        JSON.stringify(data).slice(0, 200),
+      );
     }
   } catch (e) {
     console.error("WhatsApp typing/read exception:", e);
@@ -212,10 +226,14 @@ export async function sendWhatsAppTemplate(
   templateName: string,
   languageCode: "nl" | "en",
   bodyParams: string[],
+  parentSignal?: AbortSignal,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<WhatsAppSendResult> {
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
   if (!token) {
-    console.error("WHATSAPP_ACCESS_TOKEN ontbreekt, kan geen template versturen");
+    console.error(
+      "WHATSAPP_ACCESS_TOKEN ontbreekt, kan geen template versturen",
+    );
     return { ok: false, status: 0, error: "missing_access_token" };
   }
   if (!to || !templateName) {
@@ -229,7 +247,11 @@ export async function sendWhatsAppTemplate(
   // with a Meta-template-approval-pending outcome.
   const normalizedTo = normalizePhoneForMeta(to);
   if (!normalizedTo) {
-    console.error(`WhatsApp template send geweigerd: telefoonnummer niet betrouwbaar te normaliseren (origineel eindigt op ...${to.slice(-4)})`);
+    console.error(
+      `WhatsApp template send geweigerd: telefoonnummer niet betrouwbaar te normaliseren (origineel eindigt op ...${
+        to.slice(-4)
+      })`,
+    );
     return { ok: false, status: 0, error: "invalid_phone_format" };
   }
 
@@ -237,9 +259,11 @@ export async function sendWhatsAppTemplate(
   // Meta's WhatsApp locale codes use underscore, not hyphen (e.g. en_US), but the plain
   // "nl" / "en" codes used at template-submission time (see META_TEMPLATE_REMINDER.md) are
   // also valid Graph API language codes for a template with no region-specific variant.
-  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+  const url =
+    `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+  const composed = composeAbortSignal(parentSignal, EXTERNAL_SEND_TIMEOUT_MS);
   try {
-    const resp = await fetch(url, {
+    const resp = await fetchImpl(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -262,27 +286,44 @@ export async function sendWhatsAppTemplate(
         },
       }),
       // SEQP1R48 (fix for R47-1): this is the reminder-send Meta call. Bounding it well under
-      // claim_booking_reminder's 3-minute lease is the core of the fix: a call that would
+      // claim_booking_reminder_v2's 90-second lease is the core of the fix: a call that would
       // otherwise still be genuinely in-flight when the lease expires now fails fast instead,
       // so process-booking-reminders/index.ts's own try/catch always commits a definite
       // record_booking_reminder_result outcome long before a second invocation could validly
       // re-claim the same row. See EXTERNAL_SEND_TIMEOUT_MS's comment above for the full
       // reasoning and the accepted residual.
-      signal: AbortSignal.timeout(EXTERNAL_SEND_TIMEOUT_MS),
+      signal: composed.signal,
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
-      console.error("WhatsApp template send mislukt", resp.status, JSON.stringify(data).slice(0, 400));
-      return { ok: false, status: resp.status, error: data?.error?.message || "template_send_failed" };
+      console.error(
+        "WhatsApp template send mislukt",
+        resp.status,
+        JSON.stringify(data).slice(0, 400),
+      );
+      return {
+        ok: false,
+        status: resp.status,
+        error: data?.error?.message || "template_send_failed",
+      };
     }
-    return { ok: true, status: resp.status, messageId: data?.messages?.[0]?.id };
+    return {
+      ok: true,
+      status: resp.status,
+      messageId: data?.messages?.[0]?.id,
+    };
   } catch (e) {
     console.error("WhatsApp template send exception:", e);
     return { ok: false, status: 0, error: String((e as Error)?.message || e) };
+  } finally {
+    composed.dispose();
   }
 }
 
-export async function sendWhatsAppText(to: string, body: string): Promise<WhatsAppSendResult> {
+export async function sendWhatsAppText(
+  to: string,
+  body: string,
+): Promise<WhatsAppSendResult> {
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
   if (!token) {
     console.error("🚨 WHATSAPP_ACCESS_TOKEN ontbreekt — kan niet antwoorden");
@@ -299,11 +340,16 @@ export async function sendWhatsAppText(to: string, body: string): Promise<WhatsA
   // any future caller that passes a less-trusted phone value into a free-form text send.
   const normalizedTo = normalizePhoneForMeta(to);
   if (!normalizedTo) {
-    console.error(`WhatsApp text send geweigerd, telefoonnummer niet betrouwbaar te normaliseren (origineel eindigt op ...${to.slice(-4)})`);
+    console.error(
+      `WhatsApp text send geweigerd, telefoonnummer niet betrouwbaar te normaliseren (origineel eindigt op ...${
+        to.slice(-4)
+      })`,
+    );
     return { ok: false, status: 0, error: "invalid_phone_format" };
   }
 
-  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+  const url =
+    `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
   try {
     const resp = await fetch(url, {
       method: "POST",
@@ -326,10 +372,22 @@ export async function sendWhatsAppText(to: string, body: string): Promise<WhatsA
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) {
-      console.error("WhatsApp send mislukt", resp.status, JSON.stringify(data).slice(0, 400));
-      return { ok: false, status: resp.status, error: data?.error?.message || "send_failed" };
+      console.error(
+        "WhatsApp send mislukt",
+        resp.status,
+        JSON.stringify(data).slice(0, 400),
+      );
+      return {
+        ok: false,
+        status: resp.status,
+        error: data?.error?.message || "send_failed",
+      };
     }
-    return { ok: true, status: resp.status, messageId: data?.messages?.[0]?.id };
+    return {
+      ok: true,
+      status: resp.status,
+      messageId: data?.messages?.[0]?.id,
+    };
   } catch (e) {
     console.error("WhatsApp send exception:", e);
     return { ok: false, status: 0, error: String((e as Error)?.message || e) };

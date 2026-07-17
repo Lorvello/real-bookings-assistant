@@ -12,15 +12,29 @@ import NotFound from '@/pages/NotFound';
 // Success.tsx pulls in supabase + UserStatus + Profile via its verification effect.
 // The document.title effect is independent of all of that, so we stub the heavy deps
 // to nothing and let the REAL component's title effect run.
+const successMocks = vi.hoisted(() => ({
+  invalidateCache: vi.fn().mockResolvedValue(undefined),
+  refetchProfile: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null } }), getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
-    functions: { invoke: vi.fn().mockResolvedValue({ data: null, error: new Error('no-net') }) },
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'title-test-token' } }, error: null }) },
+    functions: {
+      invoke: vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          subscribed: true,
+          subscription_tier: 'starter',
+          payment_status: 'paid',
+        },
+        error: null,
+      }),
+    },
   },
 }));
-vi.mock('@/contexts/UserStatusContext', () => ({ useUserStatus: () => ({ invalidateCache: vi.fn() }) }));
-vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ refetch: vi.fn().mockResolvedValue(undefined) }) }));
+vi.mock('@/contexts/UserStatusContext', () => ({ useUserStatus: () => ({ invalidateCache: successMocks.invalidateCache }) }));
+vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ refetch: successMocks.refetchProfile }) }));
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
 
 import Success from '@/pages/Success';

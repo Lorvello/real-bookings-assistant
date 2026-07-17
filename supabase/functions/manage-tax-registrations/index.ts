@@ -2,15 +2,17 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[MANAGE-TAX-REGISTRATIONS] ${step}${detailsStr}`);
 };
 
@@ -22,10 +24,36 @@ const logStep = (step: string, details?: any) => {
 // future feature; until then a US/CA create request is rejected up front with a clear
 // "Unsupported country code" instead of a confusing downstream Stripe error.
 const SUPPORTED_COUNTRIES = [
-  'NL', 'DE', 'FR', 'GB', 'BE', 'ES', 'IT', 'AT', 'DK', 'SE', 'FI', 'PT', 'IE',
-  'LU', 'CY', 'MT', 'SI', 'SK', 'CZ', 'HU', 'PL', 'EE', 'LV', 'LT', 'BG', 'RO', 'HR',
-  'AU'
+  "NL",
+  "DE",
+  "FR",
+  "GB",
+  "BE",
+  "ES",
+  "IT",
+  "AT",
+  "DK",
+  "SE",
+  "FI",
+  "PT",
+  "IE",
+  "LU",
+  "CY",
+  "MT",
+  "SI",
+  "SK",
+  "CZ",
+  "HU",
+  "PL",
+  "EE",
+  "LV",
+  "LT",
+  "BG",
+  "RO",
+  "HR",
+  "AU",
 ] as const;
+const SUPPORTED_COUNTRY_SET = new Set<string>(SUPPORTED_COUNTRIES);
 
 // Validate the write payload (zod). action gates which other fields are required.
 // country must be a supported ISO-3166 alpha-2 code; registration_id is mandatory
@@ -38,25 +66,28 @@ const SUPPORTED_COUNTRIES = [
 // working; the field is simply not advertised or acted on. A real VAT-number capture
 // is a separate future feature.
 const RequestSchema = z.object({
-  action: z.enum(['list', 'create', 'delete']),
+  action: z.enum(["list", "create", "delete"]),
   country: z.string().trim().length(2).toUpperCase()
     .refine((c) => (SUPPORTED_COUNTRIES as readonly string[]).includes(c), {
-      message: 'Unsupported country code'
+      message: "Unsupported country code",
     })
     .optional(),
   registration_id: z.string().trim().min(1).optional(),
 }).superRefine((data, ctx) => {
-  if (data.action === 'delete' && !data.registration_id) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['registration_id'],
-      message: 'registration_id is required for delete' });
+  if (data.action === "delete" && !data.registration_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["registration_id"],
+      message: "registration_id is required for delete",
+    });
   }
 });
 
-const detectBusinessCountry = (stripeAccount: any): string => {
+const detectBusinessCountry = (stripeAccount: Stripe.Account): string => {
   if (stripeAccount?.country) {
     return stripeAccount.country.toUpperCase();
   }
-  return 'NL'; // Default fallback
+  return "NL"; // Default fallback
 };
 
 // Build a Stripe Tax-API-valid country_options block. The previous code sent
@@ -65,30 +96,43 @@ const detectBusinessCountry = (stripeAccount: any): string => {
 // standard registration with place_of_supply_scheme='standard' (confirmed live
 // against the Stripe TEST Tax API for NL, GB and AU). US/CA are excluded from
 // SUPPORTED_COUNTRIES because they need subdivision-scoped payloads.
-const buildCountryOptions = (country: string): Record<string, any> => {
+type StandardCountryOption = {
+  type: "standard";
+  standard: { place_of_supply_scheme: "standard" };
+};
+
+const buildCountryOptions = (
+  country: string,
+): Record<string, StandardCountryOption> => {
   const cc = country.toLowerCase();
-  return { [cc]: { type: 'standard', standard: { place_of_supply_scheme: 'standard' } } };
+  return {
+    [cc]: {
+      type: "standard",
+      standard: { place_of_supply_scheme: "standard" },
+    },
+  };
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
     );
 
     // Authenticate the user
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
+    const authHeader = req.headers.get("Authorization")!;
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabaseClient.auth
+      .getUser(token);
+
     if (userError || !user) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
 
     const rawBody = await req.json().catch(() => ({}));
@@ -100,28 +144,32 @@ serve(async (req) => {
       // leaves `data` undefined) on a non-2xx status, so a 400 here would hide the
       // structured message from the call sites that read `data.success`/`data.error`.
       const fieldErrors = parsed.error.flatten().fieldErrors;
-      const firstMsg = Object.values(fieldErrors).flat()[0] || 'Invalid tax registration request';
+      const firstMsg = Object.values(fieldErrors).flat()[0] ||
+        "Invalid tax registration request";
       return new Response(
         JSON.stringify({
           success: false,
-          code: 'INVALID_INPUT',
+          code: "INVALID_INPUT",
           error: firstMsg,
-          details: fieldErrors
+          details: fieldErrors,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
     const { action, country, registration_id } = parsed.data;
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
     // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
-    const test_mode = validateStripeMode().mode === 'test';
+    const test_mode = validateStripeMode().mode === "test";
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient
-      .from('users')
-      .select('subscription_tier, account_owner_id')
-      .eq('id', user.id)
+      .from("users")
+      .select("subscription_tier, account_owner_id")
+      .eq("id", user.id)
       .single();
 
     if (userDataError) {
@@ -129,72 +177,89 @@ serve(async (req) => {
     }
 
     // Only Professional and Enterprise users can manage tax registrations
-    if (!userData?.subscription_tier || !['professional', 'enterprise'].includes(userData.subscription_tier)) {
+    if (
+      !userData?.subscription_tier ||
+      !["professional", "enterprise"].includes(userData.subscription_tier)
+    ) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          code: 'UPGRADE_REQUIRED',
-          error: 'International tax registration management requires Professional or Enterprise subscription' 
+        JSON.stringify({
+          success: false,
+          code: "UPGRADE_REQUIRED",
+          error:
+            "International tax registration management requires Professional or Enterprise subscription",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
 
     const accountOwnerId = userData.account_owner_id || user.id;
 
     // Initialize Stripe
-    const stripeSecretKey = test_mode 
+    const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+
     if (!stripeSecretKey) {
-      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
+      throw new Error(
+        `Missing Stripe secret key for ${test_mode ? "test" : "live"} mode`,
+      );
     }
-    
+
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get platform account
     const platformAccount = await stripe.accounts.retrieve();
     const platformAccountId = platformAccount.id;
-    const environment = test_mode ? 'test' : 'live';
+    const environment = test_mode ? "test" : "live";
 
     // Get user's Stripe account
     const { data: stripeAccount } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('*')
-      .eq('account_owner_id', accountOwnerId)
-      .eq('environment', environment)
-      .eq('platform_account_id', platformAccountId)
-      .eq('charges_enabled', true)
+      .from("business_stripe_accounts")
+      .select("*")
+      .eq("account_owner_id", accountOwnerId)
+      .eq("environment", environment)
+      .eq("platform_account_id", platformAccountId)
+      .eq("charges_enabled", true)
       .single();
 
     if (!stripeAccount) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          code: 'NO_ACCOUNT',
-          error: 'No active Stripe account found. Please complete Stripe onboarding first.' 
+        JSON.stringify({
+          success: false,
+          code: "NO_ACCOUNT",
+          error:
+            "No active Stripe account found. Please complete Stripe onboarding first.",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
 
-    logStep('Found Stripe account', { accountId: stripeAccount.stripe_account_id });
+    logStep("Found Stripe account", {
+      accountId: stripeAccount.stripe_account_id,
+    });
 
     // Detect business country if not specified
     const businessCountry = country || detectBusinessCountry(stripeAccount);
-    logStep('Business country determined', { country: businessCountry });
+    logStep("Business country determined", { country: businessCountry });
 
     // Handle different actions
     switch (action) {
-      case 'list':
+      case "list":
         try {
           const registrations = await stripe.tax.registrations.list({
-            stripeAccount: stripeAccount.stripe_account_id
+            stripeAccount: stripeAccount.stripe_account_id,
           });
 
           // Enhance registrations with country info
-          const enhancedRegistrations = registrations.data.map(reg => ({
+          const enhancedRegistrations = registrations.data.map((
+            reg: Stripe.Tax.Registration,
+          ) => ({
             id: reg.id,
             country: reg.country,
             status: reg.status,
@@ -203,8 +268,8 @@ serve(async (req) => {
             livemode: reg.livemode,
             type: reg.type,
             country_options: reg.country_options,
-            is_supported: SUPPORTED_COUNTRIES.includes(reg.country),
-            business_country: businessCountry
+            is_supported: SUPPORTED_COUNTRY_SET.has(reg.country),
+            business_country: businessCountry,
           }));
 
           return new Response(
@@ -213,12 +278,17 @@ serve(async (req) => {
               registrations: enhancedRegistrations,
               businessCountry,
               supportedCountries: SUPPORTED_COUNTRIES,
-              lastUpdated: new Date().toISOString()
+              lastUpdated: new Date().toISOString(),
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            },
           );
         } catch (error) {
-          logStep('Tax registrations not available', { error: error.message });
+          logStep("Tax registrations not available", {
+            error: errorMessage(error),
+          });
           return new Response(
             JSON.stringify({
               success: true,
@@ -226,53 +296,65 @@ serve(async (req) => {
               businessCountry,
               supportedCountries: SUPPORTED_COUNTRIES,
               lastUpdated: new Date().toISOString(),
-              note: 'Tax registrations may not be available for Express accounts'
+              note:
+                "Tax registrations may not be available for Express accounts",
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            },
           );
         }
 
-      case 'create':
+      case "create": {
         const targetCountry = country || businessCountry;
 
         if (!targetCountry) {
-          throw new Error('Country is required for creating tax registration');
+          throw new Error("Country is required for creating tax registration");
         }
 
-        if (!(SUPPORTED_COUNTRIES as readonly string[]).includes(targetCountry)) {
-          throw new Error(`Tax registration not yet supported for country: ${targetCountry}`);
+        if (
+          !(SUPPORTED_COUNTRIES as readonly string[]).includes(targetCountry)
+        ) {
+          throw new Error(
+            `Tax registration not yet supported for country: ${targetCountry}`,
+          );
         }
 
         try {
           // Build a Tax-API-valid payload: standard scheme + place_of_supply for EU,
           // active immediately. (The old { type: 'vat' } shape was rejected by Stripe.)
-          const registrationData: any = {
+          const registrationData: Stripe.Tax.RegistrationCreateParams = {
             country: targetCountry,
             country_options: buildCountryOptions(targetCountry),
-            active_from: 'now',
+            active_from: "now",
           };
 
-          const registration = await stripe.tax.registrations.create(registrationData, {
-            stripeAccount: stripeAccount.stripe_account_id
-          });
+          const registration = await stripe.tax.registrations.create(
+            registrationData,
+            {
+              stripeAccount: stripeAccount.stripe_account_id,
+            },
+          );
 
-          logStep('Created international tax registration', { 
-            country: targetCountry, 
+          logStep("Created international tax registration", {
+            country: targetCountry,
             registrationId: registration.id,
-            businessCountry 
+            businessCountry,
           });
 
           // Update business stripe account with new tax collection country
           // (de-duplicated: re-creating a registration for the same country must not
           // append a duplicate entry to the array).
-          const existingCountries: string[] = stripeAccount.tax_collection_countries || [];
+          const existingCountries: string[] =
+            stripeAccount.tax_collection_countries || [];
           const nextCountries = existingCountries.includes(targetCountry)
             ? existingCountries
             : [...existingCountries, targetCountry];
           await supabaseClient
-            .from('business_stripe_accounts')
+            .from("business_stripe_accounts")
             .update({ tax_collection_countries: nextCountries })
-            .eq('id', stripeAccount.id);
+            .eq("id", stripeAccount.id);
 
           return new Response(
             JSON.stringify({
@@ -286,65 +368,80 @@ serve(async (req) => {
                 livemode: registration.livemode,
                 type: registration.type,
                 country_options: registration.country_options,
-                business_country: businessCountry
-              }
+                business_country: businessCountry,
+              },
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            },
           );
         } catch (error) {
-          logStep('Failed to create international tax registration', { 
-            error: error.message, 
-            country: targetCountry 
+          const message = errorMessage(error);
+          logStep("Failed to create international tax registration", {
+            error: message,
+            country: targetCountry,
           });
-          throw new Error(`Failed to create tax registration for ${targetCountry}: ${error.message}`);
+          throw new Error(
+            `Failed to create tax registration for ${targetCountry}: ${message}`,
+          );
         }
+      }
 
-      case 'delete':
+      case "delete":
         if (!registration_id) {
-          throw new Error('Registration ID is required for deleting tax registration');
+          throw new Error(
+            "Registration ID is required for deleting tax registration",
+          );
         }
 
         try {
           await stripe.tax.registrations.update(registration_id, {
-            expires_at: Math.floor(Date.now() / 1000) // Set to expire immediately
+            expires_at: Math.floor(Date.now() / 1000), // Set to expire immediately
           }, {
-            stripeAccount: stripeAccount.stripe_account_id
+            stripeAccount: stripeAccount.stripe_account_id,
           });
 
-          logStep('Deleted international tax registration', { 
+          logStep("Deleted international tax registration", {
             registrationId: registration_id,
-            businessCountry 
+            businessCountry,
           });
 
           return new Response(
             JSON.stringify({
               success: true,
-              message: 'Tax registration deleted successfully',
-              businessCountry
+              message: "Tax registration deleted successfully",
+              businessCountry,
             }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 200,
+            },
           );
         } catch (error) {
-          logStep('Failed to delete tax registration', { error: error.message });
-          throw new Error(`Failed to delete tax registration: ${error.message}`);
+          const message = errorMessage(error);
+          logStep("Failed to delete tax registration", { error: message });
+          throw new Error(`Failed to delete tax registration: ${message}`);
         }
 
       default:
-        throw new Error('Invalid action. Supported actions: list, create, delete');
+        throw new Error(
+          "Invalid action. Supported actions: list, create, delete",
+        );
     }
-
   } catch (error) {
-    logStep('ERROR', { message: error.message });
+    const message = errorMessage(error);
+    logStep("ERROR", { message });
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        code: 'SERVER_ERROR',
-        error: error.message 
+      JSON.stringify({
+        success: false,
+        code: "SERVER_ERROR",
+        error: message,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   }
 });

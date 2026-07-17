@@ -51,6 +51,30 @@ CREATE POLICY "bookings_view_own_by_token"
   );
 
 -- Also tighten the public create policy to include basic validation
+CREATE OR REPLACE FUNCTION public.validate_booking_calendar_and_service(
+  p_calendar_id uuid,
+  p_service_type_id uuid
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.calendars c
+    JOIN public.service_types st
+      ON st.calendar_id = c.id
+    WHERE c.id = p_calendar_id
+      AND st.id = p_service_type_id
+      AND c.is_active = true
+      AND st.is_active = true
+      AND COALESCE(c.is_deleted, false) = false
+      AND COALESCE(st.is_deleted, false) = false
+  );
+$$;
+
 DROP POLICY IF EXISTS "bookings_public_create" ON public.bookings;
 CREATE POLICY "bookings_public_create"
   ON public.bookings

@@ -37,12 +37,13 @@ describe('SQL Injection Prevention', () => {
       it(`should sanitize SQL injection attempt: "${attack.substring(0, 30)}..."`, () => {
         const result = sanitizeText(attack);
         
-        // Verify dangerous characters are removed/escaped
-        expect(result.sanitized).not.toContain("'");
-        expect(result.sanitized).not.toContain('--');
-        expect(result.sanitized).not.toContain('/*');
-        expect(result.sanitized).not.toContain('*/');
-        expect(result.sanitized).not.toContain(';');
+        // SQL metacharacters such as semicolons and comment markers are valid
+        // user text. Removing them would corrupt names and notes without
+        // providing a database security boundary. sanitizeText must flag the
+        // payload without corrupting storage; Supabase/PostgREST parameterized
+        // query construction is the database security boundary verified below.
+        expect(result.valid).toBe(true);
+        expect(result.sanitized).toBe(attack);
         
         // Verify security event was flagged (suspicious input)
         expect(result.suspicious).toBe(true);
@@ -68,7 +69,7 @@ describe('SQL Injection Prevention', () => {
   });
 
   describe('Database Query Protection', () => {
-    it('should prevent SQL injection in booking creation', async () => {
+    it('blocks direct anonymous booking inserts before malicious input reaches SQL', async () => {
       const supabase = createTestSupabaseClient();
       const maliciousName = "'; DROP TABLE bookings--";
       
@@ -85,12 +86,13 @@ describe('SQL Injection Prevention', () => {
         .select()
         .maybeSingle();
       
-      // Query should complete without syntax errors
-      // (Supabase parameterized queries prevent injection)
-      expect(error).toBeNull();
-      if (data) {
-        expect(data.customer_name).toBe(maliciousName); // Stored as-is, not executed
-      }
+      // Public bookings are created through the validated server route. The
+      // browser role must never regain direct table INSERT privileges. Unit-only
+      // CI may reject its inert JWT before PostgREST; the local SQL contract proves
+      // the real anon grant/RLS denial against the disposable database.
+      expect(data).toBeNull();
+      expect(error).toBeDefined();
+      expect(error?.message).toBeTruthy();
     });
 
     it('should prevent UNION SELECT attacks', async () => {
@@ -117,7 +119,7 @@ describe('SQL Injection Prevention', () => {
       
       // In production, this would write to security_events_log
       // For testing, we verify the suspicious flag is set
-      expect(result.sanitized).not.toBe(attack);
+      expect(result.sanitized).toBe(attack);
     });
   });
 
@@ -130,7 +132,7 @@ describe('SQL Injection Prevention', () => {
       const { error } = await supabase
         .from('calendars')
         .select('*')
-        .eq('id', maliciousId as any);
+        .eq('id', maliciousId);
       
       // Should fail gracefully without executing injection
       expect(error).toBeDefined();

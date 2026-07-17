@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -6,61 +6,63 @@ export interface AccountRole {
   isAccountOwner: boolean;
   accountOwnerId: string | null;
   loading: boolean;
+  error: Error | null;
+  retry: () => void;
 }
 
-export const useAccountRole = () => {
+interface AccountRoleData {
+  isAccountOwner: boolean;
+  accountOwnerId: string;
+}
+
+export const useAccountRole = (): AccountRole => {
   const { user } = useAuth();
-  const [accountRole, setAccountRole] = useState<AccountRole>({
-    isAccountOwner: false,
-    accountOwnerId: null,
-    loading: true,
+  const query = useQuery<AccountRoleData, Error>({
+    queryKey: ['account-role', user?.id],
+    enabled: Boolean(user),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      if (!user) {
+        throw new Error('An authenticated user is required to resolve the account role.');
+      }
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('account_owner_id')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        throw new Error(error.message || 'Could not resolve the account role.');
+      }
+
+      const isAccountOwner = data.account_owner_id === null;
+      return {
+        isAccountOwner,
+        accountOwnerId: data.account_owner_id || user.id,
+      };
+    },
   });
 
-  useEffect(() => {
-    if (!user) {
-      setAccountRole({
-        isAccountOwner: false,
-        accountOwnerId: null,
-        loading: false,
-      });
-      return;
-    }
-
-    const fetchAccountRole = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('account_owner_id')
-          .eq('id', user.id)
-          .single();
-
-        if (error) {
-          console.error('Error fetching account role:', error);
-          return;
-        }
-
-        const isAccountOwner = data.account_owner_id === null;
-        const accountOwnerId = data.account_owner_id || user.id;
-
-        console.log('[ACCOUNT ROLE] Setting account role:', {
-          isAccountOwner,
-          accountOwnerId,
-          userId: user.id
-        });
-
-        setAccountRole({
-          isAccountOwner,
-          accountOwnerId,
-          loading: false,
-        });
-      } catch (error) {
-        console.error('Error fetching account role:', error);
-        setAccountRole(prev => ({ ...prev, loading: false }));
-      }
+  if (!user) {
+    return {
+      isAccountOwner: false,
+      accountOwnerId: null,
+      loading: false,
+      error: null,
+      retry: () => undefined,
     };
+  }
 
-    fetchAccountRole();
-  }, [user]);
-
-  return accountRole;
+  return {
+    isAccountOwner: query.data?.isAccountOwner ?? false,
+    accountOwnerId: query.data?.accountOwnerId ?? null,
+    loading: query.isPending || (query.isFetching && !query.data),
+    error: query.error ?? null,
+    retry: () => {
+      void query.refetch();
+    },
+  };
 };

@@ -1,6 +1,6 @@
 -- Update subscription tiers to remove tax compliance from starter
 UPDATE public.subscription_tiers
-SET features = features - '"Automated tax compliance & administration"'::jsonb
+SET features = features - 'Automated tax compliance & administration'
 WHERE tier_name = 'starter';
 
 -- Ensure Professional tier has tax compliance (add if not present)

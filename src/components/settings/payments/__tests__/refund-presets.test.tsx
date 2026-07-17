@@ -29,6 +29,7 @@ const baseProps = {
   installmentsEnabled: false,
   onToggleInstallments: vi.fn(),
   canUseInstallments: true,
+  installmentsReady: true,
   installmentConfigOpen: false,
   onToggleInstallmentConfig: vi.fn(),
   installmentSlot: <div />,
@@ -55,6 +56,18 @@ beforeEach(async () => {
 afterEach(cleanup);
 
 describe('AS-3 refund-policy presets', () => {
+  it('states the real public-booking and WhatsApp payment behavior', () => {
+    renderSection({ installmentsEnabled: true, installmentConfigOpen: true });
+
+    expect(screen.getByText(
+      'On: the public booking page confirms without taking an online payment; WhatsApp can use the enabled options below. Off: full online payment is required before confirmation.',
+    )).toBeTruthy();
+    expect(screen.getByText(
+      'WhatsApp payment behavior when full upfront payment is optional:',
+    )).toBeTruthy();
+    expect(screen.getByText('WhatsApp deposit plan')).toBeTruthy();
+  });
+
   it('renders the three presets + custom as a radiogroup', () => {
     renderSection({});
     const group = screen.getByRole('radiogroup', { name: 'Refund policy' });

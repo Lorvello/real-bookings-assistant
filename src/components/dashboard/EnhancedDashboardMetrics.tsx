@@ -9,17 +9,58 @@ import {
   TrendingUp, 
   Users, 
   MessageSquare, 
-  Phone,
-  CheckCircle,
   Activity
 } from 'lucide-react';
-import { DashboardMetrics } from '@/hooks/useDashboardAnalytics';
+import type { DashboardMetrics } from '@/hooks/useDashboardAnalytics';
 
 interface EnhancedDashboardMetricsProps {
   analytics: DashboardMetrics;
 }
 
+const formatRetainedRevenue = (analytics: DashboardMetrics) => {
+  if (analytics.total_revenue_status === 'mixed_currencies') {
+    return 'Mixed currencies';
+  }
+  if (analytics.total_revenue_status === 'no_retained_revenue') {
+    return 'No revenue';
+  }
+  if (
+    analytics.total_revenue_status !== 'single_currency' ||
+    analytics.total_revenue === null ||
+    analytics.total_revenue_currency === null
+  ) {
+    return 'Unavailable';
+  }
+
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: analytics.total_revenue_currency.toUpperCase(),
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(analytics.total_revenue);
+  } catch {
+    return `${analytics.total_revenue_currency.toUpperCase()} ${analytics.total_revenue.toFixed(2)}`;
+  }
+};
+
+const revenueSubtitle = (analytics: DashboardMetrics) => {
+  switch (analytics.total_revenue_status) {
+    case 'single_currency':
+      return `${analytics.total_revenue_currency?.toUpperCase()} retained after refunds · appointments this month`;
+    case 'mixed_currencies':
+      return 'Cannot total multiple currencies';
+    case 'no_retained_revenue':
+      return 'No retained revenue for this month’s appointments';
+    default:
+      return 'Revenue metadata unavailable';
+  }
+};
+
 export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetricsProps) {
+  const hasResponseSamples = analytics.avg_response_time_sample_count > 0 &&
+    analytics.avg_response_time !== null;
+
   const metricCards = [
     {
       title: 'Today',
@@ -28,7 +69,9 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
       color: 'text-blue-400',
       bgColor: 'bg-blue-900/20',
       suffix: analytics.today_bookings === 1 ? ' appointment' : ' appointments',
-      subtitle: analytics.pending_bookings > 0 ? `${analytics.pending_bookings} pending` : 'All confirmed'
+      subtitle: analytics.pending_bookings > 0
+        ? `${analytics.pending_bookings} pending today`
+        : 'No pending appointments today'
     },
     {
       title: 'This Week',
@@ -37,16 +80,16 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
       color: 'text-green-400',
       bgColor: 'bg-green-900/20',
       suffix: analytics.week_bookings === 1 ? ' appointment' : ' appointments',
-      subtitle: 'Confirmed'
+      subtitle: 'Confirmed appointments only'
     },
     {
-      title: 'Month Revenue',
-      value: `€${analytics.total_revenue.toFixed(2)}`,
+      title: 'Retained Revenue',
+      value: formatRetainedRevenue(analytics),
       icon: Euro,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-900/20',
       suffix: '',
-      subtitle: `${analytics.month_bookings} appointments`
+      subtitle: revenueSubtitle(analytics)
     },
     {
       title: 'WhatsApp Conversations',
@@ -58,34 +101,36 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
       subtitle: `${analytics.whatsapp_messages_today} messages today`
     },
     {
-      title: 'WhatsApp Conversion',
-      value: `${analytics.conversion_rate}%`,
+      title: 'Contacts Later Booked',
+      value: analytics.contacts_later_booked,
       icon: TrendingUp,
       color: 'text-indigo-400',
       bgColor: 'bg-indigo-900/20',
       suffix: '',
-      subtitle: 'Chat to booking'
+      subtitle: `${analytics.contacts_later_booked_sample_count} recent contacts · phone/email match`
     },
     {
       title: 'Response Time',
-      value: analytics.avg_response_time > 0 ? `${analytics.avg_response_time.toFixed(1)}min` : 'Real-time',
+      value: hasResponseSamples
+        ? `${analytics.avg_response_time!.toFixed(1)}min`
+        : 'No data',
       icon: Clock,
       color: 'text-cyan-400',
       bgColor: 'bg-cyan-900/20',
       suffix: '',
-      subtitle: analytics.avg_response_time > 0 ? 'Average' : 'AI Bot active'
+      subtitle: hasResponseSamples ? 'Average' : 'No delivered replies yet'
     }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Real-time indicator */}
+      {/* Refresh timestamp; realtime subscriptions cover only selected sources. */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <span>Live data - including WhatsApp statistics</span>
+        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+        <span>Current calendar metrics</span>
         {analytics.last_updated && (
           <span className="ml-2">
-            (last updated: {new Date(analytics.last_updated).toLocaleTimeString('en-US')})
+            (refreshed: {new Date(analytics.last_updated).toLocaleTimeString('en-US')})
           </span>
         )}
       </div>
@@ -121,11 +166,11 @@ export function EnhancedDashboardMetrics({ analytics }: EnhancedDashboardMetrics
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-green-600 text-green-400">
             <MessageSquare className="h-3 w-3 mr-1" />
-            WhatsApp Bot Actief
+            WhatsApp activity present
           </Badge>
           <Badge variant="outline" className="border-blue-600 text-blue-400">
             <Activity className="h-3 w-3 mr-1" />
-            {analytics.whatsapp_conversations} Active Chats
+            {analytics.whatsapp_conversations} active conversations
           </Badge>
         </div>
       )}

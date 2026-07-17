@@ -119,49 +119,18 @@ BEGIN
 END;
 $function$;
 
--- Secure the views that exist with proper RLS
-ALTER TABLE public.daily_booking_stats ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "daily_booking_stats_owner_only" ON public.daily_booking_stats;
-CREATE POLICY "daily_booking_stats_owner_only" ON public.daily_booking_stats
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = daily_booking_stats.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
+-- Views cannot have RLS policies. Run them with the caller's permissions so
+-- the policies on their underlying tables are enforced.
+ALTER VIEW public.daily_booking_stats SET (security_invoker = on);
+ALTER VIEW public.service_popularity_stats SET (security_invoker = on);
+ALTER VIEW public.user_status_overview SET (security_invoker = on);
+ALTER VIEW public.available_slots_view SET (security_invoker = on);
 
-ALTER TABLE public.service_popularity_stats ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "service_popularity_stats_owner_only" ON public.service_popularity_stats;
-CREATE POLICY "service_popularity_stats_owner_only" ON public.service_popularity_stats
-FOR SELECT USING (
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = service_popularity_stats.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
+REVOKE ALL ON public.daily_booking_stats FROM anon;
+REVOKE ALL ON public.service_popularity_stats FROM anon;
+REVOKE ALL ON public.user_status_overview FROM anon;
 
-ALTER TABLE public.user_status_overview ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "user_status_overview_own_only" ON public.user_status_overview;
-CREATE POLICY "user_status_overview_own_only" ON public.user_status_overview
-FOR SELECT USING (auth.uid() = id);
-
-ALTER TABLE public.available_slots_view ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "available_slots_view_public_or_owner" ON public.available_slots_view;
-CREATE POLICY "available_slots_view_public_or_owner" ON public.available_slots_view
-FOR SELECT USING (
-  -- Public can view for active calendars
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.slug = available_slots_view.calendar_slug 
-    AND calendars.is_active = true
-  )
-  OR
-  -- Owners can always view their calendar slots
-  EXISTS (
-    SELECT 1 FROM public.calendars 
-    WHERE calendars.id = available_slots_view.calendar_id 
-    AND calendars.user_id = auth.uid()
-  )
-);
+GRANT SELECT ON public.daily_booking_stats TO authenticated;
+GRANT SELECT ON public.service_popularity_stats TO authenticated;
+GRANT SELECT ON public.user_status_overview TO authenticated;
+GRANT SELECT ON public.available_slots_view TO anon, authenticated;

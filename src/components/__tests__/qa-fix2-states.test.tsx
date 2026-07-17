@@ -29,10 +29,11 @@ function makeBuilder(table: string) {
   // thenable so any call order resolves to `result` when awaited. Backed by a real Promise so
   // await semantics (microtask, catch) behave exactly like the supabase client.
   const p = Promise.resolve(result);
-  const builder: any = new Proxy(p, {
+  const builder = new Proxy(p, {
     get(target, prop) {
       if (prop === 'then' || prop === 'catch' || prop === 'finally') {
-        return (target as any)[prop].bind(target);
+        const promiseMethod = Reflect.get(target, prop);
+        return typeof promiseMethod === 'function' ? promiseMethod.bind(target) : promiseMethod;
       }
       // select/in/eq/gte/order/limit -> return the same builder for further chaining
       return () => builder;
@@ -96,7 +97,10 @@ describe('FQ-STATE-LIVEOPS: failed conversations fetch surfaces error, not a fal
 
 describe('FQ-STATE-WAUNIFIED: failed contact overview renders error card, not empty list', () => {
   it('shows the error alert + Retry when the overview fetch fails', async () => {
-    failTables = new Set(['whatsapp_contact_overview']);
+    // The tenant-safe overview hook no longer reads the old global
+    // whatsapp_contact_overview materialization. Force its first scoped source
+    // to fail so this test continues to exercise the real error branch.
+    failTables = new Set(['whatsapp_conversations']);
     render(<WhatsAppUnifiedView calendarId="cal-1" />, { wrapper: wrapper() });
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument();

@@ -1,12 +1,33 @@
-import React from 'react';
-import { format } from 'date-fns';
-import { nl, enUS } from 'date-fns/locale';
-import { useTranslation } from 'react-i18next';
-import { BellRing, Mail, MessageCircle, CheckCircle2, Clock3, AlertTriangle, XCircle, Info } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
-import { useReminderActivity, REMINDER_MAX_ATTEMPTS } from '@/hooks/dashboard/useReminderActivity';
-import type { ReminderActivityItem, ReminderStatus } from '@/hooks/dashboard/useReminderActivity';
+import React from "react";
+import { format } from "date-fns";
+import { nl, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import {
+  BellRing,
+  Mail,
+  MessageCircle,
+  CheckCircle2,
+  Clock3,
+  AlertTriangle,
+  XCircle,
+  Info,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import {
+  useReminderActivity,
+  REMINDER_MAX_ATTEMPTS,
+} from "@/hooks/dashboard/useReminderActivity";
+import type {
+  ReminderActivityItem,
+  ReminderPostAcceptanceState,
+  ReminderStatus,
+} from "@/hooks/dashboard/useReminderActivity";
 
 interface ReminderActivityCardProps {
   calendarIds: string[];
@@ -15,106 +36,234 @@ interface ReminderActivityCardProps {
 // SEQP1R6 (P1-7): the first real owner-facing surface for reminder status. Prior to this,
 // `RemindersCard.tsx` (src/components/features/) was a static marketing mockup on the public
 // `/features/reminders` page, zero real dashboard visibility existed anywhere. This card shows
-// real sent/pending/stuck counts for the last REMINDER_ACTIVITY_WINDOW_DAYS (7) days, per-item
+// real accepted/pending/stuck counts for the last REMINDER_ACTIVITY_WINDOW_DAYS (7) days, per-item
 // detail (which booking, which channel, when), and a genuine empty state. RLS on
 // booking_reminders_sent (SEQP1R6 migration) scopes every row to the caller's own tenant;
 // this component adds no client-side tenant filtering of its own (none needed, none should
 // exist: filtering "for the UI" instead of trusting RLS is exactly the kind of belt shown to
 // have failed elsewhere in this project's history when the belt was trusted over the buckle).
-export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps) {
-  const { t, i18n } = useTranslation('dashboard');
-  const dateLocale = i18n.language === 'nl' ? nl : enUS;
-  const { data, isLoading, isError, refetch } = useReminderActivity(calendarIds);
+export function ReminderActivityCard({
+  calendarIds,
+}: ReminderActivityCardProps) {
+  const { t, i18n } = useTranslation("dashboard");
+  const dateLocale = i18n.language === "nl" ? nl : enUS;
+  const { data, isLoading, isError, refetch } =
+    useReminderActivity(calendarIds);
 
   const statusMeta = (status: ReminderStatus) => {
     switch (status) {
-      case 'sent':
+      case "provider_accepted":
         return {
-          label: t('dashboard.reminders.status.sent', 'Sent'),
+          label: t(
+            "dashboard.reminders.status.providerAccepted",
+            "Provider accepted",
+          ),
           icon: CheckCircle2,
-          badgeClass: 'border-white/[0.12] text-accent-foreground bg-success/10',
+          badgeClass:
+            "border-white/[0.12] text-accent-foreground bg-success/10",
         };
-      case 'pending':
+      case "delivered":
         return {
-          label: t('dashboard.reminders.status.pending', 'Pending'),
-          icon: Clock3,
-          badgeClass: 'border-warning/30 text-warning-foreground bg-warning/10',
+          label: t("dashboard.reminders.status.delivered", "Delivered"),
+          icon: CheckCircle2,
+          badgeClass:
+            "border-white/[0.12] text-accent-foreground bg-success/10",
         };
-      case 'pending_template_approval':
+      case "legacy_unverified":
         return {
-          label: t('dashboard.reminders.status.stuck', 'Awaiting WhatsApp approval'),
+          label: t(
+            "dashboard.reminders.status.legacyUnverified",
+            "Legacy result unverified",
+          ),
           icon: AlertTriangle,
-          badgeClass: 'border-warning/30 text-warning-foreground bg-warning/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
+        };
+      case "pending":
+        return {
+          label: t("dashboard.reminders.status.pending", "Pending"),
+          icon: Clock3,
+          badgeClass: "border-warning/30 text-warning-foreground bg-warning/10",
+        };
+      case "pending_template_approval":
+        return {
+          label: t(
+            "dashboard.reminders.status.stuck",
+            "Awaiting WhatsApp approval",
+          ),
+          icon: AlertTriangle,
+          badgeClass: "border-warning/30 text-warning-foreground bg-warning/10",
         };
       // SEQP1R19 (R18-1): the two terminal FAILURE states. Previously both fell through to the
       // default branch, which rendered the raw DB string (e.g. "invalid_phone_format") with a neutral
       // Info badge, untranslated for a Dutch owner. Now each has an explicit translated label and a
       // destructive style so a permanently-failed reminder is unmistakable, not a low-key grey note.
-      case 'invalid_phone_format':
+      case "invalid_phone_format":
         return {
-          label: t('dashboard.reminders.status.invalidPhone', 'Invalid phone number'),
+          label: t(
+            "dashboard.reminders.status.invalidPhone",
+            "Invalid phone number",
+          ),
           icon: XCircle,
-          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
         };
-      case 'booking_cancelled':
+      case "booking_cancelled":
         return {
-          label: t('dashboard.reminders.status.bookingCancelled', 'Booking cancelled'),
+          label: t(
+            "dashboard.reminders.status.bookingCancelled",
+            "Booking cancelled",
+          ),
           icon: XCircle,
-          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
         };
       // SEQP1R31 (finding R30-1): a Stripe refund (full or partial) stopped this reminder.
       // Distinct from bookingCancelled (the appointment itself is untouched, only the
       // payment was refunded) so the owner sees the real reason, not a generic label.
-      case 'payment_refunded':
+      case "payment_refunded":
         return {
-          label: t('dashboard.reminders.status.paymentRefunded', 'Payment refunded'),
+          label: t(
+            "dashboard.reminders.status.paymentRefunded",
+            "Payment refunded",
+          ),
           icon: XCircle,
-          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
         };
       // SEQP1R38 (finding R37-1): the live send-time Stripe refund check itself failed
       // repeatedly (network/timeout, not a confirmed refund) and hit the retry cap.
       // Deliberately distinct from pending_template_approval: that label specifically means
       // "waiting on WhatsApp template approval", which would be misleading here (this can
       // happen on the email channel too and has nothing to do with Meta).
-      case 'stripe_check_failed':
+      case "stripe_check_failed":
         return {
-          label: t('dashboard.reminders.status.stripeCheckFailed', 'Payment check failed'),
+          label: t(
+            "dashboard.reminders.status.stripeCheckFailed",
+            "Payment check failed",
+          ),
           icon: XCircle,
-          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
         };
       // SEQP1R45 (finding R44-1): an email-channel send exception (network error, Resend
       // rejection, timeout, quota exhaustion) that has hit the retry cap. Distinct from
       // stripeCheckFailed/stuck for the same reason those are distinct from each other: a
       // Dutch owner should never have to guess what actually went wrong from a generic label.
-      case 'email_send_failed':
+      case "email_send_failed":
         return {
-          label: t('dashboard.reminders.status.emailSendFailed', 'Email delivery failed'),
+          label: t(
+            "dashboard.reminders.status.emailSendFailed",
+            "Email delivery failed",
+          ),
           icon: XCircle,
-          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
+        };
+      case "whatsapp_send_failed":
+        return {
+          label: t(
+            "dashboard.reminders.status.whatsappSendFailed",
+            "WhatsApp delivery failed",
+          ),
+          icon: XCircle,
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
+        };
+      case "whatsapp_configuration_missing":
+        return {
+          label: t(
+            "dashboard.reminders.status.whatsappConfigMissing",
+            "WhatsApp configuration missing",
+          ),
+          icon: XCircle,
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
+        };
+      case "delivery_unknown":
+        return {
+          label: t(
+            "dashboard.reminders.status.deliveryUnknown",
+            "Delivery outcome unknown",
+          ),
+          icon: AlertTriangle,
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
         };
       // SEQP1R51 (finding R50-1): both customer_email and customer_phone were cleared on the
       // booking (an owner edit or a GDPR-style redaction) while this reminder was mid-retry,
       // so there is no channel left to deliver to. Distinct from every other failure label for
       // the same reason those are distinct from each other: the owner should see the real
       // reason (missing contact info), not a generic or misleading label.
-      case 'no_contact_info':
+      case "no_contact_info":
         return {
-          label: t('dashboard.reminders.status.noContactInfo', 'No contact info'),
+          label: t(
+            "dashboard.reminders.status.noContactInfo",
+            "No contact info",
+          ),
           icon: XCircle,
-          badgeClass: 'border-destructive/30 text-destructive-foreground bg-destructive/10',
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
+        };
+      case "superseded":
+        return {
+          label: t(
+            "dashboard.reminders.status.superseded",
+            "Replaced by newer schedule",
+          ),
+          icon: Info,
+          badgeClass: "border-white/[0.12] text-muted-foreground bg-muted/40",
         };
       default:
         return {
-          label: t('dashboard.reminders.status.unknown', 'Unknown'),
+          label: t("dashboard.reminders.status.unknown", "Unknown"),
           icon: Info,
-          badgeClass: 'border-white/[0.12] text-muted-foreground bg-muted/40',
+          badgeClass: "border-white/[0.12] text-muted-foreground bg-muted/40",
+        };
+    }
+  };
+
+  const postAcceptanceMeta = (state: ReminderPostAcceptanceState) => {
+    switch (state) {
+      case "schedule_superseded":
+        return {
+          label: t(
+            "dashboard.reminders.afterAcceptance.rescheduled",
+            "Rescheduled after acceptance",
+          ),
+          badgeClass: "border-white/[0.12] text-muted-foreground bg-muted/40",
+        };
+      case "payment_refunded":
+        return {
+          label: t(
+            "dashboard.reminders.afterAcceptance.refunded",
+            "Refunded after acceptance",
+          ),
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
+        };
+      case "booking_cancelled":
+        return {
+          label: t(
+            "dashboard.reminders.afterAcceptance.cancelled",
+            "Cancelled after acceptance",
+          ),
+          badgeClass:
+            "border-destructive/30 text-destructive-foreground bg-destructive/10",
         };
     }
   };
 
   if (isLoading) {
     return (
-      <div className="surface-raised shimmer rounded-2xl h-64" role="status" aria-label={t('dashboard.reminders.loading', 'Loading reminder activity')} />
+      <div
+        className="surface-raised shimmer rounded-2xl h-64"
+        role="status"
+        aria-label={t(
+          "dashboard.reminders.loading",
+          "Loading reminder activity",
+        )}
+      />
     );
   }
 
@@ -122,16 +271,26 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
     return (
       <div className="surface-raised rounded-2xl border border-white/[0.08] p-8 text-center">
         <div className="w-11 h-11 mx-auto mb-3 bg-destructive/10 rounded-full flex items-center justify-center">
-          <AlertTriangle className="h-5 w-5 text-destructive-foreground" aria-hidden="true" />
+          <AlertTriangle
+            className="h-5 w-5 text-destructive-foreground"
+            aria-hidden="true"
+          />
         </div>
-        <p className="text-sm font-medium text-foreground">{t('dashboard.reminders.errTitle', "Couldn't load reminder activity")}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{t('dashboard.reminders.errDesc', 'Check your connection and try again.')}</p>
+        <p className="text-sm font-medium text-foreground">
+          {t("dashboard.reminders.errTitle", "Couldn't load reminder activity")}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t(
+            "dashboard.reminders.errDesc",
+            "Check your connection and try again.",
+          )}
+        </p>
         <button
           type="button"
           onClick={() => refetch()}
           className="mt-3 rounded-md px-3 py-1.5 text-xs font-medium text-accent-foreground bg-primary/10 ring-1 ring-primary/20 hover:bg-primary/15 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
-          {t('dashboard.reminders.retry', 'Retry')}
+          {t("dashboard.reminders.retry", "Retry")}
         </button>
       </div>
     );
@@ -147,36 +306,60 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
           <div className="p-6 md:p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-muted/40 rounded-xl">
-                <BellRing className="h-5 w-5 text-accent-foreground" aria-hidden="true" />
+                <BellRing
+                  className="h-5 w-5 text-accent-foreground"
+                  aria-hidden="true"
+                />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">{t('dashboard.reminders.heading', 'Reminder activity')}</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {t("dashboard.reminders.heading", "Reminder activity")}
+                </h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.reminders.subtitle', 'Last {{days}} days', { days: summary?.window_days ?? 7 })}
+                  {t("dashboard.reminders.subtitle", "Last {{days}} days", {
+                    days: summary?.window_days ?? 7,
+                  })}
                 </p>
               </div>
             </div>
 
-            {/* Counts row: 2x2 on mobile, 4-across from sm up (R18-1 added the Failed tile). */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            {/* Provider acceptance is shown separately from delivery truth. Superseded
+                schedules are routine suppression, not failures. */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     type="button"
                     className="relative w-full text-left rounded-xl border border-white/[0.08] bg-card/50 p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <p className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
-                      (summary?.sent ?? 0) > 0 ? 'text-success-foreground' : 'text-foreground'
-                    }`}>{summary?.sent ?? 0}</p>
-                    <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
-                      {t('dashboard.reminders.count.sent', 'Sent')}
+                    <p
+                      className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
+                        (summary?.accepted ?? 0) > 0
+                          ? "text-success-foreground"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {summary?.accepted ?? 0}
                     </p>
-                    <Info className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80" aria-hidden="true" />
+                    <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
+                      {t("dashboard.reminders.count.accepted", "Accepted")}
+                    </p>
+                    <Info
+                      className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80"
+                      aria-hidden="true"
+                    />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
+                <TooltipContent
+                  className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
+                  side="top"
+                  align="center"
+                >
                   <p className="text-sm">
-                    {t('dashboard.reminders.sentTip', 'Reminders that were actually delivered to the customer by email or WhatsApp.')}
+                    {t(
+                      "dashboard.reminders.acceptedTip",
+                      "Accepted by the email or WhatsApp provider. This is not a delivery receipt; “Delivered” appears only after provider confirmation.",
+                    )}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -186,19 +369,28 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                     type="button"
                     className="relative w-full text-left rounded-xl border border-white/[0.08] bg-card/50 p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <p className="text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">{summary?.pending ?? 0}</p>
-                    <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
-                      {t('dashboard.reminders.count.pending', 'Pending')}
+                    <p className="text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">
+                      {summary?.pending ?? 0}
                     </p>
-                    <Info className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80" aria-hidden="true" />
+                    <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
+                      {t("dashboard.reminders.count.pending", "Pending")}
+                    </p>
+                    <Info
+                      className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80"
+                      aria-hidden="true"
+                    />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
+                <TooltipContent
+                  className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
+                  side="top"
+                  align="center"
+                >
                   <p className="text-sm">
                     {t(
-                      'dashboard.reminders.pendingTip',
-                      'Claimed and retried automatically, up to {{max}} attempts over about an hour. Most resolve within minutes. Check the attempt count below if one has been retrying for a while.',
-                      { max: REMINDER_MAX_ATTEMPTS }
+                      "dashboard.reminders.pendingTip",
+                      "Claimed and retried automatically, up to {{max}} attempts over about an hour. Most resolve within minutes. Check the attempt count below if one has been retrying for a while.",
+                      { max: REMINDER_MAX_ATTEMPTS },
                     )}
                   </p>
                 </TooltipContent>
@@ -208,23 +400,70 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                   <button
                     type="button"
                     className={`relative w-full text-left rounded-xl border p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                      (summary?.stuck ?? 0) > 0 ? 'border-warning/30 bg-warning/5' : 'border-white/[0.08] bg-card/50'
+                      (summary?.stuck ?? 0) > 0
+                        ? "border-warning/30 bg-warning/5"
+                        : "border-white/[0.08] bg-card/50"
                     }`}
                   >
-                    <p className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
-                      (summary?.stuck ?? 0) > 0 ? 'text-warning-foreground' : 'text-foreground'
-                    }`}>
+                    <p
+                      className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
+                        (summary?.stuck ?? 0) > 0
+                          ? "text-warning-foreground"
+                          : "text-foreground"
+                      }`}
+                    >
                       {summary?.stuck ?? 0}
                     </p>
                     <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
-                      {t('dashboard.reminders.count.stuck', 'Stuck')}
+                      {t("dashboard.reminders.count.stuck", "Stuck")}
                     </p>
-                    <Info className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80" aria-hidden="true" />
+                    <Info
+                      className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80"
+                      aria-hidden="true"
+                    />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
+                <TooltipContent
+                  className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
+                  side="top"
+                  align="center"
+                >
                   <p className="text-sm">
-                    {t('dashboard.reminders.stuckTip', 'Waiting on WhatsApp template approval. These retry automatically for about an hour, then stay here until approved.')}
+                    {t(
+                      "dashboard.reminders.stuckTip",
+                      "Waiting on WhatsApp template approval. These retry automatically for about an hour, then stay here until approved.",
+                    )}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="relative w-full text-left rounded-xl border border-white/[0.08] bg-card/50 p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <p className="text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] text-foreground">
+                      {summary?.suppressed ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
+                      {t("dashboard.reminders.count.suppressed", "Replaced")}
+                    </p>
+                    <Info
+                      className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
+                  side="top"
+                  align="center"
+                >
+                  <p className="text-sm">
+                    {t(
+                      "dashboard.reminders.suppressedTip",
+                      "Older reminder schedules safely replaced by a reschedule or by the nearer reminder window. No provider send was started.",
+                    )}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -237,23 +476,39 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
                   <button
                     type="button"
                     className={`relative w-full text-left rounded-xl border p-3 md:p-4 cursor-help outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                      (summary?.failed ?? 0) > 0 ? 'border-destructive/30 bg-destructive/5' : 'border-white/[0.08] bg-card/50'
+                      (summary?.failed ?? 0) > 0
+                        ? "border-destructive/30 bg-destructive/5"
+                        : "border-white/[0.08] bg-card/50"
                     }`}
                   >
-                    <p className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
-                      (summary?.failed ?? 0) > 0 ? 'text-destructive-foreground' : 'text-foreground'
-                    }`}>
+                    <p
+                      className={`text-2xl md:text-3xl font-semibold tabular-nums tracking-[-0.02em] ${
+                        (summary?.failed ?? 0) > 0
+                          ? "text-destructive-foreground"
+                          : "text-foreground"
+                      }`}
+                    >
                       {summary?.failed ?? 0}
                     </p>
                     <p className="mt-0.5 text-[11px] md:text-xs font-medium text-muted-foreground uppercase tracking-[0.04em]">
-                      {t('dashboard.reminders.count.failed', 'Failed')}
+                      {t("dashboard.reminders.count.failed", "Failed")}
                     </p>
-                    <Info className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80" aria-hidden="true" />
+                    <Info
+                      className="absolute top-2.5 right-2.5 h-3 w-3 text-subtle-foreground/80"
+                      aria-hidden="true"
+                    />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50" side="top" align="center">
+                <TooltipContent
+                  className="max-w-sm bg-background/95 border border-white/[0.12] text-foreground z-50"
+                  side="top"
+                  align="center"
+                >
                   <p className="text-sm">
-                    {t('dashboard.reminders.failedTip', "These reminders could not be delivered and won't retry further: an invalid phone number, a cancelled booking, a refunded payment, a payment check that kept failing, an email that kept failing to send, or a customer's contact info being removed. They need your attention.")}
+                    {t(
+                      "dashboard.reminders.failedTip",
+                      "These reminders need attention: configuration or provider errors, invalid contact data, cancellation/refund stops, an unknown delivery outcome, or legacy rows without trustworthy provider evidence.",
+                    )}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -261,65 +516,119 @@ export function ReminderActivityCard({ calendarIds }: ReminderActivityCardProps)
 
             {/* Per-item list or empty state */}
             {hasActivity ? (
-              <ul className="space-y-2" aria-label={t('dashboard.reminders.listLabel', 'Recent reminders')}>
-                {summary!.items.slice(0, 8).map((item: ReminderActivityItem) => {
-                  const meta = statusMeta(item.status);
-                  const StatusIcon = meta.icon;
-                  const ChannelIcon = item.channel === 'email' ? Mail : MessageCircle;
-                  return (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-card/30 px-3 py-2.5"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <ChannelIcon className="h-4 w-4 shrink-0 text-subtle-foreground" aria-hidden="true" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{item.customer_name || t('dashboard.reminders.unknownCustomer', 'Customer')}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {t('dashboard.reminders.appointmentAt', 'Appointment {{date}}', {
-                              date: format(new Date(item.start_time), 'EEE d MMM, HH:mm', { locale: dateLocale }),
-                            })}
-                          </p>
+              <ul
+                className="space-y-2"
+                aria-label={t(
+                  "dashboard.reminders.listLabel",
+                  "Recent reminders",
+                )}
+              >
+                {summary!.items
+                  .slice(0, 8)
+                  .map((item: ReminderActivityItem) => {
+                    const meta = statusMeta(item.status);
+                    const afterAcceptance = item.post_acceptance_state
+                      ? postAcceptanceMeta(item.post_acceptance_state)
+                      : null;
+                    const StatusIcon = meta.icon;
+                    const ChannelIcon =
+                      item.channel === "email" ? Mail : MessageCircle;
+                    return (
+                      <li
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-card/30 px-3 py-2.5"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <ChannelIcon
+                            className="h-4 w-4 shrink-0 text-subtle-foreground"
+                            aria-hidden="true"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {item.customer_name ||
+                                t(
+                                  "dashboard.reminders.unknownCustomer",
+                                  "Customer",
+                                )}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {t(
+                                "dashboard.reminders.appointmentAt",
+                                "Appointment {{date}}",
+                                {
+                                  date: format(
+                                    new Date(item.start_time),
+                                    "EEE d MMM, HH:mm",
+                                    { locale: dateLocale },
+                                  ),
+                                },
+                              )}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {/* SEQP1R45 (finding R44-1, dashboard-truthfulness half): attempt_count
+                        <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                          {/* SEQP1R45 (finding R44-1, dashboard-truthfulness half): attempt_count
                             was fetched but never rendered anywhere, so a reminder retried 11
                             times looked identical to one claimed seconds ago. Shown only once
                             a real retry has happened (>0) to avoid cluttering the common case
                             (a fresh claim, or a reminder that sent on the first try). */}
-                        {item.attempt_count > 0 && (
-                          <span className="hidden md:inline text-xs text-subtle-foreground tabular-nums">
-                            {t('dashboard.reminders.attemptCount', 'Attempt {{count}} of {{max}}', {
-                              count: item.attempt_count,
-                              max: REMINDER_MAX_ATTEMPTS,
-                            })}
+                          {item.attempt_count > 0 && (
+                            <span className="hidden md:inline text-xs text-subtle-foreground tabular-nums">
+                              {t(
+                                "dashboard.reminders.attemptCount",
+                                "Attempt {{count}} of {{max}}",
+                                {
+                                  count: item.attempt_count,
+                                  max: REMINDER_MAX_ATTEMPTS,
+                                },
+                              )}
+                            </span>
+                          )}
+                          <span className="hidden sm:inline text-xs text-subtle-foreground tabular-nums">
+                            {format(
+                              new Date(item.activity_at),
+                              "d MMM, HH:mm",
+                              { locale: dateLocale },
+                            )}
                           </span>
-                        )}
-                        <span className="hidden sm:inline text-xs text-subtle-foreground tabular-nums">
-                          {format(new Date(item.sent_at), 'd MMM, HH:mm', { locale: dateLocale })}
-                        </span>
-                        <Badge variant="outline" className={`gap-1 ${meta.badgeClass}`}>
-                          <StatusIcon className="h-3 w-3" aria-hidden="true" />
-                          {meta.label}
-                        </Badge>
-                      </div>
-                    </li>
-                  );
-                })}
+                          <Badge
+                            variant="outline"
+                            className={`gap-1 ${meta.badgeClass}`}
+                          >
+                            <StatusIcon
+                              className="h-3 w-3"
+                              aria-hidden="true"
+                            />
+                            {meta.label}
+                          </Badge>
+                          {afterAcceptance && (
+                            <Badge
+                              variant="outline"
+                              className={afterAcceptance.badgeClass}
+                            >
+                              {afterAcceptance.label}
+                            </Badge>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
               </ul>
             ) : (
               <div className="text-center py-10">
                 <div className="w-16 h-16 mx-auto mb-4 bg-muted/40 rounded-2xl flex items-center justify-center border border-white/[0.08]">
-                  <BellRing className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
+                  <BellRing
+                    className="h-7 w-7 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <p className="font-serif italic text-lg text-foreground/90 mb-1">
-                  {t('dashboard.reminders.emptyTitle', 'No reminders sent yet')}
+                  {t("dashboard.reminders.emptyTitle", "No reminders sent yet")}
                 </p>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   {t(
-                    'dashboard.reminders.emptyDesc',
-                    'Once appointment reminders are enabled and a booking comes due, activity will show up here.'
+                    "dashboard.reminders.emptyDesc",
+                    "Once appointment reminders are enabled and a booking comes due, activity will show up here.",
                   )}
                 </p>
               </div>

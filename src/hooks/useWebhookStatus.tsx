@@ -69,8 +69,19 @@ export const useWebhookStatus = (calendarId?: string) => {
 
   const retryFailedWebhooks = async () => {
     try {
-      const { error } = await supabase.rpc('process_webhook_queue');
-      if (error) throw error;
+      if (!calendarId) return;
+
+      const { data, error } = await supabase.functions.invoke('process-webhooks', {
+        body: {
+          source: 'webhook-status-retry',
+          calendar_id: calendarId,
+          retry_failed: true,
+          batch_size: 50,
+        },
+      });
+      if (error || !data?.success || data?.successful < 1 || data?.failed > 0) {
+        throw error ?? new Error('Webhook retry did not complete');
+      }
 
       toast({
         title: t('webhookStatus.retryStartedTitle', "Webhook retry gestart"),

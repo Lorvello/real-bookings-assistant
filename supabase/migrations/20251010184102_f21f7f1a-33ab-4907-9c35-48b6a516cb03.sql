@@ -6,29 +6,41 @@
 -- ============================================
 
 -- 1. FIX n8n_chat_histories (CRITICAL - Multi-tenant data leakage)
--- Remove dangerous policy that allows public access
-DROP POLICY IF EXISTS "System can manage n8n chat histories" ON public.n8n_chat_histories;
-
--- Add service role management policy
-CREATE POLICY "n8n_chat_system_manage" 
-ON public.n8n_chat_histories
-FOR ALL 
-USING (auth.role() = 'service_role')
-WITH CHECK (auth.role() = 'service_role');
-
--- Add user viewing policy with proper calendar isolation
-CREATE POLICY "users_view_own_n8n_chats" 
-ON public.n8n_chat_histories
-FOR SELECT 
-USING (
-  session_id IN (
-    SELECT DISTINCT session_id 
-    FROM public.bookings 
-    WHERE calendar_id IN (
-      SELECT id FROM public.calendars WHERE user_id = auth.uid()
-    )
-  )
-);
+-- This table is managed outside the canonical product migrations in some
+-- environments. Harden it when present without preventing a clean product
+-- database from being created when the legacy n8n table is absent.
+DO $$
+BEGIN
+  IF to_regclass('public.n8n_chat_histories') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS "System can manage n8n chat histories" ON public.n8n_chat_histories';
+    EXECUTE '
+      CREATE POLICY "n8n_chat_system_manage"
+      ON public.n8n_chat_histories
+      FOR ALL
+      USING (auth.role() = ''service_role'')
+      WITH CHECK (auth.role() = ''service_role'')
+    ';
+    EXECUTE '
+      CREATE POLICY "users_view_own_n8n_chats"
+      ON public.n8n_chat_histories
+      FOR SELECT
+      USING (
+        session_id IN (
+          SELECT DISTINCT session_id
+          FROM public.bookings
+          WHERE calendar_id IN (
+            SELECT id FROM public.calendars WHERE user_id = auth.uid()
+          )
+        )
+      )
+    ';
+    EXECUTE '
+      CREATE INDEX IF NOT EXISTS idx_n8n_chat_session
+      ON public.n8n_chat_histories(session_id)
+    ';
+  END IF;
+END
+$$;
 
 -- 2. ENHANCE security_events_log (HIGH PRIORITY - User visibility)
 -- Allow users to view security logs for their own calendars
@@ -43,7 +55,6 @@ USING (
 );
 
 -- 3. ADD performance indexes for RLS filtering
-CREATE INDEX IF NOT EXISTS idx_n8n_chat_session ON public.n8n_chat_histories(session_id);
 CREATE INDEX IF NOT EXISTS idx_security_events_log_calendar ON public.security_events_log(calendar_id);
 CREATE INDEX IF NOT EXISTS idx_security_events_log_user ON public.security_events_log(user_id);
 

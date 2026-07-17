@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -11,13 +11,12 @@ import { Plus, Trash2 } from 'lucide-react';
 interface DepositInfo {
   percentage?: number;
   amount?: number;
-  timing: 'now' | 'appointment' | 'hours_after';
-  hours?: number;
+  timing: 'now' | 'appointment';
 }
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
-  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
+  preset?: '100_at_booking' | '50_50' | 'fixed_deposit';
   deposits?: DepositInfo[];
   fixed_deposit_amount?: number;
 }
@@ -48,6 +47,16 @@ export function ServiceTypeInstallmentCard({
     { percentage: 50, timing: 'appointment' }
   ]);
 
+  useEffect(() => {
+    setPlanType(plan.type || 'preset');
+    setPresetSelection(plan.preset || '100_at_booking');
+    setFixedDepositAmount(plan.fixed_deposit_amount || 50);
+    setCustomDeposits(plan.deposits || [
+      { percentage: 50, timing: 'now' },
+      { percentage: 50, timing: 'appointment' },
+    ]);
+  }, [plan]);
+
   const presetPlans = {
     '100_at_booking': {
       name: t('settings.payments.installments.presets.fullAtBooking.name', '100% at Booking'),
@@ -64,15 +73,6 @@ export function ServiceTypeInstallmentCard({
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
-    '25_25_50': {
-      name: t('settings.payments.installments.presets.split252550.name', '25/25/50 Split'),
-      description: t('settings.payments.installments.presets.split252550.description', '25% at booking, 25% 1 week later, 50% on location'),
-      deposits: [
-        { percentage: 25, timing: 'now' as const },
-        { percentage: 25, timing: 'hours_after' as const, hours: 168 },
-        { percentage: 50, timing: 'appointment' as const }
-      ]
-    },
     'fixed_deposit': {
       name: t('settings.payments.installments.presets.fixedDeposit.name', 'Fixed Deposit Plus Remaining'),
       description: t('settings.payments.installments.presets.fixedDeposit.description', 'Fixed amount at booking, rest on location'),
@@ -84,7 +84,9 @@ export function ServiceTypeInstallmentCard({
     const hasAtBooking = customDeposits.some(d => d.timing === 'now');
     const hasOnLocation = customDeposits.some(d => d.timing === 'appointment');
     
-    let defaultTiming: 'now' | 'appointment' | 'hours_after' = 'hours_after';
+    if (hasAtBooking && hasOnLocation) return;
+
+    let defaultTiming: 'now' | 'appointment' = 'appointment';
     if (!hasAtBooking) {
       defaultTiming = 'now';
     } else if (!hasOnLocation) {
@@ -102,37 +104,37 @@ export function ServiceTypeInstallmentCard({
     updatePlan('custom', newDeposits);
   };
 
-  const updateCustomDeposit = (index: number, field: string, value: any) => {
+  const updateCustomDeposit = <Field extends keyof DepositInfo>(
+    index: number,
+    field: Field,
+    value: DepositInfo[Field],
+  ) => {
     const updated = [...customDeposits];
     updated[index] = { ...updated[index], [field]: value };
-    
-    if (field === 'timing' && value !== 'hours_after') {
-      delete updated[index].hours;
-    }
     
     setCustomDeposits(updated);
     updatePlan('custom', updated);
   };
 
-  const updatePlan = (type: 'preset' | 'custom', deposits?: DepositInfo[]) => {
+  const updatePlan = (
+    type: 'preset' | 'custom',
+    deposits?: DepositInfo[],
+    selectedPreset = presetSelection,
+    selectedFixedAmount = fixedDepositAmount,
+  ) => {
     let newPlan: InstallmentPlan;
     
     if (type === 'preset') {
-      if (presetSelection === 'fixed_deposit') {
+      if (selectedPreset === 'fixed_deposit') {
         newPlan = {
           type: 'preset',
-          preset: presetSelection,
-          fixed_deposit_amount: fixedDepositAmount,
-          deposits: [
-            { amount: fixedDepositAmount, timing: 'now' },
-            { timing: 'appointment' }
-          ]
+          preset: selectedPreset,
+          fixed_deposit_amount: selectedFixedAmount,
         };
       } else {
         newPlan = {
           type: 'preset',
-          preset: presetSelection,
-          deposits: presetPlans[presetSelection].deposits
+          preset: selectedPreset,
         };
       }
     } else {
@@ -150,14 +152,14 @@ export function ServiceTypeInstallmentCard({
     updatePlan(newType);
   };
 
-  const handlePresetChange = (newPreset: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit') => {
+  const handlePresetChange = (newPreset: '100_at_booking' | '50_50' | 'fixed_deposit') => {
     setPresetSelection(newPreset);
-    updatePlan('preset');
+    updatePlan('preset', undefined, newPreset);
   };
 
   const handleFixedDepositChange = (amount: number) => {
     setFixedDepositAmount(amount);
-    updatePlan('preset');
+    updatePlan('preset', undefined, 'fixed_deposit', amount);
   };
 
   const getAvailableTimingOptions = (currentIndex: number) => {
@@ -176,11 +178,6 @@ export function ServiceTypeInstallmentCard({
         label: t('settings.payments.installments.timing.onLocation', 'On Location'),
         disabled: hasOnLocation && currentTiming !== 'appointment'
       },
-      {
-        value: 'hours_after',
-        label: t('settings.payments.installments.timing.hoursAfter', 'Hours After Booking'),
-        disabled: false
-      }
     ];
   };
 
@@ -278,6 +275,7 @@ export function ServiceTypeInstallmentCard({
               variant="outline"
               size="sm"
               onClick={addCustomDeposit}
+              disabled={customDeposits.length >= 2}
             >
               <Plus className="h-3 w-3 mr-1" />
               {t('settings.payments.installments.addPayment', 'Add Payment')}
@@ -304,7 +302,11 @@ export function ServiceTypeInstallmentCard({
                       <Label className="text-xs text-muted-foreground">{t('settings.payments.installments.when', 'When')}</Label>
                       <Select
                         value={deposit.timing}
-                        onValueChange={(value) => updateCustomDeposit(index, 'timing', value)}
+                        onValueChange={(value) => updateCustomDeposit(
+                          index,
+                          'timing',
+                          value as DepositInfo['timing'],
+                        )}
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -323,18 +325,6 @@ export function ServiceTypeInstallmentCard({
                       </Select>
                     </div>
                   </div>
-                  {deposit.timing === 'hours_after' && (
-                    <div>
-                      <Label className="text-xs text-muted-foreground">{t('settings.payments.installments.hoursAfterBooking', 'Hours After Booking')}</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={deposit.hours || ''}
-                        onChange={(e) => updateCustomDeposit(index, 'hours', Number(e.target.value))}
-                        placeholder="24"
-                      />
-                    </div>
-                  )}
                 </div>
                 <Button
                   type="button"

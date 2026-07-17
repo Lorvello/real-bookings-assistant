@@ -1,5 +1,6 @@
 // Production security utilities and hardening
 import { secureLogger } from './secureLogger';
+import { formatCSPForMeta } from './securityHeaders';
 
 export class ProductionSecurity {
   
@@ -8,18 +9,7 @@ export class ProductionSecurity {
     if (typeof document === 'undefined') return;
 
     // Content Security Policy
-    const csp = [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.voiceflow.com",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https: blob:",
-      "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-      "frame-src 'none'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'"
-    ].join('; ');
+    const csp = formatCSPForMeta();
 
     // Add CSP meta tag if not exists
     if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
@@ -112,7 +102,7 @@ export class ProductionSecurity {
   }
 
   // Error boundary for production
-  static handleGlobalError(error: Error, errorInfo?: any): void {
+  static handleGlobalError(error: Error, errorInfo?: unknown): void {
     secureLogger.error('Global error caught', error, {
       component: 'ErrorBoundary',
       errorInfo: errorInfo ? JSON.stringify(errorInfo).substring(0, 500) : undefined

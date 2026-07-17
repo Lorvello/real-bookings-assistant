@@ -1,6 +1,6 @@
 -- Fix database function parameter name conflict
 
-DROP FUNCTION IF EXISTS public.get_day_name_dutch(integer);
+DROP FUNCTION IF EXISTS public.get_day_name_dutch(integer) CASCADE;
 
 CREATE OR REPLACE FUNCTION public.get_day_name_dutch(p_day_of_week integer)
  RETURNS text

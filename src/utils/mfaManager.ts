@@ -18,8 +18,6 @@ export class MFAManager {
   static async generateTOTPSecret(userId: string): Promise<TOTPSetup> {
     // TODO: Implement with authenticator library (e.g., speakeasy)
     // For now, return placeholder structure
-    console.log('TOTP generation for user:', userId);
-    
     return {
       secret: 'PLACEHOLDER_SECRET',
       qrCode: 'data:image/png;base64,PLACEHOLDER',
@@ -32,7 +30,8 @@ export class MFAManager {
    */
   static async verifyTOTPToken(userId: string, token: string): Promise<boolean> {
     // TODO: Implement with authenticator library
-    console.log('Verifying TOTP for user:', userId, 'token:', token);
+    void userId;
+    void token;
     return false;
   }
 
@@ -66,7 +65,8 @@ export class MFAManager {
    */
   static async sendSMSCode(userId: string, phoneNumber: string): Promise<boolean> {
     // TODO: Implement with SMS service (Twilio, AWS SNS, etc.)
-    console.log('Sending SMS code to:', phoneNumber, 'for user:', userId);
+    void userId;
+    void phoneNumber;
     return false;
   }
 
@@ -75,7 +75,8 @@ export class MFAManager {
    */
   static async verifySMSCode(userId: string, code: string): Promise<boolean> {
     // TODO: Implement with SMS verification
-    console.log('Verifying SMS code for user:', userId, 'code:', code);
+    void userId;
+    void code;
     return false;
   }
 
@@ -88,7 +89,7 @@ export class MFAManager {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.email) return false;
 
-      console.log('Sending email code to:', user.email, 'for user:', userId);
+      void userId;
       // Generate 6-digit code and send via email
       return false;
     } catch (error) {
@@ -102,7 +103,8 @@ export class MFAManager {
    */
   static async verifyEmailCode(userId: string, code: string): Promise<boolean> {
     // TODO: Implement email code verification
-    console.log('Verifying email code for user:', userId, 'code:', code);
+    void userId;
+    void code;
     return false;
   }
 
@@ -119,8 +121,7 @@ export class MFAManager {
     }
 
     // TODO: Store hashed versions in database
-    console.log('Generated backup codes for user:', userId);
-    
+    void userId;
     return codes;
   }
 
@@ -129,7 +130,8 @@ export class MFAManager {
    */
   static async verifyBackupCode(userId: string, code: string): Promise<boolean> {
     // TODO: Implement backup code verification with one-time use
-    console.log('Verifying backup code for user:', userId);
+    void userId;
+    void code;
     return false;
   }
 

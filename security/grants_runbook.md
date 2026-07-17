@@ -19,11 +19,12 @@ verification round happened to catch it). This makes that catch automatic.
 |---|---|
 | `claim_booking_reminder(uuid, smallint)` | Core reminder-pipeline RPC, service_role-only by design, the exact R55/R56 incident target. |
 | `record_booking_reminder_result(uuid, smallint, boolean, integer, text, text)` | Same lineage, mutates reminder state, the other R56 incident target. |
+| `record_booking_checkout_failure` / `record_booking_payment_failure` | Signed Stripe-webhook transitions that mutate booking and payment truth; service_role-only by design. |
 | `get_due_booking_reminders()` | Same lineage, the correctly-locked control used throughout the R56/R57 evidence. |
 | `admin_update_user_subscription` (all overloads) | Mutates a user's billing/subscription tier and status directly, money-adjacent. |
 | `admin_developer_update_user_subscription` | Same class as above, a developer-console variant. |
 | `get_user_subscription_details(uuid)` | Returns a full PII/billing row (`row_to_json(v_user)`, tier, status) for an arbitrary `p_user_id`, service_role-only by design. |
-| `get_user_subscription_tier(uuid)` | Known pre-existing issue (`task_6a750a7e`, spun off separately, not fixed here): currently anon/authenticated-callable, leaks a non-sensitive tier field. Included here so the baseline still tracks it and any FURTHER widening past its current state is still caught, even though its current state is itself a known open item. |
+| `get_user_subscription_tier(uuid)` | Service-role-only legacy lookup. R47 closed the previously known anon/authenticated arbitrary-user tier disclosure (`task_6a750a7e`). |
 | `reschedule_booking_atomic` (all overloads) | Mutates a booking's time/calendar; since SEQP2R5 also writes the owner activity log (`agent_actions`) inside the same transaction. service_role-only by design. Added SEQP2R5 after a REAL live finding on this exact function (see below). |
 | `owner_update_booking_status(uuid, text, text)` | Mutates booking status and `payment_status` (flags `refund_required`), money-adjacent; since SEQP2R5 also writes the owner-actor `agent_actions` row. authenticated + service_role only (owner-facing RPC), never anon. |
 
@@ -52,10 +53,10 @@ Run from `security/`:
   missing `REVOKE ALL ... FROM PUBLIC/anon/authenticated; GRANT EXECUTE ... TO service_role;`
   block to the migration (see any of the `SEQP1R28`/`R35`/`R38`/`R42`/`R57` migrations for the
   exact pattern), re-apply, re-check until clean.
-- **NARROWED, ADDED, or REMOVED (notes, exit 0)**: a legitimate change (an intentional lockdown,
-  a new overload, a renamed/dropped function). Review it is actually intentional, then run
-  `./grants_check.sh baseline` to fold the new state into the committed snapshot and commit the
-  updated `grants_baseline.json`.
+- **NARROWED, ADDED, or REMOVED (exit 1)**: the identity or required-role contract changed. Review
+  that it is intentional and that active callers still work, then run `./grants_check.sh baseline`
+  to fold the reviewed state into the committed snapshot and commit the updated
+  `grants_baseline.json`.
 
 Credentials: the script reads `~/.config/ba/supabase.pat` (the same PAT every other Mgmt-API
 helper in this repo uses, e.g. `_automation/r24_sql.sh`). Never hardcode it, never commit it.

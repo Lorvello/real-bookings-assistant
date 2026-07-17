@@ -72,18 +72,10 @@ CREATE TRIGGER update_user_roles_timestamp
 BEFORE UPDATE ON public.user_roles
 FOR EACH ROW EXECUTE FUNCTION public.update_user_roles_updated_at();
 
--- STEP 7: Grant admin - check if exists first, then insert or update
-DO $$
-BEGIN
-  IF EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = '640593ad-279a-477c-89d7-a88bc4c6f805') THEN
-    UPDATE public.user_roles 
-    SET role = 'admin' 
-    WHERE user_id = '640593ad-279a-477c-89d7-a88bc4c6f805';
-  ELSE
-    INSERT INTO public.user_roles (user_id, role)
-    VALUES ('640593ad-279a-477c-89d7-a88bc4c6f805', 'admin');
-  END IF;
-END$$;
+-- STEP 7: Admin assignment is intentionally not automated.
+-- A hard-coded production user must never receive elevated privileges merely
+-- because the schema was rebuilt. Provision the first admin through an
+-- explicit, audited human action after the target identity is verified.
 
 -- STEP 8: Create indexes
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);

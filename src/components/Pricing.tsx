@@ -6,10 +6,25 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ScrollAnimatedSection from "@/components/ScrollAnimatedSection";
 import { EnterpriseContactForm } from "@/components/EnterpriseContactForm";
+import {
+  getPublicEnterpriseClaims,
+  getPublicEnterpriseDescription,
+  getPublicFeatureAvailability,
+} from "@/config/publicFeatureAvailability";
 
 export const Pricing = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('home');
+  const publicFeatureAvailability = getPublicFeatureAvailability();
+  const enterpriseClaims = getPublicEnterpriseClaims(publicFeatureAvailability, {
+    canonical: (key, fallback) => t(key, fallback),
+    legacy: (key, fallback) => t(key, fallback),
+    surface: 'home',
+  });
+  const enterpriseDescription = getPublicEnterpriseDescription(
+    publicFeatureAvailability,
+    (key, fallback) => t(key, fallback),
+  );
   const [isAnnual, setIsAnnual] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -81,7 +96,7 @@ export const Pricing = () => {
         },
         {
           text: t('pricing.plans.professional.features.f6.text', "Flexible installment payment options"),
-          tooltip: t('pricing.plans.professional.features.f6.tooltip', "Allow customers to pay in installments with customizable payment schedules. Set up deposits, payment splits, and automated collection for better cash flow management")
+          tooltip: t('pricing.plans.professional.features.f6.tooltip', "Set an online deposit or payment split, with the remaining balance clearly recorded for payment at the appointment")
         },
         {
           text: t('pricing.plans.professional.features.f7.text', "Complete analytics suite: Business Intelligence, Performance tracking & Future Insights"),
@@ -100,41 +115,8 @@ export const Pricing = () => {
       name: t('pricing.plans.enterprise.name', "Enterprise"),
       monthlyPrice: null,
       annualPrice: null,
-      description: t('pricing.plans.enterprise.description', "Complete business solution with dedicated WhatsApp number and premium support"),
-      features: [
-        {
-          text: t('pricing.plans.enterprise.features.f1.text', "Complete professional suite included"),
-          tooltip: t('pricing.plans.enterprise.features.f1.tooltip', "All Professional plan features plus enterprise-grade capabilities")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f2.text', "Unlimited enterprise user access management"),
-          tooltip: t('pricing.plans.enterprise.features.f2.tooltip', "Unlimited team members with advanced role management, department hierarchies, and granular permissions")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f3.text', "Dedicated WhatsApp Business API with custom branding"),
-          tooltip: t('pricing.plans.enterprise.features.f3.tooltip', "Your own WhatsApp Business API connection with custom branding, verified business account, and green checkmark")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f4.text', "Intelligent voice call routing & distribution"),
-          tooltip: t('pricing.plans.enterprise.features.f4.tooltip', "Automated phone call management with smart routing to available team members and call recording capabilities")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f5.text', "Omnichannel social media DM orchestration"),
-          tooltip: t('pricing.plans.enterprise.features.f5.tooltip', "Unified management of direct messages across Facebook, Instagram, Twitter, LinkedIn, and other social platforms from one dashboard")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f6.text', "Advanced reputation management & review analytics"),
-          tooltip: t('pricing.plans.enterprise.features.f6.tooltip', "Monitor and manage online reviews across Google, Facebook, and other platforms with automated response suggestions and reputation scoring")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f7.text', "Enterprise SLA with dedicated success management"),
-          tooltip: t('pricing.plans.enterprise.features.f7.tooltip', "99.9% uptime guarantee, dedicated account manager, and enterprise-level support with guaranteed response times")
-        },
-        {
-          text: t('pricing.plans.enterprise.features.f8.text', "White-glove onboarding & strategic integration consulting"),
-          tooltip: t('pricing.plans.enterprise.features.f8.tooltip', "Complete setup assistance, custom integration with existing systems, staff training, and ongoing strategic consultation")
-        }
-      ],
+      description: enterpriseDescription,
+      features: enterpriseClaims.map(({ text, tooltip }) => ({ text, tooltip })),
       popular: false,
       cta: t('pricing.plans.enterprise.cta', "Contact Sales"),
       color: "from-slate-900 to-black",

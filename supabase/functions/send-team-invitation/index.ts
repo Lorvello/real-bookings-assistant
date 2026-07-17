@@ -1,225 +1,296 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { getClientIp, RateLimiter } from "../_shared/rateLimit.ts";
+import {
+  buildTeamInvitationEmail,
+  deliverTeamInvitation,
+  isTeamInvitationClaim,
+  parseTeamInvitationRequest,
+  resolveTeamInvitationDeliveryConfig,
+  TeamInvitationConfigurationError,
+  TeamInvitationProviderError,
+} from "./invitationDelivery.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Content-Security-Policy": "default-src 'none'",
+  "X-Content-Type-Options": "nosniff",
 };
 
-interface TeamInvitationRequest {
-  calendar_id: string;
-  email: string;
-  full_name: string;
-  role: 'editor' | 'viewer';
+const jsonHeaders = {
+  ...corsHeaders,
+  "Content-Type": "application/json",
+};
+
+const MAX_REQUEST_BYTES = 10_000;
+
+function jsonResponse(
+  body: Record<string, unknown>,
+  status = 200,
+  headers: Record<string, string> = {},
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...jsonHeaders, ...headers },
+  });
 }
 
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-);
+function environment(): Record<string, string | undefined> {
+  return {
+    APP_ENV: Deno.env.get("APP_ENV"),
+    APP_URL: Deno.env.get("APP_URL"),
+    TEAM_INVITATION_DELIVERY_MODE: Deno.env.get(
+      "TEAM_INVITATION_DELIVERY_MODE",
+    ),
+    TEAM_INVITATION_FROM_EMAIL: Deno.env.get(
+      "TEAM_INVITATION_FROM_EMAIL",
+    ),
+    RESEND_API_KEY: Deno.env.get("RESEND_API_KEY"),
+  };
+}
 
-const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== "POST") {
+    return jsonResponse({ success: false, error: "method_not_allowed" }, 405);
+  }
 
-  try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
+  const declaredLength = Number(req.headers.get("content-length"));
+  if (
+    Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_BYTES
+  ) {
+    return jsonResponse({ success: false, error: "request_too_large" }, 413);
+  }
 
-    // Get the JWT token from the authorization header
-    const token = authHeader.replace('Bearer ', '');
-    
-    // Set the auth context for supabase client
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      throw new Error('Invalid authentication');
-    }
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    return jsonResponse({ success: false, error: "service_unavailable" }, 503);
+  }
 
-    const { calendar_id, email, full_name, role }: TeamInvitationRequest = await req.json();
-
-    console.log('Processing team invitation for:', { calendar_id, email, full_name, role });
-
-    // Call the RPC with the user's auth context so auth.uid() resolves inside the
-    // SECURITY DEFINER function (used for the owner check and the invited_by column).
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: invitationResult, error: inviteError } = await userClient.rpc('invite_team_member', {
-      p_calendar_id: calendar_id,
-      p_email: email,
-      p_full_name: full_name,
-      p_role: role
-    });
-
-    if (inviteError) {
-      console.error('Error creating invitation:', inviteError);
-      throw new Error(`Failed to create invitation: ${inviteError.message}`);
-    }
-
-    // invite_team_member returns { success:false, error, error_code } as a PAYLOAD
-    // (team-member limit reached, or caller is not the owner) WITHOUT raising a DB
-    // error. Honor it — otherwise we'd email a broken (token-less) invite link and
-    // report HTTP 200 success while no invitation row was created.
-    if (!invitationResult || invitationResult.success === false) {
-      const message = invitationResult?.error || 'Failed to create invitation';
-      console.warn('invite_team_member rejected:', message);
-      return new Response(
-        JSON.stringify({ success: false, error: message, error_code: invitationResult?.error_code ?? null }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
-
-    // Get calendar and business information
-    const { data: calendarData, error: calendarError } = await supabase
-      .from('calendars')
-      .select(`
-        name,
-        users!inner(business_name, full_name)
-      `)
-      .eq('id', calendar_id)
-      .single();
-
-    if (calendarError) {
-      console.error('Error fetching calendar data:', calendarError);
-      throw new Error('Failed to fetch calendar information');
-    }
-
-    const businessName = calendarData.users.business_name || calendarData.users.full_name || 'Team';
-    const calendarName = calendarData.name;
-    const invitationToken = invitationResult.token;
-    
-    // Create invitation acceptance URL. Use the app domain (APP_URL), not the
-    // Supabase API host — the old derivation pointed invitees at the Supabase URL.
-    const appUrl = Deno.env.get('APP_URL') || 'https://bookingsassistant.com';
-    const inviteUrl = `${appUrl}/team-invite?token=${invitationToken}`;
-
-    // Send invitation email. Use the verified production domain (consistent with
-    // send-password-reset / send-enterprise-contact). The Resend sandbox sender
-    // onboarding@resend.dev can ONLY deliver to the Resend account owner, so it was
-    // non-functional for real invitees. Requires the bookingsassistant.com domain to
-    // be verified in Resend (the documented email launch step).
-    const emailResponse = await resend.emails.send({
-      from: `${businessName} <noreply@bookingsassistant.com>`,
-      to: [email],
-      subject: `Team invitation for ${businessName}`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Team Invitation</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
-            .container { max-width: 600px; margin: 0 auto; background-color: white; }
-            .header { background: linear-gradient(135deg, #1A7F4D, #135C38); color: white; padding: 40px 30px; text-align: center; }
-            .content { padding: 40px 30px; }
-            .button { display: inline-block; background: #1A7F4D; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
-            .button:hover { background: #135C38; }
-            .role-badge { display: inline-block; background: #F3F4F6; color: #374151; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 500; }
-            .footer { background: #F8FAFC; padding: 30px; text-align: center; color: #6B7280; font-size: 14px; }
-            .expire-notice { background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 16px; margin: 20px 0; color: #92400E; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0; font-size: 28px;">Team Invitation</h1>
-              <p style="margin: 10px 0 0 0; opacity: 0.9;">You've been invited to join our team</p>
-            </div>
-
-            <div class="content">
-              <p>Hi ${full_name || email.split('@')[0]},</p>
-
-              <p>You've been invited by <strong>${businessName}</strong> to get access to the calendar <strong>${calendarName}</strong>.</p>
-
-              <p><strong>Your role:</strong> <span class="role-badge">${role === 'editor' ? 'Editor (can edit)' : 'Viewer (view only)'}</span></p>
-
-              <div class="expire-notice">
-                <strong>⏰ Important:</strong> This invitation expires in 48 hours. Please accept it as soon as possible!
-              </div>
-
-              <p>Click the button below to accept your invitation:</p>
-
-              <div style="text-align: center;">
-                <a href="${inviteUrl}" class="button">Accept Invitation</a>
-              </div>
-
-              <p style="margin-top: 30px; color: #6B7280; font-size: 14px;">
-                If the button doesn't work, copy and paste this link into your browser:<br>
-                <a href="${inviteUrl}" style="color: #1A7F4D; word-break: break-all;">${inviteUrl}</a>
-              </p>
-
-              <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">
-
-              <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin: 0 0 10px 0; color: #374151;">What can you expect?</h3>
-                <ul style="margin: 0; padding-left: 20px; color: #6B7280;">
-                  <li>Access to ${businessName}'s calendar</li>
-                  <li>Your own personal calendar</li>
-                  <li>${role === 'editor' ? 'The ability to schedule and edit appointments' : 'An overview of all scheduled appointments'}</li>
-                  <li>Collaboration with the team</li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="footer">
-              <p>This invitation was sent by ${businessName}</p>
-              <p>If you weren't expecting this invitation, you can ignore this email.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `,
-    });
-
-    if (emailResponse.error) {
-      console.error('Error sending email:', emailResponse.error);
-      throw new Error(`Failed to send email: ${emailResponse.error.message}`);
-    }
-
-    console.log('Team invitation sent successfully:', emailResponse);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Team invitation sent successfully',
-        invitation_id: invitationResult.invitation_id
-      }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...corsHeaders,
-        },
-      }
-    );
-
-  } catch (error: any) {
-    console.error("Error in send-team-invitation function:", error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Internal server error',
-        success: false 
-      }),
-      {
-        status: 500,
-        headers: { 
-          "Content-Type": "application/json", 
-          ...corsHeaders 
-        },
-      }
+  const authorization = req.headers.get("authorization") ?? "";
+  if (!authorization.startsWith("Bearer ")) {
+    return jsonResponse(
+      { success: false, error: "authentication_required" },
+      401,
     );
   }
-};
 
-serve(handler);
+  const authClient = createClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: authorization } },
+  });
+  const { data: { user }, error: authError } = await authClient.auth.getUser();
+  if (authError || !user) {
+    return jsonResponse(
+      { success: false, error: "authentication_required" },
+      401,
+    );
+  }
+
+  let rawBody: unknown;
+  try {
+    const bodyText = await req.text();
+    if (new TextEncoder().encode(bodyText).byteLength > MAX_REQUEST_BYTES) {
+      return jsonResponse({ success: false, error: "request_too_large" }, 413);
+    }
+    rawBody = JSON.parse(bodyText);
+  } catch {
+    return jsonResponse({ success: false, error: "invalid_json" }, 400);
+  }
+
+  let input;
+  try {
+    input = parseTeamInvitationRequest(rawBody);
+  } catch {
+    return jsonResponse({ success: false, error: "invalid_request" }, 400);
+  }
+
+  let deliveryConfig;
+  try {
+    deliveryConfig = resolveTeamInvitationDeliveryConfig(environment());
+  } catch (error) {
+    console.error("Team invitation configuration invalid", {
+      code: error instanceof TeamInvitationConfigurationError
+        ? error.message
+        : "unknown",
+    });
+    return jsonResponse(
+      { success: false, error: "delivery_not_configured" },
+      503,
+    );
+  }
+
+  const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+  const limiter = new RateLimiter(serviceClient, {
+    endpoint: "team_invitation",
+    maxRequests: 10,
+    windowSeconds: 900,
+    blockDurationSeconds: 3600,
+  });
+  const rateLimit = await limiter.checkLimit(getClientIp(req), user.id);
+  if (!rateLimit.allowed) {
+    return RateLimiter.createRateLimitResponse(rateLimit, corsHeaders);
+  }
+
+  const { data: prepareResult, error: prepareError } = await serviceClient.rpc(
+    "prepare_team_invitation_delivery",
+    {
+      p_user_id: user.id,
+      p_request_id: input.request_id,
+      p_calendar_id: input.calendar_id,
+      p_email: input.email,
+      p_full_name: input.full_name,
+      p_role: input.role,
+      p_app_base_url: deliveryConfig.appBaseUrl,
+    },
+  );
+
+  if (prepareError) {
+    const status = prepareError.code === "42501"
+      ? 403
+      : prepareError.code === "22023"
+      ? 409
+      : 500;
+    console.error("Team invitation prepare failed", {
+      code: prepareError.code ?? "unknown",
+    });
+    return jsonResponse({
+      success: false,
+      error: status === 403
+        ? "access_denied"
+        : status === 409
+        ? "request_conflict"
+        : "prepare_failed",
+    }, status);
+  }
+
+  if (!isRecord(prepareResult)) {
+    return jsonResponse(
+      { success: false, error: "invalid_prepare_shape" },
+      500,
+    );
+  }
+
+  if (prepareResult.claimed !== true) {
+    const resultStatus = typeof prepareResult.status === "string"
+      ? prepareResult.status
+      : "unknown";
+    const errorCode = typeof prepareResult.error_code === "string"
+      ? prepareResult.error_code
+      : null;
+
+    if (resultStatus === "delivered" || resultStatus === "recorded") {
+      return jsonResponse({
+        success: true,
+        duplicate: true,
+        delivery_status: resultStatus,
+        invitation_id: prepareResult.invitation_id ?? null,
+      });
+    }
+    if (resultStatus === "sending") {
+      return jsonResponse({
+        success: true,
+        duplicate: true,
+        in_progress: true,
+        delivery_status: resultStatus,
+        invitation_id: prepareResult.invitation_id ?? null,
+      });
+    }
+
+    return jsonResponse({
+      success: false,
+      error: errorCode ?? "invitation_not_deliverable",
+      delivery_status: resultStatus,
+    }, 409);
+  }
+
+  if (!isTeamInvitationClaim(prepareResult)) {
+    return jsonResponse({ success: false, error: "invalid_claim_shape" }, 500);
+  }
+
+  let claimOpen = true;
+  const finalize = async (
+    status: "delivered" | "recorded" | "failed",
+    providerMessageId: string | null = null,
+    errorCode: string | null = null,
+  ): Promise<void> => {
+    if (!claimOpen) return;
+    const { data, error } = await serviceClient.rpc(
+      "complete_team_invitation_delivery",
+      {
+        p_request_id: prepareResult.request_id,
+        p_claim_token: prepareResult.claim_token,
+        p_status: status,
+        p_provider_message_id: providerMessageId,
+        p_error_code: errorCode,
+      },
+    );
+    if (
+      error || !isRecord(data) || data.accepted !== true
+    ) {
+      throw new Error("TEAM_INVITATION_FINALIZE_FAILED");
+    }
+    claimOpen = false;
+  };
+
+  try {
+    const email = buildTeamInvitationEmail(prepareResult);
+    const delivery = await deliverTeamInvitation(deliveryConfig, email);
+    const finalStatus = delivery.mode === "record-only"
+      ? "recorded"
+      : "delivered";
+    await finalize(finalStatus, delivery.providerMessageId);
+
+    console.log("Team invitation delivery completed", {
+      requestId: prepareResult.request_id,
+      invitationId: prepareResult.invitation_id,
+      status: finalStatus,
+    });
+    return jsonResponse(
+      {
+        success: true,
+        invitation_id: prepareResult.invitation_id,
+        delivery_status: finalStatus,
+      },
+      200,
+      RateLimiter.getRateLimitHeaders(rateLimit),
+    );
+  } catch (error) {
+    const errorCode = error instanceof TeamInvitationProviderError
+      ? error.code
+      : error instanceof Error
+      ? error.message
+      : "unknown_error";
+    try {
+      await finalize("failed", null, errorCode);
+    } catch (finalizeError) {
+      console.error("Team invitation finalize failed", {
+        requestId: prepareResult.request_id,
+        code: finalizeError instanceof Error
+          ? finalizeError.message
+          : "unknown",
+      });
+    }
+    console.error("Team invitation delivery failed", {
+      requestId: prepareResult.request_id,
+      invitationId: prepareResult.invitation_id,
+      code: errorCode,
+    });
+    return jsonResponse(
+      { success: false, error: "delivery_failed" },
+      error instanceof TeamInvitationProviderError ? 502 : 500,
+    );
+  }
+});

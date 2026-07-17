@@ -8,7 +8,7 @@
 //
 // Run: deno test supabase/functions/_shared/stripeValidation.test.ts
 import { assertEquals } from "https://deno.land/std@0.190.0/testing/asserts.ts";
-import { validateStripeMode, getStripeSecretKey } from "./stripeValidation.ts";
+import { getStripeSecretKey, validateStripeMode } from "./stripeValidation.ts";
 
 const ORIG = Deno.env.get("STRIPE_MODE");
 function setMode(v: string | undefined) {
@@ -65,14 +65,19 @@ Deno.test("MODE-BYPASS GUARD: a TEST server stays TEST regardless of caller-supp
   }
 });
 
-Deno.test("trusted-caller override (admin dev dashboard only) honors requested mode", () => {
-  // The ONLY sanctioned way to pick a non-server mode is allowRequestedMode=true,
-  // which the caller must gate to admins (e.g. create-checkout via has_role).
+Deno.test("legacy admin override argument cannot change the server-owned mode", () => {
+  // JavaScript can pass an extra legacy argument even after the TypeScript
+  // signature removes it. Prove the runtime ignores that argument and still
+  // rejects a TEST -> LIVE mismatch.
   setMode("test");
   try {
-    const dev = validateStripeMode("live", true);
-    assertEquals(dev.isValid, true);
-    assertEquals(dev.mode, "live");
+    const legacyCall = validateStripeMode as unknown as (
+      requestedMode?: "test" | "live",
+      legacyAdminOverride?: boolean,
+    ) => ReturnType<typeof validateStripeMode>;
+    const decision = legacyCall("live", true);
+    assertEquals(decision.isValid, false);
+    assertEquals(decision.mode, "test");
   } finally {
     restore();
   }
@@ -162,24 +167,42 @@ Deno.test("TAX FNS (F-CLOSE-04): the derived test_mode is purely a function of t
 // are excluded from SUPPORTED_COUNTRIES (their registrations are subdivision-scoped),
 // so the create builder only ever runs for the standard-scheme set.
 // ---------------------------------------------------------------------------
-function buildCountryOptionsMirror(country: string): Record<string, any> {
+interface CountryOptionMirror {
+  type: "standard";
+  standard: { place_of_supply_scheme: "standard" };
+}
+
+function buildCountryOptionsMirror(
+  country: string,
+): Record<string, CountryOptionMirror> {
   const cc = country.toLowerCase();
-  return { [cc]: { type: 'standard', standard: { place_of_supply_scheme: 'standard' } } };
+  return {
+    [cc]: {
+      type: "standard",
+      standard: { place_of_supply_scheme: "standard" },
+    },
+  };
 }
 
 Deno.test("T2 manage-tax-registrations: country options use 'standard' scheme, never the old 'vat' type", () => {
-  const nl = buildCountryOptionsMirror('NL');
-  assertEquals(nl.nl.type, 'standard');
-  assertEquals(nl.nl.standard.place_of_supply_scheme, 'standard');
+  const nl = buildCountryOptionsMirror("NL");
+  assertEquals(nl.nl.type, "standard");
+  assertEquals(nl.nl.standard.place_of_supply_scheme, "standard");
   // Regression: the removed { type: 'vat' } shape must not appear.
-  assertEquals((nl.nl as any).value, undefined);
+  assertEquals("value" in nl.nl, false);
 });
 
 Deno.test("T2 manage-tax-registrations: GB and AU (verified live) take the same standard scheme", () => {
-  assertEquals(buildCountryOptionsMirror('GB').gb.type, 'standard');
-  assertEquals(buildCountryOptionsMirror('GB').gb.standard.place_of_supply_scheme, 'standard');
-  assertEquals(buildCountryOptionsMirror('AU').au.type, 'standard');
-  assertEquals(buildCountryOptionsMirror('AU').au.standard.place_of_supply_scheme, 'standard');
+  assertEquals(buildCountryOptionsMirror("GB").gb.type, "standard");
+  assertEquals(
+    buildCountryOptionsMirror("GB").gb.standard.place_of_supply_scheme,
+    "standard",
+  );
+  assertEquals(buildCountryOptionsMirror("AU").au.type, "standard");
+  assertEquals(
+    buildCountryOptionsMirror("AU").au.standard.place_of_supply_scheme,
+    "standard",
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -195,7 +218,10 @@ Deno.test("T2 manage-tax-registrations: GB and AU (verified live) take the same 
 // (defaults.tax_behavior), never from unrelated account fields. The accepted set
 // is the Stripe tax_behavior enum plus the local 'unknown' fallback.
 // ---------------------------------------------------------------------------
-function resolveAccountOwnerId(userId: string, accountOwnerId?: string | null): string {
+function resolveAccountOwnerId(
+  userId: string,
+  accountOwnerId?: string | null,
+): string {
   return accountOwnerId || userId;
 }
 
@@ -246,19 +272,34 @@ const AssignSchemaMirror = z.object({
 // Mirror of the server-side country -> rate derivation in assign-tax-codes.
 function getCountryTaxRateMirror(country: string): number {
   const rates: Record<string, number> = {
-    'NL': 21, 'DE': 19, 'FR': 20, 'GB': 20, 'US': 8.5, 'CA': 13, 'AU': 10,
-    'ES': 21, 'IT': 22, 'BE': 21, 'AT': 20, 'DK': 25, 'SE': 25, 'FI': 24,
+    "NL": 21,
+    "DE": 19,
+    "FR": 20,
+    "GB": 20,
+    "US": 8.5,
+    "CA": 13,
+    "AU": 10,
+    "ES": 21,
+    "IT": 22,
+    "BE": 21,
+    "AT": 20,
+    "DK": 25,
+    "SE": 25,
+    "FI": 24,
   };
   return rates[country] ?? 21;
 }
 function resolveBusinessCountry(stripeAccountCountry?: string | null): string {
-  return (stripeAccountCountry?.toUpperCase()) || 'NL';
+  return (stripeAccountCountry?.toUpperCase()) || "NL";
 }
 
 Deno.test("F-TAX-12: AssignSchema strips a body business_country (it cannot reach the rate lookup)", () => {
-  const parsed = AssignSchemaMirror.parse({ business_country: "AU", bulk_update: false });
+  const parsed = AssignSchemaMirror.parse({
+    business_country: "AU",
+    bulk_update: false,
+  });
   // The field is stripped by zod .object(); it is not present in the parsed payload.
-  assertEquals((parsed as any).business_country, undefined);
+  assertEquals("business_country" in parsed, false);
 });
 
 Deno.test("F-TAX-12: rate is derived from the SERVER-resolved country, body is inert", () => {
@@ -277,13 +318,13 @@ Deno.test("F-TAX-12: missing Stripe account falls back to NL (21), never to a bo
 
 Deno.test("F-TAX-13: tier gate admits professional/enterprise (incl. trial=professional), blocks the rest", () => {
   const allowed = (tier: string | null | undefined) =>
-    !!tier && ['professional', 'enterprise'].includes(tier);
+    !!tier && ["professional", "enterprise"].includes(tier);
   // Trial users get subscription_tier='professional' (update_user_status), so onboarding works.
-  assertEquals(allowed('professional'), true);
-  assertEquals(allowed('enterprise'), true);
+  assertEquals(allowed("professional"), true);
+  assertEquals(allowed("enterprise"), true);
   // Free / starter / expired (null) are blocked.
-  assertEquals(allowed('free'), false);
-  assertEquals(allowed('starter'), false);
+  assertEquals(allowed("free"), false);
+  assertEquals(allowed("starter"), false);
   assertEquals(allowed(null), false);
   assertEquals(allowed(undefined), false);
 });

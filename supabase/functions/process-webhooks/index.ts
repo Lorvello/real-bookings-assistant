@@ -1,273 +1,201 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  deliverWebhook,
+  isWebhookClaim,
+  parseProcessWebhookRequest,
+  validateWebhookEgressProxyConfig,
+  type WebhookClaim,
+  type WebhookEgressProxyConfig,
+} from "./webhookDelivery.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-internal-secret",
+};
+
+function jsonResponse(
+  body: Record<string, unknown>,
+  status = 200,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+  if (req.method !== "POST") {
+    return jsonResponse({ success: false, error: "method_not_allowed" }, 405);
   }
 
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    return jsonResponse({ success: false, error: "service_unavailable" }, 503);
+  }
+
+  let input;
   try {
-    // Require an authenticated caller — the public anon key alone must not be able
-    // to trigger platform-wide webhook delivery.
-    const authClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-    )
-    const { data: { user }, error: authError } = await authClient.auth.getUser()
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { source, calendar_id, force, test } = await req.json()
-
-    console.log(`🚀 Enhanced webhook processing - Source: ${source}, Calendar: ${calendar_id}, Force: ${force}, Test: ${test}`)
-
-    // SECURITY: this is an owner-facing tool (webhook management UI). Scope every
-    // run to the CALLER's own calendars. Without this, any authenticated user
-    // could pass another tenant's calendar_id — or force:true (which previously
-    // skipped the calendar filter) — to trigger delivery of OTHER businesses'
-    // pending webhook events.
-    const { data: userCals } = await supabaseClient
-      .from('calendars')
-      .select('id')
-      .eq('user_id', user.id)
-    const userCalendarIds = (userCals || []).map((c: { id: string }) => c.id)
-
-    if (calendar_id && !userCalendarIds.includes(calendar_id)) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Haal pending webhook events op met prioriteit voor nieuwe events
-    let query = supabaseClient
-      .from('webhook_events')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true })
-      .limit(100) // Verhoogd van 50 naar 100 voor snellere batch processing
-
-    if (calendar_id) {
-      query = query.eq('calendar_id', calendar_id)
-    } else {
-      // No specific calendar (incl. force): still confined to the caller's own
-      // calendars — never the whole platform.
-      query = query.in('calendar_id', userCalendarIds.length > 0 ? userCalendarIds : ['00000000-0000-0000-0000-000000000000'])
-    }
-
-    const { data: webhookEvents, error: webhookError } = await query
-
-    if (webhookError) {
-      console.error('❌ Error fetching webhook events:', webhookError)
-      throw webhookError
-    }
-
-    if (!webhookEvents || webhookEvents.length === 0) {
-      console.log('✅ No pending webhook events to process')
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          processed: 0, 
-          successful: 0,
-          message: 'No pending webhooks' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    console.log(`📤 Processing ${webhookEvents.length} webhook events...`)
-
-    let processedCount = 0
-    let successfulCount = 0
-    let failedCount = 0
-
-    // Parallel processing voor snellere verwerking
-    const webhookPromises = webhookEvents.map(async (webhookEvent) => {
-      try {
-        // Haal actieve webhook endpoints op voor deze calendar
-        const { data: endpoints, error: endpointError } = await supabaseClient
-          .from('webhook_endpoints')
-          .select('*')
-          .eq('calendar_id', webhookEvent.calendar_id)
-          .eq('is_active', true)
-
-        if (endpointError) {
-          console.error('❌ Error fetching endpoints:', endpointError)
-          throw endpointError
-        }
-
-        if (!endpoints || endpoints.length === 0) {
-          console.log(`⚠️ No active endpoints for calendar ${webhookEvent.calendar_id}`)
-          
-          // Mark as failed - no endpoints
-          await supabaseClient
-            .from('webhook_events')
-            .update({
-              status: 'failed',
-              attempts: (webhookEvent.attempts || 0) + 1,
-              last_attempt_at: new Date().toISOString()
-            })
-            .eq('id', webhookEvent.id)
-          
-          return { success: false, reason: 'no_endpoints' }
-        }
-
-        // Verstuur naar elke actieve endpoint (parallel)
-        const endpointPromises = endpoints.map(async (endpoint) => {
-          try {
-            console.log(`📡 Sending enhanced webhook to: ${endpoint.webhook_url}`)
-            
-            // Verrijkte webhook payload met meer context
-            const enhancedPayload = {
-              ...webhookEvent.payload,
-              webhook_event_id: webhookEvent.id,
-              delivered_at: new Date().toISOString(),
-              source: 'brand-evolves-webhook-enhanced',
-              delivery_attempt: (webhookEvent.attempts || 0) + 1,
-              calendar_context: {
-                webhook_url: endpoint.webhook_url,
-                endpoint_id: endpoint.id
-              }
-            }
-
-            const response = await fetch(endpoint.webhook_url, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Brand-Evolves-Webhook/2.0',
-                'X-Webhook-Source': 'supabase-edge-function-enhanced',
-                'X-Delivery-Attempt': String((webhookEvent.attempts || 0) + 1),
-                'X-Event-Type': webhookEvent.event_type,
-                'X-Calendar-ID': webhookEvent.calendar_id
-              },
-              body: JSON.stringify(enhancedPayload)
-            })
-
-            const responseText = await response.text()
-            console.log(`📨 Response from ${endpoint.webhook_url}:`, response.status, responseText.substring(0, 100))
-
-            if (response.ok) {
-              console.log(`✅ Enhanced webhook sent successfully to ${endpoint.webhook_url}`)
-              return { success: true, endpoint: endpoint.webhook_url }
-            } else {
-              console.error(`❌ Enhanced webhook failed: ${response.status} ${response.statusText}`)
-              return { success: false, status: response.status, response: responseText }
-            }
-          } catch (fetchError) {
-            console.error(`❌ Network error sending enhanced webhook:`, fetchError)
-            return { success: false, error: fetchError.message }
-          }
-        })
-
-        const endpointResults = await Promise.allSettled(endpointPromises)
-        const successfulEndpoints = endpointResults.filter(result => 
-          result.status === 'fulfilled' && result.value.success
-        ).length
-
-        if (successfulEndpoints > 0) {
-          // Mark as sent if at least one endpoint succeeded
-          await supabaseClient
-            .from('webhook_events')
-            .update({
-              status: 'sent',
-              attempts: (webhookEvent.attempts || 0) + 1,
-              last_attempt_at: new Date().toISOString()
-            })
-            .eq('id', webhookEvent.id)
-          
-          return { success: true, endpoints_reached: successfulEndpoints }
-        } else {
-          // Mark as failed if all endpoints failed
-          await supabaseClient
-            .from('webhook_events')
-            .update({
-              status: 'failed',
-              attempts: (webhookEvent.attempts || 0) + 1,
-              last_attempt_at: new Date().toISOString()
-            })
-            .eq('id', webhookEvent.id)
-          
-          return { success: false, reason: 'all_endpoints_failed' }
-        }
-
-      } catch (error) {
-        console.error(`❌ Error processing enhanced webhook ${webhookEvent.id}:`, error)
-        
-        // Mark as failed
-        await supabaseClient
-          .from('webhook_events')
-          .update({
-            status: 'failed',
-            attempts: (webhookEvent.attempts || 0) + 1,
-            last_attempt_at: new Date().toISOString()
-          })
-          .eq('id', webhookEvent.id)
-        
-        return { success: false, error: error.message }
-      }
-    })
-
-    // Wait for all webhook processing to complete
-    const results = await Promise.allSettled(webhookPromises)
-    
-    // Count results
-    results.forEach(result => {
-      processedCount++
-      if (result.status === 'fulfilled' && result.value.success) {
-        successfulCount++
-      } else {
-        failedCount++
-      }
-    })
-
-    const finalResult = {
-      success: true,
-      processed: processedCount,
-      successful: successfulCount,
-      failed: failedCount,
-      source,
-      enhanced: true,
-      timestamp: new Date().toISOString(),
-      batch_size: webhookEvents.length
-    }
-
-    console.log(`🎉 Enhanced webhook processing complete:`, finalResult)
-
-    return new Response(
-      JSON.stringify(finalResult),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
+    input = parseProcessWebhookRequest(await req.json());
   } catch (error) {
-    console.error('💥 Error in enhanced process-webhooks function:', error)
-    
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message,
-        enhanced: true,
-        timestamp: new Date().toISOString()
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    return jsonResponse({
+      success: false,
+      error: error instanceof Error ? error.message : "invalid_request",
+    }, 400);
   }
-})
+
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
+  const isInternal = internalSecret.length >= 32 &&
+    req.headers.get("x-internal-secret") === internalSecret;
+
+  let userId: string | null = null;
+  if (!isInternal) {
+    const authorization = req.headers.get("Authorization") ?? "";
+    if (!authorization.startsWith("Bearer ")) {
+      return jsonResponse(
+        { success: false, error: "authentication_required" },
+        401,
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authorization } },
+    });
+    const { data: { user }, error } = await authClient.auth.getUser();
+    if (error || !user) {
+      return jsonResponse(
+        { success: false, error: "authentication_required" },
+        401,
+      );
+    }
+    userId = user.id;
+  }
+
+  if (Deno.env.get("WEBHOOK_EGRESS_ENABLED") !== "true") {
+    return jsonResponse({
+      success: false,
+      error: "webhook_egress_not_enabled",
+    }, 503);
+  }
+
+  let egressProxy: WebhookEgressProxyConfig;
+  try {
+    egressProxy = validateWebhookEgressProxyConfig({
+      url: Deno.env.get("WEBHOOK_EGRESS_PROXY_URL") ?? "",
+      token: Deno.env.get("WEBHOOK_EGRESS_PROXY_TOKEN") ?? "",
+      contractVersion: Deno.env.get("WEBHOOK_EGRESS_PROXY_CONTRACT_VERSION") ??
+        "",
+    });
+  } catch {
+    // This is a deployment failure, not a delivery attempt. Return before the
+    // claim RPC so no retry budget or lease state is consumed.
+    return jsonResponse({
+      success: false,
+      error: "webhook_egress_proxy_unavailable",
+    }, 503);
+  }
+
+  const serviceClient = createClient(supabaseUrl, serviceRoleKey);
+  const { data: claimData, error: claimError } = await serviceClient.rpc(
+    "claim_webhook_deliveries",
+    {
+      p_user_id: userId,
+      p_calendar_id: input.calendarId ?? null,
+      p_event_id: input.eventId ?? null,
+      p_retry_failed: input.retryFailed,
+      p_limit: input.batchSize,
+    },
+  );
+
+  if (claimError) {
+    const denied = claimError.code === "42501";
+    console.error("Webhook claim failed", {
+      code: claimError.code ?? "unknown",
+    });
+    return jsonResponse({
+      success: false,
+      error: denied ? "access_denied" : "claim_failed",
+    }, denied ? 403 : 500);
+  }
+
+  if (!Array.isArray(claimData) || !claimData.every(isWebhookClaim)) {
+    console.error("Webhook claim returned an invalid runtime shape");
+    return jsonResponse({ success: false, error: "invalid_claim_shape" }, 500);
+  }
+
+  const claims = claimData as WebhookClaim[];
+  if (claims.length === 0) {
+    return jsonResponse({
+      success: true,
+      processed: 0,
+      successful: 0,
+      failed: 0,
+      message: "no_claimable_deliveries",
+    });
+  }
+
+  const results: Array<{ success: boolean; completed: boolean }> = [];
+  // Bound peak memory: serialize, deliver and release one event envelope before
+  // beginning the next. A batch cannot amplify one large legacy payload 50x.
+  for (const claim of claims) {
+    const delivery = await deliverWebhook(claim, {
+      egressProxy,
+    });
+    const { data: completion, error: completionError } = await serviceClient
+      .rpc(
+        "complete_webhook_delivery",
+        {
+          p_delivery_id: claim.delivery_id,
+          p_claim_token: claim.delivery_claim_token,
+          p_success: delivery.success,
+          p_http_status: delivery.httpStatus,
+          p_error_code: delivery.errorCode,
+        },
+      );
+
+    const accepted = !completionError &&
+      typeof completion === "object" &&
+      completion !== null &&
+      (completion as Record<string, unknown>).accepted === true;
+
+    if (!accepted) {
+      console.error("Webhook completion rejected", {
+        code: completionError?.code ?? "claim_not_current",
+      });
+    }
+
+    results.push({
+      success: delivery.success && accepted,
+      completed: accepted,
+    });
+  }
+
+  const successful = results.filter((result) => result.success).length;
+  const failed = results.length - successful;
+  const completionFailures = results.filter((result) =>
+    !result.completed
+  ).length;
+
+  console.log("Webhook delivery batch completed", {
+    source: input.source ?? (isInternal ? "internal" : "authenticated"),
+    claimed: claims.length,
+    successful,
+    failed,
+    completionFailures,
+  });
+
+  return jsonResponse({
+    success: completionFailures === 0,
+    processed: claims.length,
+    successful,
+    failed,
+    completion_failures: completionFailures,
+    events: new Set(claims.map((claim) => claim.event_id)).size,
+  }, completionFailures === 0 ? 200 : 500);
+});

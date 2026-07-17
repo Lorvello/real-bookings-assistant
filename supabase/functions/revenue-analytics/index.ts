@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { errorMessage } from "../_shared/errorMessage.ts";
+import { oneRelation } from "../_shared/postgrestRelation.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface RevenueData {
@@ -34,60 +37,72 @@ interface RevenueData {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { calendar_id, period = 'current_month' } = await req.json();
+    const { calendar_id, period = "current_month" } = await req.json();
 
     if (!calendar_id) {
-      throw new Error('Calendar ID is required');
+      throw new Error("Calendar ID is required");
     }
 
     // Require an authenticated caller and verify they own this calendar.
     // Without this, anyone with the public anon key could read any tenant's revenue.
     const authClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      },
     );
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    const { data: { user }, error: authError } = await authClient.auth
+      .getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Authentication required' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
     const { data: ownedCalendar, error: ownershipError } = await authClient
-      .from('calendars')
-      .select('id')
-      .eq('id', calendar_id)
-      .eq('user_id', user.id)
+      .from("calendars")
+      .select("id")
+      .eq("id", calendar_id)
+      .eq("user_id", user.id)
       .single();
     if (ownershipError || !ownedCalendar) {
-      return new Response(JSON.stringify({ error: 'Calendar not found or access denied' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: "Calendar not found or access denied" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     // Get date range based on period
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
-    
+
     let startDate: string;
     let endDate: string;
-    
-    if (period === 'current_month') {
+
+    if (period === "current_month") {
       startDate = new Date(currentYear, currentMonth, 1).toISOString();
-      endDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59).toISOString();
+      endDate = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59)
+        .toISOString();
     } else {
       // Last 12 months for trends
       startDate = new Date(currentYear - 1, currentMonth, 1).toISOString();
@@ -96,7 +111,7 @@ serve(async (req) => {
 
     // Get completed bookings with service type info
     const { data: bookings, error: bookingsError } = await supabase
-      .from('bookings')
+      .from("bookings")
       .select(`
         id,
         total_price,
@@ -112,11 +127,11 @@ serve(async (req) => {
           business_country
         )
       `)
-      .eq('calendar_id', calendar_id)
-      .eq('status', 'confirmed')
-      .gte('start_time', startDate)
-      .lte('start_time', endDate)
-      .not('service_types', 'is', null);
+      .eq("calendar_id", calendar_id)
+      .eq("status", "confirmed")
+      .gte("start_time", startDate)
+      .lte("start_time", endDate)
+      .not("service_types", "is", null);
 
     if (bookingsError) throw bookingsError;
 
@@ -124,14 +139,16 @@ serve(async (req) => {
     const serviceMap = new Map();
     let totalRevenue = 0;
     let totalTax = 0;
-    const currency = bookings?.[0]?.payment_currency || 'eur';
+    const currency = bookings?.[0]?.payment_currency || "eur";
 
-    bookings?.forEach(booking => {
-      const service = booking.service_types;
+    bookings?.forEach((booking) => {
+      const service = oneRelation(booking.service_types);
       if (!service) return;
 
       const revenue = Number(booking.total_price) || 0;
-      const taxRate = service.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
+      const taxRate = service.tax_enabled
+        ? (Number(service.applicable_tax_rate) || 0) / 100
+        : 0;
       const taxCollected = revenue * taxRate / (1 + taxRate);
 
       totalRevenue += revenue;
@@ -146,7 +163,7 @@ serve(async (req) => {
           totalRevenue: 0,
           totalTax: 0,
           price: Number(service.price) || 0,
-          taxRate: taxRate * 100
+          taxRate: taxRate * 100,
         });
       }
 
@@ -157,25 +174,29 @@ serve(async (req) => {
     });
 
     // Calculate previous month for comparison
-    const prevMonthStart = new Date(currentYear, currentMonth - 1, 1).toISOString();
-    const prevMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59).toISOString();
+    const prevMonthStart = new Date(currentYear, currentMonth - 1, 1)
+      .toISOString();
+    const prevMonthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59)
+      .toISOString();
 
     const { data: prevBookings } = await supabase
-      .from('bookings')
-      .select('total_price, service_types(tax_enabled, applicable_tax_rate)')
-      .eq('calendar_id', calendar_id)
-      .eq('status', 'confirmed')
-      .gte('start_time', prevMonthStart)
-      .lte('start_time', prevMonthEnd);
+      .from("bookings")
+      .select("total_price, service_types(tax_enabled, applicable_tax_rate)")
+      .eq("calendar_id", calendar_id)
+      .eq("status", "confirmed")
+      .gte("start_time", prevMonthStart)
+      .lte("start_time", prevMonthEnd);
 
     let previousMonthRevenue = 0;
     let previousMonthTax = 0;
-    prevBookings?.forEach(booking => {
+    prevBookings?.forEach((booking) => {
       const revenue = Number(booking.total_price) || 0;
-      const service = booking.service_types;
-      const taxRate = service?.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
+      const service = oneRelation(booking.service_types);
+      const taxRate = service?.tax_enabled
+        ? (Number(service.applicable_tax_rate) || 0) / 100
+        : 0;
       const tax = revenue * taxRate / (1 + taxRate);
-      
+
       previousMonthRevenue += revenue;
       previousMonthTax += tax;
     });
@@ -183,63 +204,83 @@ serve(async (req) => {
     // Calculate year to date
     const ytdStart = new Date(currentYear, 0, 1).toISOString();
     const { data: ytdBookings } = await supabase
-      .from('bookings')
-      .select('total_price, service_types(tax_enabled, applicable_tax_rate)')
-      .eq('calendar_id', calendar_id)
-      .eq('status', 'confirmed')
-      .gte('start_time', ytdStart)
-      .lte('start_time', endDate);
+      .from("bookings")
+      .select("total_price, service_types(tax_enabled, applicable_tax_rate)")
+      .eq("calendar_id", calendar_id)
+      .eq("status", "confirmed")
+      .gte("start_time", ytdStart)
+      .lte("start_time", endDate);
 
     let yearToDateRevenue = 0;
     let yearToDateTax = 0;
-    ytdBookings?.forEach(booking => {
+    ytdBookings?.forEach((booking) => {
       const revenue = Number(booking.total_price) || 0;
-      const service = booking.service_types;
-      const taxRate = service?.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
+      const service = oneRelation(booking.service_types);
+      const taxRate = service?.tax_enabled
+        ? (Number(service.applicable_tax_rate) || 0) / 100
+        : 0;
       const tax = revenue * taxRate / (1 + taxRate);
-      
+
       yearToDateRevenue += revenue;
       yearToDateTax += tax;
     });
 
     // Calculate percentage changes
-    const revenueChange = previousMonthRevenue > 0 ? 
-      ((totalRevenue - previousMonthRevenue) / previousMonthRevenue) * 100 : 0;
-    const taxChange = previousMonthTax > 0 ? 
-      ((totalTax - previousMonthTax) / previousMonthTax) * 100 : 0;
+    const revenueChange = previousMonthRevenue > 0
+      ? ((totalRevenue - previousMonthRevenue) / previousMonthRevenue) * 100
+      : 0;
+    const taxChange = previousMonthTax > 0
+      ? ((totalTax - previousMonthTax) / previousMonthTax) * 100
+      : 0;
 
     // Generate monthly trends for last 6 months
     const monthlyTrends = [];
     for (let i = 5; i >= 0; i--) {
       const trendMonth = new Date(currentYear, currentMonth - i, 1);
-      const monthStart = new Date(trendMonth.getFullYear(), trendMonth.getMonth(), 1).toISOString();
-      const monthEnd = new Date(trendMonth.getFullYear(), trendMonth.getMonth() + 1, 0, 23, 59, 59).toISOString();
+      const monthStart = new Date(
+        trendMonth.getFullYear(),
+        trendMonth.getMonth(),
+        1,
+      ).toISOString();
+      const monthEnd = new Date(
+        trendMonth.getFullYear(),
+        trendMonth.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+      ).toISOString();
 
       const { data: monthBookings } = await supabase
-        .from('bookings')
-        .select('total_price, service_types(tax_enabled, applicable_tax_rate)')
-        .eq('calendar_id', calendar_id)
-        .eq('status', 'confirmed')
-        .gte('start_time', monthStart)
-        .lte('start_time', monthEnd);
+        .from("bookings")
+        .select("total_price, service_types(tax_enabled, applicable_tax_rate)")
+        .eq("calendar_id", calendar_id)
+        .eq("status", "confirmed")
+        .gte("start_time", monthStart)
+        .lte("start_time", monthEnd);
 
       let monthRevenue = 0;
       let monthTax = 0;
-      monthBookings?.forEach(booking => {
+      monthBookings?.forEach((booking) => {
         const revenue = Number(booking.total_price) || 0;
-        const service = booking.service_types;
-        const taxRate = service?.tax_enabled ? (Number(service.applicable_tax_rate) || 0) / 100 : 0;
+        const service = oneRelation(booking.service_types);
+        const taxRate = service?.tax_enabled
+          ? (Number(service.applicable_tax_rate) || 0) / 100
+          : 0;
         const tax = revenue * taxRate / (1 + taxRate);
-        
+
         monthRevenue += revenue;
         monthTax += tax;
       });
 
       monthlyTrends.push({
-        month: trendMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        month: trendMonth.toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        }),
         revenue: monthRevenue,
         tax: monthTax,
-        bookings: monthBookings?.length || 0
+        bookings: monthBookings?.length || 0,
       });
     }
 
@@ -253,30 +294,31 @@ serve(async (req) => {
       revenueChange: Math.round(revenueChange * 100) / 100,
       taxChange: Math.round(taxChange * 100) / 100,
       currency: currency.toUpperCase(),
-      serviceBreakdown: Array.from(serviceMap.values()).sort((a, b) => b.totalRevenue - a.totalRevenue),
-      monthlyTrends
+      serviceBreakdown: Array.from(serviceMap.values()).sort((a, b) =>
+        b.totalRevenue - a.totalRevenue
+      ),
+      monthlyTrends,
     };
 
     return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-
   } catch (error) {
-    console.error('Revenue analytics error:', error);
+    console.error("Revenue analytics error:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Failed to calculate revenue analytics',
+      JSON.stringify({
+        error: errorMessage(error),
         totalRevenue: 0,
         totalTax: 0,
-        currency: 'EUR',
+        currency: "EUR",
         serviceBreakdown: [],
-        monthlyTrends: []
+        monthlyTrends: [],
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
-      }
+      },
     );
   }
 });

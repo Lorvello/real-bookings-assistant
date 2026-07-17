@@ -1,19 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-import { Resend } from 'https://esm.sh/resend@3.2.0';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { Resend } from "https://esm.sh/resend@3.2.0";
 
 // Initialize Supabase client with service key for admin operations
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Initialize Resend
-const resendApiKey = Deno.env.get('RESEND_API_KEY')!;
+const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
 const resend = new Resend(resendApiKey);
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface PasswordResetRequest {
@@ -23,13 +24,13 @@ interface PasswordResetRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    if (req.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    if (req.method !== "POST") {
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -38,81 +39,90 @@ const handler = async (req: Request): Promise<Response> => {
     const { email }: PasswordResetRequest = await req.json();
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return new Response(JSON.stringify({ error: 'Valid email is required' }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: "Valid email is required" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
     }
 
-    console.log('🔄 Generating password reset with Supabase for:', email);
+    console.log("[reset] Password reset requested");
 
     // Determine redirect target from APP_ENV, never from request origin
-    const ENV = Deno.env.get('APP_ENV') ?? 'prod';
+    const ENV = Deno.env.get("APP_ENV") ?? "prod";
     const ORIGIN_MAP: Record<string, string> = {
-      prod: 'https://bookingsassistant.com',
-      preview: 'https://bookingsassistant.com',
-      local: 'http://localhost:5173',
+      prod: "https://bookingsassistant.com",
+      preview: "https://bookingsassistant.com",
+      local: "http://localhost:5173",
     };
     const origin = ORIGIN_MAP[ENV] ?? ORIGIN_MAP.prod;
     const redirectTo = `${origin}/reset-password`;
 
-    console.log('[reset] ENV:', ENV);
-    console.log('[reset] redirectTo (final):', redirectTo);
+    console.log("[reset] ENV:", ENV);
+    console.log("[reset] redirectTo (final):", redirectTo);
 
     // Generate reset link using Supabase Admin API
     const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
+      type: "recovery",
       email: email,
       options: {
         redirectTo,
-      }
+      },
     });
 
     // Neutral response used whenever we can't (or won't) confirm an account
     // exists. Returning the same 200 for "no such user" as for "email sent"
     // prevents email-enumeration via this endpoint.
-    const neutralResponse = () => new Response(
-      JSON.stringify({
-        success: true,
-        message: 'If an account with that email exists, a password reset link has been sent.',
-      }),
-      { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-    );
+    const neutralResponse = () =>
+      new Response(
+        JSON.stringify({
+          success: true,
+          message:
+            "If an account with that email exists, a password reset link has been sent.",
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
 
     if (error) {
       // Most commonly this is "user not found" — do NOT reveal that. Log it
       // server-side and return the neutral success response.
-      console.error('❌ Supabase generateLink error (returning neutral response):', error);
+      console.error(
+        "❌ Supabase generateLink error (returning neutral response):",
+        error,
+      );
       return neutralResponse();
     }
 
     // Normalize the action_link to enforce our desired redirect_to
     const actionLink = data.properties?.action_link;
     if (!actionLink) {
-      console.error("❌ No action link generated by Supabase (returning neutral response)");
+      console.error(
+        "❌ No action link generated by Supabase (returning neutral response)",
+      );
       return neutralResponse();
     }
-
-    console.log('[reset] action_link (orig):', actionLink);
 
     let finalLink = actionLink;
     try {
       const urlObj = new URL(actionLink);
       const sp = new URLSearchParams(urlObj.search);
-      sp.set('redirect_to', redirectTo);
+      sp.set("redirect_to", redirectTo);
       urlObj.search = sp.toString();
       finalLink = urlObj.toString();
-    } catch (e) {
-      console.warn('⚠️ Failed to normalize action_link redirect_to, using original link', e);
+    } catch {
+      console.warn("[reset] Failed to normalize redirect; using provider link");
     }
-
-    console.log('[reset] action_link (final):', finalLink);
 
     // Send email via Resend
     const emailResult = await resend.emails.send({
-      from: 'Bookings Assistant <business@bookingsassistant.com>',
+      from: "Bookings Assistant <business@bookingsassistant.com>",
       to: email,
-      subject: 'Reset Your Password - Bookings Assistant',
+      subject: "Reset Your Password - Bookings Assistant",
       html: `
         <!DOCTYPE html>
         <html>
@@ -178,7 +188,7 @@ const handler = async (req: Request): Promise<Response> => {
           
         </body>
         </html>
-      `
+      `,
     });
 
     // SECURITY: return the SAME neutral 200 response whether or not the email was
@@ -188,22 +198,27 @@ const handler = async (req: Request): Promise<Response> => {
     // from unregistered emails (enumeration), defeating the neutral response. Log
     // failures server-side only.
     if (emailResult.error) {
-      console.error('❌ Resend email error (returning neutral response):', emailResult.error);
+      console.error(
+        "[reset] Resend delivery failed; neutral response returned",
+      );
     } else {
-      console.log('✅ Password reset email sent successfully:', emailResult.data);
+      console.log("[reset] Password reset email accepted by provider");
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'If an account with that email exists, a password reset link has been sent.',
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message:
+          "If an account with that email exists, a password reset link has been sent.",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      },
+    );
   } catch (error) {
-    console.error('❌ Unexpected error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("❌ Unexpected error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });

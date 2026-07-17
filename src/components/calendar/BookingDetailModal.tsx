@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { dateFnsLocale } from '@/lib/dateLocale';
-import { Clock, User, Phone, Mail, Calendar, FileText, XCircle, UserX } from 'lucide-react';
+import { Banknote, Clock, User, Phone, Mail, Calendar, FileText, XCircle, UserX } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useBookingActions } from '@/hooks/useBookingActions';
+import { useInstallmentSettlement } from '@/hooks/useInstallmentSettlement';
+import { useAccountRole } from '@/hooks/useAccountRole';
 import { resolveBookingColor } from './utils/bookingColor';
 
 interface Booking {
@@ -27,6 +29,7 @@ interface Booking {
   customer_phone?: string;
   customer_email?: string;
   status: string;
+  payment_status?: string | null;
   service_name?: string;
   notes?: string;
   internal_notes?: string;
@@ -61,7 +64,13 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
   const { t, i18n } = useTranslation('appPages');
   const locale = dateFnsLocale(i18n.language);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [settleConfirmOpen, setSettleConfirmOpen] = useState(false);
+  const { isAccountOwner, loading: roleLoading } = useAccountRole();
   const { act, pendingAction, isActing } = useBookingActions(() => {
+    onActed?.();
+    onClose();
+  });
+  const { settle, isSettling } = useInstallmentSettlement(() => {
     onActed?.();
     onClose();
   });
@@ -78,7 +87,9 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
   const isFuture = startTime.getTime() > Date.now();
   const canMarkNoShow = !isTerminal && !isFuture;
   const canCancel = !isTerminal;
-  const showActions = canCancel || canMarkNoShow;
+  const canSettleBalance =
+    !roleLoading && isAccountOwner && !isTerminal && booking.payment_status === 'partial';
+  const showActions = canCancel || canMarkNoShow || canSettleBalance;
 
   const handleMarkNoShow = () => {
     void act({ bookingId: booking.id, status: 'no-show' });
@@ -87,6 +98,11 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
   const handleConfirmCancel = async () => {
     const ok = await act({ bookingId: booking.id, status: 'cancelled' });
     if (ok) setCancelConfirmOpen(false);
+  };
+
+  const handleConfirmSettlement = async () => {
+    const ok = await settle(booking.id);
+    if (ok) setSettleConfirmOpen(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -163,6 +179,18 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 </div>
               )}
             </div>
+            {booking.payment_status === 'partial' && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+                <Banknote aria-hidden="true" className="h-4 w-4 shrink-0" />
+                {t('calPage.bookingDetail.actions.paymentPartial', 'Deposit received; the remaining balance is due at the appointment.')}
+              </div>
+            )}
+            {booking.payment_status === 'paid' && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-success/20 bg-success/10 px-3 py-2 text-xs text-success-foreground">
+                <Banknote aria-hidden="true" className="h-4 w-4 shrink-0" />
+                {t('calPage.bookingDetail.actions.paymentPaid', 'Paid in full.')}
+              </div>
+            )}
           </div>
 
           {/* Calendar Information */}
@@ -296,13 +324,27 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
 
         {showActions && (
           <DialogFooter className="mt-2 flex-col gap-2 sm:flex-row sm:justify-end">
+            {canSettleBalance && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                loading={isSettling}
+                disabled={isActing || isSettling}
+                onClick={() => setSettleConfirmOpen(true)}
+                className="w-full sm:w-auto"
+              >
+                <Banknote aria-hidden="true" className="h-4 w-4" />
+                {t('calPage.bookingDetail.actions.settleBalance', 'Record remaining payment')}
+              </Button>
+            )}
             {canMarkNoShow && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 loading={pendingAction === 'no-show'}
-                disabled={isActing}
+                disabled={isActing || isSettling}
                 onClick={handleMarkNoShow}
                 className="w-full sm:w-auto"
               >
@@ -316,7 +358,7 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
                 variant="destructive"
                 size="sm"
                 loading={pendingAction === 'cancelled'}
-                disabled={isActing}
+                disabled={isActing || isSettling}
                 onClick={() => setCancelConfirmOpen(true)}
                 className="w-full bg-[hsl(0_72%_45%)] text-white hover:bg-[hsl(0_72%_40%)] sm:w-auto"
               >
@@ -354,6 +396,35 @@ export function BookingDetailModal({ open, onClose, booking, viewingAllCalendars
               {pendingAction === 'cancelled'
                 ? t('calPage.bookingDetail.actions.cancelling', 'Cancelling…')
                 : t('calPage.bookingDetail.actions.cancelConfirmYes', 'Yes, cancel it')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={settleConfirmOpen} onOpenChange={(open) => { if (!isSettling) setSettleConfirmOpen(open); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('calPage.bookingDetail.actions.settleConfirmTitle', 'Record the remaining payment?')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                'calPage.bookingDetail.actions.settleConfirmBody',
+                'Confirm this only after you actually received the remaining amount at the appointment. This does not move money through Stripe.',
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSettling}>
+              {t('calPage.bookingDetail.actions.settleConfirmKeep', 'Not received yet')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => { event.preventDefault(); void handleConfirmSettlement(); }}
+              disabled={isSettling}
+            >
+              {isSettling
+                ? t('calPage.bookingDetail.actions.settling', 'Recording…')
+                : t('calPage.bookingDetail.actions.settleConfirmYes', 'Yes, payment received')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -2,279 +2,199 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getCurrentPeriodEndISO } from "../_shared/subscriptionPeriod.ts";
+import {
+  normalizeStripeSubscriptionStatus,
+} from "../_shared/subscriptionEvent.ts";
+import {
+  verifyExactSessionSubscription,
+  verifySubscriptionCheckoutSession,
+} from "../_shared/subscriptionSession.ts";
+import { resolveConfiguredSubscriptionTier } from "../_shared/subscriptionTierResolver.ts";
+import { validateStripeConfig } from "../_shared/stripeValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CHECK-SUB-BY-SESSION] ${step}${detailsStr}`);
-};
+function json(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+  if (req.method !== "POST") {
+    return json({ success: false, error: "Method not allowed" }, 405);
+  }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const supabaseClient = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
 
   try {
-    logStep("Function started");
-
-    // SECURITY: authenticate the caller. This endpoint used to mint a login session
-    // from only a session_id (account takeover for anyone who knew a paid session id).
-    // Now the caller must be authenticated AND be the session's own user (checked
-    // against client_reference_id below); no session is minted.
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Authentication required" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ success: false, error: "Authentication required" }, 401);
     }
-    const { data: authData, error: authErr } = await supabaseClient.auth.getUser(
-      authHeader.replace("Bearer ", "")
+    const { data: authData, error: authError } = await supabaseClient.auth
+      .getUser(authHeader.slice("Bearer ".length));
+    if (authError || !authData.user) {
+      return json({ success: false, error: "Invalid authentication" }, 401);
+    }
+
+    const body = await req.json().catch(() => null) as {
+      session_id?: unknown;
+    } | null;
+    const requestedSessionId = typeof body?.session_id === "string"
+      ? body.session_id.trim()
+      : "";
+    if (!requestedSessionId) {
+      return json({ success: false, error: "No session_id provided" }, 400);
+    }
+
+    const stripeConfig = await validateStripeConfig(
+      undefined,
+      supabaseUrl,
+      serviceRoleKey,
     );
-    if (authErr || !authData.user) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Invalid authentication" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    const authedUserId = authData.user.id;
-
-    const { session_id } = await req.json().catch(() => ({}));
-    if (!session_id) {
-      return new Response(
-        JSON.stringify({ success: false, error: "No session_id provided" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    logStep("Session ID received", { session_id });
-
-    // Get Stripe mode and key
-    const stripeMode = Deno.env.get("STRIPE_MODE") || 'test';
-    const isTestMode = stripeMode === 'test';
-    
-    const stripeKey = isTestMode 
-      ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
-      : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
-    if (!stripeKey) {
-      throw new Error(`Missing Stripe secret key for ${isTestMode ? 'test' : 'live'} mode`);
-    }
-    
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-
-    // Retrieve checkout session from Stripe
-    const checkoutSession = await stripe.checkout.sessions.retrieve(session_id);
-    logStep("Retrieved checkout session", { 
-      status: checkoutSession.payment_status,
-      customer_id: checkoutSession.customer,
-      client_reference_id: checkoutSession.client_reference_id 
+    const stripeMode = stripeConfig.mode;
+    const stripe = new Stripe(stripeConfig.secretKey, {
+      apiVersion: "2023-10-16",
     });
 
-    if (checkoutSession.payment_status !== 'paid') {
-      throw new Error(`Payment not completed. Status: ${checkoutSession.payment_status}`);
-    }
+    const checkoutSession = await stripe.checkout.sessions.retrieve(
+      requestedSessionId,
+    );
+    const verifiedSession = verifySubscriptionCheckoutSession(
+      checkoutSession,
+      requestedSessionId,
+      authData.user.id,
+      stripeMode,
+    );
 
-    const userId = checkoutSession.client_reference_id;
-    if (!userId) throw new Error("No user ID found in session");
+    // The session's own subscription is the only acceptable authority. Listing an
+    // arbitrary active customer subscription lets an unrelated paid session pass.
+    const subscription = await stripe.subscriptions.retrieve(
+      verifiedSession.subscriptionId,
+    );
+    verifyExactSessionSubscription(subscription, verifiedSession, stripeMode);
 
-    // The authenticated caller must be the user this checkout belongs to.
-    if (authedUserId !== userId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Forbidden: session does not belong to caller" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    const priceId = subscription.items.data[0]?.price?.id;
+    const metadataTier = subscription.metadata?.tier_name ??
+      subscription.metadata?.tier;
+    const { data: tiers, error: tierError } = await supabaseClient
+      .from("subscription_tiers")
+      .select(
+        "tier_name,is_active,stripe_test_monthly_price_id,stripe_test_yearly_price_id,stripe_live_monthly_price_id,stripe_live_yearly_price_id",
       );
+    if (tierError || !tiers) {
+      throw new Error("SUBSCRIPTION_TIER_CONFIG_UNAVAILABLE");
+    }
+    const subscriptionTier = resolveConfiguredSubscriptionTier(
+      tiers,
+      priceId,
+      stripeMode,
+      metadataTier,
+    );
+    const subscriptionEnd = getCurrentPeriodEndISO(subscription);
+    const normalizedStatus = normalizeStripeSubscriptionStatus(
+      subscription.status,
+      "created",
+    );
+
+    // One database transaction owns users + subscribers + monotonic subscription
+    // state. A write error is fatal and can no longer be reported as activation.
+    const { data: applyResult, error: applyError } = await supabaseClient.rpc(
+      "apply_stripe_subscription_event",
+      {
+        p_event_id: `checkout-session-verification:${checkoutSession.id}`,
+        p_event_created: Math.max(
+          checkoutSession.created ?? 0,
+          subscription.created ?? 0,
+        ),
+        p_stripe_mode: stripeMode,
+        p_event_kind: "created",
+        p_subscription_id: subscription.id,
+        p_customer_id: verifiedSession.customerId,
+        p_user_id: verifiedSession.userId,
+        p_user_email: checkoutSession.customer_details?.email ??
+          authData.user.email ?? null,
+        p_stripe_status: normalizedStatus,
+        p_tier: subscriptionTier,
+        p_period_end: subscriptionEnd,
+        p_cancel_at_period_end: subscription.cancel_at_period_end === true,
+      },
+    );
+    const applied = applyResult as { success?: boolean } | null;
+    if (applyError || applied?.success !== true) {
+      throw new Error("SUBSCRIPTION_ACTIVATION_PERSISTENCE_FAILED");
     }
 
-    const customerId = checkoutSession.customer as string;
-    logStep("Payment verified", { userId, customerId });
-
-    // Get active subscriptions for this customer
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-
-    const hasActiveSub = subscriptions.data.length > 0;
-    // R46 (defensive, same bug class as check-subscription; this function is
-    // confirmed dead code per R44 doctrine, 0 live call sites, but fixed anyway so a
-    // future caller doesn't inherit the same landmine): Stripe keeps .status='active'
-    // for a subscription whose cancellation is only scheduled.
-    const cancelPending = hasActiveSub && subscriptions.data[0].cancel_at_period_end === true;
-    let subscriptionTier = null;
-    let subscriptionEnd = null;
-
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      // Stripe >=2025-03-31 moved current_period_end onto the items; resolve safely
-      // (the old top-level read became new Date(NaN).toISOString() and threw).
-      subscriptionEnd = getCurrentPeriodEndISO(subscription);
-
-      // Get tier from metadata first
-      subscriptionTier = subscription.metadata?.tier_name || subscription.metadata?.tier;
-      
-      if (!subscriptionTier || subscriptionTier === 'unknown') {
-        // Fallback: query database to map price ID to tier
-        const priceId = subscription.items.data[0].price.id;
-        logStep("Determining tier from price ID", { priceId });
-
-        // Query subscription_tiers table for price ID mapping
-        const { data: tiers, error: tierError } = await supabaseClient
-          .from('subscription_tiers')
-          .select('tier_name, stripe_test_monthly_price_id, stripe_test_yearly_price_id, stripe_live_monthly_price_id, stripe_live_yearly_price_id');
-        
-        if (tierError) {
-          logStep("Error fetching subscription tiers", { error: tierError });
-          subscriptionTier = 'starter'; // Safe fallback
-        } else {
-          // Find matching tier by price ID (supports test and live modes)
-          const matchingTier = tiers.find(t => 
-            t.stripe_test_monthly_price_id === priceId ||
-            t.stripe_test_yearly_price_id === priceId ||
-            t.stripe_live_monthly_price_id === priceId ||
-            t.stripe_live_yearly_price_id === priceId
-          );
-          
-          if (matchingTier) {
-            subscriptionTier = matchingTier.tier_name;
-            logStep("Mapped price ID to tier from database", { priceId, tier: subscriptionTier });
-          } else {
-            // Final fallback: price-based determination
-            const price = await stripe.prices.retrieve(priceId);
-            const amount = price.unit_amount || 0;
-            logStep("Unknown price ID, using amount-based fallback", { priceId, amount });
-            
-            const centAmount = amount;
-            if (centAmount <= 3000) {
-              subscriptionTier = 'starter';
-            } else if (centAmount <= 6000) {
-              subscriptionTier = 'professional';
-            } else {
-              subscriptionTier = 'enterprise';
-            }
-            
-            logStep("⚠️ Unknown price ID detected", { priceId, tier: subscriptionTier, amount: centAmount });
-          }
-        }
-      }
-      
-      logStep("Active subscription found", { 
-        subscriptionId: subscription.id, 
-        tier: subscriptionTier,
-        endDate: subscriptionEnd 
-      });
-    }
-
-    // R44 (same bug class as R43's check-subscription trial-destruction fix):
-    // hasActiveSub===false does NOT mean "this user has no subscription", it means
-    // "Stripe reports zero subscriptions with status:'active' for this customer right
-    // now". A user re-hitting /success (page refresh, back/forward, slow-network
-    // double-submit) with a still-active trial (subscription_status='trial', a future
-    // trial_end_date, set correctly by handle_new_user()) would otherwise be silently
-    // downgraded to 'expired'/null here, exactly like the pre-fix check-subscription
-    // bug. Read the row first and skip the destructive write when the trial is still
-    // genuinely live; only fall through to the downgrade when it is not.
-    let trialStillActive = false;
-    let currentUser: { subscription_status?: string | null; subscription_tier?: string | null; trial_end_date?: string | null } | null = null;
-    if (!hasActiveSub) {
-      const { data } = await supabaseClient
+    // A stale callback is allowed to no-op only when the durable current state still
+    // matches this exact subscription. Both reads are checked; no ignored PostgREST
+    // error may reach the success response.
+    const [userRead, subscriberRead] = await Promise.all([
+      supabaseClient
         .from("users")
-        .select("subscription_status, subscription_tier, trial_end_date")
-        .eq("id", userId)
-        .maybeSingle();
-      currentUser = data;
-      trialStillActive =
-        currentUser?.subscription_status === 'trial' &&
-        !!currentUser.trial_end_date &&
-        new Date(currentUser.trial_end_date) > new Date();
+        .select(
+          "subscription_status,subscription_tier,payment_status,cancel_at_period_end",
+        )
+        .eq("id", verifiedSession.userId)
+        .maybeSingle(),
+      supabaseClient
+        .from("subscribers")
+        .select(
+          "user_id,stripe_customer_id,stripe_subscription_id,stripe_mode,subscribed,subscription_tier,subscription_end",
+        )
+        .eq("user_id", verifiedSession.userId)
+        .maybeSingle(),
+    ]);
+    if (userRead.error || subscriberRead.error) {
+      throw new Error("SUBSCRIPTION_ACTIVATION_READBACK_FAILED");
+    }
+    const userState = userRead.data;
+    const subscriberState = subscriberRead.data;
+    const userStateMatches = userState?.payment_status === "paid" &&
+      (
+        userState.subscription_status === "active" ||
+        (
+          userState.subscription_status === "canceled" &&
+          userState.cancel_at_period_end === true
+        )
+      );
+    const subscriberStateMatches = subscriberState?.user_id ===
+        verifiedSession.userId &&
+      subscriberState.stripe_customer_id === verifiedSession.customerId &&
+      subscriberState.stripe_subscription_id === subscription.id &&
+      subscriberState.stripe_mode === stripeMode &&
+      subscriberState.subscribed === true &&
+      subscriberState.subscription_tier === subscriptionTier;
+    if (!userStateMatches || !subscriberStateMatches) {
+      throw new Error("SUBSCRIPTION_ACTIVATION_READBACK_MISMATCH");
     }
 
-    if (trialStillActive && currentUser) {
-      logStep("No active Stripe subscription yet, but an active trial exists, preserving trial state (no downgrade)", {
-        trial_end_date: currentUser.trial_end_date,
-      });
-      return new Response(JSON.stringify({
-        success: true,
-        subscribed: false,
-        subscription_tier: currentUser.subscription_tier,
-        subscription_end: null,
-        payment_status: 'trialing',
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
-
-    // Update user in database. R46: a pending cancel reuses 'canceled' (the state
-    // get_user_status_type() already knows how to route), not 'active'.
-    const newSubscriptionStatus = hasActiveSub ? (cancelPending ? 'canceled' : 'active') : 'expired';
-    const updateResult = await supabaseClient.from("users").update({
-      subscription_status: newSubscriptionStatus,
-      subscription_tier: subscriptionTier,
-      subscription_end_date: subscriptionEnd,
-      payment_status: hasActiveSub ? 'paid' : 'unpaid',
-      cancel_at_period_end: cancelPending,
-      // active/expired never carry a grace window, clear any stale one (same
-      // grace-consistency fix as check-subscription / the webhook handlers).
-      grace_period_end: null,
-      updated_at: new Date().toISOString(),
-    }).eq('id', userId);
-
-    logStep("Database update", {
-      error: updateResult.error,
-      subscription_status: newSubscriptionStatus,
-      subscription_tier: subscriptionTier
-    });
-
-    // Also update subscribers table
-    await supabaseClient.from("subscribers").upsert({
-      user_id: userId,
-      email: checkoutSession.customer_details?.email || '',
-      stripe_customer_id: customerId,
-      subscribed: hasActiveSub,
-      subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
-      updated_at: new Date().toISOString(),
-    }, {
-      onConflict: 'user_id',
-      ignoreDuplicates: false
-    });
-
-    // (Removed) auth-session minting. The caller is already authenticated above, so
-    // no magic-link session is created here — that was the account-takeover vector.
-
-    return new Response(JSON.stringify({
+    return json({
       success: true,
-      subscribed: hasActiveSub,
+      subscribed: true,
       subscription_tier: subscriptionTier,
-      subscription_end: subscriptionEnd,
-      payment_status: hasActiveSub ? 'paid' : 'unpaid',
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-    
+      subscription_end: subscriberState.subscription_end ?? subscriptionEnd,
+      payment_status: "paid",
+      checkout_session_id: checkoutSession.id,
+      stripe_subscription_id: subscription.id,
+    }, 200);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
-    
-    return new Response(JSON.stringify({ 
-      success: false,
-      error: errorMessage 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+    console.error("[CHECK-SUB-BY-SESSION] verification failed", {
+      code: errorMessage,
     });
+    return json({ success: false, error: errorMessage }, 500);
   }
 });

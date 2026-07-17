@@ -1,11 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { DashboardMetrics } from './useDashboardAnalytics';
+import type { Database } from '@/integrations/supabase/types';
+import {
+  parseDashboardMetrics,
+  type DashboardMetrics,
+} from './useDashboardAnalytics';
+
+type BookingRow = Database['public']['Tables']['bookings']['Row'];
+type WhatsAppConversationRow = Database['public']['Tables']['whatsapp_conversations']['Row'];
 
 export interface ParallelDashboardData {
   metrics: DashboardMetrics | null;
-  bookings: any[];
-  conversations: any[];
+  bookings: BookingRow[];
+  conversations: WhatsAppConversationRow[];
 }
 
 export const useParallelDashboardData = (calendarId: string | null) => {
@@ -48,19 +55,9 @@ export const useParallelDashboardData = (calendarId: string | null) => {
       // Handle metrics
       let metricsData: DashboardMetrics | null = null;
       if (metricsResponse.data && typeof metricsResponse.data === 'object') {
-        const data = metricsResponse.data as Record<string, any>;
-        metricsData = {
-          today_bookings: Number(data.today_bookings) || 0,
-          pending_bookings: Number(data.pending_bookings) || 0,
-          week_bookings: Number(data.week_bookings) || 0,
-          month_bookings: Number(data.month_bookings) || 0,
-          total_revenue: Number(data.total_revenue) || 0,
-          conversion_rate: Number(data.conversion_rate) || 0,
-          avg_response_time: Number(data.avg_response_time) || 0,
-          whatsapp_conversations: Number(data.whatsapp_conversations) || 0,
-          whatsapp_messages_today: Number(data.whatsapp_messages_today) || 0,
-          last_updated: data.last_updated || new Date().toISOString()
-        };
+        metricsData = parseDashboardMetrics(
+          metricsResponse.data as Record<string, unknown>,
+        );
       }
 
       setData({

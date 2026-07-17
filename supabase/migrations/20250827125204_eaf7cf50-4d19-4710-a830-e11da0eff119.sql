@@ -39,6 +39,8 @@ END;
 $function$;
 
 -- Update get_business_available_slots to include double booking and daily limits
+DROP FUNCTION IF EXISTS public.get_business_available_slots(text, uuid, date, integer);
+
 CREATE OR REPLACE FUNCTION public.get_business_available_slots(
   p_calendar_slug text,
   p_service_type_id uuid DEFAULT NULL,

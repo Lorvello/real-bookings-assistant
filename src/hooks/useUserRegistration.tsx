@@ -63,8 +63,6 @@ export const useUserRegistration = () => {
     setLoading(true);
 
     try {
-      console.log('[UserRegistration] Starting comprehensive registration for:', data.email);
-
       // Stap 1: Registreer gebruiker via Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -82,7 +80,6 @@ export const useUserRegistration = () => {
       if (authError) {
         console.error('[UserRegistration] Auth error:', authError);
         let errorMessage = authError.message;
-        let shouldShowToast = true;
         
         // Handle specific authentication errors with user-friendly messages
         if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
@@ -104,13 +101,11 @@ export const useUserRegistration = () => {
           errorMessage = t('userRegistration.error.generic', 'Unable to create account. Please try again or contact support if the issue continues.');
         }
 
-        if (shouldShowToast) {
-          toast({
-            title: t('userRegistration.registrationFailedTitle', 'Registration Failed'),
-            description: errorMessage,
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: t('userRegistration.registrationFailedTitle', 'Registration Failed'),
+          description: errorMessage,
+          variant: "destructive",
+        });
         
         setLoading(false);
         return { success: false, error: errorMessage };
@@ -127,8 +122,6 @@ export const useUserRegistration = () => {
         setLoading(false);
         return { success: false, error: errorMessage };
       }
-
-      console.log('[UserRegistration] Auth successful, user created:', authData.user.id);
 
       console.log('[UserRegistration] Auth completed, user will be in setup_incomplete state');
 

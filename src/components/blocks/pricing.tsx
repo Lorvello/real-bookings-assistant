@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useTranslation } from 'react-i18next';
+import {
+  getPublicEnterpriseClaims,
+  getPublicEnterpriseDescription,
+  getPublicFeatureAvailability,
+} from '@/config/publicFeatureAvailability';
 
 interface PricingPlan {
   name: string;
@@ -35,11 +41,22 @@ export const Pricing: React.FC<PricingProps> = ({
   onPlanSelect,
   showAsSelection = false
 }) => {
+  const { t } = useTranslation('home');
   const [billingPeriod, setBillingPeriod] = useState<string>("yearly");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const publicFeatureAvailability = getPublicFeatureAvailability();
+  const enterpriseClaims = getPublicEnterpriseClaims(publicFeatureAvailability, {
+    canonical: (key, fallback) => t(key, fallback),
+    legacy: (key, fallback) => t(key, fallback),
+    surface: 'home',
+  });
+  const enterpriseDescription = getPublicEnterpriseDescription(
+    publicFeatureAvailability,
+    (key, fallback) => t(key, fallback),
+  );
 
   // Update default features to match actual dashboard capabilities
-  const defaultPlans = [
+  const defaultPlans: PricingPlan[] = [
     {
       name: "Starter",
       price: "30",
@@ -82,17 +99,8 @@ export const Pricing: React.FC<PricingProps> = ({
       price: "Custom",
       yearlyPrice: "Custom",
       period: "/month",
-      description: "Complete business solution with dedicated WhatsApp number and premium support",
-      features: [
-        "Complete professional suite included",
-        
-        "Dedicated WhatsApp Business API with custom branding",
-        "Intelligent voice call routing & distribution",
-        "Omnichannel social media DM orchestration",
-        "Advanced reputation management & review analytics",
-        "Enterprise SLA with dedicated success management",
-        "White-glove onboarding & strategic integration consulting"
-      ],
+      description: enterpriseDescription,
+      features: enterpriseClaims.map(({ text }) => text),
       buttonText: "Contact Sales",
       href: "#",
       isPopular: false,

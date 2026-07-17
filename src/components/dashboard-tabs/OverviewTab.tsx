@@ -7,7 +7,9 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useNextAppointment } from '@/hooks/dashboard/useNextAppointment';
 import { usePopularService } from '@/hooks/dashboard/usePopularService';
 import { useWeeklyInsights } from '@/hooks/dashboard/useWeeklyInsights';
+import { useDashboardAnalytics } from '@/hooks/useDashboardAnalytics';
 import { CalendarManagement } from '@/components/dashboard/CalendarManagement';
+import { EnhancedDashboardMetrics } from '@/components/dashboard/EnhancedDashboardMetrics';
 import { Clock, Star, TrendingUp, TrendingDown, Calendar, User, Award, Activity, Target, ArrowUp, ArrowDown, BarChart3, RefreshCw, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +33,7 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
   const next = useNextAppointment(calendarIds);
   const popular = usePopularService(calendarIds);
   const weekly = useWeeklyInsights(calendarIds);
+  const dashboardMetrics = useDashboardAnalytics();
 
   const { data: nextAppointment } = next;
   const { data: popularService } = popular;
@@ -102,6 +105,23 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
             {t('dashboard.overview.sampleData', 'Sample data')}
           </Badge>
         </div>
+      )}
+      {calendarIds.length === 1 && dashboardMetrics.hasCalendar && (
+        <section aria-label="Current calendar metrics" aria-busy={dashboardMetrics.loading}>
+          {dashboardMetrics.error ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
+              <p className="text-sm text-destructive-foreground">
+                {t('dashboard.overview.metricsError', 'Could not load current calendar metrics.')}
+              </p>
+              <Button variant="secondary" size="sm" onClick={dashboardMetrics.refreshMetrics}>
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+                {t('dashboard.overview.retry', 'Retry')}
+              </Button>
+            </div>
+          ) : (
+            <EnhancedDashboardMetrics analytics={dashboardMetrics.metrics} />
+          )}
+        </section>
       )}
       {/* ── THE SIGNATURE ─────────────────────────────────────────────────
           The glowing "today" hero (SPEC §0): a single dominant panel that is the

@@ -2,29 +2,36 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import {
+  isAccountOwnerRequiredError,
+  requireAccountOwner,
+} from "../_shared/accountOwnerGuard.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[STRIPE-CONNECT-RESET] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     logStep("Function started");
 
-    // Initialize Supabase client
+    // Use the service role only after authenticating the caller; this function
+    // intentionally bypasses RLS for one exact owner-scoped TEST/LIVE row.
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
     );
 
     // Parse request - calendar_id is now optional as we work with account_owner_id
@@ -38,7 +45,8 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseClient.auth
+      .getUser(token);
     if (userError) {
       throw new Error(`Authentication error: ${userError.message}`);
     }
@@ -50,17 +58,21 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Get user data to determine account owner
-    const { data: userAccountData, error: userAccountError } = await supabaseClient
-      .from('users')
-      .select('account_owner_id')
-      .eq('id', user.id)
-      .single();
+    const { data: userAccountData, error: userAccountError } =
+      await supabaseClient
+        .from("users")
+        .select("account_owner_id")
+        .eq("id", user.id)
+        .single();
 
     if (userAccountError) {
       throw new Error(`Failed to fetch user data: ${userAccountError.message}`);
     }
 
-    const accountOwnerId = userAccountData.account_owner_id || user.id;
+    const accountOwnerId = requireAccountOwner(
+      userAccountData.account_owner_id,
+      user.id,
+    );
     logStep("Account owner determined", { accountOwnerId });
 
     // SECURITY (F-V01): pin Stripe mode to the server's STRIPE_MODE, never the client
@@ -68,31 +80,33 @@ serve(async (req) => {
     // LIVE (false), so an authed user could send test_mode:false in a TEST run and
     // delete/reset the LIVE business_stripe_accounts row (cross-environment data
     // loss). validateStripeMode() defaults to test when STRIPE_MODE is unset.
-    const test_mode = validateStripeMode().mode === 'test';
-    const environment = test_mode ? 'test' : 'live';
-    
+    const test_mode = validateStripeMode().mode === "test";
+    const environment = test_mode ? "test" : "live";
+
     // Initialize Stripe to get platform account ID
-    const stripeSecretKey = test_mode 
+    const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+
     if (!stripeSecretKey) {
-      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
+      throw new Error(
+        `Missing Stripe secret key for ${test_mode ? "test" : "live"} mode`,
+      );
     }
-    
+
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
-    
+
     const platformAccount = await stripe.accounts.retrieve();
     const platformAccountId = platformAccount.id;
     logStep("Platform determined", { environment, platformAccountId });
 
     // Delete Stripe account record by account_owner_id for specific platform
     const { error: deleteError } = await supabaseClient
-      .from('business_stripe_accounts')
+      .from("business_stripe_accounts")
       .delete()
-      .eq('account_owner_id', accountOwnerId)
-      .eq('environment', environment)
-      .eq('platform_account_id', platformAccountId);
+      .eq("account_owner_id", accountOwnerId)
+      .eq("environment", environment)
+      .eq("platform_account_id", platformAccountId);
 
     if (deleteError) {
       logStep("Error deleting account", { error: deleteError.message });
@@ -101,23 +115,30 @@ serve(async (req) => {
 
     logStep("Account reset successfully");
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: "Stripe Connect account reset successfully",
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Stripe Connect account reset successfully",
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      },
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    const ownerDenied = isAccountOwnerRequiredError(error);
     logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ 
-      success: false,
-      error: errorMessage 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: errorMessage,
+        ...(ownerDenied ? { code: error.code } : {}),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: ownerDenied ? error.status : 500,
+      },
+    );
   }
 });

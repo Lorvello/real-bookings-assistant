@@ -2,14 +2,19 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
+import {
+  isAccountOwnerRequiredError,
+  requireAccountOwner,
+} from "../_shared/accountOwnerGuard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SYNC-PAYMENT-METHODS] ${step}${detailsStr}`);
 };
 
@@ -21,26 +26,29 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { payment_methods: paymentMethods, calendar_id: calendarId } = await req.json();
+    const { payment_methods: paymentMethods, calendar_id: calendarId } =
+      await req.json();
 
     // SECURITY (F-V05 class): pin the Stripe mode to the server's STRIPE_MODE, never
     // the client body. This fn previously read `test_mode` from the request body, so
     // an authed user could send test_mode:false in a TEST deployment and sync payment
     // methods against a LIVE Stripe client. validateStripeMode() defaults to test.
-    const test_mode = validateStripeMode().mode === 'test';
+    const test_mode = validateStripeMode().mode === "test";
 
     const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+
     if (!stripeSecretKey) {
-      throw new Error(`Stripe ${test_mode ? 'test' : 'live'} secret key not configured`);
+      throw new Error(
+        `Stripe ${test_mode ? "test" : "live"} secret key not configured`,
+      );
     }
-    logStep("Stripe key retrieved", { mode: test_mode ? 'test' : 'live' });
+    logStep("Stripe key retrieved", { mode: test_mode ? "test" : "live" });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error("Supabase environment variables not set");
     }
@@ -55,11 +63,26 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    const { data: userData, error: userError } = await supabaseClient.auth
+      .getUser(token);
     if (userError || !userData.user) {
       throw new Error("Authentication failed");
     }
-    
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("users")
+      .select("account_owner_id")
+      .eq("id", userData.user.id)
+      .single();
+    if (profileError || !profile) {
+      throw new Error(
+        `Failed to fetch user profile: ${
+          profileError?.message ?? "profile missing"
+        }`,
+      );
+    }
+    requireAccountOwner(profile.account_owner_id, userData.user.id);
+
     if (!paymentMethods || !Array.isArray(paymentMethods)) {
       throw new Error("Invalid payment methods provided");
     }
@@ -72,76 +95,99 @@ serve(async (req) => {
     // calendar before syncing payment methods onto its connected Stripe account —
     // otherwise any authenticated user could pass another tenant's calendar_id.
     const { data: ownedCal } = await supabaseClient
-      .from('calendars')
-      .select('id')
-      .eq('id', calendarId)
-      .eq('user_id', userData.user.id)
+      .from("calendars")
+      .select("id")
+      .eq("id", calendarId)
+      .eq("user_id", userData.user.id)
       .maybeSingle();
     if (!ownedCal) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Calendar not found or access denied' }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        JSON.stringify({
+          success: false,
+          error: "Calendar not found or access denied",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        },
       );
     }
 
-    logStep("Request validated", { calendarId, paymentMethods, userId: userData.user.id, testMode: test_mode });
+    logStep("Request validated", {
+      calendarId,
+      paymentMethods,
+      userId: userData.user.id,
+      testMode: test_mode,
+    });
 
     // Initialize Stripe client
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get Stripe account for this user/calendar
-    const environmentFilter = test_mode ? 'test' : 'live';
+    const environmentFilter = test_mode ? "test" : "live";
     const { data: stripeAccount, error: stripeError } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('stripe_account_id')
-      .eq('calendar_id', calendarId)
-      .eq('environment', environmentFilter)
-      .eq('account_status', 'active')
+      .from("business_stripe_accounts")
+      .select("stripe_account_id")
+      .eq("calendar_id", calendarId)
+      .eq("environment", environmentFilter)
+      .eq("account_status", "active")
       .single();
 
     if (stripeError || !stripeAccount) {
-      logStep("No active Stripe account found", { calendarId, environment: environmentFilter });
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Payment methods saved locally. Stripe account not connected yet."
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+      logStep("No active Stripe account found", {
+        calendarId,
+        environment: environmentFilter,
       });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message:
+            "Payment methods saved locally. Stripe account not connected yet.",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
+      );
     }
 
     const stripeAccountId = stripeAccount.stripe_account_id;
-    logStep("Found Stripe account", { stripeAccountId, environment: environmentFilter });
+    logStep("Found Stripe account", {
+      stripeAccountId,
+      environment: environmentFilter,
+    });
 
     // Map payment method names to Stripe payment method types
     const stripeMethodMap: Record<string, string> = {
-      'ideal': 'ideal',
-      'bancontact': 'bancontact',
-      'sofort': 'sofort',
-      'eps': 'eps',
-      'przelewy24': 'p24',
-      'blik': 'blik',
-      'twint': 'twint',
-      'apple-pay': 'card', // Apple Pay uses card processing
-      'google-pay': 'card', // Google Pay uses card processing
-      'revolut-pay': 'card', // Revolut Pay uses card processing
-      'pay-by-bank': 'bacs_debit', // UK Open Banking
-      'cartes-bancaires': 'card', // French card scheme
-      'cards': 'card'
+      "ideal": "ideal",
+      "bancontact": "bancontact",
+      "sofort": "sofort",
+      "eps": "eps",
+      "przelewy24": "p24",
+      "blik": "blik",
+      "twint": "twint",
+      "apple-pay": "card", // Apple Pay uses card processing
+      "google-pay": "card", // Google Pay uses card processing
+      "revolut-pay": "card", // Revolut Pay uses card processing
+      "pay-by-bank": "bacs_debit", // UK Open Banking
+      "cartes-bancaires": "card", // French card scheme
+      "cards": "card",
     };
 
     const enabledMethods = paymentMethods
-      .map(method => stripeMethodMap[method])
+      .map((method) => stripeMethodMap[method])
       .filter(Boolean);
 
     // Always include card as it's the base for Apple Pay, Google Pay, etc.
-    if (!enabledMethods.includes('card') && 
-        (paymentMethods.includes('apple-pay') || 
-         paymentMethods.includes('google-pay') || 
-         paymentMethods.includes('revolut-pay') ||
-         paymentMethods.includes('cartes-bancaires') ||
-         paymentMethods.includes('cards'))) {
-      enabledMethods.push('card');
+    if (
+      !enabledMethods.includes("card") &&
+      (paymentMethods.includes("apple-pay") ||
+        paymentMethods.includes("google-pay") ||
+        paymentMethods.includes("revolut-pay") ||
+        paymentMethods.includes("cartes-bancaires") ||
+        paymentMethods.includes("cards"))
+    ) {
+      enabledMethods.push("card");
     }
 
     logStep("Mapped payment methods", { enabledMethods });
@@ -152,43 +198,61 @@ serve(async (req) => {
         capabilities: enabledMethods.reduce((acc, method) => {
           acc[`${method}_payments`] = { requested: true };
           return acc;
-        }, {} as Record<string, { requested: boolean }>)
+        }, {} as Record<string, { requested: boolean }>),
       });
 
-      logStep("Successfully updated Stripe account capabilities", { stripeAccountId, enabledMethods, environment: environmentFilter });
-
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Payment methods synced with Stripe successfully",
-        test_mode: test_mode
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+      logStep("Successfully updated Stripe account capabilities", {
+        stripeAccountId,
+        enabledMethods,
+        environment: environmentFilter,
       });
 
-    } catch (stripeErr: any) {
-      logStep("Stripe API error", { error: stripeErr.message });
-      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Payment methods synced with Stripe successfully",
+          test_mode: test_mode,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
+      );
+    } catch (stripeErr) {
+      const stripeMessage = stripeErr instanceof Error
+        ? stripeErr.message
+        : String(stripeErr);
+      logStep("Stripe API error", { error: stripeMessage });
+
       // Still return success since the methods are saved locally
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: "Payment methods saved locally. Stripe sync will be retried later.",
-        warning: stripeErr.message,
-        test_mode: test_mode
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message:
+            "Payment methods saved locally. Stripe sync will be retried later.",
+          warning: stripeMessage,
+          test_mode: test_mode,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
+      );
     }
-
-  } catch (error: any) {
-    logStep("ERROR", { message: error.message });
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error.message 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const ownerDenied = isAccountOwnerRequiredError(error);
+    logStep("ERROR", { message: errorMessage });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: errorMessage,
+        ...(ownerDenied ? { code: error.code } : {}),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: ownerDenied ? error.status : 500,
+      },
+    );
   }
 });

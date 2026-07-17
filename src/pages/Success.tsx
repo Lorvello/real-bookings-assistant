@@ -1,26 +1,43 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useProfile } from '@/hooks/useProfile';
+import {
+  getPublicEnterpriseClaims,
+  getPublicFeatureAvailability,
+} from '@/config/publicFeatureAvailability';
+
+type VerificationState = 'verifying' | 'success' | 'error';
+
+const displayTierName = (tierName: string | null | undefined): string | null => {
+  if (tierName === 'starter') return 'Starter';
+  if (tierName === 'professional') return 'Professional';
+  if (tierName === 'enterprise') return 'Enterprise';
+  return null;
+};
 
 export default function Success() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation(['payment', 'app']);
-  const { toast } = useToast();
+  const { t: tHome } = useTranslation('home');
   const { invalidateCache } = useUserStatus();
   const { refetch: refetchProfile } = useProfile();
-  const [isVerifying, setIsVerifying] = useState(true);
+  const publicFeatureAvailability = getPublicFeatureAvailability();
+  const enterpriseClaims = getPublicEnterpriseClaims(publicFeatureAvailability, {
+    canonical: (key, fallback) => tHome(key, fallback),
+    legacy: (key, fallback) => t(key, fallback),
+    surface: 'success',
+  });
+  const [verificationState, setVerificationState] = useState<VerificationState>('verifying');
+  const [verificationAttempt, setVerificationAttempt] = useState(0);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
-  const toastShownRef = useRef(false);
-  const verificationAttemptedRef = useRef(false);
 
   // F-036: /success wraps no DashboardLayout, so the F-035 title effect never runs
   // here and the page previously set no document.title, leaving the browser tab on
@@ -29,133 +46,99 @@ export default function Success() {
   // brand suffix, following the EN<->NL toggle (`t` identity flips on changeLanguage).
   useEffect(() => {
     const suffix = t('app.documentTitleSuffix', { ns: 'app', defaultValue: 'Bookings Assistant' });
-    document.title = `${t('payment.subscription.documentTitle', 'Payment Successful')} | ${suffix}`;
-  }, [t]);
+    const title = verificationState === 'success'
+      ? t('payment.subscription.documentTitle', 'Payment Successful')
+      : verificationState === 'error'
+        ? t('payment.subscription.errorDocumentTitle', 'Payment Verification Failed')
+        : t('payment.subscription.verifyingDocumentTitle', 'Verifying Payment');
+    document.title = `${title} | ${suffix}`;
+  }, [t, verificationState]);
 
   useEffect(() => {
-    // Prevent multiple verification attempts
-    if (verificationAttemptedRef.current) return;
-    verificationAttemptedRef.current = true;
+    let cancelled = false;
 
     const verifySubscription = async () => {
+      setVerificationState('verifying');
+      setSubscriptionTier(null);
+      setCountdown(5);
+
       try {
-        console.log('Starting subscription verification with Stripe session...');
-        
-        // Extract session_id from URL parameters
         const urlParams = new URLSearchParams(location.search);
-        const sessionId = urlParams.get('session_id');
-        
+        const sessionId = urlParams.get('session_id')?.trim();
         if (!sessionId) {
-          throw new Error('No session_id found in URL');
+          throw new Error('A checkout session_id is required.');
         }
-        
-        console.log('Found session ID:', sessionId);
-        
-        // Call the standard check-subscription function to refresh database status
-        console.log('Step 1: Calling check-subscription to update database...');
-        const { data, error } = await supabase.functions.invoke('check-subscription', {
+
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
+        if (sessionError || !accessToken) {
+          throw new Error('An authenticated session is required to verify this checkout.');
+        }
+
+        const { data, error } = await supabase.functions.invoke('check-subscription-by-session', {
+          body: { session_id: sessionId },
           headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
-        
-        console.log('Check-subscription response:', { data, error });
-        
+
         if (error) {
-          throw new Error(`Subscription verification failed: ${error.message || error}`);
+          throw new Error(error.message || 'Checkout verification failed.');
         }
-        
-        if (!data.subscribed) {
-          throw new Error('Subscription not found or inactive after payment');
+
+        if (!data?.success || !data.subscribed || data.payment_status !== 'paid') {
+          throw new Error(data?.error || 'The checkout session is not a confirmed paid subscription.');
         }
-        
-        // Extract tier name and convert to display format
-        const tierName = data.subscription_tier;
-        let displayTier = 'Professional'; // Default fallback
-        
-        if (tierName === 'starter') {
-          displayTier = 'Starter';
-        } else if (tierName === 'professional') {
-          displayTier = 'Professional';
-        } else if (tierName === 'enterprise') {
-          displayTier = 'Enterprise';
+
+        if (!cancelled) {
+          setSubscriptionTier(displayTierName(data.subscription_tier));
+          setVerificationState('success');
         }
-        
-        console.log('Database updated successfully. Tier:', displayTier);
-        setSubscriptionTier(displayTier);
-        
-        // Step 2: Force refresh profile data to ensure it's in sync with database
-        console.log('Step 2: Refreshing profile data...');
-        await refetchProfile();
-        
-        // Step 3: Wait a moment for changes to propagate
-        console.log('Step 3: Waiting for changes to propagate...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Step 4: Directly fetch the definitive user status from database
-        console.log('Step 4: Fetching definitive user status from database...');
-        const { data: userStatusData, error: statusError } = await supabase
-          .rpc('get_user_status_type', { 
-            p_user_id: (await supabase.auth.getUser()).data.user?.id 
-          });
-        
-        if (statusError) {
-          console.error('Error fetching user status:', statusError);
-        } else {
-          console.log('Database user status:', userStatusData);
-          
-          // Step 5: Force update the user status context with the definitive status
-          console.log('Step 5: Updating user status context to:', userStatusData);
-          await invalidateCache(userStatusData || 'paid_subscriber');
+
+        // The checkout-session response is the verification authority. Local
+        // cache refreshes are best-effort and must not leave a confirmed payment
+        // stuck on the verifying screen if one of them is slow or unavailable.
+        void Promise.allSettled([
+          Promise.resolve().then(() => refetchProfile()),
+          Promise.resolve().then(() => invalidateCache('paid_subscriber')),
+        ]);
+      } catch {
+        if (!cancelled) {
+          setVerificationState('error');
         }
-        
-        setIsVerifying(false);
-        
-        // Show success toast
-        if (!toastShownRef.current) {
-          toastShownRef.current = true;
-          toast({
-            title: t('payment.subscription.successTitle', 'Payment Successful!'),
-            description: t('payment.subscription.toastActivatedDesc', 'Your {{tier}} subscription has been activated.', { tier: displayTier }),
-          });
-        }
-        
-        console.log('Subscription verification completed successfully!');
-        
-        
-      } catch (error) {
-        console.error('Error during verification:', error);
-        setIsVerifying(false);
-        
-        if (!toastShownRef.current) {
-          toastShownRef.current = true;
-          toast({
-            title: t('payment.subscription.toastIssueTitle', 'Verification Issue'),
-            description: t('payment.subscription.toastIssueDesc', 'Your payment was successful! Please check your dashboard or contact support if needed.'),
-            variant: "default",
-          });
-        }
-        setTimeout(() => navigate('/dashboard'), 2000);
       }
     };
 
-    verifySubscription();
-  }, [toast, invalidateCache, navigate, location.search, t]);
+    void verifySubscription();
+    return () => {
+      cancelled = true;
+    };
+  }, [invalidateCache, location.search, refetchProfile, verificationAttempt]);
 
   useEffect(() => {
-    if (!isVerifying && countdown > 0) {
+    if (verificationState !== 'success') return;
+
+    if (countdown > 0) {
       const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
+        setCountdown((current) => current - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (countdown === 0) {
-        navigate('/dashboard?from=payment-success');
     }
-  }, [countdown, isVerifying, navigate]);
+
+    navigate('/dashboard?from=payment-success');
+  }, [countdown, navigate, verificationState]);
 
   const handleGoToDashboard = () => {
     navigate('/dashboard?from=payment-success');
   };
+
+  const handleRetry = () => {
+    setVerificationAttempt((attempt) => attempt + 1);
+  };
+
+  const isVerifying = verificationState === 'verifying';
+  const isSuccess = verificationState === 'success';
+  const isError = verificationState === 'error';
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#0a0f1a] flex items-center justify-center p-4 text-white">
@@ -166,33 +149,43 @@ export default function Success() {
             'radial-gradient(60% 80% at 50% 0%, hsl(142 69% 45% / 0.18), transparent 70%)',
         }}
       />
-      <Card className="relative w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] text-center shadow-2xl shadow-black/40 backdrop-blur">
+      <Card
+        className="relative w-full max-w-md rounded-2xl border-white/10 bg-white/[0.025] text-center shadow-2xl shadow-black/40 backdrop-blur"
+        role={isVerifying ? 'status' : isError ? 'alert' : undefined}
+        aria-live={isVerifying ? 'polite' : isError ? 'assertive' : undefined}
+      >
         <CardHeader className="pb-4">
           <div className="mx-auto mb-4">
             {isVerifying ? (
-              <Loader2 className="h-16 w-16 text-primary animate-spin" />
+              <Loader2 aria-hidden="true" className="h-16 w-16 text-primary animate-spin" />
+            ) : isSuccess ? (
+              <CheckCircle2 aria-hidden="true" className="h-16 w-16 text-green-500" />
             ) : (
-              <CheckCircle2 className="h-16 w-16 text-green-500" />
+              <XCircle aria-hidden="true" className="h-16 w-16 text-destructive" />
             )}
           </div>
           <CardTitle className="text-2xl">
             {isVerifying
               ? t('payment.subscription.verifyingTitle', 'Verifying Subscription...')
-              : t('payment.subscription.successTitle', 'Payment Successful!')}
+              : isSuccess
+                ? t('payment.subscription.successTitle', 'Payment Successful!')
+                : t('payment.subscription.errorTitle', 'Payment Could Not Be Verified')}
           </CardTitle>
           <CardDescription>
             {isVerifying ? (
               t('payment.subscription.checkingStatus', 'We are checking your subscription status...')
-            ) : subscriptionTier ? (
+            ) : isSuccess && subscriptionTier ? (
               t('payment.subscription.descActivatedTier', 'Your {{tier}} subscription has been successfully activated.', { tier: subscriptionTier })
-            ) : (
+            ) : isSuccess ? (
               t('payment.subscription.descActivated', 'Your subscription has been successfully activated.')
+            ) : (
+              t('payment.subscription.errorDescription', 'We could not verify this payment. No subscription activation has been confirmed.')
             )}
           </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {!isVerifying && (
+          {isSuccess && (
             <>
               {subscriptionTier && (
               <div className="bg-muted/50 p-4 rounded-lg">
@@ -220,16 +213,9 @@ export default function Success() {
                     </>
                   )}
                   {subscriptionTier === 'Enterprise' && (
-                    <>
-                      <li>• {t('payment.subscription.features.enterprise.f1', 'Complete professional suite included')}</li>
-
-                      <li>• {t('payment.subscription.features.enterprise.f2', 'Dedicated WhatsApp Business API with custom branding')}</li>
-                      <li>• {t('payment.subscription.features.enterprise.f3', 'Intelligent voice call routing & distribution')}</li>
-                      <li>• {t('payment.subscription.features.enterprise.f4', 'Omnichannel social media DM orchestration')}</li>
-                      <li>• {t('payment.subscription.features.enterprise.f5', 'Advanced reputation management & review analytics')}</li>
-                      <li>• {t('payment.subscription.features.enterprise.f6', 'Enterprise SLA with dedicated success management')}</li>
-                      <li>• {t('payment.subscription.features.enterprise.f7', 'White-glove onboarding & strategic integration consulting')}</li>
-                    </>
+                    enterpriseClaims.map((claim) => (
+                      <li key={claim.id}>• {claim.text}</li>
+                    ))
                   )}
                 </ul>
               </div>
@@ -250,6 +236,16 @@ export default function Success() {
                 </p>
               </div>
             </>
+          )}
+          {isError && (
+            <div className="flex flex-col gap-3">
+              <Button type="button" onClick={handleRetry} className="w-full">
+                {t('payment.subscription.retryVerification', 'Try again')}
+              </Button>
+              <Button type="button" onClick={handleGoToDashboard} variant="outline" className="w-full">
+                {t('payment.subscription.goToDashboard', 'Go to Dashboard')}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -7,6 +7,7 @@ import { useNavigationGuard } from '@/contexts/NavigationGuardContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useCalendarLimits } from '@/hooks/useSubscriptionLimits';
 import { useAccessControl } from '@/hooks/useAccessControl';
+import type { Calendar } from '@/types/database';
 
 interface TeamMember {
   email: string;
@@ -41,7 +42,7 @@ interface CreateCalendarData {
   availability?: Record<string, DayAvailability>;
 }
 
-export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
+export const useCreateCalendar = (onSuccess?: (calendar: Calendar) => void) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation('notifications');
@@ -277,13 +278,13 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
                 });
 
               if (inviteError) {
-                console.error(`Error inviting ${member.email}:`, inviteError);
+                console.error('Error inviting calendar member:', inviteError);
               }
             } else {
-              console.log(`User ${member.email} not found - they would need to be invited when they sign up`);
+              console.log('Calendar member is not registered; invitation remains pending');
             }
           } catch (error) {
-            console.error(`Error processing team member ${member.email}:`, error);
+            console.error('Error processing calendar member:', error);
           }
         }
       }
@@ -358,25 +359,31 @@ export const useCreateCalendar = (onSuccess?: (calendar: any) => void) => {
       await new Promise(resolve => setTimeout(resolve, 200));
       
       console.log('Calendar refresh completed, selecting new calendar');
-      guardedAction(() => selectCalendar(calendar as any));
+      guardedAction(() => selectCalendar(calendar as Calendar));
 
       // Call success callback if provided
       if (onSuccess) {
-        onSuccess(calendar);
+        onSuccess(calendar as Calendar);
       }
 
       return calendar;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating calendar:', error);
+
+      const details = typeof error === 'object' && error !== null
+        ? error as { code?: unknown; message?: unknown }
+        : {};
+      const code = typeof details.code === 'string' ? details.code : '';
+      const message = typeof details.message === 'string' ? details.message : '';
       
       let errorMessage = t('createCalendar.createErrorDefaultDescription', 'Could not create calendar');
 
-      if (error.code === '42501') {
+      if (code === '42501') {
         errorMessage = t('createCalendar.createErrorPermissionDescription', "You don't have permission to create a calendar. Try logging in again.");
-      } else if (error.code === '23505') {
+      } else if (code === '23505') {
         errorMessage = t('createCalendar.createErrorDuplicateDescription', 'A calendar with this name already exists');
-      } else if (error.message) {
-        errorMessage = error.message;
+      } else if (message) {
+        errorMessage = message;
       }
 
       toast({

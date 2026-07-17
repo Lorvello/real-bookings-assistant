@@ -7,34 +7,132 @@
 // Body: { phone, calendar_id, message, contact_name? }
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { buildSystemPrompt, DEFAULT_WHATSAPP_WELCOME, type ServiceInfo } from "./prompt.ts";
-import { createTools, fetchBusinessData, formatCancellationPolicyNL, formatHoursNL, getCalendarDateOverrides, getCalendarPolicy, getCalendarWeeklyHours, nlWhen } from "./tools.ts";
-import { classifyHardConfirm, stripLeadingTrackingCode } from "./hardConfirmGate.ts";
-import { collectTurnSlots, enforceSlotOffer, extractOfferedClockTimes, noQueryGroundedReply, OFFER_CONTEXT_RE } from "./slotOfferGuard.ts";
-import { buildDeterministicDateAlternatives, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
-import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
-import { enforceNoFalseConfirmation, noFalseConfirmReply } from "./confirmationGuard.ts";
+import {
+  buildSystemPrompt,
+  DEFAULT_WHATSAPP_WELCOME,
+  type ServiceInfo,
+} from "./prompt.ts";
+import {
+  createTools,
+  fetchBusinessData,
+  formatCancellationPolicyNL,
+  formatHoursNL,
+  getCalendarDateOverrides,
+  getCalendarPolicy,
+  getCalendarWeeklyHours,
+  nlWhen,
+} from "./tools.ts";
+import {
+  classifyHardConfirm,
+  stripLeadingTrackingCode,
+} from "./hardConfirmGate.ts";
+import {
+  collectTurnSlots,
+  enforceSlotOffer,
+  extractOfferedClockTimes,
+  noQueryGroundedReply,
+  OFFER_CONTEXT_RE,
+} from "./slotOfferGuard.ts";
+import {
+  buildDeterministicDateAlternatives,
+  extractOfferedDates,
+  mentionsFalsePastClaim,
+  noNearbyOpenDateReply,
+} from "./dateOfferGuard.ts";
+import {
+  enforceRescheduleNoDayDisclosure,
+  extractCarriedForwardDayHint,
+  extractRelativeDayHint,
+  formatCarriedForwardDayHint,
+  formatRelativeDateHint,
+  hasDayMentionAnywhere,
+  rescheduleFlowActiveWithNoDay,
+} from "./relativeDateHint.ts";
+import {
+  enforceNoFalseConfirmation,
+  noFalseConfirmReply,
+} from "./confirmationGuard.ts";
 import { enforceRefundPolicy } from "./refundGuard.ts";
-import { enforceAppointmentNameDisclosure, identityVerificationResolved, bookIdentityVerificationResolved, mentionsOwnAppointmentClaim, enforceVerificationGateDisclosure, enforceExistingAppointmentDisclosure, enforceRescheduleAmbiguityDisclosure, messageNamesPendingBookOwner, RESCHEDULE_VERB_RE, cancelToolCallHadPolicyRefusal, type AppointmentForDisclosure } from "./identityDisambiguationGuard.ts";
-import { enforcePriceClaim, PRICE_INTENT_RE, buildRealPriceSet, realPriceReply, type PricedService } from "./priceGuard.ts";
+import {
+  type AppointmentForDisclosure,
+  bookIdentityVerificationResolved,
+  cancelToolCallHadPolicyRefusal,
+  enforceAppointmentNameDisclosure,
+  enforceExistingAppointmentDisclosure,
+  enforceRescheduleAmbiguityDisclosure,
+  enforceVerificationGateDisclosure,
+  identityVerificationResolved,
+  mentionsOwnAppointmentClaim,
+  messageNamesPendingBookOwner,
+  RESCHEDULE_VERB_RE,
+} from "./identityDisambiguationGuard.ts";
+import {
+  buildRealPriceSet,
+  enforcePriceClaim,
+  PRICE_INTENT_RE,
+  type PricedService,
+  realPriceReply,
+} from "./priceGuard.ts";
 import { enforceNoPolicyHallucination } from "./policyClaimGuard.ts";
-import { enforceNoOwnerEscalationClaim, noOwnerEscalationReply } from "./ownerEscalationGuard.ts";
+import {
+  enforceNoOwnerEscalationClaim,
+  noOwnerEscalationReply,
+} from "./ownerEscalationGuard.ts";
 import { classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
-import { buildGroundingSummary, classifyBusinessDataGroundingRobust, noUngroundedClaimReply } from "./businessDataGuard.ts";
+import {
+  buildGroundingSummary,
+  classifyBusinessDataGroundingRobust,
+  noUngroundedClaimReply,
+} from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
-import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, mentionsDistinguishing, type RecencyWindowMessage, type RecencyWindowDirection } from "./serviceDisambiguationGuard.ts";
-import { computePendingBookInterveningExchange, matchesAbandonPreviousPreview, matchesSecondBookingDifferentPerson, messageRestatesPendingBookTime } from "./pendingBookGuard.ts";
-import { detectDateMismatch, detectThreadHijackNameMismatch, detectThreadHijackReadOnlyDisclosure, detectThreadHijackWrongOwner, findCommittedBookingDate, pickThreadHijackAlert, writeMonitoringAlert } from "./monitoringAlerts.ts";
-import { runAgent, type Content } from "./llm.ts";
-import { detectCustomerLanguage, detectLanguageSignal } from "./languageSignal.ts";
-import { resolveCandidateCalendarIds, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
+import {
+  enforceReturningServiceDisclosure,
+  findDistinctServiceForReschedule,
+  mentionsAnyServiceName,
+  mentionsDistinguishing,
+  type RecencyWindowDirection,
+  type RecencyWindowMessage,
+  shouldBlockForAmbiguousBranch,
+  shouldBlockForMissingServiceChoice,
+  shouldBlockForMultiServiceRequest,
+  shouldBlockReturningServiceDefault,
+} from "./serviceDisambiguationGuard.ts";
+import {
+  computePendingBookInterveningExchange,
+  matchesAbandonPreviousPreview,
+  matchesSecondBookingDifferentPerson,
+  messageRestatesPendingBookTime,
+} from "./pendingBookGuard.ts";
+import {
+  detectDateMismatch,
+  detectThreadHijackNameMismatch,
+  detectThreadHijackReadOnlyDisclosure,
+  detectThreadHijackWrongOwner,
+  findCommittedBookingDate,
+  pickThreadHijackAlert,
+  writeMonitoringAlert,
+} from "./monitoringAlerts.ts";
+import { type Content, runAgent } from "./llm.ts";
+import {
+  detectCustomerLanguage,
+  detectLanguageSignal,
+} from "./languageSignal.ts";
+import {
+  enforceNoRedundantLocationAsk,
+  resolveCandidateCalendarIds,
+  scopeToCurrentTopicWindow,
+} from "./preFilterCalendars.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
-import { sanitizeReply, countCustomerQuestions } from "../_shared/sanitizeReply.ts";
+import {
+  countCustomerQuestions,
+  sanitizeReply,
+} from "../_shared/sanitizeReply.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Module-scope service-role client (B2 latency quick-win). Created ONCE per warm isolate
@@ -60,14 +158,22 @@ const supabase = createClient(
 // fire-and-forget with `.catch()` logging if the runtime ever lacks it. Errors inside the
 // background promise are always caught and logged server-side, never thrown into the void.
 function runInBackground(p: Promise<unknown>): void {
-  const er = (globalThis as { EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void } }).EdgeRuntime;
-  if (er?.waitUntil) er.waitUntil(p.catch((e) => console.error("bg task error:", e)));
-  else p.catch((e) => console.error("bg task error:", e));
+  const er = (globalThis as {
+    EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void };
+  }).EdgeRuntime;
+  if (er?.waitUntil) {
+    er.waitUntil(p.catch((e) => console.error("bg task error:", e)));
+  } else p.catch((e) => console.error("bg task error:", e));
 }
 
 function nlTime(d: Date): string {
   const tz = "Europe/Amsterdam";
-  const time = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: tz });
+  const time = d.toLocaleTimeString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: tz,
+  });
   const day = d.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz });
   const month = d.toLocaleDateString("nl-NL", { month: "long", timeZone: tz });
   return `${time} ${day} ${month} ${d.getFullYear()}`;
@@ -102,7 +208,10 @@ function buildCalendarHint(
   now: Date,
   byDay: Record<string, { open: boolean; start?: string; end?: string }> | null,
   includeStatus = true,
-  dateOverrides?: Record<string, { isAvailable: boolean; start?: string; end?: string }>,
+  dateOverrides?: Record<
+    string,
+    { isAvailable: boolean; start?: string; end?: string }
+  >,
 ): string | null {
   if (!byDay) return null;
   const tz = "Europe/Amsterdam";
@@ -112,11 +221,18 @@ function buildCalendarHint(
   const lines: string[] = [];
   for (let i = 0; i < 14; i++) {
     const dt = new Date(Date.UTC(y, m - 1, d + i, 11, 0, 0)); // 11:00 UTC = mid-day Amsterdam (date-safe across DST)
-    const label = dt.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: tz });
+    const label = dt.toLocaleDateString("nl-NL", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      timeZone: tz,
+    });
     const iso = dt.toLocaleDateString("en-CA", { timeZone: tz });
     const mark = i === 0 ? " (vandaag)" : i === 1 ? " (morgen)" : "";
     if (includeStatus) {
-      const dutchDay = cap(dt.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz }));
+      const dutchDay = cap(
+        dt.toLocaleDateString("nl-NL", { weekday: "long", timeZone: tz }),
+      );
       const st = byDay[dutchDay];
       const ov = dateOverrides?.[iso];
       let status: string;
@@ -145,8 +261,18 @@ function buildCalendarHint(
 function enWhen(iso: string | undefined, fallback: string): string {
   if (!iso) return fallback;
   const d = new Date(iso);
-  const date = d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Amsterdam" });
-  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" });
+  const date = d.toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "Europe/Amsterdam",
+  });
+  const time = d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Europe/Amsterdam",
+  });
   return `${date} ${time}`;
 }
 
@@ -168,49 +294,109 @@ function money(n: number): string {
 }
 
 function formatInstallmentSplit(
-  info: { price: number | null; parts?: Array<{ percentage: number; timing: string; hours?: number }>; fixedDepositAmount?: number } | null | undefined,
+  info:
+    | {
+      price: number | null;
+      parts?: Array<{ percentage?: number; amount?: number; timing: string }>;
+      fixedDepositAmount?: number;
+    }
+    | null
+    | undefined,
   en: boolean,
 ): string | null {
   if (!info) return null;
-  const timingText = (timing: string, hours?: number) => {
+  const timingText = (timing: string) => {
     if (timing === "now") return en ? "now" : "nu";
-    if (timing === "appointment") return en ? "at the appointment" : "bij de afspraak";
-    if (timing === "hours_after") return en ? `${hours ?? "a few"}h after booking` : `${hours ?? "een paar"} uur na het boeken`;
+    if (timing === "appointment") {
+      return en ? "at the appointment" : "bij de afspraak";
+    }
     return timing;
   };
   if (typeof info.fixedDepositAmount === "number") {
     return en
-      ? `a deposit of ${money(info.fixedDepositAmount)} now, the rest at the appointment`
-      : `een aanbetaling van ${money(info.fixedDepositAmount)} nu, de rest bij de afspraak`;
+      ? `a deposit of ${
+        money(info.fixedDepositAmount)
+      } now, the rest at the appointment`
+      : `een aanbetaling van ${
+        money(info.fixedDepositAmount)
+      } nu, de rest bij de afspraak`;
   }
   if (info.parts && info.parts.length > 0) {
     const segs = info.parts.map((p) => {
-      const amt = typeof info.price === "number" ? ` (${money(Math.round(info.price * p.percentage) / 100)})` : "";
-      return `${p.percentage}% ${timingText(p.timing, p.hours)}${amt}`;
+      const percentageAmount = typeof info.price === "number" &&
+          typeof p.percentage === "number"
+        ? ` (${money(Math.round(info.price * p.percentage) / 100)})`
+        : "";
+      const value = typeof p.percentage === "number"
+        ? `${p.percentage}%`
+        : (typeof p.amount === "number" ? money(p.amount) : "");
+      return `${value} ${timingText(p.timing)}${percentageAmount}`.trim();
     });
     return segs.join(", ");
   }
   return null;
 }
 
+type InstallmentSplitInfo = NonNullable<
+  Parameters<typeof formatInstallmentSplit>[0]
+>;
+
+interface BookingToolResult extends Record<string, unknown> {
+  ok?: boolean;
+  needs_confirmation?: boolean;
+  start_time?: string;
+  when?: string;
+  customer_name?: string;
+  payment_url?: string;
+  price_changed?: boolean;
+  new_price?: number;
+  previous_price?: number;
+  installment?: InstallmentSplitInfo | null;
+  proposal?: {
+    service?: string | null;
+    when?: string;
+    customer_name?: string | null;
+  };
+  cancelled?: {
+    customer_name?: string;
+    calendar_mismatch?: unknown;
+  };
+  rescheduled?: {
+    to?: string;
+    to_start_time?: string;
+    customer_name?: string;
+    calendar_mismatch?: unknown;
+  };
+  renamed?: {
+    when?: string;
+    new_name?: string;
+    calendar_mismatch?: unknown;
+  };
+  new_agenda?: string;
+  booking_renamed?: boolean;
+  new_name?: string;
+}
+
 function deterministicPreview(
   toolCalls: { name: string; result: unknown }[],
   customerLanguage: string | null,
 ): string | null {
-  let pv: Record<string, any> | null = null;
+  let pv: BookingToolResult | null = null;
   for (let i = toolCalls.length - 1; i >= 0; i--) {
     const t = toolCalls[i];
     if (
-      t.name === "book_appointment" && t.result && typeof t.result === "object" &&
+      t.name === "book_appointment" && t.result &&
+      typeof t.result === "object" &&
       (t.result as Record<string, unknown>).needs_confirmation === true &&
       (t.result as Record<string, unknown>).proposal
     ) {
-      pv = t.result as Record<string, any>;
+      pv = t.result as BookingToolResult;
       break;
     }
   }
   if (!pv) return null;
-  const p = pv.proposal as { service?: string | null; when?: string; customer_name?: string | null };
+  const p = pv.proposal;
+  if (!p) return null;
   const en = customerLanguage != null;
   const when = en ? enWhen(pv.start_time, p.when ?? "") : (p.when ?? "");
   if (!when) return null;
@@ -223,15 +409,29 @@ function deterministicPreview(
   const splitText = formatInstallmentSplit(pv.installment, en);
   const splitSentence = splitText
     ? (en
-      ? ` Payment: ${splitText}${typeof pv.installment?.price === "number" ? ` (total ${money(pv.installment.price)})` : ""}.`
-      : ` Betaling: ${splitText}${typeof pv.installment?.price === "number" ? ` (totaal ${money(pv.installment.price)})` : ""}.`)
+      ? ` Payment: ${splitText}${
+        typeof pv.installment?.price === "number"
+          ? ` (total ${money(pv.installment.price)})`
+          : ""
+      }.`
+      : ` Betaling: ${splitText}${
+        typeof pv.installment?.price === "number"
+          ? ` (totaal ${money(pv.installment.price)})`
+          : ""
+      }.`)
     : "";
   if (en) {
-    const head = svc ? `I'll put you down for ${svc} on ${when}` : `I'll put you down for ${when}`;
-    return (name ? `${head} in the name of ${name}. Is that correct?` : `${head}. Is that correct?`) + splitSentence;
+    const head = svc
+      ? `I'll put you down for ${svc} on ${when}`
+      : `I'll put you down for ${when}`;
+    return (name
+      ? `${head} in the name of ${name}. Is that correct?`
+      : `${head}. Is that correct?`) + splitSentence;
   }
   const head = svc ? `Ik zet ${svc} op ${when}` : `Ik zet je op ${when}`;
-  return (name ? `${head} op naam ${name}, klopt dat?` : `${head}, klopt dat?`) + splitSentence;
+  return (name
+    ? `${head} op naam ${name}, klopt dat?`
+    : `${head}, klopt dat?`) + splitSentence;
 }
 
 // R20 (SILENT-DROP-ON-COMPOUND-REQUEST fix, full-journey simulation R19/R20). Root cause: on a
@@ -250,13 +450,19 @@ function deterministicPreview(
 // throughout this codebase for "did the customer name X"), so behaviour is consistent with every
 // sibling guard, not a new ad-hoc heuristic.
 function findUnacknowledgedSecondService(
-  calendarsForPrompt: Array<{ name: string; services: Array<{ name: string }> }> | null,
+  calendarsForPrompt:
+    | Array<{ name: string; services: Array<{ name: string }> }>
+    | null,
   previewedServiceName: string | null,
   rawMessage: string,
 ): { serviceName: string; personOrLocation: string } | null {
-  if (!calendarsForPrompt || calendarsForPrompt.length < 2 || !rawMessage.trim()) return null;
+  if (
+    !calendarsForPrompt || calendarsForPrompt.length < 2 || !rawMessage.trim()
+  ) return null;
   const prevNorm = (previewedServiceName ?? "").trim().toLowerCase();
-  const excludeWords = new Set(prevNorm.split(/\s+/).filter((w) => w.length >= 3));
+  const excludeWords = new Set(
+    prevNorm.split(/\s+/).filter((w) => w.length >= 3),
+  );
   for (const cal of calendarsForPrompt) {
     for (const svc of cal.services) {
       const name = (svc.name ?? "").trim();
@@ -277,9 +483,10 @@ function appendSecondServiceAck(
 ): string {
   if (!second) return previewText;
   const en = customerLanguage != null;
-  return previewText + (en
-    ? ` By the way, I can only schedule one appointment at a time; as soon as this one is confirmed, I'll help you book ${second.serviceName} at ${second.personOrLocation} right after.`
-    : ` Ik kan trouwens maar één afspraak tegelijk inplannen; zodra deze bevestigd is, plan ik meteen ook ${second.serviceName} bij ${second.personOrLocation} in.`);
+  return previewText +
+    (en
+      ? ` By the way, I can only schedule one appointment at a time; as soon as this one is confirmed, I'll help you book ${second.serviceName} at ${second.personOrLocation} right after.`
+      : ` Ik kan trouwens maar één afspraak tegelijk inplannen; zodra deze bevestigd is, plan ik meteen ook ${second.serviceName} bij ${second.personOrLocation} in.`);
 }
 
 // R128 (SILENT-PRICE-DROP-ON-MIXED-PREVIEW/COMMIT fix, full-journey simulation R126/R127 leftover).
@@ -302,7 +509,10 @@ function appendSecondServiceAck(
 // would forbid the honest option 5B of this fix's spec from ever engaging where real data truly is
 // absent -- realPriceReply always has at least one real price when this fires, since the empty-set
 // case already returns false from findMixedPriceQuestion below.
-function findMixedPriceQuestion(rawMessage: string, priceServices: PricedService[]): boolean {
+function findMixedPriceQuestion(
+  rawMessage: string,
+  priceServices: PricedService[],
+): boolean {
   if (!rawMessage.trim()) return false;
   if (!PRICE_INTENT_RE.test(rawMessage)) return false;
   return buildRealPriceSet(priceServices).size > 0;
@@ -315,10 +525,15 @@ function findMixedPriceQuestion(rawMessage: string, priceServices: PricedService
 // though it is not a false one; a single-service scope reads like a real receptionist's answer.
 // Falls back to the FULL service list when the name is unknown or matches nothing real, so the
 // question is still answered honestly rather than silently skipped.
-function scopeToBookedService(priceServices: PricedService[], serviceName: string | null): PricedService[] {
+function scopeToBookedService(
+  priceServices: PricedService[],
+  serviceName: string | null,
+): PricedService[] {
   if (!serviceName) return priceServices;
   const norm = serviceName.trim().toLowerCase();
-  const match = priceServices.filter((s) => s.name.trim().toLowerCase() === norm);
+  const match = priceServices.filter((s) =>
+    s.name.trim().toLowerCase() === norm
+  );
   return match.length ? match : priceServices;
 }
 
@@ -348,11 +563,14 @@ function deterministicConfirmation(
   customerLanguage: string | null,
   knownSelfName?: string | null,
 ): string | null {
-  const okResult = (name: string): Record<string, any> | null => {
+  const okResult = (name: string): BookingToolResult | null => {
     for (let i = toolCalls.length - 1; i >= 0; i--) {
       const t = toolCalls[i];
-      if (t.name === name && t.result && typeof t.result === "object" && (t.result as Record<string, unknown>).ok === true) {
-        return t.result as Record<string, any>;
+      if (
+        t.name === name && t.result && typeof t.result === "object" &&
+        (t.result as Record<string, unknown>).ok === true
+      ) {
+        return t.result as BookingToolResult;
       }
     }
     return null;
@@ -360,7 +578,9 @@ function deterministicConfirmation(
   const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
   const book = okResult("book_appointment");
   if (book) {
-    const bookWhen = en ? enWhen(book.start_time, book.when) : book.when;
+    const bookWhen = en
+      ? enWhen(book.start_time, book.when ?? "")
+      : (book.when ?? "");
     // R110 (IDEMPOTENT-REBOOK-DISCLOSURE-BYPASS fix): book_appointment's own ok:true result now
     // carries customer_name whenever the tool result is an ALREADY-COMMITTED slot echo (a fresh
     // preview never sets it; see tools.ts's R110 comment on the idempotent-hit branch). This is the
@@ -373,9 +593,13 @@ function deterministicConfirmation(
     // never ran any disclosure check at all (deterministicConfirmation/isCommittedMutation bypassed
     // enforceAppointmentNameDisclosure/enforceNoFalseConfirmation entirely, since neither is ever
     // called on this template branch).
-    const bookName = typeof book.customer_name === "string" && book.customer_name.trim() ? book.customer_name.trim() : null;
-    const selfMatches = !bookName || (typeof knownSelfName === "string" && knownSelfName.trim() &&
-      knownSelfName.trim().toLowerCase() === bookName.toLowerCase());
+    const bookName =
+      typeof book.customer_name === "string" && book.customer_name.trim()
+        ? book.customer_name.trim()
+        : null;
+    const selfMatches = !bookName ||
+      (typeof knownSelfName === "string" && knownSelfName.trim() &&
+        knownSelfName.trim().toLowerCase() === bookName.toLowerCase());
     // R130 (PRICE-INTEGRITY fix): book_appointment's own commit re-reads service_types.price
     // FRESH at commit time (never the stale preview-time value) and snapshots it onto the
     // booking row; when that commit-time price genuinely differs from what the preview showed
@@ -388,11 +612,13 @@ function deterministicConfirmation(
     // rather than left to the model to remember to mention. Prefixed onto EVERY branch below
     // (payment-link, cross-identity, and the common clean confirm) so the disclosure can never
     // be silently dropped by whichever branch happens to also apply this turn.
-    const priceNote = book.price_changed === true && typeof book.new_price === "number" && typeof book.previous_price === "number"
-      ? (en
-        ? `Note: the price for this service has changed since the earlier preview (was €${book.previous_price}, now €${book.new_price}); you've been booked at the CURRENT price. `
-        : `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${book.previous_price}, is nu €${book.new_price}); je bent geboekt tegen de HUIDIGE prijs. `)
-      : "";
+    const priceNote =
+      book.price_changed === true && typeof book.new_price === "number" &&
+        typeof book.previous_price === "number"
+        ? (en
+          ? `Note: the price for this service has changed since the earlier preview (was €${book.previous_price}, now €${book.new_price}); you've been booked at the CURRENT price. `
+          : `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${book.previous_price}, is nu €${book.new_price}); je bent geboekt tegen de HUIDIGE prijs. `)
+        : "";
     if (book.payment_url) {
       return en
         ? `${priceNote}Your spot is reserved for ${bookWhen}. Please complete the payment here to confirm: ${book.payment_url}`
@@ -417,20 +643,33 @@ function deterministicConfirmation(
   // against a calendar/employee other than the one they explicitly named, on EVERY commit path,
   // not left to the model's own (proven unreliable) prose to mention it.
   const calendarMismatchNote = (m: unknown): string => {
-    const mm = m as { statedName?: unknown; actualName?: unknown } | null | undefined;
-    if (!mm || typeof mm.statedName !== "string" || typeof mm.actualName !== "string" || !mm.statedName.trim() || !mm.actualName.trim()) return "";
+    const mm = m as
+      | { statedName?: unknown; actualName?: unknown }
+      | null
+      | undefined;
+    if (
+      !mm || typeof mm.statedName !== "string" ||
+      typeof mm.actualName !== "string" || !mm.statedName.trim() ||
+      !mm.actualName.trim()
+    ) return "";
     return en
       ? `Note: I found the appointment with ${mm.actualName}, not ${mm.statedName}. `
       : `Let op: ik zie de afspraak bij ${mm.actualName}, niet bij ${mm.statedName}. `;
   };
   const resched = okResult("reschedule_appointment");
   if (resched?.rescheduled?.to) {
-    const mismatchNote = calendarMismatchNote(resched.rescheduled.calendar_mismatch);
-    const reWhen = en ? enWhen(resched.rescheduled.to_start_time, resched.rescheduled.to) : resched.rescheduled.to;
+    const mismatchNote = calendarMismatchNote(
+      resched.rescheduled.calendar_mismatch,
+    );
+    const reWhen = en
+      ? enWhen(resched.rescheduled.to_start_time, resched.rescheduled.to)
+      : resched.rescheduled.to;
     // R48: a multi-calendar reschedule may also have switched staff/location (new_agenda set
     // only when it actually changed calendar). Mention it here too, so this Groq-empty-text
     // fallback path stays as complete as the model's own normal composed reply.
-    const newAgenda = typeof resched.new_agenda === "string" ? resched.new_agenda : null;
+    const newAgenda = typeof resched.new_agenda === "string"
+      ? resched.new_agenda
+      : null;
     // R103 (GAP 1 fix): reschedule_appointment's own ok:true result ALREADY carries
     // rescheduled.customer_name whenever a real, distinct name is on file (see tools.ts's own
     // R102 comment near its reschedule commit), specifically so this final reply can name whose
@@ -441,30 +680,58 @@ function deterministicConfirmation(
     // one turn earlier correctly named it. Mirrors the enforceAppointmentNameDisclosure backstop
     // pattern (deterministic rewrite from real data, not a prompt instruction) rather than trusting
     // the model to re-state a name it never even sees rendered into this template.
-    const reName = typeof resched.rescheduled.customer_name === "string" && resched.rescheduled.customer_name.trim()
+    const reName = typeof resched.rescheduled.customer_name === "string" &&
+        resched.rescheduled.customer_name.trim()
       ? resched.rescheduled.customer_name.trim()
       : null;
     if (newAgenda) {
       return en
-        ? `${mismatchNote}${reName ? `Done, ${reName}'s appointment is now on ${reWhen} with ${newAgenda}.` : `Done, your appointment is now on ${reWhen} with ${newAgenda}.`}`
-        : `${mismatchNote}${reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen} bij ${newAgenda}.` : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`}`;
+        ? `${mismatchNote}${
+          reName
+            ? `Done, ${reName}'s appointment is now on ${reWhen} with ${newAgenda}.`
+            : `Done, your appointment is now on ${reWhen} with ${newAgenda}.`
+        }`
+        : `${mismatchNote}${
+          reName
+            ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen} bij ${newAgenda}.`
+            : `Gedaan, je afspraak staat nu op ${reWhen} bij ${newAgenda}.`
+        }`;
     }
     return en
-      ? `${mismatchNote}${reName ? `Done, ${reName}'s appointment is now on ${reWhen}.` : `Done, your appointment is now on ${reWhen}.`}`
-      : `${mismatchNote}${reName ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen}.` : `Gedaan, je afspraak staat nu op ${reWhen}.`}`;
+      ? `${mismatchNote}${
+        reName
+          ? `Done, ${reName}'s appointment is now on ${reWhen}.`
+          : `Done, your appointment is now on ${reWhen}.`
+      }`
+      : `${mismatchNote}${
+        reName
+          ? `Gedaan, de afspraak van ${reName} staat nu op ${reWhen}.`
+          : `Gedaan, je afspraak staat nu op ${reWhen}.`
+      }`;
   }
   const cancel = okResult("cancel_appointment");
   if (cancel?.cancelled) {
     // R103 (GAP 1 fix, same reasoning as reschedule above): cancel_appointment's own ok:true result
     // already carries cancelled.customer_name (tools.ts's own R102 comment near its cancel commit),
     // added specifically so this reply could disclose it; this template simply never read the field.
-    const cancelName = typeof cancel.cancelled.customer_name === "string" && cancel.cancelled.customer_name.trim()
+    const cancelName = typeof cancel.cancelled.customer_name === "string" &&
+        cancel.cancelled.customer_name.trim()
       ? cancel.cancelled.customer_name.trim()
       : null;
-    const mismatchNote = calendarMismatchNote(cancel.cancelled.calendar_mismatch);
+    const mismatchNote = calendarMismatchNote(
+      cancel.cancelled.calendar_mismatch,
+    );
     return en
-      ? `${mismatchNote}${cancelName ? `Done, ${cancelName}'s appointment has been cancelled.` : `Done, your appointment has been cancelled.`}`
-      : `${mismatchNote}${cancelName ? `Gedaan, de afspraak van ${cancelName} is geannuleerd.` : `Gedaan, je afspraak is geannuleerd.`}`;
+      ? `${mismatchNote}${
+        cancelName
+          ? `Done, ${cancelName}'s appointment has been cancelled.`
+          : `Done, your appointment has been cancelled.`
+      }`
+      : `${mismatchNote}${
+        cancelName
+          ? `Gedaan, de afspraak van ${cancelName} is geannuleerd.`
+          : `Gedaan, je afspraak is geannuleerd.`
+      }`;
   }
   // R40: update_booking_name commit. no_change (name was already that) is deliberately NOT
   // handled here: it never satisfies isCommittedMutation (no r.renamed), so stopOnToolResult
@@ -472,7 +739,9 @@ function deterministicConfirmation(
   // that isn't a genuine commit.
   const renamed = okResult("update_booking_name");
   if (renamed?.renamed) {
-    const mismatchNote = calendarMismatchNote(renamed.renamed.calendar_mismatch);
+    const mismatchNote = calendarMismatchNote(
+      renamed.renamed.calendar_mismatch,
+    );
     return en
       ? `${mismatchNote}Done, the name on your appointment (${renamed.renamed.when}) is now ${renamed.renamed.new_name}.`
       : `${mismatchNote}Gedaan, de naam op je afspraak (${renamed.renamed.when}) is nu ${renamed.renamed.new_name}.`;
@@ -484,10 +753,17 @@ function deterministicConfirmation(
   // code-templated reply guarantee as every other commit here, never left to free model prose.
   const leadRename = okResult("update_lead");
   if (leadRename?.booking_renamed === true) {
-    const newName = typeof leadRename.new_name === "string" && leadRename.new_name.trim() ? leadRename.new_name.trim() : null;
+    const newName =
+      typeof leadRename.new_name === "string" && leadRename.new_name.trim()
+        ? leadRename.new_name.trim()
+        : null;
     return en
-      ? (newName ? `Got it, your appointment is now under the name ${newName}.` : `Got it, your appointment is now under the name you just gave.`)
-      : (newName ? `Gelukt, je afspraak staat nu op naam van ${newName}.` : `Gelukt, je afspraak staat nu op de naam die je net gaf.`);
+      ? (newName
+        ? `Got it, your appointment is now under the name ${newName}.`
+        : `Got it, your appointment is now under the name you just gave.`)
+      : (newName
+        ? `Gelukt, je afspraak staat nu op naam van ${newName}.`
+        : `Gelukt, je afspraak staat nu op de naam die je net gaf.`);
   }
   return null;
 }
@@ -509,7 +785,11 @@ function deterministicConfirmation(
 // the truth and offer another time. The error carries no proposal, so we never echo a now-invalid
 // time. Gated on the COMMIT turn so a first-PREVIEW "that time isn't free, here are alternatives"
 // (also "niet_beschikbaar") stays model-driven and helpful.
-const BOOK_RACE_LOSS_ERRORS = new Set(["slot_taken", "niet_beschikbaar", "dag_vol"]);
+const BOOK_RACE_LOSS_ERRORS = new Set([
+  "slot_taken",
+  "niet_beschikbaar",
+  "dag_vol",
+]);
 
 // R114 (FALSE-CONFLICT-MESSAGE fix, root-cause of the R113 finding): a BOOK_RACE_LOSS_ERROR on a
 // commit turn used to be treated as unconditional proof that "the sibling's row already occupies
@@ -553,15 +833,27 @@ async function deterministicSlotTaken(
   // and the model's helpful alternatives offer is correct, so we never override it there.
   if (!isCommitTurn) return null;
   const losingResult = toolCalls.find(
-    (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
-      BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)),
+    (t) =>
+      t.name === "book_appointment" && !!t.result &&
+      typeof t.result === "object" &&
+      BOOK_RACE_LOSS_ERRORS.has(
+        String((t.result as Record<string, unknown>).error),
+      ),
   )?.result as Record<string, unknown> | undefined;
   if (!losingResult) return null;
   const en = customerLanguage != null; // a non-Dutch language was detected -> English floor
-  const calId = typeof losingResult.calendar_id === "string" ? losingResult.calendar_id : null;
-  const st = typeof losingResult.start_time === "string" ? losingResult.start_time : null;
-  const et = typeof losingResult.end_time === "string" ? losingResult.end_time : null;
-  const genuineConflict = calId && st && et ? await hasRealConflictingBooking(calId, st, et) : false;
+  const calId = typeof losingResult.calendar_id === "string"
+    ? losingResult.calendar_id
+    : null;
+  const st = typeof losingResult.start_time === "string"
+    ? losingResult.start_time
+    : null;
+  const et = typeof losingResult.end_time === "string"
+    ? losingResult.end_time
+    : null;
+  const genuineConflict = calId && st && et
+    ? await hasRealConflictingBooking(calId, st, et)
+    : false;
   if (genuineConflict) {
     return en
       ? "Sorry, that time was just taken by someone else, so I couldn't book it. Shall I look for another time for you?"
@@ -588,11 +880,13 @@ async function deterministicSlotTaken(
 // be treated as a succeeded mutation downstream).
 function isCommittedMutation(name: string, result: unknown): boolean {
   if (!result || typeof result !== "object") return false;
-  const r = result as Record<string, any>;
+  const r = result as BookingToolResult;
   if (r.ok !== true) return false;
   if (name === "book_appointment") return true;
   if (name === "cancel_appointment") return !!r.cancelled;
-  if (name === "reschedule_appointment") return !!(r.rescheduled && r.rescheduled.to);
+  if (name === "reschedule_appointment") {
+    return !!(r.rescheduled && r.rescheduled.to);
+  }
   if (name === "update_booking_name") return !!r.renamed;
   // R118 (GAP 2 fix): update_lead's own NEW booking_renamed:true shape (tools.ts) is a genuine
   // committed mutation on an EXISTING booking row too (a post-commit name-correction that update_lead
@@ -621,7 +915,9 @@ function isCommittedMutation(name: string, result: unknown): boolean {
 // no identifiable booking_id (update_booking_name's rename result has no booking_id field, so it is
 // out of scope for this check; its own hardConfirm/ambiguousConfirm/cleanlyConfirmed gate stack is
 // unaffected and unchanged).
-function committedMutationBookingId(toolCalls: { name: string; result: unknown }[]): string | null {
+function committedMutationBookingId(
+  toolCalls: { name: string; result: unknown }[],
+): string | null {
   for (let i = toolCalls.length - 1; i >= 0; i--) {
     const t = toolCalls[i];
     if (!isCommittedMutation(t.name, t.result)) continue;
@@ -632,7 +928,9 @@ function committedMutationBookingId(toolCalls: { name: string; result: unknown }
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
 
   // Keep-warm ping (pg_cron, every few min). Return BEFORE parsing the body,
   // loading context or calling the LLM, so a scheduled ping keeps this function's
@@ -670,10 +968,13 @@ Deno.serve(async (req) => {
   try {
     const { phone, calendar_id, message, contact_name } = await req.json();
     if (!phone || !calendar_id || !message) {
-      return new Response(JSON.stringify({ error: "phone, calendar_id, message vereist" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "phone, calendar_id, message vereist" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
     phoneForFallback = phone;
     fallbackMessage = String(message);
@@ -682,7 +983,9 @@ Deno.serve(async (req) => {
     // below, computed here (Amsterdam-local, DST-safe via the same 11:00 UTC mid-day trick
     // buildCalendarHint itself uses) so the override fetch below is bounded and cheap, no
     // added round-trip (same Promise.all phase-1 batch).
-    const hintTodayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
+    const hintTodayStr = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Europe/Amsterdam",
+    });
     const [hintY, hintM, hintD] = hintTodayStr.split("-").map(Number);
     const hintFromISO = hintTodayStr;
     const hintToISO = new Date(Date.UTC(hintY, hintM - 1, hintD + 13, 11, 0, 0))
@@ -692,28 +995,48 @@ Deno.serve(async (req) => {
     // Latency: these reads were sequential (~8 round-trips ≈ 250-400ms of pure wait).
     // They are now batched into 3 dependency phases so independent reads run in parallel.
     // Phase 1 — everything that needs only (calendar_id, phone):
-    const [calRes, svcRes, csRes, contactRes, lastBRes, weeklyHours, psRes, dateOverrides, upcomingBRes] = await Promise.all([
-      supabase.from("calendars").select("user_id").eq("id", calendar_id).maybeSingle(),
+    const [
+      calRes,
+      svcRes,
+      csRes,
+      contactRes,
+      lastBRes,
+      weeklyHours,
+      psRes,
+      dateOverrides,
+      upcomingBRes,
+    ] = await Promise.all([
+      supabase.from("calendars").select("user_id").eq("id", calendar_id)
+        .maybeSingle(),
       // Only ACTIVE, non-deleted services — otherwise a service the owner removed/deactivated
       // in the dashboard stays in <services> and the agent keeps offering + booking it via
       // WhatsApp (deletion sets is_active=false + is_deleted=true; deactivation sets is_active=false).
       // supply_type (X3b-2): so the prompt can mark a remote/digital service AFSTAND/DIGITAAL and
       // ask the customer's country + VAT-ID for cross-border VAT. in_person (the default + every
       // production service today) → no marker, conversation unchanged.
-      supabase.from("service_types").select("id, name, duration, price, description, supply_type")
-        .eq("calendar_id", calendar_id).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false"),
+      supabase.from("service_types").select(
+        "id, name, duration, price, description, supply_type",
+      )
+        .eq("calendar_id", calendar_id).eq("is_active", true).or(
+          "is_deleted.is.null,is_deleted.eq.false",
+        ),
       // whatsapp_welcome_message = the custom greeting; allow_cancellations +
       // cancellation_deadline_hours are the SAME structured policy the agent ENFORCES
       // (getCalendarPolicy in tools.ts), pulled here so we can also inject a human-readable
       // version into <business_data> below — so the agent can ANSWER "wat is jullie
       // annuleringsbeleid?" instead of only enforcing it silently.
       supabase.from("calendar_settings")
-        .select("whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours, booking_window_days, minimum_notice_hours")
+        .select(
+          "whatsapp_welcome_message, allow_cancellations, cancellation_deadline_hours, booking_window_days, minimum_notice_hours",
+        )
         .eq("calendar_id", calendar_id).maybeSingle(),
       // NOTE: whatsapp_contacts is GLOBALLY UNIQUE by phone_number (no calendar_id column),
       // so first_name here is cross-tenant — the per-(calendar_id, phone) name scoping that
       // kills the R3 bleed is handled separately via conversation context (see knownName below).
-      supabase.from("whatsapp_contacts").select("id, first_name").eq("phone_number", phone).maybeSingle(),
+      supabase.from("whatsapp_contacts").select("id, first_name").eq(
+        "phone_number",
+        phone,
+      ).maybeSingle(),
       supabase.from("bookings").select("start_time, service_types(name)")
         .eq("customer_phone", phone).eq("calendar_id", calendar_id)
         .order("start_time", { ascending: false }).limit(1).maybeSingle(),
@@ -728,7 +1051,9 @@ Deno.serve(async (req) => {
       // ANSWER refund / payment-deadline / payment-timing questions from the CURRENT Pay&Book
       // value the owner set, instead of only the AI-kennis users.cancellation_policy field.
       supabase.from("payment_settings")
-        .select("refund_policy_text, payment_deadline_hours, allowed_payment_timing, secure_payments_enabled, payment_required_for_booking")
+        .select(
+          "refund_policy_text, payment_deadline_hours, allowed_payment_timing, secure_payments_enabled, payment_required_for_booking",
+        )
         .eq("calendar_id", calendar_id).maybeSingle(),
       // WEEKLYHOURS-IGNORES-OVERRIDES (R38): per-exact-date overrides for the SAME 14-day
       // window buildCalendarHint renders, so the concrete-date <kalender> table (the model's
@@ -744,25 +1069,48 @@ Deno.serve(async (req) => {
       // Independent of (user_id, contact_id), belongs in this phase; single extra indexed read.
       supabase.from("bookings").select("service_types(name)")
         .eq("customer_phone", phone).eq("calendar_id", calendar_id)
-        .in("status", ["confirmed", "pending"]).gt("start_time", new Date().toISOString())
+        .in("status", ["confirmed", "pending"]).gt(
+          "start_time",
+          new Date().toISOString(),
+        )
         .order("start_time", { ascending: true }).limit(1).maybeSingle(),
     ]);
 
     const cal = calRes.data;
     const businessUserId = (cal as { user_id?: string } | null)?.user_id ?? "";
 
-    const services: ServiceInfo[] = ((svcRes.data as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; supply_type: string | null }>) ?? [])
-      .map((s) => ({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description, supplyType: s.supply_type }));
+    const services: ServiceInfo[] = ((svcRes.data as Array<
+      {
+        id: string;
+        name: string;
+        duration: number;
+        price: number | null;
+        description: string | null;
+        supply_type: string | null;
+      }
+    >) ?? [])
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        durationMin: s.duration,
+        price: s.price,
+        description: s.description,
+        supplyType: s.supply_type,
+      }));
 
     // Per-calendar custom welcome greeting (NULL → default template in prompt.ts).
-    const rawWelcome = (csRes.data as { whatsapp_welcome_message?: string | null } | null)?.whatsapp_welcome_message ?? null;
+    const rawWelcome =
+      (csRes.data as { whatsapp_welcome_message?: string | null } | null)
+        ?.whatsapp_welcome_message ?? null;
 
     const contact = contactRes.data;
     const contactId = (contact as { id?: string } | null)?.id ?? null;
 
     // Returning customer's last service (for "same as last time?" verification),
     // scoped to THIS calendar (a customer's history at another business is irrelevant here).
-    const lastService = (lastBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
+    const lastService =
+      (lastBRes.data as { service_types?: { name?: string } } | null)
+        ?.service_types?.name ?? null;
 
     // Phase 2: reads that depend on phase 1 (business data needs user_id; conversation
     // needs contact_id). Independent of each other → run in parallel.
@@ -774,8 +1122,11 @@ Deno.serve(async (req) => {
       fetchBusinessData(supabase, businessUserId),
       contactId
         ? supabase.from("whatsapp_conversations").select("id, context")
-            .eq("calendar_id", calendar_id).eq("contact_id", contactId).maybeSingle()
-            .then((r) => r.data as { id?: string; context?: Record<string, unknown> } | null)
+          .eq("calendar_id", calendar_id).eq("contact_id", contactId)
+          .maybeSingle()
+          .then((r) =>
+            r.data as { id?: string; context?: Record<string, unknown> } | null
+          )
         : Promise.resolve(null),
       // A2 multi-calendar: the FULL active calendar-set of THIS owner (staff/location).
       // The inbound webhook routed the customer to ONE entry calendar (calendar_id), but a
@@ -785,17 +1136,21 @@ Deno.serve(async (req) => {
       // calendar (no cross-leak). default-first + name for stable indexing; cap 5.
       businessUserId
         ? supabase.from("calendars").select("id, name")
-            .eq("user_id", businessUserId).eq("is_active", true)
-            .or("is_deleted.is.null,is_deleted.eq.false")
-            .order("is_default", { ascending: false }).order("name", { ascending: true })
-            .limit(5)
+          .eq("user_id", businessUserId).eq("is_active", true)
+          .or("is_deleted.is.null,is_deleted.eq.false")
+          .order("is_default", { ascending: false }).order("name", {
+            ascending: true,
+          })
+          .limit(5)
         : Promise.resolve({ data: null }),
     ]);
     const businessType = (businessData?.business_type as string | null) ?? null;
 
     // Build the calendar allowlist (always ≥1: at minimum the entry calendar). Guarantee the
     // entry calendar is present even if the set query somehow misses it (race / just-created).
-    const calRows = ((calSetRes as { data?: Array<{ id: string; name: string | null }> | null })?.data) ?? [];
+    const calRows = ((calSetRes as {
+      data?: Array<{ id: string; name: string | null }> | null;
+    })?.data) ?? [];
     const calendars: Array<{ id: string; name: string }> = calRows
       .map((c) => ({ id: c.id, name: (c.name ?? "").trim() || "Agenda" }));
     if (!calendars.some((c) => c.id === calendar_id)) {
@@ -821,13 +1176,27 @@ Deno.serve(async (req) => {
     // before) from "this is this phone's first-ever contact" (nothing to be in conflict with).
     const { count: priorBookingCount } = await supabase
       .from("bookings").select("id", { count: "exact", head: true })
-      .eq("customer_phone", phone).in("calendar_id", calendars.map((c) => c.id));
+      .eq("customer_phone", phone).in(
+        "calendar_id",
+        calendars.map((c) => c.id),
+      );
     const priorRealBookingExists = (priorBookingCount ?? 0) > 0;
 
     // Per-calendar services for the prompt's <kalenders> block, ONLY when multi-calendar
     // (single-calendar path stays byte-identical: zero extra queries, no block). One query
     // for the whole set; service UUIDs differ per calendar so the agent picks the right one.
-    let calendarsForPrompt: Array<{ index: number; name: string; services: ServiceInfo[]; openingHours?: string | null; cancellationPolicy?: string | null; collapsed?: boolean }> | null = null;
+    let calendarsForPrompt:
+      | Array<
+        {
+          index: number;
+          name: string;
+          services: ServiceInfo[];
+          openingHours?: string | null;
+          cancellationPolicy?: string | null;
+          collapsed?: boolean;
+        }
+      >
+      | null = null;
     // ITEM2: serviceId -> calendarId for the whole allowlist, so the tools route a booking to the
     // right staff/location calendar from the chosen service alone (no "which agenda?" turn). Built
     // from the SAME per-calendar service query, zero extra round-trip; only in multi-calendar mode.
@@ -835,13 +1204,36 @@ Deno.serve(async (req) => {
     if (isMultiCalendar) {
       const ids = calendars.map((c) => c.id);
       const { data: setSvc } = await supabase
-        .from("service_types").select("id, name, duration, price, description, calendar_id, supply_type")
-        .in("calendar_id", ids).eq("is_active", true).or("is_deleted.is.null,is_deleted.eq.false");
+        .from("service_types").select(
+          "id, name, duration, price, description, calendar_id, supply_type",
+        )
+        .in("calendar_id", ids).eq("is_active", true).or(
+          "is_deleted.is.null,is_deleted.eq.false",
+        );
       const byCal = new Map<string, ServiceInfo[]>();
       serviceCalendarMap = {};
-      for (const s of ((setSvc as Array<{ id: string; name: string; duration: number; price: number | null; description: string | null; calendar_id: string; supply_type: string | null }>) ?? [])) {
+      for (
+        const s of ((setSvc as Array<
+          {
+            id: string;
+            name: string;
+            duration: number;
+            price: number | null;
+            description: string | null;
+            calendar_id: string;
+            supply_type: string | null;
+          }
+        >) ?? [])
+      ) {
         const arr = byCal.get(s.calendar_id) ?? [];
-        arr.push({ id: s.id, name: s.name, durationMin: s.duration, price: s.price, description: s.description, supplyType: s.supply_type });
+        arr.push({
+          id: s.id,
+          name: s.name,
+          durationMin: s.duration,
+          price: s.price,
+          description: s.description,
+          supplyType: s.supply_type,
+        });
         byCal.set(s.calendar_id, arr);
         serviceCalendarMap[s.id] = s.calendar_id;
       }
@@ -853,13 +1245,19 @@ Deno.serve(async (req) => {
       // serviceCalendarMap (built above from the full, unnarrowed byCal/setSvc fetch), so
       // tool-routing correctness is structurally decoupled from this prompt-narrowing step (the
       // design's own section 4 safety property).
-      const preFilter = resolveCandidateCalendarIds(String(message ?? ""), calendars, byCal);
+      const preFilter = resolveCandidateCalendarIds(
+        String(message ?? ""),
+        calendars,
+        byCal,
+      );
       const candidateIds = preFilter.candidateIds;
       // R101: exactly one calendar narrowed for THIS turn's service/location = no real ambiguity
       // left to ask about (see preFilterCalendars.ts's enforceNoRedundantLocationAsk header).
       if (candidateIds.size === 1) {
         const onlyId = [...candidateIds][0];
-        singleCandidateCalendarName = calendars.find((c) => c.id === onlyId)?.name ?? null;
+        singleCandidateCalendarName = calendars.find((c) =>
+          c.id === onlyId
+        )?.name ?? null;
       }
 
       // A4: per-calendar opening hours. Hours differ per staff/location, so each <kalenders>
@@ -869,10 +1267,19 @@ Deno.serve(async (req) => {
       // TRACK G5: only fetched for calendars still in candidateIds (Phase B scoping); a collapsed
       // calendar simply never queries its hours this turn, saving both the round-trip and the
       // prompt tokens.
-      const hoursByCal = new Map<string, string | null>([[calendar_id, weeklyHours?.text ?? null]]);
-      const otherCals = calendars.filter((c) => c.id !== calendar_id && candidateIds.has(c.id));
-      const otherHours = await Promise.all(otherCals.map((c) => getCalendarWeeklyHours(supabase, c.id)));
-      otherCals.forEach((c, i) => hoursByCal.set(c.id, otherHours[i]?.text ?? null));
+      const hoursByCal = new Map<string, string | null>([[
+        calendar_id,
+        weeklyHours?.text ?? null,
+      ]]);
+      const otherCals = calendars.filter((c) =>
+        c.id !== calendar_id && candidateIds.has(c.id)
+      );
+      const otherHours = await Promise.all(
+        otherCals.map((c) => getCalendarWeeklyHours(supabase, c.id)),
+      );
+      otherCals.forEach((c, i) =>
+        hoursByCal.set(c.id, otherHours[i]?.text ?? null)
+      );
       // T3-A1 (R7): per-calendar cancellation policy, same pattern as openingHours above, so the
       // model can correctly answer a question about a NAMED DIFFERENT calendar's policy (the
       // <business_data> override further below only ever resolves to the CUSTOMER'S OWN upcoming
@@ -883,9 +1290,12 @@ Deno.serve(async (req) => {
       // single-calendar tenants pay zero added cost, identical gating to the rest of this block.
       // businessName is derived further below in this function; use the same source
       // (businessData.business_name) directly here since that const is not yet in scope.
-      const businessNameForPolicy = (businessData?.business_name as string | null) ?? "ons bedrijf";
+      const businessNameForPolicy =
+        (businessData?.business_name as string | null) ?? "ons bedrijf";
       const policyCals = calendars.filter((c) => candidateIds.has(c.id));
-      const policyByCal = await Promise.all(policyCals.map((c) => getCalendarPolicy(supabase, c.id)));
+      const policyByCal = await Promise.all(
+        policyCals.map((c) => getCalendarPolicy(supabase, c.id)),
+      );
       const policyTextByCal = new Map<string, string | null>(
         policyCals.map((c, i) => {
           const p = policyByCal[i];
@@ -908,9 +1318,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    const conversationId: string | null = (conv as { id?: string } | null)?.id ?? null;
+    const conversationId: string | null =
+      (conv as { id?: string } | null)?.id ?? null;
     conversationIdForFallback = conversationId;
-    const convContext: Record<string, unknown> = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+    const convContext: Record<string, unknown> =
+      ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
 
     // Phase 3, message history (needs conversation_id).
     // R97 (T3-LATENCY fix): this 12-row both-directions fetch and R96's own 6-row both-directions
@@ -931,7 +1343,15 @@ Deno.serve(async (req) => {
     // by ROW IDENTITY instead of by text equality (see that gate's own comment for the full
     // reasoning). Zero extra round-trip (same query, one more column); every other consumer of
     // sharedMsgsDesc/sharedMsgsAsc/history ignores the new field.
-    let sharedMsgsDesc: Array<{ id: string; direction: string; content: string | null; created_at: string; meta_timestamp: string | null }> = [];
+    let sharedMsgsDesc: Array<
+      {
+        id: string;
+        direction: string;
+        content: string | null;
+        created_at: string;
+        meta_timestamp: string | null;
+      }
+    > = [];
     if (conversationId) {
       const { data: msgs } = await supabase
         .from("whatsapp_messages")
@@ -939,7 +1359,15 @@ Deno.serve(async (req) => {
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: false })
         .limit(12);
-      sharedMsgsDesc = (msgs as Array<{ id: string; direction: string; content: string | null; created_at: string; meta_timestamp: string | null }>) ?? [];
+      sharedMsgsDesc = (msgs as Array<
+        {
+          id: string;
+          direction: string;
+          content: string | null;
+          created_at: string;
+          meta_timestamp: string | null;
+        }
+      >) ?? [];
     }
     // IUX R100 (F-R79-2 fix): sharedMsgsDesc is fetched in created_at (DB insert) order, which
     // is what a flaky connection or two fast customer messages can scramble relative to the
@@ -987,9 +1415,12 @@ Deno.serve(async (req) => {
       })
       : ascByCreatedAt;
     if (outOfOrderDetected) {
-      console.log(`R100 out-of-order arrival detected (conversation ${conversationId}), re-sorted window by meta_timestamp.`);
+      console.log(
+        `R100 out-of-order arrival detected (conversation ${conversationId}), re-sorted window by meta_timestamp.`,
+      );
     }
-    const history: Array<{ direction: string; content: string | null }> = sharedMsgsAsc;
+    const history: Array<{ direction: string; content: string | null }> =
+      sharedMsgsAsc;
 
     // R71 (R70-3 fix): compute once per turn whether the customer has EVER named a specific
     // service or a specific calendar/branch, ANYWHERE in this conversation, + this turn's
@@ -1012,12 +1443,16 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(40);
       inboundTexts = [
-        ...((inboundMsgs as Array<{ content: string | null }> | null) ?? []).map((m) => m.content ?? ""),
+        ...((inboundMsgs as Array<{ content: string | null }> | null) ?? [])
+          .map((m) => m.content ?? ""),
         String(message ?? ""),
       ];
     }
     const blockForMissingServiceChoice = isMultiCalendar && calendarsForPrompt
-      ? shouldBlockForMissingServiceChoice({ calendars: calendarsForPrompt, inboundTexts })
+      ? shouldBlockForMissingServiceChoice({
+        calendars: calendarsForPrompt,
+        inboundTexts,
+      })
       : false;
     // R102 (AMBIGUOUS-BRANCH-UNSCOPED-HISTORY fix, same unscoped-whole-history class R98 already
     // fixed for day-detection via scopeToCurrentTopicWindow, never applied here until now).
@@ -1046,15 +1481,29 @@ Deno.serve(async (req) => {
     // Deliberately NOT applied to blockForMissingServiceChoice above (out of this round's scope;
     // that check's own "neither service nor branch ever named" shape has not been shown to share
     // this exact false-negative failure and stays byte-identical to avoid unreviewed scope creep).
-    const servicesByCalendarForAmbiguousBranchScope = isMultiCalendar && calendarsForPrompt
-      ? new Map(calendarsForPrompt.map((c) => [calendars[c.index - 1].id, c.services]))
-      : undefined;
+    const servicesByCalendarForAmbiguousBranchScope =
+      isMultiCalendar && calendarsForPrompt
+        ? new Map(
+          calendarsForPrompt.map((
+            c,
+          ) => [calendars[c.index - 1].id, c.services]),
+        )
+        : undefined;
     const inboundHistoryOnly = inboundTexts.slice(0, -1); // exclude the appended current message
     const inboundHistoryOldestFirst = [...inboundHistoryOnly].reverse(); // DB order is newest-first
-    const scopedInboundHistoryForAmbiguousBranch = isMultiCalendar && calendarsForPrompt
-      ? scopeToCurrentTopicWindow(String(message ?? ""), inboundHistoryOldestFirst, calendars, servicesByCalendarForAmbiguousBranchScope)
-      : inboundHistoryOldestFirst;
-    const inboundTextsForAmbiguousBranch = [...scopedInboundHistoryForAmbiguousBranch, String(message ?? "")];
+    const scopedInboundHistoryForAmbiguousBranch =
+      isMultiCalendar && calendarsForPrompt
+        ? scopeToCurrentTopicWindow(
+          String(message ?? ""),
+          inboundHistoryOldestFirst,
+          calendars,
+          servicesByCalendarForAmbiguousBranchScope,
+        )
+        : inboundHistoryOldestFirst;
+    const inboundTextsForAmbiguousBranch = [
+      ...scopedInboundHistoryForAmbiguousBranch,
+      String(message ?? ""),
+    ];
     // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): the sibling condition, same guard
     // module. Fires when the customer HAS named a real service that exists at 2+ calendars with a
     // genuinely different price/duration and no branch has been named yet (the prompt-only "same
@@ -1063,7 +1512,10 @@ Deno.serve(async (req) => {
     // blockForMissingServiceChoice by construction (that one requires NO service named; this one
     // requires a service IS named), but computed independently so tools.ts can check either.
     const blockForAmbiguousBranch = isMultiCalendar && calendarsForPrompt
-      ? shouldBlockForAmbiguousBranch({ calendars: calendarsForPrompt, inboundTexts: inboundTextsForAmbiguousBranch })
+      ? shouldBlockForAmbiguousBranch({
+        calendars: calendarsForPrompt,
+        inboundTexts: inboundTextsForAmbiguousBranch,
+      })
       : false;
 
     // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, closes R107-RETURNING-DEFAULT-BLEED): runs for
@@ -1079,7 +1531,8 @@ Deno.serve(async (req) => {
     const allServiceNamesForReturning = calendarsForPrompt
       ? calendarsForPrompt.flatMap((c) => c.services.map((s) => s.name))
       : services.map((s) => s.name);
-    const returningServiceConfirmed = convContext.returning_service_confirmed === true;
+    const returningServiceConfirmed =
+      convContext.returning_service_confirmed === true;
     // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix, closes R124's live-reproduced bug): the customer's
     // CURRENT message alone names 2+ distinct real configured services in one compound booking
     // request (e.g. "Knippen Dames EN Knippen Heren boeken bij Sanne"). Works in both single- and
@@ -1110,19 +1563,31 @@ Deno.serve(async (req) => {
     // already set), so a subsequent bare "ja"/"klopt" reply (no service named) can be recognized
     // as answering OUR OWN disclosure question (see the AFFIRM_RE-based resolution further below).
     // Cheap best-effort write; never blocks the turn on failure.
-    if (blockForReturningServiceDefault && conversationId && !convContext.pending_returning_service_confirm) {
+    if (
+      blockForReturningServiceDefault && conversationId &&
+      !convContext.pending_returning_service_confirm
+    ) {
       await supabase.from("whatsapp_conversations")
-        .update({ context: { ...convContext, pending_returning_service_confirm: { at: Date.now() } } })
+        .update({
+          context: {
+            ...convContext,
+            pending_returning_service_confirm: { at: Date.now() },
+          },
+        })
         .eq("id", conversationId);
     }
     // The customer's CURRENT message names a real configured service on ANY turn (not just while
     // the guard is actively blocking, e.g. their very first message already names it): persist
     // returning_service_confirmed now so a later, unrelated bare follow-up in this same
     // conversation never re-triggers the guard. No-op when already set or not a returning customer.
-    if (lastService && !returningServiceConfirmed && conversationId &&
-        mentionsAnyServiceName(String(message ?? ""), allServiceNamesForReturning)) {
+    if (
+      lastService && !returningServiceConfirmed && conversationId &&
+      mentionsAnyServiceName(String(message ?? ""), allServiceNamesForReturning)
+    ) {
       await supabase.from("whatsapp_conversations")
-        .update({ context: { ...convContext, returning_service_confirmed: true } })
+        .update({
+          context: { ...convContext, returning_service_confirmed: true },
+        })
         .eq("id", conversationId);
     }
 
@@ -1152,7 +1617,10 @@ Deno.serve(async (req) => {
     // bug R97-verify found: the guard's own break condition treated an agent reply as if the
     // customer said it). Every row's `direction` is carried straight from the DB query below,
     // never inferred or defaulted.
-    let recentMessages: RecencyWindowMessage[] = [{ direction: "inbound", content: String(message ?? "") }];
+    let recentMessages: RecencyWindowMessage[] = [{
+      direction: "inbound",
+      content: String(message ?? ""),
+    }];
     if (conversationId) {
       // R97 (DOUBLE-COUNTED-CURRENT-MESSAGE fix): process_whatsapp_message (the real webhook path,
       // and this loop's own RPC-then-invoke testpad pattern) INSERTS the current turn's inbound row
@@ -1169,7 +1637,9 @@ Deno.serve(async (req) => {
       // sharedMsgsDesc), never by the R100 meta_timestamp re-sort below: the current message was
       // JUST inserted, so it is always the true latest INSERT regardless of its own send-time.
       const newestByCreatedAt = sharedMsgsDesc[0];
-      const newestIsCurrentInbound = !!newestByCreatedAt && newestByCreatedAt.direction === "inbound" && (newestByCreatedAt.content ?? "") === String(message ?? "");
+      const newestIsCurrentInbound = !!newestByCreatedAt &&
+        newestByCreatedAt.direction === "inbound" &&
+        (newestByCreatedAt.content ?? "") === String(message ?? "");
       // IUX R100 (F-R79-2 fix): select the SAME 6-row SET the pre-fix code selected (the 6
       // newest by created_at, i.e. ascByCreatedAt's own last 6, byte-identical to the old
       // sharedMsgsDesc.slice(0,6) selection), THEN re-sort only WITHIN that fixed subset by
@@ -1201,12 +1671,17 @@ Deno.serve(async (req) => {
         })
         : rowsByCreatedAt;
       const priorMessages: RecencyWindowMessage[] = rowsAsc.map((m) => ({
-        direction: (m.direction === "inbound" ? "inbound" : "outbound") as RecencyWindowDirection,
+        direction: (m.direction === "inbound"
+          ? "inbound"
+          : "outbound") as RecencyWindowDirection,
         content: m.content ?? "",
       }));
       recentMessages = newestIsCurrentInbound
         ? priorMessages
-        : [...priorMessages, { direction: "inbound", content: String(message ?? "") }];
+        : [...priorMessages, {
+          direction: "inbound",
+          content: String(message ?? ""),
+        }];
     }
     // allServiceNames: every distinct configured service name reachable this turn. Single-calendar
     // (the common case) → this calendar's own <services>; multi-calendar → the whole <kalenders>
@@ -1238,14 +1713,22 @@ Deno.serve(async (req) => {
     // behavior change) since isMultiCalendar is false there and this query never runs.
     const upcomingBookingServiceNameAcrossCalendars = isMultiCalendar
       ? ((await supabase.from("bookings").select("service_types(name)")
-          .eq("customer_phone", phone).in("calendar_id", calendars.map((c) => c.id))
-          .in("status", ["confirmed", "pending"]).gt("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true }).limit(1).maybeSingle()
-        ).data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null
+        .eq("customer_phone", phone).in(
+          "calendar_id",
+          calendars.map((c) => c.id),
+        )
+        .in("status", ["confirmed", "pending"]).gt(
+          "start_time",
+          new Date().toISOString(),
+        )
+        .order("start_time", { ascending: true }).limit(1).maybeSingle())
+        .data as { service_types?: { name?: string } } | null)?.service_types
+        ?.name ?? null
       : null;
     const upcomingBookingServiceName = isMultiCalendar
       ? upcomingBookingServiceNameAcrossCalendars
-      : (upcomingBRes.data as { service_types?: { name?: string } } | null)?.service_types?.name ?? null;
+      : (upcomingBRes.data as { service_types?: { name?: string } } | null)
+        ?.service_types?.name ?? null;
     const distinctServiceForReschedule = allServiceNamesForReschedule.length > 1
       ? findDistinctServiceForReschedule({
         allServiceNames: allServiceNamesForReschedule,
@@ -1261,12 +1744,17 @@ Deno.serve(async (req) => {
     // Default for a fresh conversation = the WhatsApp profile display name (contact_name,
     // a customer-level value, so safe), which the agent confirms at booking instead of
     // pestering for a name mid-flow.
-    const scopedName = typeof convContext.booking_name === "string" && convContext.booking_name.trim()
-      ? convContext.booking_name.trim() : null;
+    const scopedName = typeof convContext.booking_name === "string" &&
+        convContext.booking_name.trim()
+      ? convContext.booking_name.trim()
+      : null;
     const scopedRefused = convContext.name_refused === true;
-    const waName = contact_name && contact_name !== "Privé" ? String(contact_name).trim() : null;
+    const waName = contact_name && contact_name !== "Privé"
+      ? String(contact_name).trim()
+      : null;
     const knownName = scopedRefused ? "Privé" : (scopedName ?? waName ?? null);
-    const businessName = (businessData?.business_name as string | null) ?? "ons bedrijf";
+    const businessName = (businessData?.business_name as string | null) ??
+      "ons bedrijf";
 
     // First contact = the greeting has not yet fired in this conversation. We persist a
     // durable `greeting_sent` flag in the conversation context (set after the first reply)
@@ -1275,9 +1763,11 @@ Deno.serve(async (req) => {
     // two-rapid-messages race or a transient history-load miss. The history check is kept
     // as a backward-compatible fallback for conversations that greeted before the flag existed.
     const greetingAlreadySent = convContext.greeting_sent === true;
-    const isFirstContact = !greetingAlreadySent && !history.some((m) => m.direction === "outbound");
-    const welcomeMessage = (rawWelcome && rawWelcome.trim() ? rawWelcome : DEFAULT_WHATSAPP_WELCOME)
-      .replace(/\{bedrijf\}/g, businessName);
+    const isFirstContact = !greetingAlreadySent &&
+      !history.some((m) => m.direction === "outbound");
+    const welcomeMessage =
+      (rawWelcome && rawWelcome.trim() ? rawWelcome : DEFAULT_WHATSAPP_WELCOME)
+        .replace(/\{bedrijf\}/g, businessName);
 
     // Detect the customer's language from THIS message; fall back to the language detected
     // earlier in this conversation (so a short later message like "ok"/"ja" keeps the thread's
@@ -1289,7 +1779,9 @@ Deno.serve(async (req) => {
     const customerLanguage = detectedThisMsg ??
       (langSignal.confidentDutch
         ? null
-        : (typeof convContext.detected_language === "string" ? convContext.detected_language : null));
+        : (typeof convContext.detected_language === "string"
+          ? convContext.detected_language
+          : null));
 
     const now = new Date();
     // R29: deterministic pre-parse of the CURRENT customer message for a bare relative-weekday
@@ -1325,13 +1817,27 @@ Deno.serve(async (req) => {
     // servicesByCalendarForTopicScope (built from the same per-calendar services list already
     // fetched for calendarsForPrompt, zero extra query) lets scopeToCurrentTopicWindow recognize
     // that as still being about Iris.
-    const servicesByCalendarForTopicScope = isMultiCalendar && calendarsForPrompt
-      ? new Map(calendarsForPrompt.map((c) => [calendars[c.index - 1].id, c.services]))
-      : undefined;
+    const servicesByCalendarForTopicScope =
+      isMultiCalendar && calendarsForPrompt
+        ? new Map(
+          calendarsForPrompt.map((
+            c,
+          ) => [calendars[c.index - 1].id, c.services]),
+        )
+        : undefined;
     const dayScanWindowTexts = isMultiCalendar
-      ? scopeToCurrentTopicWindow(String(message ?? ""), priorInboundTexts, calendars, servicesByCalendarForTopicScope)
+      ? scopeToCurrentTopicWindow(
+        String(message ?? ""),
+        priorInboundTexts,
+        calendars,
+        servicesByCalendarForTopicScope,
+      )
       : priorInboundTexts;
-    const blockForNoDayNamed = !hasDayMentionAnywhere(String(message ?? ""), dayScanWindowTexts, now);
+    const blockForNoDayNamed = !hasDayMentionAnywhere(
+      String(message ?? ""),
+      dayScanWindowTexts,
+      now,
+    );
     // R127 (SILENT-DAY-DRIFT fix, live-reproduced R126): relativeDateHint above is null whenever
     // the CURRENT message names no day at all (only extractRelativeDayHint(message) feeds it). A
     // bare time-only confirmation turn ("Doe maar 10:00", or a mixed price-question + time-only
@@ -1342,7 +1848,11 @@ Deno.serve(async (req) => {
     // for blockForNoDayNamed, so a genuine topic switch to a different calendar/service still
     // starts this scan completely fresh, same discipline as R98.
     const carriedForwardDayHint = relativeDateHint === null
-      ? extractCarriedForwardDayHint(String(message ?? ""), dayScanWindowTexts, now)
+      ? extractCarriedForwardDayHint(
+        String(message ?? ""),
+        dayScanWindowTexts,
+        now,
+      )
       : null;
     const effectiveDateHint = relativeDateHint ?? carriedForwardDayHint;
     const effectiveDateHintText = relativeDateHint
@@ -1362,7 +1872,12 @@ Deno.serve(async (req) => {
     // so a reschedule verb from a PREVIOUS, now-switched-away-from calendar's flow can never make
     // this flag true for an unrelated fresh request on a different calendar (see the header
     // comment above dayScanWindowTexts for the full mechanism and live evidence).
-    const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(String(message ?? ""), dayScanWindowTexts, now, RESCHEDULE_VERB_RE);
+    const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(
+      String(message ?? ""),
+      dayScanWindowTexts,
+      now,
+      RESCHEDULE_VERB_RE,
+    );
     // Single source of truth for opening hours = the BOOKABLE schedule of THIS calendar
     // (availability_rules, via getCalendarWeeklyHours). Override the spoken hours that
     // fetchBusinessData derived from the separate, often-stale business_overview.calendars[0]
@@ -1401,7 +1916,8 @@ Deno.serve(async (req) => {
         payment_required_for_booking?: boolean | null;
       } | null;
       const manualRefund = ps?.refund_policy_text;
-      const hasManualRefund = typeof manualRefund === "string" && manualRefund.trim();
+      const hasManualRefund = typeof manualRefund === "string" &&
+        manualRefund.trim();
       // R82-VERIFY-1 fix (FAKE-DEPOSIT-RATIONALE): paymentActuallyRequired mirrors tools.ts's
       // OWN authoritative gate for "does this calendar actually collect up-front payment"
       // (secure_payments_enabled AND payment_required_for_booking, see the book_appointment
@@ -1419,7 +1935,8 @@ Deno.serve(async (req) => {
       // itself was wrong upstream. Fix: gate the entire derived-timing sentence on
       // paymentActuallyRequired, the same authoritative flag pair tools.ts's booking gate uses,
       // so "payment upfront required" is only ever asserted when it is actually true.
-      const paymentActuallyRequired = !!(ps?.secure_payments_enabled && ps?.payment_required_for_booking);
+      const paymentActuallyRequired =
+        !!(ps?.secure_payments_enabled && ps?.payment_required_for_booking);
       if (hasManualRefund) {
         // A hand-written refund policy always wins, used verbatim.
         businessData.refund_policy = (manualRefund as string).trim();
@@ -1437,14 +1954,23 @@ Deno.serve(async (req) => {
         const deadlineH = rawDeadline == null ? null : Number(rawDeadline);
         const parts: string[] = [];
         if (offersPayNow && offersOnSite) {
-          parts.push("Je kunt vooraf online betalen of op locatie bij je afspraak.");
+          parts.push(
+            "Je kunt vooraf online betalen of op locatie bij je afspraak.",
+          );
         } else if (offersPayNow) {
           parts.push("Betaling gaat vooraf online.");
         } else if (offersOnSite) {
           parts.push("Je betaalt op locatie bij je afspraak.");
         }
-        if (offersPayNow && deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0) {
-          parts.push(`Een online vooruitbetaling moet binnen ${formatHoursNL(deadlineH)} na het boeken voldaan zijn, anders kan de reservering vervallen.`);
+        if (
+          offersPayNow && deadlineH != null && Number.isFinite(deadlineH) &&
+          deadlineH > 0
+        ) {
+          parts.push(
+            `Een online vooruitbetaling moet binnen ${
+              formatHoursNL(deadlineH)
+            } na het boeken voldaan zijn, anders kan de reservering vervallen.`,
+          );
         }
         // Only set refund_policy when we actually have something to say (avoid an empty line).
         if (parts.length) businessData.refund_policy = parts.join(" ");
@@ -1472,7 +1998,8 @@ Deno.serve(async (req) => {
       booking_window_days?: number | string | null;
       minimum_notice_hours?: number | string | null;
     } | null;
-    const hasManualCancellationPolicy = typeof businessData?.cancellation_policy === "string" &&
+    const hasManualCancellationPolicy =
+      typeof businessData?.cancellation_policy === "string" &&
       (businessData.cancellation_policy as string).trim().length > 0;
     if (businessData && !hasManualCancellationPolicy) {
       const allowCancel = cs?.allow_cancellations ?? true;
@@ -1492,7 +2019,9 @@ Deno.serve(async (req) => {
       businessData.cancellation_policy = !allowCancel
         ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
         : deadlineH != null && Number.isFinite(deadlineH) && deadlineH > 0
-        ? `Je kunt je afspraak tot ${formatHoursNL(deadlineH)} van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.${refundClarifier}`
+        ? `Je kunt je afspraak tot ${
+          formatHoursNL(deadlineH)
+        } van tevoren kosteloos annuleren of verzetten via WhatsApp; daarna kan dat niet meer via de assistent.${refundClarifier}`
         : `Je kunt je afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.${refundClarifier}`;
 
       // T3-A1: the sentence above is derived from the ENTRY calendar's settings only. In a
@@ -1520,7 +2049,10 @@ Deno.serve(async (req) => {
           .limit(2);
         const rows = (upcoming as Array<{ calendar_id: string }> | null) ?? [];
         if (rows.length === 1 && rows[0].calendar_id !== calendar_id) {
-          const ownPolicy = await getCalendarPolicy(supabase, rows[0].calendar_id);
+          const ownPolicy = await getCalendarPolicy(
+            supabase,
+            rows[0].calendar_id,
+          );
           businessData.cancellation_policy = !ownPolicy.allowCancellations
             ? `Annuleren of verzetten via deze assistent is niet mogelijk; neem daarvoor rechtstreeks contact op met ${businessName}.`
             : `${formatCancellationPolicyNL(ownPolicy)}${refundClarifier}`;
@@ -1528,13 +2060,20 @@ Deno.serve(async (req) => {
       }
     }
     const openingStruct = weeklyHours?.byDay ??
-      ((businessData?.opening_hours_struct as Record<string, { open: boolean; start?: string; end?: string }> | null) ?? null);
+      ((businessData?.opening_hours_struct as
+        | Record<string, { open: boolean; start?: string; end?: string }>
+        | null) ?? null);
     // P1-2: single-calendar -> the table carries the one calendar's open/closed (authoritative).
     // Multi-calendar -> status-less date map only; per-agenda open/closed comes from <kalenders>.
     // R38: dateOverrides applies a same-window availability_overrides row on top of the
     // recurring status, only meaningful in single-calendar (includeStatus) mode; harmless to
     // pass unconditionally since buildCalendarHint ignores it when includeStatus is false.
-    const calendarHint = buildCalendarHint(now, openingStruct, !isMultiCalendar, dateOverrides);
+    const calendarHint = buildCalendarHint(
+      now,
+      openingStruct,
+      !isMultiCalendar,
+      dateOverrides,
+    );
 
     // Booking horizon for the prompt: how far ahead this calendar accepts bookings
     // (booking_window_days). Without this the model called a far-future date "al voorbij"
@@ -1542,14 +2081,20 @@ Deno.serve(async (req) => {
     // vooruit kan ik nog niet". Backs the server-side guard in tools.ts (isBeyondWindowNL).
     const rawWin = cs?.booking_window_days;
     const winNum = rawWin == null ? NaN : Number(rawWin);
-    const bookingWindowDays = Number.isFinite(winNum) && winNum > 0 ? winNum : null;
+    const bookingWindowDays = Number.isFinite(winNum) && winNum > 0
+      ? winNum
+      : null;
     let bookingHorizonISO: string | null = null;
     let bookingHorizonNL: string | null = null;
     if (bookingWindowDays != null) {
       const hz = new Date(now.getTime() + bookingWindowDays * 86400000);
       bookingHorizonISO = hz.toISOString().slice(0, 10);
       bookingHorizonNL = hz.toLocaleDateString("nl-NL", {
-        weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Amsterdam",
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "Europe/Amsterdam",
       });
     }
     // Minimum advance notice (minimum_notice_hours). get_available_slots ENFORCES it
@@ -1562,12 +2107,18 @@ Deno.serve(async (req) => {
     // says always matches what the slot RPC actually enforces.
     const rawNotice = cs?.minimum_notice_hours;
     const noticeNum = rawNotice == null ? 24 : Number(rawNotice);
-    const minimumNoticeHours = Number.isFinite(noticeNum) && noticeNum > 0 ? noticeNum : null;
+    const minimumNoticeHours = Number.isFinite(noticeNum) && noticeNum > 0
+      ? noticeNum
+      : null;
     let earliestBookingNL: string | null = null;
     if (minimumNoticeHours != null) {
       const earliest = new Date(now.getTime() + minimumNoticeHours * 3_600_000);
       earliestBookingNL = earliest.toLocaleString("nl-NL", {
-        weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit",
         timeZone: "Europe/Amsterdam",
       });
     }
@@ -1609,11 +2160,18 @@ Deno.serve(async (req) => {
     const contents: Content[] = history
       .map((m): Content => ({
         role: m.direction === "outbound" ? "model" : "user",
-        parts: [{ text: m.direction === "outbound" ? (m.content ?? "") : stripLeadingTrackingCode(m.content ?? "") }],
+        parts: [{
+          text: m.direction === "outbound"
+            ? (m.content ?? "")
+            : stripLeadingTrackingCode(m.content ?? ""),
+        }],
       }))
       .filter((c) => (c.parts[0] as { text: string }).text.length > 0);
     if (!contents.some((c) => c.role === "user")) {
-      contents.push({ role: "user", parts: [{ text: stripLeadingTrackingCode(String(message)) }] });
+      contents.push({
+        role: "user",
+        parts: [{ text: stripLeadingTrackingCode(String(message)) }],
+      });
     }
 
     // Cancel confirmation, detected server-side (the small model won't reliably set
@@ -1622,7 +2180,8 @@ Deno.serve(async (req) => {
     // the commit deterministically via ctx.confirmCancel. Fail-safe: a non-affirmative reply
     // never commits, and the 15-min freshness bounds any stray-"ja" mis-fire.
     const pc = convContext.pending_cancel as { at?: number } | undefined;
-    const pendingFresh = !!pc && (typeof pc.at !== "number" || (Date.now() - pc.at) < 15 * 60 * 1000);
+    const pendingFresh = !!pc &&
+      (typeof pc.at !== "number" || (Date.now() - pc.at) < 15 * 60 * 1000);
     const msgLower = String(message).toLowerCase();
     // Affirmation across the agent's languages (NL/EN/DE/FR/ES/PT/IT). Only consulted when a
     // proposal is already pending (confirmCancel/confirmBook), so a short "oui"/"sí"/"sim" in
@@ -1631,8 +2190,10 @@ Deno.serve(async (req) => {
     // after an accented vowel (sí/sì/oké) never matched and ES/IT "sí"/"sì" confirms silently
     // stalled with 0 DB-row (R8 repro "sí, está bien"). \p{L}\p{N} + the u flag treat accented
     // letters as word chars, so the boundary holds while "simpel"/"klaar"/"jasmijn" stay excluded.
-    const AFFIRM_RE = /(?<![\p{L}\p{N}])(ja|jaha|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord|oui|ouais|volontiers|sí|si|claro|vale|perfecto|sì|certo|esatto|perfetto|sim|perfeito|parfait|genau|gerne|bitte|klar|passt)(?![\p{L}\p{N}])/iu;
-    const NEGATE_RE = /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
+    const AFFIRM_RE =
+      /(?<![\p{L}\p{N}])(ja|jaha|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|annuleer|annuleren|cancel|klopt|inderdaad|verwijder|akkoord|oui|ouais|volontiers|sí|si|claro|vale|perfecto|sì|certo|esatto|perfetto|sim|perfeito|parfait|genau|gerne|bitte|klar|passt)(?![\p{L}\p{N}])/iu;
+    const NEGATE_RE =
+      /\b(nee|neen|no|niet|liever niet|toch niet|verzet|verzetten|reschedule|verplaats|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     // R151 (WHATSAPP_E2E_TEST_INFRA Item 6, live-reproduced): NEGATE_RE's "verzet|verzetten|
     // reschedule|verplaats" tokens exist to catch a customer saying "ik wil liever verzetten"
     // INSTEAD OF confirming a CANCEL (a genuine reject-the-cancel-offer-a-reschedule-instead
@@ -1645,12 +2206,15 @@ Deno.serve(async (req) => {
     // narrowly: only drops the reschedule-verb tokens, keeps every other negate signal (nee/niet/
     // hou/andere/nieuwe tijd) fully intact, since those remain valid "actually, wait" signals even
     // inside a reschedule confirmation. Used ONLY by confirmRescheduleVerification below.
-    const NEGATE_RE_FOR_RESCHEDULE_VERIFICATION = /\b(nee|neen|no|niet|liever niet|toch niet|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
+    const NEGATE_RE_FOR_RESCHEDULE_VERIFICATION =
+      /\b(nee|neen|no|niet|liever niet|toch niet|hou|houd|behoud|laat maar|ander|andere|nieuwe tijd)\b/i;
     // A hypothetical / policy QUESTION that merely contains a cancel word ("krijg ik geld terug als ik
     // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
     // cancellation, it's an info question, answered from <business_data>. Without this, asking about the
     // refund policy armed a cancel and the next "ja" destroyed the booking (adversarial finding).
-    const cancelPolicyQuestion = /\b(beleid|policy|terugbetaling|terug ?betaald|geld terug|refund|kosten|hoeveel|als ik|wat als|stel dat|wat gebeurt|hoe zit het|wanneer kan ik)\b/i.test(msgLower);
+    const cancelPolicyQuestion =
+      /\b(beleid|policy|terugbetaling|terug ?betaald|geld terug|refund|kosten|hoeveel|als ik|wat als|stel dat|wat gebeurt|hoe zit het|wanneer kan ik)\b/i
+        .test(msgLower);
     // R23 (AFFIRM-CONFIRM-FALSEPOS, sev-2): AFFIRM_RE/NEGATE_RE are pure keyword regexes with ZERO
     // check that an affirmative word genuinely means "yes, commit exactly what was just previewed".
     // R22-verify reproduced 3 live false-positive commits, all sharing one shape: the message pairs
@@ -1677,7 +2241,8 @@ Deno.serve(async (req) => {
       /\b(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|monday|tuesday|wednesday|thursday|friday|saturday|sunday|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b|\b\d{1,2}[:.]\d{2}\b|\b(uur|hour|stunde|heure)\s*(later|eerder|earlier|vroeger|voor|na)\b|\b(later|eerder|earlier|vroeger)\b/i;
     const PRICE_QUESTION_RE =
       /\b(kost|kosten|kostte|prijs|prijzen|tarief|tarieven|hoeveel|how\s+much|price|priced|costs?|cost|rate|charge|fee)\b/i;
-    const HEDGE_RE = /\b(wacht|momentje|trouwens|eigenlijk|bedoelde|bedoel|meant|actually|wait|sorry)\b/i;
+    const HEDGE_RE =
+      /\b(wacht|momentje|trouwens|eigenlijk|bedoelde|bedoel|meant|actually|wait|sorry)\b/i;
     // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-CONDITIONAL, sev-2): a 5th ambiguity category, found by
     // R24-verify. A message can pair an affirm word with a CONDITION/hypothetical rather than an
     // unconditional yes, for example "Klopt, annuleer maar zolang het gratis is" or "Klopt, zolang
@@ -1750,8 +2315,10 @@ Deno.serve(async (req) => {
     const REJECTION_RE =
       /\bniet\s+wat\s+ik\s+(wilde|zocht|bedoelde|verwachtte|in\s+gedachten\s+had)\b|\bniet\s+helemaal\s+wat\s+ik\b|\btoch\s+niet\b|\bdat\s+bedoelde\s+ik\s+niet\b|\bniet\s+wat\s+ik\s+voor\s+ogen\s+had\b|\bvan\s+gedachten\s+veranderd\b|\bnot\s+(really\s+)?what\s+i\s+(had\s+in\s+mind|wanted|meant|expected)\b|\bthat'?s?\s+not\s+(it|really\s+it)\b|\bnot\s+really\s+what\s+i\s+(wanted|meant)\b|\bchanged\s+my\s+mind\b|\bnot\s+quite\s+what\s+i\b/i;
     const notCleanConfirm = (raw: string) =>
-      DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
-      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw) || REJECTION_RE.test(raw);
+      DAY_OR_TIME_SHIFT_RE.test(raw) || PRICE_QUESTION_RE.test(raw) ||
+      raw.includes("?") || HEDGE_RE.test(raw) ||
+      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw) ||
+      REJECTION_RE.test(raw);
     // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): this signal is ALSO threaded into
     // ctx.ambiguousConfirm below (see createTools call) so tools.ts can gate the model's own
     // self-issued args.confirmed the same way, not just the server-forced confirmBook/
@@ -1785,7 +2352,8 @@ Deno.serve(async (req) => {
     // at all, so neither was touched.
     const ambiguousConfirmForVerification = (raw: string) =>
       PRICE_QUESTION_RE.test(raw) || raw.includes("?") || HEDGE_RE.test(raw) ||
-      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw) || REJECTION_RE.test(raw);
+      CONDITIONAL_RE.test(raw) || VAGUE_PREFERENCE_RE.test(raw) ||
+      REJECTION_RE.test(raw);
     // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix, marker resolution): the guard above
     // (blockForReturningServiceDefault) already covers "the customer's OWN current message names a
     // service" as a same-turn resolution. This second path resolves the OTHER way the disclosure
@@ -1798,12 +2366,18 @@ Deno.serve(async (req) => {
     // again or the customer free to name the correct service. Persisted immediately (not deferred
     // to the tool layer) so `returningServiceConfirmed` above already reflects it if this exact
     // turn also happens to re-enter the guard for any reason.
-    const prsc = convContext.pending_returning_service_confirm as { at?: number } | undefined;
-    const prscFresh = !!prsc && (typeof prsc.at !== "number" || (Date.now() - prsc.at) < 15 * 60 * 1000);
-    const returningServiceJustConfirmedByAffirm = prscFresh && !returningServiceConfirmed &&
-      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const prsc = convContext.pending_returning_service_confirm as {
+      at?: number;
+    } | undefined;
+    const prscFresh = !!prsc &&
+      (typeof prsc.at !== "number" || (Date.now() - prsc.at) < 15 * 60 * 1000);
+    const returningServiceJustConfirmedByAffirm = prscFresh &&
+      !returningServiceConfirmed &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm;
     if (returningServiceJustConfirmedByAffirm && conversationId) {
-      const { pending_returning_service_confirm: _dropPRSC, ...restPRSC } = convContext;
+      const { pending_returning_service_confirm: _dropPRSC, ...restPRSC } =
+        convContext;
       await supabase.from("whatsapp_conversations")
         .update({ context: { ...restPRSC, returning_service_confirmed: true } })
         .eq("id", conversationId);
@@ -1811,7 +2385,8 @@ Deno.serve(async (req) => {
     // This turn's EFFECTIVE block decision, incorporating a same-turn affirm resolution (computed
     // above, after AFFIRM_RE/NEGATE_RE/ambiguousConfirm became available) on top of the earlier
     // same-turn service-mention resolution already folded into blockForReturningServiceDefault.
-    const blockForReturningServiceDefaultEffective = blockForReturningServiceDefault && !returningServiceJustConfirmedByAffirm;
+    const blockForReturningServiceDefaultEffective =
+      blockForReturningServiceDefault && !returningServiceJustConfirmedByAffirm;
     // R96 (SILENT-DROP-ON-MULTI-SERVICE fix, follow-up hardening after this round's own live
     // testing, evidence/IUX_r96.md section 6): the "vorige_boeking_nog_open" guard (tools.ts)
     // originally relied ONLY on the model self-setting args.abandon_previous_preview:true, but a
@@ -1847,7 +2422,9 @@ Deno.serve(async (req) => {
     // server-side regex (matchesSecondBookingDifferentPerson, pendingBookGuard.ts), computed here
     // independent of any tool arg, consulted ONLY inside that guard's own already-safety-checked
     // precondition (a genuine conflicting existing booking must actually be found first).
-    const confirmSecondBookingFromMessage = matchesSecondBookingDifferentPerson(msgLower);
+    const confirmSecondBookingFromMessage = matchesSecondBookingDifferentPerson(
+      msgLower,
+    );
     // R32 (2nd AFFIRM-CONFIRM taste-fork): the THIRD, purely structural gate. Computed here,
     // before the LLM ever runs, from the RAW (not lowercased/pre-processed) customer message via
     // ./hardConfirmGate.ts, which does its own bounded normalization. Deliberately independent of
@@ -1887,10 +2464,18 @@ Deno.serve(async (req) => {
     const currentMessageRowIdForCancel = sharedMsgsDesc[0]?.id ?? null;
     const pendingCancelAtMs = typeof pc?.at === "number" ? pc.at : null;
     const pendingCancelInterveningExchange = pendingFresh &&
-      computePendingBookInterveningExchange(sharedMsgsAsc, pendingCancelAtMs, currentMessageRowIdForCancel);
-    const CANCEL_WORD_RE_FOR_INTERVENING = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i;
-    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm &&
-      (!pendingCancelInterveningExchange || DAY_OR_TIME_SHIFT_RE.test(msgLower) || CANCEL_WORD_RE_FOR_INTERVENING.test(msgLower));
+      computePendingBookInterveningExchange(
+        sharedMsgsAsc,
+        pendingCancelAtMs,
+        currentMessageRowIdForCancel,
+      );
+    const CANCEL_WORD_RE_FOR_INTERVENING =
+      /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i;
+    const confirmCancel = pendingFresh && AFFIRM_RE.test(msgLower) &&
+      !NEGATE_RE.test(msgLower) && !cancelPolicyQuestion && !ambiguousConfirm &&
+      (!pendingCancelInterveningExchange ||
+        DAY_OR_TIME_SHIFT_RE.test(msgLower) ||
+        CANCEL_WORD_RE_FOR_INTERVENING.test(msgLower));
 
     // R40 (update_booking_name): same deterministic server-side detection as confirmCancel, for
     // the SAME reason it exists there. Live testing this round found the small model unreliably
@@ -1905,8 +2490,10 @@ Deno.serve(async (req) => {
     // ambiguousConfirm gating (a rename-policy-question equivalent doesn't exist, so no extra
     // exclusion needed beyond the shared ambiguousConfirm layer).
     const pr = convContext.pending_rename as { at?: number } | undefined;
-    const pendingRenameFresh = !!pr && (typeof pr.at !== "number" || (Date.now() - pr.at) < 15 * 60 * 1000);
-    const confirmRename = pendingRenameFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const pendingRenameFresh = !!pr &&
+      (typeof pr.at !== "number" || (Date.now() - pr.at) < 15 * 60 * 1000);
+    const confirmRename = pendingRenameFresh && AFFIRM_RE.test(msgLower) &&
+      !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
 
     // R76 (RENAME-HIJACK-CROSSTHIRDPARTY fix): SAME deterministic server-detection pattern as
     // confirmRename directly above, keyed off a SEPARATE pending_rename_verification marker
@@ -1932,10 +2519,20 @@ Deno.serve(async (req) => {
     // to demonstrate they know whose appointment they are renaming, exactly the gap R109 closed for
     // the sibling tools. Same fix shape: require identityVerificationResolved against the marker's
     // own stored current_name, re-checked against THIS turn's raw message and current knownName.
-    const prv = convContext.pending_rename_verification as { current_name?: string | null; at?: number } | undefined;
-    const pendingRenameVerificationFresh = !!prv && (typeof prv.at !== "number" || (Date.now() - prv.at) < 15 * 60 * 1000);
-    const confirmRenameVerification = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
-      identityVerificationResolved(prv?.current_name ?? null, knownName, String(message));
+    const prv = convContext.pending_rename_verification as {
+      current_name?: string | null;
+      at?: number;
+    } | undefined;
+    const pendingRenameVerificationFresh = !!prv &&
+      (typeof prv.at !== "number" || (Date.now() - prv.at) < 15 * 60 * 1000);
+    const confirmRenameVerification = pendingRenameVerificationFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm &&
+      identityVerificationResolved(
+        prv?.current_name ?? null,
+        knownName,
+        String(message),
+      );
     // R123 (RENAME-GATE1-BARE-AFFIRM-FALLTHROUGH fix, sev-2, same bug CLASS as R120's
     // book_appointment double-confirm oscillation, different mechanism): a bare "Ja" answering
     // Gate 1 (pending_rename_verification) correctly fails identityVerificationResolved (R61, no
@@ -1945,7 +2542,9 @@ Deno.serve(async (req) => {
     // the unrelated "meerdere afspraken" question. This signal (mirrors bookVerificationAffirmUnresolved
     // exactly) tells tools.ts "this is a clean affirm answering Gate 1, but it did not resolve the
     // identity check" so it can RE-ASK Gate 1 using the still-bound marker instead of re-deriving.
-    const renameVerificationAffirmUnresolved = pendingRenameVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+    const renameVerificationAffirmUnresolved = pendingRenameVerificationFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm &&
       !confirmRenameVerification;
 
     // R102 (shared-phone identity fix, generalizes R76's cross-identity verification to
@@ -1965,15 +2564,36 @@ Deno.serve(async (req) => {
     // identityDisambiguationGuard.ts's doc comment for the full mechanism). A bare repeated affirm
     // can never satisfy this; the customer must actually name the target person, or the real owner
     // must be the one now recognized as speaking.
-    const pcv = convContext.pending_cancel_verification as { current_name?: string | null; at?: number } | undefined;
-    const pendingCancelVerificationFresh = !!pcv && (typeof pcv.at !== "number" || (Date.now() - pcv.at) < 15 * 60 * 1000);
-    const confirmCancelVerification = pendingCancelVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirmForVerification(msgLower) &&
-      identityVerificationResolved(pcv?.current_name ?? null, knownName, String(message));
+    const pcv = convContext.pending_cancel_verification as {
+      current_name?: string | null;
+      at?: number;
+    } | undefined;
+    const pendingCancelVerificationFresh = !!pcv &&
+      (typeof pcv.at !== "number" || (Date.now() - pcv.at) < 15 * 60 * 1000);
+    const confirmCancelVerification = pendingCancelVerificationFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirmForVerification(msgLower) &&
+      identityVerificationResolved(
+        pcv?.current_name ?? null,
+        knownName,
+        String(message),
+      );
 
-    const prsv = convContext.pending_reschedule_verification as { current_name?: string | null; at?: number } | undefined;
-    const pendingRescheduleVerificationFresh = !!prsv && (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
-    const confirmRescheduleVerification = pendingRescheduleVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE_FOR_RESCHEDULE_VERIFICATION.test(msgLower) && !ambiguousConfirmForVerification(msgLower) &&
-      identityVerificationResolved(prsv?.current_name ?? null, knownName, String(message));
+    const prsv = convContext.pending_reschedule_verification as {
+      current_name?: string | null;
+      at?: number;
+    } | undefined;
+    const pendingRescheduleVerificationFresh = !!prsv &&
+      (typeof prsv.at !== "number" || (Date.now() - prsv.at) < 15 * 60 * 1000);
+    const confirmRescheduleVerification = pendingRescheduleVerificationFresh &&
+      AFFIRM_RE.test(msgLower) &&
+      !NEGATE_RE_FOR_RESCHEDULE_VERIFICATION.test(msgLower) &&
+      !ambiguousConfirmForVerification(msgLower) &&
+      identityVerificationResolved(
+        prsv?.current_name ?? null,
+        knownName,
+        String(message),
+      );
 
     // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix): SAME deterministic
     // server-detection pattern as confirmRescheduleVerification directly above, keyed off
@@ -1985,9 +2605,15 @@ Deno.serve(async (req) => {
     // finite-allow-list gate every other commit-driving flag in this codebase requires), so a
     // vague/hedged/conditional reply to OUR OWN question can never silently release the gate
     // either, same safety bar as confirmBook/confirmCancel/confirmRename.
-    const prc = convContext.pending_reschedule_confirm as { booking_id?: string; at?: number } | undefined;
-    const pendingRescheduleConfirmFresh = !!prc && (typeof prc.at !== "number" || (Date.now() - prc.at) < 15 * 60 * 1000);
-    const confirmRescheduleAmbiguity = pendingRescheduleConfirmFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm;
+    const prc = convContext.pending_reschedule_confirm as {
+      booking_id?: string;
+      at?: number;
+    } | undefined;
+    const pendingRescheduleConfirmFresh = !!prc &&
+      (typeof prc.at !== "number" || (Date.now() - prc.at) < 15 * 60 * 1000);
+    const confirmRescheduleAmbiguity = pendingRescheduleConfirmFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm;
 
     // R107 (BOOK-COMMIT-IDENTITY-GAP fix): SAME deterministic server-detection pattern as
     // confirmCancelVerification/confirmRescheduleVerification directly above, keyed off
@@ -2006,10 +2632,20 @@ Deno.serve(async (req) => {
     // oscillation with no booking ever committed. bookIdentityVerificationResolved keeps the exact
     // same strict name-restate bar whenever knownName IS a real, established, genuinely conflicting
     // name (the true R107 phone-handoff-mid-flow shape), unchanged.
-    const pbv = convContext.pending_book_verification as { customer_name?: string | null; at?: number } | undefined;
-    const pendingBookVerificationFresh = !!pbv && (typeof pbv.at !== "number" || (Date.now() - pbv.at) < 15 * 60 * 1000);
-    const confirmBookVerification = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
-      bookIdentityVerificationResolved(pbv?.customer_name ?? null, knownName, String(message));
+    const pbv = convContext.pending_book_verification as {
+      customer_name?: string | null;
+      at?: number;
+    } | undefined;
+    const pendingBookVerificationFresh = !!pbv &&
+      (typeof pbv.at !== "number" || (Date.now() - pbv.at) < 15 * 60 * 1000);
+    const confirmBookVerification = pendingBookVerificationFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm &&
+      bookIdentityVerificationResolved(
+        pbv?.customer_name ?? null,
+        knownName,
+        String(message),
+      );
     // R120 (DOUBLE-CONFIRM-OSCILLATION fix, continued): the complementary weaker signal tools.ts's
     // own re-ask guard needs -- "the customer answered Q2 with a clean affirm, but it did not
     // (yet) resolve the identity check" -- deliberately WITHOUT ctx.confirmBook's own
@@ -2024,7 +2660,9 @@ Deno.serve(async (req) => {
     // repro). Re-asking Q2 is a pure read (never commits anything), so R118's stale-proposal
     // protection does not apply here at all; only the SAME clean-affirm bar (AFFIRM_RE/NEGATE_RE/
     // ambiguousConfirm) every other release signal in this file already requires.
-    const bookVerificationAffirmUnresolved = pendingBookVerificationFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+    const bookVerificationAffirmUnresolved = pendingBookVerificationFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm &&
       !confirmBookVerification;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
@@ -2034,10 +2672,19 @@ Deno.serve(async (req) => {
     // (and isn't cancelling), drive the COMMIT deterministically via ctx.confirmBook — the
     // commit uses the SERVER-STORED exact start_time, which also kills the model's
     // time-reconstruction bug (it once booked 12:00 for a confirmed 10:00).
-    const pbk = convContext.pending_booking as
-      { at?: number; service_type_id?: string; start_time?: string; end_time?: string; calendar_id?: string; customer_name?: string | null } | undefined;
-    const pendingBookFresh = !!pbk && (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
-    const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(msgLower);
+    const pbk = convContext.pending_booking as {
+      at?: number;
+      service_type_id?: string;
+      start_time?: string;
+      end_time?: string;
+      calendar_id?: string;
+      customer_name?: string | null;
+    } | undefined;
+    const pendingBookFresh = !!pbk &&
+      (typeof pbk.at !== "number" || (Date.now() - pbk.at) < 15 * 60 * 1000);
+    const cancelWord = /\b(annuleer|annuleren|cancel|afzeggen)\b/i.test(
+      msgLower,
+    );
     // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, closes the SECOND half of the
     // catch-22 identityDisambiguationGuard.ts's messageNamesPendingBookOwner documents): on the
     // common NEVER-at-risk path (no naam_verificatie_nodig marker ever fires), a customer who
@@ -2050,7 +2697,9 @@ Deno.serve(async (req) => {
     // still-pending preview already has. Threaded through as its own ctx flag so tools.ts's commit
     // gate can accept it as an alternative to ctx.hardConfirm, exactly parallel to how
     // confirmBookVerification is threaded through for the marker case.
-    const confirmBookOwnerRestated = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !ambiguousConfirm &&
+    const confirmBookOwnerRestated = pendingBookFresh &&
+      AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
+      !ambiguousConfirm &&
       messageNamesPendingBookOwner(pbk?.customer_name ?? null, String(message));
     // R118 (GAP 3, PENDING-BOOKING-NO-EXPIRY fix, live-reproduced on the S6 testpad): a booking
     // preview is offered, the customer asks something unrelated in between, gets an answer, then
@@ -2084,7 +2733,11 @@ Deno.serve(async (req) => {
     const currentMessageRowId = sharedMsgsDesc[0]?.id ?? null;
     const pendingBookAtMs = typeof pbk?.at === "number" ? pbk.at : null;
     const pendingBookInterveningExchange = pendingBookFresh &&
-      computePendingBookInterveningExchange(sharedMsgsAsc, pendingBookAtMs, currentMessageRowId);
+      computePendingBookInterveningExchange(
+        sharedMsgsAsc,
+        pendingBookAtMs,
+        currentMessageRowId,
+      );
     // R23: same ambiguousConfirm gate as confirmCancel (see its comment above for the 3 repro
     // shapes and the design reasoning). A day/time-shift mention, a price question, a trailing "?",
     // or a hedge word means this is NOT a clean confirmation of the exact previewed slot.
@@ -2118,8 +2771,11 @@ Deno.serve(async (req) => {
     // request) still falls through to the full, unchanged ambiguousConfirm gate.
     const restatesPendingBookOwnTime = pendingBookFresh &&
       messageRestatesPendingBookTime(pbk?.start_time ?? null, msgLower);
-    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
-      (restatesPendingBookOwnTime ? !ambiguousConfirmForVerification(msgLower) : !ambiguousConfirm) &&
+    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) &&
+      !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
+      (restatesPendingBookOwnTime
+        ? !ambiguousConfirmForVerification(msgLower)
+        : !ambiguousConfirm) &&
       (!pendingBookInterveningExchange || DAY_OR_TIME_SHIFT_RE.test(msgLower));
 
     // IUX R58 (WHATSAPP-DUPLICATE-CONFIRM-BURST): cross-request idempotency CLAIM, taken BEFORE
@@ -2168,13 +2824,18 @@ Deno.serve(async (req) => {
     if (pendingBookFresh && pbk?.at != null) {
       const claimCalendarId = pbk.calendar_id ?? calendar_id;
       const claimProposalAt = new Date(pbk.at).toISOString();
-      const { data: claimRows, error: claimErr } = await supabase.rpc("claim_whatsapp_confirm", {
-        p_phone: phone,
-        p_calendar_id: claimCalendarId,
-        p_proposal_at: claimProposalAt,
-        p_ttl_seconds: 20,
-      });
-      const claimRow = Array.isArray(claimRows) ? claimRows[0] as { won?: boolean; claim_id?: string } | undefined : undefined;
+      const { data: claimRows, error: claimErr } = await supabase.rpc(
+        "claim_whatsapp_confirm",
+        {
+          p_phone: phone,
+          p_calendar_id: claimCalendarId,
+          p_proposal_at: claimProposalAt,
+          p_ttl_seconds: 20,
+        },
+      );
+      const claimRow = Array.isArray(claimRows)
+        ? claimRows[0] as { won?: boolean; claim_id?: string } | undefined
+        : undefined;
       const won = claimRow?.won;
       if (!claimErr && won === false) {
         confirmBurstLost = true;
@@ -2204,7 +2865,14 @@ Deno.serve(async (req) => {
         });
       }
       return new Response(
-        JSON.stringify({ ok: true, reply: alreadyProcessingReply, sent: send.ok, steps: 0, toolCalls: [], confirm_burst_lost: true }),
+        JSON.stringify({
+          ok: true,
+          reply: alreadyProcessingReply,
+          sent: send.ok,
+          steps: 0,
+          toolCalls: [],
+          confirm_burst_lost: true,
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -2231,17 +2899,22 @@ Deno.serve(async (req) => {
     let cancelClaimId: string | undefined;
     if (pendingFresh && pc?.at != null) {
       const cancelClaimProposalAt = new Date(pc.at).toISOString();
-      const { data: cancelClaimRows, error: cancelClaimErr } = await supabase.rpc("claim_whatsapp_confirm", {
-        p_phone: phone,
-        p_calendar_id: calendar_id,
-        p_proposal_at: cancelClaimProposalAt,
-        p_ttl_seconds: 20,
-      });
-      const cancelClaimRow = Array.isArray(cancelClaimRows) ? cancelClaimRows[0] as { won?: boolean; claim_id?: string } | undefined : undefined;
+      const { data: cancelClaimRows, error: cancelClaimErr } = await supabase
+        .rpc("claim_whatsapp_confirm", {
+          p_phone: phone,
+          p_calendar_id: calendar_id,
+          p_proposal_at: cancelClaimProposalAt,
+          p_ttl_seconds: 20,
+        });
+      const cancelClaimRow = Array.isArray(cancelClaimRows)
+        ? cancelClaimRows[0] as { won?: boolean; claim_id?: string } | undefined
+        : undefined;
       const wonCancel = cancelClaimRow?.won;
       if (!cancelClaimErr && wonCancel === false) {
         confirmCancelBurstLost = true;
-      } else if (!cancelClaimErr && wonCancel === true && cancelClaimRow?.claim_id) {
+      } else if (
+        !cancelClaimErr && wonCancel === true && cancelClaimRow?.claim_id
+      ) {
         cancelClaimId = cancelClaimRow.claim_id;
         cancelClaimIdForFallback = cancelClaimRow.claim_id;
       }
@@ -2262,7 +2935,14 @@ Deno.serve(async (req) => {
         });
       }
       return new Response(
-        JSON.stringify({ ok: true, reply: alreadyProcessingCancelReply, sent: send.ok, steps: 0, toolCalls: [], confirm_cancel_burst_lost: true }),
+        JSON.stringify({
+          ok: true,
+          reply: alreadyProcessingCancelReply,
+          sent: send.ok,
+          steps: 0,
+          toolCalls: [],
+          confirm_cancel_burst_lost: true,
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -2286,15 +2966,20 @@ Deno.serve(async (req) => {
     // R114: hoisted out of the `if` below (was block-scoped) so the race-loss reply block further
     // down can reuse the SAME calendar id when verifying whether a real conflicting booking exists.
     let preCalId: string | null = null;
-    if (confirmBook && pbk?.start_time && pbk?.end_time && pbk?.service_type_id) {
+    if (
+      confirmBook && pbk?.start_time && pbk?.end_time && pbk?.service_type_id
+    ) {
       preCalId = pbk.calendar_id ?? calendar_id;
-      const { data: stillValid, error: preErr } = await supabase.rpc("validate_booking_security", {
-        p_calendar_id: preCalId,
-        p_service_type_id: pbk.service_type_id,
-        p_start_time: pbk.start_time,
-        p_end_time: pbk.end_time,
-        p_customer_email: null,
-      });
+      const { data: stillValid, error: preErr } = await supabase.rpc(
+        "validate_booking_security",
+        {
+          p_calendar_id: preCalId,
+          p_service_type_id: pbk.service_type_id,
+          p_start_time: pbk.start_time,
+          p_end_time: pbk.end_time,
+          p_customer_email: null,
+        },
+      );
       // valid === false means the winner's row already occupies this slot (or it otherwise became
       // unbookable). true / null / error means fall through and let the normal commit flow run.
       if (!preErr && stillValid === false) raceLostPreCheck = true;
@@ -2306,8 +2991,16 @@ Deno.serve(async (req) => {
       // TTL self-heal for no reason (the outcome -- lost the race, no commit attempted by THIS
       // request -- is already fully known at this point).
       if (bookClaimId) {
-        const { error: raceLossReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimId });
-        if (raceLossReleaseErr) console.error("release_whatsapp_confirm_claim (book, race-loss) error (fails open, TTL self-heals):", raceLossReleaseErr);
+        const { error: raceLossReleaseErr } = await supabase.rpc(
+          "release_whatsapp_confirm_claim",
+          { p_claim_id: bookClaimId },
+        );
+        if (raceLossReleaseErr) {
+          console.error(
+            "release_whatsapp_confirm_claim (book, race-loss) error (fails open, TTL self-heals):",
+            raceLossReleaseErr,
+          );
+        }
       }
       // R114: carry the actual calendar_id/start_time/end_time from the stored proposal so
       // deterministicSlotTaken can verify a REAL conflicting row exists before ever using the
@@ -2329,11 +3022,14 @@ Deno.serve(async (req) => {
           customerLanguage,
           true,
         )) ?? "",
-      ) || "Sorry, het lukte net niet om dat te bevestigen. Zal ik het nog een keer proberen, of wil je een ander moment?";
+      ) ||
+        "Sorry, het lukte net niet om dat te bevestigen. Zal ik het nog een keer proberen, of wil je een ander moment?";
       // Clear the stale pending_booking so a follow-up "ja" cannot re-trigger a doomed commit.
       if (conversationId) {
         const { pending_booking: _drop, ...restCtx } = convContext;
-        await supabase.from("whatsapp_conversations").update({ context: restCtx }).eq("id", conversationId);
+        await supabase.from("whatsapp_conversations").update({
+          context: restCtx,
+        }).eq("id", conversationId);
       }
       const send = await sendWhatsAppText(phone, slotTakenReply);
       if (conversationId) {
@@ -2347,7 +3043,14 @@ Deno.serve(async (req) => {
         });
       }
       return new Response(
-        JSON.stringify({ ok: true, reply: slotTakenReply, sent: send.ok, steps: 0, toolCalls: [], race_lost: true }),
+        JSON.stringify({
+          ok: true,
+          reply: slotTakenReply,
+          sent: send.ok,
+          steps: 0,
+          toolCalls: [],
+          race_lost: true,
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -2370,27 +3073,81 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, { calendarId: calendar_id, calendars, serviceCalendarMap, phone, businessUserId, conversationId, confirmCancel, confirmBook, confirmRename, confirmRenameVerification, confirmCancelVerification, confirmRescheduleVerification, confirmRescheduleAmbiguity: confirmRescheduleAmbiguity && hardConfirm === true, confirmBookVerification, knownSelfName: knownName, ambiguousConfirm, ambiguousConfirmForVerification: ambiguousConfirmForVerification(msgLower), hardConfirm, hardReject, userMessage: String(message), relativeDateHintISO: effectiveDateHint?.iso ?? null, customerLocale: customerLanguage != null ? "en" : "nl", blockForMissingServiceChoice, blockForAmbiguousBranch, distinctServiceForReschedule, abandonPreviousPreview, confirmSecondBookingFromMessage, blockForReturningServiceDefault: blockForReturningServiceDefaultEffective, lastServiceForReturningDefault: lastService, blockForNoDayNamed, blockForMultiService, allServiceNamesForAmbiguity: allServiceNamesForReturning, pendingBookInterveningExchange, messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower), priorRealBookingExists, confirmBookOwnerRestated, bookVerificationAffirmUnresolved, renameVerificationAffirmUnresolved });
+    const { decls, execute } = createTools(supabase, {
+      calendarId: calendar_id,
+      calendars,
+      serviceCalendarMap,
+      phone,
+      businessUserId,
+      conversationId,
+      confirmCancel,
+      confirmBook,
+      confirmRename,
+      confirmRenameVerification,
+      confirmCancelVerification,
+      confirmRescheduleVerification,
+      confirmRescheduleAmbiguity: confirmRescheduleAmbiguity &&
+        hardConfirm === true,
+      confirmBookVerification,
+      knownSelfName: knownName,
+      ambiguousConfirm,
+      ambiguousConfirmForVerification: ambiguousConfirmForVerification(
+        msgLower,
+      ),
+      hardConfirm,
+      hardReject,
+      userMessage: String(message),
+      relativeDateHintISO: effectiveDateHint?.iso ?? null,
+      customerLocale: customerLanguage != null ? "en" : "nl",
+      blockForMissingServiceChoice,
+      blockForAmbiguousBranch,
+      distinctServiceForReschedule,
+      abandonPreviousPreview,
+      confirmSecondBookingFromMessage,
+      blockForReturningServiceDefault: blockForReturningServiceDefaultEffective,
+      lastServiceForReturningDefault: lastService,
+      blockForNoDayNamed,
+      blockForMultiService,
+      allServiceNamesForAmbiguity: allServiceNamesForReturning,
+      pendingBookInterveningExchange,
+      messageRestatesDayTime: DAY_OR_TIME_SHIFT_RE.test(msgLower),
+      priorRealBookingExists,
+      confirmBookOwnerRestated,
+      bookVerificationAffirmUnresolved,
+      renameVerificationAffirmUnresolved,
+    });
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
     // R22 (T3-LATENCY-RETRY tail): the stall-retry now gets the SAME short-circuit (its accept-gate
     // no longer needs retry.text on a committed mutation, see retryCommitted below).
-    let result = await runAgent({ system, contents, tools: decls, execute, maxSteps: 6, temperature: 0.2, stopOnToolResult: isCommittedMutation });
+    let result = await runAgent({
+      system,
+      contents,
+      tools: decls,
+      execute,
+      maxSteps: 6,
+      temperature: 0.2,
+      stopOnToolResult: isCommittedMutation,
+    });
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
     // ("ik check even / momentje / one moment / ich prüfe …") and ends the turn WITHOUT
     // calling a tool, which stalls the conversation. If this turn made no tool call, reads
     // like such a filler, and asks nothing, nudge the model once to actually perform it.
-    const ANNOUNCE_RE = /\b(check(ing)?|checken|zoek(en)?|moment(je|o|ito)?|even geduld|regel (het|even|dat|meteen)|ga (ik )?(even )?(kijken|checken|zoeken|na)|kijk even|ik (kijk|check|controleer|haal|roep|regel)\b|even (kijken|checken|ophalen|oproepen|opvragen)|geef me (even|één|een|\d)|seconde|(tijden|beschikbaarheid)[\w\s]{0,15}(op|na)|let me (check|see|find)|one (moment|second)|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde|cherche)|un instant|un momento)\b/i;
+    const ANNOUNCE_RE =
+      /\b(check(ing)?|checken|zoek(en)?|moment(je|o|ito)?|even geduld|regel (het|even|dat|meteen)|ga (ik )?(even )?(kijken|checken|zoeken|na)|kijk even|ik (kijk|check|controleer|haal|roep|regel)\b|even (kijken|checken|ophalen|oproepen|opvragen)|geef me (even|één|een|\d)|seconde|(tijden|beschikbaarheid)[\w\s]{0,15}(op|na)|let me (check|see|find)|one (moment|second)|hold on|ich (check|prüfe|schaue|sehe)|einen moment|je (vérifie|regarde|cherche)|un instant|un momento)\b/i;
     // A stall = the model ANNOUNCED a filler but didn't actually ACT. "Acting" = calling a
     // MUTATION/preview tool (book/cancel/reschedule). Calling only a READ (get_available_slots
     // / get_business_data) and then saying "ik regel even / geef me een seconde" WITHOUT
     // proceeding to the preview IS a stall (it offset the whole booking flow live).
     const calledMutationTool = result.toolCalls.some((t) =>
-      t.name === "book_appointment" || t.name === "cancel_appointment" || t.name === "reschedule_appointment");
+      t.name === "book_appointment" || t.name === "cancel_appointment" ||
+      t.name === "reschedule_appointment"
+    );
     const looksLikeStall = !calledMutationTool &&
-      !!result.text && ANNOUNCE_RE.test(result.text) && !result.text.includes("?");
+      !!result.text && ANNOUNCE_RE.test(result.text) &&
+      !result.text.includes("?");
 
     // Cancel-preview-by-talking: the customer asked to cancel but the model produced
     // the confirm question in prose WITHOUT calling cancel_appointment, so no
@@ -2398,9 +3155,14 @@ Deno.serve(async (req) => {
     // of committing (they must confirm twice). Two-phase cancel is server-driven, so
     // the marker MUST exist: force the preview tool. Skipped on a decline (NEGATE_RE)
     // and on the confirmation turn (pendingFresh) so it never double-fires.
-    const calledCancel = result.toolCalls.some((t) => t.name === "cancel_appointment");
-    const cancelIntent = /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i.test(msgLower) && !cancelPolicyQuestion;
-    const cancelPreviewMissed = cancelIntent && !calledCancel && !pendingFresh && !NEGATE_RE.test(msgLower);
+    const calledCancel = result.toolCalls.some((t) =>
+      t.name === "cancel_appointment"
+    );
+    const cancelIntent =
+      /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|cancelar)\b/i
+        .test(msgLower) && !cancelPolicyQuestion;
+    const cancelPreviewMissed = cancelIntent && !calledCancel &&
+      !pendingFresh && !NEGATE_RE.test(msgLower);
 
     // Confirm-then-stall: the customer gives a bare affirmation ("ja", "ja graag") to an
     // action the model proposed (typically a reschedule it offered to do), but the model
@@ -2413,14 +3175,23 @@ Deno.serve(async (req) => {
     // R40: update_booking_name added, same "mutating tool, server-guarded two-phase commit"
     // reasoning as the other three (its own commit gate requires only_confirming_previous===true
     // AND !ambiguousConfirm AND hardConfirm===true AND a stored pending_rename, see tools.ts).
-    const MUTATION_TOOLS = new Set(["book_appointment", "cancel_appointment", "reschedule_appointment", "update_booking_name"]);
+    const MUTATION_TOOLS = new Set([
+      "book_appointment",
+      "cancel_appointment",
+      "reschedule_appointment",
+      "update_booking_name",
+    ]);
     // A mutation only "counts" if it SUCCEEDED. The model sometimes calls book_appointment on
     // a reschedule-confirm turn; the duplicate guard refuses it (no double-book) but the
     // reschedule never happens — so an ERRORED mutation must NOT suppress the nudge. A PREVIEW
     // (needs_confirmation: book/cancel awaiting confirm) is likewise NOT a completed mutation.
-    const isErr = (r: unknown) => !!r && typeof r === "object" &&
-      ("error" in (r as Record<string, unknown>) || "needs_confirmation" in (r as Record<string, unknown>));
-    const succeededMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
+    const isErr = (r: unknown) =>
+      !!r && typeof r === "object" &&
+      ("error" in (r as Record<string, unknown>) ||
+        "needs_confirmation" in (r as Record<string, unknown>));
+    const succeededMutation = result.toolCalls.some((t) =>
+      MUTATION_TOOLS.has(t.name) && !isErr(t.result)
+    );
     // R29 (T3-LATENCY-PAYOFF, confirmStall root-cause): bareAffirm is a PREFIX match on the
     // customer's whole message ("Klopt, maar kan het ook een uur later?" starts with "Klopt" so
     // it matches), not "the message is ONLY an affirmation". Before this fix, confirmStall fired
@@ -2437,8 +3208,11 @@ Deno.serve(async (req) => {
     // is false on a clean "Ja" or "Klopt"). It only stops the nudge-and-retry from firing on
     // messages that were never a clean confirmation in the first place, where the model's own
     // "which one?" follow-up was already the CORRECT behavior.
-    const bareAffirm = /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait)\b/i.test(msgLower) && !NEGATE_RE.test(msgLower);
-    const confirmStall = !succeededMutation && bareAffirm && !ambiguousConfirm && !cancelPreviewMissed && !confirmCancel &&
+    const bareAffirm =
+      /^\s*(ja|jawel|jazeker|yes|yep|yup|yeah|sure|ok|oke|oké|okay|prima|graag|doe maar|klopt|akkoord|is goed|oui|ouais|sí|sì|si|sim|certo|claro|perfetto|parfait)\b/i
+        .test(msgLower) && !NEGATE_RE.test(msgLower);
+    const confirmStall = !succeededMutation && bareAffirm &&
+      !ambiguousConfirm && !cancelPreviewMissed && !confirmCancel &&
       !!result.text && result.text.includes("?");
 
     // Cancel-commit-missed: the customer AFFIRMED a pending cancel (server-detected confirmCancel)
@@ -2462,9 +3236,11 @@ Deno.serve(async (req) => {
     // pointless retry here (as bookCommitMissed already learned to avoid via
     // paymentSetupFailedOnCommit/slotTakenOnCommit) wastes a full extra LLM round-trip for a result
     // that can only ever repeat, never succeed differently.
-    const cancelPolicyRefusedOnCommit = (confirmCancel || confirmCancelVerification) &&
+    const cancelPolicyRefusedOnCommit =
+      (confirmCancel || confirmCancelVerification) &&
       cancelToolCallHadPolicyRefusal(result.toolCalls);
-    const cancelCommitMissed = (confirmCancel || confirmCancelVerification) && !succeededMutation && !cancelPolicyRefusedOnCommit;
+    const cancelCommitMissed = (confirmCancel || confirmCancelVerification) &&
+      !succeededMutation && !cancelPolicyRefusedOnCommit;
 
     // ITEM 12, Book-commit-missed (mirrors cancelCommitMissed): the customer AFFIRMED a fresh
     // pending booking (server-detected confirmBook) but no booking SUCCEEDED this turn. The model
@@ -2480,9 +3256,16 @@ Deno.serve(async (req) => {
     // model to improvise a confused reply ("Wat is je naam?", reproduced reliably). Suppress the
     // pointless nudge here; reply-assembly then templates an honest reply (deterministicSlotTaken),
     // so the no-double-book guarantee in code is matched by a clean customer-facing outcome.
-    const slotTakenOnCommit = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && result.toolCalls.some(
-      (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
-        BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
+    const slotTakenOnCommit =
+      (confirmBook || confirmBookVerification || confirmBookOwnerRestated) &&
+      result.toolCalls.some(
+        (t) =>
+          t.name === "book_appointment" && !!t.result &&
+          typeof t.result === "object" &&
+          BOOK_RACE_LOSS_ERRORS.has(
+            String((t.result as Record<string, unknown>).error),
+          ),
+      );
     // R11 (round 11, DUPLICATE-BOOKING-ON-PAYMENT-SETUP-FAILURE fix, bug A of the full-journey
     // simulation loop): live-reproduced (R7/R8/R10 evidence, re-verified this round on ALL 3
     // payment-required calendars, not installment-specific as first scoped) that a confirmBook
@@ -2512,9 +3295,15 @@ Deno.serve(async (req) => {
     // from bookCommitMissed so no pointless (and duplicating) retry is forced; the customer
     // already got the correct, honest "kon de betaling niet instellen" reply from the primary
     // turn, retrying the insert can never fix a missing Stripe Connect account anyway.
-    const paymentSetupFailedOnCommit = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && result.toolCalls.some(
-      (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
-        String((t.result as Record<string, unknown>).error) === "payment_setup_failed");
+    const paymentSetupFailedOnCommit =
+      (confirmBook || confirmBookVerification || confirmBookOwnerRestated) &&
+      result.toolCalls.some(
+        (t) =>
+          t.name === "book_appointment" && !!t.result &&
+          typeof t.result === "object" &&
+          String((t.result as Record<string, unknown>).error) ===
+            "payment_setup_failed",
+      );
     // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, model-attestation-reliability
     // half): live-reproduced on the S6 testpad (phone 31600001716) that even AFTER tools.ts's own
     // gate correctly accepts ctx.confirmBookVerification/ctx.confirmBookOwnerRestated as an
@@ -2531,7 +3320,9 @@ Deno.serve(async (req) => {
     // still only ever forces the SAME deterministic, server-stored-slot commit tools.ts's own gate
     // already independently re-verifies, so this can never force a wrong or premature booking, only
     // a booking that was already safe to make.
-    const bookCommitMissed = (confirmBook || confirmBookVerification || confirmBookOwnerRestated) && !succeededMutation && !slotTakenOnCommit && !paymentSetupFailedOnCommit;
+    const bookCommitMissed =
+      (confirmBook || confirmBookVerification || confirmBookOwnerRestated) &&
+      !succeededMutation && !slotTakenOnCommit && !paymentSetupFailedOnCommit;
 
     // R40: Rename-commit-missed (mirrors cancelCommitMissed exactly). The customer AFFIRMED a
     // pending name-change (server-detected confirmRename) but no rename SUCCEEDED this turn (the
@@ -2559,19 +3350,25 @@ Deno.serve(async (req) => {
     // get_my_appointments-shaped reply never does. This mirrors the SAME "server-side gate is correct,
     // model tool-selection isn't reliable" root cause R120 already fixed for cancel/book; reschedule
     // was simply the one sibling left unwidened.
-    const reschedCommitMissed = confirmRescheduleVerification && !succeededMutation;
+    const reschedCommitMissed = confirmRescheduleVerification &&
+      !succeededMutation;
 
     // Book-preview-by-talking (mirrors cancelPreviewMissed): the model NARRATED a new-booking
     // preview ("ik zet/boek een afspraak ... klopt dat?") but did NOT call book_appointment, so
     // no pending_booking proposal exists and the customer's next "ja" has nothing to commit.
     // Force the preview tool. Scoped so it never fires on a reschedule, a cancel, or when a
     // proposal already exists / a booking was already committed this turn.
-    const calledBook = result.toolCalls.some((t) => t.name === "book_appointment");
-    const bookPreviewLang = /\b(ik (zet|boek|plan|reserveer)\b|zal ik .{0,25}(boeken|inplannen|reserveren)|ik (boek|plan|reserveer) (je|het|'t|een|de))/i;
+    const calledBook = result.toolCalls.some((t) =>
+      t.name === "book_appointment"
+    );
+    const bookPreviewLang =
+      /\b(ik (zet|boek|plan|reserveer)\b|zal ik .{0,25}(boeken|inplannen|reserveren)|ik (boek|plan|reserveer) (je|het|'t|een|de))/i;
     // Prefix match (no trailing \b) so conjugations match too: "verzet", "verzetten", "verzette",
     // "verschuiven", "verplaatsen". A trailing \b made it miss "verzetten" (the form the model uses).
-    const reschedLang = /\b(verzet|verschuif|verplaats|schuif|reschedule|opschuif|verschoven|reschedul)/i;
-    const bookPreviewMissed = !calledMutationTool && !calledBook && !!result.text &&
+    const reschedLang =
+      /\b(verzet|verschuif|verplaats|schuif|reschedule|opschuif|verschoven|reschedul)/i;
+    const bookPreviewMissed = !calledMutationTool && !calledBook &&
+      !!result.text &&
       bookPreviewLang.test(result.text) && !reschedLang.test(result.text) &&
       !pendingBookFresh && !cancelIntent && !confirmCancel;
 
@@ -2580,7 +3377,8 @@ Deno.serve(async (req) => {
     // confirm). Goal: a clear new time IS the confirmation → ONE mutating call. So when the model's
     // text announces a reschedule to a concrete time/date yet no mutation ran, nudge it to actually
     // perform it. Gated on a concrete time/date in the text so a legit "naar wanneer?" never fires.
-    const concreteWhenInText = /(\b\d{1,2}[:.]\d{2}\b|\bom \d{1,2}\b|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|morgen|overmorgen|monday|tuesday|wednesday|thursday|friday|saturday|sunday|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)/i;
+    const concreteWhenInText =
+      /(\b\d{1,2}[:.]\d{2}\b|\bom \d{1,2}\b|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|morgen|overmorgen|monday|tuesday|wednesday|thursday|friday|saturday|sunday|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)/i;
     const reschedStall = !calledMutationTool && !!result.text &&
       reschedLang.test(result.text) && concreteWhenInText.test(result.text) &&
       !cancelIntent && !confirmCancel && !confirmStall && !bookPreviewMissed;
@@ -2590,7 +3388,8 @@ Deno.serve(async (req) => {
     // customer got the generic error fallback with no guidance. Nudge it once to actually
     // answer. Empty text AFTER a successful mutation is handled deterministically later, so
     // this targets only the no-success case. Excludes cancelCommitMissed (handled above).
-    const emptyNoAction = !(result.text || "").trim() && !succeededMutation && !cancelCommitMissed;
+    const emptyNoAction = !(result.text || "").trim() && !succeededMutation &&
+      !cancelCommitMissed;
 
     // P0-1: the reply OFFERS concrete clock times but the model called NO get_available_slots this
     // turn (and no book/reschedule that resolved real slots) -> the offer has zero server backing.
@@ -2598,22 +3397,48 @@ Deno.serve(async (req) => {
     // validate against. Gated on offer-context + actually-offered times (ranges/echoes excluded), so
     // info, recall and opening-hours replies never trigger it. !calledMutationTool excludes preview/
     // commit turns (those carry their own real slots / deterministic templating).
-    const calledSlots = result.toolCalls.some((t) => t.name === "get_available_slots");
-    const offeredTimesPrimary = extractOfferedClockTimes(result.text || "", String(message));
-    const slotOfferUnbacked = !calledMutationTool && !calledSlots && offeredTimesPrimary.length > 0 &&
+    const calledSlots = result.toolCalls.some((t) =>
+      t.name === "get_available_slots"
+    );
+    const offeredTimesPrimary = extractOfferedClockTimes(
+      result.text || "",
+      String(message),
+    );
+    const slotOfferUnbacked = !calledMutationTool && !calledSlots &&
+      offeredTimesPrimary.length > 0 &&
       OFFER_CONTEXT_RE.test(result.text || "");
 
-    if (looksLikeStall || cancelPreviewMissed || confirmStall || bookPreviewMissed || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed || reschedCommitMissed || emptyNoAction || slotOfferUnbacked) {
+    if (
+      looksLikeStall || cancelPreviewMissed || confirmStall ||
+      bookPreviewMissed || reschedStall || cancelCommitMissed ||
+      bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
+      emptyNoAction || slotOfferUnbacked
+    ) {
       // T3-LATENCY-RETRY follow-up (R22): the stall-retry DOUBLES the turn's sequential LLM
       // round-trips, and when accepted, `result = retry` makes the primary call's step count
       // invisible in the response. Log which heuristic fired + both step counts so tail-latency
       // turns are diagnosable from the function logs. Log-only, no behavior change.
-      const nudgeReason =
-        cancelCommitMissed ? "cancelCommitMissed" : bookCommitMissed ? "bookCommitMissed" :
-        renameCommitMissed ? "renameCommitMissed" : reschedCommitMissed ? "reschedCommitMissed" :
-        reschedStall ? "reschedStall" : bookPreviewMissed ? "bookPreviewMissed" :
-        cancelPreviewMissed ? "cancelPreviewMissed" : confirmStall ? "confirmStall" :
-        emptyNoAction ? "emptyNoAction" : slotOfferUnbacked ? "slotOfferUnbacked" : "looksLikeStall";
+      const nudgeReason = cancelCommitMissed
+        ? "cancelCommitMissed"
+        : bookCommitMissed
+        ? "bookCommitMissed"
+        : renameCommitMissed
+        ? "renameCommitMissed"
+        : reschedCommitMissed
+        ? "reschedCommitMissed"
+        : reschedStall
+        ? "reschedStall"
+        : bookPreviewMissed
+        ? "bookPreviewMissed"
+        : cancelPreviewMissed
+        ? "cancelPreviewMissed"
+        : confirmStall
+        ? "confirmStall"
+        : emptyNoAction
+        ? "emptyNoAction"
+        : slotOfferUnbacked
+        ? "slotOfferUnbacked"
+        : "looksLikeStall";
       // R31 (AFFIRM-CONFIRM-HONESTLY-NOT-WHAT-I-HAD-IN-MIND): the cancelCommitMissed/
       // bookCommitMissed/confirmStall nudge texts used to assert "het systeem heeft de
       // bevestiging al als schoon herkend" (the system already recognized this confirmation as
@@ -2703,7 +3528,15 @@ Deno.serve(async (req) => {
       // (2) stopOnToolResult: a retry that COMMITS skips its compose call, exactly like the
       //     primary (B1); reply-assembly below templates the confirmation deterministically from
       //     the tool result, so the composed prose was dead weight (~0.15-1.7s/turn).
-      const retry = await runAgent({ system, contents: nudged, tools: decls, execute, maxSteps: 3, temperature: 0.2, stopOnToolResult: isCommittedMutation });
+      const retry = await runAgent({
+        system,
+        contents: nudged,
+        tools: decls,
+        execute,
+        maxSteps: 3,
+        temperature: 0.2,
+        stopOnToolResult: isCommittedMutation,
+      });
       // FQ-3 (ATTEMPT 2), secondary catch: the bookCommitMissed forced retry can ITSELF lose the
       // race (its book_appointment returns a BOOK_RACE_LOSS_ERROR). The normal accept-gate below
       // (MUTATION && !isErr) treats that errored mutation as "not done" and DISCARDS the retry, so
@@ -2712,9 +3545,15 @@ Deno.serve(async (req) => {
       // confirmBook turn, ADOPT it anyway: result.toolCalls then carries the race-loss and
       // reply-assembly templates the honest reply. (The server-side pre-check above already catches
       // the dominant case before the agent runs; this covers a race that lands DURING the turn.)
-      const retryRaceLost = (bookCommitMissed || confirmBook) && retry.toolCalls.some(
-        (t) => t.name === "book_appointment" && !!t.result && typeof t.result === "object" &&
-          BOOK_RACE_LOSS_ERRORS.has(String((t.result as Record<string, unknown>).error)));
+      const retryRaceLost = (bookCommitMissed || confirmBook) &&
+        retry.toolCalls.some(
+          (t) =>
+            t.name === "book_appointment" && !!t.result &&
+            typeof t.result === "object" &&
+            BOOK_RACE_LOSS_ERRORS.has(
+              String((t.result as Record<string, unknown>).error),
+            ),
+        );
       // For confirmStall, only adopt the retry if it actually performed a mutation (else keep
       // the original); for the other cases, adopt on any tool call or a non-filler reply.
       // R22: a COMMITTED retry is adopted unconditionally, text or no text. With stopOnToolResult
@@ -2724,16 +3563,23 @@ Deno.serve(async (req) => {
       // text came back empty used to be DISCARDED, leaving the customer a reply inconsistent with
       // the database. All previously-accepted retries remain accepted (the old conditions are
       // kept verbatim below).
-      const retryCommitted = retry.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
+      const retryCommitted = retry.toolCalls.some((t) =>
+        isCommittedMutation(t.name, t.result)
+      );
       const accept = retryRaceLost || retryCommitted || (!!retry.text && (
-        (confirmStall || reschedStall || cancelCommitMissed || bookCommitMissed || renameCommitMissed || reschedCommitMissed)
-          ? retry.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result))
+        (confirmStall || reschedStall || cancelCommitMissed ||
+            bookCommitMissed || renameCommitMissed || reschedCommitMissed)
+          ? retry.toolCalls.some((t) =>
+            MUTATION_TOOLS.has(t.name) && !isErr(t.result)
+          )
           : (retry.toolCalls.length > 0 || !ANNOUNCE_RE.test(retry.text))
       ));
       console.log(
         `[stall-retry] reason=${nudgeReason} accepted=${accept} primary_steps=${result.steps}` +
-        ` retry_steps=${retry.steps} primary_tools=${result.toolCalls.map((t) => t.name).join(",") || "-"}` +
-        ` retry_tools=${retry.toolCalls.map((t) => t.name).join(",") || "-"}`,
+          ` retry_steps=${retry.steps} primary_tools=${
+            result.toolCalls.map((t) => t.name).join(",") || "-"
+          }` +
+          ` retry_tools=${retry.toolCalls.map((t) => t.name).join(",") || "-"}`,
       );
       if (accept) {
         result = retry;
@@ -2754,16 +3600,29 @@ Deno.serve(async (req) => {
     // slotOfferUnbacked itself (computed above from the PRIMARY turn only), so a turn that never
     // looked like an unbacked slot offer in the first place is never touched.
     if (slotOfferUnbacked) {
-      const finalCalledSlots = result.toolCalls.some((t) => t.name === "get_available_slots");
-      const finalCalledMutation = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name));
-      const finalOfferedTimes = extractOfferedClockTimes(result.text || "", String(message));
-      const stillUnbacked = !finalCalledSlots && !finalCalledMutation && finalOfferedTimes.length > 0 &&
+      const finalCalledSlots = result.toolCalls.some((t) =>
+        t.name === "get_available_slots"
+      );
+      const finalCalledMutation = result.toolCalls.some((t) =>
+        MUTATION_TOOLS.has(t.name)
+      );
+      const finalOfferedTimes = extractOfferedClockTimes(
+        result.text || "",
+        String(message),
+      );
+      const stillUnbacked = !finalCalledSlots && !finalCalledMutation &&
+        finalOfferedTimes.length > 0 &&
         OFFER_CONTEXT_RE.test(result.text || "");
       if (stillUnbacked) {
         console.warn(
-          `slot-offer-guard: no-query safety net fired, phantom times ${JSON.stringify(finalOfferedTimes)} with zero grounding tool call even after retry`,
+          `slot-offer-guard: no-query safety net fired, phantom times ${
+            JSON.stringify(finalOfferedTimes)
+          } with zero grounding tool call even after retry`,
         );
-        result = { ...result, text: noQueryGroundedReply(customerLanguage != null) };
+        result = {
+          ...result,
+          text: noQueryGroundedReply(customerLanguage != null),
+        };
       }
     }
 
@@ -2784,12 +3643,28 @@ Deno.serve(async (req) => {
     // Best-effort: a release RPC error here fails open (logged, not thrown) -- the 20s TTL self-heals
     // any claim this call could not clear, matching every prior round's fail-open posture.
     if (bookClaimId) {
-      const { error: bookReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimId });
-      if (bookReleaseErr) console.error("release_whatsapp_confirm_claim (book, post-hoc) error (fails open, TTL self-heals):", bookReleaseErr);
+      const { error: bookReleaseErr } = await supabase.rpc(
+        "release_whatsapp_confirm_claim",
+        { p_claim_id: bookClaimId },
+      );
+      if (bookReleaseErr) {
+        console.error(
+          "release_whatsapp_confirm_claim (book, post-hoc) error (fails open, TTL self-heals):",
+          bookReleaseErr,
+        );
+      }
     }
     if (cancelClaimId) {
-      const { error: cancelReleaseErr } = await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: cancelClaimId });
-      if (cancelReleaseErr) console.error("release_whatsapp_confirm_claim (cancel, post-hoc) error (fails open, TTL self-heals):", cancelReleaseErr);
+      const { error: cancelReleaseErr } = await supabase.rpc(
+        "release_whatsapp_confirm_claim",
+        { p_claim_id: cancelClaimId },
+      );
+      if (cancelReleaseErr) {
+        console.error(
+          "release_whatsapp_confirm_claim (cancel, post-hoc) error (fails open, TTL self-heals):",
+          cancelReleaseErr,
+        );
+      }
     }
 
     // B1: on a turn that COMMITTED a book/cancel/reschedule, the confirmation is deterministic
@@ -2800,9 +3675,15 @@ Deno.serve(async (req) => {
     // Fallback (unchanged): empty text after a non-committed-but-succeeded mutation still templates,
     // so an empty PREVIEW turn never falsely claims "booked" (isErr excludes needs_confirmation).
     let replyText = (result.text || "").trim();
-    const committed = result.toolCalls.some((t) => isCommittedMutation(t.name, t.result));
+    const committed = result.toolCalls.some((t) =>
+      isCommittedMutation(t.name, t.result)
+    );
     if (committed) {
-      replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || replyText;
+      replyText = deterministicConfirmation(
+        result.toolCalls,
+        customerLanguage,
+        knownName,
+      ) || replyText;
       // R128: a customer can equally mix a genuine price question into the FINAL confirm turn
       // ("ja doe maar, trouwens wat kost het") -- same silent-drop shape as the preview case above,
       // same fix. Only appends when there IS server-known price data; a no-op otherwise.
@@ -2810,16 +3691,25 @@ Deno.serve(async (req) => {
         const priceCheckServicesForCommit = calendarsForPrompt
           ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
           : services;
-        if (findMixedPriceQuestion(String(message), priceCheckServicesForCommit)) {
+        if (
+          findMixedPriceQuestion(String(message), priceCheckServicesForCommit)
+        ) {
           const bookedOk = result.toolCalls.find((t) =>
-            t.name === "book_appointment" && t.result && typeof t.result === "object" && (t.result as Record<string, unknown>).ok === true
+            t.name === "book_appointment" && t.result &&
+            typeof t.result === "object" &&
+            (t.result as Record<string, unknown>).ok === true
           );
           const bookedServiceName = bookedOk
-            ? ((bookedOk.result as Record<string, unknown>).service as string | undefined) ?? null
+            ? ((bookedOk.result as Record<string, unknown>).service as
+              | string
+              | undefined) ?? null
             : null;
           replyText = appendPriceAnswer(
             replyText,
-            scopeToBookedService(priceCheckServicesForCommit, bookedServiceName),
+            scopeToBookedService(
+              priceCheckServicesForCommit,
+              bookedServiceName,
+            ),
             customerLanguage,
           );
         }
@@ -2841,13 +3731,20 @@ Deno.serve(async (req) => {
         // exact inverse defect. Branch the expected status on which tool actually committed this
         // turn: a cancel commit is verified as real when the row exists AND is cancelled; a
         // book/reschedule commit is verified as real when the row exists AND is NOT cancelled.
-        const cancelCommitted = result.toolCalls.some((t) => t.name === "cancel_appointment" && isCommittedMutation(t.name, t.result));
+        const cancelCommitted = result.toolCalls.some((t) =>
+          t.name === "cancel_appointment" &&
+          isCommittedMutation(t.name, t.result)
+        );
         const { data: verifyRow } = await supabase
-          .from("bookings").select("id, status").eq("id", verifyId).maybeSingle();
+          .from("bookings").select("id, status").eq("id", verifyId)
+          .maybeSingle();
         const status = (verifyRow as { status?: string } | null)?.status;
-        const rowOk = !!verifyRow && (cancelCommitted ? status === "cancelled" : status !== "cancelled");
+        const rowOk = !!verifyRow &&
+          (cancelCommitted ? status === "cancelled" : status !== "cancelled");
         if (!rowOk) {
-          console.error(`[phantom-success-guard] commit claimed but no matching live row for booking_id=${verifyId} (expected cancelled=${cancelCommitted}); rewriting to honest reply`);
+          console.error(
+            `[phantom-success-guard] commit claimed but no matching live row for booking_id=${verifyId} (expected cancelled=${cancelCommitted}); rewriting to honest reply`,
+          );
           replyText = noFalseConfirmReply(customerLanguage);
         }
       }
@@ -2858,7 +3755,11 @@ Deno.serve(async (req) => {
       // divergence structurally impossible. Only fires when book_appointment returned
       // needs_confirmation + proposal; if it didn't (no preview this turn), fall through unchanged.
       const preview = deterministicPreview(result.toolCalls, customerLanguage);
-      const slotTaken = await deterministicSlotTaken(result.toolCalls, customerLanguage, confirmBook);
+      const slotTaken = await deterministicSlotTaken(
+        result.toolCalls,
+        customerLanguage,
+        confirmBook,
+      );
       if (slotTaken) {
         // FQ-3: the concurrency LOSER. The DB already guaranteed no double-book; here we guarantee
         // the customer-facing message is honest + helpful instead of model-improvised prose. Override
@@ -2872,38 +3773,68 @@ Deno.serve(async (req) => {
         let previewedServiceName: string | null = null;
         for (let i = result.toolCalls.length - 1; i >= 0; i--) {
           const t = result.toolCalls[i];
-          if (t.name === "book_appointment" && t.result && typeof t.result === "object" && (t.result as Record<string, unknown>).needs_confirmation === true) {
-            const p = (t.result as Record<string, any>).proposal as { service?: string | null } | undefined;
+          if (
+            t.name === "book_appointment" && t.result &&
+            typeof t.result === "object" &&
+            (t.result as Record<string, unknown>).needs_confirmation === true
+          ) {
+            const p = (t.result as BookingToolResult).proposal;
             previewedServiceName = p?.service ?? null;
             break;
           }
         }
         const secondService = isMultiCalendar
-          ? findUnacknowledgedSecondService(calendarsForPrompt, previewedServiceName, String(message))
+          ? findUnacknowledgedSecondService(
+            calendarsForPrompt,
+            previewedServiceName,
+            String(message),
+          )
           : null;
-        replyText = appendSecondServiceAck(preview, secondService, customerLanguage);
+        replyText = appendSecondServiceAck(
+          preview,
+          secondService,
+          customerLanguage,
+        );
         // R128: never silently drop a genuine price question the customer mixed into this SAME
         // message as the time confirmation that produced this preview (see the fix header above).
         const priceCheckServicesForPreview = calendarsForPrompt
           ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
           : services;
-        if (findMixedPriceQuestion(String(message), priceCheckServicesForPreview)) {
+        if (
+          findMixedPriceQuestion(String(message), priceCheckServicesForPreview)
+        ) {
           replyText = appendPriceAnswer(
             replyText,
-            scopeToBookedService(priceCheckServicesForPreview, previewedServiceName),
+            scopeToBookedService(
+              priceCheckServicesForPreview,
+              previewedServiceName,
+            ),
             customerLanguage,
           );
         }
       } else if (!replyText) {
-        const finalSucceeded = result.toolCalls.some((t) => MUTATION_TOOLS.has(t.name) && !isErr(t.result));
-        if (finalSucceeded) replyText = deterministicConfirmation(result.toolCalls, customerLanguage, knownName) || "";
+        const finalSucceeded = result.toolCalls.some((t) =>
+          MUTATION_TOOLS.has(t.name) && !isErr(t.result)
+        );
+        if (finalSucceeded) {
+          replyText = deterministicConfirmation(
+            result.toolCalls,
+            customerLanguage,
+            knownName,
+          ) || "";
+        }
       } else {
         // P0-1: model-prose reply (not a committed mutation, not a server-templated preview).
         // Enforce the "no fabricated time" guarantee: any clock time the reply OFFERS must come
         // from THIS turn's real get_available_slots result, else rebuild the offer from the real
         // free slots. No-ops on info/recall turns (no slots query ran), so it only ever touches a
         // reply that proposes times while a query gave ground truth to check them against.
-        replyText = enforceSlotOffer(replyText, result.toolCalls, String(message), customerLanguage);
+        replyText = enforceSlotOffer(
+          replyText,
+          result.toolCalls,
+          String(message),
+          customerLanguage,
+        );
         // R18 DATE-OFFER GUARD (dateOfferGuard.ts): the sibling gap slotOfferGuard structurally
         // cannot cover, an offered ALTERNATIVE DAY rather than a clock time. R17 live-reproduced:
         // book_appointment/reschedule_appointment declined a fully-closed day (empty
@@ -2914,27 +3845,45 @@ Deno.serve(async (req) => {
         const dayClosedCall = [...result.toolCalls].reverse().find((t) => {
           const r = t.result as Record<string, unknown> | null;
           if (!r || typeof r !== "object") return false;
-          if ((t.name === "book_appointment" || t.name === "reschedule_appointment") && r.error === "niet_beschikbaar") {
-            return Array.isArray(r.available_slots) && r.available_slots.length === 0;
+          if (
+            (t.name === "book_appointment" ||
+              t.name === "reschedule_appointment") &&
+            r.error === "niet_beschikbaar"
+          ) {
+            return Array.isArray(r.available_slots) &&
+              r.available_slots.length === 0;
           }
           if (t.name === "get_available_slots") return r.count === 0;
           return false;
         });
         if (dayClosedCall) {
-          const dcArgs = (dayClosedCall as { args?: Record<string, unknown> }).args ?? {};
-          const dcResult = (dayClosedCall.result ?? {}) as Record<string, unknown>;
-          const declinedDate = typeof dcArgs.date === "string" ? dcArgs.date : null;
+          const dcArgs =
+            (dayClosedCall as { args?: Record<string, unknown> }).args ?? {};
+          const dcResult = (dayClosedCall.result ?? {}) as Record<
+            string,
+            unknown
+          >;
+          const declinedDate = typeof dcArgs.date === "string"
+            ? dcArgs.date
+            : null;
           // R52: prefer the tool's own RESOLVED service_type_id/calendar_id (tools.ts now echoes
           // these back on the niet_beschikbaar/empty-slots result) over the model's tool-call args.
           // reschedule_appointment in particular is routinely called WITHOUT service_type_id when
           // not switching service/calendar (prompt.ts's own instruction for the common case), so
           // relying on dcArgs alone left this guard entirely unable to engage for reschedule.
-          const serviceId =
-            (typeof dcResult.service_type_id === "string" ? dcResult.service_type_id : null) ??
-            (typeof dcArgs.service_type_id === "string" ? dcArgs.service_type_id : null);
-          const declinedCalendarId = typeof dcResult.calendar_id === "string" ? dcResult.calendar_id : null;
+          const serviceId = (typeof dcResult.service_type_id === "string"
+            ? dcResult.service_type_id
+            : null) ??
+            (typeof dcArgs.service_type_id === "string"
+              ? dcArgs.service_type_id
+              : null);
+          const declinedCalendarId = typeof dcResult.calendar_id === "string"
+            ? dcResult.calendar_id
+            : null;
           const todayISO = now.toISOString().slice(0, 10);
-          const offered = declinedDate ? extractOfferedDates(replyText, todayISO, declinedDate) : [];
+          const offered = declinedDate
+            ? extractOfferedDates(replyText, todayISO, declinedDate)
+            : [];
           // R52: the model falsely claiming the DECLINED date itself is "already past" (see
           // dateOfferGuard.ts's mentionsFalsePastClaim header). Distinct from a phantom
           // ALTERNATIVE date above, this re-mentions the same declinedDate with a false reason,
@@ -2942,18 +3891,33 @@ Deno.serve(async (req) => {
           // it; checked as a sibling trigger on the SAME dayClosedCall/serviceId ground truth.
           const falsePastClaim = mentionsFalsePastClaim(replyText);
           if (serviceId && (offered.length > 0 || falsePastClaim)) {
-            const targetCalendarId = declinedCalendarId ?? serviceCalendarMap?.[serviceId] ?? calendar_id;
+            const targetCalendarId = declinedCalendarId ??
+              serviceCalendarMap?.[serviceId] ?? calendar_id;
             const checkDate = async (iso: string): Promise<boolean> => {
               const { data } = await supabase.rpc("get_available_slots", {
-                p_calendar_id: targetCalendarId, p_service_type_id: serviceId, p_date: iso,
+                p_calendar_id: targetCalendarId,
+                p_service_type_id: serviceId,
+                p_date: iso,
               });
-              return ((data as Array<{ is_available: boolean }>) ?? []).some((s) => s.is_available);
+              return ((data as Array<{ is_available: boolean }>) ?? []).some((
+                s,
+              ) =>
+                s.is_available
+              );
             };
-            const checks = offered.length > 0 ? await Promise.all(offered.slice(0, 3).map((iso) => checkDate(iso))) : [];
+            const checks = offered.length > 0
+              ? await Promise.all(
+                offered.slice(0, 3).map((iso) => checkDate(iso)),
+              )
+              : [];
             const anyFabricated = falsePastClaim || checks.some((ok) => !ok);
             if (anyFabricated) {
               console.warn(
-                `date-offer-guard: rebuilt date offer${falsePastClaim ? " (false past-date claim)" : ""}, phantom dates ${JSON.stringify(offered)} not real per get_available_slots for calendar=${targetCalendarId} service=${serviceId}`,
+                `date-offer-guard: rebuilt date offer${
+                  falsePastClaim ? " (false past-date claim)" : ""
+                }, phantom dates ${
+                  JSON.stringify(offered)
+                } not real per get_available_slots for calendar=${targetCalendarId} service=${serviceId}`,
               );
               const realOpen: string[] = [];
               if (declinedDate) {
@@ -2965,7 +3929,9 @@ Deno.serve(async (req) => {
                 }
               }
               const en = customerLanguage != null;
-              replyText = realOpen.length > 0 ? buildDeterministicDateAlternatives(realOpen, en) : noNearbyOpenDateReply(en);
+              replyText = realOpen.length > 0
+                ? buildDeterministicDateAlternatives(realOpen, en)
+                : noNearbyOpenDateReply(en);
             }
           }
         }
@@ -3005,7 +3971,11 @@ Deno.serve(async (req) => {
         // so ANY done-state booking/cancel/reschedule claim here is necessarily false: strip it and
         // reply honestly. A real successful commit goes through the `committed` branch above (and
         // deterministicConfirmation), so the legit confirmation path is never reached here.
-        replyText = enforceNoFalseConfirmation(replyText, result.toolCalls, customerLanguage);
+        replyText = enforceNoFalseConfirmation(
+          replyText,
+          result.toolCalls,
+          customerLanguage,
+        );
         // R102 (shared-phone identity fix, deterministic disclosure backstop, see
         // identityDisambiguationGuard.ts header): get_my_appointments is a read-only lookup, so a
         // MISSED disclosure here cannot itself mutate data, but it is the exact R101-1 trigger
@@ -3034,14 +4004,21 @@ Deno.serve(async (req) => {
         const looksLikeFreshAvailabilityOrBookingRequest =
           /\b(nog vrij|vrije?\s*(tijden|momenten|plek\w*|slots?)|beschikbaar\w*|welke dag(en)?|wanneer kan ik|kan ik(?:.{0,20})?(boeken|inplannen)|wil(?:.{0,15})?afspraak(?:.{0,15})?(maken|boeken|inplannen)|ruimte|plekje|available|any\s+(time|slot)s?|book\s+(a|an)?\s*appointment)\b/i
             .test(String(message ?? ""));
-        const lastAppointmentsResult = result.toolCalls.filter((t) => t.name === "get_my_appointments").pop()?.result as
-          { appointments?: AppointmentForDisclosure[] } | undefined;
+        const lastAppointmentsResult = result.toolCalls.filter((t) =>
+          t.name === "get_my_appointments"
+        ).pop()?.result as
+          | { appointments?: AppointmentForDisclosure[] }
+          | undefined;
         if (looksLikeFreshAvailabilityOrBookingRequest) {
           // No-op: this turn's own message is a fresh availability/booking request, never an
           // own-appointment-status/reschedule/cancel/rename intent, so neither disclosure branch
           // may override the drafted reply.
         } else if (lastAppointmentsResult?.appointments) {
-          replyText = enforceAppointmentNameDisclosure(replyText, lastAppointmentsResult.appointments, customerLanguage);
+          replyText = enforceAppointmentNameDisclosure(
+            replyText,
+            lastAppointmentsResult.appointments,
+            customerLanguage,
+          );
         } else if (mentionsOwnAppointmentClaim(replyText)) {
           // R107 (NO-FRESH-TOOL-CALL coverage gap fix): the model answered a possessive-booking-
           // shaped reply ("je staat op maandag...", "your appointment is...") WITHOUT calling
@@ -3064,10 +4041,24 @@ Deno.serve(async (req) => {
             .gt("start_time", new Date().toISOString())
             .order("start_time", { ascending: true })
             .limit(5);
-          const fallbackAppointments = ((fallbackRows as Array<{ start_time: string; service_types?: { name?: string } | null; customer_name?: string | null }>) ?? [])
-            .map((b) => ({ service: b.service_types?.name ?? null, when: nlWhen(b.start_time), customer_name: b.customer_name }));
+          const fallbackAppointments = ((fallbackRows as Array<
+            {
+              start_time: string;
+              service_types?: { name?: string } | null;
+              customer_name?: string | null;
+            }
+          >) ?? [])
+            .map((b) => ({
+              service: b.service_types?.name ?? null,
+              when: nlWhen(b.start_time),
+              customer_name: b.customer_name,
+            }));
           if (fallbackAppointments.length > 0) {
-            replyText = enforceAppointmentNameDisclosure(replyText, fallbackAppointments, customerLanguage);
+            replyText = enforceAppointmentNameDisclosure(
+              replyText,
+              fallbackAppointments,
+              customerLanguage,
+            );
           }
         }
         // R112 (GATE-FIRST-TRIGGER-WRONG-TEXT fix, closes R107-GATE-FIRST-TRIGGER-WRONG-TEXT): the
@@ -3077,17 +4068,26 @@ Deno.serve(async (req) => {
         // model to relay it (which live testing showed sometimes drifts into an unrelated
         // non-sequitur refusal). No-op unless a tool call this turn actually returned
         // naam_verificatie_nodig AND the drafted reply fails to disclose the target name.
-        replyText = enforceVerificationGateDisclosure(replyText, result.toolCalls);
+        replyText = enforceVerificationGateDisclosure(
+          replyText,
+          result.toolCalls,
+        );
         // R37 (bug R36b fix): same gate-first-trigger-wrong-text pattern, for book_appointment's
         // DUPLICATE GUARD (error: "bestaande_afspraak"). Live-reproduced: the model paraphrased the
         // tool's real conflicting date into a WRONG date (the customer's own just-requested date
         // instead of the real existing booking's date). No-op unless this turn actually returned
         // bestaande_afspraak AND the drafted reply's date does not match the real existing_start_time.
-        replyText = enforceExistingAppointmentDisclosure(replyText, result.toolCalls);
+        replyText = enforceExistingAppointmentDisclosure(
+          replyText,
+          result.toolCalls,
+        );
         // R118 (GAP 1 fix): same gate-first-trigger-wrong-text pattern, for reschedule_appointment's
         // NEW verzet_bevestiging_nodig ambiguity gate (a SEPARATE gate from naam_verificatie_nodig
         // above: this one guards intent ambiguity, not cross-identity).
-        replyText = enforceRescheduleAmbiguityDisclosure(replyText, result.toolCalls);
+        replyText = enforceRescheduleAmbiguityDisclosure(
+          replyText,
+          result.toolCalls,
+        );
         // R113 (RETURNING-SERVICE-TOOL-CALL-GATE-ONLY fix, closes R111-verify's own reported gap):
         // `blockForReturningServiceDefaultEffective` only ever produces a disclosure via tools.ts
         // when the model actually attempts get_available_slots/book_appointment and gets refused.
@@ -3098,20 +4098,32 @@ Deno.serve(async (req) => {
         // call this guarantee depended on never happens. This runs regardless of which (if any)
         // tool calls happened this turn, closing the exact gap the tool-call-only gate leaves open
         // (see serviceDisambiguationGuard.ts's own header for the full root-cause + safety notes).
-        replyText = enforceReturningServiceDisclosure(replyText, blockForReturningServiceDefaultEffective, lastService, allServiceNamesForReturning);
+        replyText = enforceReturningServiceDisclosure(
+          replyText,
+          blockForReturningServiceDefaultEffective,
+          lastService,
+          allServiceNamesForReturning,
+        );
         // R95 (RESCHEDULE-NO-DAY-STONEWALL fix): same "backstop AFTER the reply is drafted,
         // regardless of which tool (if any) was called" pattern as enforceReturningServiceDisclosure
         // directly above, for the reschedule-no-day-named case (live-reproduced: the model never
         // calls reschedule_appointment at all for this shape, so tools.ts's own reschedDayEstablished
         // guard never fires; see relativeDateHint.ts's header for the full reasoning).
-        replyText = enforceRescheduleNoDayDisclosure(replyText, rescheduleNoDayThisTurn, result.toolCalls);
+        replyText = enforceRescheduleNoDayDisclosure(
+          replyText,
+          rescheduleNoDayThisTurn,
+          result.toolCalls,
+        );
         // R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix): same "backstop AFTER the reply is
         // drafted" pattern, for the case where this turn's deterministic pre-filter narrowed to
         // exactly one candidate calendar (no real location ambiguity) but the model asked a
         // "which location" question anyway. See preFilterCalendars.ts's own header for the full
         // root-cause (live-reproduced R96/R100: Iris+Bruidskapsel, a service that exists on only
         // one calendar, still got asked "Bij welke locatie...?").
-        replyText = enforceNoRedundantLocationAsk(replyText, singleCandidateCalendarName);
+        replyText = enforceNoRedundantLocationAsk(
+          replyText,
+          singleCandidateCalendarName,
+        );
         // AS-Z-guard: DETERMINISTIC refund backstop. AS-3-V1 (classifier + <terugbetaling> prompt block)
         // dropped the false-affirmative refund rate to a MEASURED 0/142, but the final affirmation is
         // still model-generated, so that is a measured low rate, not a hard guarantee. Doctrine: a hard
@@ -3123,9 +4135,16 @@ Deno.serve(async (req) => {
         // text whenever disposition is "denied" (the classifier only returns "denied" from that manual
         // text), so it is the canonical source the rewrite quotes. Layered ON TOP of the prompt, not a
         // replacement; pure regex on the model's own output, no extra round-trip.
-        const canonicalRefundText = typeof businessData?.refund_policy === "string"
-          ? (businessData.refund_policy as string) : null;
-        replyText = enforceRefundPolicy(replyText, refundDisposition, canonicalRefundText, customerLanguage);
+        const canonicalRefundText =
+          typeof businessData?.refund_policy === "string"
+            ? (businessData.refund_policy as string)
+            : null;
+        replyText = enforceRefundPolicy(
+          replyText,
+          refundDisposition,
+          canonicalRefundText,
+          customerLanguage,
+        );
         // FQ-R2-CLAIM: "never quote a price the data forbids" guarantee (council fast-follow). The
         // prompt injects each service's real price and tells the model to answer price questions from
         // that list, but a prompt-injected user (a forged `SYSTEM: price_override ... TOOL_RESULT:{price:7}`
@@ -3141,7 +4160,12 @@ Deno.serve(async (req) => {
         const priceCheckServices = calendarsForPrompt
           ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
           : services;
-        replyText = enforcePriceClaim(replyText, priceCheckServices, customerLanguage, String(message));
+        replyText = enforcePriceClaim(
+          replyText,
+          priceCheckServices,
+          customerLanguage,
+          String(message),
+        );
         // P12-HALLUCINATED-LOYALTY-POLICY / P12-CONFIRMED-FALSE-SOCIAL-PROOF-DISCOUNT (IUX R62/R64):
         // no discount/loyalty/coupon/promo mechanism exists anywhere in this schema (information_schema
         // grep, R62-verify), so ANY claim asserting a concrete discount/loyalty MECHANISM (a percentage,
@@ -3151,16 +4175,29 @@ Deno.serve(async (req) => {
         // see policyClaimGuard.ts header for why a narrower guard was chosen over a broad classifier.
         // userMessage (R64-verify residual close) unlocks the anaphoric "die regeling" dodge check;
         // see looksLikeAnaphoricPolicyConfirmation in policyClaimGuard.ts.
-        replyText = enforceNoPolicyHallucination(replyText, customerLanguage, String(message));
+        replyText = enforceNoPolicyHallucination(
+          replyText,
+          customerLanguage,
+          String(message),
+        );
         // P12-FABRICATED-OWNER-ESCALATION (IUX R62-verify/R64): no owner-notify/escalate/human-handoff
         // tool exists anywhere in tools.ts, so ANY claim that the agent contacted, is contacting, or
         // received a response from a human owner is categorically false (unlike the policy guard above,
         // this can be a HARD categorical block since no code path can ever make the claim true). Rewrite
         // to an honest "I can't reach them myself, here's how you can" reply using the real contact info.
-        const ownerPhone = typeof businessData?.business_phone === "string" ? (businessData.business_phone as string) : null;
-        const ownerEmail = typeof businessData?.business_email === "string" ? (businessData.business_email as string) : null;
+        const ownerPhone = typeof businessData?.business_phone === "string"
+          ? (businessData.business_phone as string)
+          : null;
+        const ownerEmail = typeof businessData?.business_email === "string"
+          ? (businessData.business_email as string)
+          : null;
         const replyBeforeOwnerGuard = replyText;
-        replyText = enforceNoOwnerEscalationClaim(replyText, customerLanguage, ownerPhone, ownerEmail);
+        replyText = enforceNoOwnerEscalationClaim(
+          replyText,
+          customerLanguage,
+          ownerPhone,
+          ownerEmail,
+        );
         // OWNERESCALATION-VERBLIST-BRITTLE structural fix (IUX R66): the regex guard above is a
         // closed shape (verb stems + subject/auxiliary skeleton) that R64-verify and R65-verify BOTH
         // independently proved incomplete against idiom/metaphor/passive-voice paraphrases (see
@@ -3207,9 +4244,9 @@ Deno.serve(async (req) => {
         const turnSlots = collectTurnSlots(result.toolCalls);
         const slotAvailability = turnSlots.hadQuery
           ? {
-              queriedDates: turnSlots.queriedDates,
-              freeSlotsByDate: Object.fromEntries(turnSlots.byDate),
-            }
+            queriedDates: turnSlots.queriedDates,
+            freeSlotsByDate: Object.fromEntries(turnSlots.byDate),
+          }
           : null;
         const groundingSummary = buildGroundingSummary({
           businessData,
@@ -3244,17 +4281,35 @@ Deno.serve(async (req) => {
         const [ownerClf, groundingClf] = await Promise.all([
           skipOwnerClassifier
             ? Promise.resolve(null)
-            : classifyOwnerEscalationClaimRobust(replyText, Deno.env.get("GROQ_API_KEY")),
+            : classifyOwnerEscalationClaimRobust(
+              replyText,
+              Deno.env.get("GROQ_API_KEY"),
+            ),
           skipGroundingClassifier
-            ? Promise.resolve({ isUngroundedClaim: false, reason: "no" as const, latencyMs: 0, votes: [] })
-            : classifyBusinessDataGroundingRobust(replyText, groundingSummary, Deno.env.get("GROQ_API_KEY")),
+            ? Promise.resolve({
+              isUngroundedClaim: false,
+              reason: "no" as const,
+              latencyMs: 0,
+              votes: [],
+            })
+            : classifyBusinessDataGroundingRobust(
+              replyText,
+              groundingSummary,
+              Deno.env.get("GROQ_API_KEY"),
+            ),
         ]);
         if (ownerClf) {
           console.log(
-            `owner-escalation-classifier: reason=${ownerClf.reason} latencyMs=${ownerClf.latencyMs} isEscalationClaim=${ownerClf.isEscalationClaim} votes=${JSON.stringify(ownerClf.votes)} tieBreakerFired=${ownerClf.tieBreakerFired}`,
+            `owner-escalation-classifier: reason=${ownerClf.reason} latencyMs=${ownerClf.latencyMs} isEscalationClaim=${ownerClf.isEscalationClaim} votes=${
+              JSON.stringify(ownerClf.votes)
+            } tieBreakerFired=${ownerClf.tieBreakerFired}`,
           );
           if (ownerClf.isEscalationClaim) {
-            replyText = noOwnerEscalationReply(customerLanguage, ownerPhone, ownerEmail);
+            replyText = noOwnerEscalationReply(
+              customerLanguage,
+              ownerPhone,
+              ownerEmail,
+            );
             console.warn(
               `owner-escalation-classifier: rewrote a fabricated owner-contact claim missed by the regex guard:`,
               JSON.stringify(replyBeforeOwnerGuard),
@@ -3262,7 +4317,9 @@ Deno.serve(async (req) => {
           }
         }
         console.log(
-          `business-data-guard: reason=${groundingClf.reason} latencyMs=${groundingClf.latencyMs} isUngroundedClaim=${groundingClf.isUngroundedClaim} votes=${JSON.stringify(groundingClf.votes)}`,
+          `business-data-guard: reason=${groundingClf.reason} latencyMs=${groundingClf.latencyMs} isUngroundedClaim=${groundingClf.isUngroundedClaim} votes=${
+            JSON.stringify(groundingClf.votes)
+          }`,
         );
         // Only rewrite for the grounding guard if NEITHER the regex owner-escalation guard NOR the
         // owner-escalation classifier already rewrote this turn (either of those rewrites is a more
@@ -3270,21 +4327,34 @@ Deno.serve(async (req) => {
         // re-rewriting on top of either would be pointless at best; found + fixed during R94's own
         // code-review pass: checking replyText === replyBeforeGroundingGuard alone missed the case
         // where the REGEX guard, not the classifier, had already fired before this block ran).
-        if (groundingClf.isUngroundedClaim && replyText === replyBeforeGroundingGuard && !skipOwnerClassifier) {
+        if (
+          groundingClf.isUngroundedClaim &&
+          replyText === replyBeforeGroundingGuard && !skipOwnerClassifier
+        ) {
           console.warn(
             `business-data-guard: rewrote an ungrounded business-fact/policy claim:`,
             JSON.stringify(replyBeforeGroundingGuard),
           );
-          replyText = noUngroundedClaimReply(customerLanguage, ownerPhone, ownerEmail);
+          replyText = noUngroundedClaimReply(
+            customerLanguage,
+            ownerPhone,
+            ownerEmail,
+          );
         }
         // P2-tone guard (DoD #6): the prompt FORBIDS "vol"/"volgeboekt"/"voll"/"fully booked" etc.
         // for an unavailable/closed day (a closed day is not "full"); the 20B model slips ~16% of
         // the time (worse multi-turn). Neutralize the small closed word-set to "niet beschikbaar"
         // in the customer's language. Only model-prose passes here; server templates never hit it.
         const beforeFW = replyText;
-        replyText = neutralizeForbiddenAvailabilityWords(replyText, customerLanguage);
+        replyText = neutralizeForbiddenAvailabilityWords(
+          replyText,
+          customerLanguage,
+        );
         if (replyText !== beforeFW) {
-          console.warn("forbidden-word-guard: neutralized availability word:", JSON.stringify(beforeFW));
+          console.warn(
+            "forbidden-word-guard: neutralized availability word:",
+            JSON.stringify(beforeFW),
+          );
         }
       }
     }
@@ -3388,7 +4458,11 @@ Deno.serve(async (req) => {
                 established_iso: effectiveDateHint.iso,
                 updated_at: hintUpsertTimestamp,
               }),
-          ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: hint upsert failed:", e)),
+          ).then(
+            () => {},
+            (e: unknown) =>
+              console.error("monitoring-alerts: hint upsert failed:", e),
+          ),
         );
       }
       const nameMismatch = detectThreadHijackNameMismatch({
@@ -3437,16 +4511,25 @@ Deno.serve(async (req) => {
             return null;
           })
           .then((wrongOwner) => {
-            const toWrite = pickThreadHijackAlert({ wrongOwner, nameMismatch, readOnlyDisclosure });
+            const toWrite = pickThreadHijackAlert({
+              wrongOwner,
+              nameMismatch,
+              readOnlyDisclosure,
+            });
             if (toWrite.length === 0) return;
             return Promise.all(toWrite.map(({ alert, supplementary }) => {
-              const details: Record<string, unknown> = { reply_text: reply, ...supplementary };
+              const details: Record<string, unknown> = {
+                reply_text: reply,
+                ...supplementary,
+              };
               if (alert.failure_class === "thread_hijack_wrong_owner") {
                 details.referenced_booking_id = alert.referenced_booking_id;
                 details.booking_owner_phone = alert.booking_owner_phone;
                 details.booking_owner_name = alert.booking_owner_name;
                 details.current_phone = alert.current_phone;
-              } else if (alert.failure_class === "thread_hijack_name_mismatch") {
+              } else if (
+                alert.failure_class === "thread_hijack_name_mismatch"
+              ) {
                 details.stated_name = alert.stated_name;
                 details.actual_name = alert.actual_name;
               } else {
@@ -3462,7 +4545,12 @@ Deno.serve(async (req) => {
               });
             }));
           })
-          .catch((e) => console.error("monitoring-alerts: thread-hijack dedup write failed:", e)),
+          .catch((e) =>
+            console.error(
+              "monitoring-alerts: thread-hijack dedup write failed:",
+              e,
+            )
+          ),
       );
       // R9 GAP 4 FIX: dead-man's-switch heartbeat. Stamped on every turn this block REACHES this
       // point (i.e. ran to completion without throwing), fire-and-forget, never blocks/delays the
@@ -3481,7 +4569,11 @@ Deno.serve(async (req) => {
           supabase
             .from("monitoring_heartbeat")
             .upsert({ id: true, last_beat: new Date().toISOString() }),
-        ).then(() => {}, (e: unknown) => console.error("monitoring-alerts: heartbeat upsert failed:", e)),
+        ).then(
+          () => {},
+          (e: unknown) =>
+            console.error("monitoring-alerts: heartbeat upsert failed:", e),
+        ),
       );
     } catch (e) {
       console.error("monitoring-alerts: detection failed:", e);
@@ -3533,7 +4625,10 @@ Deno.serve(async (req) => {
     runInBackground((async () => {
       const send = await sendWhatsAppText(phoneForBg, replyForBg);
       if (!send.ok) {
-        console.error("[bg-send-failed]", JSON.stringify({ phone: phoneForBg, conversationId: conversationIdForBg, error: send.error, status: send.status }));
+        console.error(
+          "[bg-send-failed]",
+          JSON.stringify({ status: send.status }),
+        );
       }
       if (conversationIdForBg) {
         await supabase.from("whatsapp_messages").insert({
@@ -3548,10 +4643,17 @@ Deno.serve(async (req) => {
         // independent of message-history loading. Also persist the detected language so a
         // later short message inherits the thread's language. Merge into context (don't clobber).
         const ctxUpdate: Record<string, unknown> = {};
-        if (isFirstContactForBg && !greetingAlreadySentForBg) ctxUpdate.greeting_sent = true;
-        if (detectedThisMsgForBg && detectedThisMsgForBg !== convContextForBg.detected_language) {
+        if (isFirstContactForBg && !greetingAlreadySentForBg) {
+          ctxUpdate.greeting_sent = true;
+        }
+        if (
+          detectedThisMsgForBg &&
+          detectedThisMsgForBg !== convContextForBg.detected_language
+        ) {
           ctxUpdate.detected_language = detectedThisMsgForBg;
-        } else if (confidentDutchForBg && convContextForBg.detected_language != null) {
+        } else if (
+          confidentDutchForBg && convContextForBg.detected_language != null
+        ) {
           // R81 fix: the customer just wrote a confidently-Dutch message, so any stale sticky
           // non-Dutch language from earlier in this conversation no longer reflects reality.
           // Clear it so the NEXT turn's fallback (an ambiguous "ok"/"ja") inherits Dutch, not a
@@ -3565,8 +4667,13 @@ Deno.serve(async (req) => {
           // pending_booking was wiped by this greeting_sent write, so the next "ja" re-previewed
           // instead of committing. Re-read so this only ADDS greeting_sent/detected_language.
           const { data: freshConv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", conversationIdForBg).maybeSingle();
-          const latestCtx = ((freshConv as { context?: Record<string, unknown> } | null)?.context) ?? convContextForBg;
+            .from("whatsapp_conversations").select("context").eq(
+              "id",
+              conversationIdForBg,
+            ).maybeSingle();
+          const latestCtx =
+            ((freshConv as { context?: Record<string, unknown> } | null)
+              ?.context) ?? convContextForBg;
           await supabase
             .from("whatsapp_conversations")
             .update({ context: { ...latestCtx, ...ctxUpdate } })
@@ -3604,12 +4711,16 @@ Deno.serve(async (req) => {
     // fallback reply below.
     if (bookClaimIdForFallback) {
       try {
-        await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: bookClaimIdForFallback });
+        await supabase.rpc("release_whatsapp_confirm_claim", {
+          p_claim_id: bookClaimIdForFallback,
+        });
       } catch (_) { /* best-effort only, TTL self-heals regardless */ }
     }
     if (cancelClaimIdForFallback) {
       try {
-        await supabase.rpc("release_whatsapp_confirm_claim", { p_claim_id: cancelClaimIdForFallback });
+        await supabase.rpc("release_whatsapp_confirm_claim", {
+          p_claim_id: cancelClaimIdForFallback,
+        });
       } catch (_) { /* best-effort only, TTL self-heals regardless */ }
     }
     // Localize the fallback best-effort from the raw inbound (we may have thrown before
@@ -3651,8 +4762,16 @@ Deno.serve(async (req) => {
     // stays in the server logs only. Status 200 because we DID handle the turn (the customer got a
     // coherent reply); a non-leaking generic 200 is safer than echoing a 500 with internal detail.
     return new Response(
-      JSON.stringify({ ok: false, error: "internal_error", reply: fallbackReply, sent: fallbackSent }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({
+        ok: false,
+        error: "internal_error",
+        reply: fallbackReply,
+        sent: fallbackSent,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

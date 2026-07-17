@@ -2,16 +2,18 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { validateStripeConfig } from "../_shared/stripeValidation.ts";
+import {
+  isAccountOwnerRequiredError,
+  requireAccountOwner,
+} from "../_shared/accountOwnerGuard.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
-};
+const logStep = (step: string) => console.log(`[CUSTOMER-PORTAL] ${step}`);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,14 +29,18 @@ serve(async (req) => {
     // check-subscription via the shared validateStripeConfig.
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const stripeConfig = await validateStripeConfig(undefined, supabaseUrl, supabaseServiceKey);
+    const stripeConfig = await validateStripeConfig(
+      undefined,
+      supabaseUrl,
+      supabaseServiceKey,
+    );
     const stripeKey = stripeConfig.secretKey;
-    logStep("Stripe configuration validated (server mode)", { mode: stripeConfig.mode });
+    logStep(`Stripe configuration validated (${stripeConfig.mode} mode)`);
 
     const supabaseClient = createClient(
       supabaseUrl,
       supabaseServiceKey,
-      { auth: { persistSession: false } }
+      { auth: { persistSession: false } },
     );
 
     const authHeader = req.headers.get("Authorization");
@@ -42,28 +48,62 @@ serve(async (req) => {
     logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const { data: userData, error: userError } = await supabaseClient.auth
+      .getUser(token);
+    if (userError) {
+      throw new Error(`Authentication error: ${userError.message}`);
+    }
     const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    if (!user?.email) {
+      throw new Error("User not authenticated or email not available");
+    }
+    logStep("User authenticated");
+
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("users")
+      .select("account_owner_id")
+      .eq("id", user.id)
+      .single();
+    if (profileError || !profile) {
+      throw new Error(
+        `Failed to fetch user profile: ${
+          profileError?.message ?? "profile missing"
+        }`,
+      );
+    }
+    requireAccountOwner(profile.account_owner_id, user.id);
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
     if (customers.data.length === 0) {
       throw new Error("No Stripe customer found for this user");
     }
     const customerId = customers.data[0].id;
-    logStep("Found Stripe customer", { customerId });
+    logStep("Found Stripe customer");
 
     // SECURITY: the portal return_url comes from the Origin header, which is
     // spoofable — validate it against our own hosts (same hardening as
     // create-checkout) so it can't be turned into an off-site redirect.
-    const ALLOWED_REDIRECT_HOSTS = ['bookingsassistant.com', 'www.bookingsassistant.com', 'localhost', '127.0.0.1'];
+    const ALLOWED_REDIRECT_HOSTS = [
+      "bookingsassistant.com",
+      "www.bookingsassistant.com",
+      "localhost",
+      "127.0.0.1",
+    ];
     const headerOrigin = req.headers.get("origin");
     let originIsAllowed = false;
-    try { originIsAllowed = !!headerOrigin && ALLOWED_REDIRECT_HOSTS.includes(new URL(headerOrigin).hostname); } catch { originIsAllowed = false; }
-    const origin = originIsAllowed ? headerOrigin! : "https://bookingsassistant.com";
+    try {
+      originIsAllowed = !!headerOrigin &&
+        ALLOWED_REDIRECT_HOSTS.includes(new URL(headerOrigin).hostname);
+    } catch {
+      originIsAllowed = false;
+    }
+    const origin = originIsAllowed
+      ? headerOrigin!
+      : "https://bookingsassistant.com";
 
     // Try to create customer portal session
     try {
@@ -71,33 +111,50 @@ serve(async (req) => {
         customer: customerId,
         return_url: `${origin}/settings?tab=billing`,
       });
-      logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
+      logStep("Customer portal session created");
 
       return new Response(JSON.stringify({ url: portalSession.url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     } catch (portalError) {
-      logStep("Customer portal error", { error: portalError.message });
-      
+      const portalErrorMessage = portalError instanceof Error
+        ? portalError.message
+        : String(portalError);
+      logStep("Customer portal request failed");
+
       // If customer portal is not configured, return helpful error
-      if (portalError.message?.includes('Customer portal') || portalError.message?.includes('portal')) {
-        return new Response(JSON.stringify({ 
-          error: "Customer portal is not configured in Stripe dashboard. Please contact support." 
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
+      if (
+        portalErrorMessage.includes("Customer portal") ||
+        portalErrorMessage.includes("portal")
+      ) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Customer portal is not configured in Stripe dashboard. Please contact support.",
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          },
+        );
       }
-      
+
       throw portalError;
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in customer-portal", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    const ownerDenied = isAccountOwnerRequiredError(error);
+    logStep("ERROR in customer-portal");
+    return new Response(
+      JSON.stringify({
+        error: ownerDenied ? errorMessage : "Unable to open the billing portal",
+        ...(ownerDenied ? { code: error.code } : {}),
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: ownerDenied ? error.status : 500,
+      },
+    );
   }
 });

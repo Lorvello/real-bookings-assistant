@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { getPublicFeatureAvailability } from '@/config/publicFeatureAvailability';
 
 /**
  * Loads the Voiceflow support chat widget — but ONLY when a project ID is
@@ -11,7 +12,7 @@ import { useEffect } from 'react';
  */
 export const useVoiceflowChatbot = () => {
   useEffect(() => {
-    const projectID = import.meta.env.VITE_VOICEFLOW_PROJECT_ID as string | undefined;
+    const { voiceflowProjectId: projectID } = getPublicFeatureAvailability();
 
     // No valid project configured → don't load anything (no console flood).
     if (!projectID) {
@@ -58,7 +59,12 @@ declare global {
   interface Window {
     voiceflow: {
       chat: {
-        load: (config: any) => void;
+        load: (config: {
+          verify: { projectID: string };
+          url: string;
+          versionID: string;
+          voice: { url: string };
+        }) => void;
       };
     };
   }

@@ -46,6 +46,7 @@
       "completeWithService": "Rond de betaling voor {{service}} af om je afspraak te bevestigen.",
       "complete": "Rond de betaling af om je afspraak te bevestigen.",
       "paying": "Betalen…",
+      "processing": "Je betaling wordt verwerkt. Je kunt deze pagina sluiten zodra je de bevestiging hebt ontvangen.",
       "payNow": "Nu betalen",
       "securedBy": "Beveiligd door Stripe. Je kaartgegevens komen nooit op onze servers.",
       "errStart": "Kon de betaling niet starten.",

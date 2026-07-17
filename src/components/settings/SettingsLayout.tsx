@@ -17,9 +17,11 @@ import { SettingsProvider, useSettingsContext } from '@/contexts/SettingsContext
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useToast } from '@/hooks/use-toast';
 import { SettingsSkeleton } from './SettingsSkeleton';
+import { useAccountRole } from '@/hooks/useAccountRole';
 
 const VALID_TABS = ['users', 'knowledge', 'operations', 'services', 'payments', 'billing'] as const;
 type SettingsTabValue = typeof VALID_TABS[number];
+const OWNER_ONLY_TABS = new Set<SettingsTabValue>(['payments', 'billing']);
 
 interface NavItem {
   value: SettingsTabValue;
@@ -89,16 +91,50 @@ export const SettingsTabs = () => {
   const { userStatus } = useUserStatus();
   const { toast } = useToast();
   const { profileData, loadError, isLoading, refetch } = useSettingsContext();
+  const {
+    isAccountOwner,
+    loading: roleLoading,
+    error: roleError,
+  } = useAccountRole();
+  const canAccessOwnerTabs = isAccountOwner && !roleLoading && !roleError;
+  const canRenderOwnerGate = canAccessOwnerTabs || Boolean(roleError);
 
   // Handle tab from URL parameters
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     if (tabParam && (VALID_TABS as readonly string[]).includes(tabParam)) {
-      setActiveTab(tabParam as SettingsTabValue);
+      const requestedTab = tabParam as SettingsTabValue;
+
+      if (OWNER_ONLY_TABS.has(requestedTab) && !canAccessOwnerTabs) {
+        if (roleLoading) return;
+        if (roleError) {
+          // The owner-only tab wrapper is safe to render on a role error: it
+          // exposes retry without mounting any Stripe or billing data hooks.
+          setActiveTab(requestedTab);
+          return;
+        }
+
+        setActiveTab('knowledge');
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('tab');
+        setSearchParams(nextParams, { replace: true });
+        return;
+      }
+
+      setActiveTab(requestedTab);
     }
-  }, [searchParams]);
+  }, [canAccessOwnerTabs, roleError, roleLoading, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!roleLoading && !roleError && !canAccessOwnerTabs && OWNER_ONLY_TABS.has(activeTab)) {
+      setActiveTab('knowledge');
+    }
+  }, [activeTab, canAccessOwnerTabs, roleError, roleLoading]);
 
   const handleTabChange = (value: string) => {
+    const requestedTab = value as SettingsTabValue;
+    if (OWNER_ONLY_TABS.has(requestedTab) && !canAccessOwnerTabs) return;
+
     // Block the payments tab until profile setup is complete.
     if (value === 'payments' && userStatus.isSetupIncomplete) {
       toast({
@@ -175,7 +211,7 @@ export const SettingsTabs = () => {
                   >
                     {groupLabel(group.label, t)}
                   </p>
-                  {group.items.map((item) => {
+                  {group.items.filter((item) => canAccessOwnerTabs || !OWNER_ONLY_TABS.has(item.value)).map((item) => {
                     const locked = item.value === 'payments' && userStatus.isSetupIncomplete;
                     const Icon = item.icon;
                     return (
@@ -227,12 +263,16 @@ export const SettingsTabs = () => {
           <TabsContent value="services" className="mt-0 focus-visible:outline-none">
             <ServicesTab />
           </TabsContent>
-          <TabsContent value="payments" className="mt-0 focus-visible:outline-none">
-            <PaymentSettingsTab />
-          </TabsContent>
-          <TabsContent value="billing" className="mt-0 focus-visible:outline-none">
-            <BillingTab />
-          </TabsContent>
+          {canRenderOwnerGate && (
+            <>
+              <TabsContent value="payments" className="mt-0 focus-visible:outline-none">
+                <PaymentSettingsTab />
+              </TabsContent>
+              <TabsContent value="billing" className="mt-0 focus-visible:outline-none">
+                <BillingTab />
+              </TabsContent>
+            </>
+          )}
         </div>
       </div>
     </Tabs>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,17 +11,20 @@ import { useToast } from '@/hooks/use-toast';
 import { useServiceTypes } from '@/hooks/useServiceTypes';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { ServiceTypeInstallmentCard } from './ServiceTypeInstallmentCard';
+import type {
+  InstallmentServiceConfig,
+  InstallmentSettings as PersistedInstallmentSettings,
+} from '@/hooks/useInstallmentSettings';
 
 interface DepositInfo {
   percentage?: number;
   amount?: number;
-  timing: 'now' | 'appointment' | 'hours_after';
-  hours?: number;
+  timing: 'now' | 'appointment';
 }
 
 interface InstallmentPlan {
   type: 'preset' | 'custom';
-  preset?: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit';
+  preset?: '100_at_booking' | '50_50' | 'fixed_deposit';
   deposits?: DepositInfo[];
   fixed_deposit_amount?: number;
 }
@@ -29,18 +32,27 @@ interface InstallmentPlan {
 interface ServiceTypeInstallmentSettings {
   enabled: boolean;
   plan: InstallmentPlan;
+  allowCustomerChoice: boolean;
 }
 
 interface InstallmentSettingsProps {
   installmentsEnabled: boolean;
   defaultPlan: InstallmentPlan;
-  onUpdate: (settingsData: any) => Promise<boolean>;
+  allowCustomerChoice: boolean;
+  applyToServices: 'all' | 'selected';
+  selectedServices: string[];
+  serviceConfigs: InstallmentServiceConfig[];
+  onUpdate: (settingsData: PersistedInstallmentSettings) => Promise<boolean>;
   subscriptionTier?: string;
 }
 
 export function InstallmentSettings({ 
   installmentsEnabled, 
   defaultPlan, 
+  allowCustomerChoice,
+  applyToServices: initialApplyToServices,
+  selectedServices: initialSelectedServices,
+  serviceConfigs,
   onUpdate,
   subscriptionTier 
 }: InstallmentSettingsProps) {
@@ -52,14 +64,48 @@ export function InstallmentSettings({
     { percentage: 50, timing: 'now' },
     { percentage: 50, timing: 'appointment' }
   ]);
-  const [applyToServices, setApplyToServices] = useState<'all' | 'selected'>('all');
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, ServiceTypeInstallmentSettings>>({});
+  const [applyToServices, setApplyToServices] = useState<'all' | 'selected'>(initialApplyToServices);
+  const [selectedServices, setSelectedServices] = useState<string[]>(initialSelectedServices);
+  const [serviceTypeSettings, setServiceTypeSettings] = useState<Record<string, ServiceTypeInstallmentSettings>>(
+    () => Object.fromEntries(serviceConfigs.map((config) => [config.serviceTypeId, {
+      enabled: config.enabled,
+      plan: config.plan,
+      allowCustomerChoice: config.allowCustomerChoice,
+    }])),
+  );
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation('settings');
   const { selectedCalendar } = useCalendarContext();
   const { serviceTypes } = useServiceTypes(undefined, true); // Load all service types
+
+  // The settings arrive asynchronously from the service-only read endpoint. Hydrate every
+  // persisted field when that canonical snapshot changes; otherwise the editor permanently
+  // keeps its first-render defaults and a saved selected-services scope reopens as "all".
+  useEffect(() => {
+    setPlanType(defaultPlan.type || 'preset');
+    setPresetSelection(defaultPlan.preset || '100_at_booking');
+    setFixedDepositAmount(defaultPlan.fixed_deposit_amount || 50);
+    setCustomDeposits(defaultPlan.deposits || [
+      { percentage: 50, timing: 'now' },
+      { percentage: 50, timing: 'appointment' },
+    ]);
+    setApplyToServices(initialApplyToServices);
+    setSelectedServices(initialSelectedServices);
+    setServiceTypeSettings(Object.fromEntries(serviceConfigs.map((config) => [
+      config.serviceTypeId,
+      {
+        enabled: config.enabled,
+        plan: config.plan,
+        allowCustomerChoice: config.allowCustomerChoice,
+      },
+    ])));
+  }, [
+    defaultPlan,
+    initialApplyToServices,
+    initialSelectedServices,
+    serviceConfigs,
+  ]);
 
   const canUseInstallments = subscriptionTier && ['professional', 'enterprise'].includes(subscriptionTier);
 
@@ -79,15 +125,6 @@ export function InstallmentSettings({
         { percentage: 50, timing: 'appointment' as const }
       ]
     },
-    '25_25_50': {
-      name: t('settings.payments.installments.presets.split252550.name', '25/25/50 Split'),
-      description: t('settings.payments.installments.presets.split252550.description', '25% at booking, 25% 1 week later, 50% on location'),
-      deposits: [
-        { percentage: 25, timing: 'now' as const },
-        { percentage: 25, timing: 'hours_after' as const, hours: 168 }, // 1 week = 168 hours
-        { percentage: 50, timing: 'appointment' as const }
-      ]
-    },
     'fixed_deposit': {
       name: t('settings.payments.installments.presets.fixedDeposit.name', 'Fixed Deposit Plus Remaining'),
       description: t('settings.payments.installments.presets.fixedDeposit.description', 'Fixed amount at booking, rest on location'),
@@ -100,7 +137,9 @@ export function InstallmentSettings({
     const hasAtBooking = customDeposits.some(d => d.timing === 'now');
     const hasOnLocation = customDeposits.some(d => d.timing === 'appointment');
     
-    let defaultTiming: 'now' | 'appointment' | 'hours_after' = 'hours_after';
+    if (hasAtBooking && hasOnLocation) return;
+
+    let defaultTiming: 'now' | 'appointment' = 'appointment';
     if (!hasAtBooking) {
       defaultTiming = 'now';
     } else if (!hasOnLocation) {
@@ -114,14 +153,13 @@ export function InstallmentSettings({
     setCustomDeposits(customDeposits.filter((_, i) => i !== index));
   };
 
-  const updateCustomDeposit = (index: number, field: string, value: any) => {
+  const updateCustomDeposit = <Field extends keyof DepositInfo>(
+    index: number,
+    field: Field,
+    value: DepositInfo[Field],
+  ) => {
     const updated = [...customDeposits];
     updated[index] = { ...updated[index], [field]: value };
-    
-    // Clear hours when timing changes away from hours_after
-    if (field === 'timing' && value !== 'hours_after') {
-      delete updated[index].hours;
-    }
     
     setCustomDeposits(updated);
   };
@@ -142,11 +180,6 @@ export function InstallmentSettings({
         label: t('settings.payments.installments.timing.onLocation', 'On Location'),
         disabled: hasOnLocation && currentTiming !== 'appointment'
       },
-      {
-        value: 'hours_after',
-        label: t('settings.payments.installments.timing.hoursAfter', 'Hours After Booking'),
-        disabled: false
-      }
     ];
   };
 
@@ -170,10 +203,10 @@ export function InstallmentSettings({
     const onLocationCount = customDeposits.filter(d => d.timing === 'appointment').length;
     
     return total === 100 && 
-           customDeposits.length >= 2 && 
+           customDeposits.length === 2 &&
            hasAtBooking && 
            atBookingCount === 1 && 
-           onLocationCount <= 1;
+           onLocationCount === 1;
   };
 
   const handleSave = async () => {
@@ -182,7 +215,7 @@ export function InstallmentSettings({
       const plan: InstallmentPlan = planType === 'preset' 
         ? { 
             type: 'preset', 
-            preset: presetSelection as any,
+            preset: presetSelection,
             ...(presetSelection === 'fixed_deposit' && { fixed_deposit_amount: fixedDepositAmount })
           }
         : { 
@@ -192,6 +225,7 @@ export function InstallmentSettings({
 
       const settingsData = {
         enabled: installmentsEnabled, // Use prop instead of local state
+        allowCustomerChoice,
         defaultPlan: plan,
         applyToServices,
         selectedServices: applyToServices === 'selected' ? selectedServices : undefined,
@@ -199,7 +233,8 @@ export function InstallmentSettings({
           ? selectedServices.map(serviceId => ({
               serviceTypeId: serviceId,
               enabled: serviceTypeSettings[serviceId]?.enabled ?? true,
-              plan: serviceTypeSettings[serviceId]?.plan ?? plan
+              plan: serviceTypeSettings[serviceId]?.plan ?? plan,
+              allowCustomerChoice: serviceTypeSettings[serviceId]?.allowCustomerChoice ?? allowCustomerChoice,
             }))
           : undefined
       };
@@ -220,6 +255,12 @@ export function InstallmentSettings({
       {/* Configuration content - parent manages enabled state */}
       <div className="space-y-6">
               <div className="space-y-6">
+                <div className="rounded-lg border border-amber-400/25 bg-amber-400/[0.06] p-3 text-sm text-muted-foreground">
+                  {t(
+                    'settings.payments.installments.channelScopeNotice',
+                    'Current scope: installment plans apply to WhatsApp bookings. The configured first payment is required online; the remainder is recorded on-site after it is actually received. The public booking page uses full online payment when upfront payment is required, or confirms without online payment when it is optional. No later payment is collected automatically.',
+                  )}
+                </div>
                 {/* Apply to Services Section */}
                 <div className="space-y-3">
                   <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.applyToServices', 'Apply to Services')}</Label>
@@ -257,10 +298,10 @@ export function InstallmentSettings({
                                      ...prev,
                                      [service.id]: {
                                        enabled: true,
+                                       allowCustomerChoice,
                                        plan: {
                                          type: 'preset',
-                                         preset: '100_at_booking',
-                                         deposits: [{ percentage: 100, timing: 'now' }]
+                                         preset: '100_at_booking'
                                        }
                                      }
                                    }));
@@ -306,8 +347,7 @@ export function InstallmentSettings({
                         
                         const currentPlan = serviceTypeSettings[serviceId]?.plan || {
                           type: 'preset',
-                          preset: '100_at_booking',
-                          deposits: [{ percentage: 100, timing: 'now' }]
+                          preset: '100_at_booking'
                         };
 
                         return (
@@ -319,7 +359,8 @@ export function InstallmentSettings({
                               setServiceTypeSettings(prev => ({
                                 ...prev,
                                 [id]: {
-                                  ...prev[id],
+                                  enabled: prev[id]?.enabled ?? true,
+                                  allowCustomerChoice: prev[id]?.allowCustomerChoice ?? allowCustomerChoice,
                                   plan: plan
                                 }
                               }));
@@ -357,7 +398,7 @@ export function InstallmentSettings({
                         <Label className="text-base font-medium text-foreground">{t('settings.payments.installments.choosePlan', 'Choose Payment Plan')}</Label>
                         <RadioGroup
                           value={presetSelection}
-                          onValueChange={(value: '100_at_booking' | '50_50' | '25_25_50' | 'fixed_deposit') => setPresetSelection(value)}
+                          onValueChange={(value: '100_at_booking' | '50_50' | 'fixed_deposit') => setPresetSelection(value)}
                           className="space-y-4"
                         >
                           <div className="flex items-start space-x-3 p-4 border rounded-lg">
@@ -379,17 +420,6 @@ export function InstallmentSettings({
                               </Label>
                               <p className="text-sm text-muted-foreground mt-1">
                                 {presetPlans['50_50'].description}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-start space-x-3 p-4 border rounded-lg">
-                            <RadioGroupItem value="25_25_50" id="25_25_50" className="mt-1" />
-                            <div className="flex-1">
-                              <Label htmlFor="25_25_50" className="text-sm font-medium text-foreground cursor-pointer">
-                                {presetPlans['25_25_50'].name}
-                              </Label>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {presetPlans['25_25_50'].description}
                               </p>
                             </div>
                           </div>
@@ -430,6 +460,7 @@ export function InstallmentSettings({
                             variant="outline"
                             size="sm"
                             onClick={addCustomDeposit}
+                            disabled={customDeposits.length >= 2}
                           >
                             <Plus className="h-4 w-4 mr-2" />
                             {t('settings.payments.installments.addPayment', 'Add Payment')}
@@ -456,7 +487,11 @@ export function InstallmentSettings({
                                     <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.when', 'When')}</Label>
                                     <Select
                                       value={deposit.timing}
-                                      onValueChange={(value) => updateCustomDeposit(index, 'timing', value)}
+                                      onValueChange={(value) => updateCustomDeposit(
+                                        index,
+                                        'timing',
+                                        value as DepositInfo['timing'],
+                                      )}
                                     >
                                       <SelectTrigger>
                                         <SelectValue />
@@ -475,18 +510,6 @@ export function InstallmentSettings({
                                     </Select>
                                   </div>
                                 </div>
-                                {deposit.timing === 'hours_after' && (
-                                  <div>
-                                    <Label className="text-sm font-medium text-foreground">{t('settings.payments.installments.hoursAfterBooking', 'Hours After Booking')}</Label>
-                                    <Input
-                                      type="number"
-                                      min="1"
-                                      value={deposit.hours || ''}
-                                      onChange={(e) => updateCustomDeposit(index, 'hours', Number(e.target.value))}
-                                      placeholder="24"
-                                    />
-                                  </div>
-                                )}
                               </div>
                               <Button
                                 type="button"

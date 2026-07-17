@@ -46,10 +46,13 @@ export function DashboardDebugInfo({ calendarId, analytics }: DashboardDebugInfo
             WhatsApp: {analytics.whatsapp_conversations} conversaties
           </Badge>
           <Badge variant="outline" className="border-purple-600 text-purple-400">
-            Conversie: {analytics.conversion_rate}%
+            Later geboekt: {analytics.contacts_later_booked} van{' '}
+            {analytics.contacts_later_booked_sample_count} recente contacten
           </Badge>
           <Badge variant="outline" className="border-cyan-600 text-cyan-400">
-            Respons: {analytics.avg_response_time}min
+            Respons: {analytics.avg_response_time === null
+              ? 'geen gegevens'
+              : `${analytics.avg_response_time}min (${analytics.avg_response_time_sample_count} samples)`}
           </Badge>
         </div>
 

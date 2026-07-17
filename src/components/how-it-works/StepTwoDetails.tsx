@@ -2,9 +2,12 @@
 import React from 'react';
 import { CheckCircle, Shield, Star, MessageSquare, MessageCircle, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getPublicFeatureAvailability } from '@/config/publicFeatureAvailability';
 
 const StepTwoDetails = () => {
   const { t } = useTranslation('howItWorks');
+  const { providesWhatsAppNumber } = getPublicFeatureAvailability();
+
   return (
     <div className="relative group">
       {/* Premium card with multiple shadow layers - Mobile: much smaller, Desktop: unchanged */}
@@ -41,41 +44,47 @@ const StepTwoDetails = () => {
         {/* Premium Typography - Mobile: much smaller */}
         <h3 className="text-base md:text-2xl xl:text-3xl font-bold mb-1 md:mb-4 leading-tight tracking-tight
                      bg-gradient-to-r from-white via-slate-100 to-slate-200 bg-clip-text text-transparent">
-          {t('hiw.step2.title', 'Get your WhatsApp number instantly')}
+          {providesWhatsAppNumber
+            ? t('hiw.step2.title', 'Get your WhatsApp number instantly')
+            : t('hiw.step2.titleOwnNumber', 'Connect your WhatsApp Business number')}
         </h3>
 
         <p className="text-slate-300 text-[10px] md:text-base mb-2 md:mb-4 leading-relaxed font-light">
-          {t('hiw.step2.desc', 'Your account comes with an instant WhatsApp number assignment. You can also choose to connect your existing business number if you prefer.')}
+          {providesWhatsAppNumber
+            ? t('hiw.step2.desc', 'Your account comes with an instant WhatsApp number assignment. You can also choose to connect your existing business number if you prefer.')
+            : t('hiw.step2.descOwnNumber', 'During onboarding, you connect your own WhatsApp Business number. Any number-provisioning option is confirmed separately before setup.')}
         </p>
         
         {/* Enhanced Options - Mobile: smaller */}
         <div className="space-y-1 md:space-y-3 mb-2 md:mb-4">
-          <div className="bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-600/5 
-                        border border-emerald-400/30 p-1 md:p-4 rounded-lg md:rounded-xl backdrop-blur-sm
-                        shadow-sm md:shadow-lg shadow-emerald-500/10 relative overflow-hidden
-                        transition-all duration-300 hover:shadow-emerald-500/20 hover:border-emerald-400/50">
-            <div className="absolute top-1 right-1 md:top-4 md:right-4">
-              <Star className="w-3 h-3 md:w-5 md:h-5 text-emerald-400 fill-current drop-shadow-sm" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-1 md:mb-3">
-                <div className="flex items-center gap-1 md:gap-3">
-                  <Shield className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
-                  <h4 className="text-sm md:text-lg font-bold text-white">{t('hiw.step2.optionATitle', 'Instant number assignment')}</h4>
+          {providesWhatsAppNumber && (
+            <div className="bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-600/5
+                          border border-emerald-400/30 p-1 md:p-4 rounded-lg md:rounded-xl backdrop-blur-sm
+                          shadow-sm md:shadow-lg shadow-emerald-500/10 relative overflow-hidden
+                          transition-all duration-300 hover:shadow-emerald-500/20 hover:border-emerald-400/50">
+              <div className="absolute top-1 right-1 md:top-4 md:right-4">
+                <Star className="w-3 h-3 md:w-5 md:h-5 text-emerald-400 fill-current drop-shadow-sm" />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-1 md:mb-3">
+                  <div className="flex items-center gap-1 md:gap-3">
+                    <Shield className="w-3 h-3 md:w-6 md:h-6 text-emerald-400" />
+                    <h4 className="text-sm md:text-lg font-bold text-white">{t('hiw.step2.optionATitle', 'Instant number assignment')}</h4>
+                  </div>
+                  <span className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-1 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-bold tracking-wide shadow-lg">
+                    {t('hiw.step2.optionABadge', 'Automatic')}
+                  </span>
                 </div>
-                <span className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white px-1 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-bold tracking-wide shadow-lg">
-                  {t('hiw.step2.optionABadge', 'Automatic')}
-                </span>
+                <p className="text-emerald-100 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
+                  {t('hiw.step2.optionADesc', 'Your unique WhatsApp number is assigned immediately upon account creation.')}
+                </p>
+                <div className="text-emerald-200 text-[10px]">
+                  <strong>{t('hiw.step2.perfectForLabel', 'Perfect for:')}</strong> {t('hiw.step2.optionAPerfectValue', 'Immediate start, zero configuration')}
+                </div>
               </div>
-              <p className="text-emerald-100 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
-                {t('hiw.step2.optionADesc', 'Your unique WhatsApp number is assigned immediately upon account creation.')}
-              </p>
-              <div className="text-emerald-200 text-[10px]">
-                <strong>{t('hiw.step2.perfectForLabel', 'Perfect for:')}</strong> {t('hiw.step2.optionAPerfectValue', 'Immediate start, zero configuration')}
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
-          </div>
+          )}
           
           <div className="bg-gradient-to-r from-slate-700/60 via-slate-700/40 to-slate-800/60 
                         border border-slate-500/30 p-1 md:p-4 rounded-lg md:rounded-xl backdrop-blur-sm
@@ -87,13 +96,17 @@ const StepTwoDetails = () => {
                 <h4 className="text-sm md:text-lg font-bold text-white">{t('hiw.step2.optionBTitle', 'Connect existing number')}</h4>
               </div>
               <p className="text-slate-200 text-[10px] md:text-sm mb-1 md:mb-3 leading-relaxed">
-                {t('hiw.step2.optionBDesc', 'You can also connect your existing business WhatsApp number to our system.')}
+                {providesWhatsAppNumber
+                  ? t('hiw.step2.optionBDesc', 'You can also connect your existing business WhatsApp number to our system.')
+                  : t('hiw.step2.optionBDescOwnNumber', 'Connect your existing business WhatsApp number to our system during onboarding.')}
               </p>
               <div className="text-slate-300 text-[10px]">
                 <strong>{t('hiw.step2.perfectForLabel', 'Perfect for:')}</strong> {t('hiw.step2.optionBPerfectValue', 'Existing business number, brand consistency')}
               </div>
               <div className="text-slate-400 text-[8px] md:text-[10px] mt-1 opacity-70">
-                {t('hiw.step2.optionBNote', '*Enterprise subscribers only')}
+                {providesWhatsAppNumber
+                  ? t('hiw.step2.optionBNote', '*Enterprise subscribers only')
+                  : t('hiw.step2.optionBProvisioningNote', '*Any number-provisioning option is confirmed separately')}
               </div>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent"></div>
@@ -127,10 +140,16 @@ const StepTwoDetails = () => {
                             relative overflow-hidden">
                 <div className="flex items-center justify-center gap-1 md:gap-3 mb-1 md:mb-2 relative z-10">
                   <div className="w-2 h-2 md:w-3 md:h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-                  <span className="text-emerald-200 text-xs md:text-sm font-semibold tracking-wide">{t('hiw.step2.visualBadge', 'Number Assigned')}</span>
+                  <span className="text-emerald-200 text-xs md:text-sm font-semibold tracking-wide">
+                    {providesWhatsAppNumber
+                      ? t('hiw.step2.visualBadge', 'Number Assigned')
+                      : t('hiw.step2.visualBadgeOwnNumber', 'Business number connected')}
+                  </span>
                 </div>
                 <p className="text-emerald-100 text-xs font-mono bg-emerald-500/10 px-1 py-0.5 md:px-3 md:py-1 rounded-lg inline-block">
-                  +31 6 12345678
+                  {providesWhatsAppNumber
+                    ? '+31 6 12345678'
+                    : t('hiw.step2.visualNumberOwnNumber', 'Your business number')}
                 </p>
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/5 to-transparent"></div>
               </div>

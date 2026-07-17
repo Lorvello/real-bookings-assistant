@@ -11,6 +11,15 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // Node 26 exposes a process-wide localStorage accessor that shadows the
+    // browser storage supplied by JSDOM unless a persistence file is set.
+    // Browser tests must use JSDOM's isolated storage, so disable Node's
+    // experimental process storage in Vitest workers.
+    poolOptions: {
+      forks: {
+        execArgv: ['--no-experimental-webstorage'],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

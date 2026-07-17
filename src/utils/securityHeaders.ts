@@ -5,24 +5,31 @@ export const SecurityHeaders = {
   // Content Security Policy - prevents XSS attacks
   CSP: {
     'default-src': "'self'",
-    'script-src': "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.voiceflow.com",
-    'style-src': "'self' 'unsafe-inline'",
+    // The allowlist mirrors the launch-visible integrations. Stripe's required
+    // origins come from its published CSP contract for Checkout, Stripe.js and
+    // Connect embedded components. Voiceflow is limited to its widget CDN and
+    // the two configured runtime endpoints used by useVoiceflowChatbot.
+    'script-src': "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.voiceflow.com https://checkout.stripe.com https://connect-js.stripe.com https://js.stripe.com https://*.js.stripe.com https://maps.googleapis.com",
+    'style-src': "'self' 'unsafe-inline' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='",
     'img-src': "'self' data: https: blob:",
-    'font-src': "'self'",
-    'connect-src': "'self' https://*.supabase.co wss://*.supabase.co",
-    'frame-src': "'none'",
+    'font-src': "'self' data:",
+    'connect-src': "'self' https://*.supabase.co wss://*.supabase.co https://general-runtime.voiceflow.com https://runtime-api.voiceflow.com https://checkout.stripe.com https://api.stripe.com https://maps.googleapis.com",
+    'frame-src': "https://checkout.stripe.com https://connect-js.stripe.com https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com",
     'object-src': "'none'",
     'base-uri': "'self'",
-    'form-action': "'self'"
+    'form-action': "'self' https://checkout.stripe.com",
+    'frame-ancestors': "'none'",
+    'worker-src': "'self' blob:",
+    'manifest-src': "'self'",
+    'upgrade-insecure-requests': '',
   },
 
   // Additional security headers
   SECURITY_HEADERS: {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(self)',
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
   }
 };
@@ -30,7 +37,7 @@ export const SecurityHeaders = {
 // Format CSP for meta tag
 export const formatCSPForMeta = (): string => {
   return Object.entries(SecurityHeaders.CSP)
-    .map(([directive, value]) => `${directive} ${value}`)
+    .map(([directive, value]) => value ? `${directive} ${value}` : directive)
     .join('; ');
 };
 

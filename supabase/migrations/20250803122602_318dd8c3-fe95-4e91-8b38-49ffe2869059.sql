@@ -1,41 +1,58 @@
 -- Security fixes: Add SET search_path to SECURITY DEFINER functions and strengthen RLS policies
 
 -- Fix 1: Add SET search_path to all SECURITY DEFINER functions
-ALTER FUNCTION public.manual_process_webhooks(uuid) SET search_path TO '';
-ALTER FUNCTION public.get_calendar_availability(text, date, integer) SET search_path TO '';
-ALTER FUNCTION public.check_whatsapp_contact_limit(uuid, uuid) SET search_path TO '';
-ALTER FUNCTION public.admin_ensure_user_has_calendar(uuid) SET search_path TO '';
-ALTER FUNCTION public.admin_update_user_subscription(uuid, text, text, text, text, text, text) SET search_path TO '';
-ALTER FUNCTION public.cleanup_expired_invitations() SET search_path TO '';
-ALTER FUNCTION public.handle_new_user() SET search_path TO '';
-ALTER FUNCTION public.complete_user_setup(uuid) SET search_path TO '';
-ALTER FUNCTION public.process_automatic_status_transitions() SET search_path TO '';
-ALTER FUNCTION public.add_to_waitlist(text, uuid, text, text, date, time, time, text) SET search_path TO '';
-ALTER FUNCTION public.admin_setup_mock_incomplete_user(uuid) SET search_path TO '';
-ALTER FUNCTION public.admin_developer_update_user_subscription(uuid, text, text, text, text, text, text) SET search_path TO '';
-ALTER FUNCTION public.get_calendar_statistics(uuid) SET search_path TO '';
-ALTER FUNCTION public.get_dashboard_metrics(uuid) SET search_path TO '';
-ALTER FUNCTION public.update_user_status(uuid, text, text, timestamp with time zone) SET search_path TO '';
-ALTER FUNCTION public.trigger_business_overview_refresh() SET search_path TO '';
-ALTER FUNCTION public.render_whatsapp_template(text, uuid, jsonb) SET search_path TO '';
-ALTER FUNCTION public.match_quick_reply_flow(text, uuid) SET search_path TO '';
-ALTER FUNCTION public.cleanup_old_whatsapp_data() SET search_path TO '';
-ALTER FUNCTION public.get_business_hours(uuid) SET search_path TO '';
-ALTER FUNCTION public.handle_updated_at_users() SET search_path TO '';
-ALTER FUNCTION public.export_whatsapp_data(uuid, date, date) SET search_path TO '';
-ALTER FUNCTION public.cleanup_duplicate_availability_rules(uuid, integer) SET search_path TO '';
-ALTER FUNCTION public.admin_generate_comprehensive_mock_data(uuid, text) SET search_path TO '';
-ALTER FUNCTION public.handle_new_calendar_settings() SET search_path TO '';
-ALTER FUNCTION public.create_team_member_user(text, text, uuid) SET search_path TO '';
-ALTER FUNCTION public.update_existing_users_retroactively() SET search_path TO '';
-ALTER FUNCTION public.link_whatsapp_conversation_to_booking() SET search_path TO '';
-ALTER FUNCTION public.check_booking_conflicts(uuid, timestamp with time zone, timestamp with time zone, uuid) SET search_path TO '';
-ALTER FUNCTION public.ensure_user_has_calendar_and_service(uuid) SET search_path TO '';
-ALTER FUNCTION public.refresh_dashboard_metrics() SET search_path TO '';
-ALTER FUNCTION public.trigger_dashboard_refresh() SET search_path TO '';
-ALTER FUNCTION public.check_team_member_limit(uuid, uuid) SET search_path TO '';
-ALTER FUNCTION public.admin_clear_user_data(uuid) SET search_path TO '';
-ALTER FUNCTION public.admin_set_user_status(uuid, text) SET search_path TO '';
+DO $$
+DECLARE
+  function_signature text;
+BEGIN
+  FOREACH function_signature IN ARRAY ARRAY[
+    'public.manual_process_webhooks(uuid)',
+    'public.get_calendar_availability(text,date,integer)',
+    'public.check_whatsapp_contact_limit(uuid,uuid)',
+    'public.admin_ensure_user_has_calendar(uuid)',
+    'public.admin_update_user_subscription(uuid,text,text,text,text,text,text)',
+    'public.cleanup_expired_invitations()',
+    'public.handle_new_user()',
+    'public.complete_user_setup(uuid)',
+    'public.process_automatic_status_transitions()',
+    'public.add_to_waitlist(text,uuid,text,text,date,time without time zone,time without time zone,text)',
+    'public.admin_setup_mock_incomplete_user(uuid)',
+    'public.admin_developer_update_user_subscription(uuid,text,text,text,text,text,text)',
+    'public.get_calendar_statistics(uuid)',
+    'public.get_dashboard_metrics(uuid)',
+    'public.update_user_status(uuid,text,text,timestamp with time zone)',
+    'public.trigger_business_overview_refresh()',
+    'public.render_whatsapp_template(text,uuid,jsonb)',
+    'public.match_quick_reply_flow(text,uuid)',
+    'public.cleanup_old_whatsapp_data()',
+    'public.get_business_hours(uuid)',
+    'public.handle_updated_at_users()',
+    'public.export_whatsapp_data(uuid,date,date)',
+    'public.cleanup_duplicate_availability_rules(uuid,integer)',
+    'public.admin_generate_comprehensive_mock_data(uuid,text)',
+    'public.handle_new_calendar_settings()',
+    'public.create_team_member_user(text,text,uuid)',
+    'public.update_existing_users_retroactively()',
+    'public.link_whatsapp_conversation_to_booking()',
+    'public.check_booking_conflicts(uuid,timestamp with time zone,timestamp with time zone,uuid)',
+    'public.ensure_user_has_calendar_and_service(uuid)',
+    'public.refresh_dashboard_metrics()',
+    'public.trigger_dashboard_refresh()',
+    'public.check_team_member_limit(uuid,uuid)',
+    'public.admin_clear_user_data(uuid)',
+    'public.admin_set_user_status(uuid,text)'
+  ]
+  LOOP
+    IF to_regprocedure(function_signature) IS NOT NULL THEN
+      EXECUTE format(
+        'ALTER FUNCTION %s SET search_path TO %L',
+        function_signature,
+        ''
+      );
+    END IF;
+  END LOOP;
+END
+$$;
 
 -- Fix 2: Strengthen overly permissive RLS policies
 

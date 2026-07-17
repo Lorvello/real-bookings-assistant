@@ -1,119 +1,271 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-
-// LR-R57: bevestigingsmail voor (web)boekingen. Web-klanten hebben geen WhatsApp-chat
-// waarin de agent bevestigt, dus zonder dit krijgen ze NIETS (kernvraag 4). Wordt
-// fire-and-forget aangeroepen door create-booking na een geslaagde insert.
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+import { z } from "https://esm.sh/zod@3.23.8";
+import {
+  type BookingEmailLocale,
+  buildBookingConfirmationEmail,
+} from "./emailTemplate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-);
+const requestSchema = z.object({
+  booking_id: z.string().uuid(),
+}).strict();
 
-const MAANDEN = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
-const DAGEN = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"];
-
-function formatNL(iso: string, tz: string): { datum: string; tijd: string } {
-  try {
-    const d = new Date(iso);
-    const dag = DAGEN[d.getDay()];
-    const datum = `${dag} ${d.getDate()} ${MAANDEN[d.getMonth()]} ${d.getFullYear()}`;
-    const tijd = new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: tz || "Europe/Amsterdam" }).format(d);
-    return { datum, tijd };
-  } catch {
-    return { datum: iso, tijd: "" };
-  }
+function jsonResponse(
+  body: Record<string, unknown>,
+  status: number,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed" }, 405);
+  }
+
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
+  const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+    "";
+  const hasServiceRole = serviceRoleKey.length > 0 && bearer === serviceRoleKey;
+  const hasInternalSecret = internalSecret.length > 0 &&
+    req.headers.get("x-internal-secret") === internalSecret;
+  if (!hasServiceRole && !hasInternalSecret) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  const parsed = requestSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return jsonResponse({
+      success: false,
+      error: "Invalid booking confirmation request",
+    }, 400);
+  }
+  const bookingId = parsed.data.booking_id;
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    serviceRoleKey,
+    { auth: { persistSession: false } },
+  );
+
+  let claimToken: string | null = null;
+  const finalize = async (
+    status: "delivered" | "skipped" | "failed",
+    providerMessageId: string | null = null,
+    errorCode: string | null = null,
+  ) => {
+    if (!claimToken) return;
+    const { data, error } = await supabase.rpc(
+      "finalize_booking_confirmation_delivery",
+      {
+        p_booking_id: bookingId,
+        p_claim_token: claimToken,
+        p_status: status,
+        p_provider_message_id: providerMessageId,
+        p_error_code: errorCode,
+      },
+    );
+    if (error || data !== true) {
+      throw new Error("BOOKING_CONFIRMATION_FINALIZE_FAILED");
+    }
+    claimToken = null;
+  };
 
   try {
-    const { booking_id, to_override } = await req.json();
-    if (!booking_id) throw new Error("booking_id is verplicht");
-
-    // 1. Boeking ophalen
-    const { data: booking, error: bErr } = await supabase
+    const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("id, calendar_id, service_type_id, customer_name, customer_email, start_time, end_time, service_name, status")
-      .eq("id", booking_id)
-      .single();
-    if (bErr || !booking) throw new Error(`Boeking niet gevonden: ${bErr?.message}`);
-
-    const to = to_override || booking.customer_email;
-    if (!to) {
-      return new Response(JSON.stringify({ skipped: true, reason: "geen klant-e-mailadres" }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // 2. Bedrijfs- + dienstcontext uit business_overview (1 query, agent-kennis-tabel)
-    const { data: bo } = await supabase
-      .from("business_overview")
-      .select("business_name, timezone, business_city, business_street, business_number")
-      .eq("calendar_id", booking.calendar_id)
+      .select(
+        "id,calendar_id,service_type_id,customer_name,customer_email,customer_locale,start_time,status",
+      )
+      .eq("id", bookingId)
       .maybeSingle();
-
-    let serviceName = booking.service_name as string | null;
-    if (!serviceName && booking.service_type_id) {
-      const { data: st } = await supabase.from("service_types").select("name").eq("id", booking.service_type_id).maybeSingle();
-      serviceName = st?.name ?? null;
+    if (bookingError || !booking) {
+      return jsonResponse({
+        success: false,
+        error: "Booking not found",
+      }, 404);
+    }
+    if (!["pending", "confirmed"].includes(booking.status)) {
+      return jsonResponse({
+        success: false,
+        error: "Booking is not eligible for a confirmation email",
+        code: "BOOKING_CONFIRMATION_NOT_ALLOWED",
+      }, 409);
     }
 
-    const businessName = bo?.business_name || "Onze zaak";
-    const tz = bo?.timezone || "Europe/Amsterdam";
-    const { datum, tijd } = formatNL(booking.start_time, tz);
-    const adres = [bo?.business_street, bo?.business_number].filter(Boolean).join(" ") + (bo?.business_city ? `, ${bo.business_city}` : "");
+    const { data: claim, error: claimError } = await supabase.rpc(
+      "claim_booking_confirmation_delivery",
+      { p_booking_id: bookingId },
+    );
+    if (claimError || !claim) {
+      throw new Error("BOOKING_CONFIRMATION_CLAIM_FAILED");
+    }
+    if (claim.claimed !== true) {
+      return jsonResponse({
+        success: true,
+        duplicate: true,
+        delivery_status: claim.status,
+      }, 200);
+    }
+    claimToken = claim.claim_token;
 
-    // 3. Mail versturen (geverifieerd domein bookingsassistant.com)
-    const emailResp = await resend.emails.send({
-      from: `${businessName} <noreply@bookingsassistant.com>`,
-      to: [to],
-      subject: `Bevestiging van je afspraak bij ${businessName}`,
-      html: `
-        <!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-        <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:0;padding:0;background:#f8fafc;">
-          <div style="max-width:600px;margin:0 auto;background:#fff;">
-            <div style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:36px 30px;text-align:center;">
-              <h1 style="margin:0;font-size:26px;">Afspraak bevestigd ✅</h1>
-              <p style="margin:8px 0 0;opacity:.9;">${businessName}</p>
-            </div>
-            <div style="padding:32px 30px;color:#111827;">
-              <p>Hoi ${booking.customer_name || "daar"},</p>
-              <p>Je afspraak is bevestigd. Hier zijn de details:</p>
-              <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-                ${serviceName ? `<tr><td style="padding:8px 0;color:#6b7280;">Dienst</td><td style="padding:8px 0;font-weight:600;text-align:right;">${serviceName}</td></tr>` : ""}
-                <tr><td style="padding:8px 0;color:#6b7280;">Datum</td><td style="padding:8px 0;font-weight:600;text-align:right;">${datum}</td></tr>
-                <tr><td style="padding:8px 0;color:#6b7280;">Tijd</td><td style="padding:8px 0;font-weight:600;text-align:right;">${tijd}</td></tr>
-                ${adres.trim() && adres.trim() !== "," ? `<tr><td style="padding:8px 0;color:#6b7280;">Locatie</td><td style="padding:8px 0;font-weight:600;text-align:right;">${adres}</td></tr>` : ""}
-              </table>
-              <p style="color:#6b7280;font-size:14px;">Kun je niet? Neem dan tijdig contact op met ${businessName} om te annuleren of te verzetten.</p>
-            </div>
-            <div style="background:#f8fafc;padding:24px 30px;text-align:center;color:#9ca3af;font-size:13px;">
-              <p style="margin:0;">Deze bevestiging is verstuurd namens ${businessName}.</p>
-            </div>
-          </div>
-        </body></html>`,
+    const recipient = typeof booking.customer_email === "string"
+      ? booking.customer_email.trim()
+      : "";
+    if (
+      !recipient ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient) ||
+      /[\r\n]/.test(recipient)
+    ) {
+      await finalize("skipped");
+      return jsonResponse({
+        success: true,
+        skipped: true,
+        reason: "no_valid_customer_email",
+      }, 200);
+    }
+
+    const [{ data: overview }, { data: serviceType }] = await Promise.all([
+      supabase
+        .from("business_overview")
+        .select(
+          "business_name,timezone,business_city,business_street,business_number",
+        )
+        .eq("calendar_id", booking.calendar_id)
+        .maybeSingle(),
+      booking.service_type_id
+        ? supabase
+          .from("service_types")
+          .select("name")
+          .eq("id", booking.service_type_id)
+          .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+
+    const address = [
+      [overview?.business_street, overview?.business_number]
+        .filter(Boolean)
+        .join(" "),
+      overview?.business_city,
+    ].filter(Boolean).join(", ");
+    const locale: BookingEmailLocale = booking.customer_locale === "en"
+      ? "en"
+      : "nl";
+    const email = buildBookingConfirmationEmail({
+      locale,
+      customerName: booking.customer_name,
+      businessName: overview?.business_name,
+      serviceName: serviceType?.name ?? null,
+      startTime: booking.start_time,
+      timezone: overview?.timezone,
+      address,
     });
 
-    if (emailResp.error) throw new Error(`Resend: ${emailResp.error.message}`);
+    const resendApiKey = Deno.env.get("RESEND_API_KEY") ?? "";
+    if (!resendApiKey) {
+      await finalize("failed", null, "RESEND_NOT_CONFIGURED");
+      return jsonResponse({
+        success: false,
+        error: "Booking confirmation delivery is not configured",
+      }, 503);
+    }
 
-    return new Response(JSON.stringify({ success: true, id: emailResp.data?.id, to }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    let providerResponse: Response;
+    try {
+      providerResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+          "Idempotency-Key": `booking-confirmation/${bookingId}`,
+        },
+        body: JSON.stringify({
+          from: `${email.fromName} <noreply@bookingsassistant.com>`,
+          to: [recipient],
+          subject: email.subject,
+          html: email.html,
+          text: email.text,
+          tags: [{ name: "booking_id", value: bookingId }],
+        }),
+        signal: AbortSignal.timeout(10_000),
+      });
+    } catch (error) {
+      await finalize("failed", null, "RESEND_NETWORK_ERROR");
+      console.error("[BOOKING-CONFIRMATION] Provider request failed", {
+        bookingId,
+        error: error instanceof Error ? error.name : "unknown",
+      });
+      return jsonResponse({
+        success: false,
+        error: "Booking confirmation delivery failed",
+      }, 502);
+    }
+
+    const providerBody = await providerResponse.json().catch(() => ({}));
+    const providerMessageId = typeof providerBody?.id === "string"
+      ? providerBody.id
+      : null;
+    if (!providerResponse.ok || !providerMessageId) {
+      await finalize(
+        "failed",
+        null,
+        `RESEND_HTTP_${providerResponse.status}`,
+      );
+      console.error("[BOOKING-CONFIRMATION] Provider rejected request", {
+        bookingId,
+        status: providerResponse.status,
+      });
+      return jsonResponse({
+        success: false,
+        error: "Booking confirmation delivery failed",
+      }, 502);
+    }
+
+    await finalize("delivered", providerMessageId);
+    console.log("[BOOKING-CONFIRMATION] Delivered", {
+      bookingId,
+      providerMessageId,
     });
-  } catch (error: any) {
-    console.error("send-booking-confirmation error:", error);
-    return new Response(JSON.stringify({ error: error.message, success: false }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return jsonResponse({
+      success: true,
+      delivery_status: "delivered",
+      message_id: providerMessageId,
+    }, 200);
+  } catch (error) {
+    if (claimToken) {
+      try {
+        await finalize(
+          "failed",
+          null,
+          error instanceof Error ? error.message : "UNKNOWN_ERROR",
+        );
+      } catch (finalizeError) {
+        console.error("[BOOKING-CONFIRMATION] Finalize failed", {
+          bookingId,
+          error: finalizeError instanceof Error
+            ? finalizeError.message
+            : "unknown",
+        });
+      }
+    }
+    console.error("[BOOKING-CONFIRMATION] Request failed", {
+      bookingId,
+      error: error instanceof Error ? error.message : "unknown",
     });
+    return jsonResponse({
+      success: false,
+      error: "Booking confirmation delivery failed",
+    }, 500);
   }
-};
-
-serve(handler);
+});

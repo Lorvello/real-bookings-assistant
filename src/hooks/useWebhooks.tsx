@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -12,14 +12,7 @@ export const useWebhooks = (calendarId?: string) => {
   const [events, setEvents] = useState<WebhookEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (calendarId) {
-      fetchWebhookEndpoints();
-      fetchWebhookEvents();
-    }
-  }, [calendarId]);
-
-  const fetchWebhookEndpoints = async () => {
+  const fetchWebhookEndpoints = useCallback(async () => {
     if (!calendarId) return;
 
     try {
@@ -40,9 +33,9 @@ export const useWebhooks = (calendarId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [calendarId]);
 
-  const fetchWebhookEvents = async () => {
+  const fetchWebhookEvents = useCallback(async () => {
     if (!calendarId) return;
 
     try {
@@ -62,7 +55,14 @@ export const useWebhooks = (calendarId?: string) => {
     } catch (error) {
       console.error('Error fetching webhook events:', error);
     }
-  };
+  }, [calendarId]);
+
+  useEffect(() => {
+    if (calendarId) {
+      void fetchWebhookEndpoints();
+      void fetchWebhookEvents();
+    }
+  }, [calendarId, fetchWebhookEndpoints, fetchWebhookEvents]);
 
   const createWebhookEndpoint = async (webhookUrl: string) => {
     if (!calendarId) return;
@@ -167,15 +167,16 @@ export const useWebhooks = (calendarId?: string) => {
 
   const retryWebhookEvent = async (eventId: string) => {
     try {
-      const response = await fetch('/api/webhook-retry', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const { data, error } = await supabase.functions.invoke('process-webhooks', {
+        body: {
+          source: 'webhook-event-retry',
+          event_id: eventId,
+          retry_failed: true,
+          batch_size: 50,
         },
-        body: JSON.stringify({ eventId }),
       });
 
-      if (response.ok) {
+      if (!error && data?.successful > 0 && data?.failed === 0) {
         toast({
           title: t('webhooks.successTitle', "Success"),
           description: t('webhooks.retrySuccess', "Webhook retry initiated"),

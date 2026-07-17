@@ -10,9 +10,11 @@
 # This script makes that catch automatic and repeatable instead of relying on luck.
 #
 # Usage:
-#   ./grants_check.sh snapshot          print the CURRENT live grants state as JSON (no file I/O)
+#   ./grants_check.sh snapshot          print the current target's grants state as JSON
 #   ./grants_check.sh baseline          snapshot + WRITE it to grants_baseline.json (overwrites)
 #   ./grants_check.sh check             snapshot + DIFF against grants_baseline.json, exit 0/1
+#   BA_GRANTS_TARGET=local ./grants_check.sh check
+#                                      verify the disposable local Supabase database
 #
 # Run `check` before AND after any migration that touches a function in the SENSITIVE_FUNCTIONS
 # list below (see grants_runbook.md in this directory for the exact before/after invocation).
@@ -27,12 +29,13 @@ REF="grdgjhkygzciwwrxgvgy"
 PAT_FILE="$HOME/.config/ba/supabase.pat"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASELINE_FILE="$SCRIPT_DIR/grants_baseline.json"
+TARGET="${BA_GRANTS_TARGET:-remote}"
+LOCAL_DB_CONTAINER="${BA_GRANTS_DB_CONTAINER:-supabase_db_${REF}}"
 
-if [ ! -f "$PAT_FILE" ]; then
-  echo "ERROR: PAT file not found at $PAT_FILE" >&2
+if [ "$TARGET" != "remote" ] && [ "$TARGET" != "local" ]; then
+  echo "ERROR: BA_GRANTS_TARGET must be 'remote' or 'local'" >&2
   exit 2
 fi
-PAT="$(cat "$PAT_FILE")"
 
 # The sensitive-function set. See grants_runbook.md "Rationale" for why each one is here.
 # Extend this list over time as new money- or PII-adjacent RPCs are added to the schema.
@@ -49,24 +52,68 @@ join pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
   and p.proname in (
     'claim_booking_reminder',
+    'claim_booking_reminder_v2',
+    'begin_booking_reminder_provider_attempt',
+    'begin_booking_reminder_attempt_v2',
     'record_booking_reminder_result',
+    'record_booking_reminder_result_v2',
+    'record_booking_checkout_failure',
+    'record_booking_payment_failure',
     'get_due_booking_reminders',
+    'get_due_booking_reminders_v2',
+    'reconcile_booking_reminders_v2',
     'admin_update_user_subscription',
     'admin_developer_update_user_subscription',
+    'apply_stripe_subscription_event',
+    'apply_stripe_subscription_invoice_event',
+    'commit_public_booking',
+    'authorize_booking_payment_provider_settlement',
+    'claim_booking_payment_provider_cleanup',
+    'claim_booking_payment_provider_reservation',
+    'claim_whatsapp_payment_attempt',
+    'finalize_booking_payment_provider_cleanup',
+    'finalize_booking_payment_provider_reservation',
+    'finalize_booking_payment_success',
+    'finalize_booking_payment_success_v2',
+    'finalize_whatsapp_payment_attempt',
+    'get_dashboard_metrics',
     'get_user_subscription_details',
     'get_user_subscription_tier',
+    'reconcile_or_renew_whatsapp_payment_attempt',
+    'release_booking_payment_provider_after_failure',
+    'renew_booking_payment_provider_after_expiry',
+    'require_booking_payment_provider_cleanup',
     'reschedule_booking_atomic',
+    'verify_booking_payment_provider_reservation',
+    'verify_booking_payment_provider_cleanup_claim',
     'owner_update_booking_status'
   )
-order by p.proname, args;
+order by p.proname, args
 EOSQL
 
 run_query() {
+  if [ "$TARGET" = "local" ]; then
+    if ! docker inspect "$LOCAL_DB_CONTAINER" >/dev/null 2>&1; then
+      echo "ERROR: local database container not found: $LOCAL_DB_CONTAINER" >&2
+      exit 2
+    fi
+    docker exec "$LOCAL_DB_CONTAINER" psql \
+      -v ON_ERROR_STOP=1 -Atq -U postgres -d postgres \
+      -c "select coalesce(json_agg(row_to_json(grants_row) order by function_name, args), '[]'::json)::text from ($SQL_QUERY) as grants_row"
+    return
+  fi
+
+  if [ ! -f "$PAT_FILE" ]; then
+    echo "ERROR: PAT file not found at $PAT_FILE" >&2
+    exit 2
+  fi
+  local pat
+  pat="$(cat "$PAT_FILE")"
   local body
   body="$(python3 -c 'import json,sys; print(json.dumps({"query": sys.argv[1]}))' "$SQL_QUERY")"
   curl -s -X POST \
     "https://api.supabase.com/v1/projects/${REF}/database/query" \
-    -H "Authorization: Bearer ${PAT}" \
+    -H "Authorization: Bearer ${pat}" \
     -H "Content-Type: application/json" \
     -d "$body"
 }
@@ -129,6 +176,7 @@ widened = []
 narrowed = []
 added = []
 removed = []
+security_mode_changes = []
 
 roles = ["anon_exec", "authenticated_exec", "service_role_exec"]
 
@@ -137,6 +185,14 @@ for k, cur_row in current_by_key.items():
     if base_row is None:
         added.append(cur_row)
         continue
+    if base_row.get("security_definer") != cur_row.get("security_definer"):
+        security_mode_changes.append(
+            {
+                "function": f"{k[0]}({k[1]})",
+                "baseline": base_row.get("security_definer"),
+                "current": cur_row.get("security_definer"),
+            }
+        )
     for role in roles:
         base_val = base_row.get(role)
         cur_val = cur_row.get(role)
@@ -162,24 +218,34 @@ if widened:
     for e in widened:
         print(f"  - {e['function']}: {e['role']} baseline={e['baseline']} -> current={e['current']}")
 if narrowed:
-    print("NOTE: grants NARROWED (safer direction, but should be an intentional lockdown, review + update the baseline if correct):")
+    print("FAIL: required grants NARROWED; a missing service-role grant can break the active money path:")
     for e in narrowed:
         print(f"  - {e['function']}: {e['role']} baseline={e['baseline']} -> current={e['current']}")
 if added:
-    print("NOTE: function(s) present live but not in baseline (new overload or new sensitive function, review + update the baseline):")
+    print("FAIL: sensitive function identity/identities present on the target but not in the baseline:")
     for r in added:
-        print(f"  - {r['function_name']}({r['args']})")
+        print(
+            f"  - {r['function_name']}({r['args']}): "
+            f"security_definer={r.get('security_definer')} "
+            f"anon_exec={r.get('anon_exec')} "
+            f"authenticated_exec={r.get('authenticated_exec')} "
+            f"service_role_exec={r.get('service_role_exec')}"
+        )
 if removed:
-    print("NOTE: function(s) in baseline but not found live (dropped/renamed, review + update the baseline):")
+    print("FAIL: function(s) in baseline are missing from the target:")
     for r in removed:
         print(f"  - {r['function_name']}({r['args']})")
+if security_mode_changes:
+    print("FAIL: function security mode CHANGED on sensitive function(s):")
+    for e in security_mode_changes:
+        print(
+            f"  - {e['function']}: security_definer "
+            f"baseline={e['baseline']} -> current={e['current']}"
+        )
 
-if widened:
+if widened or narrowed or added or removed or security_mode_changes:
     print("\nRESULT: FAIL")
     sys.exit(1)
-if narrowed or added or removed:
-    print("\nRESULT: PASS (with notes above, review before treating as final)")
-    sys.exit(0)
 print("RESULT: PASS, no drift, current state matches baseline exactly")
 sys.exit(0)
 EOPY

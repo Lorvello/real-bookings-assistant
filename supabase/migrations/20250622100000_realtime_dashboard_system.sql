@@ -5,11 +5,35 @@ ALTER TABLE public.whatsapp_messages REPLICA IDENTITY FULL;
 ALTER TABLE public.whatsapp_conversations REPLICA IDENTITY FULL;
 ALTER TABLE public.booking_intents REPLICA IDENTITY FULL;
 
--- Add tables to realtime publication
-ALTER PUBLICATION supabase_realtime ADD TABLE public.bookings;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.whatsapp_messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.whatsapp_conversations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.booking_intents;
+-- Add tables to realtime publication without failing when an earlier
+-- migration already registered one of them (bookings is registered in
+-- 20250621111524).
+DO $$
+DECLARE
+  relation_name text;
+BEGIN
+  FOREACH relation_name IN ARRAY ARRAY[
+    'bookings',
+    'whatsapp_messages',
+    'whatsapp_conversations',
+    'booking_intents'
+  ]
+  LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = relation_name
+    ) THEN
+      EXECUTE format(
+        'ALTER PUBLICATION supabase_realtime ADD TABLE public.%I',
+        relation_name
+      );
+    END IF;
+  END LOOP;
+END
+$$;
 
 -- Create event tracking table for real-time business events
 CREATE TABLE public.business_events (
@@ -24,7 +48,19 @@ CREATE TABLE public.business_events (
 -- Enable RLS and realtime for business_events
 ALTER TABLE public.business_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business_events REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.business_events;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'business_events'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.business_events;
+  END IF;
+END
+$$;
 
 -- RLS policy for business_events
 CREATE POLICY "Users can view own calendar business events" ON public.business_events
@@ -103,7 +139,7 @@ SELECT
   
   -- Conversion metrics
   (SELECT CASE WHEN COUNT(*) > 0 THEN 
-    COUNT(*) FILTER (WHERE status = 'completed')::numeric / COUNT(*)::numeric * 100 
+    COUNT(*) FILTER (WHERE bi.status = 'completed')::numeric / COUNT(*)::numeric * 100
    ELSE 0 END
    FROM booking_intents bi
    JOIN whatsapp_conversations wc ON bi.conversation_id = wc.id

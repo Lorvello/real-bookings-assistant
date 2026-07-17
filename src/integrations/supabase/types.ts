@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -100,6 +120,13 @@ export type Database = {
             foreignKeyName: "agent_actions_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -116,6 +143,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_actions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "agent_actions_calendar_id_fkey"
@@ -296,6 +330,13 @@ export type Database = {
             foreignKeyName: "availability_overrides_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -312,6 +353,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_overrides_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "availability_overrides_calendar_id_fkey"
@@ -401,6 +449,13 @@ export type Database = {
             foreignKeyName: "availability_schedules_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -417,6 +472,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "availability_schedules_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "availability_schedules_calendar_id_fkey"
@@ -456,6 +518,67 @@ export type Database = {
           permanent_block?: boolean | null
         }
         Relationships: []
+      }
+      booking_confirmation_deliveries: {
+        Row: {
+          attempt_count: number
+          booking_id: string
+          claim_token: string | null
+          claimed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          last_error_code: string | null
+          provider_message_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          booking_id: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          last_error_code?: string | null
+          provider_message_id?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          booking_id?: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          last_error_code?: string | null
+          provider_message_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_confirmation_deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_confirmation_deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_confirmation_deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       booking_intents: {
         Row: {
@@ -567,6 +690,204 @@ export type Database = {
           },
         ]
       }
+      booking_payment_provider_cleanup_jobs: {
+        Row: {
+          attempt_count: number
+          booking_id: string
+          claim_expires_at: string | null
+          claim_token: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_error_code: string | null
+          next_attempt_at: string
+          provider_kind: string
+          provider_object_id: string
+          provider_result: string | null
+          reason_code: string
+          request_fingerprint: string
+          reservation_generation: number
+          reservation_id: string
+          state: string
+          stripe_mode: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          booking_id: string
+          claim_expires_at?: string | null
+          claim_token?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          provider_kind: string
+          provider_object_id: string
+          provider_result?: string | null
+          reason_code: string
+          request_fingerprint: string
+          reservation_generation: number
+          reservation_id: string
+          state?: string
+          stripe_mode: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          booking_id?: string
+          claim_expires_at?: string | null
+          claim_token?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          provider_kind?: string
+          provider_object_id?: string
+          provider_result?: string | null
+          reason_code?: string
+          request_fingerprint?: string
+          reservation_generation?: number
+          reservation_id?: string
+          state?: string
+          stripe_mode?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payment_provider_cleanup_jobs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_payment_provider_cleanup_jobs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_payment_provider_cleanup_jobs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_payment_provider_cleanup_jobs_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payment_provider_reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_payment_provider_reservations: {
+        Row: {
+          amount_cents: number
+          booking_id: string
+          channel: string
+          claim_expires_at: string
+          claim_token: string
+          cleaned_at: string | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          destination_account_id: string | null
+          generation: number
+          id: string
+          platform_account_id: string
+          provider_expires_at: string | null
+          provider_kind: string
+          provider_object_id: string | null
+          provider_url: string | null
+          request_fingerprint: string
+          settlement_payment_intent_id: string | null
+          state: string
+          stripe_mode: string
+          tax_calculation_id: string | null
+          total_due_cents: number
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          booking_id: string
+          channel: string
+          claim_expires_at: string
+          claim_token: string
+          cleaned_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency: string
+          destination_account_id?: string | null
+          generation: number
+          id?: string
+          platform_account_id: string
+          provider_expires_at?: string | null
+          provider_kind: string
+          provider_object_id?: string | null
+          provider_url?: string | null
+          request_fingerprint: string
+          settlement_payment_intent_id?: string | null
+          state?: string
+          stripe_mode: string
+          tax_calculation_id?: string | null
+          total_due_cents: number
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string
+          channel?: string
+          claim_expires_at?: string
+          claim_token?: string
+          cleaned_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          destination_account_id?: string | null
+          generation?: number
+          id?: string
+          platform_account_id?: string
+          provider_expires_at?: string | null
+          provider_kind?: string
+          provider_object_id?: string | null
+          provider_url?: string | null
+          request_fingerprint?: string
+          settlement_payment_intent_id?: string | null
+          state?: string
+          stripe_mode?: string
+          tax_calculation_id?: string | null
+          total_due_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payment_provider_reservations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_payment_provider_reservations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_payment_provider_reservations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_payments: {
         Row: {
           amount_cents: number
@@ -584,6 +905,7 @@ export type Database = {
           reverse_charge: boolean
           status: string
           stripe_account_id: string
+          stripe_mode: string | null
           stripe_payment_intent_id: string
           tax_breakdown: Json | null
           updated_at: string
@@ -604,6 +926,7 @@ export type Database = {
           reverse_charge?: boolean
           status?: string
           stripe_account_id: string
+          stripe_mode?: string | null
           stripe_payment_intent_id: string
           tax_breakdown?: Json | null
           updated_at?: string
@@ -624,6 +947,7 @@ export type Database = {
           reverse_charge?: boolean
           status?: string
           stripe_account_id?: string
+          stripe_mode?: string | null
           stripe_payment_intent_id?: string
           tax_breakdown?: Json | null
           updated_at?: string
@@ -692,31 +1016,88 @@ export type Database = {
         Row: {
           attempt_count: number
           booking_id: string
+          booking_start_time_snapshot: string | null
+          business_name_snapshot: string | null
+          calendar_timezone_snapshot: string | null
           channel: string | null
+          claim_expires_at: string | null
+          claim_token: string | null
           claimed_at: string | null
+          created_at: string
+          customer_locale_snapshot: string | null
+          customer_name_snapshot: string | null
+          delivery_key: string | null
+          delivery_mode: string
           id: string
+          last_attempted_at: string | null
+          last_error_code: string | null
+          post_acceptance_state: string | null
+          provider_accepted_at: string | null
+          provider_attempt_started_at: string | null
+          provider_message_id: string | null
+          recipient_snapshot: string | null
           reminder_number: number
-          sent_at: string
+          resolved_at: string | null
+          schedule_generation: string
+          sent_at: string | null
           status: string
         }
         Insert: {
           attempt_count?: number
           booking_id: string
+          booking_start_time_snapshot?: string | null
+          business_name_snapshot?: string | null
+          calendar_timezone_snapshot?: string | null
           channel?: string | null
+          claim_expires_at?: string | null
+          claim_token?: string | null
           claimed_at?: string | null
+          created_at?: string
+          customer_locale_snapshot?: string | null
+          customer_name_snapshot?: string | null
+          delivery_key?: string | null
+          delivery_mode?: string
           id?: string
+          last_attempted_at?: string | null
+          last_error_code?: string | null
+          post_acceptance_state?: string | null
+          provider_accepted_at?: string | null
+          provider_attempt_started_at?: string | null
+          provider_message_id?: string | null
+          recipient_snapshot?: string | null
           reminder_number: number
-          sent_at?: string
+          resolved_at?: string | null
+          schedule_generation: string
+          sent_at?: string | null
           status?: string
         }
         Update: {
           attempt_count?: number
           booking_id?: string
+          booking_start_time_snapshot?: string | null
+          business_name_snapshot?: string | null
+          calendar_timezone_snapshot?: string | null
           channel?: string | null
+          claim_expires_at?: string | null
+          claim_token?: string | null
           claimed_at?: string | null
+          created_at?: string
+          customer_locale_snapshot?: string | null
+          customer_name_snapshot?: string | null
+          delivery_key?: string | null
+          delivery_mode?: string
           id?: string
+          last_attempted_at?: string | null
+          last_error_code?: string | null
+          post_acceptance_state?: string | null
+          provider_accepted_at?: string | null
+          provider_attempt_started_at?: string | null
+          provider_message_id?: string | null
+          recipient_snapshot?: string | null
           reminder_number?: number
-          sent_at?: string
+          resolved_at?: string | null
+          schedule_generation?: string
+          sent_at?: string | null
           status?: string
         }
         Relationships: [
@@ -772,9 +1153,10 @@ export type Database = {
           payment_required: boolean | null
           payment_status: string | null
           payment_timing: string | null
+          public_booking_policy_snapshot: Json | null
+          reminder_generation: string
           service_name: string | null
           service_type_id: string | null
-          session_id: string | null
           start_time: string
           status: string | null
           time_period: string | null
@@ -810,9 +1192,10 @@ export type Database = {
           payment_required?: boolean | null
           payment_status?: string | null
           payment_timing?: string | null
+          public_booking_policy_snapshot?: Json | null
+          reminder_generation?: string
           service_name?: string | null
           service_type_id?: string | null
-          session_id?: string | null
           start_time: string
           status?: string | null
           time_period?: string | null
@@ -848,9 +1231,10 @@ export type Database = {
           payment_required?: boolean | null
           payment_status?: string | null
           payment_timing?: string | null
+          public_booking_policy_snapshot?: Json | null
+          reminder_generation?: string
           service_name?: string | null
           service_type_id?: string | null
-          session_id?: string | null
           start_time?: string
           status?: string | null
           time_period?: string | null
@@ -877,6 +1261,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -893,6 +1284,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "bookings_calendar_id_fkey"
@@ -1010,6 +1408,13 @@ export type Database = {
             foreignKeyName: "business_countries_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -1029,6 +1434,97 @@ export type Database = {
           },
           {
             foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_countries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      business_events: {
+        Row: {
+          calendar_id: string | null
+          created_at: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          processed_at: string | null
+        }
+        Insert: {
+          calendar_id?: string | null
+          created_at?: string | null
+          event_data: Json
+          event_type: string
+          id?: string
+          processed_at?: string | null
+        }
+        Update: {
+          calendar_id?: string | null
+          created_at?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_events_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_analytics"
@@ -1239,6 +1735,13 @@ export type Database = {
             foreignKeyName: "fk_business_overview_calendar"
             columns: ["calendar_id"]
             isOneToOne: true
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -1255,6 +1758,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_business_overview_calendar"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "fk_business_overview_calendar"
@@ -1479,6 +1989,13 @@ export type Database = {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -1495,6 +2012,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "business_stripe_accounts_calendar_id_fkey"
@@ -1555,6 +2079,13 @@ export type Database = {
             foreignKeyName: "calendar_members_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -1571,6 +2102,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_members_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "calendar_members_calendar_id_fkey"
@@ -1647,6 +2185,13 @@ export type Database = {
             foreignKeyName: "calendar_service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -1663,6 +2208,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "calendar_service_types_calendar_id_fkey"
@@ -1810,6 +2362,13 @@ export type Database = {
             foreignKeyName: "calendar_settings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: true
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -1826,6 +2385,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "calendar_settings_calendar_id_fkey"
@@ -1907,7 +2473,10 @@ export type Database = {
         Row: {
           budget: string | null
           company: string | null
+          country: string | null
           created_at: string
+          delivery_status: string
+          delivery_updated_at: string | null
           email: string
           id: string
           meeting_date: string
@@ -1916,14 +2485,19 @@ export type Database = {
           name: string
           phone: string | null
           platform: string | null
+          provider_message_id: string | null
           status: string
           subject: string
+          submission_id: string
           updated_at: string
         }
         Insert: {
           budget?: string | null
           company?: string | null
+          country?: string | null
           created_at?: string
+          delivery_status?: string
+          delivery_updated_at?: string | null
           email: string
           id?: string
           meeting_date: string
@@ -1932,14 +2506,19 @@ export type Database = {
           name: string
           phone?: string | null
           platform?: string | null
+          provider_message_id?: string | null
           status?: string
           subject: string
+          submission_id: string
           updated_at?: string
         }
         Update: {
           budget?: string | null
           company?: string | null
+          country?: string | null
           created_at?: string
+          delivery_status?: string
+          delivery_updated_at?: string | null
           email?: string
           id?: string
           meeting_date?: string
@@ -1948,8 +2527,10 @@ export type Database = {
           name?: string
           phone?: string | null
           platform?: string | null
+          provider_message_id?: string | null
           status?: string
           subject?: string
+          submission_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -2168,21 +2749,118 @@ export type Database = {
         }
         Relationships: []
       }
-      n8n_chat_histories: {
+      monitoring_alert_config: {
         Row: {
-          id: number
-          message: Json
-          session_id: string
+          alert_email: string | null
+          enabled: boolean
+          id: string
+          updated_at: string
         }
         Insert: {
-          id?: number
-          message: Json
-          session_id: string
+          alert_email?: string | null
+          enabled?: boolean
+          id?: string
+          updated_at?: string
         }
         Update: {
-          id?: number
-          message?: Json
-          session_id?: string
+          alert_email?: string | null
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      monitoring_alert_hints: {
+        Row: {
+          booking_id: string
+          created_at: string
+          established_iso: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          established_iso: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          established_iso?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_alert_hints_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monitoring_alert_hints_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monitoring_alert_hints_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monitoring_alerts: {
+        Row: {
+          contact_phone: string | null
+          conversation_id: string | null
+          created_at: string
+          details: Json
+          detected_by: string
+          failure_class: string
+          id: string
+          notified_at: string | null
+          turn_id: string | null
+        }
+        Insert: {
+          contact_phone?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          details: Json
+          detected_by?: string
+          failure_class: string
+          id?: string
+          notified_at?: string | null
+          turn_id?: string | null
+        }
+        Update: {
+          contact_phone?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          details?: Json
+          detected_by?: string
+          failure_class?: string
+          id?: string
+          notified_at?: string | null
+          turn_id?: string | null
+        }
+        Relationships: []
+      }
+      monitoring_heartbeat: {
+        Row: {
+          id: boolean
+          last_beat: string
+        }
+        Insert: {
+          id?: boolean
+          last_beat?: string
+        }
+        Update: {
+          id?: boolean
+          last_beat?: string
         }
         Relationships: []
       }
@@ -2378,6 +3056,13 @@ export type Database = {
             foreignKeyName: "payment_security_settings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -2394,6 +3079,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_security_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "payment_security_settings_calendar_id_fkey"
@@ -2475,6 +3167,13 @@ export type Database = {
             foreignKeyName: "payment_settings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: true
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -2496,6 +3195,13 @@ export type Database = {
             foreignKeyName: "payment_settings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: true
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "payment_settings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: true
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
@@ -2503,19 +3209,40 @@ export type Database = {
       }
       processed_stripe_events: {
         Row: {
+          attempt_count: number
+          claim_token: string | null
+          claimed_at: string | null
+          completed_at: string | null
           event_id: string
           event_type: string | null
-          processed_at: string
+          last_error_code: string | null
+          processed_at: string | null
+          status: string
+          stripe_mode: string | null
         }
         Insert: {
+          attempt_count?: number
+          claim_token?: string | null
+          claimed_at?: string | null
+          completed_at?: string | null
           event_id: string
           event_type?: string | null
-          processed_at?: string
+          last_error_code?: string | null
+          processed_at?: string | null
+          status?: string
+          stripe_mode?: string | null
         }
         Update: {
+          attempt_count?: number
+          claim_token?: string | null
+          claimed_at?: string | null
+          completed_at?: string | null
           event_id?: string
           event_type?: string | null
-          processed_at?: string
+          last_error_code?: string | null
+          processed_at?: string | null
+          status?: string
+          stripe_mode?: string | null
         }
         Relationships: []
       }
@@ -2611,6 +3338,13 @@ export type Database = {
             foreignKeyName: "quick_reply_flows_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -2627,6 +3361,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quick_reply_flows_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "quick_reply_flows_calendar_id_fkey"
@@ -2693,6 +3434,13 @@ export type Database = {
             foreignKeyName: "recurring_availability_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -2714,40 +3462,17 @@ export type Database = {
             foreignKeyName: "recurring_availability_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "recurring_availability_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
         ]
-      }
-      security_audit_log: {
-        Row: {
-          created_at: string | null
-          event_details: Json | null
-          event_type: string
-          id: string
-          ip_address: unknown
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          event_details?: Json | null
-          event_type: string
-          id?: string
-          ip_address?: unknown
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          event_details?: Json | null
-          event_type?: string
-          id?: string
-          ip_address?: unknown
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
       security_events: {
         Row: {
@@ -2877,7 +3602,7 @@ export type Database = {
       }
       service_installment_configs: {
         Row: {
-          allow_customer_choice: boolean | null
+          allow_customer_choice: boolean
           created_at: string | null
           custom_deposits: Json | null
           enabled: boolean
@@ -2889,7 +3614,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          allow_customer_choice?: boolean | null
+          allow_customer_choice?: boolean
           created_at?: string | null
           custom_deposits?: Json | null
           enabled?: boolean
@@ -2901,7 +3626,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          allow_customer_choice?: boolean | null
+          allow_customer_choice?: boolean
           created_at?: string | null
           custom_deposits?: Json | null
           enabled?: boolean
@@ -3076,6 +3801,13 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -3097,10 +3829,77 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
         ]
+      }
+      stripe_subscription_states: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          last_event_created: number
+          last_event_id: string
+          last_event_kind: string
+          last_event_kind_precedence: number
+          last_event_precedence: number
+          stripe_customer_id: string
+          stripe_mode: string
+          stripe_status: string
+          stripe_subscription_id: string
+          subscription_end: string | null
+          subscription_tier: string | null
+          superseded: boolean
+          tombstoned: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          last_event_created: number
+          last_event_id: string
+          last_event_kind: string
+          last_event_kind_precedence: number
+          last_event_precedence: number
+          stripe_customer_id: string
+          stripe_mode: string
+          stripe_status: string
+          stripe_subscription_id: string
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          superseded?: boolean
+          tombstoned?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          last_event_created?: number
+          last_event_id?: string
+          last_event_kind?: string
+          last_event_kind_precedence?: number
+          last_event_precedence?: number
+          stripe_customer_id?: string
+          stripe_mode?: string
+          stripe_status?: string
+          stripe_subscription_id?: string
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          superseded?: boolean
+          tombstoned?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       subscribers: {
         Row: {
@@ -3108,6 +3907,7 @@ export type Database = {
           email: string
           id: string
           stripe_customer_id: string | null
+          stripe_mode: string | null
           stripe_subscription_id: string | null
           subscribed: boolean
           subscription_end: string | null
@@ -3120,6 +3920,7 @@ export type Database = {
           email: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_mode?: string | null
           stripe_subscription_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -3132,6 +3933,7 @@ export type Database = {
           email?: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_mode?: string | null
           stripe_subscription_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -3140,6 +3942,98 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      subscription_checkout_claims: {
+        Row: {
+          cadence: string
+          checkout_url: string | null
+          claim_token: string | null
+          claimed_at: string | null
+          created_at: string
+          expires_at: string | null
+          last_error_code: string | null
+          status: string
+          stripe_mode: string
+          stripe_session_id: string | null
+          tier_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cadence: string
+          checkout_url?: string | null
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          last_error_code?: string | null
+          status: string
+          stripe_mode: string
+          stripe_session_id?: string | null
+          tier_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cadence?: string
+          checkout_url?: string | null
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          last_error_code?: string | null
+          status?: string
+          stripe_mode?: string
+          stripe_session_id?: string | null
+          tier_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_event_high_water_marks: {
+        Row: {
+          authoritative_subscription_id: string
+          created_at: string
+          last_event_created: number
+          last_event_id: string
+          last_event_kind_precedence: number
+          last_event_precedence: number
+          stripe_mode: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          authoritative_subscription_id: string
+          created_at?: string
+          last_event_created: number
+          last_event_id: string
+          last_event_kind_precedence: number
+          last_event_precedence: number
+          stripe_mode: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          authoritative_subscription_id?: string
+          created_at?: string
+          last_event_created?: number
+          last_event_id?: string
+          last_event_kind_precedence?: number
+          last_event_precedence?: number
+          stripe_mode?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_event_high_water_authoritative_subscription_i_fkey"
+            columns: ["authoritative_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "stripe_subscription_states"
+            referencedColumns: ["stripe_subscription_id"]
+          },
+        ]
       }
       subscription_tiers: {
         Row: {
@@ -3266,6 +4160,13 @@ export type Database = {
             foreignKeyName: "tax_configurations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -3282,6 +4183,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tax_configurations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "tax_configurations_calendar_id_fkey"
@@ -3370,6 +4278,142 @@ export type Database = {
         }
         Relationships: []
       }
+      team_invitation_deliveries: {
+        Row: {
+          app_base_url: string
+          attempt_count: number
+          business_name: string
+          calendar_id: string
+          calendar_name: string
+          claim_token: string | null
+          claimed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          invitation_id: string
+          invitation_token: string
+          invitee_name: string
+          last_error_code: string | null
+          locale: string
+          provider_message_id: string | null
+          recipient_email: string
+          request_id: string
+          requested_by: string
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          app_base_url: string
+          attempt_count?: number
+          business_name: string
+          calendar_id: string
+          calendar_name: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          invitation_id: string
+          invitation_token: string
+          invitee_name?: string
+          last_error_code?: string | null
+          locale: string
+          provider_message_id?: string | null
+          recipient_email: string
+          request_id: string
+          requested_by: string
+          role: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          app_base_url?: string
+          attempt_count?: number
+          business_name?: string
+          calendar_id?: string
+          calendar_name?: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          invitation_id?: string
+          invitation_token?: string
+          invitee_name?: string
+          last_error_code?: string | null
+          locale?: string
+          provider_message_id?: string | null
+          recipient_email?: string
+          request_id?: string
+          requested_by?: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitation_deliveries_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "team_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_invitations: {
         Row: {
           accepted_at: string | null
@@ -3429,6 +4473,13 @@ export type Database = {
             foreignKeyName: "team_invitations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -3445,6 +4496,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "team_invitations_calendar_id_fkey"
@@ -3499,6 +4557,13 @@ export type Database = {
             foreignKeyName: "team_member_services_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "team_member_services_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -3515,6 +4580,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_member_services_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "team_member_services_calendar_id_fkey"
@@ -3708,7 +4780,7 @@ export type Database = {
           address_number: string | null
           address_postal: string | null
           address_street: string | null
-          allow_customer_installment_choice: boolean | null
+          allow_customer_installment_choice: boolean
           avatar_url: string | null
           business_city: string | null
           business_country: string | null
@@ -3726,7 +4798,7 @@ export type Database = {
           cancellation_policy: string | null
           created_at: string | null
           date_of_birth: string | null
-          default_installment_plan: Json | null
+          default_installment_plan: Json
           default_tax_behavior: string | null
           email: string
           facebook: string | null
@@ -3735,6 +4807,7 @@ export type Database = {
           grace_period_end: string | null
           id: string
           instagram: string | null
+          installment_scope: string
           installments_enabled: boolean | null
           language: string | null
           last_payment_date: string | null
@@ -3780,7 +4853,7 @@ export type Database = {
           address_number?: string | null
           address_postal?: string | null
           address_street?: string | null
-          allow_customer_installment_choice?: boolean | null
+          allow_customer_installment_choice?: boolean
           avatar_url?: string | null
           business_city?: string | null
           business_country?: string | null
@@ -3798,7 +4871,7 @@ export type Database = {
           cancellation_policy?: string | null
           created_at?: string | null
           date_of_birth?: string | null
-          default_installment_plan?: Json | null
+          default_installment_plan?: Json
           default_tax_behavior?: string | null
           email: string
           facebook?: string | null
@@ -3807,6 +4880,7 @@ export type Database = {
           grace_period_end?: string | null
           id: string
           instagram?: string | null
+          installment_scope?: string
           installments_enabled?: boolean | null
           language?: string | null
           last_payment_date?: string | null
@@ -3852,7 +4926,7 @@ export type Database = {
           address_number?: string | null
           address_postal?: string | null
           address_street?: string | null
-          allow_customer_installment_choice?: boolean | null
+          allow_customer_installment_choice?: boolean
           avatar_url?: string | null
           business_city?: string | null
           business_country?: string | null
@@ -3870,7 +4944,7 @@ export type Database = {
           cancellation_policy?: string | null
           created_at?: string | null
           date_of_birth?: string | null
-          default_installment_plan?: Json | null
+          default_installment_plan?: Json
           default_tax_behavior?: string | null
           email?: string
           facebook?: string | null
@@ -3879,6 +4953,7 @@ export type Database = {
           grace_period_end?: string | null
           id?: string
           instagram?: string | null
+          installment_scope?: string
           installments_enabled?: boolean | null
           language?: string | null
           last_payment_date?: string | null
@@ -3998,6 +5073,13 @@ export type Database = {
             foreignKeyName: "waitlist_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -4014,6 +5096,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "waitlist_calendar_id_fkey"
@@ -4066,6 +5155,75 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempts: number
+          claim_token: string | null
+          claimed_at: string | null
+          created_at: string
+          delivered_at: string | null
+          endpoint_id: string | null
+          endpoint_url: string
+          event_id: string
+          id: string
+          last_attempt_at: string | null
+          last_error_code: string | null
+          last_http_status: number | null
+          next_attempt_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          endpoint_id?: string | null
+          endpoint_url: string
+          event_id: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error_code?: string | null
+          last_http_status?: number | null
+          next_attempt_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          claim_token?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          endpoint_id?: string | null
+          endpoint_url?: string
+          event_id?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error_code?: string | null
+          last_http_status?: number | null
+          next_attempt_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_endpoints: {
         Row: {
           calendar_id: string | null
@@ -4110,6 +5268,13 @@ export type Database = {
             foreignKeyName: "webhook_endpoints_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -4126,6 +5291,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_endpoints_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "webhook_endpoints_calendar_id_fkey"
@@ -4186,6 +5358,13 @@ export type Database = {
             foreignKeyName: "webhook_events_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -4202,6 +5381,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "webhook_events_calendar_id_fkey"
@@ -4351,7 +5537,7 @@ export type Database = {
         Insert: {
           all_bookings?: Json | null
           contact_created_at?: string | null
-          contact_id?: string
+          contact_id: string
           conversation_created_at?: string | null
           conversation_status?: string | null
           display_name?: string | null
@@ -4384,61 +5570,46 @@ export type Database = {
       }
       whatsapp_contacts: {
         Row: {
-          came_from: string | null
           created_at: string | null
           display_name: string | null
           first_name: string | null
           id: string
-          Language: string | null
-          Last_appointment: string | null
           last_name: string | null
           last_seen_at: string | null
           linked_customer_email: string | null
           metadata: Json | null
-          name_asked: string | null
           phone_number: string
           profile_picture_url: string | null
           updated_at: string | null
           user_id: string | null
-          welcome_send: string | null
         }
         Insert: {
-          came_from?: string | null
           created_at?: string | null
           display_name?: string | null
           first_name?: string | null
           id?: string
-          Language?: string | null
-          Last_appointment?: string | null
           last_name?: string | null
           last_seen_at?: string | null
           linked_customer_email?: string | null
           metadata?: Json | null
-          name_asked?: string | null
           phone_number: string
           profile_picture_url?: string | null
           updated_at?: string | null
           user_id?: string | null
-          welcome_send?: string | null
         }
         Update: {
-          came_from?: string | null
           created_at?: string | null
           display_name?: string | null
           first_name?: string | null
           id?: string
-          Language?: string | null
-          Last_appointment?: string | null
           last_name?: string | null
           last_seen_at?: string | null
           linked_customer_email?: string | null
           metadata?: Json | null
-          name_asked?: string | null
           phone_number?: string
           profile_picture_url?: string | null
           updated_at?: string | null
           user_id?: string | null
-          welcome_send?: string | null
         }
         Relationships: [
           {
@@ -4519,6 +5690,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -4535,6 +5713,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
@@ -4602,9 +5787,232 @@ export type Database = {
           },
         ]
       }
+      whatsapp_payment_attempts: {
+        Row: {
+          amount_cents: number
+          attempt_generation: number
+          booking_id: string
+          calendar_id: string
+          claim_expires_at: string
+          claim_token: string
+          conversation_id: string
+          created_at: string
+          currency: string
+          expires_at: string
+          installment_plan: Json | null
+          payment_session_id: string | null
+          payment_type: string
+          payment_url: string | null
+          previous_stripe_session_id: string | null
+          provider_expires_at: string | null
+          provider_ownership_version: number
+          provider_payment_status: string | null
+          provider_reconciled_at: string | null
+          provider_status: string | null
+          request_fingerprint: string
+          service_type_id: string
+          state: string
+          stripe_mode: string
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          attempt_generation?: number
+          booking_id: string
+          calendar_id: string
+          claim_expires_at: string
+          claim_token: string
+          conversation_id: string
+          created_at?: string
+          currency: string
+          expires_at: string
+          installment_plan?: Json | null
+          payment_session_id?: string | null
+          payment_type: string
+          payment_url?: string | null
+          previous_stripe_session_id?: string | null
+          provider_expires_at?: string | null
+          provider_ownership_version?: number
+          provider_payment_status?: string | null
+          provider_reconciled_at?: string | null
+          provider_status?: string | null
+          request_fingerprint: string
+          service_type_id: string
+          state?: string
+          stripe_mode: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          attempt_generation?: number
+          booking_id?: string
+          calendar_id?: string
+          claim_expires_at?: string
+          claim_token?: string
+          conversation_id?: string
+          created_at?: string
+          currency?: string
+          expires_at?: string
+          installment_plan?: Json | null
+          payment_session_id?: string | null
+          payment_type?: string
+          payment_url?: string | null
+          previous_stripe_session_id?: string | null
+          provider_expires_at?: string | null
+          provider_ownership_version?: number
+          provider_payment_status?: string | null
+          provider_reconciled_at?: string | null
+          provider_status?: string | null
+          request_fingerprint?: string
+          service_type_id?: string
+          state?: string
+          stripe_mode?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_payment_attempts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: true
+            referencedRelation: "whatsapp_payment_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "public_service_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "public_service_types_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_type_stats"
+            referencedColumns: ["service_type_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_attempts_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types_overview"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_payment_sessions: {
         Row: {
           amount_cents: number
+          attempt_generation: number
+          booking_id: string | null
           calendar_id: string | null
           conversation_id: string | null
           created_at: string
@@ -4615,13 +6023,20 @@ export type Database = {
           payment_status: string
           payment_type: string
           payment_url: string | null
+          provider_payment_status: string | null
+          provider_reconciled_at: string | null
+          provider_status: string | null
+          request_fingerprint: string | null
           service_type_id: string | null
+          stripe_mode: string | null
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           updated_at: string
         }
         Insert: {
           amount_cents: number
+          attempt_generation?: number
+          booking_id?: string | null
           calendar_id?: string | null
           conversation_id?: string | null
           created_at?: string
@@ -4632,13 +6047,20 @@ export type Database = {
           payment_status?: string
           payment_type?: string
           payment_url?: string | null
+          provider_payment_status?: string | null
+          provider_reconciled_at?: string | null
+          provider_status?: string | null
+          request_fingerprint?: string | null
           service_type_id?: string | null
+          stripe_mode?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           updated_at?: string
         }
         Update: {
           amount_cents?: number
+          attempt_generation?: number
+          booking_id?: string | null
           calendar_id?: string | null
           conversation_id?: string | null
           created_at?: string
@@ -4649,12 +6071,38 @@ export type Database = {
           payment_status?: string
           payment_type?: string
           payment_url?: string | null
+          provider_payment_status?: string | null
+          provider_reconciled_at?: string | null
+          provider_status?: string | null
+          request_fingerprint?: string | null
           service_type_id?: string | null
+          stripe_mode?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "whatsapp_payment_sessions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings_with_period"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "public_bookings_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
             columns: ["calendar_id"]
@@ -4668,6 +6116,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "calendars"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
@@ -4689,6 +6144,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_payment_sessions_calendar_id_fkey"
@@ -4804,6 +6266,13 @@ export type Database = {
             foreignKeyName: "whatsapp_templates_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -4820,6 +6289,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_templates_calendar_id_fkey"
@@ -4877,7 +6353,6 @@ export type Database = {
           payment_timing: string | null
           service_name: string | null
           service_type_id: string | null
-          session_id: string | null
           start_time: string | null
           status: string | null
           time_period: string | null
@@ -4904,6 +6379,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -4920,6 +6402,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "bookings_calendar_id_fkey"
@@ -4972,6 +6461,76 @@ export type Database = {
           },
         ]
       }
+      business_intelligence_mv: {
+        Row: {
+          avg_booking_value: number | null
+          calendar_id: string | null
+          last_updated: string | null
+          month_revenue: number | null
+          prev_month_revenue: number | null
+          service_performance: Json | null
+          unique_customers_month: number | null
+          whatsapp_conversion_rate: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
       calendar_stats: {
         Row: {
           avg_duration_minutes: number | null
@@ -5002,6 +6561,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5023,10 +6589,30 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
         ]
+      }
+      daily_booking_stats: {
+        Row: {
+          avg_booking_value: number | null
+          booking_date: string | null
+          calendar_id: string | null
+          cancelled_bookings: number | null
+          confirmed_bookings: number | null
+          pending_bookings: number | null
+          total_bookings: number | null
+          total_revenue: number | null
+        }
+        Relationships: []
       }
       dashboard_metrics_mv: {
         Row: {
@@ -5057,6 +6643,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5073,6 +6666,220 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      future_insights_mv: {
+        Row: {
+          calendar_id: string | null
+          demand_forecast: Json | null
+          last_updated: string | null
+          returning_customers_month: number | null
+          seasonal_patterns: Json | null
+          waitlist_size: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      live_operations_mv: {
+        Row: {
+          calendar_id: string | null
+          currently_active_bookings: number | null
+          last_updated: string | null
+          next_appointment_time: string | null
+          today_bookings: number | null
+          today_confirmed: number | null
+          today_pending: number | null
+          whatsapp_messages_last_hour: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_analytics"
+            referencedColumns: ["calendar_id"]
+          },
+        ]
+      }
+      performance_efficiency_mv: {
+        Row: {
+          avg_response_time_minutes: number | null
+          calendar_id: string | null
+          calendar_utilization_rate: number | null
+          cancellation_rate: number | null
+          last_updated: string | null
+          no_show_rate: number | null
+          peak_hours: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots_view"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendar_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "public_calendars_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "bookings_calendar_id_fkey"
@@ -5181,6 +6988,13 @@ export type Database = {
             foreignKeyName: "bookings_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5197,6 +7011,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "bookings_calendar_id_fkey"
@@ -5455,6 +7276,13 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5471,6 +7299,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "service_types_calendar_id_fkey"
@@ -5558,6 +7393,13 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5579,10 +7421,26 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "whatsapp_analytics"
             referencedColumns: ["calendar_id"]
           },
         ]
+      }
+      service_popularity_stats: {
+        Row: {
+          booking_count: number | null
+          calendar_id: string | null
+          percentage: number | null
+          service_name: string | null
+        }
+        Relationships: []
       }
       service_type_stats: {
         Row: {
@@ -5613,6 +7471,13 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5629,6 +7494,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "service_types_calendar_id_fkey"
@@ -5680,6 +7552,13 @@ export type Database = {
             foreignKeyName: "service_types_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5696,6 +7575,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_types_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "service_types_calendar_id_fkey"
@@ -5801,6 +7687,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5817,6 +7710,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
@@ -5855,6 +7755,13 @@ export type Database = {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
             columns: ["calendar_id"]
             isOneToOne: false
+            referencedRelation: "daily_booking_stats"
+            referencedColumns: ["calendar_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
             referencedRelation: "public_calendar_view"
             referencedColumns: ["id"]
           },
@@ -5871,6 +7778,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_calendars_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
+            columns: ["calendar_id"]
+            isOneToOne: false
+            referencedRelation: "service_popularity_stats"
+            referencedColumns: ["calendar_id"]
           },
           {
             foreignKeyName: "whatsapp_conversations_calendar_id_fkey"
@@ -5906,18 +7820,6 @@ export type Database = {
         Returns: Json
       }
       admin_clear_user_data: { Args: { p_user_id: string }; Returns: Json }
-      admin_developer_update_user_subscription: {
-        Args: {
-          p_business_name?: string
-          p_business_type?: string
-          p_subscription_end_date?: string
-          p_subscription_status?: string
-          p_subscription_tier?: string
-          p_trial_end_date?: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
       admin_ensure_user_has_calendar: {
         Args: { p_user_id: string }
         Returns: Json
@@ -5930,21 +7832,10 @@ export type Database = {
         Args: { p_calendar_id: string; p_data_type?: string }
         Returns: Json
       }
-      admin_generate_mock_data: {
-        Args: { p_status: string; p_user_id: string }
+      admin_get_user_subscription_details_safe: {
+        Args: { p_user_id: string }
         Returns: Json
       }
-      admin_set_user_status:
-        | {
-            Args: {
-              p_clear_data?: boolean
-              p_generate_mock_data?: boolean
-              p_status: string
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | { Args: { p_status_type: string; p_user_id: string }; Returns: Json }
       admin_setup_mock_incomplete_user: {
         Args: { p_user_id: string }
         Returns: Json
@@ -5984,7 +7875,98 @@ export type Database = {
             }
             Returns: Json
           }
+      admin_update_user_subscription_safe: {
+        Args: {
+          p_business_name?: string
+          p_business_type?: string
+          p_subscription_end_date?: string
+          p_subscription_status?: string
+          p_subscription_tier?: string
+          p_trial_end_date?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      apply_installment_settings: {
+        Args: {
+          p_allow_customer_choice: boolean
+          p_apply_to_services: string
+          p_default_plan: Json
+          p_enabled: boolean
+          p_owner_id: string
+          p_service_configs?: Json
+        }
+        Returns: Json
+      }
+      apply_stripe_subscription_event: {
+        Args: {
+          p_cancel_at_period_end: boolean
+          p_customer_id: string
+          p_event_created: number
+          p_event_id: string
+          p_event_kind: string
+          p_period_end: string
+          p_stripe_mode: string
+          p_stripe_status: string
+          p_subscription_id: string
+          p_tier: string
+          p_user_email: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      apply_stripe_subscription_invoice_event: {
+        Args: {
+          p_event_created: number
+          p_event_id: string
+          p_outcome: string
+          p_stripe_mode: string
+          p_subscription_id: string
+        }
+        Returns: Json
+      }
       archive_old_security_events: { Args: never; Returns: number }
+      assert_r45_no_active_payable_legacy_bookings: {
+        Args: never
+        Returns: undefined
+      }
+      authorize_booking_payment_provider_settlement: {
+        Args: {
+          p_amount_cents: number
+          p_booking_id: string
+          p_currency: string
+          p_destination_account_id: string
+          p_generation: number
+          p_payment_intent_id: string
+          p_provider_kind: string
+          p_provider_object_id: string
+          p_request_fingerprint: string
+          p_stripe_mode: string
+        }
+        Returns: Json
+      }
+      begin_booking_reminder_attempt_v2: {
+        Args: {
+          p_booking_id: string
+          p_channel: string
+          p_claim_token: string
+          p_delivery_key: string
+          p_delivery_mode: string
+          p_reminder_number: number
+          p_schedule_generation: string
+        }
+        Returns: boolean
+      }
+      begin_booking_reminder_provider_attempt: {
+        Args: {
+          p_booking_id: string
+          p_channel: string
+          p_delivery_key: string
+          p_delivery_mode: string
+          p_reminder_number: number
+        }
+        Returns: boolean
+      }
       caller_is_accepted_calendar_member: {
         Args: { p_calendar_id: string; p_min_role?: string }
         Returns: boolean
@@ -6036,20 +8018,6 @@ export type Database = {
         Args: { p_date: string; p_time: string }
         Returns: boolean
       }
-      check_payment_rate_limit: {
-        Args: { p_calendar_id: string; p_ip_address: unknown }
-        Returns: Json
-      }
-      check_public_rate_limit: {
-        Args: {
-          p_calendar_slug?: string
-          p_endpoint?: string
-          p_ip_address: unknown
-          p_rate_limit?: number
-          p_window_minutes?: number
-        }
-        Returns: Json
-      }
       check_team_member_limit: {
         Args: { p_calendar_id: string; p_user_id: string }
         Returns: boolean
@@ -6057,6 +8025,42 @@ export type Database = {
       check_whatsapp_contact_limit: {
         Args: { p_calendar_id: string; p_user_id: string }
         Returns: boolean
+      }
+      claim_booking_confirmation_delivery: {
+        Args: { p_booking_id: string }
+        Returns: Json
+      }
+      claim_booking_payment_provider_cleanup: {
+        Args: { p_lease_seconds?: number; p_limit?: number }
+        Returns: {
+          attempt_count: number
+          booking_id: string
+          claim_token: string
+          job_id: string
+          provider_kind: string
+          provider_object_id: string
+          request_fingerprint: string
+          reservation_generation: number
+          reservation_id: string
+          stripe_mode: string
+        }[]
+      }
+      claim_booking_payment_provider_reservation: {
+        Args: {
+          p_amount_cents: number
+          p_booking_id: string
+          p_channel: string
+          p_claim_ttl_seconds?: number
+          p_currency: string
+          p_destination_account_id: string
+          p_platform_account_id: string
+          p_provider_kind: string
+          p_request_fingerprint: string
+          p_stripe_mode: string
+          p_tax_calculation_id: string
+          p_total_due_cents: number
+        }
+        Returns: Json
       }
       claim_booking_reminder: {
         Args: { p_booking_id: string; p_reminder_number: number }
@@ -6068,6 +8072,82 @@ export type Database = {
           customer_name: string
           customer_phone: string
           status: string
+        }[]
+      }
+      claim_booking_reminder_v2: {
+        Args: { p_booking_id: string; p_reminder_number: number }
+        Returns: {
+          attempt_count: number
+          business_name: string
+          calendar_id: string
+          calendar_timezone: string
+          channel: string
+          claim_token: string
+          customer_email: string
+          customer_locale: string
+          customer_name: string
+          customer_phone: string
+          schedule_generation: string
+          start_time: string
+          status: string
+        }[]
+      }
+      claim_booking_reminder_v2_unfenced: {
+        Args: { p_booking_id: string; p_reminder_number: number }
+        Returns: {
+          attempt_count: number
+          business_name: string
+          calendar_id: string
+          calendar_timezone: string
+          channel: string
+          claim_token: string
+          customer_email: string
+          customer_locale: string
+          customer_name: string
+          customer_phone: string
+          schedule_generation: string
+          start_time: string
+          status: string
+        }[]
+      }
+      claim_stripe_event: {
+        Args: {
+          p_event_id: string
+          p_event_type: string
+          p_lease_seconds: number
+          p_stripe_mode: string
+        }
+        Returns: Json
+      }
+      claim_subscription_checkout: {
+        Args: {
+          p_cadence: string
+          p_lease_seconds?: number
+          p_stripe_mode: string
+          p_tier_name: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      claim_webhook_deliveries: {
+        Args: {
+          p_calendar_id?: string
+          p_event_id?: string
+          p_limit?: number
+          p_retry_failed?: boolean
+          p_user_id: string
+        }
+        Returns: {
+          calendar_id: string
+          delivery_attempt: number
+          delivery_claim_token: string
+          delivery_id: string
+          endpoint_id: string
+          endpoint_url: string
+          event_created_at: string
+          event_id: string
+          event_payload: Json
+          event_type: string
         }[]
       }
       claim_whatsapp_confirm: {
@@ -6082,6 +8162,23 @@ export type Database = {
           won: boolean
         }[]
       }
+      claim_whatsapp_payment_attempt: {
+        Args: {
+          p_amount_cents: number
+          p_booking_id: string
+          p_calendar_id: string
+          p_claim_ttl_seconds?: number
+          p_conversation_id: string
+          p_currency: string
+          p_expires_at: string
+          p_installment_plan: Json
+          p_payment_type: string
+          p_request_fingerprint: string
+          p_service_type_id: string
+          p_stripe_mode: string
+        }
+        Returns: Json
+      }
       cleanup_duplicate_availability_rules: {
         Args: { p_day_of_week: number; p_schedule_id: string }
         Returns: undefined
@@ -6093,12 +8190,61 @@ export type Database = {
         Args: never
         Returns: undefined
       }
-      cleanup_old_whatsapp_data: { Args: never; Returns: undefined }
       cleanup_whatsapp_data_for_calendar: {
         Args: { p_calendar_id: string }
         Returns: undefined
       }
+      commit_public_booking: {
+        Args: {
+          p_calendar_slug: string
+          p_customer_country: string
+          p_customer_email: string
+          p_customer_locale: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_customer_vat_id: string
+          p_notes: string
+          p_service_type_id: string
+          p_start_time: string
+        }
+        Returns: Json
+      }
+      complete_stripe_event: {
+        Args: { p_claim_token: string; p_event_id: string }
+        Returns: boolean
+      }
+      complete_subscription_checkout: {
+        Args: {
+          p_checkout_url: string
+          p_claim_token: string
+          p_expires_at: string
+          p_session_id: string
+          p_stripe_mode: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      complete_team_invitation_delivery: {
+        Args: {
+          p_claim_token: string
+          p_error_code?: string
+          p_provider_message_id?: string
+          p_request_id: string
+          p_status: string
+        }
+        Returns: Json
+      }
       complete_user_setup: { Args: { p_user_id: string }; Returns: Json }
+      complete_webhook_delivery: {
+        Args: {
+          p_claim_token: string
+          p_delivery_id: string
+          p_error_code?: string
+          p_http_status?: number
+          p_success: boolean
+        }
+        Returns: Json
+      }
       create_booking: {
         Args: {
           p_calendar_slug: string
@@ -6128,12 +8274,119 @@ export type Database = {
         }
         Returns: Json
       }
+      defer_public_booking_payment_on_site: {
+        Args: {
+          p_booking_id: string
+          p_expected_booking_status: string
+          p_expected_payment_status: string
+        }
+        Returns: Json
+      }
+      enqueue_booking_payment_provider_cleanup: {
+        Args: { p_reason_code: string; p_reservation_id: string }
+        Returns: string
+      }
       ensure_default_service_types: { Args: never; Returns: undefined }
       ensure_user_has_calendar_and_service: {
         Args: { p_user_id: string }
         Returns: undefined
       }
       export_whatsapp_data: { Args: { p_calendar_id: string }; Returns: Json }
+      fail_stripe_event: {
+        Args: {
+          p_claim_token: string
+          p_error_code: string
+          p_event_id: string
+        }
+        Returns: boolean
+      }
+      fail_subscription_checkout: {
+        Args: {
+          p_claim_token: string
+          p_error_code: string
+          p_stripe_mode: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      finalize_booking_confirmation_delivery: {
+        Args: {
+          p_booking_id: string
+          p_claim_token: string
+          p_error_code?: string
+          p_provider_message_id?: string
+          p_status: string
+        }
+        Returns: boolean
+      }
+      finalize_booking_payment_provider_cleanup: {
+        Args: {
+          p_claim_token: string
+          p_error_code: string
+          p_job_id: string
+          p_provider_result: string
+          p_retry_delay_seconds?: number
+          p_succeeded: boolean
+        }
+        Returns: Json
+      }
+      finalize_booking_payment_provider_reservation: {
+        Args: {
+          p_booking_id: string
+          p_claim_token: string
+          p_generation: number
+          p_provider_expires_at: string
+          p_provider_object_id: string
+          p_provider_url: string
+          p_request_fingerprint: string
+          p_reservation_id: string
+          p_stripe_mode: string
+        }
+        Returns: Json
+      }
+      finalize_booking_payment_success: {
+        Args: {
+          p_booking_id: string
+          p_paid_at: string
+          p_payment_kind: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: Json
+      }
+      finalize_booking_payment_success_v2: {
+        Args: {
+          p_booking_id: string
+          p_paid_at: string
+          p_payment_kind: string
+          p_stripe_mode: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: Json
+      }
+      finalize_whatsapp_payment_attempt:
+        | {
+            Args: {
+              p_attempt_generation: number
+              p_booking_id: string
+              p_claim_token: string
+              p_payment_url: string
+              p_request_fingerprint: string
+              p_stripe_mode: string
+              p_stripe_session_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_booking_id: string
+              p_claim_token: string
+              p_payment_url: string
+              p_request_fingerprint: string
+              p_stripe_mode: string
+              p_stripe_session_id: string
+            }
+            Returns: Json
+          }
       find_orphaned_whatsapp_conversations: {
         Args: never
         Returns: {
@@ -6184,7 +8437,7 @@ export type Database = {
               p_end_date: string
               p_service_type_id: string
               p_start_date: string
-              p_timezone?: string
+              p_timezone: string
             }
             Returns: {
               is_available: boolean
@@ -6294,6 +8547,13 @@ export type Database = {
           start_time: string
         }[]
       }
+      get_due_booking_reminders_v2: {
+        Args: { p_booking_id?: string; p_limit?: number }
+        Returns: {
+          booking_id: string
+          reminder_number: number
+        }[]
+      }
       get_formatted_business_hours: {
         Args: { p_calendar_id: string }
         Returns: string
@@ -6325,6 +8585,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      installment_deposits_are_runtime_valid: {
+        Args: { p_deposits: Json }
+        Returns: boolean
+      }
+      installment_plan_is_runtime_valid: {
+        Args: { p_plan: Json }
+        Returns: boolean
+      }
+      installment_plan_is_runtime_valid_for_price: {
+        Args: { p_plan: Json; p_service_price: number }
+        Returns: boolean
+      }
       invite_team_member: {
         Args: {
           p_calendar_id: string
@@ -6337,6 +8609,10 @@ export type Database = {
       is_account_owner: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       link_existing_whatsapp_conversations: { Args: never; Returns: undefined }
+      lock_booking_captured_balance_cents: {
+        Args: { p_booking_id: string }
+        Returns: number
+      }
       log_error: {
         Args: {
           p_calendar_id: string
@@ -6347,28 +8623,6 @@ export type Database = {
         }
         Returns: string
       }
-      log_security_event:
-        | {
-            Args: {
-              p_event_data?: Json
-              p_event_type: string
-              p_ip_address?: unknown
-              p_severity?: string
-              p_user_agent?: string
-              p_user_id?: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_event_details?: Json
-              p_event_type: string
-              p_ip_address?: unknown
-              p_user_agent?: string
-              p_user_id: string
-            }
-            Returns: undefined
-          }
       manual_process_webhooks: {
         Args: { p_calendar_id?: string }
         Returns: Json
@@ -6379,20 +8633,84 @@ export type Database = {
             Returns: Json
           }
         | { Args: { p_calendar_id: string; p_message: string }; Returns: Json }
+      normalize_public_booking_payment_methods: {
+        Args: { p_currency: string; p_methods: Json }
+        Returns: Json
+      }
       owner_update_booking_status: {
         Args: { p_booking_id: string; p_new_status: string; p_reason?: string }
         Returns: Json
       }
-      process_automatic_status_transitions: { Args: never; Returns: Json }
-      process_booking_webhook_events: { Args: never; Returns: undefined }
-      process_webhook_queue: { Args: never; Returns: undefined }
-      process_whatsapp_message: {
+      prepare_team_invitation_delivery: {
         Args: {
+          p_app_base_url: string
           p_calendar_id: string
-          p_message_content: string
-          p_message_id: string
-          p_message_timestamp?: string
-          p_phone_number: string
+          p_email: string
+          p_full_name: string
+          p_request_id: string
+          p_role: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      process_automatic_status_transitions: { Args: never; Returns: Json }
+      process_whatsapp_message:
+        | {
+            Args: {
+              p_calendar_id: string
+              p_message_content: string
+              p_message_id: string
+              p_phone_number: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_calendar_id: string
+              p_message_content: string
+              p_message_id: string
+              p_message_timestamp?: string
+              p_phone_number: string
+            }
+            Returns: Json
+          }
+      reconcile_booking_refund: {
+        Args: {
+          p_booking_id: string
+          p_refund_amount_cents: number
+          p_refunded_at: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: Json
+      }
+      reconcile_booking_refund_v2: {
+        Args: {
+          p_booking_id: string
+          p_refund_amount_cents: number
+          p_refunded_at: string
+          p_stripe_mode: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: Json
+      }
+      reconcile_booking_reminders_invalid_state_v2: {
+        Args: never
+        Returns: number
+      }
+      reconcile_booking_reminders_v2: { Args: never; Returns: number }
+      reconcile_or_renew_whatsapp_payment_attempt: {
+        Args: {
+          p_attempt_generation: number
+          p_booking_id: string
+          p_claim_ttl_seconds?: number
+          p_new_expires_at: string
+          p_payment_url: string
+          p_provider_expires_at: string
+          p_provider_payment_status: string
+          p_provider_status: string
+          p_request_fingerprint: string
+          p_stripe_mode: string
+          p_stripe_session_id: string
         }
         Returns: Json
       }
@@ -6400,13 +8718,34 @@ export type Database = {
         Args: { p_email: string; p_ip?: unknown; p_success?: boolean }
         Returns: undefined
       }
+      record_booking_checkout_failure: {
+        Args: {
+          p_booking_id: string
+          p_failed_at: string
+          p_stripe_mode: string
+          p_stripe_session_id: string
+        }
+        Returns: Json
+      }
+      record_booking_payment_failure: {
+        Args: {
+          p_booking_id: string
+          p_failed_at: string
+          p_stripe_mode: string
+          p_stripe_payment_intent_id: string
+        }
+        Returns: Json
+      }
       record_booking_reminder_result: {
         Args: {
           p_booking_id: string
           p_channel?: string
           p_delivered: boolean
+          p_delivery_key?: string
+          p_delivery_mode?: string
           p_failure_reason?: string
           p_max_attempts: number
+          p_provider_message_id?: string
           p_reminder_number: number
         }
         Returns: {
@@ -6414,20 +8753,40 @@ export type Database = {
           status: string
         }[]
       }
-      record_payment_attempt: {
+      record_booking_reminder_result_v2: {
         Args: {
-          p_calendar_id: string
-          p_ip_address: unknown
-          p_success?: boolean
+          p_booking_id: string
+          p_channel: string
+          p_claim_token: string
+          p_delivery_key: string
+          p_delivery_mode: string
+          p_failure_reason: string
+          p_max_attempts: number
+          p_provider_accepted: boolean
+          p_provider_message_id: string
+          p_reminder_number: number
+          p_schedule_generation: string
         }
-        Returns: undefined
+        Returns: {
+          attempt_count: number
+          status: string
+        }[]
       }
+      record_contact_meeting_delivery: {
+        Args: {
+          p_delivery_status: string
+          p_provider_message_id?: string
+          p_submission_id: string
+        }
+        Returns: Json
+      }
+      record_installment_balance_collected: {
+        Args: { p_booking_id: string }
+        Returns: Json
+      }
+      refresh_all_dashboard_views: { Args: never; Returns: undefined }
       refresh_analytics_views: { Args: never; Returns: undefined }
       refresh_booking_time_periods: { Args: never; Returns: undefined }
-      refresh_business_availability_overview: {
-        Args: never
-        Returns: undefined
-      }
       refresh_business_overview: {
         Args: { p_calendar_id?: string }
         Returns: undefined
@@ -6437,7 +8796,23 @@ export type Database = {
         Returns: undefined
       }
       refresh_dashboard_metrics: { Args: never; Returns: undefined }
+      refresh_webhook_event_delivery_status: {
+        Args: { p_event_id: string }
+        Returns: undefined
+      }
       refresh_whatsapp_contact_overview: { Args: never; Returns: undefined }
+      release_booking_payment_provider_after_failure: {
+        Args: {
+          p_booking_id: string
+          p_failure_code: string
+          p_generation: number
+          p_provider_kind: string
+          p_provider_object_id: string
+          p_request_fingerprint: string
+          p_stripe_mode: string
+        }
+        Returns: Json
+      }
       release_whatsapp_confirm_claim: {
         Args: { p_claim_id: string }
         Returns: undefined
@@ -6460,6 +8835,31 @@ export type Database = {
             }
             Returns: Json
           }
+      renew_booking_payment_provider_after_expiry: {
+        Args: {
+          p_booking_id: string
+          p_claim_ttl_seconds?: number
+          p_generation: number
+          p_provider_object_id: string
+          p_provider_payment_status: string
+          p_provider_status: string
+          p_request_fingerprint: string
+          p_reservation_id: string
+          p_stripe_mode: string
+        }
+        Returns: Json
+      }
+      require_booking_payment_provider_cleanup: {
+        Args: {
+          p_booking_id: string
+          p_generation: number
+          p_provider_object_id: string
+          p_reason_code: string
+          p_request_fingerprint: string
+          p_reservation_id: string
+        }
+        Returns: Json
+      }
       reschedule_booking_atomic: {
         Args: {
           p_booking_id: string
@@ -6468,6 +8868,21 @@ export type Database = {
           p_new_end: string
           p_new_start: string
           p_service_type_id?: string
+        }
+        Returns: Json
+      }
+      reserve_contact_meeting: {
+        Args: {
+          p_budget: string
+          p_company: string
+          p_country: string
+          p_email: string
+          p_meeting_date: string
+          p_meeting_time: string
+          p_message: string
+          p_name: string
+          p_subject: string
+          p_submission_id: string
         }
         Returns: Json
       }
@@ -6490,6 +8905,8 @@ export type Database = {
           resolved_date: string
         }[]
       }
+      scan_monitoring_heartbeat: { Args: never; Returns: undefined }
+      scan_recent_booking_date_drift: { Args: never; Returns: undefined }
       setup_calendar_defaults: {
         Args: { p_business_type?: string; p_calendar_id: string }
         Returns: undefined
@@ -6497,15 +8914,6 @@ export type Database = {
       test_webhook_system: { Args: { p_calendar_id: string }; Returns: Json }
       update_existing_users_retroactively: { Args: never; Returns: undefined }
       update_expired_trials: { Args: never; Returns: undefined }
-      update_user_status: {
-        Args: {
-          p_status: string
-          p_subscription_end_date?: string
-          p_tier?: string
-          p_user_id: string
-        }
-        Returns: boolean
-      }
       validate_booking_calendar_and_service: {
         Args: { p_calendar_id: string; p_service_type_id: string }
         Returns: boolean
@@ -6531,21 +8939,26 @@ export type Database = {
             }
             Returns: Json
           }
-      validate_payment_security: {
-        Args: {
-          p_amount_cents: number
-          p_calendar_id: string
-          p_country_code?: string
-          p_currency: string
-          p_ip_address: unknown
-          p_user_agent?: string
-          p_user_email: string
-        }
+      verify_booking_payment_provider_cleanup_claim: {
+        Args: { p_claim_token: string; p_job_id: string }
         Returns: Json
       }
-      validate_user_input: {
-        Args: { p_input: string; p_max_length?: number; p_type?: string }
-        Returns: boolean
+      verify_booking_payment_provider_reservation: {
+        Args: {
+          p_amount_cents: number
+          p_booking_id: string
+          p_channel: string
+          p_currency: string
+          p_destination_account_id: string
+          p_platform_account_id: string
+          p_provider_kind: string
+          p_provider_object_id: string
+          p_request_fingerprint: string
+          p_stripe_mode: string
+          p_tax_calculation_id: string
+          p_total_due_cents: number
+        }
+        Returns: Json
       }
     }
     Enums: {
@@ -6677,6 +9090,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],

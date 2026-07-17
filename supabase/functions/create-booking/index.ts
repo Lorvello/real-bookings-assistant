@@ -1,10 +1,12 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
-import { validatePhoneServerSide } from '../_shared/phoneValidation.ts';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { parsePublicBookingCommitResult } from "../_shared/publicBookingSnapshot.ts";
+import { getClientIp, RateLimiter } from "../_shared/rateLimit.ts";
+import { validatePhoneServerSide } from "../_shared/phoneValidation.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Inline validators for edge function
@@ -19,9 +21,10 @@ const sanitizeBookingText = (text: string): string => {
     // Postgres text columns reject NUL, so an unsanitized control char in a pasted
     // name/phone/notes threw on insert and surfaced as a raw 500 instead of a clean
     // result. Stripping them keeps the insert valid and the response graceful.
-    .replace(/[<>]/g, '')
+    .replace(/[<>]/g, "")
     // deno-lint-ignore no-control-regex
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
     .substring(0, 500);
 };
 
@@ -35,53 +38,51 @@ const sanitizeBookingText = (text: string): string => {
 // step while never letting unvalidated input through.
 // country: ISO-3166 alpha-2 (exactly two ASCII letters) -> uppercase, else null.
 const normalizeCountry = (raw: unknown): string | null => {
-  if (typeof raw !== 'string') return null;
+  if (typeof raw !== "string") return null;
   const c = raw.trim().toUpperCase();
   return /^[A-Z]{2}$/.test(c) ? c : null;
 };
 // VAT-ID: 2-letter country prefix + 2..12 alphanumerics (Stripe eu_vat shape) -> uppercase,
 // stripped of spaces/dots/hyphens, else null. Format only; Stripe runs the real check.
 const normalizeVatId = (raw: unknown): string | null => {
-  if (typeof raw !== 'string') return null;
-  const v = raw.toUpperCase().replace(/[\s.\-]/g, '');
+  if (typeof raw !== "string") return null;
+  const v = raw.toUpperCase().replace(/[\s.-]/g, "");
   return /^[A-Z]{2}[A-Z0-9]{2,12}$/.test(v) ? v : null;
 };
 // E-4: capture the visitor's UI language so the reminder body (process-booking-reminders)
 // can be NL or EN. Whitelist to the two supported locales; anything else (incl. absent)
 // -> null, which is treated as 'nl' downstream. No free text reaches the DB.
-const normalizeLocale = (raw: unknown): 'nl' | 'en' | null => {
-  if (typeof raw !== 'string') return null;
+const normalizeLocale = (raw: unknown): "nl" | "en" | null => {
+  if (typeof raw !== "string") return null;
   const l = raw.trim().toLowerCase().slice(0, 2);
-  return l === 'en' ? 'en' : l === 'nl' ? 'nl' : null;
+  return l === "en" ? "en" : l === "nl" ? "nl" : null;
 };
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Service role: this is a controlled public endpoint that does its own thorough
-    // validation below (validate_booking_security + calendar/service + future-time
-    // checks, input sanitization and IP rate limiting). The anon client is blocked by
-    // the bookings public-insert RLS policy (a BEFORE-insert trigger rewrites the row
-    // before WITH CHECK runs), so a valid public booking 500s. The function's own
-    // validation is the security gate here, mirroring create-booking-payment et al.
+    // Service role: this public endpoint sanitizes customer input and rate-limits, then
+    // delegates the complete authority decision and insert to commit_public_booking.
+    // That service-role-only RPC locks the current calendar, service and payment policy,
+    // derives end_time from service duration, validates and inserts in one transaction.
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     const ipAddress = getClientIp(req);
 
     // Rate limiting: 5 requests per minute
     const rateLimiter = new RateLimiter(supabaseClient, {
-      endpoint: 'booking_creation',
+      endpoint: "booking_creation",
       maxRequests: 5,
       windowSeconds: 60,
       blockDurationSeconds: 300,
-      enableCaptchaThreshold: 3
+      enableCaptchaThreshold: 3,
     });
 
     const rateLimitResult = await rateLimiter.checkLimit(ipAddress, req.url);
@@ -95,32 +96,44 @@ Deno.serve(async (req) => {
       bookingData = await req.json();
     } catch {
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid JSON body" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     // Server-side validation
     if (!bookingData.customerName || bookingData.customerName.length > 100) {
       return new Response(
-        JSON.stringify({ error: 'Invalid customer name' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid customer name" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     if (!validateBookingEmail(bookingData.customerEmail)) {
       return new Response(
-        JSON.stringify({ error: 'Invalid email address' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid email address" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
     // Validate time is in future
     const startTime = new Date(bookingData.startTime);
-    if (startTime <= new Date()) {
+    if (Number.isNaN(startTime.getTime()) || startTime <= new Date()) {
       return new Response(
-        JSON.stringify({ error: 'Booking time must be in future' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Booking time must be in future" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -139,8 +152,11 @@ Deno.serve(async (req) => {
     const phoneResult = validatePhoneServerSide(bookingData.customerPhone);
     if (!phoneResult.valid) {
       return new Response(
-        JSON.stringify({ error: phoneResult.error || 'Invalid phone number' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: phoneResult.error || "Invalid phone number" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -154,7 +170,7 @@ Deno.serve(async (req) => {
       // a value that passed validatePhoneServerSide is already digits + a single leading
       // "+", nothing an XSS/control-char strip would ever need to touch.
       customerPhone: phoneResult.value ?? null,
-      notes: bookingData.notes ? sanitizeBookingText(bookingData.notes) : null
+      notes: bookingData.notes ? sanitizeBookingText(bookingData.notes) : null,
     };
 
     // After sanitizing, the name could be reduced to empty (e.g. a paste of only
@@ -162,103 +178,44 @@ Deno.serve(async (req) => {
     // empty-name booking.
     if (!sanitized.customerName) {
       return new Response(
-        JSON.stringify({ error: 'Invalid customer name' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid customer name" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    // Get calendar ID
-    const { data: calendar, error: calendarError } = await supabaseClient
-      .from('calendars')
-      .select('id')
-      .eq('slug', sanitized.calendarSlug)
-      .eq('is_active', true)
-      .single();
-
-    if (calendarError || !calendar) {
-      return new Response(
-        JSON.stringify({ error: 'Calendar not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Call database validation function
-    const { data, error } = await supabaseClient
-      .rpc('validate_booking_security', {
+    // One atomic server-authoritative commit. No caller-supplied end time, price or
+    // payment-policy default crosses this boundary.
+    const { data: commitResult, error: commitError } = await supabaseClient
+      .rpc("commit_public_booking", {
         p_calendar_slug: sanitized.calendarSlug,
         p_service_type_id: sanitized.serviceTypeId,
-        p_start_time: sanitized.startTime,
-        p_end_time: sanitized.endTime,
-        p_customer_email: sanitized.customerEmail
+        p_start_time: startTime.toISOString(),
+        p_customer_name: sanitized.customerName,
+        p_customer_email: sanitized.customerEmail,
+        p_customer_phone: sanitized.customerPhone,
+        p_notes: sanitized.notes,
+        p_customer_country: normalizeCountry(bookingData.customerCountry),
+        p_customer_vat_id: normalizeVatId(bookingData.customerVatId),
+        p_customer_locale: normalizeLocale(bookingData.customerLocale),
       });
 
-    if (error || !data?.valid) {
+    if (commitError) throw commitError;
+    const commit = parsePublicBookingCommitResult(commitResult);
+    if (!commit.ok) {
       return new Response(
-        JSON.stringify({ error: data?.errors || 'Validation failed' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: commit.reason, code: commit.code }),
+        {
+          status: commit.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    // PAY & BOOK AFDWINGING (autoritatief, server-side). Lees de payment-settings van
-    // deze kalender. Heeft de ondernemer 'beveiligd betalen' + 'betaling verplicht'
-    // aanstaan (en is betaling niet optioneel), dan mag dit endpoint GEEN gratis,
-    // bevestigd-ogende boeking opleveren: de boeking wordt als ONBETAALD (pending)
-    // vastgehouden en de bevestigingsmail volgt pas NA betaling, niet hier. Anders
-    // verliest de ondernemer de vooruitbetaling + de platform-fee, en wekt de
-    // boeking valselijk de indruk bevestigd te zijn (audit CRITICAL, Pay & Book).
-    const { data: paymentSettings } = await supabaseClient
-      .from('payment_settings')
-      .select('secure_payments_enabled, payment_required_for_booking, payment_optional')
-      .eq('calendar_id', calendar.id)
-      .maybeSingle();
-
-    const paymentRequired =
-      paymentSettings?.secure_payments_enabled === true &&
-      paymentSettings?.payment_required_for_booking === true &&
-      paymentSettings?.payment_optional !== true;
-
-    // Create booking in database
-    const { data: booking, error: bookingError } = await supabaseClient
-      .from('bookings')
-      .insert({
-        calendar_id: calendar.id,
-        service_type_id: sanitized.serviceTypeId,
-        customer_name: sanitized.customerName,
-        customer_email: sanitized.customerEmail,
-        customer_phone: sanitized.customerPhone,
-        start_time: sanitized.startTime,
-        end_time: sanitized.endTime,
-        notes: sanitized.notes,
-        // Cross-border (X3a): persist the customer billing country + optional EU VAT-ID
-        // (X1 columns). Format-validated above; null when absent/malformed. in_person
-        // bookings simply leave these null (no regression). create-booking-payment reads
-        // them off this row to drive the Stripe Tax calc + persist onto booking_payments.
-        customer_country: normalizeCountry(bookingData.customerCountry),
-        customer_vat_id: normalizeVatId(bookingData.customerVatId),
-        // E-4: visitor UI language -> reminder body locale. Null when absent (=> NL).
-        customer_locale: normalizeLocale(bookingData.customerLocale),
-        status: 'pending',
-        confirmation_token: crypto.randomUUID(),
-        // Markeer de boeking expliciet als onbetaald wanneer betaling vereist is, zodat
-        // de betaal-flow (create-booking-payment) + eventuele auto-cancel-unpaid hierop
-        // kunnen acteren en de boeking niet als 'klaar' telt.
-        ...(paymentRequired ? { payment_required: true, payment_status: 'pending' } : {})
-      })
-      .select()
-      .single();
-
-    if (bookingError) {
-      // The bookings_no_overlap exclusion constraint rejects an overlapping
-      // booking (the slot was taken between availability display and submit).
-      // Return a clean, actionable 409 instead of a generic 500.
-      if (bookingError.code === '23P01' || /no_overlap|exclusion/i.test(bookingError.message || '')) {
-        return new Response(
-          JSON.stringify({ error: 'This time slot is no longer available. Please choose another time.', code: 'SLOT_TAKEN' }),
-          { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      throw bookingError;
-    }
+    const booking = commit.booking;
+    const paymentRequired = commit.paymentRequired;
 
     // LR-R57: stuur de klant een bevestigingsmail. Web-klanten hebben geen
     // WhatsApp-chat waarin de agent bevestigt, dus zonder dit krijgen ze niets.
@@ -267,11 +224,24 @@ Deno.serve(async (req) => {
     // de bevestiging volgt pas na een geslaagde betaling, dus hier NIET mailen.
     if (!paymentRequired) {
       try {
-        await supabaseClient.functions.invoke('send-booking-confirmation', {
-          body: { booking_id: booking.id },
-        });
+        const { data: mailResult, error: mailError } = await supabaseClient
+          .functions.invoke("send-booking-confirmation", {
+            body: { booking_id: booking.id },
+          });
+        if (mailError || mailResult?.success !== true) {
+          console.error(
+            "Bevestigingsmail niet afgeleverd; status is duurzaam vastgelegd",
+            {
+              booking_id: booking.id,
+              code: mailResult?.delivery_status ?? "DELIVERY_FAILED",
+            },
+          );
+        }
       } catch (mailErr) {
-        console.error('Bevestigingsmail mislukt (niet-fataal):', mailErr);
+        console.error("Bevestigingsmail-aanroep mislukt (niet-fataal)", {
+          booking_id: booking.id,
+          error: mailErr instanceof Error ? mailErr.name : "unknown",
+        });
       }
     }
 
@@ -279,21 +249,27 @@ Deno.serve(async (req) => {
     // (betaal-flow) i.p.v. 'Boeking aangemaakt' te tonen. De boeking bestaat al
     // (pending) zodat create-booking-payment er via id + confirmation_token op kan haken.
     return new Response(
-      JSON.stringify({ success: true, payment_required: paymentRequired, booking }),
+      JSON.stringify({
+        success: true,
+        payment_required: paymentRequired,
+        booking,
+      }),
       {
         headers: {
           ...corsHeaders,
           ...RateLimiter.getRateLimitHeaders(rateLimitResult),
-          'Content-Type': 'application/json'
-        }
-      }
+          "Content-Type": "application/json",
+        },
+      },
     );
-
   } catch (error) {
-    console.error('Booking creation error:', error);
+    console.error("Booking creation error:", error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: "Internal server error" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
     );
   }
 });

@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react';
+import { Clock3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -20,11 +20,11 @@ export default function PaymentSuccess() {
       />
       <main className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.025] px-8 py-10 text-center shadow-2xl shadow-black/40 backdrop-blur">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 ring-1 ring-primary/30">
-          <CheckCircle2 aria-hidden="true" className="h-9 w-9 text-primary" />
+          <Clock3 aria-hidden="true" className="h-9 w-9 text-primary" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">{t('payment.success.title', 'Payment successful')}</h1>
+        <h1 className="mt-5 text-2xl font-semibold">{t('payment.success.title', 'Payment submitted')}</h1>
         <p className="mt-2 text-sm text-white/55">
-          {t('payment.success.body', "Your payment has been received and your appointment is confirmed. You'll receive a confirmation by email.")}
+          {t('payment.success.body', "We're checking the final payment status. Your appointment is confirmed only after successful processing; you'll receive a confirmation by email.")}
         </p>
         <p className="mt-6 text-xs text-white/55">{t('payment.success.closeHint', 'You can close this window.')}</p>
       </main>

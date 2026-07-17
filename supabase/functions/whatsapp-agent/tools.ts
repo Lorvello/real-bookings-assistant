@@ -6,10 +6,45 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
-import { KIES_DIENST_MESSAGE, KIES_LOCATIE_MESSAGE, RESCHEDULE_DISTINCT_SERVICE_MESSAGE, BEVESTIG_TERUGKERENDE_DIENST_MESSAGE, MULTI_SERVICE_MESSAGE, findServiceSwitchForPendingPreview } from "./serviceDisambiguationGuard.ts";
-import { crossIdentityActionRisk, crossIdentityBookRisk, crossIdentityBookVerificationBypass, extractStatedNameForBooking, findCalendarMismatch, hasExplicitRescheduleIntent, hasMultipleDistinctNamesStated, isRealName as isRealNameShared, nameSuffix, previewTakeoverRisk, rescheduleIdentityConfirmedFresh, takeoverVerificationResolution, type CalendarMismatch } from "./identityDisambiguationGuard.ts";
+import {
+  BEVESTIG_TERUGKERENDE_DIENST_MESSAGE,
+  findServiceSwitchForPendingPreview,
+  KIES_DIENST_MESSAGE,
+  KIES_LOCATIE_MESSAGE,
+  MULTI_SERVICE_MESSAGE,
+  RESCHEDULE_DISTINCT_SERVICE_MESSAGE,
+} from "./serviceDisambiguationGuard.ts";
+import {
+  type CalendarMismatch,
+  crossIdentityActionRisk,
+  crossIdentityBookRisk,
+  crossIdentityBookVerificationBypass,
+  extractStatedNameForBooking,
+  findCalendarMismatch,
+  hasExplicitRescheduleIntent,
+  hasMultipleDistinctNamesStated,
+  isRealName as isRealNameShared,
+  nameSuffix,
+  previewTakeoverRisk,
+  rescheduleIdentityConfirmedFresh,
+  takeoverVerificationResolution,
+} from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
-import { hasDayMentionAnywhere, VRAAG_DAG_MESSAGE, VRAAG_DAG_RESCHEDULE_MESSAGE } from "./relativeDateHint.ts";
+import {
+  hasDayMentionAnywhere,
+  VRAAG_DAG_MESSAGE,
+  VRAAG_DAG_RESCHEDULE_MESSAGE,
+} from "./relativeDateHint.ts";
+import {
+  type InstallmentPlan,
+  installmentPlanSchema,
+  planFromStoredInstallmentConfig,
+} from "../_shared/installmentPlan.ts";
+import {
+  PaymentPolicyReadError,
+  resolveAuthoritativePaymentPolicy,
+} from "../_shared/authoritativePaymentPolicy.ts";
+import { readFunctionInvokeFailure } from "../_shared/functionInvokeFailure.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -346,10 +381,20 @@ async function resolveTarget(
   ctx: ToolContext,
   matchStart?: string,
   matchTime?: string,
-): Promise<{ booking?: UpcomingBooking; ambiguous?: UpcomingBooking[]; none?: boolean; totalCandidates?: number; multipleNamesStated?: boolean }> {
+): Promise<
+  {
+    booking?: UpcomingBooking;
+    ambiguous?: UpcomingBooking[];
+    none?: boolean;
+    totalCandidates?: number;
+    multipleNamesStated?: boolean;
+  }
+> {
   const { data } = await supabase
     .from("bookings")
-    .select("id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name")
+    .select(
+      "id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name",
+    )
     .eq("customer_phone", ctx.phone)
     // A2: search the customer's bookings across the owner's WHOLE calendar allowlist, not just
     // the entry calendar, so "cancel/move my appointment" finds it wherever it lives. The action
@@ -359,7 +404,7 @@ async function resolveTarget(
     .gt("start_time", new Date().toISOString())
     .order("start_time", { ascending: true })
     .limit(5);
-  const list = ((data as UpcomingBooking[]) ?? []);
+  const list = (data as UpcomingBooking[]) ?? [];
   // R76 (RENAME-HIJACK-CROSSTHIRDPARTY): the raw candidate count BEFORE any hint-narrowing, so a
   // caller can tell "only one booking exists at all" apart from "a hint narrowed several down to
   // one" (update_booking_name's cross-identity guard needs exactly this distinction, see its own
@@ -367,7 +412,10 @@ async function resolveTarget(
   // their behaviour is byte-identical.
   const totalCandidates = list.length;
   if (list.length === 0) return { none: true, totalCandidates: 0 };
-  const namedCandidates = list.map((b) => ({ id: b.id, customerName: b.customer_name ?? null }));
+  const namedCandidates = list.map((b) => ({
+    id: b.id,
+    customerName: b.customer_name ?? null,
+  }));
   // R103 (GAP 2 fix): does THIS turn's raw message name 2+ of this phone's OWN distinct real
   // candidate names (e.g. "niet Dennis, ik bedoelde Ellen")? Computed once here (same candidate
   // list extractStatedNameForBooking below already scans) so every caller (cancel/reschedule) can
@@ -375,7 +423,10 @@ async function resolveTarget(
   // silently re-anchoring on whichever candidate that older marker happened to name. See
   // identityDisambiguationGuard.ts's hasMultipleDistinctNamesStated doc comment for the full
   // reasoning (live-reproduced R103: a stale marker otherwise sits unchanged across this turn).
-  const multipleNamesStated = hasMultipleDistinctNamesStated(namedCandidates, ctx.userMessage);
+  const multipleNamesStated = hasMultipleDistinctNamesStated(
+    namedCandidates,
+    ctx.userMessage,
+  );
   // R102 (shared-phone identity fix): a customer-STATED name is the STRONGEST possible hint,
   // stronger than a time/date echo, because it directly answers "which PERSON's booking do you
   // mean" rather than "which slot". Checked FIRST, before any time/date narrowing, using the
@@ -384,7 +435,10 @@ async function resolveTarget(
   // candidate; two distinct names mentioned, or none, falls through to the existing hint chain
   // unaffected (byte-identical behaviour for every conversation that never names a specific
   // person, which is the overwhelming common single-attendee case).
-  const statedNameId = extractStatedNameForBooking(namedCandidates, ctx.userMessage);
+  const statedNameId = extractStatedNameForBooking(
+    namedCandidates,
+    ctx.userMessage,
+  );
   if (statedNameId) {
     const named = list.find((b) => b.id === statedNameId);
     if (named) return { booking: named, totalCandidates, multipleNamesStated };
@@ -397,7 +451,9 @@ async function resolveTarget(
   // Named calendar dates ("donderdag 25 juni") as MM-DD, plus the date in matchStart if any.
   // This is what disambiguates bookings that share a clock time but fall on DIFFERENT days.
   const wantDates = new Set(extractMonthDayNL(ctx.userMessage));
-  if (matchStart && /^\d{4}-\d{2}-\d{2}/.test(matchStart)) wantDates.add(matchStart.slice(5, 10));
+  if (matchStart && /^\d{4}-\d{2}-\d{2}/.test(matchStart)) {
+    wantDates.add(matchStart.slice(5, 10));
+  }
   const wantMs = matchStart ? new Date(matchStart).getTime() : Number.NaN;
   const hadHint = !Number.isNaN(wantMs) || !!wantTime || wantDates.size > 0;
   if (hadHint) {
@@ -410,27 +466,47 @@ async function resolveTarget(
       if (f.length >= 1) hits = f;
     };
     // 1. exact instant (the model echoed the list's start_time; epoch-compare tolerates reformatting)
-    if (!Number.isNaN(wantMs)) apply((b) => new Date(b.start_time).getTime() === wantMs);
+    if (!Number.isNaN(wantMs)) {
+      apply((b) => new Date(b.start_time).getTime() === wantMs);
+    }
     // 2. named day(s)
-    if (hits.length > 1 && wantDates.size > 0) apply((b) => wantDates.has(localMMDD(b.start_time)));
+    if (hits.length > 1 && wantDates.size > 0) {
+      apply((b) => wantDates.has(localMMDD(b.start_time)));
+    }
     // 3. named clock time
-    if (hits.length > 1 && wantTime) apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantTime);
+    if (hits.length > 1 && wantTime) {
+      apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wantTime);
+    }
     // 4. fallback: the local clock time of matchStart (model may pass the displayed local time)
     if (hits.length > 1 && !Number.isNaN(wantMs)) {
       const wl = nlTimeOnly(matchStart!).slice(0, 5);
       apply((b) => nlTimeOnly(b.start_time).slice(0, 5) === wl);
     }
-    if (hits.length === 1) return { booking: hits[0], totalCandidates, multipleNamesStated };
-    if (hits.length > 1) return { ambiguous: hits, totalCandidates, multipleNamesStated };
+    if (hits.length === 1) {
+      return { booking: hits[0], totalCandidates, multipleNamesStated };
+    }
+    if (hits.length > 1) {
+      return { ambiguous: hits, totalCandidates, multipleNamesStated };
+    }
     // no hint matched anything -> fall through to the generic single/ambiguous handling
   }
-  if (list.length === 1) return { booking: list[0], totalCandidates, multipleNamesStated };
+  if (list.length === 1) {
+    return { booking: list[0], totalCandidates, multipleNamesStated };
+  }
   return { ambiguous: list, totalCandidates, multipleNamesStated };
 }
 
 // --- get_business_data formatting helpers -------------------------------------
 
-const DUTCH_DAY_ORDER = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
+const DUTCH_DAY_ORDER = [
+  "Maandag",
+  "Dinsdag",
+  "Woensdag",
+  "Donderdag",
+  "Vrijdag",
+  "Zaterdag",
+  "Zondag",
+];
 
 // "09:00:00" -> "09:00"
 function hhmm(t: unknown): string {
@@ -445,7 +521,12 @@ function hhmm(t: unknown): string {
 const NL_TZ = "Europe/Amsterdam";
 // e.g. "2026-06-23T12:00:00+00:00" -> "14:00"
 function nlTimeOnly(iso: string): string {
-  return new Date(iso).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: NL_TZ });
+  return new Date(iso).toLocaleTimeString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: NL_TZ,
+  });
 }
 // e.g. "2026-06-23T12:00:00+00:00" -> "dinsdag 23 juni 14:00"
 // R107: exported so index.ts's NO-FRESH-TOOL-CALL disclosure fallback (see
@@ -454,7 +535,12 @@ function nlTimeOnly(iso: string): string {
 // rather than a second, divergent formatter.
 export function nlWhen(iso: string): string {
   const d = new Date(iso);
-  const date = d.toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", timeZone: NL_TZ });
+  const date = d.toLocaleDateString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: NL_TZ,
+  });
   return `${date} ${nlTimeOnly(iso)}`;
 }
 // "YYYY-MM-DD" for today in Amsterdam — for past-date guards (en-CA renders ISO order).
@@ -465,7 +551,8 @@ function todayNL(): string {
 // returns no slots for a past day, and the model then invents a wrong reason
 // ("we're closed that day"); guard it with an honest, specific message instead.
 function isPastDateNL(date: unknown): boolean {
-  return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) && date < todayNL();
+  return typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+    date < todayNL();
 }
 // A customer-named date BEYOND how far ahead this calendar accepts bookings
 // (booking_window_days). availability_rules are weekly-recurring and unbounded, so without
@@ -474,9 +561,15 @@ function isPastDateNL(date: unknown): boolean {
 // windowDays <= 0 / null = no horizon configured → never refuse. ISO date strings compare
 // lexicographically, so a plain string > is a correct date comparison.
 function isBeyondWindowNL(date: unknown, windowDays: number | null): boolean {
-  if (windowDays == null || !Number.isFinite(windowDays) || windowDays <= 0) return false;
-  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
-  const horizonISO = new Date(new Date(todayNL() + "T00:00:00Z").getTime() + windowDays * 86400000)
+  if (windowDays == null || !Number.isFinite(windowDays) || windowDays <= 0) {
+    return false;
+  }
+  if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return false;
+  }
+  const horizonISO = new Date(
+    new Date(todayNL() + "T00:00:00Z").getTime() + windowDays * 86400000,
+  )
     .toISOString().slice(0, 10);
   return date > horizonISO;
 }
@@ -498,13 +591,42 @@ export function extractClockTimes(msg: unknown): string[] {
 // A booking's local month-day in Amsterdam as "MM-DD" (for disambiguating bookings that
 // share a clock time but fall on different days).
 function localMMDD(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-CA", { timeZone: NL_TZ }).slice(5);
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: NL_TZ }).slice(
+    5,
+  );
 }
 const NL_MONTHS: Record<string, number> = {
-  januari: 1, februari: 2, maart: 3, april: 4, mei: 5, juni: 6, juli: 7, augustus: 8,
-  september: 9, oktober: 10, november: 11, december: 12,
-  jan: 1, feb: 2, mrt: 3, apr: 4, jun: 6, jul: 7, aug: 8, sep: 9, okt: 10, nov: 11, dec: 12,
-  january: 1, february: 2, march: 3, may: 5, june: 6, july: 7, august: 8, october: 10,
+  januari: 1,
+  februari: 2,
+  maart: 3,
+  april: 4,
+  mei: 5,
+  juni: 6,
+  juli: 7,
+  augustus: 8,
+  september: 9,
+  oktober: 10,
+  november: 11,
+  december: 12,
+  jan: 1,
+  feb: 2,
+  mrt: 3,
+  apr: 4,
+  jun: 6,
+  jul: 7,
+  aug: 8,
+  sep: 9,
+  okt: 10,
+  nov: 11,
+  dec: 12,
+  january: 1,
+  february: 2,
+  march: 3,
+  may: 5,
+  june: 6,
+  july: 7,
+  august: 8,
+  october: 10,
 };
 // Extract calendar dates a customer named ("25 juni", "juni 25", "25/6", "25-06") as "MM-DD".
 // Used to disambiguate WHICH booking when the model can't (esp. same-clock-time, different days).
@@ -513,34 +635,55 @@ function extractMonthDayNL(msg: unknown): string[] {
   const out = new Set<string>();
   const push = (day: number, mon: number) => {
     if (mon >= 1 && mon <= 12 && day >= 1 && day <= 31) {
-      out.add(`${String(mon).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+      out.add(
+        `${String(mon).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      );
     }
   };
   let m: RegExpExecArray | null;
   const reNumMonth = /\b(\d{1,2})\s+([a-z]+)/g;
-  while ((m = reNumMonth.exec(s)) !== null) { if (NL_MONTHS[m[2]]) push(Number(m[1]), NL_MONTHS[m[2]]); }
+  while ((m = reNumMonth.exec(s)) !== null) {
+    if (NL_MONTHS[m[2]]) push(Number(m[1]), NL_MONTHS[m[2]]);
+  }
   const reMonthNum = /\b([a-z]+)\s+(\d{1,2})\b/g;
-  while ((m = reMonthNum.exec(s)) !== null) { if (NL_MONTHS[m[1]]) push(Number(m[2]), NL_MONTHS[m[1]]); }
-  const reNumeric = /\b(\d{1,2})[\/\-](\d{1,2})\b/g; // NL day/month order
-  while ((m = reNumeric.exec(s)) !== null) { push(Number(m[1]), Number(m[2])); }
+  while ((m = reMonthNum.exec(s)) !== null) {
+    if (NL_MONTHS[m[1]]) push(Number(m[2]), NL_MONTHS[m[1]]);
+  }
+  const reNumeric = /\b(\d{1,2})[/-](\d{1,2})\b/g; // NL day/month order
+  while ((m = reNumeric.exec(s)) !== null) push(Number(m[1]), Number(m[2]));
   return [...out];
 }
 
-export interface DayHours { open: boolean; start?: string; end?: string; }
+export interface DayHours {
+  open: boolean;
+  start?: string;
+  end?: string;
+}
 
 // Structured opening hours for ALL 7 days (a day absent from the dict OR is_available:false
 // counts as CLOSED). The first (default) calendar. Returns null when no schedule is set.
 // index.ts uses this to build a deterministic concrete-date calendar so the model never has
 // to compute "is Sunday open?" or resolve a relative date itself.
-export function openingHoursByDay(calendars: unknown): Record<string, DayHours> | null {
+export function openingHoursByDay(
+  calendars: unknown,
+): Record<string, DayHours> | null {
   if (!Array.isArray(calendars) || calendars.length === 0) return null;
-  const oh = (calendars[0] as { opening_hours?: Record<string, { start_time?: string; end_time?: string; is_available?: boolean }> })?.opening_hours;
+  const oh = (calendars[0] as {
+    opening_hours?: Record<
+      string,
+      { start_time?: string; end_time?: string; is_available?: boolean }
+    >;
+  })?.opening_hours;
   if (!oh || typeof oh !== "object") return null;
   const out: Record<string, DayHours> = {};
   for (const day of DUTCH_DAY_ORDER) {
     const d = oh[day];
     if (d && d.is_available !== false && d.start_time && d.end_time) {
-      out[day] = { open: true, start: hhmm(d.start_time), end: hhmm(d.end_time) };
+      out[day] = {
+        open: true,
+        start: hhmm(d.start_time),
+        end: hhmm(d.end_time),
+      };
     } else {
       out[day] = { open: false };
     }
@@ -552,7 +695,9 @@ export function openingHoursByDay(calendars: unknown): Record<string, DayHours> 
 // the model can't mis-summarise a 5-day list (observed: it rendered Mon-Fri as "Maandag,
 // Vrijdag", silently dropping the middle days). E.g. "Maandag t/m vrijdag 09:00-17:00,
 // zaterdag en zondag gesloten". Returns null when no schedule is set.
-function formatOpeningHoursFromByDay(byDay: Record<string, DayHours> | null): string | null {
+function formatOpeningHoursFromByDay(
+  byDay: Record<string, DayHours> | null,
+): string | null {
   if (!byDay) return null;
   const keyOf = (d: DayHours) => (d.open ? `${d.start}-${d.end}` : "gesloten");
   const segs: string[] = [];
@@ -561,10 +706,15 @@ function formatOpeningHoursFromByDay(byDay: Record<string, DayHours> | null): st
     const start = DUTCH_DAY_ORDER[i];
     const key = keyOf(byDay[start]);
     let j = i;
-    while (j + 1 < DUTCH_DAY_ORDER.length && keyOf(byDay[DUTCH_DAY_ORDER[j + 1]]) === key) j++;
+    while (
+      j + 1 < DUTCH_DAY_ORDER.length &&
+      keyOf(byDay[DUTCH_DAY_ORDER[j + 1]]) === key
+    ) j++;
     const label = i === j
       ? start
-      : (j === i + 1 ? `${start} en ${DUTCH_DAY_ORDER[j]}` : `${start} t/m ${DUTCH_DAY_ORDER[j]}`);
+      : (j === i + 1
+        ? `${start} en ${DUTCH_DAY_ORDER[j]}`
+        : `${start} t/m ${DUTCH_DAY_ORDER[j]}`);
     segs.push(byDay[start].open ? `${label} ${key}` : `${label} gesloten`);
     i = j + 1;
   }
@@ -583,7 +733,13 @@ function formatOpeningHours(calendars: unknown): string | null {
 // live: the agent said "Maandag gesloten" from that stale JSON, then booked Monday via the real
 // schedule. day_of_week: 1=Monday .. 7=Sunday (ISO); a day absent or is_available:false = closed.
 const DOW_TO_DUTCH: Record<number, string> = {
-  1: "Maandag", 2: "Dinsdag", 3: "Woensdag", 4: "Donderdag", 5: "Vrijdag", 6: "Zaterdag", 7: "Zondag",
+  1: "Maandag",
+  2: "Dinsdag",
+  3: "Woensdag",
+  4: "Donderdag",
+  5: "Vrijdag",
+  6: "Zaterdag",
+  7: "Zondag",
 };
 export async function getCalendarWeeklyHours(
   supabase: SupabaseClient,
@@ -603,8 +759,16 @@ export async function getCalendarWeeklyHours(
     .from("availability_rules")
     .select("day_of_week, start_time, end_time, is_available")
     .eq("schedule_id", schedule.id);
-  const ruleList =
-    (rules as Array<{ day_of_week: number; start_time: string; end_time: string; is_available: boolean }> | null) ?? [];
+  const ruleList = (rules as
+    | Array<
+      {
+        day_of_week: number;
+        start_time: string;
+        end_time: string;
+        is_available: boolean;
+      }
+    >
+    | null) ?? [];
   // A day can carry multiple windows; for the spoken summary take the earliest start + latest end
   // of its available windows. Absent / is_available:false day = closed.
   const byNum: Record<number, { start: string; end: string }> = {};
@@ -613,12 +777,17 @@ export async function getCalendarWeeklyHours(
     const s = hhmm(r.start_time), e = hhmm(r.end_time);
     const cur = byNum[r.day_of_week];
     if (!cur) byNum[r.day_of_week] = { start: s, end: e };
-    else { if (s < cur.start) cur.start = s; if (e > cur.end) cur.end = e; }
+    else {
+      if (s < cur.start) cur.start = s;
+      if (e > cur.end) cur.end = e;
+    }
   }
   const byDay: Record<string, DayHours> = {};
   for (let d = 1; d <= 7; d++) {
     const nm = DOW_TO_DUTCH[d];
-    byDay[nm] = byNum[d] ? { open: true, start: byNum[d].start, end: byNum[d].end } : { open: false };
+    byDay[nm] = byNum[d]
+      ? { open: true, start: byNum[d].start, end: byNum[d].end }
+      : { open: false };
   }
   return { byDay, text: formatOpeningHoursFromByDay(byDay) };
 }
@@ -638,7 +807,11 @@ export async function getCalendarWeeklyHours(
 // recurring rule; is_available=true with explicit start/end replaces the day's window;
 // is_available=true with null times has no override effect and falls back to the recurring
 // day-of-week status.
-export interface DateOverride { isAvailable: boolean; start?: string; end?: string; }
+export interface DateOverride {
+  isAvailable: boolean;
+  start?: string;
+  end?: string;
+}
 export async function getCalendarDateOverrides(
   supabase: SupabaseClient,
   calendarId: string,
@@ -651,7 +824,16 @@ export async function getCalendarDateOverrides(
     .eq("calendar_id", calendarId)
     .gte("date", fromDateISO)
     .lte("date", toDateISO);
-  const rows = (data as Array<{ date: string; is_available: boolean | null; start_time: string | null; end_time: string | null }> | null) ?? [];
+  const rows = (data as
+    | Array<
+      {
+        date: string;
+        is_available: boolean | null;
+        start_time: string | null;
+        end_time: string | null;
+      }
+    >
+    | null) ?? [];
   const out: Record<string, DateOverride> = {};
   for (const r of rows) {
     out[r.date] = {
@@ -666,8 +848,14 @@ export async function getCalendarDateOverrides(
 }
 
 // Service duration (minutes) for end-time computation; default 30 when unknown.
-async function serviceDuration(supabase: SupabaseClient, serviceId: string): Promise<number> {
-  const { data } = await supabase.from("service_types").select("duration").eq("id", serviceId).maybeSingle();
+async function serviceDuration(
+  supabase: SupabaseClient,
+  serviceId: string,
+): Promise<number> {
+  const { data } = await supabase.from("service_types").select("duration").eq(
+    "id",
+    serviceId,
+  ).maybeSingle();
   const d = (data as { duration?: number } | null)?.duration;
   return typeof d === "number" && d > 0 ? d : 30;
 }
@@ -690,7 +878,7 @@ export function normalizeCountry(raw: unknown): string | null {
 // stripped of spaces/dots/hyphens, else null. Format only; Stripe runs the real check.
 export function normalizeVatId(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
-  const v = raw.toUpperCase().replace(/[\s.\-]/g, "");
+  const v = raw.toUpperCase().replace(/[\s.-]/g, "");
   return /^[A-Z]{2}[A-Z0-9]{2,12}$/.test(v) ? v : null;
 }
 
@@ -710,10 +898,15 @@ async function serviceCrossBorder(
     .select("supply_type, tax_enabled, tax_code")
     .eq("id", serviceId)
     .maybeSingle();
-  const row = data as { supply_type?: string | null; tax_enabled?: boolean | null; tax_code?: string | null } | null;
+  const row = data as {
+    supply_type?: string | null;
+    tax_enabled?: boolean | null;
+    tax_code?: string | null;
+  } | null;
   const supplyType = (row?.supply_type ?? "in_person") || "in_person";
   const isRemote = supplyType === "remote_service" || supplyType === "digital";
-  const needsCountry = isRemote && row?.tax_enabled === true && typeof row?.tax_code === "string" && row.tax_code.trim().length > 0;
+  const needsCountry = isRemote && row?.tax_enabled === true &&
+    typeof row?.tax_code === "string" && row.tax_code.trim().length > 0;
   return { supplyType, needsCountry };
 }
 
@@ -732,7 +925,7 @@ async function resolveSlotForTime(
   durationMin: number,
   noticeHours?: number | null,
 ): Promise<
-  { start: string; end: string }
+  | { start: string; end: string }
   | { unavailable: true; available: string[] }
   | { tooSoon: true; available: string[]; earliestNL: string | null }
   | { error: string }
@@ -742,14 +935,19 @@ async function resolveSlotForTime(
   if (!m) return { error: "bad_time" };
   const want = `${m[1].padStart(2, "0")}:${m[2]}`;
   const { data, error } = await supabase.rpc("get_available_slots", {
-    p_calendar_id: calendarId, p_service_type_id: serviceId, p_date: date,
+    p_calendar_id: calendarId,
+    p_service_type_id: serviceId,
+    p_date: date,
   });
   if (error) return { error: error.message };
-  const rows = (data as Array<{ slot_start: string; is_available: boolean }>) ?? [];
+  const rows = (data as Array<{ slot_start: string; is_available: boolean }>) ??
+    [];
   const free = rows.filter((s) => s.is_available);
   const match = free.find((s) => nlTimeOnly(s.slot_start).slice(0, 5) === want);
   if (match) {
-    const end = new Date(new Date(match.slot_start).getTime() + durationMin * 60000).toISOString();
+    const end = new Date(
+      new Date(match.slot_start).getTime() + durationMin * 60000,
+    ).toISOString();
     return { start: match.slot_start, end };
   }
   // Distinguish "too soon" (within minimum_notice_hours) from "taken": the requested time
@@ -757,27 +955,49 @@ async function resolveSlotForTime(
   // now + notice. Using the RPC's slot_start timestamp keeps this DST-correct (no local math).
   // Lets the caller explain "we need X hours notice" instead of a generic "not available".
   if (noticeHours != null && Number.isFinite(noticeHours) && noticeHours > 0) {
-    const reqRow = rows.find((s) => nlTimeOnly(s.slot_start).slice(0, 5) === want);
+    const reqRow = rows.find((s) =>
+      nlTimeOnly(s.slot_start).slice(0, 5) === want
+    );
     const cutoff = Date.now() + noticeHours * 3_600_000;
-    if (reqRow && !reqRow.is_available && new Date(reqRow.slot_start).getTime() < cutoff) {
-      const earliest = free.find((s) => new Date(s.slot_start).getTime() >= cutoff) ?? null;
+    if (
+      reqRow && !reqRow.is_available &&
+      new Date(reqRow.slot_start).getTime() < cutoff
+    ) {
+      const earliest = free.find((s) =>
+        new Date(s.slot_start).getTime() >= cutoff
+      ) ?? null;
       const earliestNL = earliest ? nlWhen(earliest.slot_start) : null;
-      return { tooSoon: true, available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)), earliestNL };
+      return {
+        tooSoon: true,
+        available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)),
+        earliestNL,
+      };
     }
   }
-  return { unavailable: true, available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)) };
+  return {
+    unavailable: true,
+    available: free.slice(0, 12).map((s) => nlTimeOnly(s.slot_start)),
+  };
 }
 
 // Compose one human address line from the parts. Drops the country when it is the
 // default (Nederland). Returns null when nothing usable is set.
 function formatAddress(d: {
-  business_street?: string | null; business_number?: string | null;
-  business_postal?: string | null; business_city?: string | null; business_country?: string | null;
+  business_street?: string | null;
+  business_number?: string | null;
+  business_postal?: string | null;
+  business_city?: string | null;
+  business_country?: string | null;
 }): string | null {
-  const line1 = [d.business_street, d.business_number].map((s) => (s || "").trim()).filter(Boolean).join(" ");
-  const line2 = [d.business_postal, d.business_city].map((s) => (s || "").trim()).filter(Boolean).join(" ");
+  const line1 = [d.business_street, d.business_number].map((s) =>
+    (s || "").trim()
+  ).filter(Boolean).join(" ");
+  const line2 = [d.business_postal, d.business_city].map((s) =>
+    (s || "").trim()
+  ).filter(Boolean).join(" ");
   const country = (d.business_country || "").trim();
-  const segs = [line1, line2, country && country !== "Nederland" ? country : ""].filter(Boolean);
+  const segs = [line1, line2, country && country !== "Nederland" ? country : ""]
+    .filter(Boolean);
   return segs.length ? segs.join(", ") : null;
 }
 
@@ -822,10 +1042,15 @@ export function formatHoursNL(hours: number): string {
 // Exported (T3-A1) so index.ts can derive the SAME per-calendar policy for the
 // <business_data> cancellation_policy text when the customer has one identifiable
 // upcoming booking, instead of always the entry calendar's settings.
-export async function getCalendarPolicy(supabase: SupabaseClient, calendarId: string): Promise<CalendarPolicy> {
+export async function getCalendarPolicy(
+  supabase: SupabaseClient,
+  calendarId: string,
+): Promise<CalendarPolicy> {
   const { data } = await supabase
     .from("calendar_settings")
-    .select("allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days, minimum_notice_hours")
+    .select(
+      "allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days, minimum_notice_hours",
+    )
     .eq("calendar_id", calendarId)
     .maybeSingle();
   const row = data as {
@@ -865,7 +1090,9 @@ function hoursUntil(startTime: string): number {
 export function formatCancellationPolicyNL(policy: CalendarPolicy): string {
   const h = policy.cancellationDeadlineHours;
   return h != null && Number.isFinite(h) && h > 0
-    ? `Je kunt deze afspraak tot ${formatHoursNL(h)} van tevoren kosteloos annuleren of verzetten via WhatsApp.`
+    ? `Je kunt deze afspraak tot ${
+      formatHoursNL(h)
+    } van tevoren kosteloos annuleren of verzetten via WhatsApp.`
     : `Je kunt deze afspraak op elk moment vóór de starttijd kosteloos annuleren of verzetten via WhatsApp.`;
 }
 
@@ -893,11 +1120,14 @@ export async function fetchBusinessData(
   if (!data) return null;
 
   // Resolve a "other" business type to the free text the owner typed.
-  let businessType: string | null = (data.business_type as string | null) ?? null;
+  let businessType: string | null = (data.business_type as string | null) ??
+    null;
   if (businessType === "other") {
     const { data: u } = await supabase
-      .from("users").select("business_type_other").eq("id", userId).maybeSingle();
-    businessType = ((u?.business_type_other as string | null) || "").trim() || null;
+      .from("users").select("business_type_other").eq("id", userId)
+      .maybeSingle();
+    businessType = ((u?.business_type_other as string | null) || "").trim() ||
+      null;
   }
 
   const out: Record<string, unknown> = {
@@ -973,9 +1203,16 @@ export function createTools(
       parameters: {
         type: "object",
         properties: {
-          service_type_id: { type: "string", description: "UUID van de dienst (uit de services-lijst)." },
+          service_type_id: {
+            type: "string",
+            description: "UUID van de dienst (uit de services-lijst).",
+          },
           date: { type: "string", description: "Datum in YYYY-MM-DD." },
-          calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda. Laat WEG als er maar één agenda is." },
+          calendar_index: {
+            type: "integer",
+            description:
+              "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda. Laat WEG als er maar één agenda is.",
+          },
         },
         required: ["service_type_id", "date"],
       },
@@ -990,7 +1227,11 @@ export function createTools(
         properties: {
           first_name: { type: "string" },
           last_name: { type: "string" },
-          name_refused: { type: "boolean", description: 'true alleen als de klant expliciet GEEN naam wil geven.' },
+          name_refused: {
+            type: "boolean",
+            description:
+              "true alleen als de klant expliciet GEEN naam wil geven.",
+          },
         },
         required: ["first_name"],
       },
@@ -1015,23 +1256,71 @@ export function createTools(
         // call. Pure JSON-key-order change: JS object key order is preserved into the schema JSON
         // sent to Groq; no change to validation, defaults, or the fail-closed `=== true` gate below.
         properties: {
-          confirmed: { type: "boolean", description: "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview." },
+          confirmed: {
+            type: "boolean",
+            description:
+              "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview.",
+          },
           only_confirming_previous: {
             type: "boolean",
             description:
               "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale, onvoorwaardelijke bevestiging ('ja', 'klopt'), helemaal niets anders. false = het bericht bevat ENIG signaal dat de klant iets anders wil dan precies de samengevatte afspraak, ongeacht hoe dat signaal geformuleerd is: bv. andere tijd/dag, vraag, voorwaarde, andere naam, twijfel/correctie, of een vage/ongespecificeerde voorkeur ('toch liever iets anders', 'liever iets rustigers') zonder dat de klant zegt wat precies. De vraag is niet 'past dit in een van de genoemde categorieën', maar 'is dit ECHT en UITSLUITEND een kale bevestiging van precies wat ik zonet samenvatte, zonder enige andere inhoud'. Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd boeken). Voorbeeld bevestig-aanroep: {confirmed:true, only_confirming_previous:true}.",
           },
-          service_type_id: { type: "string", description: "UUID van de dienst uit de services-lijst. Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de dienst uit de preview." },
-          date: { type: "string", description: "Datum YYYY-MM-DD (uit de <kalender>). Geef date + time door als de klant een concrete tijd noemde; de tool zoekt zelf het exacte slot (sneller, geen aparte get_available_slots nodig)." },
-          time: { type: "string", description: "Kloktijd HH:MM (Amsterdamse tijd) die de klant koos, bv '14:00'. Samen met date de voorkeursmanier om te boeken." },
-          start_time: { type: "string", description: "ALTERNATIEF voor date+time: de exacte 'start'-waarde (ISO 8601) van een slot uit get_available_slots, ongewijzigd gekopieerd. Gebruik date+time als je die hebt; val alleen op start_time terug als je al een ISO-slot uit get_available_slots koos. Reconstrueer een ISO-tijd NOOIT zelf." },
-          end_time: { type: "string", description: "Alleen nodig bij start_time: ISO 8601 = start_time + de dienstduur. Bij date+time berekent de tool de eindtijd zelf." },
-          customer_name: { type: "string", description: "Naam van de klant, of \"Privé\". Sla de naam EXACT op zoals de klant 'm typte: LETTERLIJK overnemen, inclusief emoji en ALLE naamdelen/achternamen, ook als er een emoji TUSSEN twee naamdelen in staat. Laat nooit een woord of emoji weg. Voorbeeld: typt de klant \"Anna 🌸 de Vries\", sla dan op \"Anna 🌸 de Vries\" (niet \"Anna\"). Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de naam uit de preview, tenzij de klant 'm net corrigeerde." },
-          customer_country: { type: "string", description: "ALLEEN voor een AFSTANDS-/DIGITALE dienst (in <services>/<kalenders> gemarkeerd als AFSTAND/DIGITAAL): de 2-letter landcode (ISO, bv. NL, DE, BE) van het land waar de klant gevestigd is, voor de juiste grensoverschrijdende btw. Geef dit mee in de eerste (preview) aanroep. Laat WEG bij een gewone (in_person) dienst. Verzin nooit een land; vraag het de klant." },
-          customer_vat_id: { type: "string", description: "OPTIONEEL en alleen voor een AFSTANDS-/DIGITALE dienst: het EU-btw-nummer van de klant als die als BEDRIJF boekt (bv. NL123456789B01, DE123456789). Laat WEG als de klant particulier is of geen nummer heeft, en bij een in_person dienst. Verzin nooit een nummer." },
-          calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview." },
-          confirm_second_booking: { type: "boolean", description: "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit." },
-          abandon_previous_preview: { type: "boolean", description: "Alleen op true zetten als er nog een NIET-bevestigde vorige preview open staat (het systeem vroeg je dat net) EN de klant zojuist EXPLICIET zei die te laten vervallen/vergeten/annuleren ten gunste van deze nieuwe dienst. Zet dit NOOIT zomaar zelf; alleen na een expliciete klant-uitspraak daarover." },
+          service_type_id: {
+            type: "string",
+            description:
+              "UUID van de dienst uit de services-lijst. Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de dienst uit de preview.",
+          },
+          date: {
+            type: "string",
+            description:
+              "Datum YYYY-MM-DD (uit de <kalender>). Geef date + time door als de klant een concrete tijd noemde; de tool zoekt zelf het exacte slot (sneller, geen aparte get_available_slots nodig).",
+          },
+          time: {
+            type: "string",
+            description:
+              "Kloktijd HH:MM (Amsterdamse tijd) die de klant koos, bv '14:00'. Samen met date de voorkeursmanier om te boeken.",
+          },
+          start_time: {
+            type: "string",
+            description:
+              "ALTERNATIEF voor date+time: de exacte 'start'-waarde (ISO 8601) van een slot uit get_available_slots, ongewijzigd gekopieerd. Gebruik date+time als je die hebt; val alleen op start_time terug als je al een ISO-slot uit get_available_slots koos. Reconstrueer een ISO-tijd NOOIT zelf.",
+          },
+          end_time: {
+            type: "string",
+            description:
+              "Alleen nodig bij start_time: ISO 8601 = start_time + de dienstduur. Bij date+time berekent de tool de eindtijd zelf.",
+          },
+          customer_name: {
+            type: "string",
+            description:
+              'Naam van de klant, of "Privé". Sla de naam EXACT op zoals de klant \'m typte: LETTERLIJK overnemen, inclusief emoji en ALLE naamdelen/achternamen, ook als er een emoji TUSSEN twee naamdelen in staat. Laat nooit een woord of emoji weg. Voorbeeld: typt de klant "Anna 🌸 de Vries", sla dan op "Anna 🌸 de Vries" (niet "Anna"). Bij de bevestig-aanroep (confirmed:true) niet verplicht: het systeem gebruikt de naam uit de preview, tenzij de klant \'m net corrigeerde.',
+          },
+          customer_country: {
+            type: "string",
+            description:
+              "ALLEEN voor een AFSTANDS-/DIGITALE dienst (in <services>/<kalenders> gemarkeerd als AFSTAND/DIGITAAL): de 2-letter landcode (ISO, bv. NL, DE, BE) van het land waar de klant gevestigd is, voor de juiste grensoverschrijdende btw. Geef dit mee in de eerste (preview) aanroep. Laat WEG bij een gewone (in_person) dienst. Verzin nooit een land; vraag het de klant.",
+          },
+          customer_vat_id: {
+            type: "string",
+            description:
+              "OPTIONEEL en alleen voor een AFSTANDS-/DIGITALE dienst: het EU-btw-nummer van de klant als die als BEDRIJF boekt (bv. NL123456789B01, DE123456789). Laat WEG als de klant particulier is of geen nummer heeft, en bij een in_person dienst. Verzin nooit een nummer.",
+          },
+          calendar_index: {
+            type: "integer",
+            description:
+              "ALLEEN bij meerdere agenda's (<kalenders> in je context): het nummer van de gekozen agenda waarin je boekt. Kies de service_type_id uit DIE agenda. Laat WEG als er maar één agenda is. Bij de bevestig-aanroep (confirmed:true) niet nodig: het systeem onthoudt de agenda uit de preview.",
+          },
+          confirm_second_booking: {
+            type: "boolean",
+            description:
+              "Alleen op true zetten als de klant ECHT een TWEEDE, losse afspraak naast een bestaande wil. Voor 'een ander tijdstip' gebruik je reschedule_appointment, niet dit.",
+          },
+          abandon_previous_preview: {
+            type: "boolean",
+            description:
+              "Alleen op true zetten als er nog een NIET-bevestigde vorige preview open staat (het systeem vroeg je dat net) EN de klant zojuist EXPLICIET zei die te laten vervallen/vergeten/annuleren ten gunste van deze nieuwe dienst. Zet dit NOOIT zomaar zelf; alleen na een expliciete klant-uitspraak daarover.",
+          },
         },
         // R26: service_type_id/customer_name are NOT schema-required anymore (were previously).
         // Root cause found live during this round's own latency testing: a hard JSON-schema
@@ -1062,7 +1351,8 @@ export function createTools(
         properties: {
           confirmed: {
             type: "boolean",
-            description: "true NADAT de klant expliciet bevestigde te annuleren, samen met only_confirming_previous. Zonder confirmed:true annuleert de tool niets (alleen preview).",
+            description:
+              "true NADAT de klant expliciet bevestigde te annuleren, samen met only_confirming_previous. Zonder confirmed:true annuleert de tool niets (alleen preview).",
           },
           only_confirming_previous: {
             type: "boolean",
@@ -1071,11 +1361,13 @@ export function createTools(
           },
           match_time: {
             type: "string",
-            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM, Amsterdamse tijd) van de afspraak die de klant kiest, bv '14:00'. DIT is de betrouwbare manier om te kiezen — geef gewoon de tijd door die de klant noemt.",
+            description:
+              "Bij meerdere afspraken: de KLOKTIJD (HH:MM, Amsterdamse tijd) van de afspraak die de klant kiest, bv '14:00'. DIT is de betrouwbare manier om te kiezen — geef gewoon de tijd door die de klant noemt.",
           },
           match_start_time: {
             type: "string",
-            description: "Optioneel alternatief voor match_time: de exacte start_time van de gekozen afspraak uit de eerder teruggegeven lijst (ongewijzigd gekopieerd).",
+            description:
+              "Optioneel alternatief voor match_time: de exacte start_time van de gekozen afspraak uit de eerder teruggegeven lijst (ongewijzigd gekopieerd).",
           },
         },
       },
@@ -1094,19 +1386,45 @@ export function createTools(
       parameters: {
         type: "object",
         properties: {
-          date: { type: "string", description: "Nieuwe datum YYYY-MM-DD (uit de <kalender>). Voorkeursmanier samen met time." },
-          time: { type: "string", description: "Nieuwe kloktijd HH:MM (Amsterdamse tijd), bv '14:00'." },
-          start_time: { type: "string", description: "ALTERNATIEF voor date+time: nieuwe starttijd als exacte ISO 8601 uit get_available_slots. Gebruik bij voorkeur date+time." },
-          end_time: { type: "string", description: "Alleen bij start_time: nieuwe eindtijd = start_time + dezelfde dienstduur. Bij date+time rekent de tool dit zelf." },
-          service_type_id: { type: "string", description: "Alleen meegeven als de klant óók van dienst wisselt, OF (bij meerdere agenda's) naar een andere medewerker/locatie wil: kies dan de service_type_id uit DIE agenda's dienstenlijst, de tool leidt de nieuwe agenda daar zelf uit af." },
-          calendar_index: { type: "integer", description: "ALLEEN bij meerdere agenda's (<kalenders> in je context) en de klant wil naar een andere medewerker/locatie verzetten zonder een specifieke nieuwe dienst te noemen: het nummer van de gekozen agenda. Laat WEG als de agenda niet wijzigt of er maar één agenda is; service_type_id is de voorkeursmanier." },
+          date: {
+            type: "string",
+            description:
+              "Nieuwe datum YYYY-MM-DD (uit de <kalender>). Voorkeursmanier samen met time.",
+          },
+          time: {
+            type: "string",
+            description:
+              "Nieuwe kloktijd HH:MM (Amsterdamse tijd), bv '14:00'.",
+          },
+          start_time: {
+            type: "string",
+            description:
+              "ALTERNATIEF voor date+time: nieuwe starttijd als exacte ISO 8601 uit get_available_slots. Gebruik bij voorkeur date+time.",
+          },
+          end_time: {
+            type: "string",
+            description:
+              "Alleen bij start_time: nieuwe eindtijd = start_time + dezelfde dienstduur. Bij date+time rekent de tool dit zelf.",
+          },
+          service_type_id: {
+            type: "string",
+            description:
+              "Alleen meegeven als de klant óók van dienst wisselt, OF (bij meerdere agenda's) naar een andere medewerker/locatie wil: kies dan de service_type_id uit DIE agenda's dienstenlijst, de tool leidt de nieuwe agenda daar zelf uit af.",
+          },
+          calendar_index: {
+            type: "integer",
+            description:
+              "ALLEEN bij meerdere agenda's (<kalenders> in je context) en de klant wil naar een andere medewerker/locatie verzetten zonder een specifieke nieuwe dienst te noemen: het nummer van de gekozen agenda. Laat WEG als de agenda niet wijzigt of er maar één agenda is; service_type_id is de voorkeursmanier.",
+          },
           match_time: {
             type: "string",
-            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM) van de BESTAANDE afspraak die de klant wil verzetten, bv '14:00'. DIT is de betrouwbare manier om te kiezen welke afspraak: geef de tijd door die de klant noemt. Niet te verwarren met 'time' (de NIEUWE tijd).",
+            description:
+              "Bij meerdere afspraken: de KLOKTIJD (HH:MM) van de BESTAANDE afspraak die de klant wil verzetten, bv '14:00'. DIT is de betrouwbare manier om te kiezen welke afspraak: geef de tijd door die de klant noemt. Niet te verwarren met 'time' (de NIEUWE tijd).",
           },
           match_start_time: {
             type: "string",
-            description: "Optioneel alternatief voor match_time: de exacte start_time van de te verzetten afspraak uit de eerder teruggegeven lijst.",
+            description:
+              "Optioneel alternatief voor match_time: de exacte start_time van de te verzetten afspraak uit de eerder teruggegeven lijst.",
           },
         },
       },
@@ -1130,19 +1448,30 @@ export function createTools(
       parameters: {
         type: "object",
         properties: {
-          new_name: { type: "string", description: "De nieuwe naam voor de afspraak, zoals de klant die noemt. Verplicht bij de preview-aanroep; bij de bevestig-aanroep (confirmed:true) niet nodig, de tool gebruikt de in stap 1 opgeslagen naam." },
-          confirmed: { type: "boolean", description: "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview." },
+          new_name: {
+            type: "string",
+            description:
+              "De nieuwe naam voor de afspraak, zoals de klant die noemt. Verplicht bij de preview-aanroep; bij de bevestig-aanroep (confirmed:true) niet nodig, de tool gebruikt de in stap 1 opgeslagen naam.",
+          },
+          confirmed: {
+            type: "boolean",
+            description:
+              "true bij de bevestig-aanroep (na klant-akkoord op de samenvatting), samen met only_confirming_previous. Weg/false bij de preview.",
+          },
           only_confirming_previous: {
             type: "boolean",
-            description: "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale, onvoorwaardelijke bevestiging ('ja', 'klopt'), helemaal niets anders. false = het bericht bevat ENIG ander signaal. Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd wijzigen).",
+            description:
+              "VERPLICHT samen met confirmed:true. true = het laatste klantbericht is UITSLUITEND een kale, onvoorwaardelijke bevestiging ('ja', 'klopt'), helemaal niets anders. false = het bericht bevat ENIG ander signaal. Twijfel je: false (dan wordt gewoon nogmaals gevraagd, veiliger dan verkeerd wijzigen).",
           },
           match_time: {
             type: "string",
-            description: "Bij meerdere afspraken: de KLOKTIJD (HH:MM, Amsterdamse tijd) van de afspraak die de klant kiest, bv '14:00'.",
+            description:
+              "Bij meerdere afspraken: de KLOKTIJD (HH:MM, Amsterdamse tijd) van de afspraak die de klant kiest, bv '14:00'.",
           },
           match_start_time: {
             type: "string",
-            description: "Optioneel alternatief voor match_time: de exacte start_time van de gekozen afspraak uit de eerder teruggegeven lijst.",
+            description:
+              "Optioneel alternatief voor match_time: de exacte start_time van de gekozen afspraak uit de eerder teruggegeven lijst.",
           },
         },
       },
@@ -1162,7 +1491,13 @@ export function createTools(
   // slot "taken" by the customer's OWN just-made booking and tells them it's unavailable
   // (DB correct, reply contradicts it; the A2-WATCH redundant-call case). One commit per turn,
   // so this never blocks a legitimate booking.
-  let bookedThisTurn: { when: string; payment_url?: string; price_changed?: boolean; new_price?: number; previous_price?: number } | null = null;
+  let bookedThisTurn: {
+    when: string;
+    payment_url?: string;
+    price_changed?: boolean;
+    new_price?: number;
+    previous_price?: number;
+  } | null = null;
 
   // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2): the exact `at` epoch-ms stamp THIS closure itself
   // wrote the last time IT stored a pending_booking / pending_cancel preview (undefined until
@@ -1264,7 +1599,9 @@ export function createTools(
         // cancel/reschedule as a lookup, which sets a pending_cancel marker, a mis-commit landmine).
         const { data } = await supabase
           .from("bookings")
-          .select("start_time, status, calendar_id, service_types(name), customer_name")
+          .select(
+            "start_time, status, calendar_id, service_types(name), customer_name",
+          )
           .eq("customer_phone", ctx.phone)
           // A2: across the owner's whole calendar allowlist, so the customer sees appointments
           // in any of the business's calendars (not only the one the webhook routed them to).
@@ -1273,9 +1610,23 @@ export function createTools(
           .gt("start_time", new Date().toISOString())
           .order("start_time", { ascending: true })
           .limit(5);
-        const list = ((data as Array<{ start_time: string; status: string; calendar_id: string; service_types?: { name?: string } | null; customer_name?: string | null }>) ?? []);
-        if (list.length === 0) return { appointments: [], message: "Deze klant heeft geen aankomende afspraken." };
-        const calName = (id: string) => ctx.calendars.find((c) => c.id === id)?.name ?? null;
+        const list = (data as Array<
+          {
+            start_time: string;
+            status: string;
+            calendar_id: string;
+            service_types?: { name?: string } | null;
+            customer_name?: string | null;
+          }
+        >) ?? [];
+        if (list.length === 0) {
+          return {
+            appointments: [],
+            message: "Deze klant heeft geen aankomende afspraken.",
+          };
+        }
+        const calName = (id: string) =>
+          ctx.calendars.find((c) => c.id === id)?.name ?? null;
         const multi = ctx.calendars.length > 1;
         // R102 (shared-phone identity fix, R101-1): surface a candidate's own customer_name
         // whenever it is a REAL name that could plausibly NOT belong to whoever is currently
@@ -1287,8 +1638,11 @@ export function createTools(
         // (no name field added, nothing to disclose in the common single-attendee case).
         const nameDiffersFromSelf = (name: string | null | undefined) =>
           isRealNameShared(name) &&
-          (!isRealNameShared(ctx.knownSelfName) || String(ctx.knownSelfName).trim().toLowerCase() !== String(name).trim().toLowerCase());
-        const showNames = list.length > 1 || list.some((b) => nameDiffersFromSelf(b.customer_name));
+          (!isRealNameShared(ctx.knownSelfName) ||
+            String(ctx.knownSelfName).trim().toLowerCase() !==
+              String(name).trim().toLowerCase());
+        const showNames = list.length > 1 ||
+          list.some((b) => nameDiffersFromSelf(b.customer_name));
         // R102 (deterministic disclosure, not a prompt nudge): live-tested this round, a plain
         // "guidance" instruction to disclose the name was UNRELIABLE against gpt-oss-20b (it
         // repeatedly still said "je afspraak" despite the customer_name field + guidance being
@@ -1300,7 +1654,9 @@ export function createTools(
         const appointmentLines = list.map((b) => {
           const svc = b.service_types?.name ?? "";
           const when = nlWhen(b.start_time);
-          const nm = showNames && isRealNameShared(b.customer_name) ? b.customer_name : null;
+          const nm = showNames && isRealNameShared(b.customer_name)
+            ? b.customer_name
+            : null;
           return nm ? `${svc} op ${when} (op naam ${nm})` : `${svc} op ${when}`;
         });
         // R134 (DATE-QUALIFIED-MULTI-MATCH-DEAD-END fix): when 2+ upcoming bookings exist AND this
@@ -1319,11 +1675,15 @@ export function createTools(
         // case (no date named, or a date that still matches 2+) now gets an explicit QUESTION
         // ("... Welke bedoel je?") instead of a bare statement, so a real disambiguation flow always
         // follows, never a dead-end listing.
-        const namedDates = list.length > 1 ? extractMonthDayNL(ctx.userMessage) : [];
+        const namedDates = list.length > 1
+          ? extractMonthDayNL(ctx.userMessage)
+          : [];
         const dateNarrowedMatches = namedDates.length > 0
           ? list.filter((b) => namedDates.includes(localMMDD(b.start_time)))
           : [];
-        const uniqueDateMatch = dateNarrowedMatches.length === 1 ? dateNarrowedMatches[0] : null;
+        const uniqueDateMatch = dateNarrowedMatches.length === 1
+          ? dateNarrowedMatches[0]
+          : null;
         const uniqueDateMatchLine = uniqueDateMatch
           ? appointmentLines[list.indexOf(uniqueDateMatch)]
           : null;
@@ -1335,27 +1695,39 @@ export function createTools(
             // Only surface the calendar (staff/location) when the business has more than one,
             // so the customer/agent can tell apart same-time appointments in different calendars.
             ...(multi ? { agenda: calName(b.calendar_id) } : {}),
-            ...(showNames && isRealNameShared(b.customer_name) ? { customer_name: b.customer_name } : {}),
-            ...(uniqueDateMatch && b === uniqueDateMatch ? { matched_by_named_date: true } : {}),
+            ...(showNames && isRealNameShared(b.customer_name)
+              ? { customer_name: b.customer_name }
+              : {}),
+            ...(uniqueDateMatch && b === uniqueDateMatch
+              ? { matched_by_named_date: true }
+              : {}),
           })),
-          ...(showNames ? (
-            uniqueDateMatch
-              ? {
-                message: `De genoemde datum past bij precies een afspraak: ${uniqueDateMatchLine}.`,
-                guidance: "De klant noemde een datum die van de meerdere afspraken hierboven er maar een uniek identificeert (matched_by_named_date:true). Vraag NIET welke afspraak bedoeld wordt, dat is al duidelijk, en herhaal ook niet de hele lijst van meerdere afspraken. " +
-                  "VERPLICHTE VOLGORDE, EERST DIT (voor je iets anders doet, ook voor je een identiteitsvraag stelt): noemt de klant een NIEUWE dienst voor deze afspraak? Controleer die dienst DIRECT tegen de dienstenlijst van de betreffende agenda in <kalenders>/<services> (exact zoals je bij een gewoon boekingsverzoek al doet: 'Kies ALTIJD een service_type_id uit deze lijst; verzin nooit een id'). Bestaat die genoemde dienst daar NIET? Wijs het verzoek dan DIRECT af met een duidelijke melding dat die dienst niet wordt aangeboden bij die agenda, roep GEEN enkele tool aan (ook geen identiteitsverificatie en geen reschedule_appointment/cancel_appointment/update_booking_name) en stop hier je beurt. Dit geldt zelfs al lijkt er maar een afspraak in aanmerking te komen; matched_by_named_date lost alleen uit WELKE afspraak het gaat, niet OF de gevraagde nieuwe dienst uberhaupt bestaat. " +
-                  "Bestaat de genoemde dienst wel, of noemt de klant helemaal geen nieuwe dienst (bv. gewoon verzetten naar een andere tijd, of annuleren)? Ga dan pas verder zoals je altijd zou doen bij een klant met precies een aankomende afspraak: de bijbehorende tool (reschedule_appointment/cancel_appointment/update_booking_name) aanroepen met match_time of match_start_time gelijk aan de tijd van deze afspraak om 'm te kiezen.",
-              }
-              : list.length === 1
-              ? {
-                message: `Er staat een afspraak: ${appointmentLines[0]}.`,
-                guidance: "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' altijd behoudt) in je antwoord. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X', zodat de klant kan zien van wie de afspraak is.",
-              }
-              : {
-                message: `Je hebt meerdere afspraken: ${appointmentLines.join("; ")}. Welke bedoel je?`,
-                guidance: "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' EN de afsluitende vraag altijd behoudt) als je antwoord: dit MOET een echte vraag blijven, stel 'm en wacht op het antwoord van de klant voordat je iets annuleert, verzet of wijzigt. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X'."
-              }
-          ) : {}),
+          ...(showNames
+            ? (
+              uniqueDateMatch
+                ? {
+                  message:
+                    `De genoemde datum past bij precies een afspraak: ${uniqueDateMatchLine}.`,
+                  guidance:
+                    "De klant noemde een datum die van de meerdere afspraken hierboven er maar een uniek identificeert (matched_by_named_date:true). Vraag NIET welke afspraak bedoeld wordt, dat is al duidelijk, en herhaal ook niet de hele lijst van meerdere afspraken. " +
+                    "VERPLICHTE VOLGORDE, EERST DIT (voor je iets anders doet, ook voor je een identiteitsvraag stelt): noemt de klant een NIEUWE dienst voor deze afspraak? Controleer die dienst DIRECT tegen de dienstenlijst van de betreffende agenda in <kalenders>/<services> (exact zoals je bij een gewoon boekingsverzoek al doet: 'Kies ALTIJD een service_type_id uit deze lijst; verzin nooit een id'). Bestaat die genoemde dienst daar NIET? Wijs het verzoek dan DIRECT af met een duidelijke melding dat die dienst niet wordt aangeboden bij die agenda, roep GEEN enkele tool aan (ook geen identiteitsverificatie en geen reschedule_appointment/cancel_appointment/update_booking_name) en stop hier je beurt. Dit geldt zelfs al lijkt er maar een afspraak in aanmerking te komen; matched_by_named_date lost alleen uit WELKE afspraak het gaat, niet OF de gevraagde nieuwe dienst uberhaupt bestaat. " +
+                    "Bestaat de genoemde dienst wel, of noemt de klant helemaal geen nieuwe dienst (bv. gewoon verzetten naar een andere tijd, of annuleren)? Ga dan pas verder zoals je altijd zou doen bij een klant met precies een aankomende afspraak: de bijbehorende tool (reschedule_appointment/cancel_appointment/update_booking_name) aanroepen met match_time of match_start_time gelijk aan de tijd van deze afspraak om 'm te kiezen.",
+                }
+                : list.length === 1
+                ? {
+                  message: `Er staat een afspraak: ${appointmentLines[0]}.`,
+                  guidance:
+                    "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' altijd behoudt) in je antwoord. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X', zodat de klant kan zien van wie de afspraak is.",
+                }
+                : {
+                  message: `Je hebt meerdere afspraken: ${
+                    appointmentLines.join("; ")
+                  }. Welke bedoel je?`,
+                  guidance:
+                    "Gebruik het 'message'-veld hierboven LETTERLIJK (of een zeer korte natuurlijke parafrase die de naam-vermelding 'op naam X' EN de afsluitende vraag altijd behoudt) als je antwoord: dit MOET een echte vraag blijven, stel 'm en wacht op het antwoord van de klant voordat je iets annuleert, verzet of wijzigt. Staat er een naam bij die AFWIJKT van wie er nu aan het typen is, zeg dan NOOIT 'jouw afspraak' of 'je afspraak', maar 'de afspraak op naam X'.",
+                }
+            )
+            : {}),
         };
       }
 
@@ -1377,14 +1749,25 @@ export function createTools(
         // configured services in one compound request. Refuse and ask split-vs-combined before any
         // slot lookup, same refuse-and-ask pattern as the sibling conditions above.
         if (ctx.blockForMultiService && ctx.blockForMultiService.length >= 2) {
-          return { error: "meerdere_diensten", message: MULTI_SERVICE_MESSAGE(ctx.blockForMultiService) };
+          return {
+            error: "meerdere_diensten",
+            message: MULTI_SERVICE_MESSAGE(ctx.blockForMultiService),
+          };
         }
         // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): a returning customer's last-booked service
         // is context ONLY, never a silent assumption. Refuse the slot lookup (which would itself
         // silently bake in an assumed date on top of the assumed service) until the model has
         // explicitly disclosed and confirmed the assumption.
-        if (ctx.blockForReturningServiceDefault && ctx.lastServiceForReturningDefault) {
-          return { error: "bevestig_terugkerende_dienst", message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(ctx.lastServiceForReturningDefault) };
+        if (
+          ctx.blockForReturningServiceDefault &&
+          ctx.lastServiceForReturningDefault
+        ) {
+          return {
+            error: "bevestig_terugkerende_dienst",
+            message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(
+              ctx.lastServiceForReturningDefault,
+            ),
+          };
         }
         // R93 (SILENT-TODAY-DEFAULT fix): refuse a slot lookup entirely when the customer has
         // never named ANY day, anywhere in the conversation (relativeDateHint.ts's
@@ -1396,11 +1779,18 @@ export function createTools(
         }
         // A2: pick the target calendar from the owner's allowlist. Single-calendar → entry
         // calendar (unchanged). Multiple → require the model's calendar_index; refuse to guess.
-        const slotCal = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
+        const slotCal = resolveBookingCalendar(
+          ctx,
+          args.calendar_index,
+          args.service_type_id,
+        );
         if ("needAsk" in slotCal) {
           return {
             error: "kies_medewerker",
-            message: `Deze dienst wordt door meerdere medewerkers of locaties (${slotCal.options.join(", ")}) aangeboden. Vraag de klant kort en menselijk bij wie of waar ze de afspraak willen ("bij wie wil je de afspraak?"), of bied "geen voorkeur" aan als het ze niet uitmaakt. Presenteer de opties als personen of plekken in natuurlijke taal (vertaal/normaliseer de namen mee naar de taal van de klant); noem ze NOOIT "agenda's" en dump geen technische namen. Pak daarna de service_type_id van de gekozen persoon/locatie en roep opnieuw aan.`,
+            message:
+              `Deze dienst wordt door meerdere medewerkers of locaties (${
+                slotCal.options.join(", ")
+              }) aangeboden. Vraag de klant kort en menselijk bij wie of waar ze de afspraak willen ("bij wie wil je de afspraak?"), of bied "geen voorkeur" aan als het ze niet uitmaakt. Presenteer de opties als personen of plekken in natuurlijke taal (vertaal/normaliseer de namen mee naar de taal van de klant); noem ze NOOIT "agenda's" en dump geen technische namen. Pak daarna de service_type_id van de gekozen persoon/locatie en roep opnieuw aan.`,
           };
         }
         const { data, error } = await supabase.rpc("get_available_slots", {
@@ -1409,9 +1799,10 @@ export function createTools(
           p_date: String(args.date),
         });
         if (error) return { error: error.message };
-        const slots = ((data as Array<{ slot_start: string; is_available: boolean }>) ?? [])
-          .filter((s) => s.is_available)
-          .map((s) => s.slot_start);
+        const slots =
+          ((data as Array<{ slot_start: string; is_available: boolean }>) ?? [])
+            .filter((s) => s.is_available)
+            .map((s) => s.slot_start);
         // Each slot carries `tijd` (NL clock time to SHOW the customer) and `start`
         // (the exact ISO instant to pass back as book_appointment.start_time). The
         // model presents `tijd` and books `start`, so it never converts UTC itself.
@@ -1423,9 +1814,14 @@ export function createTools(
         const lastFree = slots.length > 0 ? slots[slots.length - 1] : null;
         return {
           date: args.date,
-          available_slots: slots.slice(0, 12).map((s) => ({ tijd: nlTimeOnly(s), start: s })),
+          available_slots: slots.slice(0, 12).map((s) => ({
+            tijd: nlTimeOnly(s),
+            start: s,
+          })),
           count: slots.length,
-          laatste_slot: lastFree ? { tijd: nlTimeOnly(lastFree), start: lastFree } : null,
+          laatste_slot: lastFree
+            ? { tijd: nlTimeOnly(lastFree), start: lastFree }
+            : null,
         };
       }
 
@@ -1447,7 +1843,9 @@ export function createTools(
           return { ok: true };
         }
         // Keep the global contacts row updated for the dashboard contacts list (display only).
-        const update: Record<string, unknown> = { first_name: first || "Privé" };
+        const update: Record<string, unknown> = {
+          first_name: first || "Privé",
+        };
         if (args.last_name) update.last_name = String(args.last_name);
         const { error } = await supabase
           .from("whatsapp_contacts")
@@ -1462,9 +1860,16 @@ export function createTools(
         let priorBookingName: string | null = null;
         if (ctx.conversationId) {
           const { data: conv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          const context = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
-          priorBookingName = typeof context.booking_name === "string" ? context.booking_name.trim() : null;
+            .from("whatsapp_conversations").select("context").eq(
+              "id",
+              ctx.conversationId,
+            ).maybeSingle();
+          const context =
+            ((conv as { context?: Record<string, unknown> } | null)?.context) ??
+              {};
+          priorBookingName = typeof context.booking_name === "string"
+            ? context.booking_name.trim()
+            : null;
           const next: Record<string, unknown> = { ...context };
           if (refused) {
             next.name_refused = true;
@@ -1473,7 +1878,9 @@ export function createTools(
             next.booking_name = first;
             next.name_refused = false;
           }
-          await supabase.from("whatsapp_conversations").update({ context: next }).eq("id", ctx.conversationId);
+          await supabase.from("whatsapp_conversations").update({
+            context: next,
+          }).eq("id", ctx.conversationId);
         }
         // R118 (GAP 2, POST-COMMIT-NAME-CORRECTION-SILENTLY-DROPPED fix, live-reproduced on the S6
         // testpad): update_lead is a generic "remember the name for the NEXT booking" tool; it only
@@ -1526,12 +1933,17 @@ export function createTools(
               // for something else). On a detected risk, this simply skips the auto-rename (falls
               // through to booking_renamed:false, honest no-op) rather than guessing; the customer
               // can still use update_booking_name directly, which has its own full verification flow.
-              const crossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, currentBookingName, ctx.knownSelfName);
+              const crossIdentityRisk = crossIdentityActionRisk(
+                target.totalCandidates,
+                currentBookingName,
+                ctx.knownSelfName,
+              );
               if (isRealNameShared(currentBookingName) && !crossIdentityRisk) {
-                const { error: renameErr } = await supabase.from("bookings").update({
-                  customer_name: first,
-                  updated_at: new Date().toISOString(),
-                }).eq("id", b.id);
+                const { error: renameErr } = await supabase.from("bookings")
+                  .update({
+                    customer_name: first,
+                    updated_at: new Date().toISOString(),
+                  }).eq("id", b.id);
                 if (!renameErr) renamedBookingId = b.id;
               }
             }
@@ -1548,1370 +1960,1999 @@ export function createTools(
             booking_renamed: true,
             booking_id: renamedBookingId,
             new_name: first,
-            message: `De naam op de al bevestigde afspraak is aangepast naar ${first}. Bevestig dit kort ("Gelukt! De naam op je afspraak is nu ${first}.").`,
+            message:
+              `De naam op de al bevestigde afspraak is aangepast naar ${first}. Bevestig dit kort ("Gelukt! De naam op je afspraak is nu ${first}.").`,
           }
           : {
             ok: true,
             booking_renamed: false,
-            message: "Alleen de naam voor een VOLGENDE boeking is onthouden; er is GEEN bestaande, al bevestigde afspraak aangepast. Claim NOOIT dat een afspraak is gewijzigd of dat iets 'gelukt' is tenzij je net een tool hebt aangeroepen die dat ECHT deed (bv. update_booking_name). Heeft de klant een bestaande afspraak die aangepast moet worden, gebruik dan update_booking_name.",
+            message:
+              "Alleen de naam voor een VOLGENDE boeking is onthouden; er is GEEN bestaande, al bevestigde afspraak aangepast. Claim NOOIT dat een afspraak is gewijzigd of dat iets 'gelukt' is tenzij je net een tool hebt aangeroepen die dat ECHT deed (bv. update_booking_name). Heeft de klant een bestaande afspraak die aangepast moet worden, gebruik dan update_booking_name.",
           };
       }
 
-      case "book_appointment": {
-        // Idempotency for a redundant SAME-TURN re-fire after a successful commit: return the
-        // already-booked confirmation immediately, so the model can't run a fresh preview that
-        // reports the slot "taken" by the customer's own just-made booking (A2-WATCH).
-        if (bookedThisTurn) {
-          return {
-            ok: true,
-            already_booked: true,
-            when: bookedThisTurn.when,
-            ...(bookedThisTurn.payment_url ? { payment_required: true, payment_url: bookedThisTurn.payment_url } : {}),
-            // R130: carry the price-change disclosure through a same-turn redundant re-fire too,
-            // so a stall-retry that re-hits this idempotency echo can't accidentally drop the
-            // disclosure the FIRST call already computed for this exact commit.
-            ...(bookedThisTurn.price_changed ? { price_changed: true, new_price: bookedThisTurn.new_price, previous_price: bookedThisTurn.previous_price } : {}),
-            message: "Deze afspraak is in deze beurt AL geboekt. Bevestig dat kort en vriendelijk; zeg NIET dat de tijd bezet of niet beschikbaar is en boek niet opnieuw.",
-          };
-        }
-        // Server-driven TWO-PHASE booking (mirrors cancel_appointment): the first call only
-        // PREVIEWS (stores a pending_booking proposal, NO insert), the customer confirms, then
-        // the COMMIT inserts using the SERVER-STORED exact values. This makes an accidental
-        // immediate booking impossible, lets the customer correct the name/time, and removes
-        // the model's time-reconstruction from the insert (it once booked 12:00 for a
-        // confirmed 10:00 — the stored start_time is now authoritative).
-        let bookCtx: Record<string, unknown> = {};
-        if (ctx.conversationId) {
-          const { data: conv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          bookCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
-        }
-        const pendingBook = bookCtx.pending_booking as
-          { service_type_id?: string; start_time?: string; end_time?: string; customer_name?: string; calendar_id?: string; customer_country?: string | null; customer_vat_id?: string | null; customer_locale?: "nl" | "en"; at?: number; originator_name?: string | null; preview_price?: number | null } | undefined;
-        const clearPendingBook = async () => {
-          if (!ctx.conversationId) return;
-          // R107: also drop any pending_book_verification marker here. It only ever answers "is
-          // THIS preview's name really who it should be booked under"; once the preview is either
-          // committed (booking now exists) or abandoned/replaced (a new preview overwrites it), a
-          // leftover marker from before has nothing left to verify and must not silently carry
-          // forward onto an unrelated future preview (same stale-marker reasoning as R103's
-          // hasMultipleDistinctNamesStated fix for cancel/reschedule). R121: same reasoning for
-          // pending_book_takeover_verification, its sibling marker.
-          const { pending_booking: _drop, pending_book_verification: _dropV, pending_book_takeover_verification: _dropTV3, ...rest } = bookCtx;
-          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
-        };
-        // R107: the SAME cross-identity verification marker shape as R102's
-        // pending_cancel_verification/pending_reschedule_verification, generalized to
-        // book_appointment's own commit. Read here (once, top of the tool) so the commit gate below
-        // can see it without a second query.
-        const pendingBookVerification = bookCtx.pending_book_verification as
-          { start_time?: string; customer_name?: string | null; at?: number } | undefined;
-        // R121: a SEPARATE marker from pending_book_verification above -- that marker's release
-        // question ("is this REALLY <target>'s appointment") is the wrong shape for a takeover
-        // attempt, whose actual question is "do you genuinely want this changed FROM <originator>
-        // TO <proposed name>" (see takeoverVerificationResolution's own header for why reusing
-        // identityVerificationResolved here would be backwards). 15-minute freshness TTL, same
-        // convention as every other pending_* marker in this file.
-        const pendingTakeoverVerification = bookCtx.pending_book_takeover_verification as
-          { start_time?: string; originator_name?: string | null; proposed_name?: string | null; at?: number } | undefined;
-        const pendingTakeoverVerificationFresh = !!pendingTakeoverVerification &&
-          (typeof pendingTakeoverVerification.at !== "number" || (Date.now() - pendingTakeoverVerification.at) < 15 * 60 * 1000);
-        // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-NAME, sev-3): a name-correction stated on the SAME
-        // turn as the confirmation ("Klopt, maar dan voor Iris" on a Dana preview) was silently
-        // swallowed: the commit always sourced customer_name from the STORED pendingBook proposal
-        // (see rawName below), never the current turn's args.customer_name, even when the model
-        // itself called update_lead with the corrected name in the same turn. None of the 4/5
-        // ambiguousConfirm categories cover a bare name swap (no day/time word, no price word, no
-        // "?", no hedge word, no conditional word), so ctx.ambiguousConfirm stayed false and the
-        // stale name committed. Fix: treat a same-turn name change as its own ambiguity signal,
-        // the same "clarify over guess" pattern as ambiguousConfirm, rather than trusting the
-        // model's args.customer_name on a commit turn (which would reopen the exact "trust the
-        // model on an ambiguous turn" risk R23/R24 closed for time/service corrections). Compares
-        // the model's args.customer_name THIS turn against the stored preview name; a real
-        // placeholder-vs-real-name mismatch (empty/"Privé"/"Prive" on either side) is not a
-        // correction and is ignored, only two distinct non-empty real names count.
-        const isRealName = (n: unknown) => {
-          const t = String(n ?? "").trim().toLowerCase();
-          return t !== "" && t !== "privé" && t !== "prive";
-        };
-        // R116 (NAMECHANGED-DATE-BLIND fix, live-reproduced R115 evidence/R115_repro.md): nameChanged
-        // below used to compare ONLY the incoming customer_name against pendingBook.customer_name,
-        // with no check at all that THIS turn's request is actually about the SAME stored proposal.
-        // A genuinely fresh booking request (different date/time/service) under a different name was
-        // therefore misdiagnosed as "renaming" whatever unrelated, possibly stale pending_booking
-        // happened to be sitting in context (live repro: a fresh "vrijdag 7 augustus" request for
-        // "R115DiagB" got flagged against an unrelated old "vrijdag 31 juli" pending booking under a
-        // different name). Fix: only let nameChanged fire when THIS turn's date/time/service either
-        // agree with the stored pending_booking's own slot, or were not restated at all (a bare name
-        // correction on an otherwise-untouched pending proposal, the original R25 shape this was built
-        // for) -- never when the customer explicitly named a genuinely different date/time/service.
-        // Date/time are compared in the SAME Amsterdam wall-clock convention nlWhen/nlTimeOnly already
-        // use elsewhere in this file, not raw UTC slicing, since args.date/args.time are customer-
-        // facing local values while pendingBook.start_time is stored UTC ISO.
-        const pendingDateNL = pendingBook?.start_time ? new Date(pendingBook.start_time).toLocaleDateString("en-CA", { timeZone: NL_TZ }) : null;
-        const pendingTimeNL = pendingBook?.start_time ? nlTimeOnly(pendingBook.start_time) : null;
-        const argsDateStr = typeof args.date === "string" && args.date.length > 0 ? args.date : null;
-        const argsTimeRaw = typeof args.time === "string" ? args.time.trim().match(/^(\d{1,2}):(\d{2})/) : null;
-        const argsTimeStr = argsTimeRaw ? `${argsTimeRaw[1].padStart(2, "0")}:${argsTimeRaw[2]}` : null;
-        const argsServiceStr = typeof args.service_type_id === "string" && args.service_type_id.length > 0 ? args.service_type_id : null;
-        const argsRestatesDifferentSlot = !!pendingBook?.start_time && (
-          (argsDateStr !== null && argsDateStr !== pendingDateNL) ||
-          (argsTimeStr !== null && argsTimeStr !== pendingTimeNL) ||
-          (argsServiceStr !== null && !!pendingBook?.service_type_id && argsServiceStr !== pendingBook.service_type_id)
-        );
-        const nameChanged = !!pendingBook?.start_time && isRealName(args.customer_name) && isRealName(pendingBook?.customer_name) &&
-          String(args.customer_name).trim().toLowerCase() !== String(pendingBook?.customer_name).trim().toLowerCase() &&
-          !argsRestatesDifferentSlot;
-
-        // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, identityDisambiguationGuard.ts's
-        // previewTakeoverRisk has the full root-cause/design reasoning + live S6 repro): nameChanged
-        // above only ever compares the incoming name against pendingBook.customer_name, which is
-        // simply "whatever the last re-preview wrote," not an independent fact about who genuinely
-        // started THIS booking attempt. A second, different real person on a shared/fresh phone
-        // could send a confirm-shaped, name-restating message BEFORE the original person ever
-        // confirmed; nameChanged correctly re-previews under the new name, but the ORIGINAL name
-        // (the one genuine evidence of who started this) is silently discarded with no check at
-        // all, and a same-turn update_lead call then lets the very next bare "ja" commit clean
-        // (ctx.knownSelfName now agrees with the already-hijacked pendingBook.customer_name, so
-        // crossIdentityBookRisk never sees the mismatch that mattered). Fix: consult
-        // previewTakeoverRisk BEFORE letting nameChanged's re-preview silently swap the name,
-        // comparing the NEW candidate against pendingBook.originator_name (the name captured at
-        // this booking's TRUE first preview, stamped once below and never overwritten by a later
-        // re-preview) rather than against the current, possibly-already-hijacked stored name.
-        // Skips cleanly (false) when no originator_name is on file yet (an in-flight preview from
-        // before this fix shipped): conservative, byte-identical behaviour for that narrow
-        // transitional window, never a new false-positive on old data.
-        const takeoverRisk = nameChanged && previewTakeoverRisk(pendingBook?.originator_name, args.customer_name == null ? null : String(args.customer_name), ctx.userMessage);
-
-        // COMMIT only when a proposal was previewed in a previous turn AND the customer
-        // confirmed (server-detected ctx.confirmBook, or the model's confirmed flag). On
-        // commit we use the STORED proposal, never the model's (possibly mis-reconstructed) args.
-        // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): the model's own args.confirmed is
-        // just as capable of misreading an ambiguous message (a time-shift or service-correction
-        // qualifier attached to an affirm word) as the server force ctx.confirmBook was before
-        // R23's ambiguousConfirm gate. Gating ONLY ctx.confirmBook (R23's fix) left this arm of
-        // the OR fully open: the model self-issues confirmed:true on any ja/klopt-shaped reply
-        // per prompt.ts, independent of ambiguity. Applying !ctx.ambiguousConfirm to BOTH arms
-        // closes that path: on an ambiguous message neither arm can commit, so the model runs
-        // normally against the still-pending proposal (re-previews or answers the question)
-        // instead of silently committing the wrong thing.
-        // R26 (structural rebuild, replaces category-by-category regex patching as the PRIMARY
-        // mechanism): R23-R25 each closed one more wording CATEGORY the ambiguousConfirm regex
-        // bank did not yet cover (time-shift/price/day -> service-correction -> conditional/name),
-        // an inherently unbounded enumeration of natural language (Mathew's own framing: too many
-        // ways to phrase something in Dutch, doubles in English). Instead of adding a 6th/7th/Nth
-        // regex category, require the SAME model call that is already reading the message and
-        // deciding to call the tool to make its own belief about message-cleanliness EXPLICIT and
-        // machine-checkable: args.only_confirming_previous must be exactly true (missing/false/any
-        // other value fails CLOSED, never open) for EVERY commit, whichever arm drives it. This
-        // generalizes to any future phrasing/language without a new regex, because it is the
-        // model's own language understanding attesting to a fact the server can mechanically check
-        // for presence, not a wording pattern the server has to recognize. ambiguousConfirm (regex)
-        // and nameChanged stay as a SECOND, independent, model-independent layer (defense-in-depth,
-        // catches the case where the small 20B model's own attestation is wrong); see the round's
-        // evidence file for the full reasoning on why field-echo-compare on date/time/service would
-        // NOT have covered 5 of 6 known historical bugs (the server already never trusts those
-        // fields from args on commit) and was rejected as the primary mechanism.
-        const cleanlyConfirmed = args.only_confirming_previous === true;
-        // R32: ctx.hardConfirm === true is a THIRD, structural, ANDed requirement (see ToolContext
-        // comment above, evidence/IUX_r32.md section 2). committing now needs ALL of: the server
-        // or model saying "confirmed", the regex ambiguousConfirm layer NOT flagging it, the name
-        // not having changed, the model's own attestation, AND the hard structural gate agreeing
-        // the raw message is a member of the finite clean-confirm allow-list. Any one of the four
-        // independent checks failing blocks the commit; only the hard gate is immune to novel
-        // phrasing by construction (it does not pattern-match "badness", it membership-tests
-        // "goodness" against a closed list).
-        // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, PURE ADDITIVE FIFTH condition, see ToolContext
-        // comment above + evidence/IUX_r36.md): closes the specific incident shape (a first-ever
-        // message, ZERO prior pending_booking, that self-chains a preview-then-self-confirm in ONE
-        // turn purely off the model's OWN args.confirmed:true). The precise, narrow discriminator:
-        // ctx.confirmBook is computed in index.ts from the pending_booking that ALREADY EXISTED
-        // in the DB before this HTTP turn's runAgent ever started (a genuine, server-verified
-        // PRIOR-turn proposal). When ctx.confirmBook is true, a real prior-turn proposal is proven
-        // to exist independently of anything this closure does this turn, so any same-turn
-        // re-preview/retry oscillation from there (the proven bookCommitMissed recovery flow,
-        // where the model's first attempt omits only_confirming_previous and a nudge retries) stays
-        // fully allowed, unchanged from before this round. Only when ctx.confirmBook is FALSE (no
-        // prior-turn proposal existed AT ALL) and the commit is being driven purely by the model's
-        // own self-issued args.confirmed===true is the pendingBook required to predate anything
-        // THIS closure itself wrote this turn (lastSelfWrittenBookAt): that is precisely the
-        // self-chain shape (preview call writes it, self-confirm call reads its own just-written
-        // stamp back), and it is the ONLY path this guard touches. A missing/non-numeric
-        // pendingBook.at fails CLOSED (excluded) in that narrow case.
-        const noPriorTurnProposal = ctx.confirmBook !== true;
-        const previewIsSelfWritten = noPriorTurnProposal &&
-          typeof pendingBook?.at === "number" && pendingBook.at === lastSelfWrittenBookAt;
-        // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, FULL model-attestation
-        // bypass): ctx.hardConfirm's finite bare-affirm allow-list (hardConfirmGate.ts) and a
-        // genuine naam_verificatie_nodig-resolving reply are STRUCTURALLY exclusive of each other:
-        // hardConfirm only accepts a bare "ja"/"klopt"-shaped message with no extra content, while
-        // resolving a cross-identity verification question requires the customer's message to
-        // explicitly name the target ("Ja, echt boeken voor Chris"), which is real EXTRA content
-        // and therefore, by design, never a hardConfirm member. Live-reproduced on the S6 testpad
-        // (phone 31600001719/31600001720): once naam_verificatie_nodig has fired, NEITHER a bare
-        // "ja" (fails identityVerificationResolved's name-match) NOR an explicit name-restatement
-        // (fails hardConfirm's allow-list) can ever commit via hardConfirm/cleanlyConfirmed alone.
-        // A first attempt at this fix only substituted for hardConfirm (leaving args.confirmed/
-        // args.only_confirming_previous still required from the MODEL) and added a dedicated
-        // system nudge instructing the model to set both fields explicitly; live-tested this round,
-        // even a nudge written SPECIFICALLY for this shape ("the name is the confirmation, not new
-        // doubt, set only_confirming_previous:true") did not reliably land: the model repeated
-        // fresh-preview calls 3 turns running instead of ever attesting cleanly, consistent with
-        // this codebase's own established, hard-won lesson (documented at the top of
-        // identityDisambiguationGuard.ts: "prompt-only steering has repeatedly proven unreliable
-        // against this model at this scale... a small model's inference... is not a safe
-        // transaction boundary; only a raw-message, code-level check is"). FIX (this round, final
-        // shape): ctx.confirmBookVerification / ctx.confirmBookOwnerRestated are EACH ALREADY a
-        // complete, deterministic, code-level commit signal in their own right (index.ts computes
-        // both from the raw customer message: a clean affirm via AFFIRM_RE/!NEGATE_RE, PLUS
-        // !ambiguousConfirm's day/time/price/hedge/conditional/vague-preference/rejection screen,
-        // PLUS an explicit whole-word match of the pending preview's own customer_name). This is
-        // STRICTLY MORE evidence of genuine confirm intent than the generic ctx.confirmBook path
-        // requires (which only needs a bare affirm, no name-match at all), so trusting it exactly
-        // as fully as ctx.confirmBook is trusted (substituting for BOTH the args.confirmed arm AND
-        // cleanlyConfirmed, not just hardConfirm) is consistent with this file's own existing risk
-        // bar, not a lower one. Scoped identically to ctx.confirmBook's own binding discipline: only
-        // ever true when a fresh, still-pending preview exists for THIS EXACT booking (the marker-
-        // bound check below re-verifies pending_book_verification's own start_time/customer_name
-        // match THIS pendingBook before crossIdentityBookRisk is even re-evaluated; the marker-free
-        // twin is computed directly against THIS turn's own still-pending pbk in index.ts), so
-        // neither can ever be satisfied by an unrelated message, an unrelated preview, or a stale
-        // marker left over from a different booking.
-        const verifiedBypass = crossIdentityBookVerificationBypass(ctx.confirmBookVerification) || ctx.confirmBookOwnerRestated === true;
-        // R118 (GAP 3 fix): applies to BOTH commit arms (the server-forced ctx.confirmBook AND the
-        // model's own self-issued args.confirmed), same "close every arm of the OR" discipline
-        // R24 already established for ctx.ambiguousConfirm. Without this, a genuine intervening
-        // exchange (detected server-side in index.ts, independent of the model) could still be
-        // silently bypassed by the model self-attesting args.confirmed:true + only_confirming_
-        // previous:true on a bare "ja", exactly the live-reproduced GAP 3 shape. Live-reproduced
-        // exploit confirmed this was reachable via the args.confirmed arm even though ctx.confirmBook
-        // itself was already correctly gated.
-        // R120 (continued): ALSO exempted by verifiedBypass. Live-reproduced on the S6 testpad
-        // (phone 31600001722): the customer's turn-2 bare "ja" (answering the naam_verificatie_nodig
-        // question, itself an intervening exchange relative to the ORIGINAL preview) legitimately
-        // makes pendingBookInterveningExchange true by turn 3, and "Ja, echt voor Nora" carries no
-        // day/time restatement, so GAP 3's own bar was never met, blocking the genuine resolution
-        // this round otherwise fixed. An explicit, code-verified match of the pending preview's own
-        // target name is AT LEAST as strong a "the customer is still talking about THIS specific
-        // proposal, not a stale abandoned one" signal as a day/time restatement (GAP 3's own bar):
-        // it can only be true when the message names the EXACT person the still-pending preview
-        // already has, which is impossible to satisfy by accident or for an unrelated abandoned
-        // proposal. Exempting it here does not reopen GAP 3's own exploit (a context-free bare "ja"
-        // with nothing else): that shape still yields verifiedBypass===false unless a fresh,
-        // still-bound pending_book_verification marker's OWN prior turn already required a name
-        // match to reach this point.
-        const bookInterveningBlock = ctx.pendingBookInterveningExchange === true && ctx.messageRestatesDayTime !== true && !verifiedBypass;
-        // R129 (DURATION-INTEGRITY-FLAKINESS fix, ~64% observed rate pre-fix): ctx.confirmBook and
-        // ctx.hardConfirm are BOTH already fully deterministic, code-level signals computed in
-        // index.ts BEFORE the LLM ever runs (confirmBook: pendingBookFresh + AFFIRM_RE/!NEGATE_RE/
-        // !ambiguousConfirm/no-unresolved-intervening-exchange; hardConfirm: classifyHardConfirm's
-        // finite, human-auditable allow-list against the raw message). Before this fix, committing
-        // STILL required cleanlyConfirmed (args.only_confirming_previous === true, the MODEL's own
-        // tool-call attestation) even when both deterministic signals already agreed this was an
-        // unambiguous clean confirm, because of operator precedence: `(A || B) && C && D || E`
-        // parses as `((A || B) && C && D) || E`, so a small model that flakes on setting
-        // only_confirming_previous on a bare "ja" (proven unreliable elsewhere in this file, see
-        // R120's own header) made committing false even though the server already knew, with zero
-        // ambiguity, that this was a genuine confirm of a still-fresh, non-intervened, non-ambiguous
-        // pending_booking. Root cause of the flakiness (live-reproduced, see evidence/R129_repro.md):
-        // that false `committing` sent the turn down the `!committing` fresh-preview branch below,
-        // which legitimately re-reads the service's CURRENT live duration to build a fresh proposal,
-        // silently landing a mid-flow-changed duration on the very next successful commit instead of
-        // the originally previewed one (~64% of trials pre-fix; 0/20 in this round's post-fix batch).
-        //
-        // Fix: deterministicCleanConfirm is a NEW, independent OR-branch (alongside verifiedBypass),
-        // never a replacement for the existing cleanlyConfirmed/hardConfirm/ambiguousConfirm layers,
-        // which stay fully intact for every path that does NOT satisfy this branch (a model self-
-        // issuing args.confirmed:true on a message the server itself thinks is ambiguous still
-        // cannot commit through here: ctx.confirmBook is false whenever ambiguousConfirm is true).
-        // This mirrors the EXACT precedent R120 already established for confirmBookVerification/
-        // confirmBookOwnerRestated (verifiedBypass above): once independent server-side determinism
-        // already proves the confirm is clean, requiring the small model's own attestation ON TOP
-        // adds no safety, only flakiness risk, per this codebase's own established doctrine that
-        // prompt-only/model-attestation steering does not reliably hold at this model's scale.
-        // Still fully subject to every other AND-gate below (ambiguousConfirm/nameChanged/
-        // pendingBook/previewIsSelfWritten/bookInterveningBlock), so this can never commit a
-        // different, wrong, stale, or hijacked proposal, only remove the redundant single-model-
-        // attestation dependency for an ALREADY-deterministically-clean confirm.
-        const deterministicCleanConfirm = ctx.confirmBook === true && ctx.hardConfirm === true;
-        const committing = ((args.confirmed === true || ctx.confirmBook === true) && cleanlyConfirmed && ctx.hardConfirm === true || verifiedBypass || deterministicCleanConfirm) &&
-          !ctx.ambiguousConfirm && !nameChanged && !!pendingBook?.start_time && !previewIsSelfWritten && !bookInterveningBlock;
-        // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
-        // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
-        // rather than falling through to the generic fresh-preview path, which would expect
-        // args.service_type_id/date/time the model has no reason to resupply on a bare confirm
-        // turn that also corrects the name, and would otherwise dead-end on "ontbrekende_gegevens".
-        // This is a pure re-preview (no insert either way), so it carries none of the commit risk;
-        // it just corrects WHICH name gets shown back to the customer for the next confirm.
-        // R32: deliberately NOT gated on ctx.hardConfirm. This path fires when the customer bundled
-        // a real name-correction with a clean affirm (e.g. "Klopt, maar dan voor Iris"); that
-        // message is legitimately not a hard-confirm member by design, since it carries extra
-        // content, and nameChanged already isolates exactly this shape and only ever RE-PREVIEWS,
-        // never commits, so leaving it un-gated here carries no commit risk.
-        const wouldHaveCommitted = (args.confirmed === true || ctx.confirmBook === true) && !ctx.ambiguousConfirm && !!pendingBook?.start_time;
-        const namePreviewOnly = nameChanged && wouldHaveCommitted;
-
-        // R120 (DOUBLE-CONFIRM-OSCILLATION fix, live-reproduced on the long multi-topic shared test
-        // conversation: book request -> Q1 -> "Ja, klopt" -> naam_verificatie_nodig Q2 -> "Ja, boek
-        // het" -> REVERTED all the way back to Q1, no booking ever committed). ROOT CAUSE: a bare
-        // affirm answering Q2 (no literal name restated) makes ctx.confirmBookVerification false
-        // (identityVerificationResolved correctly still requires the name), so verifiedBypass is
-        // false; that SAME bare affirm is also, independently, a genuine "intervening customer
-        // message" relative to the ORIGINAL preview's own `at` (R118's pendingBookInterveningExchange:
-        // the earlier "Ja, klopt" turn that triggered Q2 in the first place counts as one), which
-        // forces bookInterveningBlock true (its own !verifiedBypass exemption cannot apply, since
-        // verifiedBypass is false here). Both together force `committing` false -- but the
-        // naam_verificatie_nodig RE-ASK gate a few dozen lines below only ever fires INSIDE the
-        // `committing === true` branch, so it is never reached either. Control falls all the way
-        // through to the generic fresh-preview path (serviceId/start/end sourced from args, a brand
-        // new `at` stamped below), which re-asks Q1 verbatim -- discarding the still-unresolved,
-        // still-bound pending_book_verification marker entirely. This is true regardless of WHICH
-        // reason crossIdentityBookRisk originally fired for (a real established knownSelfName
-        // mismatch, or the weaker priorRealBookingExists-only trigger); either way, the customer is
-        // mid-verification and must not be silently bounced back to the very first question.
-        //
-        // FIX: when a fresh pending_book_verification marker is still genuinely BOUND to THIS EXACT
-        // pending_booking (same start_time AND customer_name, never a stale marker left over from a
-        // different, already-abandoned proposal) and this turn's reply is the server-detected
-        // "answering the pending proposal" shape that simply failed to resolve the identity check,
-        // re-surface Q2 again instead of silently rebuilding a fresh preview. Deliberately keyed off
-        // ctx.bookVerificationAffirmUnresolved (NOT ctx.confirmBook): confirmBook is itself blocked
-        // by R118's pendingBookInterveningExchange guard whenever a genuine intervening customer
-        // message exists, and Q2's own PRIOR turn (the reply that triggered Q2 in the first place)
-        // is exactly such an intervening message relative to the ORIGINAL preview -- so ctx.confirmBook
-        // is structurally false on the very next bare reply to Q2, live-reproduced this round.
-        // bookVerificationAffirmUnresolved carries no such requirement (see its own header in
-        // index.ts): re-asking Q2 never commits anything, so R118's stale-proposal-commit protection
-        // does not need to gate it. Never fires when the marker is missing/stale/unbound
-        // (byte-identical behaviour for every other shape), and never fires on a genuinely ambiguous
-        // message (ctx.ambiguousConfirm, already baked into bookVerificationAffirmUnresolved).
-        if (
-          !committing && !namePreviewOnly &&
-          pendingBookVerification?.start_time !== undefined &&
-          pendingBook?.start_time === pendingBookVerification.start_time &&
-          (pendingBook?.customer_name ?? null) === (pendingBookVerification.customer_name ?? null) &&
-          ctx.bookVerificationAffirmUnresolved === true
-        ) {
-          return {
-            error: "naam_verificatie_nodig",
-            current_name: pendingBook!.customer_name,
-            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.customer_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${pendingBook!.customer_name}? Typ ter bevestiging de naam terug, bijv. "Ja, ${pendingBook!.customer_name}".`,
-            message:
-              `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.customer_name}. ` +
-              `De klant heeft dit nog NIET ondubbelzinnig bevestigd. Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${pendingBook!.customer_name}").`,
-            guidance: "NOG NIETS geboekt. Veiligheidscheck staat nog open: stel de vraag opnieuw en wacht op het antwoord met de naam erin.",
-          };
-        }
-
-        const serviceId = String(((committing || namePreviewOnly) ? pendingBook!.service_type_id : args.service_type_id) ?? "");
-        let start = String(((committing || namePreviewOnly) ? pendingBook!.start_time : args.start_time) ?? "");
-        let end = String(((committing || namePreviewOnly) ? pendingBook!.end_time : args.end_time) ?? "");
-
-        // A2: which of the owner's calendars are we booking in? On COMMIT use the calendar stored
-        // during the preview (authoritative, like start_time), so the confirm turn needs no
-        // calendar_index. On a fresh PREVIEW resolve from the model's calendar_index against the
-        // owner allowlist; when multiple calendars exist and no valid index was given, refuse to
-        // guess (booking in the wrong staff/location is a real error) and ask which one. Every
-        // value of calId comes from ctx.calendars → it can never point at another owner's calendar.
-        let calId = ctx.calendarId;
-        if (committing || namePreviewOnly) {
-          calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
-        } else {
-          // R71 (R70-3 fix): on a FRESH preview only (never on commit/namePreviewOnly, which
-          // already have a stored, previously-resolved service+calendar), refuse before resolving
-          // a calendar at all when the customer never named a service or a branch and real
-          // service ambiguity exists (see ToolContext comment + serviceDisambiguationGuard.ts).
-          if (ctx.blockForMissingServiceChoice) {
-            return { error: "kies_dienst", message: KIES_DIENST_MESSAGE };
-          }
-          // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): same fresh-preview-only gate as
-          // get_available_slots above, mirrored here so a customer cannot slip a silently wrong
-          // branch/price/duration through by going straight to book_appointment.
-          if (ctx.blockForAmbiguousBranch) {
-            return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
-          }
-          // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix): same fresh-preview-only gate as
-          // get_available_slots above, so a customer cannot slip a silent compound-request
-          // fall-through by going straight to book_appointment either.
-          if (ctx.blockForMultiService && ctx.blockForMultiService.length >= 2) {
-            return { error: "meerdere_diensten", message: MULTI_SERVICE_MESSAGE(ctx.blockForMultiService) };
-          }
-          // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): same fresh-preview-only gate as
-          // get_available_slots above, so a customer cannot slip the silent returning-service
-          // default through by going straight to book_appointment either.
-          if (ctx.blockForReturningServiceDefault && ctx.lastServiceForReturningDefault) {
-            return { error: "bevestig_terugkerende_dienst", message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(ctx.lastServiceForReturningDefault) };
-          }
-          // R93 (SILENT-TODAY-DEFAULT fix): same fresh-preview-only gate as get_available_slots
-          // above, so a customer who never named a day cannot slip a silent "today" assumption
-          // through by going straight to book_appointment either.
-          if (ctx.blockForNoDayNamed) {
-            return { error: "vraag_dag", message: VRAAG_DAG_MESSAGE };
-          }
-          const bookCal = resolveBookingCalendar(ctx, args.calendar_index, serviceId);
-          if ("needAsk" in bookCal) {
+      case "book_appointment":
+        {
+          // Idempotency for a redundant SAME-TURN re-fire after a successful commit: return the
+          // already-booked confirmation immediately, so the model can't run a fresh preview that
+          // reports the slot "taken" by the customer's own just-made booking (A2-WATCH).
+          if (bookedThisTurn) {
             return {
-              error: "kies_medewerker",
-              message: `Deze dienst wordt door meerdere medewerkers of locaties (${bookCal.options.join(", ")}) aangeboden. Vraag de klant kort en menselijk bij wie of waar ze de afspraak willen ("bij wie wil je de afspraak?"), of bied "geen voorkeur" aan als het ze niet uitmaakt. Presenteer de opties als personen of plekken in natuurlijke taal (vertaal/normaliseer de namen mee); noem ze NOOIT "agenda's" en dump geen technische namen. Pak daarna de service_type_id van de gekozen persoon/locatie en roep book_appointment opnieuw aan.`,
-            };
-          }
-          calId = bookCal.id;
-        }
-
-        // FAST PATH (preview only): the customer named a concrete date+time, so resolve the EXACT
-        // slot SERVER-SIDE rather than forcing a separate get_available_slots LLM round-trip (the
-        // dominant per-turn latency cost ~3s). On commit we always use the stored pending_booking,
-        // so this runs only for a fresh preview. If the named time isn't free, return the free times
-        // so the model proposes an alternative in the SAME turn.
-        // Date guards run BEFORE any slot resolution (cheap, and they short-circuit the wrong
-        // model answers). bookPolicy is fetched ONCE here and reused for the max/day cap below
-        // (no extra round-trip — it was already fetched unconditionally further down).
-        const bookPolicy = await getCalendarPolicy(supabase, calId);
-        if (!committing && !namePreviewOnly && isPastDateNL(args.date)) {
-          return { error: "datum_verleden", message: "Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
-        }
-        if (!committing && !namePreviewOnly && isBeyondWindowNL(args.date, bookPolicy.bookingWindowDays)) {
-          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet boeken, je kunt tot ${bookPolicy.bookingWindowDays} dagen vooruit een afspraak maken. Vraag de klant vriendelijk een eerdere datum.` };
-        }
-        if (!committing && !namePreviewOnly && serviceId && (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date && args.time) {
-          const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, calId, serviceId, String(args.date), String(args.time), dur, bookPolicy.minimumNoticeHours);
-          if ("error" in r) {
-            return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag de klant kort de gewenste dag en tijd." };
-          }
-          if ("tooSoon" in r) {
-            // The named time is within the minimum-notice window → explain WHY (not a generic
-            // "niet beschikbaar") and point to the first moment that does work.
-            const notice = formatHoursNL(bookPolicy.minimumNoticeHours!);
-            return {
-              error: "te_vroeg",
+              ok: true,
+              already_booked: true,
+              when: bookedThisTurn.when,
+              ...(bookedThisTurn.payment_url
+                ? {
+                  payment_required: true,
+                  payment_url: bookedThisTurn.payment_url,
+                }
+                : {}),
+              // R130: carry the price-change disclosure through a same-turn redundant re-fire too,
+              // so a stall-retry that re-hits this idempotency echo can't accidentally drop the
+              // disclosure the FIRST call already computed for this exact commit.
+              ...(bookedThisTurn.price_changed
+                ? {
+                  price_changed: true,
+                  new_price: bookedThisTurn.new_price,
+                  previous_price: bookedThisTurn.previous_price,
+                }
+                : {}),
               message:
-                `Die tijd is te kort dag: een afspraak kan pas vanaf ${notice} van tevoren worden gemaakt. ` +
-                (r.earliestNL ? `Het eerste moment dat kan is ${r.earliestNL}. ` : "") +
-                "Leg dit kort en vriendelijk uit aan de klant" +
-                (r.available.length ? ` en bied een van deze vrije tijden aan: ${r.available.join(", ")}.` : " en vraag om een latere dag/tijd."),
-              available_slots: r.available,
+                "Deze afspraak is in deze beurt AL geboekt. Bevestig dat kort en vriendelijk; zeg NIET dat de tijd bezet of niet beschikbaar is en boek niet opnieuw.",
             };
           }
-          if ("unavailable" in r) {
-            // IDEMPOTENCY: a book_appointment re-fire AFTER a successful commit lands on
-            // the slot now occupied by the customer's OWN just-made booking, so never tell
-            // them "niet vrij". If this customer already holds an active booking at the
-            // requested local time on this calendar that day, acknowledge it as already
-            // booked. (Bookable hours are 09-17 local = 07-16 UTC, so the booking's UTC
-            // day equals its local day, so a UTC day-window matches correctly.)
-            // R96 (PHANTOM-SUCCESS fix, compound of R95-1/NEW-1, live-reproduced this round,
-            // evidence/IUX_r96.md section 3): this echo was scoped ONLY by phone + calendar +
-            // day + clock-time, with NO check on service_type_id. A customer booking a SECOND,
-            // DISTINCT service that happens to land on the exact same clock-time-of-day as their
-            // FIRST, already-confirmed, DIFFERENT service (a realistic collision: "same time
-            // next day" is a common ask) matched this echo, which returned the FIRST booking's
-            // own id/start_time/when as if it were the SECOND service's real commit. The
-            // customer was told "Gelukt!" for a service that was never created, while the
-            // existing booking for the OTHER service sat untouched, only for a LATER confirm
-            // turn to then reschedule/corrupt it once the model's confused state caught up
-            // (DB-proven: the single existing row's service_type_id was silently overwritten by
-            // a subsequent reschedule_appointment call in the same conversation). FIX: this
-            // idempotency echo must only ever match a PRIOR booking of the SAME requested
-            // service_type_id; a different service at the same clock-time is a genuine distinct
-            // request and must fall through to the normal "niet_beschikbaar" / new-preview path,
-            // never be echoed as if it were already booked.
-            const wantM = String(args.time).trim().match(/^(\d{1,2}):(\d{2})/);
-            if (wantM) {
-              const want = `${wantM[1].padStart(2, "0")}:${wantM[2]}`;
-              const dayStart = `${args.date}T00:00:00Z`;
-              const dayEnd = new Date(new Date(dayStart).getTime() + 86_400_000).toISOString();
-              // R110 (IDEMPOTENT-REBOOK-DISCLOSURE-BYPASS fix): customer_name is now selected too,
-              // so this idempotent echo's own result can carry it back to index.ts's
-              // deterministicConfirmation, the SAME field cancel/reschedule's own ok:true results
-              // already carry for exactly this reason (see R102/R103 comments on those branches
-              // below). Without it, a re-invocation from a DIFFERENT identity on this shared phone
-              // hitting this exact echo told them "Gelukt!" with zero disclosure of whose booking
-              // it actually is, even though no duplicate row was ever created.
-              const { data: ownSameDay } = await supabase
-                .from("bookings")
-                .select("id, start_time, service_type_id, customer_name")
-                .eq("customer_phone", ctx.phone)
-                .eq("calendar_id", calId)
-                .eq("service_type_id", serviceId)
-                .in("status", ["confirmed", "pending"])
-                .gte("start_time", dayStart)
-                .lt("start_time", dayEnd);
-              const mine = (ownSameDay ?? []).find(
-                (b) => nlTimeOnly((b as { start_time: string }).start_time).slice(0, 5) === want,
-              );
-              if (mine) {
-                await clearPendingBook();
-                const m = mine as { id: string; start_time: string; customer_name: string | null };
-                return {
-                  ok: true,
-                  already_booked: true,
-                  booking_id: m.id,
-                  start_time: m.start_time,
-                  when: nlWhen(m.start_time),
-                  // R110: same isRealNameShared gate cancel/reschedule already use, so a
-                  // placeholder/no-name booking renders no field, unaffected common-case behaviour.
-                  customer_name: isRealNameShared(m.customer_name) ? m.customer_name : null,
-                  message: "Deze afspraak staat al geboekt (zelfde dienst, zelfde tijd). Bevestig dat kort en bied verder hulp aan.",
-                };
-              }
+          // Server-driven TWO-PHASE booking (mirrors cancel_appointment): the first call only
+          // PREVIEWS (stores a pending_booking proposal, NO insert), the customer confirms, then
+          // the COMMIT inserts using the SERVER-STORED exact values. This makes an accidental
+          // immediate booking impossible, lets the customer correct the name/time, and removes
+          // the model's time-reconstruction from the insert (it once booked 12:00 for a
+          // confirmed 10:00 — the stored start_time is now authoritative).
+          let bookCtx: Record<string, unknown> = {};
+          if (ctx.conversationId) {
+            const { data: conv } = await supabase
+              .from("whatsapp_conversations").select("context").eq(
+                "id",
+                ctx.conversationId,
+              ).maybeSingle();
+            bookCtx = ((conv as { context?: Record<string, unknown> } | null)
+              ?.context) ?? {};
+          }
+          const pendingBook = bookCtx.pending_booking as {
+            service_type_id?: string;
+            start_time?: string;
+            end_time?: string;
+            customer_name?: string;
+            calendar_id?: string;
+            customer_country?: string | null;
+            customer_vat_id?: string | null;
+            customer_locale?: "nl" | "en";
+            at?: number;
+            originator_name?: string | null;
+            preview_price?: number | null;
+          } | undefined;
+          const clearPendingBook = async () => {
+            if (!ctx.conversationId) return;
+            // R107: also drop any pending_book_verification marker here. It only ever answers "is
+            // THIS preview's name really who it should be booked under"; once the preview is either
+            // committed (booking now exists) or abandoned/replaced (a new preview overwrites it), a
+            // leftover marker from before has nothing left to verify and must not silently carry
+            // forward onto an unrelated future preview (same stale-marker reasoning as R103's
+            // hasMultipleDistinctNamesStated fix for cancel/reschedule). R121: same reasoning for
+            // pending_book_takeover_verification, its sibling marker.
+            const {
+              pending_booking: _drop,
+              pending_book_verification: _dropV,
+              pending_book_takeover_verification: _dropTV3,
+              ...rest
+            } = bookCtx;
+            await supabase.from("whatsapp_conversations").update({
+              context: rest,
+            }).eq("id", ctx.conversationId);
+          };
+          // R107: the SAME cross-identity verification marker shape as R102's
+          // pending_cancel_verification/pending_reschedule_verification, generalized to
+          // book_appointment's own commit. Read here (once, top of the tool) so the commit gate below
+          // can see it without a second query.
+          const pendingBookVerification = bookCtx.pending_book_verification as {
+            start_time?: string;
+            customer_name?: string | null;
+            at?: number;
+          } | undefined;
+          // R121: a SEPARATE marker from pending_book_verification above -- that marker's release
+          // question ("is this REALLY <target>'s appointment") is the wrong shape for a takeover
+          // attempt, whose actual question is "do you genuinely want this changed FROM <originator>
+          // TO <proposed name>" (see takeoverVerificationResolution's own header for why reusing
+          // identityVerificationResolved here would be backwards). 15-minute freshness TTL, same
+          // convention as every other pending_* marker in this file.
+          const pendingTakeoverVerification = bookCtx
+            .pending_book_takeover_verification as {
+              start_time?: string;
+              originator_name?: string | null;
+              proposed_name?: string | null;
+              at?: number;
+            } | undefined;
+          const pendingTakeoverVerificationFresh =
+            !!pendingTakeoverVerification &&
+            (typeof pendingTakeoverVerification.at !== "number" ||
+              (Date.now() - pendingTakeoverVerification.at) < 15 * 60 * 1000);
+          // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-NAME, sev-3): a name-correction stated on the SAME
+          // turn as the confirmation ("Klopt, maar dan voor Iris" on a Dana preview) was silently
+          // swallowed: the commit always sourced customer_name from the STORED pendingBook proposal
+          // (see rawName below), never the current turn's args.customer_name, even when the model
+          // itself called update_lead with the corrected name in the same turn. None of the 4/5
+          // ambiguousConfirm categories cover a bare name swap (no day/time word, no price word, no
+          // "?", no hedge word, no conditional word), so ctx.ambiguousConfirm stayed false and the
+          // stale name committed. Fix: treat a same-turn name change as its own ambiguity signal,
+          // the same "clarify over guess" pattern as ambiguousConfirm, rather than trusting the
+          // model's args.customer_name on a commit turn (which would reopen the exact "trust the
+          // model on an ambiguous turn" risk R23/R24 closed for time/service corrections). Compares
+          // the model's args.customer_name THIS turn against the stored preview name; a real
+          // placeholder-vs-real-name mismatch (empty/"Privé"/"Prive" on either side) is not a
+          // correction and is ignored, only two distinct non-empty real names count.
+          const isRealName = (n: unknown) => {
+            const t = String(n ?? "").trim().toLowerCase();
+            return t !== "" && t !== "privé" && t !== "prive";
+          };
+          // R116 (NAMECHANGED-DATE-BLIND fix, live-reproduced R115 evidence/R115_repro.md): nameChanged
+          // below used to compare ONLY the incoming customer_name against pendingBook.customer_name,
+          // with no check at all that THIS turn's request is actually about the SAME stored proposal.
+          // A genuinely fresh booking request (different date/time/service) under a different name was
+          // therefore misdiagnosed as "renaming" whatever unrelated, possibly stale pending_booking
+          // happened to be sitting in context (live repro: a fresh "vrijdag 7 augustus" request for
+          // "R115DiagB" got flagged against an unrelated old "vrijdag 31 juli" pending booking under a
+          // different name). Fix: only let nameChanged fire when THIS turn's date/time/service either
+          // agree with the stored pending_booking's own slot, or were not restated at all (a bare name
+          // correction on an otherwise-untouched pending proposal, the original R25 shape this was built
+          // for) -- never when the customer explicitly named a genuinely different date/time/service.
+          // Date/time are compared in the SAME Amsterdam wall-clock convention nlWhen/nlTimeOnly already
+          // use elsewhere in this file, not raw UTC slicing, since args.date/args.time are customer-
+          // facing local values while pendingBook.start_time is stored UTC ISO.
+          const pendingDateNL = pendingBook?.start_time
+            ? new Date(pendingBook.start_time).toLocaleDateString("en-CA", {
+              timeZone: NL_TZ,
+            })
+            : null;
+          const pendingTimeNL = pendingBook?.start_time
+            ? nlTimeOnly(pendingBook.start_time)
+            : null;
+          const argsDateStr =
+            typeof args.date === "string" && args.date.length > 0
+              ? args.date
+              : null;
+          const argsTimeRaw = typeof args.time === "string"
+            ? args.time.trim().match(/^(\d{1,2}):(\d{2})/)
+            : null;
+          const argsTimeStr = argsTimeRaw
+            ? `${argsTimeRaw[1].padStart(2, "0")}:${argsTimeRaw[2]}`
+            : null;
+          const argsServiceStr = typeof args.service_type_id === "string" &&
+              args.service_type_id.length > 0
+            ? args.service_type_id
+            : null;
+          const argsRestatesDifferentSlot = !!pendingBook?.start_time && (
+            (argsDateStr !== null && argsDateStr !== pendingDateNL) ||
+            (argsTimeStr !== null && argsTimeStr !== pendingTimeNL) ||
+            (argsServiceStr !== null && !!pendingBook?.service_type_id &&
+              argsServiceStr !== pendingBook.service_type_id)
+          );
+          const nameChanged = !!pendingBook?.start_time &&
+            isRealName(args.customer_name) &&
+            isRealName(pendingBook?.customer_name) &&
+            String(args.customer_name).trim().toLowerCase() !==
+              String(pendingBook?.customer_name).trim().toLowerCase() &&
+            !argsRestatesDifferentSlot;
+
+          // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, identityDisambiguationGuard.ts's
+          // previewTakeoverRisk has the full root-cause/design reasoning + live S6 repro): nameChanged
+          // above only ever compares the incoming name against pendingBook.customer_name, which is
+          // simply "whatever the last re-preview wrote," not an independent fact about who genuinely
+          // started THIS booking attempt. A second, different real person on a shared/fresh phone
+          // could send a confirm-shaped, name-restating message BEFORE the original person ever
+          // confirmed; nameChanged correctly re-previews under the new name, but the ORIGINAL name
+          // (the one genuine evidence of who started this) is silently discarded with no check at
+          // all, and a same-turn update_lead call then lets the very next bare "ja" commit clean
+          // (ctx.knownSelfName now agrees with the already-hijacked pendingBook.customer_name, so
+          // crossIdentityBookRisk never sees the mismatch that mattered). Fix: consult
+          // previewTakeoverRisk BEFORE letting nameChanged's re-preview silently swap the name,
+          // comparing the NEW candidate against pendingBook.originator_name (the name captured at
+          // this booking's TRUE first preview, stamped once below and never overwritten by a later
+          // re-preview) rather than against the current, possibly-already-hijacked stored name.
+          // Skips cleanly (false) when no originator_name is on file yet (an in-flight preview from
+          // before this fix shipped): conservative, byte-identical behaviour for that narrow
+          // transitional window, never a new false-positive on old data.
+          const takeoverRisk = nameChanged &&
+            previewTakeoverRisk(
+              pendingBook?.originator_name,
+              args.customer_name == null ? null : String(args.customer_name),
+              ctx.userMessage,
+            );
+
+          // COMMIT only when a proposal was previewed in a previous turn AND the customer
+          // confirmed (server-detected ctx.confirmBook, or the model's confirmed flag). On
+          // commit we use the STORED proposal, never the model's (possibly mis-reconstructed) args.
+          // R24 (AFFIRM-CONFIRM-FALSEPOS, second commit path): the model's own args.confirmed is
+          // just as capable of misreading an ambiguous message (a time-shift or service-correction
+          // qualifier attached to an affirm word) as the server force ctx.confirmBook was before
+          // R23's ambiguousConfirm gate. Gating ONLY ctx.confirmBook (R23's fix) left this arm of
+          // the OR fully open: the model self-issues confirmed:true on any ja/klopt-shaped reply
+          // per prompt.ts, independent of ambiguity. Applying !ctx.ambiguousConfirm to BOTH arms
+          // closes that path: on an ambiguous message neither arm can commit, so the model runs
+          // normally against the still-pending proposal (re-previews or answers the question)
+          // instead of silently committing the wrong thing.
+          // R26 (structural rebuild, replaces category-by-category regex patching as the PRIMARY
+          // mechanism): R23-R25 each closed one more wording CATEGORY the ambiguousConfirm regex
+          // bank did not yet cover (time-shift/price/day -> service-correction -> conditional/name),
+          // an inherently unbounded enumeration of natural language (Mathew's own framing: too many
+          // ways to phrase something in Dutch, doubles in English). Instead of adding a 6th/7th/Nth
+          // regex category, require the SAME model call that is already reading the message and
+          // deciding to call the tool to make its own belief about message-cleanliness EXPLICIT and
+          // machine-checkable: args.only_confirming_previous must be exactly true (missing/false/any
+          // other value fails CLOSED, never open) for EVERY commit, whichever arm drives it. This
+          // generalizes to any future phrasing/language without a new regex, because it is the
+          // model's own language understanding attesting to a fact the server can mechanically check
+          // for presence, not a wording pattern the server has to recognize. ambiguousConfirm (regex)
+          // and nameChanged stay as a SECOND, independent, model-independent layer (defense-in-depth,
+          // catches the case where the small 20B model's own attestation is wrong); see the round's
+          // evidence file for the full reasoning on why field-echo-compare on date/time/service would
+          // NOT have covered 5 of 6 known historical bugs (the server already never trusts those
+          // fields from args on commit) and was rejected as the primary mechanism.
+          const cleanlyConfirmed = args.only_confirming_previous === true;
+          // R32: ctx.hardConfirm === true is a THIRD, structural, ANDed requirement (see ToolContext
+          // comment above, evidence/IUX_r32.md section 2). committing now needs ALL of: the server
+          // or model saying "confirmed", the regex ambiguousConfirm layer NOT flagging it, the name
+          // not having changed, the model's own attestation, AND the hard structural gate agreeing
+          // the raw message is a member of the finite clean-confirm allow-list. Any one of the four
+          // independent checks failing blocks the commit; only the hard gate is immune to novel
+          // phrasing by construction (it does not pattern-match "badness", it membership-tests
+          // "goodness" against a closed list).
+          // R36 (PHANTOM-BOOKING-SELFCHAIN, sev-2, PURE ADDITIVE FIFTH condition, see ToolContext
+          // comment above + evidence/IUX_r36.md): closes the specific incident shape (a first-ever
+          // message, ZERO prior pending_booking, that self-chains a preview-then-self-confirm in ONE
+          // turn purely off the model's OWN args.confirmed:true). The precise, narrow discriminator:
+          // ctx.confirmBook is computed in index.ts from the pending_booking that ALREADY EXISTED
+          // in the DB before this HTTP turn's runAgent ever started (a genuine, server-verified
+          // PRIOR-turn proposal). When ctx.confirmBook is true, a real prior-turn proposal is proven
+          // to exist independently of anything this closure does this turn, so any same-turn
+          // re-preview/retry oscillation from there (the proven bookCommitMissed recovery flow,
+          // where the model's first attempt omits only_confirming_previous and a nudge retries) stays
+          // fully allowed, unchanged from before this round. Only when ctx.confirmBook is FALSE (no
+          // prior-turn proposal existed AT ALL) and the commit is being driven purely by the model's
+          // own self-issued args.confirmed===true is the pendingBook required to predate anything
+          // THIS closure itself wrote this turn (lastSelfWrittenBookAt): that is precisely the
+          // self-chain shape (preview call writes it, self-confirm call reads its own just-written
+          // stamp back), and it is the ONLY path this guard touches. A missing/non-numeric
+          // pendingBook.at fails CLOSED (excluded) in that narrow case.
+          const noPriorTurnProposal = ctx.confirmBook !== true;
+          const previewIsSelfWritten = noPriorTurnProposal &&
+            typeof pendingBook?.at === "number" &&
+            pendingBook.at === lastSelfWrittenBookAt;
+          // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, continued, FULL model-attestation
+          // bypass): ctx.hardConfirm's finite bare-affirm allow-list (hardConfirmGate.ts) and a
+          // genuine naam_verificatie_nodig-resolving reply are STRUCTURALLY exclusive of each other:
+          // hardConfirm only accepts a bare "ja"/"klopt"-shaped message with no extra content, while
+          // resolving a cross-identity verification question requires the customer's message to
+          // explicitly name the target ("Ja, echt boeken voor Chris"), which is real EXTRA content
+          // and therefore, by design, never a hardConfirm member. Live-reproduced on the S6 testpad
+          // (phone 31600001719/31600001720): once naam_verificatie_nodig has fired, NEITHER a bare
+          // "ja" (fails identityVerificationResolved's name-match) NOR an explicit name-restatement
+          // (fails hardConfirm's allow-list) can ever commit via hardConfirm/cleanlyConfirmed alone.
+          // A first attempt at this fix only substituted for hardConfirm (leaving args.confirmed/
+          // args.only_confirming_previous still required from the MODEL) and added a dedicated
+          // system nudge instructing the model to set both fields explicitly; live-tested this round,
+          // even a nudge written SPECIFICALLY for this shape ("the name is the confirmation, not new
+          // doubt, set only_confirming_previous:true") did not reliably land: the model repeated
+          // fresh-preview calls 3 turns running instead of ever attesting cleanly, consistent with
+          // this codebase's own established, hard-won lesson (documented at the top of
+          // identityDisambiguationGuard.ts: "prompt-only steering has repeatedly proven unreliable
+          // against this model at this scale... a small model's inference... is not a safe
+          // transaction boundary; only a raw-message, code-level check is"). FIX (this round, final
+          // shape): ctx.confirmBookVerification / ctx.confirmBookOwnerRestated are EACH ALREADY a
+          // complete, deterministic, code-level commit signal in their own right (index.ts computes
+          // both from the raw customer message: a clean affirm via AFFIRM_RE/!NEGATE_RE, PLUS
+          // !ambiguousConfirm's day/time/price/hedge/conditional/vague-preference/rejection screen,
+          // PLUS an explicit whole-word match of the pending preview's own customer_name). This is
+          // STRICTLY MORE evidence of genuine confirm intent than the generic ctx.confirmBook path
+          // requires (which only needs a bare affirm, no name-match at all), so trusting it exactly
+          // as fully as ctx.confirmBook is trusted (substituting for BOTH the args.confirmed arm AND
+          // cleanlyConfirmed, not just hardConfirm) is consistent with this file's own existing risk
+          // bar, not a lower one. Scoped identically to ctx.confirmBook's own binding discipline: only
+          // ever true when a fresh, still-pending preview exists for THIS EXACT booking (the marker-
+          // bound check below re-verifies pending_book_verification's own start_time/customer_name
+          // match THIS pendingBook before crossIdentityBookRisk is even re-evaluated; the marker-free
+          // twin is computed directly against THIS turn's own still-pending pbk in index.ts), so
+          // neither can ever be satisfied by an unrelated message, an unrelated preview, or a stale
+          // marker left over from a different booking.
+          const verifiedBypass =
+            crossIdentityBookVerificationBypass(ctx.confirmBookVerification) ||
+            ctx.confirmBookOwnerRestated === true;
+          // R118 (GAP 3 fix): applies to BOTH commit arms (the server-forced ctx.confirmBook AND the
+          // model's own self-issued args.confirmed), same "close every arm of the OR" discipline
+          // R24 already established for ctx.ambiguousConfirm. Without this, a genuine intervening
+          // exchange (detected server-side in index.ts, independent of the model) could still be
+          // silently bypassed by the model self-attesting args.confirmed:true + only_confirming_
+          // previous:true on a bare "ja", exactly the live-reproduced GAP 3 shape. Live-reproduced
+          // exploit confirmed this was reachable via the args.confirmed arm even though ctx.confirmBook
+          // itself was already correctly gated.
+          // R120 (continued): ALSO exempted by verifiedBypass. Live-reproduced on the S6 testpad
+          // (phone 31600001722): the customer's turn-2 bare "ja" (answering the naam_verificatie_nodig
+          // question, itself an intervening exchange relative to the ORIGINAL preview) legitimately
+          // makes pendingBookInterveningExchange true by turn 3, and "Ja, echt voor Nora" carries no
+          // day/time restatement, so GAP 3's own bar was never met, blocking the genuine resolution
+          // this round otherwise fixed. An explicit, code-verified match of the pending preview's own
+          // target name is AT LEAST as strong a "the customer is still talking about THIS specific
+          // proposal, not a stale abandoned one" signal as a day/time restatement (GAP 3's own bar):
+          // it can only be true when the message names the EXACT person the still-pending preview
+          // already has, which is impossible to satisfy by accident or for an unrelated abandoned
+          // proposal. Exempting it here does not reopen GAP 3's own exploit (a context-free bare "ja"
+          // with nothing else): that shape still yields verifiedBypass===false unless a fresh,
+          // still-bound pending_book_verification marker's OWN prior turn already required a name
+          // match to reach this point.
+          const bookInterveningBlock =
+            ctx.pendingBookInterveningExchange === true &&
+            ctx.messageRestatesDayTime !== true && !verifiedBypass;
+          // R129 (DURATION-INTEGRITY-FLAKINESS fix, ~64% observed rate pre-fix): ctx.confirmBook and
+          // ctx.hardConfirm are BOTH already fully deterministic, code-level signals computed in
+          // index.ts BEFORE the LLM ever runs (confirmBook: pendingBookFresh + AFFIRM_RE/!NEGATE_RE/
+          // !ambiguousConfirm/no-unresolved-intervening-exchange; hardConfirm: classifyHardConfirm's
+          // finite, human-auditable allow-list against the raw message). Before this fix, committing
+          // STILL required cleanlyConfirmed (args.only_confirming_previous === true, the MODEL's own
+          // tool-call attestation) even when both deterministic signals already agreed this was an
+          // unambiguous clean confirm, because of operator precedence: `(A || B) && C && D || E`
+          // parses as `((A || B) && C && D) || E`, so a small model that flakes on setting
+          // only_confirming_previous on a bare "ja" (proven unreliable elsewhere in this file, see
+          // R120's own header) made committing false even though the server already knew, with zero
+          // ambiguity, that this was a genuine confirm of a still-fresh, non-intervened, non-ambiguous
+          // pending_booking. Root cause of the flakiness (live-reproduced, see evidence/R129_repro.md):
+          // that false `committing` sent the turn down the `!committing` fresh-preview branch below,
+          // which legitimately re-reads the service's CURRENT live duration to build a fresh proposal,
+          // silently landing a mid-flow-changed duration on the very next successful commit instead of
+          // the originally previewed one (~64% of trials pre-fix; 0/20 in this round's post-fix batch).
+          //
+          // Fix: deterministicCleanConfirm is a NEW, independent OR-branch (alongside verifiedBypass),
+          // never a replacement for the existing cleanlyConfirmed/hardConfirm/ambiguousConfirm layers,
+          // which stay fully intact for every path that does NOT satisfy this branch (a model self-
+          // issuing args.confirmed:true on a message the server itself thinks is ambiguous still
+          // cannot commit through here: ctx.confirmBook is false whenever ambiguousConfirm is true).
+          // This mirrors the EXACT precedent R120 already established for confirmBookVerification/
+          // confirmBookOwnerRestated (verifiedBypass above): once independent server-side determinism
+          // already proves the confirm is clean, requiring the small model's own attestation ON TOP
+          // adds no safety, only flakiness risk, per this codebase's own established doctrine that
+          // prompt-only/model-attestation steering does not reliably hold at this model's scale.
+          // Still fully subject to every other AND-gate below (ambiguousConfirm/nameChanged/
+          // pendingBook/previewIsSelfWritten/bookInterveningBlock), so this can never commit a
+          // different, wrong, stale, or hijacked proposal, only remove the redundant single-model-
+          // attestation dependency for an ALREADY-deterministically-clean confirm.
+          const deterministicCleanConfirm = ctx.confirmBook === true &&
+            ctx.hardConfirm === true;
+          const committing =
+            ((args.confirmed === true || ctx.confirmBook === true) &&
+                cleanlyConfirmed && ctx.hardConfirm === true ||
+              verifiedBypass || deterministicCleanConfirm) &&
+            !ctx.ambiguousConfirm && !nameChanged &&
+            !!pendingBook?.start_time && !previewIsSelfWritten &&
+            !bookInterveningBlock;
+          // R25: when nameChanged is the ONLY reason this didn't commit (everything else about a
+          // genuine commit turn holds), re-preview using the ALREADY-VALIDATED stored slot/service
+          // rather than falling through to the generic fresh-preview path, which would expect
+          // args.service_type_id/date/time the model has no reason to resupply on a bare confirm
+          // turn that also corrects the name, and would otherwise dead-end on "ontbrekende_gegevens".
+          // This is a pure re-preview (no insert either way), so it carries none of the commit risk;
+          // it just corrects WHICH name gets shown back to the customer for the next confirm.
+          // R32: deliberately NOT gated on ctx.hardConfirm. This path fires when the customer bundled
+          // a real name-correction with a clean affirm (e.g. "Klopt, maar dan voor Iris"); that
+          // message is legitimately not a hard-confirm member by design, since it carries extra
+          // content, and nameChanged already isolates exactly this shape and only ever RE-PREVIEWS,
+          // never commits, so leaving it un-gated here carries no commit risk.
+          const wouldHaveCommitted =
+            (args.confirmed === true || ctx.confirmBook === true) &&
+            !ctx.ambiguousConfirm && !!pendingBook?.start_time;
+          const namePreviewOnly = nameChanged && wouldHaveCommitted;
+
+          // R120 (DOUBLE-CONFIRM-OSCILLATION fix, live-reproduced on the long multi-topic shared test
+          // conversation: book request -> Q1 -> "Ja, klopt" -> naam_verificatie_nodig Q2 -> "Ja, boek
+          // het" -> REVERTED all the way back to Q1, no booking ever committed). ROOT CAUSE: a bare
+          // affirm answering Q2 (no literal name restated) makes ctx.confirmBookVerification false
+          // (identityVerificationResolved correctly still requires the name), so verifiedBypass is
+          // false; that SAME bare affirm is also, independently, a genuine "intervening customer
+          // message" relative to the ORIGINAL preview's own `at` (R118's pendingBookInterveningExchange:
+          // the earlier "Ja, klopt" turn that triggered Q2 in the first place counts as one), which
+          // forces bookInterveningBlock true (its own !verifiedBypass exemption cannot apply, since
+          // verifiedBypass is false here). Both together force `committing` false -- but the
+          // naam_verificatie_nodig RE-ASK gate a few dozen lines below only ever fires INSIDE the
+          // `committing === true` branch, so it is never reached either. Control falls all the way
+          // through to the generic fresh-preview path (serviceId/start/end sourced from args, a brand
+          // new `at` stamped below), which re-asks Q1 verbatim -- discarding the still-unresolved,
+          // still-bound pending_book_verification marker entirely. This is true regardless of WHICH
+          // reason crossIdentityBookRisk originally fired for (a real established knownSelfName
+          // mismatch, or the weaker priorRealBookingExists-only trigger); either way, the customer is
+          // mid-verification and must not be silently bounced back to the very first question.
+          //
+          // FIX: when a fresh pending_book_verification marker is still genuinely BOUND to THIS EXACT
+          // pending_booking (same start_time AND customer_name, never a stale marker left over from a
+          // different, already-abandoned proposal) and this turn's reply is the server-detected
+          // "answering the pending proposal" shape that simply failed to resolve the identity check,
+          // re-surface Q2 again instead of silently rebuilding a fresh preview. Deliberately keyed off
+          // ctx.bookVerificationAffirmUnresolved (NOT ctx.confirmBook): confirmBook is itself blocked
+          // by R118's pendingBookInterveningExchange guard whenever a genuine intervening customer
+          // message exists, and Q2's own PRIOR turn (the reply that triggered Q2 in the first place)
+          // is exactly such an intervening message relative to the ORIGINAL preview -- so ctx.confirmBook
+          // is structurally false on the very next bare reply to Q2, live-reproduced this round.
+          // bookVerificationAffirmUnresolved carries no such requirement (see its own header in
+          // index.ts): re-asking Q2 never commits anything, so R118's stale-proposal-commit protection
+          // does not need to gate it. Never fires when the marker is missing/stale/unbound
+          // (byte-identical behaviour for every other shape), and never fires on a genuinely ambiguous
+          // message (ctx.ambiguousConfirm, already baked into bookVerificationAffirmUnresolved).
+          if (
+            !committing && !namePreviewOnly &&
+            pendingBookVerification?.start_time !== undefined &&
+            pendingBook?.start_time === pendingBookVerification.start_time &&
+            (pendingBook?.customer_name ?? null) ===
+              (pendingBookVerification.customer_name ?? null) &&
+            ctx.bookVerificationAffirmUnresolved === true
+          ) {
+            return {
+              error: "naam_verificatie_nodig",
+              current_name: pendingBook!.customer_name,
+              customer_reply:
+                `De afspraak die klaarstond om te boeken staat op naam van ${
+                  pendingBook!.customer_name
+                } (${
+                  nlWhen(String(pendingBook!.start_time))
+                }). Klopt het dat dit echt geboekt moet worden voor ${
+                  pendingBook!.customer_name
+                }? Typ ter bevestiging de naam terug, bijv. "Ja, ${
+                  pendingBook!.customer_name
+                }".`,
+              message:
+                `De afspraak die klaarstond om te boeken (${
+                  nlWhen(String(pendingBook!.start_time))
+                }) staat op naam van ${pendingBook!.customer_name}. ` +
+                `De klant heeft dit nog NIET ondubbelzinnig bevestigd. Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${
+                  pendingBook!.customer_name
+                }").`,
+              guidance:
+                "NOG NIETS geboekt. Veiligheidscheck staat nog open: stel de vraag opnieuw en wacht op het antwoord met de naam erin.",
+            };
+          }
+
+          const serviceId = String(
+            ((committing || namePreviewOnly)
+              ? pendingBook!.service_type_id
+              : args.service_type_id) ?? "",
+          );
+          let start = String(
+            ((committing || namePreviewOnly)
+              ? pendingBook!.start_time
+              : args.start_time) ?? "",
+          );
+          let end = String(
+            ((committing || namePreviewOnly)
+              ? pendingBook!.end_time
+              : args.end_time) ?? "",
+          );
+
+          // A2: which of the owner's calendars are we booking in? On COMMIT use the calendar stored
+          // during the preview (authoritative, like start_time), so the confirm turn needs no
+          // calendar_index. On a fresh PREVIEW resolve from the model's calendar_index against the
+          // owner allowlist; when multiple calendars exist and no valid index was given, refuse to
+          // guess (booking in the wrong staff/location is a real error) and ask which one. Every
+          // value of calId comes from ctx.calendars → it can never point at another owner's calendar.
+          let calId = ctx.calendarId;
+          if (committing || namePreviewOnly) {
+            calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
+          } else {
+            // R71 (R70-3 fix): on a FRESH preview only (never on commit/namePreviewOnly, which
+            // already have a stored, previously-resolved service+calendar), refuse before resolving
+            // a calendar at all when the customer never named a service or a branch and real
+            // service ambiguity exists (see ToolContext comment + serviceDisambiguationGuard.ts).
+            if (ctx.blockForMissingServiceChoice) {
+              return { error: "kies_dienst", message: KIES_DIENST_MESSAGE };
             }
-            return {
-              error: "niet_beschikbaar",
-              available_slots: r.available,
-              // R18/R52: this result always echoes back the RESOLVED service_type_id + calendar_id
-              // (not just whatever the model's own tool-call args happened to include), because a
-              // fresh book_appointment call always carries a real serviceId server-side even when
-              // the model's args are sparse; index.ts's dateOfferGuard/false-past-claim guards read
-              // these directly so they never depend on the model re-stating identifiers it already
-              // supplied earlier in the tool call.
-              service_type_id: serviceId,
-              calendar_id: calId,
-              // R18: this message previously said "stel vriendelijk een andere dag voor" while
-              // handing the model ZERO real alternative dates, which is exactly what made the
-              // model invent one (R17: "woensdag 22 juli", itself also inside the same closed
-              // window). No specific day is proposed from here anymore; a code-level guard
-              // (dateOfferGuard.ts, wired in index.ts) independently verifies any date the model
-              // still proposes against the real RPC and rebuilds the offer from genuine
-              // availability when it does not hold up.
-              message: r.available.length
-                ? `Die tijd is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`
-                : "Die dag heeft helemaal geen vrije tijden. Vraag de klant vriendelijk of ze een andere dag willen proberen, zonder zelf een specifieke datum te noemen; je hebt geen gegevens over welke andere dag wel vrij is.",
-            };
-          }
-          start = r.start; end = r.end;
-        }
-        // Safety: end_time is no longer a required param (date+time computes it). If the model used
-        // the legacy start_time path and gave a valid ISO start but NO end, derive end from the
-        // service duration so we never insert a booking with an empty end_time.
-        if (!committing && !namePreviewOnly && start && /^\d{4}-\d{2}-\d{2}T/.test(start) && !end && serviceId) {
-          const dur = await serviceDuration(supabase, serviceId);
-          end = new Date(new Date(start).getTime() + dur * 60000).toISOString();
-        }
-
-        // NAME GATE: never create a nameless booking. The model must collect a real name
-        // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
-        // recorded in the conversation context). A bare "Privé"/empty without a recorded
-        // refusal means the model jumped to booking before asking, refuse and make it ask.
-        // This is a server-side guard because the LLM (temp 0.2) otherwise satisfies the
-        // required customer_name param with a premature placeholder.
-        // R25: on a namePreviewOnly turn, use the model's THIS-TURN args.customer_name (the
-        // corrected name), not the stale pendingBook name, so the re-preview reflects the
-        // correction the customer just stated.
-        const rawName = String(((committing) ? pendingBook!.customer_name : args.customer_name) ?? "").trim();
-        // R76 (BOOKAPPT-NAME-GATE-MISSING, sev-2, PREEMPT): identical junk-placeholder bug R75
-        // fixed in update_lead (a value like "?"/"???" -- non-empty, not "Privé", but containing
-        // NO letters at all -- satisfying a schema-required string field the small model fills
-        // with SOMETHING rather than skip the call) lived unfixed in THIS sibling gate. Live-
-        // reproduced: a fresh phone produced an ACTUAL CONFIRMED BOOKING ROW with
-        // customer_name = "???" (R75-verify's independent repro landed a different instance,
-        // id c47eca22; this round's own repro landed c526c123). R75's fix only ever touched the
-        // whatsapp_contacts.first_name write in update_lead; it never reached this tool's own
-        // gate, so real booking rows kept corrupting. Same bar, same helper: a real name needs at
-        // least one Unicode letter; punctuation/digits-only counts as missing, same as an empty
-        // string, and falls through to the SAME "naam_ontbreekt" ask-again path below (no new
-        // behaviour branch, just a wider missing-name definition).
-        const looksLikeName = (n: string) => /\p{L}/u.test(n);
-        const nameMissing = rawName === "" || rawName.toLowerCase() === "privé" || rawName.toLowerCase() === "prive" || !looksLikeName(rawName);
-        const refused = nameMissing && bookCtx.name_refused === true;
-        if (nameMissing && !refused) {
-          return {
-            error: "naam_ontbreekt",
-            message: "Boek niet zonder naam: gebruik de bekende WhatsApp-naam of vraag eerst kort de naam, en boek pas daarna.",
-          };
-        }
-        const customerName = nameMissing ? "Privé" : rawName;
-        if (!start || !serviceId) {
-          return { error: "ontbrekende_gegevens", message: "Dienst en starttijd zijn nodig om te boeken." };
-        }
-
-        // X3b-2 CROSS-BORDER VAT CAPTURE (preview only; commit re-uses the stored proposal).
-        // The supply_type is checked SERVER-SIDE here (never the model's claim) so the country
-        // question can be neither skipped nor faked. For a remote/digital TAXABLE service we need
-        // the customer's billing country; we capture it (+ optional EU VAT-ID) from the model's
-        // args, format-validated. If the country is missing/malformed we REFUSE the preview and
-        // make the agent ask (mirrors the name-gate), so a remote booking can never be created
-        // without the country the charge path (whatsapp-payment-handler) will require. For an
-        // in_person service this whole block is a no-op: country/vat stay null and the booking
-        // row is byte-identical to before. On COMMIT we use the stored values, so this lookup +
-        // gate run only on a fresh preview.
-        let bookCountry: string | null = (committing || namePreviewOnly) ? (normalizeCountry(pendingBook?.customer_country)) : null;
-        let bookVatId: string | null = (committing || namePreviewOnly) ? (normalizeVatId(pendingBook?.customer_vat_id)) : null;
-        if (!committing && !namePreviewOnly) {
-          const xb = await serviceCrossBorder(supabase, serviceId);
-          bookCountry = normalizeCountry(args.customer_country);
-          bookVatId = normalizeVatId(args.customer_vat_id);
-          if (xb.needsCountry && !bookCountry) {
-            return {
-              error: "land_ontbreekt",
-              message:
-                "Dit is een afstands-/digitale dienst, dus voor de juiste btw is het land van de klant nodig. " +
-                "Vraag de klant kort in welk land ze gevestigd zijn (een 2-letter landcode zoals NL, DE of BE; de klant mag de landnaam noemen, vertaal die naar de code) " +
-                "en, indien van toepassing, of ze als bedrijf met een EU-btw-nummer boeken. Roep daarna book_appointment opnieuw aan met customer_country (en eventueel customer_vat_id). Boek nog niet.",
-            };
-          }
-        }
-
-        // DUPLICATE GUARD: prevent an accidental DOUBLE booking. Observed: for "kan het
-        // een uur later?" the model calls book_appointment (a 2nd booking) instead of
-        // reschedule_appointment, leaving the original AND a new row. If this customer
-        // already has an upcoming active booking on this calendar, refuse and route to
-        // reschedule — unless they EXPLICITLY want a second one (confirm_second_booking).
-        // SKIP on commit: a pending_booking only exists because the PREVIEW already passed this guard
-        // (no existing booking, or confirm_second_booking was set then). Re-running it on the commit
-        // turn blocked genuine second bookings forever, because gpt-4.1-mini rarely re-sets the flag on
-        // the "ja" turn (adversarial finding: infinite preview loop). The overlap constraint +
-        // validate_booking_security still catch any real slot conflict on insert.
-        if (
-          !committing && !namePreviewOnly &&
-          args.confirm_second_booking !== true &&
-          // R111: deterministic override (see ToolContext.confirmSecondBookingFromMessage's own
-          // doc comment), the model unreliably re-sets confirm_second_booking on the customer's
-          // very next "different person, book it" reply, live-reproduced R110 across 6 varied
-          // phrasings; a raw-message match releases the guard exactly like abandonPreviousPreview
-          // already does for its own sibling case.
-          ctx.confirmSecondBookingFromMessage !== true
-        ) {
-          const { data: existing } = await supabase
-            .from("bookings")
-            .select("start_time, customer_name")
-            .eq("customer_phone", ctx.phone)
-            // A2: scope the duplicate check to the TARGET calendar, so a legitimate booking with a
-            // different staff member/location is not falsely blocked by an appointment elsewhere.
-            .eq("calendar_id", calId)
-            .in("status", ["confirmed", "pending"])
-            .gt("start_time", new Date().toISOString())
-            .order("start_time", { ascending: true })
-            .limit(1)
-            .maybeSingle();
-          if (existing) {
-            const existingName = (existing as { start_time: string; customer_name?: string | null }).customer_name;
-            // R140 (SERVICE-SWITCH-DEAD-END fix): this guard's own question ("is this a reschedule
-            // of the existing booking, or a genuine second one?") was ALREADY answered the moment
-            // a fresh pending_booking preview was created under a real name genuinely distinct from
-            // the existing booking's own customer_name -- that ONLY happens via the
-            // confirm_second_booking/abandon_previous_preview paths this exact guard already gates,
-            // so re-litigating it on every later correction turn for that already-established
-            // second booking (rather than falling through to the service/time preview logic below,
-            // which is what actually resolves a same-flow correction like a service switch) is
-            // itself the dead-end this round closed. Skip re-asking ONLY when a fresh pending_booking
-            // already exists, under a real name, that differs from the existing booking's own real
-            // name -- the exact fact this guard's own success path already established; a
-            // same-named pending preview (genuinely ambiguous: could still be a reschedule-in-
-            // disguise) is untouched and still asks as before.
-            const hasEstablishedSecondBookingPreview = !!pendingBook?.start_time &&
-              isRealNameShared(pendingBook?.originator_name) &&
-              isRealNameShared(existingName) &&
-              String(pendingBook!.originator_name).trim().toLowerCase() !== String(existingName).trim().toLowerCase();
-            if (!hasEstablishedSecondBookingPreview) {
-              // R75 (T1, third-party-booker persona): the same WhatsApp phone can hold bookings
-              // for DIFFERENT attendees (a parent booking for several kids, an assistant booking
-              // for several colleagues). This guard used to say ONLY "de klant heeft al een
-              // afspraak", which the model then relayed as if it were about whoever is CURRENTLY
-              // being booked. Live-reproduced: booking a 2nd appointment for "Tom" wrongly said
-              // "Tom, je hebt al een afspraak" about a booking that was actually under "Emma"'s
-              // name. Passing the EXISTING booking's own customer_name back lets the model state
-              // correctly whose booking it found, instead of assuming phone equals attendee.
-              const existingNameNote = existingName && existingName !== "Privé" ? ` (op naam ${existingName})` : "";
-              const existingStartTime = (existing as { start_time: string }).start_time;
+            // R72 (SAME-SERVICE-MULTI-BRANCH-SILENT-DEFAULT fix): same fresh-preview-only gate as
+            // get_available_slots above, mirrored here so a customer cannot slip a silently wrong
+            // branch/price/duration through by going straight to book_appointment.
+            if (ctx.blockForAmbiguousBranch) {
+              return { error: "kies_locatie", message: KIES_LOCATIE_MESSAGE };
+            }
+            // R125 (MULTI-SERVICE-IN-ONE-MESSAGE fix): same fresh-preview-only gate as
+            // get_available_slots above, so a customer cannot slip a silent compound-request
+            // fall-through by going straight to book_appointment either.
+            if (
+              ctx.blockForMultiService && ctx.blockForMultiService.length >= 2
+            ) {
               return {
-                error: "bestaande_afspraak",
+                error: "meerdere_diensten",
+                message: MULTI_SERVICE_MESSAGE(ctx.blockForMultiService),
+              };
+            }
+            // R111 (RETURNING-SERVICE-DEFAULT-BLEED fix): same fresh-preview-only gate as
+            // get_available_slots above, so a customer cannot slip the silent returning-service
+            // default through by going straight to book_appointment either.
+            if (
+              ctx.blockForReturningServiceDefault &&
+              ctx.lastServiceForReturningDefault
+            ) {
+              return {
+                error: "bevestig_terugkerende_dienst",
+                message: BEVESTIG_TERUGKERENDE_DIENST_MESSAGE(
+                  ctx.lastServiceForReturningDefault,
+                ),
+              };
+            }
+            // R93 (SILENT-TODAY-DEFAULT fix): same fresh-preview-only gate as get_available_slots
+            // above, so a customer who never named a day cannot slip a silent "today" assumption
+            // through by going straight to book_appointment either.
+            if (ctx.blockForNoDayNamed) {
+              return { error: "vraag_dag", message: VRAAG_DAG_MESSAGE };
+            }
+            const bookCal = resolveBookingCalendar(
+              ctx,
+              args.calendar_index,
+              serviceId,
+            );
+            if ("needAsk" in bookCal) {
+              return {
+                error: "kies_medewerker",
                 message:
-                  `Er is al een aankomende afspraak op ${nlWhen(existingStartTime)}${existingNameNote} onder dit WhatsApp-nummer. ` +
-                  "Is dat DEZELFDE persoon als degene die nu geboekt wordt? Gebruik dan reschedule_appointment, niet book_appointment (dat maakt een tweede afspraak). " +
-                  "Is de nieuwe boeking voor een ANDERE naam of persoon (bv. een ander kind, een collega)? Dan is dit een terechte extra afspraak: roep book_appointment opnieuw aan met confirm_second_booking=true. " +
-                  "Twijfel je wie de bestaande afspraak hierboven is? Vraag het kort na in plaats van te raden.",
-                // R37 (bug R36b fix): raw ground truth + a purely customer-facing fallback, mirroring
-                // naam_verificatie_nodig's own message/customer_reply split (see
-                // identityDisambiguationGuard.ts's enforceVerificationGateDisclosure doc comment).
-                // `message` above is internal guidance the model reasons over; `customer_reply` is
-                // the exact question actually safe to send verbatim, used ONLY as a backstop when
-                // the model's own paraphrase drops or corrupts the real date (enforceExisting
-                // AppointmentDisclosure spot-checks the reply against `existing_start_time` first).
-                existing_start_time: existingStartTime,
-                customer_reply:
-                  `Je hebt al een aankomende afspraak op ${nlWhen(existingStartTime)}${existingNameNote} onder dit WhatsApp-nummer. ` +
-                  "Is dat dezelfde persoon als degene die je nu wilt boeken? Laat het weten, dan verzet ik die afspraak. " +
-                  "Is het een andere persoon (bv. een ander kind of een collega)? Zeg dat ook, dan maak ik een nieuwe, tweede afspraak.",
+                  `Deze dienst wordt door meerdere medewerkers of locaties (${
+                    bookCal.options.join(", ")
+                  }) aangeboden. Vraag de klant kort en menselijk bij wie of waar ze de afspraak willen ("bij wie wil je de afspraak?"), of bied "geen voorkeur" aan als het ze niet uitmaakt. Presenteer de opties als personen of plekken in natuurlijke taal (vertaal/normaliseer de namen mee); noem ze NOOIT "agenda's" en dump geen technische namen. Pak daarna de service_type_id van de gekozen persoon/locatie en roep book_appointment opnieuw aan.`,
+              };
+            }
+            calId = bookCal.id;
+          }
+
+          // FAST PATH (preview only): the customer named a concrete date+time, so resolve the EXACT
+          // slot SERVER-SIDE rather than forcing a separate get_available_slots LLM round-trip (the
+          // dominant per-turn latency cost ~3s). On commit we always use the stored pending_booking,
+          // so this runs only for a fresh preview. If the named time isn't free, return the free times
+          // so the model proposes an alternative in the SAME turn.
+          // Date guards run BEFORE any slot resolution (cheap, and they short-circuit the wrong
+          // model answers). bookPolicy is fetched ONCE here and reused for the max/day cap below
+          // (no extra round-trip — it was already fetched unconditionally further down).
+          const bookPolicy = await getCalendarPolicy(supabase, calId);
+          if (!committing && !namePreviewOnly && isPastDateNL(args.date)) {
+            return {
+              error: "datum_verleden",
+              message:
+                "Die datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst.",
+            };
+          }
+          if (
+            !committing && !namePreviewOnly &&
+            isBeyondWindowNL(args.date, bookPolicy.bookingWindowDays)
+          ) {
+            return {
+              error: "datum_te_ver",
+              message:
+                `Zo ver vooruit kun je nog niet boeken, je kunt tot ${bookPolicy.bookingWindowDays} dagen vooruit een afspraak maken. Vraag de klant vriendelijk een eerdere datum.`,
+            };
+          }
+          if (
+            !committing && !namePreviewOnly && serviceId &&
+            (!start || !/^\d{4}-\d{2}-\d{2}T/.test(start)) && args.date &&
+            args.time
+          ) {
+            const dur = await serviceDuration(supabase, serviceId);
+            const r = await resolveSlotForTime(
+              supabase,
+              calId,
+              serviceId,
+              String(args.date),
+              String(args.time),
+              dur,
+              bookPolicy.minimumNoticeHours,
+            );
+            if ("error" in r) {
+              return {
+                error: "ongeldige_tijd",
+                message:
+                  "Ik kon die datum/tijd niet verwerken. Vraag de klant kort de gewenste dag en tijd.",
+              };
+            }
+            if ("tooSoon" in r) {
+              // The named time is within the minimum-notice window → explain WHY (not a generic
+              // "niet beschikbaar") and point to the first moment that does work.
+              const notice = formatHoursNL(bookPolicy.minimumNoticeHours!);
+              return {
+                error: "te_vroeg",
+                message:
+                  `Die tijd is te kort dag: een afspraak kan pas vanaf ${notice} van tevoren worden gemaakt. ` +
+                  (r.earliestNL
+                    ? `Het eerste moment dat kan is ${r.earliestNL}. `
+                    : "") +
+                  "Leg dit kort en vriendelijk uit aan de klant" +
+                  (r.available.length
+                    ? ` en bied een van deze vrije tijden aan: ${
+                      r.available.join(", ")
+                    }.`
+                    : " en vraag om een latere dag/tijd."),
+                available_slots: r.available,
+              };
+            }
+            if ("unavailable" in r) {
+              // IDEMPOTENCY: a book_appointment re-fire AFTER a successful commit lands on
+              // the slot now occupied by the customer's OWN just-made booking, so never tell
+              // them "niet vrij". If this customer already holds an active booking at the
+              // requested local time on this calendar that day, acknowledge it as already
+              // booked. (Bookable hours are 09-17 local = 07-16 UTC, so the booking's UTC
+              // day equals its local day, so a UTC day-window matches correctly.)
+              // R96 (PHANTOM-SUCCESS fix, compound of R95-1/NEW-1, live-reproduced this round,
+              // evidence/IUX_r96.md section 3): this echo was scoped ONLY by phone + calendar +
+              // day + clock-time, with NO check on service_type_id. A customer booking a SECOND,
+              // DISTINCT service that happens to land on the exact same clock-time-of-day as their
+              // FIRST, already-confirmed, DIFFERENT service (a realistic collision: "same time
+              // next day" is a common ask) matched this echo, which returned the FIRST booking's
+              // own id/start_time/when as if it were the SECOND service's real commit. The
+              // customer was told "Gelukt!" for a service that was never created, while the
+              // existing booking for the OTHER service sat untouched, only for a LATER confirm
+              // turn to then reschedule/corrupt it once the model's confused state caught up
+              // (DB-proven: the single existing row's service_type_id was silently overwritten by
+              // a subsequent reschedule_appointment call in the same conversation). FIX: this
+              // idempotency echo must only ever match a PRIOR booking of the SAME requested
+              // service_type_id; a different service at the same clock-time is a genuine distinct
+              // request and must fall through to the normal "niet_beschikbaar" / new-preview path,
+              // never be echoed as if it were already booked.
+              const wantM = String(args.time).trim().match(
+                /^(\d{1,2}):(\d{2})/,
+              );
+              if (wantM) {
+                const want = `${wantM[1].padStart(2, "0")}:${wantM[2]}`;
+                const dayStart = `${args.date}T00:00:00Z`;
+                const dayEnd = new Date(
+                  new Date(dayStart).getTime() + 86_400_000,
+                ).toISOString();
+                // R110 (IDEMPOTENT-REBOOK-DISCLOSURE-BYPASS fix): customer_name is now selected too,
+                // so this idempotent echo's own result can carry it back to index.ts's
+                // deterministicConfirmation, the SAME field cancel/reschedule's own ok:true results
+                // already carry for exactly this reason (see R102/R103 comments on those branches
+                // below). Without it, a re-invocation from a DIFFERENT identity on this shared phone
+                // hitting this exact echo told them "Gelukt!" with zero disclosure of whose booking
+                // it actually is, even though no duplicate row was ever created.
+                const { data: ownSameDay } = await supabase
+                  .from("bookings")
+                  .select("id, start_time, service_type_id, customer_name")
+                  .eq("customer_phone", ctx.phone)
+                  .eq("calendar_id", calId)
+                  .eq("service_type_id", serviceId)
+                  .in("status", ["confirmed", "pending"])
+                  .gte("start_time", dayStart)
+                  .lt("start_time", dayEnd);
+                const mine = (ownSameDay ?? []).find(
+                  (b) =>
+                    nlTimeOnly((b as { start_time: string }).start_time).slice(
+                      0,
+                      5,
+                    ) === want,
+                );
+                if (mine) {
+                  await clearPendingBook();
+                  const m = mine as {
+                    id: string;
+                    start_time: string;
+                    customer_name: string | null;
+                  };
+                  return {
+                    ok: true,
+                    already_booked: true,
+                    booking_id: m.id,
+                    start_time: m.start_time,
+                    when: nlWhen(m.start_time),
+                    // R110: same isRealNameShared gate cancel/reschedule already use, so a
+                    // placeholder/no-name booking renders no field, unaffected common-case behaviour.
+                    customer_name: isRealNameShared(m.customer_name)
+                      ? m.customer_name
+                      : null,
+                    message:
+                      "Deze afspraak staat al geboekt (zelfde dienst, zelfde tijd). Bevestig dat kort en bied verder hulp aan.",
+                  };
+                }
+              }
+              return {
+                error: "niet_beschikbaar",
+                available_slots: r.available,
+                // R18/R52: this result always echoes back the RESOLVED service_type_id + calendar_id
+                // (not just whatever the model's own tool-call args happened to include), because a
+                // fresh book_appointment call always carries a real serviceId server-side even when
+                // the model's args are sparse; index.ts's dateOfferGuard/false-past-claim guards read
+                // these directly so they never depend on the model re-stating identifiers it already
+                // supplied earlier in the tool call.
+                service_type_id: serviceId,
+                calendar_id: calId,
+                // R18: this message previously said "stel vriendelijk een andere dag voor" while
+                // handing the model ZERO real alternative dates, which is exactly what made the
+                // model invent one (R17: "woensdag 22 juli", itself also inside the same closed
+                // window). No specific day is proposed from here anymore; a code-level guard
+                // (dateOfferGuard.ts, wired in index.ts) independently verifies any date the model
+                // still proposes against the real RPC and rebuilds the offer from genuine
+                // availability when it does not hold up.
+                message: r.available.length
+                  ? `Die tijd is niet vrij. Stel een van deze vrije tijden voor: ${
+                    r.available.join(", ")
+                  }.`
+                  : "Die dag heeft helemaal geen vrije tijden. Vraag de klant vriendelijk of ze een andere dag willen proberen, zonder zelf een specifieke datum te noemen; je hebt geen gegevens over welke andere dag wel vrij is.",
+              };
+            }
+            start = r.start;
+            end = r.end;
+          }
+          // Safety: end_time is no longer a required param (date+time computes it). If the model used
+          // the legacy start_time path and gave a valid ISO start but NO end, derive end from the
+          // service duration so we never insert a booking with an empty end_time.
+          if (
+            !committing && !namePreviewOnly && start &&
+            /^\d{4}-\d{2}-\d{2}T/.test(start) && !end && serviceId
+          ) {
+            const dur = await serviceDuration(supabase, serviceId);
+            end = new Date(new Date(start).getTime() + dur * 60000)
+              .toISOString();
+          }
+
+          // NAME GATE: never create a nameless booking. The model must collect a real name
+          // first, OR the customer must have EXPLICITLY refused (update_lead name_refused:true,
+          // recorded in the conversation context). A bare "Privé"/empty without a recorded
+          // refusal means the model jumped to booking before asking, refuse and make it ask.
+          // This is a server-side guard because the LLM (temp 0.2) otherwise satisfies the
+          // required customer_name param with a premature placeholder.
+          // R25: on a namePreviewOnly turn, use the model's THIS-TURN args.customer_name (the
+          // corrected name), not the stale pendingBook name, so the re-preview reflects the
+          // correction the customer just stated.
+          const rawName = String(
+            (committing ? pendingBook!.customer_name : args.customer_name) ??
+              "",
+          ).trim();
+          // R76 (BOOKAPPT-NAME-GATE-MISSING, sev-2, PREEMPT): identical junk-placeholder bug R75
+          // fixed in update_lead (a value like "?"/"???" -- non-empty, not "Privé", but containing
+          // NO letters at all -- satisfying a schema-required string field the small model fills
+          // with SOMETHING rather than skip the call) lived unfixed in THIS sibling gate. Live-
+          // reproduced: a fresh phone produced an ACTUAL CONFIRMED BOOKING ROW with
+          // customer_name = "???" (R75-verify's independent repro landed a different instance,
+          // id c47eca22; this round's own repro landed c526c123). R75's fix only ever touched the
+          // whatsapp_contacts.first_name write in update_lead; it never reached this tool's own
+          // gate, so real booking rows kept corrupting. Same bar, same helper: a real name needs at
+          // least one Unicode letter; punctuation/digits-only counts as missing, same as an empty
+          // string, and falls through to the SAME "naam_ontbreekt" ask-again path below (no new
+          // behaviour branch, just a wider missing-name definition).
+          const looksLikeName = (n: string) => /\p{L}/u.test(n);
+          const nameMissing = rawName === "" ||
+            rawName.toLowerCase() === "privé" ||
+            rawName.toLowerCase() === "prive" || !looksLikeName(rawName);
+          const refused = nameMissing && bookCtx.name_refused === true;
+          if (nameMissing && !refused) {
+            return {
+              error: "naam_ontbreekt",
+              message:
+                "Boek niet zonder naam: gebruik de bekende WhatsApp-naam of vraag eerst kort de naam, en boek pas daarna.",
+            };
+          }
+          const customerName = nameMissing ? "Privé" : rawName;
+          if (!start || !serviceId) {
+            return {
+              error: "ontbrekende_gegevens",
+              message: "Dienst en starttijd zijn nodig om te boeken.",
+            };
+          }
+
+          // X3b-2 CROSS-BORDER VAT CAPTURE (preview only; commit re-uses the stored proposal).
+          // The supply_type is checked SERVER-SIDE here (never the model's claim) so the country
+          // question can be neither skipped nor faked. For a remote/digital TAXABLE service we need
+          // the customer's billing country; we capture it (+ optional EU VAT-ID) from the model's
+          // args, format-validated. If the country is missing/malformed we REFUSE the preview and
+          // make the agent ask (mirrors the name-gate), so a remote booking can never be created
+          // without the country the charge path (whatsapp-payment-handler) will require. For an
+          // in_person service this whole block is a no-op: country/vat stay null and the booking
+          // row is byte-identical to before. On COMMIT we use the stored values, so this lookup +
+          // gate run only on a fresh preview.
+          let bookCountry: string | null = (committing || namePreviewOnly)
+            ? (normalizeCountry(pendingBook?.customer_country))
+            : null;
+          let bookVatId: string | null = (committing || namePreviewOnly)
+            ? (normalizeVatId(pendingBook?.customer_vat_id))
+            : null;
+          if (!committing && !namePreviewOnly) {
+            const xb = await serviceCrossBorder(supabase, serviceId);
+            bookCountry = normalizeCountry(args.customer_country);
+            bookVatId = normalizeVatId(args.customer_vat_id);
+            if (xb.needsCountry && !bookCountry) {
+              return {
+                error: "land_ontbreekt",
+                message:
+                  "Dit is een afstands-/digitale dienst, dus voor de juiste btw is het land van de klant nodig. " +
+                  "Vraag de klant kort in welk land ze gevestigd zijn (een 2-letter landcode zoals NL, DE of BE; de klant mag de landnaam noemen, vertaal die naar de code) " +
+                  "en, indien van toepassing, of ze als bedrijf met een EU-btw-nummer boeken. Roep daarna book_appointment opnieuw aan met customer_country (en eventueel customer_vat_id). Boek nog niet.",
               };
             }
           }
-        }
 
-        // Enforce the "Max bookings per day" Operations setting (previously saved but
-        // never enforced). Count this calendar's confirmed+pending bookings on the
-        // requested day; refuse when the cap is reached. bookPolicy was fetched once above.
-        if (bookPolicy.maxBookingsPerDay != null) {
-          const day = start.slice(0, 10);
-          const nextDay = new Date(new Date(`${day}T00:00:00Z`).getTime() + 86_400_000).toISOString().slice(0, 10);
-          const { count } = await supabase
-            .from("bookings")
-            .select("id", { count: "exact", head: true })
-            .eq("calendar_id", calId)
-            .in("status", ["confirmed", "pending"])
-            // Match get_available_slots' day-count: exclude soft-deleted rows so the slot
-            // RPC (which offers) and this guard (which refuses) agree on whether a day is full.
-            .or("is_deleted.is.null,is_deleted.eq.false")
-            .gte("start_time", `${day}T00:00:00Z`)
-            .lt("start_time", `${nextDay}T00:00:00Z`);
-          if ((count ?? 0) >= bookPolicy.maxBookingsPerDay) {
-            // R114: carry calendar_id/start_time/end_time so index.ts's deterministicSlotTaken can
-            // verify a REAL conflicting row exists before ever telling the customer "iemand anders
-            // heeft het geboekt" (see R114 fix note on the niet_beschikbaar branch below for the
-            // full root-cause reasoning; this is the same fix applied to this sibling error code).
-            return { error: "dag_vol", message: "Die dag zit vol. Stel de klant een andere dag voor.", calendar_id: calId, start_time: start, end_time: end };
-          }
-        }
-
-        // Does this calendar require up-front payment? (secure payments on AND
-        // payment required for booking). Decided server-side, never by the LLM.
-        const { data: ps } = await supabase
-          .from("payment_settings")
-          .select("secure_payments_enabled, payment_required_for_booking")
-          .eq("calendar_id", calId)
-          .maybeSingle();
-        const paymentRequired = !!(
-          (ps as { secure_payments_enabled?: boolean; payment_required_for_booking?: boolean } | null)
-            ?.secure_payments_enabled &&
-          (ps as { payment_required_for_booking?: boolean } | null)?.payment_required_for_booking
-        );
-
-        // R129 (VALIDATE-BOOKING-SECURITY-WEAK-OVERLOAD fix): this used to call the (uuid, uuid,
-        // timestamptz, timestamptz, text) overload of validate_booking_security, which ONLY checks
-        // calendar/service is_active plus a raw booking-time overlap. A SECOND, fuller overload,
-        // (text calendar_slug, uuid, timestamptz, timestamptz, text), already existed in the same
-        // database (used by the public web booking path) with COMPLETE enforcement: the real-time
-        // availability-window/schedule check (business hours + day-overrides), minimum_notice_hours,
-        // booking_window_days, max_bookings_per_day, AND buffer/prep/cleanup-time conflict widening,
-        // but book_appointment's commit path never called it, so an owner blocking a day/slot via
-        // availability_overrides (or tightening minimum_notice_hours) AFTER a preview was already
-        // open did not stop that stale preview from committing (100% reproducible, not a race; see
-        // evidence/R129_repro.md). Fix: call the FULLER overload instead, passing the calendar's
-        // SLUG (a single indexed by-id lookup; the RPC's own text-typed first param requires it,
-        // not the uuid) so the commit gets the SAME real-time enforcement get_available_slots and
-        // the public web path already have. This closes BOTH the availability-override staleness
-        // AND the minimum-notice staleness in one structural change (both were symptoms of the same
-        // wrong-overload call), by construction, not two separate patches.
-        //
-        // Deliberately NOT relied on for max_bookings_per_day: that guard is its own separate,
-        // already-commit-time-fresh check a few lines up in THIS file (bookPolicy.maxBookingsPerDay),
-        // never routed through validate_booking_security at all, so switching overloads here cannot
-        // regress it (the fuller overload also re-checks max/day itself, using the SAME COUNT logic
-        // and the SAME "confirmed status, non-deleted" scoping as this file's own guard, redundant
-        // by design, not a conflicting second source of truth: both would refuse together).
-        const { data: calRow, error: calErr } = await supabase
-          .from("calendars")
-          .select("slug")
-          .eq("id", calId)
-          .maybeSingle();
-        const calSlug = (calRow as { slug?: string } | null)?.slug ?? null;
-        if (calErr || !calSlug) {
-          return { error: calErr?.message ?? "kalender_onbekend", message: "Kon de kalender niet verifiëren, probeer het zo nog eens." };
-        }
-        const { data: validation, error: valErr } = await supabase.rpc("validate_booking_security", {
-          p_calendar_slug: calSlug,
-          p_service_type_id: serviceId,
-          p_start_time: start,
-          p_end_time: end,
-          p_customer_email: null,
-        });
-        if (valErr) return { error: valErr.message };
-        const validationResult = validation as { valid?: boolean; errors?: Array<{ field?: string; message?: string }> } | null;
-        if (validationResult?.valid !== true) {
-          const reasons = (validationResult?.errors ?? []).map((e) => e?.message).filter(Boolean).join("; ");
-          // R114 (FALSE-CONFLICT-MESSAGE fix, R113 finding): this RPC is the FULLER overload (R129)
-          // and can return valid:false for reasons that have NOTHING to do with a real double-
-          // booking (business hours/day overrides, minimum-notice drift between preview and commit,
-          // booking-window-days, max/day cap) as well as a genuine slot-overlap. index.ts's
-          // deterministicSlotTaken/raceLostPreCheck used to treat ANY niet_beschikbaar on a commit
-          // turn as proof "the sibling's row already occupies this slot" and told the customer
-          // "iemand anders heeft het geboekt" -- live-reproduced (R113) with a rapid double-confirm
-          // where DB-verified ZERO rows were ever created by either side, so that message was false.
-          // Fix: carry calendar_id/start_time/end_time back so the caller can query `bookings`
-          // directly and only claim "someone else booked it" when a REAL conflicting row exists.
-          return {
-            error: "niet_beschikbaar",
-            message: reasons ? `Dat tijdstip is niet beschikbaar (${reasons}).` : "Dat tijdstip is niet beschikbaar.",
-            calendar_id: calId,
-            start_time: start,
-            end_time: end,
-          };
-        }
-
-        // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, continued): fires BEFORE the re-preview
-        // below is allowed to silently swap pending_booking's stored name. See previewTakeoverRisk
-        // (identityDisambiguationGuard.ts) + the takeoverRisk comment above for the full mechanism.
-        // Bound to originator_name (the TRUE first-preview name), never to the current, possibly-
-        // already-hijacked pendingBook.customer_name, so a chain of multiple takeover attempts can
-        // never each reset the reference point to their own prior hijack.
-        //
-        // A FRESH, still-bound marker from a PRIOR turn is checked FIRST and independent of
-        // whether takeoverRisk is true THIS turn: the resolving reply ("nee, gewoon voor Anna") is
-        // itself NEGATE-shaped, so nameChanged/takeoverRisk may well be false on the resolving
-        // turn (the model may not even resupply args.customer_name), and this must still be caught
-        // here rather than falling through to a fresh, unrelated preview.
-        // R121 (self-write-chain guard, see lastSelfWrittenTakeoverVerifyAt's own header comment):
-        // a marker THIS SAME closure/turn just wrote (matched by its own `at` stamp) is NEVER
-        // treated as a genuine prior-turn marker to resolve, exactly mirroring lastSelfWrittenBookAt's
-        // established pattern -- otherwise a same-turn stall-retry re-reads its own just-asked
-        // question and "resolves" it using the SAME original message that triggered it.
-        const takeoverVerificationIsSelfWritten = typeof pendingTakeoverVerification?.at === "number" &&
-          pendingTakeoverVerification.at === lastSelfWrittenTakeoverVerifyAt;
-        let takeoverJustConfirmed = false;
-        if (
-          pendingTakeoverVerificationFresh &&
-          !takeoverVerificationIsSelfWritten &&
-          pendingTakeoverVerification?.start_time === pendingBook?.start_time &&
-          pendingTakeoverVerification?.originator_name === pendingBook?.originator_name
-        ) {
-          const resolution = takeoverVerificationResolution(
-            pendingTakeoverVerification.originator_name,
-            pendingTakeoverVerification.proposed_name,
-            ctx.userMessage,
-          );
-          if (resolution === "reverted_to_originator") {
-            // No takeover intended after all: drop the marker, restore the ORIGINAL preview name
-            // (pendingBook.customer_name may still read as the proposed name from the blocked
-            // re-preview attempt below -- it never actually got there, since this gate returned
-            // before storing anything, so pendingBook.customer_name is still originator_name here;
-            // this is a pure no-op confirmation, re-preview under the unchanged, original values).
-            const { pending_book_takeover_verification: _dropTV, ...restTV } = bookCtx;
-            if (ctx.conversationId) {
-              await supabase.from("whatsapp_conversations").update({ context: restTV }).eq("id", ctx.conversationId);
+          // DUPLICATE GUARD: prevent an accidental DOUBLE booking. Observed: for "kan het
+          // een uur later?" the model calls book_appointment (a 2nd booking) instead of
+          // reschedule_appointment, leaving the original AND a new row. If this customer
+          // already has an upcoming active booking on this calendar, refuse and route to
+          // reschedule — unless they EXPLICITLY want a second one (confirm_second_booking).
+          // SKIP on commit: a pending_booking only exists because the PREVIEW already passed this guard
+          // (no existing booking, or confirm_second_booking was set then). Re-running it on the commit
+          // turn blocked genuine second bookings forever, because gpt-4.1-mini rarely re-sets the flag on
+          // the "ja" turn (adversarial finding: infinite preview loop). The overlap constraint +
+          // validate_booking_security still catch any real slot conflict on insert.
+          if (
+            !committing && !namePreviewOnly &&
+            args.confirm_second_booking !== true &&
+            // R111: deterministic override (see ToolContext.confirmSecondBookingFromMessage's own
+            // doc comment), the model unreliably re-sets confirm_second_booking on the customer's
+            // very next "different person, book it" reply, live-reproduced R110 across 6 varied
+            // phrasings; a raw-message match releases the guard exactly like abandonPreviousPreview
+            // already does for its own sibling case.
+            ctx.confirmSecondBookingFromMessage !== true
+          ) {
+            const { data: existing } = await supabase
+              .from("bookings")
+              .select("start_time, customer_name")
+              .eq("customer_phone", ctx.phone)
+              // A2: scope the duplicate check to the TARGET calendar, so a legitimate booking with a
+              // different staff member/location is not falsely blocked by an appointment elsewhere.
+              .eq("calendar_id", calId)
+              .in("status", ["confirmed", "pending"])
+              .gt("start_time", new Date().toISOString())
+              .order("start_time", { ascending: true })
+              .limit(1)
+              .maybeSingle();
+            if (existing) {
+              const existingName = (existing as {
+                start_time: string;
+                customer_name?: string | null;
+              }).customer_name;
+              // R140 (SERVICE-SWITCH-DEAD-END fix): this guard's own question ("is this a reschedule
+              // of the existing booking, or a genuine second one?") was ALREADY answered the moment
+              // a fresh pending_booking preview was created under a real name genuinely distinct from
+              // the existing booking's own customer_name -- that ONLY happens via the
+              // confirm_second_booking/abandon_previous_preview paths this exact guard already gates,
+              // so re-litigating it on every later correction turn for that already-established
+              // second booking (rather than falling through to the service/time preview logic below,
+              // which is what actually resolves a same-flow correction like a service switch) is
+              // itself the dead-end this round closed. Skip re-asking ONLY when a fresh pending_booking
+              // already exists, under a real name, that differs from the existing booking's own real
+              // name -- the exact fact this guard's own success path already established; a
+              // same-named pending preview (genuinely ambiguous: could still be a reschedule-in-
+              // disguise) is untouched and still asks as before.
+              const hasEstablishedSecondBookingPreview =
+                !!pendingBook?.start_time &&
+                isRealNameShared(pendingBook?.originator_name) &&
+                isRealNameShared(existingName) &&
+                String(pendingBook!.originator_name).trim().toLowerCase() !==
+                  String(existingName).trim().toLowerCase();
+              if (!hasEstablishedSecondBookingPreview) {
+                // R75 (T1, third-party-booker persona): the same WhatsApp phone can hold bookings
+                // for DIFFERENT attendees (a parent booking for several kids, an assistant booking
+                // for several colleagues). This guard used to say ONLY "de klant heeft al een
+                // afspraak", which the model then relayed as if it were about whoever is CURRENTLY
+                // being booked. Live-reproduced: booking a 2nd appointment for "Tom" wrongly said
+                // "Tom, je hebt al een afspraak" about a booking that was actually under "Emma"'s
+                // name. Passing the EXISTING booking's own customer_name back lets the model state
+                // correctly whose booking it found, instead of assuming phone equals attendee.
+                const existingNameNote =
+                  existingName && existingName !== "Privé"
+                    ? ` (op naam ${existingName})`
+                    : "";
+                const existingStartTime =
+                  (existing as { start_time: string }).start_time;
+                return {
+                  error: "bestaande_afspraak",
+                  message:
+                    `Er is al een aankomende afspraak op ${
+                      nlWhen(existingStartTime)
+                    }${existingNameNote} onder dit WhatsApp-nummer. ` +
+                    "Is dat DEZELFDE persoon als degene die nu geboekt wordt? Gebruik dan reschedule_appointment, niet book_appointment (dat maakt een tweede afspraak). " +
+                    "Is de nieuwe boeking voor een ANDERE naam of persoon (bv. een ander kind, een collega)? Dan is dit een terechte extra afspraak: roep book_appointment opnieuw aan met confirm_second_booking=true. " +
+                    "Twijfel je wie de bestaande afspraak hierboven is? Vraag het kort na in plaats van te raden.",
+                  // R37 (bug R36b fix): raw ground truth + a purely customer-facing fallback, mirroring
+                  // naam_verificatie_nodig's own message/customer_reply split (see
+                  // identityDisambiguationGuard.ts's enforceVerificationGateDisclosure doc comment).
+                  // `message` above is internal guidance the model reasons over; `customer_reply` is
+                  // the exact question actually safe to send verbatim, used ONLY as a backstop when
+                  // the model's own paraphrase drops or corrupts the real date (enforceExisting
+                  // AppointmentDisclosure spot-checks the reply against `existing_start_time` first).
+                  existing_start_time: existingStartTime,
+                  customer_reply:
+                    `Je hebt al een aankomende afspraak op ${
+                      nlWhen(existingStartTime)
+                    }${existingNameNote} onder dit WhatsApp-nummer. ` +
+                    "Is dat dezelfde persoon als degene die je nu wilt boeken? Laat het weten, dan verzet ik die afspraak. " +
+                    "Is het een andere persoon (bv. een ander kind of een collega)? Zeg dat ook, dan maak ik een nieuwe, tweede afspraak.",
+                };
+              }
             }
-            bookCtx = restTV;
-            // Falls through to the normal re-preview path below with args.customer_name effectively
-            // ignored (nameChanged only reads args.customer_name, and this turn's reply names the
-            // ORIGINATOR, not a new candidate, so on the next book_appointment call -- driven by the
-            // model reading this result -- nameChanged will correctly see no conflict). Return a
-            // clean, deterministic confirmation instead of re-entering guard logic a second time.
+          }
+
+          // Enforce the "Max bookings per day" Operations setting (previously saved but
+          // never enforced). Count this calendar's confirmed+pending bookings on the
+          // requested day; refuse when the cap is reached. bookPolicy was fetched once above.
+          if (bookPolicy.maxBookingsPerDay != null) {
+            const day = start.slice(0, 10);
+            const nextDay = new Date(
+              new Date(`${day}T00:00:00Z`).getTime() + 86_400_000,
+            ).toISOString().slice(0, 10);
+            const { count } = await supabase
+              .from("bookings")
+              .select("id", { count: "exact", head: true })
+              .eq("calendar_id", calId)
+              .in("status", ["confirmed", "pending"])
+              // Match get_available_slots' day-count: exclude soft-deleted rows so the slot
+              // RPC (which offers) and this guard (which refuses) agree on whether a day is full.
+              .or("is_deleted.is.null,is_deleted.eq.false")
+              .gte("start_time", `${day}T00:00:00Z`)
+              .lt("start_time", `${nextDay}T00:00:00Z`);
+            if ((count ?? 0) >= bookPolicy.maxBookingsPerDay) {
+              // R114: carry calendar_id/start_time/end_time so index.ts's deterministicSlotTaken can
+              // verify a REAL conflicting row exists before ever telling the customer "iemand anders
+              // heeft het geboekt" (see R114 fix note on the niet_beschikbaar branch below for the
+              // full root-cause reasoning; this is the same fix applied to this sibling error code).
+              return {
+                error: "dag_vol",
+                message: "Die dag zit vol. Stel de klant een andere dag voor.",
+                calendar_id: calId,
+                start_time: start,
+                end_time: end,
+              };
+            }
+          }
+
+          // Does this calendar require up-front payment? (secure payments on AND
+          // payment required for booking). Decided server-side, never by the LLM.
+          const [
+            paymentSettingsRead,
+            ownerInstallmentRead,
+            previewInstallmentConfigRead,
+            previewInstallmentFallbackRead,
+          ] = await Promise.all([
+            supabase
+              .from("payment_settings")
+              .select("secure_payments_enabled, payment_required_for_booking")
+              .eq("calendar_id", calId)
+              .maybeSingle(),
+            supabase
+              .from("users")
+              .select("installments_enabled")
+              .eq("id", ctx.businessUserId)
+              .maybeSingle(),
+            supabase
+              .from("service_installment_configs")
+              .select(
+                "enabled,plan_type,preset_plan,custom_deposits,fixed_deposit_amount,allow_customer_choice",
+              )
+              .eq("service_type_id", serviceId)
+              .maybeSingle(),
+            supabase
+              .from("service_types")
+              .select("installments_enabled,custom_installment_plan")
+              .eq("id", serviceId)
+              .maybeSingle(),
+          ]);
+          let previewPaymentPolicy;
+          try {
+            previewPaymentPolicy = resolveAuthoritativePaymentPolicy(
+              paymentSettingsRead,
+              ownerInstallmentRead,
+              previewInstallmentConfigRead,
+              previewInstallmentFallbackRead,
+            );
+          } catch (error) {
+            if (error instanceof PaymentPolicyReadError) {
+              console.error("Authoritative payment policy unavailable", {
+                code: error.code,
+              });
+              return {
+                error: "payment_policy_unavailable",
+                message:
+                  "Ik kan de betaalvoorwaarden nu niet veilig controleren. Probeer het zo nog eens.",
+              };
+            }
+            throw error;
+          }
+          const paymentRequired = previewPaymentPolicy.paymentRequired;
+
+          // R129 (VALIDATE-BOOKING-SECURITY-WEAK-OVERLOAD fix): this used to call the (uuid, uuid,
+          // timestamptz, timestamptz, text) overload of validate_booking_security, which ONLY checks
+          // calendar/service is_active plus a raw booking-time overlap. A SECOND, fuller overload,
+          // (text calendar_slug, uuid, timestamptz, timestamptz, text), already existed in the same
+          // database (used by the public web booking path) with COMPLETE enforcement: the real-time
+          // availability-window/schedule check (business hours + day-overrides), minimum_notice_hours,
+          // booking_window_days, max_bookings_per_day, AND buffer/prep/cleanup-time conflict widening,
+          // but book_appointment's commit path never called it, so an owner blocking a day/slot via
+          // availability_overrides (or tightening minimum_notice_hours) AFTER a preview was already
+          // open did not stop that stale preview from committing (100% reproducible, not a race; see
+          // evidence/R129_repro.md). Fix: call the FULLER overload instead, passing the calendar's
+          // SLUG (a single indexed by-id lookup; the RPC's own text-typed first param requires it,
+          // not the uuid) so the commit gets the SAME real-time enforcement get_available_slots and
+          // the public web path already have. This closes BOTH the availability-override staleness
+          // AND the minimum-notice staleness in one structural change (both were symptoms of the same
+          // wrong-overload call), by construction, not two separate patches.
+          //
+          // Deliberately NOT relied on for max_bookings_per_day: that guard is its own separate,
+          // already-commit-time-fresh check a few lines up in THIS file (bookPolicy.maxBookingsPerDay),
+          // never routed through validate_booking_security at all, so switching overloads here cannot
+          // regress it (the fuller overload also re-checks max/day itself, using the SAME COUNT logic
+          // and the SAME "confirmed status, non-deleted" scoping as this file's own guard, redundant
+          // by design, not a conflicting second source of truth: both would refuse together).
+          const { data: calRow, error: calErr } = await supabase
+            .from("calendars")
+            .select("slug")
+            .eq("id", calId)
+            .maybeSingle();
+          const calSlug = (calRow as { slug?: string } | null)?.slug ?? null;
+          if (calErr || !calSlug) {
             return {
-              needs_confirmation: true,
-              start_time: pendingBook!.start_time,
-              proposal: { customer_name: pendingTakeoverVerification.originator_name },
-              message: `Duidelijk, de afspraak blijft op naam van ${pendingTakeoverVerification.originator_name}. Vat dienst + tijd + naam kort samen en vraag of het klopt.`,
+              error: calErr?.message ?? "kalender_onbekend",
+              message:
+                "Kon de kalender niet verifiëren, probeer het zo nog eens.",
             };
           }
-          if (resolution === "confirmed_new") {
-            // Deliberate, repeated intent to change it: drop the marker and let the normal
-            // re-preview path below proceed (nameChanged/namePreviewOnly will re-store
-            // pending_booking under the proposed name; originator_name stays preserved at the
-            // TRUE original, per the preview-write logic below, so a THIRD person's later attempt
-            // is still checked against the real originator, never against this now-confirmed hijack).
-            const { pending_book_takeover_verification: _dropTV2, ...restTV2 } = bookCtx;
-            bookCtx = restTV2;
-            takeoverJustConfirmed = true;
-          } else {
-            // Unresolved (bare affirm/negate with no name, or both names mentioned at once): keep
-            // re-asking, exactly like every other identity-conflict gate in this file. Re-stamp
-            // `at` so the 15-minute TTL keeps extending while the question is genuinely still live.
-            //
-            // R121 (THIRD-PARTY-CHIME-IN freshness fix, live-reproduced, S6 testpad phone
-            // 31600001818): a THIRD person naming yet ANOTHER candidate ("Ja, echt boeken voor
-            // Carlos" after the marker already asked about "Bram") is itself a fresh takeoverRisk
-            // this turn (nameChanged sees Carlos != Anna); without this, the stale marker's own
-            // proposed_name ("Bram") would be re-asked about instead of the customer's actual
-            // latest words ("Carlos"), a confusing but NOT unsafe text-staleness bug (pending_booking
-            // itself was never touched either way). Refresh proposed_name to the CURRENT turn's
-            // candidate whenever takeoverRisk is independently true this turn with a genuinely new
-            // name, so the question the customer sees always matches what they just said.
-            const effectiveProposedName = takeoverRisk && args.customer_name != null &&
-                String(args.customer_name).trim().toLowerCase() !== String(pendingTakeoverVerification.proposed_name ?? "").trim().toLowerCase()
-              ? String(args.customer_name)
-              : pendingTakeoverVerification.proposed_name;
+          const { data: validation, error: valErr } = await supabase.rpc(
+            "validate_booking_security",
+            {
+              p_calendar_slug: calSlug,
+              p_service_type_id: serviceId,
+              p_start_time: start,
+              p_end_time: end,
+              p_customer_email: null,
+            },
+          );
+          if (valErr) return { error: valErr.message };
+          const validationResult = validation as {
+            valid?: boolean;
+            errors?: Array<{ field?: string; message?: string }>;
+          } | null;
+          if (validationResult?.valid !== true) {
+            const reasons = (validationResult?.errors ?? []).map((e) =>
+              e?.message
+            ).filter(Boolean).join("; ");
+            // R114 (FALSE-CONFLICT-MESSAGE fix, R113 finding): this RPC is the FULLER overload (R129)
+            // and can return valid:false for reasons that have NOTHING to do with a real double-
+            // booking (business hours/day overrides, minimum-notice drift between preview and commit,
+            // booking-window-days, max/day cap) as well as a genuine slot-overlap. index.ts's
+            // deterministicSlotTaken/raceLostPreCheck used to treat ANY niet_beschikbaar on a commit
+            // turn as proof "the sibling's row already occupies this slot" and told the customer
+            // "iemand anders heeft het geboekt" -- live-reproduced (R113) with a rapid double-confirm
+            // where DB-verified ZERO rows were ever created by either side, so that message was false.
+            // Fix: carry calendar_id/start_time/end_time back so the caller can query `bookings`
+            // directly and only claim "someone else booked it" when a REAL conflicting row exists.
+            return {
+              error: "niet_beschikbaar",
+              message: reasons
+                ? `Dat tijdstip is niet beschikbaar (${reasons}).`
+                : "Dat tijdstip is niet beschikbaar.",
+              calendar_id: calId,
+              start_time: start,
+              end_time: end,
+            };
+          }
+
+          // R121 (PREVIEW-TAKEOVER-VIA-NAMECHANGED fix, continued): fires BEFORE the re-preview
+          // below is allowed to silently swap pending_booking's stored name. See previewTakeoverRisk
+          // (identityDisambiguationGuard.ts) + the takeoverRisk comment above for the full mechanism.
+          // Bound to originator_name (the TRUE first-preview name), never to the current, possibly-
+          // already-hijacked pendingBook.customer_name, so a chain of multiple takeover attempts can
+          // never each reset the reference point to their own prior hijack.
+          //
+          // A FRESH, still-bound marker from a PRIOR turn is checked FIRST and independent of
+          // whether takeoverRisk is true THIS turn: the resolving reply ("nee, gewoon voor Anna") is
+          // itself NEGATE-shaped, so nameChanged/takeoverRisk may well be false on the resolving
+          // turn (the model may not even resupply args.customer_name), and this must still be caught
+          // here rather than falling through to a fresh, unrelated preview.
+          // R121 (self-write-chain guard, see lastSelfWrittenTakeoverVerifyAt's own header comment):
+          // a marker THIS SAME closure/turn just wrote (matched by its own `at` stamp) is NEVER
+          // treated as a genuine prior-turn marker to resolve, exactly mirroring lastSelfWrittenBookAt's
+          // established pattern -- otherwise a same-turn stall-retry re-reads its own just-asked
+          // question and "resolves" it using the SAME original message that triggered it.
+          const takeoverVerificationIsSelfWritten =
+            typeof pendingTakeoverVerification?.at === "number" &&
+            pendingTakeoverVerification.at === lastSelfWrittenTakeoverVerifyAt;
+          let takeoverJustConfirmed = false;
+          if (
+            pendingTakeoverVerificationFresh &&
+            !takeoverVerificationIsSelfWritten &&
+            pendingTakeoverVerification?.start_time ===
+              pendingBook?.start_time &&
+            pendingTakeoverVerification?.originator_name ===
+              pendingBook?.originator_name
+          ) {
+            const resolution = takeoverVerificationResolution(
+              pendingTakeoverVerification.originator_name,
+              pendingTakeoverVerification.proposed_name,
+              ctx.userMessage,
+            );
+            if (resolution === "reverted_to_originator") {
+              // No takeover intended after all: drop the marker, restore the ORIGINAL preview name
+              // (pendingBook.customer_name may still read as the proposed name from the blocked
+              // re-preview attempt below -- it never actually got there, since this gate returned
+              // before storing anything, so pendingBook.customer_name is still originator_name here;
+              // this is a pure no-op confirmation, re-preview under the unchanged, original values).
+              const { pending_book_takeover_verification: _dropTV, ...restTV } =
+                bookCtx;
+              if (ctx.conversationId) {
+                await supabase.from("whatsapp_conversations").update({
+                  context: restTV,
+                }).eq("id", ctx.conversationId);
+              }
+              bookCtx = restTV;
+              // Falls through to the normal re-preview path below with args.customer_name effectively
+              // ignored (nameChanged only reads args.customer_name, and this turn's reply names the
+              // ORIGINATOR, not a new candidate, so on the next book_appointment call -- driven by the
+              // model reading this result -- nameChanged will correctly see no conflict). Return a
+              // clean, deterministic confirmation instead of re-entering guard logic a second time.
+              return {
+                needs_confirmation: true,
+                start_time: pendingBook!.start_time,
+                proposal: {
+                  customer_name: pendingTakeoverVerification.originator_name,
+                },
+                message:
+                  `Duidelijk, de afspraak blijft op naam van ${pendingTakeoverVerification.originator_name}. Vat dienst + tijd + naam kort samen en vraag of het klopt.`,
+              };
+            }
+            if (resolution === "confirmed_new") {
+              // Deliberate, repeated intent to change it: drop the marker and let the normal
+              // re-preview path below proceed (nameChanged/namePreviewOnly will re-store
+              // pending_booking under the proposed name; originator_name stays preserved at the
+              // TRUE original, per the preview-write logic below, so a THIRD person's later attempt
+              // is still checked against the real originator, never against this now-confirmed hijack).
+              const {
+                pending_book_takeover_verification: _dropTV2,
+                ...restTV2
+              } = bookCtx;
+              bookCtx = restTV2;
+              takeoverJustConfirmed = true;
+            } else {
+              // Unresolved (bare affirm/negate with no name, or both names mentioned at once): keep
+              // re-asking, exactly like every other identity-conflict gate in this file. Re-stamp
+              // `at` so the 15-minute TTL keeps extending while the question is genuinely still live.
+              //
+              // R121 (THIRD-PARTY-CHIME-IN freshness fix, live-reproduced, S6 testpad phone
+              // 31600001818): a THIRD person naming yet ANOTHER candidate ("Ja, echt boeken voor
+              // Carlos" after the marker already asked about "Bram") is itself a fresh takeoverRisk
+              // this turn (nameChanged sees Carlos != Anna); without this, the stale marker's own
+              // proposed_name ("Bram") would be re-asked about instead of the customer's actual
+              // latest words ("Carlos"), a confusing but NOT unsafe text-staleness bug (pending_booking
+              // itself was never touched either way). Refresh proposed_name to the CURRENT turn's
+              // candidate whenever takeoverRisk is independently true this turn with a genuinely new
+              // name, so the question the customer sees always matches what they just said.
+              const effectiveProposedName =
+                takeoverRisk && args.customer_name != null &&
+                  String(args.customer_name).trim().toLowerCase() !==
+                    String(pendingTakeoverVerification.proposed_name ?? "")
+                      .trim().toLowerCase()
+                  ? String(args.customer_name)
+                  : pendingTakeoverVerification.proposed_name;
+              const verifyAt = Date.now();
+              lastSelfWrittenTakeoverVerifyAt = verifyAt;
+              if (ctx.conversationId) {
+                await supabase.from("whatsapp_conversations").update({
+                  context: {
+                    ...bookCtx,
+                    pending_book_takeover_verification: {
+                      ...pendingTakeoverVerification,
+                      proposed_name: effectiveProposedName,
+                      at: verifyAt,
+                    },
+                  },
+                }).eq("id", ctx.conversationId);
+              }
+              return {
+                error: "naam_verificatie_nodig",
+                current_name: pendingTakeoverVerification.originator_name,
+                customer_reply:
+                  `De afspraak die klaarstond om te boeken staat op naam van ${pendingTakeoverVerification.originator_name} (${
+                    nlWhen(String(pendingTakeoverVerification.start_time))
+                  }). Moet dit ECHT gewijzigd worden naar ${effectiveProposedName}, of blijft de afspraak op naam van ${pendingTakeoverVerification.originator_name}?`,
+                message:
+                  `Nog geen duidelijk antwoord op de vraag of de afspraak (${
+                    nlWhen(String(pendingTakeoverVerification.start_time))
+                  }), nu op naam van ${pendingTakeoverVerification.originator_name}, ` +
+                  `ECHT gewijzigd moet worden naar ${effectiveProposedName}. Vraag het EXPLICIET opnieuw en noem beide namen, wacht op een duidelijk antwoord.`,
+                guidance:
+                  "NOG NIETS gewijzigd of geboekt. Veiligheidscheck nog niet opgelost: stel de vraag opnieuw en wacht op een ondubbelzinnig antwoord.",
+              };
+            }
+          }
+          // takeoverJustConfirmed: the marker above was JUST resolved this exact turn via
+          // "confirmed_new" -- never re-ask the same question again in the same turn just because
+          // takeoverRisk (computed earlier, before resolution was known) is still structurally true.
+          if (takeoverRisk && !takeoverJustConfirmed) {
             const verifyAt = Date.now();
             lastSelfWrittenTakeoverVerifyAt = verifyAt;
             if (ctx.conversationId) {
-              await supabase.from("whatsapp_conversations").update({
-                context: { ...bookCtx, pending_book_takeover_verification: { ...pendingTakeoverVerification, proposed_name: effectiveProposedName, at: verifyAt } },
-              }).eq("id", ctx.conversationId);
+              await supabase
+                .from("whatsapp_conversations")
+                .update({
+                  context: {
+                    ...bookCtx,
+                    // Deliberately does NOT touch pending_booking itself: the original preview (still
+                    // under originator_name) stays exactly as it was, untouched and uncommittable,
+                    // until this verification is resolved one way or the other. Only a marker is
+                    // written, mirroring every other identity-conflict gate in this file.
+                    pending_book_takeover_verification: {
+                      start_time: pendingBook!.start_time,
+                      originator_name: pendingBook!.originator_name,
+                      proposed_name: args.customer_name,
+                      at: verifyAt,
+                    },
+                  },
+                })
+                .eq("id", ctx.conversationId);
             }
             return {
               error: "naam_verificatie_nodig",
-              current_name: pendingTakeoverVerification.originator_name,
-              customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingTakeoverVerification.originator_name} (${nlWhen(String(pendingTakeoverVerification.start_time))}). Moet dit ECHT gewijzigd worden naar ${effectiveProposedName}, of blijft de afspraak op naam van ${pendingTakeoverVerification.originator_name}?`,
+              current_name: pendingBook!.originator_name,
+              customer_reply:
+                `De afspraak die klaarstond om te boeken staat op naam van ${
+                  pendingBook!.originator_name
+                } (${
+                  nlWhen(String(pendingBook!.start_time))
+                }). Klopt het dat dit echt geboekt moet worden voor ${
+                  String(args.customer_name)
+                } in plaats van ${pendingBook!.originator_name}?`,
               message:
-                `Nog geen duidelijk antwoord op de vraag of de afspraak (${nlWhen(String(pendingTakeoverVerification.start_time))}), nu op naam van ${pendingTakeoverVerification.originator_name}, ` +
-                `ECHT gewijzigd moet worden naar ${effectiveProposedName}. Vraag het EXPLICIET opnieuw en noem beide namen, wacht op een duidelijk antwoord.`,
-              guidance: "NOG NIETS gewijzigd of geboekt. Veiligheidscheck nog niet opgelost: stel de vraag opnieuw en wacht op een ondubbelzinnig antwoord.",
+                `De afspraak die klaarstond om te boeken (${
+                  nlWhen(String(pendingBook!.start_time))
+                }) staat op naam van ${pendingBook!.originator_name}. ` +
+                `De klant wil 'm nu op naam van ${
+                  String(args.customer_name)
+                } zetten. Vraag EXPLICIET te bevestigen dat dit ECHT dezelfde afspraak is, nu voor ${
+                  String(args.customer_name)
+                } in plaats van ${pendingBook!.originator_name}.`,
+              guidance:
+                "NOG NIETS gewijzigd of geboekt. Veiligheidscheck nodig: stel de vraag en wacht op het antwoord.",
             };
           }
-        }
-        // takeoverJustConfirmed: the marker above was JUST resolved this exact turn via
-        // "confirmed_new" -- never re-ask the same question again in the same turn just because
-        // takeoverRisk (computed earlier, before resolution was known) is still structurally true.
-        if (takeoverRisk && !takeoverJustConfirmed) {
-          const verifyAt = Date.now();
-          lastSelfWrittenTakeoverVerifyAt = verifyAt;
-          if (ctx.conversationId) {
-            await supabase
-              .from("whatsapp_conversations")
-              .update({
-                context: {
-                  ...bookCtx,
-                  // Deliberately does NOT touch pending_booking itself: the original preview (still
-                  // under originator_name) stays exactly as it was, untouched and uncommittable,
-                  // until this verification is resolved one way or the other. Only a marker is
-                  // written, mirroring every other identity-conflict gate in this file.
-                  pending_book_takeover_verification: {
-                    start_time: pendingBook!.start_time,
-                    originator_name: pendingBook!.originator_name,
-                    proposed_name: args.customer_name,
-                    at: verifyAt,
-                  },
-                },
-              })
-              .eq("id", ctx.conversationId);
-          }
-          return {
-            error: "naam_verificatie_nodig",
-            current_name: pendingBook!.originator_name,
-            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.originator_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${String(args.customer_name)} in plaats van ${pendingBook!.originator_name}?`,
-            message:
-              `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.originator_name}. ` +
-              `De klant wil 'm nu op naam van ${String(args.customer_name)} zetten. Vraag EXPLICIET te bevestigen dat dit ECHT dezelfde afspraak is, nu voor ${String(args.customer_name)} in plaats van ${pendingBook!.originator_name}.`,
-            guidance: "NOG NIETS gewijzigd of geboekt. Veiligheidscheck nodig: stel de vraag en wacht op het antwoord.",
-          };
-        }
 
-        // PREVIEW phase: every guard passed, but DON'T insert yet. Store the proposal and ask
-        // the customer to confirm; the next affirm turn commits THIS exact proposal.
-        // R25: this branch is ALSO where a namePreviewOnly turn lands (nameChanged blocked the
-        // commit above), re-storing the SAME validated slot/service with the CORRECTED name and
-        // asking the customer to confirm again, rather than silently committing the stale name.
-        if (!committing) {
-          // R96 (SILENT-DROP-ON-MULTI-SERVICE fix, NEW-2, CROSS-TURN guard). The "een_per_keer"
-          // guard right below only blocks a SECOND preview within the SAME turn. NEW-2
-          // (live-reproduced, evidence/IUX_r96.md): a customer names 2 distinct services in one
-          // message; the FIRST gets previewed this turn; on a LATER turn, if the model previews
-          // the SECOND service (whether because the customer's confirm of the first carried extra
-          // content, or the model simply moved on) WITHOUT the first ever having been committed or
-          // explicitly abandoned, this branch used to silently OVERWRITE pending_booking with the
-          // second proposal: the first's still-pending confirmation vanishes with no DB trace and
-          // no disclosure. Fix: refuse a genuinely NEW preview (a different service_type_id than
-          // the one already pending) while an EARLIER preview is still fresh and uncommitted, and
-          // make the model explicitly ask the customer whether to keep, replace, or abandon the
-          // first before starting a second. Never fires for: a namePreviewOnly re-preview (SAME
-          // service, already excluded below since it is gated on !namePreviewOnly), a re-preview
-          // of the SAME pending service_type_id (a legitimate correction, e.g. a different time
-          // for the SAME service), or when no pending_booking exists at all (the common
-          // single-service case, byte-identical behaviour).
-          // CODE-REVIEW FIX (R96, live-reproduced: phone 316000003432): the FIRST version of this
-          // guard had no way to ever RESOLVE itself once the customer explicitly chose to abandon
-          // the earlier preview, since clearPendingBook() only ran on a real commit -- every
-          // subsequent book_appointment attempt for the new service re-hit this SAME guard
-          // forever, even after the customer clearly said to drop the old one. Fix: accept
-          // args.abandon_previous_preview === true (the model sets this ONLY after an explicit
-          // customer statement to that effect, per the tool's own schema description) as the
-          // signal to clear the stale pending_booking and proceed with THIS preview in the same
-          // call, mirroring how confirm_second_booking already lets the model unlock a
-          // deliberately-reviewed exception to a safety default rather than being stuck forever.
-          if (!namePreviewOnly && pendingBook?.start_time && pendingBook.service_type_id && pendingBook.service_type_id !== serviceId) {
-            const { data: pendingSvcRow } = await supabase
-              .from("service_types").select("name").eq("id", pendingBook.service_type_id).maybeSingle();
-            const pendingSvcName = (pendingSvcRow as { name?: string } | null)?.name ?? "de vorige dienst";
-            // R140 (SERVICE-SWITCH-DEAD-END fix): a customer correcting the STILL-PENDING preview's
-            // own service ("wacht, ik wil toch de Speciale Afspraak voor de tweede afspraak") is
-            // giving the exact same "replace the earlier preview" instruction abandon_previous_preview
-            // already handles, just phrased as a SWITCH rather than a bare "drop it". Detected the
-            // same deterministic, server-side way R96 already detects the "drop it" phrasing
-            // (ABANDON_PREVIOUS_PREVIEW_RE in index.ts, proven necessary because the small model
-            // routinely fails to discover/set the model-supplied flag): does THIS turn's raw message
-            // name a real, distinct, configured service, different from the PENDING preview's own
-            // stored service? If the newly-resolved serviceId for THIS call matches that named
-            // service, the switch is genuine and unambiguous, so it is treated exactly like an
-            // explicit abandon-and-replace.
-            const switchTarget = findServiceSwitchForPendingPreview({
-              allServiceNames: ctx.allServiceNamesForAmbiguity ?? [],
-              pendingServiceName: pendingSvcName,
-              currentMessage: ctx.userMessage ?? "",
-            });
-            let newServiceMatchesNamedSwitch = false;
-            if (switchTarget) {
-              const { data: newSvcRow } = await supabase
-                .from("service_types").select("name").eq("id", serviceId).maybeSingle();
-              const newSvcName = (newSvcRow as { name?: string } | null)?.name ?? "";
-              newServiceMatchesNamedSwitch = normServiceNameLocal(switchTarget) === normServiceNameLocal(newSvcName);
+          // PREVIEW phase: every guard passed, but DON'T insert yet. Store the proposal and ask
+          // the customer to confirm; the next affirm turn commits THIS exact proposal.
+          // R25: this branch is ALSO where a namePreviewOnly turn lands (nameChanged blocked the
+          // commit above), re-storing the SAME validated slot/service with the CORRECTED name and
+          // asking the customer to confirm again, rather than silently committing the stale name.
+          if (!committing) {
+            // R96 (SILENT-DROP-ON-MULTI-SERVICE fix, NEW-2, CROSS-TURN guard). The "een_per_keer"
+            // guard right below only blocks a SECOND preview within the SAME turn. NEW-2
+            // (live-reproduced, evidence/IUX_r96.md): a customer names 2 distinct services in one
+            // message; the FIRST gets previewed this turn; on a LATER turn, if the model previews
+            // the SECOND service (whether because the customer's confirm of the first carried extra
+            // content, or the model simply moved on) WITHOUT the first ever having been committed or
+            // explicitly abandoned, this branch used to silently OVERWRITE pending_booking with the
+            // second proposal: the first's still-pending confirmation vanishes with no DB trace and
+            // no disclosure. Fix: refuse a genuinely NEW preview (a different service_type_id than
+            // the one already pending) while an EARLIER preview is still fresh and uncommitted, and
+            // make the model explicitly ask the customer whether to keep, replace, or abandon the
+            // first before starting a second. Never fires for: a namePreviewOnly re-preview (SAME
+            // service, already excluded below since it is gated on !namePreviewOnly), a re-preview
+            // of the SAME pending service_type_id (a legitimate correction, e.g. a different time
+            // for the SAME service), or when no pending_booking exists at all (the common
+            // single-service case, byte-identical behaviour).
+            // CODE-REVIEW FIX (R96, live-reproduced: phone 316000003432): the FIRST version of this
+            // guard had no way to ever RESOLVE itself once the customer explicitly chose to abandon
+            // the earlier preview, since clearPendingBook() only ran on a real commit -- every
+            // subsequent book_appointment attempt for the new service re-hit this SAME guard
+            // forever, even after the customer clearly said to drop the old one. Fix: accept
+            // args.abandon_previous_preview === true (the model sets this ONLY after an explicit
+            // customer statement to that effect, per the tool's own schema description) as the
+            // signal to clear the stale pending_booking and proceed with THIS preview in the same
+            // call, mirroring how confirm_second_booking already lets the model unlock a
+            // deliberately-reviewed exception to a safety default rather than being stuck forever.
+            if (
+              !namePreviewOnly && pendingBook?.start_time &&
+              pendingBook.service_type_id &&
+              pendingBook.service_type_id !== serviceId
+            ) {
+              const { data: pendingSvcRow } = await supabase
+                .from("service_types").select("name").eq(
+                  "id",
+                  pendingBook.service_type_id,
+                ).maybeSingle();
+              const pendingSvcName =
+                (pendingSvcRow as { name?: string } | null)?.name ??
+                  "de vorige dienst";
+              // R140 (SERVICE-SWITCH-DEAD-END fix): a customer correcting the STILL-PENDING preview's
+              // own service ("wacht, ik wil toch de Speciale Afspraak voor de tweede afspraak") is
+              // giving the exact same "replace the earlier preview" instruction abandon_previous_preview
+              // already handles, just phrased as a SWITCH rather than a bare "drop it". Detected the
+              // same deterministic, server-side way R96 already detects the "drop it" phrasing
+              // (ABANDON_PREVIOUS_PREVIEW_RE in index.ts, proven necessary because the small model
+              // routinely fails to discover/set the model-supplied flag): does THIS turn's raw message
+              // name a real, distinct, configured service, different from the PENDING preview's own
+              // stored service? If the newly-resolved serviceId for THIS call matches that named
+              // service, the switch is genuine and unambiguous, so it is treated exactly like an
+              // explicit abandon-and-replace.
+              const switchTarget = findServiceSwitchForPendingPreview({
+                allServiceNames: ctx.allServiceNamesForAmbiguity ?? [],
+                pendingServiceName: pendingSvcName,
+                currentMessage: ctx.userMessage ?? "",
+              });
+              let newServiceMatchesNamedSwitch = false;
+              if (switchTarget) {
+                const { data: newSvcRow } = await supabase
+                  .from("service_types").select("name").eq("id", serviceId)
+                  .maybeSingle();
+                const newSvcName =
+                  (newSvcRow as { name?: string } | null)?.name ?? "";
+                newServiceMatchesNamedSwitch =
+                  normServiceNameLocal(switchTarget) ===
+                    normServiceNameLocal(newSvcName);
+              }
+              if (
+                args.abandon_previous_preview === true ||
+                ctx.abandonPreviousPreview === true ||
+                newServiceMatchesNamedSwitch
+              ) {
+                await clearPendingBook();
+                bookCtx = { ...bookCtx, pending_booking: undefined };
+              } else {
+                return {
+                  error: "vorige_boeking_nog_open",
+                  message:
+                    `Er staat nog een NIET-bevestigde afspraak-preview open voor "${pendingSvcName}" (${
+                      nlWhen(pendingBook.start_time)
+                    }). ` +
+                    "Roep book_appointment NIET aan voor de nieuwe dienst voordat dit is opgelost. Vraag de klant kort: wil je EERST de vorige afspraak " +
+                    `("${pendingSvcName}", ${
+                      nlWhen(pendingBook.start_time)
+                    }) bevestigen, of wil je die laten vervallen en in plaats daarvan de nieuwe dienst boeken? ` +
+                    "Bevestigt de klant de vorige? Roep book_appointment opnieuw aan zonder nieuwe gegevens (net als een gewone bevestiging). Wil de klant 'm laten vervallen? Roep book_appointment dan opnieuw aan met abandon_previous_preview:true om de nieuwe dienst te boeken.",
+                };
+              }
             }
-            if (args.abandon_previous_preview === true || ctx.abandonPreviousPreview === true || newServiceMatchesNamedSwitch) {
-              await clearPendingBook();
-              bookCtx = { ...bookCtx, pending_booking: undefined };
-            } else {
+            // Compound-request guard: only ONE pending_booking can be held at a time, so a
+            // second preview in the same turn would silently drop the first while the model
+            // claims both are booked. Refuse it and make the model book sequentially.
+            if (bookPreviewsThisTurn >= 1) {
               return {
-                error: "vorige_boeking_nog_open",
+                error: "een_per_keer",
                 message:
-                  `Er staat nog een NIET-bevestigde afspraak-preview open voor "${pendingSvcName}" (${nlWhen(pendingBook.start_time)}). ` +
-                  "Roep book_appointment NIET aan voor de nieuwe dienst voordat dit is opgelost. Vraag de klant kort: wil je EERST de vorige afspraak " +
-                  `("${pendingSvcName}", ${nlWhen(pendingBook.start_time)}) bevestigen, of wil je die laten vervallen en in plaats daarvan de nieuwe dienst boeken? ` +
-                  "Bevestigt de klant de vorige? Roep book_appointment opnieuw aan zonder nieuwe gegevens (net als een gewone bevestiging). Wil de klant 'm laten vervallen? Roep book_appointment dan opnieuw aan met abandon_previous_preview:true om de nieuwe dienst te boeken.",
+                  "Ik kan maar één afspraak tegelijk inplannen. Bevestig eerst DEZE afspraak met de klant; daarna plan je de volgende. Zeg NIET dat een tweede afspraak al geboekt is voordat die echt bevestigd en geboekt is.",
               };
             }
-          }
-          // Compound-request guard: only ONE pending_booking can be held at a time, so a
-          // second preview in the same turn would silently drop the first while the model
-          // claims both are booked. Refuse it and make the model book sequentially.
-          if (bookPreviewsThisTurn >= 1) {
-            return {
-              error: "een_per_keer",
-              message: "Ik kan maar één afspraak tegelijk inplannen. Bevestig eerst DEZE afspraak met de klant; daarna plan je de volgende. Zeg NIET dat een tweede afspraak al geboekt is voordat die echt bevestigd en geboekt is.",
-            };
-          }
-          bookPreviewsThisTurn += 1;
-          const { data: stRow } = await supabase
-            .from("service_types").select("name, price").eq("id", serviceId).maybeSingle();
-          const svcName = (stRow as { name?: string } | null)?.name ?? null;
-          // R130 (PRICE-INTEGRITY fix): snapshot the price shown at PREVIEW time so the commit
-          // turn can detect a genuine change (see the price-disclosure block right before the
-          // insert, below). Never itself written to the bookings row -- that always uses a FRESH
-          // commit-time read (the same "re-validate at commit, don't trust stale preview data"
-          // principle R129 already established for duration/availability), this is only the
-          // reference point the disclosure check compares against. null when the service has no
-          // price configured (kept null-safe throughout; never coerced to 0).
-          const previewPrice = typeof (stRow as { price?: unknown } | null)?.price === "number"
-            ? (stRow as { price?: number }).price
-            : (typeof (stRow as { price?: unknown } | null)?.price === "string" && (stRow as { price?: string }).price !== ""
-              ? Number((stRow as { price?: string }).price)
-              : null);
-          // R11 (round 11, INSTALLMENT-SPLIT-NEVER-DISCLOSED fix, bug B of the full-journey
-          // simulation loop): R8/R10 live-reproduced that the preview NEVER mentioned an
-          // installment-enabled service's real split (e.g. "50% nu, 50% bij de afspraak") or its
-          // price before the payment attempt, on 2/2 installment cases tested. Root cause: this
-          // whole file never once read `service_installment_configs` -- the agent had no data
-          // path to ever surface the split, so it structurally could not disclose it, model
-          // prompting alone could never fix a data gap. Fix: read the REAL, service-scoped
-          // installment config here (server-side, at preview time, same "never trust the model to
-          // invent it" discipline as price/name disclosure elsewhere in this file) and attach it
-          // to the preview result so deterministicPreview (index.ts) can template an honest split
-          // disclosure. Only looked up when payment is actually required for this calendar
-          // (paymentRequired, computed above): a no-payment calendar (Iris) has no split to state.
-          // Deliberately does NOT change the actual charge behavior (whatsapp-payment-handler
-          // still runs its own existing pay-now flow, a separate, larger gap noted in PRODUCT
-          // KNOWLEDGE/FINDINGS LEDGER for a future round) -- this only fixes the DISCLOSURE gap
-          // asked for this round: state the real, DB-sourced terms, never an invented number.
-          let installmentInfo: {
-            price: number | null;
-            parts?: Array<{ percentage: number; timing: string; hours?: number }>;
-            fixedDepositAmount?: number;
-          } | null = null;
-          if (paymentRequired) {
-            const { data: instRow } = await supabase
-              .from("service_installment_configs")
-              .select("enabled, plan_type, custom_deposits, preset_plan, fixed_deposit_amount")
-              .eq("service_type_id", serviceId)
+            bookPreviewsThisTurn += 1;
+            const { data: stRow } = await supabase
+              .from("service_types")
+              .select(
+                "name, price, installments_enabled, custom_installment_plan",
+              ).eq("id", serviceId)
               .maybeSingle();
-            const inst = instRow as {
-              enabled?: boolean;
-              plan_type?: string | null;
-              custom_deposits?: Array<{ percentage: number; timing: string; hours?: number }> | null;
-              preset_plan?: string | null;
-              fixed_deposit_amount?: number | string | null;
-            } | null;
-            if (inst?.enabled) {
-              if (inst.plan_type === "custom" && Array.isArray(inst.custom_deposits) && inst.custom_deposits.length > 0) {
-                installmentInfo = { price: previewPrice ?? null, parts: inst.custom_deposits };
-              } else if (inst.plan_type === "preset" && inst.preset_plan === "fixed_deposit") {
-                const dep = typeof inst.fixed_deposit_amount === "number"
-                  ? inst.fixed_deposit_amount
-                  : (typeof inst.fixed_deposit_amount === "string" && inst.fixed_deposit_amount !== "" ? Number(inst.fixed_deposit_amount) : null);
-                if (typeof dep === "number" && !Number.isNaN(dep)) installmentInfo = { price: previewPrice ?? null, fixedDepositAmount: dep };
-              } else if (inst.plan_type === "preset" && inst.preset_plan) {
-                // The 3 non-fixed presets have a fixed, known percentage shape (see
-                // service_installment_configs's own check constraint, confirmed R2): only these
-                // 4 preset_plan values exist at all, fixed_deposit handled separately above.
-                const PRESET_PARTS: Record<string, Array<{ percentage: number; timing: string }>> = {
+            const svcName = (stRow as { name?: string } | null)?.name ?? null;
+            // R130 (PRICE-INTEGRITY fix): snapshot the price shown at PREVIEW time so the commit
+            // turn can detect a genuine change (see the price-disclosure block right before the
+            // insert, below). Never itself written to the bookings row -- that always uses a FRESH
+            // commit-time read (the same "re-validate at commit, don't trust stale preview data"
+            // principle R129 already established for duration/availability), this is only the
+            // reference point the disclosure check compares against. null when the service has no
+            // price configured (kept null-safe throughout; never coerced to 0).
+            const previewPrice =
+              typeof (stRow as { price?: unknown } | null)?.price === "number"
+                ? (stRow as { price?: number }).price
+                : (typeof (stRow as { price?: unknown } | null)?.price ===
+                      "string" && (stRow as { price?: string }).price !== ""
+                  ? Number((stRow as { price?: string }).price)
+                  : null);
+            // R11 (round 11, INSTALLMENT-SPLIT-NEVER-DISCLOSED fix, bug B of the full-journey
+            // simulation loop): R8/R10 live-reproduced that the preview NEVER mentioned an
+            // installment-enabled service's real split (e.g. "50% nu, 50% bij de afspraak") or its
+            // price before the payment attempt, on 2/2 installment cases tested. Root cause: this
+            // whole file never once read `service_installment_configs` -- the agent had no data
+            // path to ever surface the split, so it structurally could not disclose it, model
+            // prompting alone could never fix a data gap. Fix: read the REAL, service-scoped
+            // installment config here (server-side, at preview time, same "never trust the model to
+            // invent it" discipline as price/name disclosure elsewhere in this file) and attach it
+            // to the preview result so deterministicPreview (index.ts) can template an honest split
+            // disclosure. Only looked up when payment is actually required for this calendar
+            // (paymentRequired, computed above): a no-payment calendar (Iris) has no split to state.
+            // Deliberately does NOT change the actual charge behavior (whatsapp-payment-handler
+            // still runs its own existing pay-now flow, a separate, larger gap noted in PRODUCT
+            // KNOWLEDGE/FINDINGS LEDGER for a future round) -- this only fixes the DISCLOSURE gap
+            // asked for this round: state the real, DB-sourced terms, never an invented number.
+            let installmentInfo: {
+              price: number | null;
+              parts?: Array<{
+                percentage?: number;
+                amount?: number;
+                timing: string;
+              }>;
+              fixedDepositAmount?: number;
+            } | null = null;
+            if (paymentRequired) {
+              const inst = previewInstallmentConfigRead.data as {
+                enabled?: boolean;
+                plan_type?: string | null;
+                custom_deposits?:
+                  | Array<{
+                    percentage?: number;
+                    amount?: number;
+                    timing: string;
+                  }>
+                  | null;
+                preset_plan?: string | null;
+                fixed_deposit_amount?: number | string | null;
+              } | null;
+              let effectivePlan: InstallmentPlan | null = null;
+              if (inst?.enabled) {
+                try {
+                  effectivePlan = planFromStoredInstallmentConfig({
+                    enabled: true,
+                    plan_type: inst.plan_type ?? null,
+                    preset_plan: inst.preset_plan ?? null,
+                    custom_deposits: inst.custom_deposits ?? [],
+                    fixed_deposit_amount: inst.fixed_deposit_amount ?? null,
+                  });
+                } catch {
+                  effectivePlan = null;
+                }
+              } else {
+                const serviceFallback = stRow as {
+                  installments_enabled?: boolean | null;
+                  custom_installment_plan?: unknown;
+                } | null;
+                if (serviceFallback?.installments_enabled === true) {
+                  const parsedFallback = installmentPlanSchema.safeParse(
+                    serviceFallback.custom_installment_plan,
+                  );
+                  if (parsedFallback.success) {
+                    effectivePlan = parsedFallback.data;
+                  }
+                }
+              }
+
+              if (effectivePlan?.type === "custom") {
+                installmentInfo = {
+                  price: previewPrice ?? null,
+                  parts: effectivePlan.deposits,
+                };
+              } else if (
+                effectivePlan?.type === "preset" &&
+                effectivePlan.preset === "fixed_deposit" &&
+                typeof effectivePlan.fixed_deposit_amount === "number"
+              ) {
+                installmentInfo = {
+                  price: previewPrice ?? null,
+                  fixedDepositAmount: effectivePlan.fixed_deposit_amount,
+                };
+              } else if (effectivePlan?.type === "preset") {
+                const presetParts: Record<
+                  "100_at_booking" | "50_50",
+                  Array<{ percentage: number; timing: string }>
+                > = {
                   "100_at_booking": [{ percentage: 100, timing: "now" }],
-                  "50_50": [{ percentage: 50, timing: "now" }, { percentage: 50, timing: "appointment" }],
-                  "25_25_50": [
-                    { percentage: 25, timing: "now" },
-                    { percentage: 25, timing: "hours_after" },
+                  "50_50": [
+                    { percentage: 50, timing: "now" },
                     { percentage: 50, timing: "appointment" },
                   ],
                 };
-                if (PRESET_PARTS[inst.preset_plan]) installmentInfo = { price: previewPrice ?? null, parts: PRESET_PARTS[inst.preset_plan] };
+                if (effectivePlan.preset !== "fixed_deposit") {
+                  installmentInfo = {
+                    price: previewPrice ?? null,
+                    parts: presetParts[effectivePlan.preset],
+                  };
+                }
               }
             }
-          }
-          // R36: stamp + remember it as OUR OWN write (lastSelfWrittenBookAt), so a later call
-          // within THIS SAME closure/turn that reads this exact row back can never treat it as a
-          // genuine prior-turn proposal (see the committing gate above + ToolContext comment).
-          const previewAt = Date.now();
-          lastSelfWrittenBookAt = previewAt;
-          // R121: originator_name is stamped ONCE, at this booking's TRUE first preview, and
-          // PRESERVED across every later re-preview of the SAME proposal (namePreviewOnly's own
-          // name-correction re-preview, or any other re-preview that doesn't touch the name at
-          // all) -- never reset to whatever the current re-preview's name happens to be. This is
-          // what lets previewTakeoverRisk keep comparing against the ORIGINAL name even after a
-          // takeover attempt has already (correctly, per the gate above) been blocked once: the
-          // reference point never moves just because a hijack was attempted. Only resets to the
-          // new customerName when there is genuinely no pendingBook at all yet (a true first
-          // preview) or the previous preview was for a DIFFERENT service_type_id (the R96
-          // abandon-previous-preview path already clears bookCtx.pending_booking above in that
-          // case, so pendingBook is undefined here too).
-          const originatorName = isRealNameShared(pendingBook?.originator_name)
-            ? pendingBook!.originator_name
-            : (isRealNameShared(pendingBook?.customer_name) ? pendingBook!.customer_name : customerName);
-          if (ctx.conversationId) {
-            await supabase.from("whatsapp_conversations").update({
-              context: {
-                ...bookCtx,
-                // X3b-2: carry the captured (already format-validated) cross-border fields into the
-                // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
-                // model having to resend them on the "ja" turn (same authoritative-from-server
-                // pattern as start_time / customer_name). null for an in_person booking.
-                pending_booking: { service_type_id: serviceId, start_time: start, end_time: end, customer_name: customerName, calendar_id: calId, customer_country: bookCountry, customer_vat_id: bookVatId, customer_locale: ctx.customerLocale ?? "nl", at: previewAt, originator_name: originatorName, preview_price: previewPrice },
-              },
-            }).eq("id", ctx.conversationId);
-          }
-          return {
-            needs_confirmation: true,
-            // start_time = the SERVER-resolved canonical ISO instant that was just stored in
-            // pending_booking. index.ts re-renders THIS into the customer-facing preview read-back
-            // (deterministicPreview), so the date the customer confirms == the slot that will be
-            // committed. Without it, the model's prose read-back can echo a divergent weekday for
-            // the same slot (ITEM 12: confirmed "donderdag 25 juni", stored "dinsdag 30 juni").
-            start_time: start,
-            proposal: { service: svcName, when: nlWhen(start), customer_name: customerName === "Privé" ? null : customerName },
-            // R11 (round 11, bug B fix): the real, DB-sourced installment split (never invented),
-            // only present when this service genuinely has one enabled. deterministicPreview
-            // (index.ts) templates this into the customer-facing preview text; consumed
-            // server-side only, never left to the model to restate from memory.
-            ...(installmentInfo ? { installment: installmentInfo } : {}),
-            message: installmentInfo
-              ? "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen, EN vermeld de betaalvoorwaarden (het echte, hierboven meegegeven betalingsschema, verzin nooit zelf een percentage), en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken."
-              : "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
-          };
-        }
-
-        // R107 (BOOK-COMMIT-IDENTITY-GAP fix): the SAME crossIdentityActionRisk guard R102 already
-        // wired into cancel_appointment/reschedule_appointment's commit paths, extended to
-        // book_appointment's own commit. ROOT CAUSE this closes (live-reproduced, evidence/
-        // IUX_r107.md): the ONLY identity signal book_appointment's commit ever consulted was
-        // nameChanged, which is gated on the MODEL choosing to pass args.customer_name THIS turn,
-        // and prompt.ts explicitly tells the model that field is NOT required on a confirm turn
-        // ("Bij de bevestig-aanroep (confirmed:true) niet verplicht"). A bare, unconditional "ja"
-        // reply from a DIFFERENT speaker than whoever the pending preview was named for (the exact
-        // R101 shared-phone shape: phone reassigned/handed to someone else mid-flow, PREVIEW never
-        // committed) silently committed under the PREVIEW's stale name, with zero identity check,
-        // because nameChanged can only ever fire when the model resupplies a conflicting name, which
-        // it structurally never does on a clean confirm turn. Fix: run the SAME nameMismatch test
-        // cancel/reschedule already run at COMMIT time (not preview time, since a preview never
-        // inserts, so there is nothing to protect yet), comparing the PENDING PREVIEW's own
-        // customer_name against ctx.knownSelfName (identical signal cancel/reschedule use: the
-        // tenant-scoped name this conversation has on file for whoever is CURRENTLY texting, via
-        // update_lead's booking_name, else the WhatsApp profile display name; null when nothing is
-        // known yet, in which case nameMismatch still fires on any real stored name, the exact
-        // R101-1 "second, unnamed person" trigger shape). Deliberately UNCONDITIONAL: never gated on
-        // whether the model happened to pass customer_name this turn (that was exactly the
-        // structural hole), and independent of nameChanged (nameChanged already blocks and
-        // re-previews its own distinct shape, a model-supplied conflicting name, before this code is
-        // ever reached; this guard covers the complementary "no new name supplied at all" shape
-        // nameChanged cannot see). totalCandidates is not applicable here the way it is for
-        // cancel/reschedule's resolveTarget (there is no candidate list to disambiguate, a
-        // pending_booking is a single stored proposal).
-        // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix): swapped the plain crossIdentityActionRisk
-        // (shared with cancel/reschedule/rename, whose targetCustomerName is always a REAL,
-        // independent bookings-table row) for crossIdentityBookRisk, book_appointment's own variant
-        // (identityDisambiguationGuard.ts has the full root-cause/design reasoning). The pending
-        // preview's customer_name is NEVER an independent third-party fact the way a real DB row
-        // is; on a brand-new customer's first-ever message it is simply what THIS SAME conversation
-        // just said about itself. crossIdentityBookRisk additionally requires genuine prior-
-        // identity evidence (ctx.priorRealBookingExists, or knownSelfName already being a REAL
-        // established name) before treating a null-self-vs-any-name shape as a risk, closing the
-        // deterministic false positive live-reproduced 6/6 on the S6 testpad, without weakening the
-        // genuine R107 phone-handoff-mid-flow protection (a real prior booking or an already-
-        // established knownSelfName still fires exactly as before).
-        if (
-          committing &&
-          crossIdentityBookRisk(pendingBook?.customer_name, ctx.knownSelfName, ctx.priorRealBookingExists === true) &&
-          // R107: the marker must point at THIS EXACT pending preview (start_time + name), same
-          // binding discipline as cancel's pendingCancelVerification?.booking_id === b.id, so a
-          // stale verification marker left over from a DIFFERENT, earlier preview can never
-          // silently authorize a brand new one it never actually verified.
-          !(
-            ctx.confirmBookVerification === true &&
-            pendingBookVerification?.start_time === pendingBook?.start_time &&
-            pendingBookVerification?.customer_name === pendingBook?.customer_name
-          )
-        ) {
-          const verifyAt = Date.now();
-          if (ctx.conversationId) {
-            await supabase
-              .from("whatsapp_conversations")
-              .update({
+            // R36: stamp + remember it as OUR OWN write (lastSelfWrittenBookAt), so a later call
+            // within THIS SAME closure/turn that reads this exact row back can never treat it as a
+            // genuine prior-turn proposal (see the committing gate above + ToolContext comment).
+            const previewAt = Date.now();
+            lastSelfWrittenBookAt = previewAt;
+            // R121: originator_name is stamped ONCE, at this booking's TRUE first preview, and
+            // PRESERVED across every later re-preview of the SAME proposal (namePreviewOnly's own
+            // name-correction re-preview, or any other re-preview that doesn't touch the name at
+            // all) -- never reset to whatever the current re-preview's name happens to be. This is
+            // what lets previewTakeoverRisk keep comparing against the ORIGINAL name even after a
+            // takeover attempt has already (correctly, per the gate above) been blocked once: the
+            // reference point never moves just because a hijack was attempted. Only resets to the
+            // new customerName when there is genuinely no pendingBook at all yet (a true first
+            // preview) or the previous preview was for a DIFFERENT service_type_id (the R96
+            // abandon-previous-preview path already clears bookCtx.pending_booking above in that
+            // case, so pendingBook is undefined here too).
+            const originatorName =
+              isRealNameShared(pendingBook?.originator_name)
+                ? pendingBook!.originator_name
+                : (isRealNameShared(pendingBook?.customer_name)
+                  ? pendingBook!.customer_name
+                  : customerName);
+            if (ctx.conversationId) {
+              await supabase.from("whatsapp_conversations").update({
                 context: {
                   ...bookCtx,
-                  pending_book_verification: {
-                    start_time: pendingBook!.start_time,
-                    customer_name: pendingBook!.customer_name,
-                    at: verifyAt,
+                  // X3b-2: carry the captured (already format-validated) cross-border fields into the
+                  // stored proposal so the COMMIT turn persists them onto the booking row WITHOUT the
+                  // model having to resend them on the "ja" turn (same authoritative-from-server
+                  // pattern as start_time / customer_name). null for an in_person booking.
+                  pending_booking: {
+                    service_type_id: serviceId,
+                    start_time: start,
+                    end_time: end,
+                    customer_name: customerName,
+                    calendar_id: calId,
+                    customer_country: bookCountry,
+                    customer_vat_id: bookVatId,
+                    customer_locale: ctx.customerLocale ?? "nl",
+                    at: previewAt,
+                    originator_name: originatorName,
+                    preview_price: previewPrice,
                   },
                 },
-              })
-              .eq("id", ctx.conversationId);
+              }).eq("id", ctx.conversationId);
+            }
+            return {
+              needs_confirmation: true,
+              // start_time = the SERVER-resolved canonical ISO instant that was just stored in
+              // pending_booking. index.ts re-renders THIS into the customer-facing preview read-back
+              // (deterministicPreview), so the date the customer confirms == the slot that will be
+              // committed. Without it, the model's prose read-back can echo a divergent weekday for
+              // the same slot (ITEM 12: confirmed "donderdag 25 juni", stored "dinsdag 30 juni").
+              start_time: start,
+              proposal: {
+                service: svcName,
+                when: nlWhen(start),
+                customer_name: customerName === "Privé" ? null : customerName,
+              },
+              // R11 (round 11, bug B fix): the real, DB-sourced installment split (never invented),
+              // only present when this service genuinely has one enabled. deterministicPreview
+              // (index.ts) templates this into the customer-facing preview text; consumed
+              // server-side only, never left to the model to restate from memory.
+              ...(installmentInfo ? { installment: installmentInfo } : {}),
+              message: installmentInfo
+                ? "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen, EN vermeld de betaalvoorwaarden (het echte, hierboven meegegeven betalingsschema, verzin nooit zelf een percentage), en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken."
+                : "NOG NIET geboekt. Vat dienst + tijd + de naam waaronder je boekt kort samen en vraag of het klopt ('..., klopt dat?'). Pas NA de bevestiging van de klant roep je book_appointment opnieuw aan om echt te boeken.",
+            };
           }
-          return {
-            error: "naam_verificatie_nodig",
-            current_name: pendingBook!.customer_name,
-            // R112: purely customer-facing (no meta-instruction), used verbatim by the deterministic
-            // backstop (identityDisambiguationGuard.ts's enforceVerificationGateDisclosure) whenever
-            // the model's own drafted reply fails to disclose the name; kept separate from `message`
-            // below (which mixes instructions and is never sent to the customer as-is).
-            // R120 (DOUBLE-CONFIRM-OSCILLATION fix, continued): explicitly asks the customer to
-            // type the name back, mirroring the SAME instruction cancel/reschedule's own
-            // naam_verificatie_nodig wording already includes ('Typ ter bevestiging de naam terug,
-            // bijv. "Ja, X".'). Before this round, book_appointment's own Q2 wording only asked a
-            // plain yes/no ("Klopt het dat...?"), which a real customer naturally answers with a
-            // bare "Ja" -- exactly the reply identityVerificationResolved can never accept, since it
-            // structurally requires the name present. Without this explicit instruction the customer
-            // has no way to know WHY a bare "ja" doesn't resolve it, making the whole gate
-            // practically unresolvable however many times they repeat it. Same fix applied to the
-            // RE-ASK branch above.
-            customer_reply: `De afspraak die klaarstond om te boeken staat op naam van ${pendingBook!.customer_name} (${nlWhen(String(pendingBook!.start_time))}). Klopt het dat dit echt geboekt moet worden voor ${pendingBook!.customer_name}? Typ ter bevestiging de naam terug, bijv. "Ja, ${pendingBook!.customer_name}".`,
-            message:
-              `De afspraak die klaarstond om te boeken (${nlWhen(String(pendingBook!.start_time))}) staat op naam van ${pendingBook!.customer_name}. ` +
-              `Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${pendingBook!.customer_name}"), een kaal "ja" is niet genoeg.`,
-            guidance: "NOG NIETS geboekt. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord met de naam erin.",
-          };
-        }
 
-        // R130 (PRICE-INTEGRITY fix, R128's finding): `bookings` had NO price/total-amount
-        // snapshot at all (total_price/total_amount_cents existed as columns but were never
-        // populated for a WhatsApp booking), and whatsapp-payment-handler read
-        // service_types.price LIVE at charge time, fully decoupled from whatever price was
-        // quoted+confirmed in the conversation. Fix: read the CURRENT service_types.price HERE,
-        // at COMMIT time (never trust the preview-time value, same "re-validate at commit"
-        // principle R129 already established for duration/availability -- a preview is a proposal,
-        // the commit is the authoritative moment), and snapshot it onto the booking row below.
-        // This intentionally means a price that changed mid-flow is charged/booked at the price
-        // AT THE MOMENT THE CUSTOMER ACTUALLY CONFIRMED, not a stale preview-time figure -- but
-        // that change must be genuinely DISCLOSED, never silent (see priceChanged below, and the
-        // reply-honesty wiring in deterministicConfirmation/index.ts). On a fresh single-turn
-        // preview-that-immediately-commits-nothing path this still runs (committing implies a
-        // pendingBook exists), so this read only ever happens once per real commit, no added cost
-        // on the common non-committing preview turn.
-        // R128 (SILENT-PRICE-DROP fix companion): also read `name` in this same commit-time
-        // service_types lookup (was price-only) so the ok:true commit result can echo `service`
-        // just like the preview's own `proposal.service` already does. index.ts's mixed-question
-        // price-answer append (findMixedPriceQuestion/appendPriceAnswer) uses this to scope the
-        // honest price answer to the ONE service actually booked, instead of dumping every service
-        // across every calendar when a customer mixes a price question into the final commit turn.
-        const { data: commitSvcRow } = await supabase
-          .from("service_types").select("name, price").eq("id", serviceId).maybeSingle();
-        const commitSvcName = (commitSvcRow as { name?: string } | null)?.name ?? null;
-        const commitPriceRaw = (commitSvcRow as { price?: unknown } | null)?.price;
-        const commitPrice = typeof commitPriceRaw === "number"
-          ? commitPriceRaw
-          : (typeof commitPriceRaw === "string" && commitPriceRaw !== "" ? Number(commitPriceRaw) : null);
-        // Compare against the price that was actually SHOWN to the customer at preview time
-        // (pendingBook.preview_price, stamped above). Only a genuine, real numeric difference
-        // counts; a service with no price configured on either side (null/NaN) is never treated
-        // as "changed" (nothing was ever quoted, so there is nothing to disclose). Rounds to cents
-        // to avoid a false "changed" from floating-point noise on the same underlying value.
-        const previewPriceForCompare = pendingBook?.preview_price;
-        const priceChanged =
-          typeof commitPrice === "number" && !Number.isNaN(commitPrice) &&
-          typeof previewPriceForCompare === "number" && !Number.isNaN(previewPriceForCompare) &&
-          Math.round(commitPrice * 100) !== Math.round(previewPriceForCompare * 100);
-
-        // Pay-and-book reserves the slot as pending until payment; a normal booking
-        // is confirmed immediately. A pending booking still occupies the slot
-        // (availability + bookings_no_overlap count status IN confirmed,pending).
-        const insertRow: Record<string, unknown> = {
-          calendar_id: calId,
-          service_type_id: serviceId,
-          customer_name: customerName,
-          customer_phone: ctx.phone,
-          start_time: start,
-          end_time: end,
-          status: paymentRequired ? "pending" : "confirmed",
-          // FQ-11: stamp the booking locale so the reminder engine sends in the customer's own
-          // language. On COMMIT prefer the locale captured at preview (authoritative, alongside
-          // start_time/customer_name); on a fresh single-turn insert fall back to this turn's
-          // detected locale. Defaults to 'nl' when unknown (matches the RPC's null->nl norm).
-          customer_locale: (committing ? pendingBook?.customer_locale : undefined) ?? ctx.customerLocale ?? "nl",
-        };
-        // R130: snapshot the COMMIT-TIME price onto the row (never the stale preview price),
-        // so the dashboard/analytics/payment-handler always read what was ACTUALLY charged/
-        // confirmed, not a live re-read that could have moved since. Only set when a real numeric
-        // price exists (never coerced to 0), matching every other optional-snapshot field's
-        // null-safe convention in this insert (customer_country/customer_vat_id above).
-        if (typeof commitPrice === "number" && !Number.isNaN(commitPrice)) {
-          insertRow.total_price = commitPrice;
-        }
-        // X3b-2: persist the customer billing country + optional EU VAT-ID (X1 columns) onto the
-        // booking row, so whatsapp-payment-handler reads them off the row at charge time to drive
-        // the Stripe Tax cross-border / OSS / reverse-charge calc (X3b-1). Only set when present:
-        // an in_person booking leaves both null and is byte-identical to before this change. The
-        // values are format-validated (normalizeCountry/normalizeVatId) and come from the stored
-        // proposal on commit, so the model cannot inject an unvalidated value here.
-        if (bookCountry) insertRow.customer_country = bookCountry;
-        if (bookVatId) insertRow.customer_vat_id = bookVatId;
-        if (paymentRequired) {
-          // Mirror the web create-booking flow: a pending pay-and-book reservation
-          // must carry payment_required + payment_timing so cancel_overdue_unpaid_bookings()
-          // (which filters payment_required = true) reclaims the slot if the customer
-          // never pays. Without this the pending row would hold the slot forever.
-          insertRow.payment_status = "pending";
-          insertRow.payment_required = true;
-          insertRow.payment_timing = "pay_now";
-        }
-
-        const { data: booking, error: insErr } = await supabase
-          .from("bookings")
-          .insert(insertRow)
-          .select("id, start_time")
-          .single();
-        if (insErr) {
-          if (insErr.code === "23P01" || insErr.code === "40P01" || /no_overlap|exclusion/i.test(insErr.message || "")) {
-            // R114: same calendar_id/start_time/end_time carry-through as the niet_beschikbaar/
-            // dag_vol branches above, so index.ts can verify a real conflicting row exists before
-            // blaming "iemand anders" -- this IS the tight exclusion-constraint collision case, so a
-            // genuine conflicting row almost always exists here, but the check stays uniform across
-            // all three BOOK_RACE_LOSS_ERRORS rather than assuming it.
-            return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt.", calendar_id: calId, start_time: start, end_time: end };
+          // R107 (BOOK-COMMIT-IDENTITY-GAP fix): the SAME crossIdentityActionRisk guard R102 already
+          // wired into cancel_appointment/reschedule_appointment's commit paths, extended to
+          // book_appointment's own commit. ROOT CAUSE this closes (live-reproduced, evidence/
+          // IUX_r107.md): the ONLY identity signal book_appointment's commit ever consulted was
+          // nameChanged, which is gated on the MODEL choosing to pass args.customer_name THIS turn,
+          // and prompt.ts explicitly tells the model that field is NOT required on a confirm turn
+          // ("Bij de bevestig-aanroep (confirmed:true) niet verplicht"). A bare, unconditional "ja"
+          // reply from a DIFFERENT speaker than whoever the pending preview was named for (the exact
+          // R101 shared-phone shape: phone reassigned/handed to someone else mid-flow, PREVIEW never
+          // committed) silently committed under the PREVIEW's stale name, with zero identity check,
+          // because nameChanged can only ever fire when the model resupplies a conflicting name, which
+          // it structurally never does on a clean confirm turn. Fix: run the SAME nameMismatch test
+          // cancel/reschedule already run at COMMIT time (not preview time, since a preview never
+          // inserts, so there is nothing to protect yet), comparing the PENDING PREVIEW's own
+          // customer_name against ctx.knownSelfName (identical signal cancel/reschedule use: the
+          // tenant-scoped name this conversation has on file for whoever is CURRENTLY texting, via
+          // update_lead's booking_name, else the WhatsApp profile display name; null when nothing is
+          // known yet, in which case nameMismatch still fires on any real stored name, the exact
+          // R101-1 "second, unnamed person" trigger shape). Deliberately UNCONDITIONAL: never gated on
+          // whether the model happened to pass customer_name this turn (that was exactly the
+          // structural hole), and independent of nameChanged (nameChanged already blocks and
+          // re-previews its own distinct shape, a model-supplied conflicting name, before this code is
+          // ever reached; this guard covers the complementary "no new name supplied at all" shape
+          // nameChanged cannot see). totalCandidates is not applicable here the way it is for
+          // cancel/reschedule's resolveTarget (there is no candidate list to disambiguate, a
+          // pending_booking is a single stored proposal).
+          // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix): swapped the plain crossIdentityActionRisk
+          // (shared with cancel/reschedule/rename, whose targetCustomerName is always a REAL,
+          // independent bookings-table row) for crossIdentityBookRisk, book_appointment's own variant
+          // (identityDisambiguationGuard.ts has the full root-cause/design reasoning). The pending
+          // preview's customer_name is NEVER an independent third-party fact the way a real DB row
+          // is; on a brand-new customer's first-ever message it is simply what THIS SAME conversation
+          // just said about itself. crossIdentityBookRisk additionally requires genuine prior-
+          // identity evidence (ctx.priorRealBookingExists, or knownSelfName already being a REAL
+          // established name) before treating a null-self-vs-any-name shape as a risk, closing the
+          // deterministic false positive live-reproduced 6/6 on the S6 testpad, without weakening the
+          // genuine R107 phone-handoff-mid-flow protection (a real prior booking or an already-
+          // established knownSelfName still fires exactly as before).
+          if (
+            committing &&
+            crossIdentityBookRisk(
+              pendingBook?.customer_name,
+              ctx.knownSelfName,
+              ctx.priorRealBookingExists === true,
+            ) &&
+            // R107: the marker must point at THIS EXACT pending preview (start_time + name), same
+            // binding discipline as cancel's pendingCancelVerification?.booking_id === b.id, so a
+            // stale verification marker left over from a DIFFERENT, earlier preview can never
+            // silently authorize a brand new one it never actually verified.
+            !(
+              ctx.confirmBookVerification === true &&
+              pendingBookVerification?.start_time === pendingBook?.start_time &&
+              pendingBookVerification?.customer_name ===
+                pendingBook?.customer_name
+            )
+          ) {
+            const verifyAt = Date.now();
+            if (ctx.conversationId) {
+              await supabase
+                .from("whatsapp_conversations")
+                .update({
+                  context: {
+                    ...bookCtx,
+                    pending_book_verification: {
+                      start_time: pendingBook!.start_time,
+                      customer_name: pendingBook!.customer_name,
+                      at: verifyAt,
+                    },
+                  },
+                })
+                .eq("id", ctx.conversationId);
+            }
+            return {
+              error: "naam_verificatie_nodig",
+              current_name: pendingBook!.customer_name,
+              // R112: purely customer-facing (no meta-instruction), used verbatim by the deterministic
+              // backstop (identityDisambiguationGuard.ts's enforceVerificationGateDisclosure) whenever
+              // the model's own drafted reply fails to disclose the name; kept separate from `message`
+              // below (which mixes instructions and is never sent to the customer as-is).
+              // R120 (DOUBLE-CONFIRM-OSCILLATION fix, continued): explicitly asks the customer to
+              // type the name back, mirroring the SAME instruction cancel/reschedule's own
+              // naam_verificatie_nodig wording already includes ('Typ ter bevestiging de naam terug,
+              // bijv. "Ja, X".'). Before this round, book_appointment's own Q2 wording only asked a
+              // plain yes/no ("Klopt het dat...?"), which a real customer naturally answers with a
+              // bare "Ja" -- exactly the reply identityVerificationResolved can never accept, since it
+              // structurally requires the name present. Without this explicit instruction the customer
+              // has no way to know WHY a bare "ja" doesn't resolve it, making the whole gate
+              // practically unresolvable however many times they repeat it. Same fix applied to the
+              // RE-ASK branch above.
+              customer_reply:
+                `De afspraak die klaarstond om te boeken staat op naam van ${
+                  pendingBook!.customer_name
+                } (${
+                  nlWhen(String(pendingBook!.start_time))
+                }). Klopt het dat dit echt geboekt moet worden voor ${
+                  pendingBook!.customer_name
+                }? Typ ter bevestiging de naam terug, bijv. "Ja, ${
+                  pendingBook!.customer_name
+                }".`,
+              message:
+                `De afspraak die klaarstond om te boeken (${
+                  nlWhen(String(pendingBook!.start_time))
+                }) staat op naam van ${pendingBook!.customer_name}. ` +
+                `Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${
+                  pendingBook!.customer_name
+                }"), een kaal "ja" is niet genoeg.`,
+              guidance:
+                "NOG NIETS geboekt. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord met de naam erin.",
+            };
           }
-          return { error: insErr.message };
-        }
 
-        // SEQP2R5: owner activity log. One row per successful commit (book: old_value=NULL,
-        // new_value = the booking's own key fields, same shape as insertRow). Best-effort,
-        // non-fatal (mirrors the typing-indicator/other best-effort side writes in this file):
-        // a logging failure must never undo or block a real booking that already exists.
-        const { error: bookActionErr } = await supabase.from("agent_actions").insert({
-          booking_id: booking.id,
-          calendar_id: calId,
-          action_type: "book",
-          actor: "agent",
-          old_value: null,
-          new_value: {
+          // R130 (PRICE-INTEGRITY fix, R128's finding): `bookings` had NO price/total-amount
+          // snapshot at all (total_price/total_amount_cents existed as columns but were never
+          // populated for a WhatsApp booking), and whatsapp-payment-handler read
+          // service_types.price LIVE at charge time, fully decoupled from whatever price was
+          // quoted+confirmed in the conversation. Fix: read the CURRENT service_types.price HERE,
+          // at COMMIT time (never trust the preview-time value, same "re-validate at commit"
+          // principle R129 already established for duration/availability -- a preview is a proposal,
+          // the commit is the authoritative moment), and snapshot it onto the booking row below.
+          // This intentionally means a price that changed mid-flow is charged/booked at the price
+          // AT THE MOMENT THE CUSTOMER ACTUALLY CONFIRMED, not a stale preview-time figure -- but
+          // that change must be genuinely DISCLOSED, never silent (see priceChanged below, and the
+          // reply-honesty wiring in deterministicConfirmation/index.ts). On a fresh single-turn
+          // preview-that-immediately-commits-nothing path this still runs (committing implies a
+          // pendingBook exists), so this read only ever happens once per real commit, no added cost
+          // on the common non-committing preview turn.
+          // R128 (SILENT-PRICE-DROP fix companion): also read `name` in this same commit-time
+          // service_types lookup (was price-only) so the ok:true commit result can echo `service`
+          // just like the preview's own `proposal.service` already does. index.ts's mixed-question
+          // price-answer append (findMixedPriceQuestion/appendPriceAnswer) uses this to scope the
+          // honest price answer to the ONE service actually booked, instead of dumping every service
+          // across every calendar when a customer mixes a price question into the final commit turn.
+          const { data: commitSvcRow, error: commitSvcError } = await supabase
+            .from("service_types").select("name, price").eq("id", serviceId)
+            .maybeSingle();
+          if (commitSvcError || !commitSvcRow) {
+            return {
+              error: "service_policy_unavailable",
+              message:
+                "Ik kan de dienst en prijs nu niet veilig controleren. Probeer het zo nog eens.",
+            };
+          }
+          const commitSvcName =
+            (commitSvcRow as { name?: string } | null)?.name ?? null;
+          const commitPriceRaw = (commitSvcRow as { price?: unknown } | null)
+            ?.price;
+          const commitPrice = typeof commitPriceRaw === "number"
+            ? commitPriceRaw
+            : (typeof commitPriceRaw === "string" && commitPriceRaw !== ""
+              ? Number(commitPriceRaw)
+              : null);
+          // Compare against the price that was actually SHOWN to the customer at preview time
+          // (pendingBook.preview_price, stamped above). Only a genuine, real numeric difference
+          // counts; a service with no price configured on either side (null/NaN) is never treated
+          // as "changed" (nothing was ever quoted, so there is nothing to disclose). Rounds to cents
+          // to avoid a false "changed" from floating-point noise on the same underlying value.
+          const previewPriceForCompare = pendingBook?.preview_price;
+          const priceChanged = typeof commitPrice === "number" &&
+            !Number.isNaN(commitPrice) &&
+            typeof previewPriceForCompare === "number" &&
+            !Number.isNaN(previewPriceForCompare) &&
+            Math.round(commitPrice * 100) !==
+              Math.round(previewPriceForCompare * 100);
+
+          // Pay-and-book reserves the slot as pending until payment; a normal booking
+          // is confirmed immediately. A pending booking still occupies the slot
+          // (availability + bookings_no_overlap count status IN confirmed,pending).
+          const insertRow: Record<string, unknown> = {
+            calendar_id: calId,
             service_type_id: serviceId,
-            start_time: start,
-            end_time: end,
             customer_name: customerName,
             customer_phone: ctx.phone,
-          },
-          conversation_id: ctx.conversationId ?? null,
-          channel: "whatsapp",
-        });
-        if (bookActionErr) console.error("agent_actions insert failed (book):", bookActionErr.message);
+            start_time: start,
+            end_time: end,
+            status: paymentRequired ? "pending" : "confirmed",
+            // FQ-11: stamp the booking locale so the reminder engine sends in the customer's own
+            // language. On COMMIT prefer the locale captured at preview (authoritative, alongside
+            // start_time/customer_name); on a fresh single-turn insert fall back to this turn's
+            // detected locale. Defaults to 'nl' when unknown (matches the RPC's null->nl norm).
+            customer_locale:
+              (committing ? pendingBook?.customer_locale : undefined) ??
+                ctx.customerLocale ?? "nl",
+          };
+          // R130: snapshot the COMMIT-TIME price onto the row (never the stale preview price),
+          // so the dashboard/analytics/payment-handler always read what was ACTUALLY charged/
+          // confirmed, not a live re-read that could have moved since. Only set when a real numeric
+          // price exists (never coerced to 0), matching every other optional-snapshot field's
+          // null-safe convention in this insert (customer_country/customer_vat_id above).
+          if (typeof commitPrice === "number" && !Number.isNaN(commitPrice)) {
+            insertRow.total_price = commitPrice;
+          }
+          // X3b-2: persist the customer billing country + optional EU VAT-ID (X1 columns) onto the
+          // booking row, so whatsapp-payment-handler reads them off the row at charge time to drive
+          // the Stripe Tax cross-border / OSS / reverse-charge calc (X3b-1). Only set when present:
+          // an in_person booking leaves both null and is byte-identical to before this change. The
+          // values are format-validated (normalizeCountry/normalizeVatId) and come from the stored
+          // proposal on commit, so the model cannot inject an unvalidated value here.
+          if (bookCountry) insertRow.customer_country = bookCountry;
+          if (bookVatId) insertRow.customer_vat_id = bookVatId;
+          if (paymentRequired) {
+            // Mirror the web create-booking flow: a pending pay-and-book reservation
+            // must carry payment_required + payment_timing so cancel_overdue_unpaid_bookings()
+            // (which filters payment_required = true) reclaims the slot if the customer
+            // never pays. Without this the pending row would hold the slot forever.
+            insertRow.payment_status = "pending";
+            insertRow.payment_required = true;
+            insertRow.payment_timing = "pay_now";
+          }
 
-        if (!paymentRequired) {
+          const { data: booking, error: insErr } = await supabase
+            .from("bookings")
+            .insert(insertRow)
+            .select("id, start_time")
+            .single();
+          if (insErr) {
+            if (
+              insErr.code === "23P01" || insErr.code === "40P01" ||
+              /no_overlap|exclusion/i.test(insErr.message || "")
+            ) {
+              // R114: same calendar_id/start_time/end_time carry-through as the niet_beschikbaar/
+              // dag_vol branches above, so index.ts can verify a real conflicting row exists before
+              // blaming "iemand anders" -- this IS the tight exclusion-constraint collision case, so a
+              // genuine conflicting row almost always exists here, but the check stays uniform across
+              // all three BOOK_RACE_LOSS_ERRORS rather than assuming it.
+              return {
+                error: "slot_taken",
+                message: "Dat tijdslot is net bezet geraakt.",
+                calendar_id: calId,
+                start_time: start,
+                end_time: end,
+              };
+            }
+            return { error: insErr.message };
+          }
+
+          // SEQP2R5: owner activity log. One row per successful commit (book: old_value=NULL,
+          // new_value = the booking's own key fields, same shape as insertRow). Best-effort,
+          // non-fatal (mirrors the typing-indicator/other best-effort side writes in this file):
+          // a logging failure must never undo or block a real booking that already exists.
+          const { error: bookActionErr } = await supabase.from("agent_actions")
+            .insert({
+              booking_id: booking.id,
+              calendar_id: calId,
+              action_type: "book",
+              actor: "agent",
+              old_value: null,
+              new_value: {
+                service_type_id: serviceId,
+                start_time: start,
+                end_time: end,
+                customer_name: customerName,
+                customer_phone: ctx.phone,
+              },
+              conversation_id: ctx.conversationId ?? null,
+              channel: "whatsapp",
+            });
+          if (bookActionErr) {
+            console.error(
+              "agent_actions insert failed (book):",
+              bookActionErr.message,
+            );
+          }
+
+          if (!paymentRequired) {
+            await clearPendingBook();
+            const whenNL = nlWhen(booking.start_time);
+            // R130: surface the price-change disclosure fields on the result so
+            // deterministicConfirmation (index.ts) can template an honest reply that tells the
+            // customer the price changed, rather than silently confirming at a different price
+            // than what the preview showed. Only present when priceChanged is genuinely true
+            // (the common, unchanged-price case adds no new fields, byte-identical result shape).
+            bookedThisTurn = {
+              when: whenNL,
+              ...(priceChanged
+                ? {
+                  price_changed: true,
+                  new_price: commitPrice!,
+                  previous_price: previewPriceForCompare!,
+                }
+                : {}),
+            };
+            return {
+              ok: true,
+              booking_id: booking.id,
+              start_time: booking.start_time,
+              when: whenNL,
+              service: commitSvcName,
+              ...(priceChanged
+                ? {
+                  price_changed: true,
+                  new_price: commitPrice,
+                  previous_price: previewPriceForCompare,
+                  message:
+                    `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${previewPriceForCompare}, is nu €${commitPrice}). ` +
+                    "De afspraak is geboekt tegen de HUIDIGE prijs. Vermeld dit EXPLICIET en eerlijk aan de klant in je bevestiging (bv. 'Let op: de prijs is inmiddels gewijzigd naar €X, ...'); verzwijg dit nooit.",
+                }
+                : {}),
+            };
+          }
+
+          // Pay-and-book: mint a hosted Stripe payment link tied to THIS booking via
+          // the existing whatsapp-payment-handler (internal, shared-secret). bookingId
+          // flows into the Checkout metadata so the stripe-webhook confirms exactly
+          // this booking on payment. Mode follows the server's STRIPE_MODE (test until
+          // the live-flip), never a client value.
+          if (!ctx.conversationId) {
+            await supabase.from("bookings").update({ status: "cancelled" }).eq(
+              "id",
+              booking.id,
+            );
+            // SEQP2R5: self-corrective cancel (undoing the booking just made above because no
+            // conversation to hang a payment link off of). Same booking_id as the 'book' row
+            // written seconds ago, self-explanatory to an owner reading the log in order.
+            const { error: selfCancelErr1 } = await supabase.from(
+              "agent_actions",
+            ).insert({
+              booking_id: booking.id,
+              calendar_id: calId,
+              action_type: "cancel",
+              actor: "agent",
+              old_value: { status: insertRow.status },
+              new_value: { status: "cancelled" },
+              conversation_id: ctx.conversationId ?? null,
+              channel: "whatsapp",
+            });
+            if (selfCancelErr1) {
+              console.error(
+                "agent_actions insert failed (self-cancel, no conversation):",
+                selfCancelErr1.message,
+              );
+            }
+            // R60 (STALE-PENDING-BOOKING-ON-PAYMENT-FAILURE fix, see R9's original finding): the
+            // booking row this preview referenced is now cancelled, so pending_booking must not
+            // survive to hijack a later, unrelated request (clearPendingBook() is a no-op here
+            // anyway since ctx.conversationId is absent on this branch, kept for symmetry with the
+            // branch below).
+            await clearPendingBook();
+            return {
+              error: "payment_setup_failed",
+              message:
+                "Ik kon de betaling nu niet opzetten. Probeer het zo nog eens.",
+            };
+          }
+          const secret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+          const testMode = Deno.env.get("STRIPE_MODE") !== "live";
+          // Reuse the authoritative reads performed immediately before the
+          // insert. The payment handler independently reloads and validates the
+          // selected plan; a failed read above aborts before a booking exists.
+          const { useInstallments } = previewPaymentPolicy;
+          const { data: pay, error: payErr } = await supabase.functions.invoke(
+            "whatsapp-payment-handler",
+            {
+              body: {
+                conversationId: ctx.conversationId,
+                serviceTypeId: serviceId,
+                bookingId: booking.id,
+                testMode,
+                paymentType: useInstallments ? "installment" : "full",
+                paymentTiming: "pay_now",
+              },
+              headers: secret ? { "x-internal-secret": secret } : undefined,
+            },
+          );
+          const payUrl =
+            (pay as { payment_url?: string } | null)?.payment_url ?? null;
+          if (payErr || !payUrl) {
+            const paymentFailure = await readFunctionInvokeFailure(pay, payErr);
+            // R48: an HTTP/provider error is not proof that Stripe created nothing.
+            // Preserve the booking unless the payment authority explicitly returns
+            // cancel_safe from its booking-locked database decision. Unknown errors,
+            // timeouts, in-progress claims and completion-pending states all remain
+            // retryable without releasing the customer's slot.
+            if (paymentFailure?.booking_disposition !== "cancel_safe") {
+              await clearPendingBook();
+              return {
+                error: "payment_setup_pending",
+                code: paymentFailure?.code ??
+                  "PAYMENT_PROVIDER_STATE_UNCERTAIN",
+                retryable: paymentFailure?.retryable !== false,
+                booking_preserved: true,
+                booking_id: booking.id,
+                message:
+                  "De afspraak is bewaard, maar de betaallink is nog niet veilig bevestigd. Probeer de betaallink opnieuw of neem contact op; zeg niet dat de afspraak geannuleerd is.",
+              };
+            }
+            // No link → don't leave a stuck pending booking holding the slot.
+            await supabase.from("bookings").update({ status: "cancelled" }).eq(
+              "id",
+              booking.id,
+            );
+            // SEQP2R5: same self-corrective cancel as above, other failure branch (payment link
+            // mint itself failed rather than no conversation to send it to).
+            const { error: selfCancelErr2 } = await supabase.from(
+              "agent_actions",
+            ).insert({
+              booking_id: booking.id,
+              calendar_id: calId,
+              action_type: "cancel",
+              actor: "agent",
+              old_value: { status: insertRow.status },
+              new_value: { status: "cancelled" },
+              conversation_id: ctx.conversationId ?? null,
+              channel: "whatsapp",
+            });
+            if (selfCancelErr2) {
+              console.error(
+                "agent_actions insert failed (self-cancel, payment link failed):",
+                selfCancelErr2.message,
+              );
+            }
+            // R60 (STALE-PENDING-BOOKING-ON-PAYMENT-FAILURE fix, see R9's original finding, the
+            // longest-standing open item in this loop, first logged R9, reconfirmed live R32/R34/
+            // R35/R58 in new shapes): the booking row this preview referenced is now cancelled
+            // (2 lines above), but pending_booking was never cleared here, so it survived
+            // indefinitely in `whatsapp_conversations.context` and hijacked a LATER, wholly
+            // unrelated book_appointment request via the "vorige_boeking_nog_open" guard above,
+            // incorrectly asking the customer to resolve/abandon a booking that no longer exists at
+            // all. Root cause: the two success-path commits (no-payment above, pay-and-book below)
+            // both call clearPendingBook(), but this failure path (payment-link mint itself failed)
+            // never did, even though the underlying booking is JUST as dead as if it had been
+            // cancelled outright. Fix: clear it here too, symmetric with every other branch that
+            // ends this preview's lifecycle (committed, replaced, or now failed).
+            await clearPendingBook();
+            return {
+              error: "payment_setup_failed",
+              message:
+                "Het lukte niet een betaallink te maken. Probeer het later opnieuw of neem contact op.",
+            };
+          }
           await clearPendingBook();
-          const whenNL = nlWhen(booking.start_time);
-          // R130: surface the price-change disclosure fields on the result so
-          // deterministicConfirmation (index.ts) can template an honest reply that tells the
-          // customer the price changed, rather than silently confirming at a different price
-          // than what the preview showed. Only present when priceChanged is genuinely true
-          // (the common, unchanged-price case adds no new fields, byte-identical result shape).
+          const whenPayNL = nlWhen(booking.start_time);
+          // R130: same price-change disclosure as the non-payment path above. Especially relevant
+          // here since whatsapp-payment-handler now sources the CHARGE amount from this booking's
+          // own total_price snapshot (never a second live re-read), so this reply is the customer's
+          // only chance to see the price changed before they pay via the link.
           bookedThisTurn = {
-            when: whenNL,
-            ...(priceChanged ? { price_changed: true, new_price: commitPrice!, previous_price: previewPriceForCompare! } : {}),
+            when: whenPayNL,
+            payment_url: payUrl,
+            ...(priceChanged
+              ? {
+                price_changed: true,
+                new_price: commitPrice!,
+                previous_price: previewPriceForCompare!,
+              }
+              : {}),
           };
           return {
             ok: true,
             booking_id: booking.id,
             start_time: booking.start_time,
-            when: whenNL,
+            when: whenPayNL,
+            payment_required: true,
+            payment_url: payUrl,
             service: commitSvcName,
             ...(priceChanged
               ? {
@@ -2920,167 +3961,58 @@ export function createTools(
                 previous_price: previewPriceForCompare,
                 message:
                   `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${previewPriceForCompare}, is nu €${commitPrice}). ` +
-                  "De afspraak is geboekt tegen de HUIDIGE prijs. Vermeld dit EXPLICIET en eerlijk aan de klant in je bevestiging (bv. 'Let op: de prijs is inmiddels gewijzigd naar €X, ...'); verzwijg dit nooit.",
+                  "De betaallink is voor de HUIDIGE prijs. Vermeld dit EXPLICIET en eerlijk aan de klant voordat je de betaallink deelt; verzwijg dit nooit.",
               }
               : {}),
           };
         }
 
-        // Pay-and-book: mint a hosted Stripe payment link tied to THIS booking via
-        // the existing whatsapp-payment-handler (internal, shared-secret). bookingId
-        // flows into the Checkout metadata so the stripe-webhook confirms exactly
-        // this booking on payment. Mode follows the server's STRIPE_MODE (test until
-        // the live-flip), never a client value.
-        if (!ctx.conversationId) {
-          await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
-          // SEQP2R5: self-corrective cancel (undoing the booking just made above because no
-          // conversation to hang a payment link off of). Same booking_id as the 'book' row
-          // written seconds ago, self-explanatory to an owner reading the log in order.
-          const { error: selfCancelErr1 } = await supabase.from("agent_actions").insert({
-            booking_id: booking.id,
-            calendar_id: calId,
-            action_type: "cancel",
-            actor: "agent",
-            old_value: { status: insertRow.status },
-            new_value: { status: "cancelled" },
-            conversation_id: ctx.conversationId ?? null,
-            channel: "whatsapp",
-          });
-          if (selfCancelErr1) console.error("agent_actions insert failed (self-cancel, no conversation):", selfCancelErr1.message);
-          // R60 (STALE-PENDING-BOOKING-ON-PAYMENT-FAILURE fix, see R9's original finding): the
-          // booking row this preview referenced is now cancelled, so pending_booking must not
-          // survive to hijack a later, unrelated request (clearPendingBook() is a no-op here
-          // anyway since ctx.conversationId is absent on this branch, kept for symmetry with the
-          // branch below).
-          await clearPendingBook();
-          return {
-            error: "payment_setup_failed",
-            message: "Ik kon de betaling nu niet opzetten. Probeer het zo nog eens.",
-          };
-        }
-        const secret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
-        const testMode = Deno.env.get("STRIPE_MODE") !== "live";
-        const { data: pay, error: payErr } = await supabase.functions.invoke("whatsapp-payment-handler", {
-          body: {
-            conversationId: ctx.conversationId,
-            serviceTypeId: serviceId,
-            bookingId: booking.id,
-            testMode,
-            paymentTiming: "pay_now",
-            paymentMethod: "ideal",
-          },
-          headers: secret ? { "x-internal-secret": secret } : undefined,
-        });
-        const payUrl = (pay as { payment_url?: string } | null)?.payment_url ?? null;
-        if (payErr || !payUrl) {
-          // No link → don't leave a stuck pending booking holding the slot.
-          await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
-          // SEQP2R5: same self-corrective cancel as above, other failure branch (payment link
-          // mint itself failed rather than no conversation to send it to).
-          const { error: selfCancelErr2 } = await supabase.from("agent_actions").insert({
-            booking_id: booking.id,
-            calendar_id: calId,
-            action_type: "cancel",
-            actor: "agent",
-            old_value: { status: insertRow.status },
-            new_value: { status: "cancelled" },
-            conversation_id: ctx.conversationId ?? null,
-            channel: "whatsapp",
-          });
-          if (selfCancelErr2) console.error("agent_actions insert failed (self-cancel, payment link failed):", selfCancelErr2.message);
-          // R60 (STALE-PENDING-BOOKING-ON-PAYMENT-FAILURE fix, see R9's original finding, the
-          // longest-standing open item in this loop, first logged R9, reconfirmed live R32/R34/
-          // R35/R58 in new shapes): the booking row this preview referenced is now cancelled
-          // (2 lines above), but pending_booking was never cleared here, so it survived
-          // indefinitely in `whatsapp_conversations.context` and hijacked a LATER, wholly
-          // unrelated book_appointment request via the "vorige_boeking_nog_open" guard above,
-          // incorrectly asking the customer to resolve/abandon a booking that no longer exists at
-          // all. Root cause: the two success-path commits (no-payment above, pay-and-book below)
-          // both call clearPendingBook(), but this failure path (payment-link mint itself failed)
-          // never did, even though the underlying booking is JUST as dead as if it had been
-          // cancelled outright. Fix: clear it here too, symmetric with every other branch that
-          // ends this preview's lifecycle (committed, replaced, or now failed).
-          await clearPendingBook();
-          return {
-            error: "payment_setup_failed",
-            message: "Het lukte niet een betaallink te maken. Probeer het later opnieuw of neem contact op.",
-          };
-        }
-        await clearPendingBook();
-        const whenPayNL = nlWhen(booking.start_time);
-        // R130: same price-change disclosure as the non-payment path above. Especially relevant
-        // here since whatsapp-payment-handler now sources the CHARGE amount from this booking's
-        // own total_price snapshot (never a second live re-read), so this reply is the customer's
-        // only chance to see the price changed before they pay via the link.
-        bookedThisTurn = {
-          when: whenPayNL,
-          payment_url: payUrl,
-          ...(priceChanged ? { price_changed: true, new_price: commitPrice!, previous_price: previewPriceForCompare! } : {}),
-        };
-        return {
-          ok: true,
-          booking_id: booking.id,
-          start_time: booking.start_time,
-          when: whenPayNL,
-          payment_required: true,
-          payment_url: payUrl,
-          service: commitSvcName,
-          ...(priceChanged
-            ? {
-              price_changed: true,
-              new_price: commitPrice,
-              previous_price: previewPriceForCompare,
-              message:
-                `Let op: de prijs van deze dienst is gewijzigd sinds de eerdere preview (was €${previewPriceForCompare}, is nu €${commitPrice}). ` +
-                "De betaallink is voor de HUIDIGE prijs. Vermeld dit EXPLICIET en eerlijk aan de klant voordat je de betaallink deelt; verzwijg dit nooit.",
-            }
-            : {}),
-        };
-      }
-
-      // R62 (CROSS-ACTION-MARKER-COLLISION fix): cancel_appointment and reschedule_appointment each
-      // maintain their OWN pending_cancel/pending_cancel_verification vs
-      // pending_reschedule_confirm/pending_reschedule_verification markers for a given booking,
-      // written independently. Live-reproduced: arming reschedule's own identity-verification
-      // marker for a booking that ALREADY had a fresh pending_cancel/pending_cancel_verification
-      // marker (from an earlier, separate cancel attempt on the SAME booking, still within its own
-      // 15-minute TTL) left BOTH sets of markers live simultaneously. A single "Ja, <naam> klopt"
-      // reply then satisfied identityVerificationResolved for BOTH gates at once; the model called
-      // cancel_appointment (not reschedule_appointment), which committed deterministically (the
-      // cancel gate's own commit path has no visibility into the fact the customer had just been
-      // asked a RESCHEDULE question), silently CANCELLING the appointment instead of rescheduling
-      // it, with a clean "Gedaan, ... is geannuleerd" reply and no indication to the customer that
-      // a different action than the one they had just been asked about, and confirmed, was taken.
-      // Fix: whenever EITHER action arms a fresh pending marker for a booking, drop the OTHER
-      // action's pending markers for THAT SAME booking_id first, so at most one action can ever be
-      // "pending confirmation" for a given booking at a time (mirrors the existing R103 convention
-      // of dropping a stale marker the moment a newer, competing signal for the same target
-      // appears). Purely additive context cleanup; does not change any gate's own release logic.
-      // R69 (RENAME-MARKER-LEAK fix): update_booking_name never called this helper at all, so a
-      // rename that commits (or even just previews) on a booking left a pre-existing durable
-      // `reschedule_identity_confirmed` marker (R68) completely untouched, even though the marker's
-      // own key list here was clearly SCOPED to be dropped by "any OTHER action arming its own
-      // marker for the SAME booking_id" (see the R68 PRODUCT KNOWLEDGE entry's own stated intent).
-      // Live-reproduced (R69): reschedule an existing booking to trigger identity verification,
-      // confirm identity (writes the durable marker), hit a downstream refusal so the marker
-      // survives unconsumed, then RENAME that same booking (single-booking phone, so rename's own
-      // crossIdentityRisk gate never even fires) which changes customer_name but leaves the durable
-      // marker alive; a SUBSEQUENT reschedule request on the SAME booking then skipped identity
-      // verification entirely (rescheduleAlreadyVerifiedThisBooking stayed true) and committed for
-      // real, even though the booking's own name had just changed underneath it and
-      // ctx.knownSelfName was still null the whole time (a fresh check would have fired). Fix, two
-      // parts: (1) added "pending_rename"/"pending_rename_verification" to this shared key list, so
-      // cancel/reschedule arming their own marker also drops any stale rename marker for the same
-      // booking (closes the R62-class collision in the direction that was missing); (2) wired
-      // dropCrossActionMarkersForBooking() into update_booking_name's own two write sites below
-      // (the verification-arm and the plain-preview-arm), so a rename now also drops any stale
-      // cancel/reschedule/reschedule_identity_confirmed marker for that same booking_id, exactly
-      // like cancel_appointment/reschedule_appointment already do for each other.
-      function dropCrossActionMarkersForBooking(base: Record<string, unknown>, bookingId: string): Record<string, unknown> {
-        const out = { ...base };
-        for (
-          const key of
-            [
+        // R62 (CROSS-ACTION-MARKER-COLLISION fix): cancel_appointment and reschedule_appointment each
+        // maintain their OWN pending_cancel/pending_cancel_verification vs
+        // pending_reschedule_confirm/pending_reschedule_verification markers for a given booking,
+        // written independently. Live-reproduced: arming reschedule's own identity-verification
+        // marker for a booking that ALREADY had a fresh pending_cancel/pending_cancel_verification
+        // marker (from an earlier, separate cancel attempt on the SAME booking, still within its own
+        // 15-minute TTL) left BOTH sets of markers live simultaneously. A single "Ja, <naam> klopt"
+        // reply then satisfied identityVerificationResolved for BOTH gates at once; the model called
+        // cancel_appointment (not reschedule_appointment), which committed deterministically (the
+        // cancel gate's own commit path has no visibility into the fact the customer had just been
+        // asked a RESCHEDULE question), silently CANCELLING the appointment instead of rescheduling
+        // it, with a clean "Gedaan, ... is geannuleerd" reply and no indication to the customer that
+        // a different action than the one they had just been asked about, and confirmed, was taken.
+        // Fix: whenever EITHER action arms a fresh pending marker for a booking, drop the OTHER
+        // action's pending markers for THAT SAME booking_id first, so at most one action can ever be
+        // "pending confirmation" for a given booking at a time (mirrors the existing R103 convention
+        // of dropping a stale marker the moment a newer, competing signal for the same target
+        // appears). Purely additive context cleanup; does not change any gate's own release logic.
+        // R69 (RENAME-MARKER-LEAK fix): update_booking_name never called this helper at all, so a
+        // rename that commits (or even just previews) on a booking left a pre-existing durable
+        // `reschedule_identity_confirmed` marker (R68) completely untouched, even though the marker's
+        // own key list here was clearly SCOPED to be dropped by "any OTHER action arming its own
+        // marker for the SAME booking_id" (see the R68 PRODUCT KNOWLEDGE entry's own stated intent).
+        // Live-reproduced (R69): reschedule an existing booking to trigger identity verification,
+        // confirm identity (writes the durable marker), hit a downstream refusal so the marker
+        // survives unconsumed, then RENAME that same booking (single-booking phone, so rename's own
+        // crossIdentityRisk gate never even fires) which changes customer_name but leaves the durable
+        // marker alive; a SUBSEQUENT reschedule request on the SAME booking then skipped identity
+        // verification entirely (rescheduleAlreadyVerifiedThisBooking stayed true) and committed for
+        // real, even though the booking's own name had just changed underneath it and
+        // ctx.knownSelfName was still null the whole time (a fresh check would have fired). Fix, two
+        // parts: (1) added "pending_rename"/"pending_rename_verification" to this shared key list, so
+        // cancel/reschedule arming their own marker also drops any stale rename marker for the same
+        // booking (closes the R62-class collision in the direction that was missing); (2) wired
+        // dropCrossActionMarkersForBooking() into update_booking_name's own two write sites below
+        // (the verification-arm and the plain-preview-arm), so a rename now also drops any stale
+        // cancel/reschedule/reschedule_identity_confirmed marker for that same booking_id, exactly
+        // like cancel_appointment/reschedule_appointment already do for each other.
+        // eslint-disable-next-line no-case-declarations
+        function dropCrossActionMarkersForBooking(
+          base: Record<string, unknown>,
+          bookingId: string,
+        ): Record<string, unknown> {
+          const out = { ...base };
+          for (
+            const key of [
               "pending_cancel",
               "pending_cancel_verification",
               "pending_reschedule_confirm",
@@ -3089,12 +4021,12 @@ export function createTools(
               "pending_rename",
               "pending_rename_verification",
             ] as const
-        ) {
-          const marker = out[key] as { booking_id?: string } | undefined;
-          if (marker && marker.booking_id === bookingId) delete out[key];
+          ) {
+            const marker = out[key] as { booking_id?: string } | undefined;
+            if (marker && marker.booking_id === bookingId) delete out[key];
+          }
+          return out;
         }
-        return out;
-      }
 
       case "cancel_appointment": {
         // Two-phase confirm (council A8 verdict): cancelling is destructive, so the tool NEVER
@@ -3104,10 +4036,20 @@ export function createTools(
         let cancelCtx: Record<string, unknown> = {};
         if (ctx.conversationId) {
           const { data: conv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          cancelCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+            .from("whatsapp_conversations").select("context").eq(
+              "id",
+              ctx.conversationId,
+            ).maybeSingle();
+          cancelCtx =
+            ((conv as { context?: Record<string, unknown> } | null)?.context) ??
+              {};
         }
-        const pending = cancelCtx.pending_cancel as { booking_id?: string; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
+        const pending = cancelCtx.pending_cancel as {
+          booking_id?: string;
+          start_time?: string;
+          at?: number;
+          calendar_mismatch?: CalendarMismatch | null;
+        } | undefined;
         // R153: also drops pending_cancel_verification here (not just pending_cancel). Needed
         // because the cancelVerifiedBypass commit path above (R153) can now commit directly off a
         // pending_cancel_verification marker with no pending_cancel ever having existed; every
@@ -3116,19 +4058,35 @@ export function createTools(
         // just terminated (cancelled/not-found/policy-refused).
         const clearPending = async () => {
           if (!ctx.conversationId) return;
-          const { pending_cancel: _drop, pending_cancel_verification: _dropV, ...rest } = cancelCtx;
-          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+          const {
+            pending_cancel: _drop,
+            pending_cancel_verification: _dropV,
+            ...rest
+          } = cancelCtx;
+          await supabase.from("whatsapp_conversations").update({
+            context: rest,
+          }).eq("id", ctx.conversationId);
         };
         // R102 (shared-phone identity fix): the SAME cross-identity verification marker shape as
         // update_booking_name's R76 pending_rename_verification, generalized to cancel. Read here
         // (once, top of the tool) so both the PREVIEW branch (which may consume/clear it) and any
         // future extension can see it without a second query.
-        const pendingCancelVerification = cancelCtx.pending_cancel_verification as
-          { booking_id?: string; current_name?: string | null; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
-        const clearPendingCancelVerification = async (base: Record<string, unknown>) => {
+        const pendingCancelVerification = cancelCtx
+          .pending_cancel_verification as {
+            booking_id?: string;
+            current_name?: string | null;
+            start_time?: string;
+            at?: number;
+            calendar_mismatch?: CalendarMismatch | null;
+          } | undefined;
+        const clearPendingCancelVerification = async (
+          base: Record<string, unknown>,
+        ) => {
           if (!ctx.conversationId) return;
           const { pending_cancel_verification: _dropV, ...rest } = base;
-          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+          await supabase.from("whatsapp_conversations").update({
+            context: rest,
+          }).eq("id", ctx.conversationId);
         };
 
         // COMMIT phase: only when a preview was taken in a PREVIOUS turn AND the customer confirmed.
@@ -3155,7 +4113,8 @@ export function createTools(
         // the pending required to predate anything THIS closure itself wrote this turn.
         const noPriorTurnCancelProposal = ctx.confirmCancel !== true;
         const cancelPreviewIsSelfWritten = noPriorTurnCancelProposal &&
-          typeof pending?.at === "number" && pending.at === lastSelfWrittenCancelAt;
+          typeof pending?.at === "number" &&
+          pending.at === lastSelfWrittenCancelAt;
         // R120 (BOOK-COMMIT-FIRST-MESSAGE-FALSE-POSITIVE fix, MILDER-SYMPTOM half, applied to
         // cancel_appointment): the task's own root-cause check confirmed the IDENTICAL mechanism
         // live-reproduced here (phone 31600002010): ctx.hardConfirm's finite bare-affirm allow-list
@@ -3199,20 +4158,37 @@ export function createTools(
         // is trusted as the SAME kind of "which booking" evidence pending_cancel normally provides,
         // letting a cancel that started directly on a cross-identity-risk turn commit in ONE
         // identity-confirm reply instead of requiring an extra, unreachable plain re-confirm.
-        const cancelStartTimeForCommit = pending?.start_time ?? (cancelVerifiedBypass ? pendingCancelVerification?.start_time : undefined);
+        const cancelStartTimeForCommit = pending?.start_time ??
+          (cancelVerifiedBypass
+            ? pendingCancelVerification?.start_time
+            : undefined);
         // R152: when cancelVerifiedBypass is the reason this passes, use the narrower
         // ambiguousConfirmForVerification signal (day/time-shift excluded); otherwise keep the
         // full ambiguousConfirm exactly as before. See ToolContext's own R152 comment above.
-        if (((confirmed || ctx.confirmCancel === true) && cleanlyConfirmedCancel && ctx.hardConfirm === true || cancelVerifiedBypass) && !(cancelVerifiedBypass ? ctx.ambiguousConfirmForVerification : ctx.ambiguousConfirm) && cancelStartTimeForCommit && !cancelPreviewIsSelfWritten) {
-          const target = await resolveTarget(supabase, ctx, cancelStartTimeForCommit);
+        if (
+          ((confirmed || ctx.confirmCancel === true) &&
+              cleanlyConfirmedCancel && ctx.hardConfirm === true ||
+            cancelVerifiedBypass) &&
+          !(cancelVerifiedBypass
+            ? ctx.ambiguousConfirmForVerification
+            : ctx.ambiguousConfirm) &&
+          cancelStartTimeForCommit && !cancelPreviewIsSelfWritten
+        ) {
+          const target = await resolveTarget(
+            supabase,
+            ctx,
+            cancelStartTimeForCommit,
+          );
           if (target.none || target.ambiguous) {
             await clearPending();
             return {
               error: "geen_boeking",
               // message = customer-facing text the model may render; guidance = internal-only
               // instruction (ITEM 3: keep directives OUT of customer-text strings).
-              message: "Die afspraak kan ik niet meer vinden om te annuleren, mogelijk is hij al weg.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om te annuleren, mogelijk is hij al weg.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           const b = target.booking!;
@@ -3223,8 +4199,13 @@ export function createTools(
           // bare "ja klopt", which no longer restates the wrong name), so the mismatch survives
           // across the preview -> verification -> commit turns, not just a single message.
           const cancelCommitCalMismatch: CalendarMismatch | null =
-            findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id) ??
-            pending?.calendar_mismatch ?? pendingCancelVerification?.calendar_mismatch ?? null;
+            findCalendarMismatch(
+              ctx.calendars,
+              ctx.userMessage,
+              b.calendar_id,
+            ) ??
+              pending?.calendar_mismatch ??
+              pendingCancelVerification?.calendar_mismatch ?? null;
           // R109 (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix): the policy checks
           // (allowCancellations / cancellationDeadlineHours) used to run AFTER the cross-identity
           // verification check below. Live-reproduced (R108/R109, booking 19535f4d, Iris, 24h
@@ -3256,15 +4237,22 @@ export function createTools(
             return {
               error: "annuleren_niet_toegestaan",
               message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
-              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
+              guidance:
+                "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
             };
           }
-          if (policy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < policy.cancellationDeadlineHours) {
+          if (
+            policy.cancellationDeadlineHours != null &&
+            hoursUntil(b.start_time) < policy.cancellationDeadlineHours
+          ) {
             await clearPending();
             return {
               error: "te_laat_annuleren",
-              message: `Annuleren kan tot ${formatHoursNL(policy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk via mij.`,
-              guidance: "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
+              message: `Annuleren kan tot ${
+                formatHoursNL(policy.cancellationDeadlineHours)
+              } van tevoren; voor deze afspraak is dat niet meer mogelijk via mij.`,
+              guidance:
+                "Verwijs vriendelijk naar rechtstreeks contact met het bedrijf (noem het telefoonnummer of e-mail uit <business_data> als dat er is, anders het annuleringsbeleid). Zeg niet 'neem contact op via WhatsApp' (de klant zit hier al op WhatsApp) en verzin geen contactgegevens.",
             };
           }
           // R102 (defense-in-depth): re-check the SAME cross-identity risk at COMMIT time too, not
@@ -3274,13 +4262,32 @@ export function createTools(
           // cross-identity cancel it never actually verified. Fail-safe: on risk, refuse the commit
           // and route back through the same verification question, rather than trusting a stale
           // pending marker's implicit "this was already OK'd".
-          if (crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName) && !(ctx.confirmCancelVerification === true && pendingCancelVerification?.booking_id === b.id)) {
+          if (
+            crossIdentityActionRisk(
+              target.totalCandidates,
+              b.customer_name,
+              ctx.knownSelfName,
+            ) &&
+            !(ctx.confirmCancelVerification === true &&
+              pendingCancelVerification?.booking_id === b.id)
+          ) {
             await clearPending();
             const verifyAt = Date.now();
             if (ctx.conversationId) {
               await supabase
                 .from("whatsapp_conversations")
-                .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt, calendar_mismatch: cancelCommitCalMismatch } } })
+                .update({
+                  context: {
+                    ...dropCrossActionMarkersForBooking(cancelCtx, b.id),
+                    pending_cancel_verification: {
+                      booking_id: b.id,
+                      current_name: b.customer_name,
+                      start_time: b.start_time,
+                      at: verifyAt,
+                      calendar_mismatch: cancelCommitCalMismatch,
+                    },
+                  },
+                })
                 .eq("id", ctx.conversationId);
             }
             return {
@@ -3288,61 +4295,68 @@ export function createTools(
               current_name: b.customer_name,
               // R112: purely customer-facing, see identityDisambiguationGuard.ts's
               // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-              customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
+              customer_reply:
+                `De afspraak die ik vond staat op naam van ${b.customer_name} (${
+                  b.service_types?.name ?? ""
+                }, ${
+                  nlWhen(b.start_time)
+                }). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
               message:
-                `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
+                `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${
+                  nlWhen(b.start_time)
+                }) staat op naam van ${b.customer_name}. ` +
                 `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging.`,
-              guidance: "NIETS geannuleerd. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
+              guidance:
+                "NIETS geannuleerd. Veiligheidscheck alsnog nodig: stel de vraag en wacht op het antwoord.",
             };
           }
-          // Set the audit fields too (mirrors cancel_booking_for_agent) so cancellation
-          // reporting isn't blank (the policy was already enforced just above).
-          // R40-FIX (CANCEL-PHANTOM-SUCCESS, sev-2): resolveTarget's SELECT just above only proves
-          // the row was confirmed/pending AT READ TIME; a race (a concurrent request, a duplicate
-          // confirm burst, an already-cancelled row from the fixture-wide Stripe wall re-fetched
-          // stale) can still leave the row NOT actually in confirmed/pending state at UPDATE time.
-          // The old code trusted "no Postgres error" as proof of a real mutation, but an .update()
-          // whose WHERE clause matches ZERO rows returns NO error either, so a no-op could silently
-          // reach ok:true / cancelled:{...} below and the model would then narrate a cancellation
-          // that never happened, exactly the false-success shape found live at R40 (booking
-          // 15fdb936-8900-440a-9d08-4c5cff135662, updated_at/cancelled_at never actually changed).
-          // Fix: re-assert status in the WHERE clause (closes the race window at the SQL level, not
-          // just at the earlier SELECT) AND .select("id") so the actual affected-row-count is
-          // checked, not just the absence of a Postgres error. Zero rows affected is now treated
-          // exactly like "not found" (the same error shape resolveTarget's own none branch already
-          // uses above), never a false ok:true.
-          const { data: cancelledRows, error } = await supabase.from("bookings").update({
-            status: "cancelled",
-            cancelled_at: new Date().toISOString(),
-            cancellation_reason: "Geannuleerd via WhatsApp",
-            updated_at: new Date().toISOString(),
-          }).eq("id", b.id).in("status", ["confirmed", "pending"]).select("id");
-          if (error) return { error: error.message };
-          if (!cancelledRows || cancelledRows.length === 0) {
-            // Zero rows actually mutated: the row was not really confirmed/pending anymore (already
-            // cancelled, or removed) by the time this UPDATE ran. Never claim success on a no-op.
+          // R21 is the single cancellation transaction for WhatsApp. Besides rechecking
+          // phone, policy, deadline and booking state under a row lock, it preserves any
+          // captured balance as refund_required and cancels only pending installments.
+          const { data: cancelResult, error: cancelError } = await supabase.rpc(
+            "cancel_booking_for_agent",
+            {
+              p_booking_id: b.id,
+              p_phone: ctx.phone,
+              p_reason: "Geannuleerd via WhatsApp",
+            },
+          );
+          if (cancelError) return { error: cancelError.message };
+          if (!cancelResult || cancelResult.success !== true) {
             await clearPending();
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om te annuleren, mogelijk is hij al weg.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message: cancelResult?.error ??
+                "Die afspraak kan ik niet meer annuleren, mogelijk is hij al gewijzigd.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           // SEQP2R5: owner activity log. old_value is the pre-cancel status captured by
           // resolveTarget above (b.status, whatever non-terminal status it had); new_value is
           // the post-cancel state. Best-effort, non-fatal (a logging failure must never block
           // a cancellation that already committed).
-          const { error: cancelActionErr } = await supabase.from("agent_actions").insert({
+          const { error: cancelActionErr } = await supabase.from(
+            "agent_actions",
+          ).insert({
             booking_id: b.id,
             calendar_id: b.calendar_id,
             action_type: "cancel",
             actor: "agent",
             old_value: { status: b.status },
-            new_value: { status: "cancelled", cancellation_reason: "Geannuleerd via WhatsApp" },
+            new_value: {
+              status: "cancelled",
+              cancellation_reason: "Geannuleerd via WhatsApp",
+            },
             conversation_id: ctx.conversationId ?? null,
             channel: "whatsapp",
           });
-          if (cancelActionErr) console.error("agent_actions insert failed (cancel):", cancelActionErr.message);
+          if (cancelActionErr) {
+            console.error(
+              "agent_actions insert failed (cancel):",
+              cancelActionErr.message,
+            );
+          }
           await clearPending();
           return {
             ok: true,
@@ -3355,7 +4369,15 @@ export function createTools(
             // X is geannuleerd" instead of always "je afspraak", whenever a real name is on file.
             // R66: surface the customer-STATED-but-wrong calendar/employee name (if any), so the
             // final "Gedaan, ..." reply can correct/disclose it instead of silently proceeding.
-            cancelled: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null, calendar_mismatch: cancelCommitCalMismatch },
+            cancelled: {
+              service: b.service_types?.name ?? null,
+              when: nlWhen(b.start_time),
+              start_time: b.start_time,
+              customer_name: isRealNameShared(b.customer_name)
+                ? b.customer_name
+                : null,
+              calendar_mismatch: cancelCommitCalMismatch,
+            },
           };
         }
 
@@ -3367,10 +4389,20 @@ export function createTools(
         // resolves instead of looping on "welke?".
         const cancelMatchTime = args.match_time
           ? String(args.match_time)
-          : (!args.match_start_time ? extractClockTimes(ctx.userMessage)[0] : undefined);
-        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, cancelMatchTime);
+          : (!args.match_start_time
+            ? extractClockTimes(ctx.userMessage)[0]
+            : undefined);
+        const target = await resolveTarget(
+          supabase,
+          ctx,
+          args.match_start_time ? String(args.match_start_time) : undefined,
+          cancelMatchTime,
+        );
         if (target.none) {
-          return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te annuleren." };
+          return {
+            error: "geen_boeking",
+            message: "Ik kan geen aankomende afspraak vinden om te annuleren.",
+          };
         }
         if (target.ambiguous) {
           // R103 (GAP 2 fix): this turn's own message named 2+ distinct real candidates (the
@@ -3381,7 +4413,10 @@ export function createTools(
           // disambiguation path is reached FIRST whenever 2+ names are mentioned together, so this
           // is the actual point the stale marker must be invalidated, or it keeps sitting in the DB
           // unconsumed across every subsequent disambiguation turn.
-          if (target.multipleNamesStated && pendingCancelVerification && ctx.conversationId) {
+          if (
+            target.multipleNamesStated && pendingCancelVerification &&
+            ctx.conversationId
+          ) {
             await clearPendingCancelVerification(cancelCtx);
           }
           // R102 (shared-phone identity fix, verify-round finding 2, "Anne"/"Anna" collision):
@@ -3392,12 +4427,15 @@ export function createTools(
           return {
             error: "meerdere_afspraken",
             message: "Je hebt meerdere aankomende afspraken staan.",
-            guidance: "Vraag kort welke van deze afspraken de klant wil annuleren. Staat er bij een afspraak een naam die AFWIJKT van wie er nu aan het typen is, noem die naam dan expliciet in je vraag (bv. 'de afspraak van Sanne, of die van Tim?'), zodat de klant kan zien als een van de twee niet de eigen afspraak is.",
+            guidance:
+              "Vraag kort welke van deze afspraken de klant wil annuleren. Staat er bij een afspraak een naam die AFWIJKT van wie er nu aan het typen is, noem die naam dan expliciet in je vraag (bv. 'de afspraak van Sanne, of die van Tim?'), zodat de klant kan zien als een van de twee niet de eigen afspraak is.",
             appointments: target.ambiguous.map((b) => ({
               service: b.service_types?.name ?? null,
               when: nlWhen(b.start_time),
               start_time: b.start_time,
-              customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null,
+              customer_name: isRealNameShared(b.customer_name)
+                ? b.customer_name
+                : null,
             })),
           };
         }
@@ -3408,7 +4446,11 @@ export function createTools(
         // turn most likely to carry the customer's own stated name) and threaded through both
         // pending markers below so it survives to the commit turn, which is usually just a bare
         // "ja klopt" that no longer restates it.
-        const cancelPreviewCalMismatch = findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id);
+        const cancelPreviewCalMismatch = findCalendarMismatch(
+          ctx.calendars,
+          ctx.userMessage,
+          b.calendar_id,
+        );
 
         // R109 (STUCK-CANCEL-VERIFICATION-BEHIND-POLICY-REFUSAL fix, preview-branch half; see the
         // commit branch's own R109 comment above for the full live-reproduced root-cause mechanism):
@@ -3421,19 +4463,30 @@ export function createTools(
         // (Iris, 24h-deadline calendar). A policy refusal is true for ANY caller regardless of whose
         // booking it is, so it must be decided BEFORE the identity check ever runs, never after.
         // Purely a check-order change: same policy fields, same messages, same early return shape.
-        const cancelPreviewPolicy = await getCalendarPolicy(supabase, b.calendar_id);
+        const cancelPreviewPolicy = await getCalendarPolicy(
+          supabase,
+          b.calendar_id,
+        );
         if (!cancelPreviewPolicy.allowCancellations) {
           return {
             error: "annuleren_niet_toegestaan",
             message: "Annuleren kan bij dit bedrijf helaas niet via mij.",
-            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf (telefoon of e-mail uit <business_data> indien aanwezig); verzin geen contactgegevens.",
+            guidance:
+              "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf (telefoon of e-mail uit <business_data> indien aanwezig); verzin geen contactgegevens.",
           };
         }
-        if (cancelPreviewPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < cancelPreviewPolicy.cancellationDeadlineHours) {
+        if (
+          cancelPreviewPolicy.cancellationDeadlineHours != null &&
+          hoursUntil(b.start_time) <
+            cancelPreviewPolicy.cancellationDeadlineHours
+        ) {
           return {
             error: "te_laat_annuleren",
-            message: `Annuleren kan tot ${formatHoursNL(cancelPreviewPolicy.cancellationDeadlineHours)} van tevoren; voor deze afspraak is dat niet meer mogelijk.`,
-            guidance: "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf; bied eventueel aan een andere tijd te zoeken.",
+            message: `Annuleren kan tot ${
+              formatHoursNL(cancelPreviewPolicy.cancellationDeadlineHours)
+            } van tevoren; voor deze afspraak is dat niet meer mogelijk.`,
+            guidance:
+              "Verwijs vriendelijk naar het annuleringsbeleid of naar rechtstreeks contact met het bedrijf; bied eventueel aan een andere tijd te zoeken.",
           };
         }
 
@@ -3447,7 +4500,11 @@ export function createTools(
         // at all (exactly R101-1/R101-2/R101-3's trigger shape: an unnamed second person on a shared
         // phone). Deterministic, code-level, not a prompt nudge: mirrors the ALREADY-PROVEN R76
         // rename guard rather than trusting the model's own judgement about whose booking this is.
-        const cancelCrossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName);
+        const cancelCrossIdentityRisk = crossIdentityActionRisk(
+          target.totalCandidates,
+          b.customer_name,
+          ctx.knownSelfName,
+        );
         // R103 (GAP 2 fix, STALE-VERIFICATION-MARKER-ON-RAPID-NAME-CORRECTION): a pending
         // pending_cancel_verification marker from a PRIOR turn only ever answers "is THIS ONE,
         // SPECIFIC, already-named booking really the one to cancel". The moment the CURRENT
@@ -3459,14 +4516,26 @@ export function createTools(
         // STALE in that case: never let it satisfy alreadyVerifiedThisBooking (so a same-turn
         // affirm can never silently reuse it against the wrong person), and drop it below so the
         // next turn re-disambiguates fresh from scratch rather than re-anchoring on a dead id.
-        const alreadyVerifiedThisBooking = !target.multipleNamesStated && ctx.confirmCancelVerification === true &&
+        const alreadyVerifiedThisBooking = !target.multipleNamesStated &&
+          ctx.confirmCancelVerification === true &&
           pendingCancelVerification?.booking_id === b.id;
         if (cancelCrossIdentityRisk && !alreadyVerifiedThisBooking) {
           const verifyAt = Date.now();
           if (ctx.conversationId) {
             await supabase
               .from("whatsapp_conversations")
-              .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtx, b.id), pending_cancel_verification: { booking_id: b.id, current_name: b.customer_name, start_time: b.start_time, at: verifyAt, calendar_mismatch: cancelPreviewCalMismatch } } })
+              .update({
+                context: {
+                  ...dropCrossActionMarkersForBooking(cancelCtx, b.id),
+                  pending_cancel_verification: {
+                    booking_id: b.id,
+                    current_name: b.customer_name,
+                    start_time: b.start_time,
+                    at: verifyAt,
+                    calendar_mismatch: cancelPreviewCalMismatch,
+                  },
+                },
+              })
               .eq("id", ctx.conversationId);
           }
           return {
@@ -3474,13 +4543,21 @@ export function createTools(
             current_name: b.customer_name,
             // R112: purely customer-facing, see identityDisambiguationGuard.ts's
             // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
+            customer_reply:
+              `De afspraak die ik vond staat op naam van ${b.customer_name} (${
+                b.service_types?.name ?? ""
+              }, ${
+                nlWhen(b.start_time)
+              }). Klopt het dat dit echt de afspraak van ${b.customer_name} is die geannuleerd moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
             message:
-              `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) staat op naam van ${b.customer_name}. ` +
+              `De afspraak die ik vond (${b.service_types?.name ?? ""}, ${
+                nlWhen(b.start_time)
+              }) staat op naam van ${b.customer_name}. ` +
               `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die geannuleerd moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging, en niet een andere afspraak of persoon bedoeld is. ` +
               "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
               "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: annuleer niets en vraag om verduidelijking.",
-            guidance: "NIETS geannuleerd. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
+            guidance:
+              "NIETS geannuleerd. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
           };
         }
         // Strip any pending_cancel_verification from the base object used below (whether it was
@@ -3488,8 +4565,13 @@ export function createTools(
         // multipleNamesStated just above), so a stale marker can never leak into (and confuse) a
         // later, unrelated cancel in this same conversation. Mirrors update_booking_name's
         // identical renameCtxClean pattern.
-        const { pending_cancel_verification: _dropCV, ...cancelCtxClean } = cancelCtx;
-        if ((alreadyVerifiedThisBooking || (target.multipleNamesStated && pendingCancelVerification)) && ctx.conversationId) {
+        const { pending_cancel_verification: _dropCV, ...cancelCtxClean } =
+          cancelCtx;
+        if (
+          (alreadyVerifiedThisBooking ||
+            (target.multipleNamesStated && pendingCancelVerification)) &&
+          ctx.conversationId
+        ) {
           await clearPendingCancelVerification(cancelCtx);
         }
 
@@ -3504,30 +4586,54 @@ export function createTools(
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...dropCrossActionMarkersForBooking(cancelCtxClean, b.id), pending_cancel: { booking_id: b.id, start_time: b.start_time, at: cancelPreviewAt, calendar_mismatch: cancelPreviewCalMismatch } } })
+            .update({
+              context: {
+                ...dropCrossActionMarkersForBooking(cancelCtxClean, b.id),
+                pending_cancel: {
+                  booking_id: b.id,
+                  start_time: b.start_time,
+                  at: cancelPreviewAt,
+                  calendar_mismatch: cancelPreviewCalMismatch,
+                },
+              },
+            })
             .eq("id", ctx.conversationId);
         }
         // R102 (shared-phone identity fix, verify-round finding 1): whose name this booking is
         // under is now ALWAYS surfaced in the tool result (not just when totalCandidates>=2), so
         // the model has the data to disclose it whenever relevant, and NEVER has an excuse to
         // silently say "je afspraak" about a booking under someone else's name.
-        const cancelTargetName = isRealNameShared(b.customer_name) ? b.customer_name : null;
+        const cancelTargetName = isRealNameShared(b.customer_name)
+          ? b.customer_name
+          : null;
         return {
           needs_confirmation: true,
-          appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time), start_time: b.start_time, customer_name: cancelTargetName },
+          appointment: {
+            service: b.service_types?.name ?? null,
+            when: nlWhen(b.start_time),
+            start_time: b.start_time,
+            customer_name: cancelTargetName,
+          },
           // T3-A1: the free-cancellation sentence for THIS booking's OWN calendar (b.calendar_id),
           // not the generic <business_data> annuleringsbeleid (which reflects only the ENTRY
           // calendar and can differ in a multi-calendar business). Use this field, never
           // <business_data>, whenever this specific booking's cancellation terms come up.
-          cancellation_policy_this_booking: formatCancellationPolicyNL(cancelPolicy),
+          cancellation_policy_this_booking: formatCancellationPolicyNL(
+            cancelPolicy,
+          ),
           // R66: surface the customer-STATED-but-wrong calendar/employee name (if any), so the
           // model can correct it right away at the preview stage too, not just at final commit.
-          ...(cancelPreviewCalMismatch ? { calendar_mismatch: cancelPreviewCalMismatch } : {}),
+          ...(cancelPreviewCalMismatch
+            ? { calendar_mismatch: cancelPreviewCalMismatch }
+            : {}),
           // guidance = internal-only (the model composes the customer-facing read-back itself).
-          guidance: (cancelTargetName
-            ? `NIET geannuleerd. Deze afspraak staat op naam van ${cancelTargetName}. Noem die naam EXPLICIET in je vraag (bv. "Wil je de afspraak van ${cancelTargetName} echt annuleren?"), zeg NOOIT alleen "je afspraak" als er een naam bekend is. Bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).`
-            : "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).") +
-            (cancelPreviewCalMismatch ? ` LET OP: de klant noemde "${cancelPreviewCalMismatch.statedName}", maar deze afspraak staat bij ${cancelPreviewCalMismatch.actualName}. Noem dit expliciet (bv. "Ik zie je afspraak bij ${cancelPreviewCalMismatch.actualName}, niet bij ${cancelPreviewCalMismatch.statedName}, wil je toch dat ik die annuleer?") in plaats van stilzwijgend door te gaan.` : ""),
+          guidance:
+            (cancelTargetName
+              ? `NIET geannuleerd. Deze afspraak staat op naam van ${cancelTargetName}. Noem die naam EXPLICIET in je vraag (bv. "Wil je de afspraak van ${cancelTargetName} echt annuleren?"), zeg NOOIT alleen "je afspraak" als er een naam bekend is. Bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).`
+              : "NIET geannuleerd. Lees dienst + tijd terug en vraag of je de afspraak echt zult annuleren; bied ook aan om in plaats daarvan een andere tijd te zoeken. Pas NA de bevestiging van de klant: roep cancel_appointment opnieuw aan met confirmed:true. Noemt de klant hierbij de annuleringstermijn of het beleid? Citeer dan cancellation_policy_this_booking hierboven (het beleid van de eigen agenda van DEZE afspraak), nooit het algemene annuleringsbeleid uit <business_data> (dat kan bij meerdere agenda's een ANDERE termijn zijn).") +
+            (cancelPreviewCalMismatch
+              ? ` LET OP: de klant noemde "${cancelPreviewCalMismatch.statedName}", maar deze afspraak staat bij ${cancelPreviewCalMismatch.actualName}. Noem dit expliciet (bv. "Ik zie je afspraak bij ${cancelPreviewCalMismatch.actualName}, niet bij ${cancelPreviewCalMismatch.statedName}, wil je toch dat ik die annuleer?") in plaats van stilzwijgend door te gaan.`
+              : ""),
         };
       }
 
@@ -3537,7 +4643,9 @@ export function createTools(
         // van 14:00 naar 15:00"); the NEW time is args.time, so the OTHER named time is the
         // existing booking to move. Resolves a multi-booking reschedule without looping.
         const newTimeNorm = (() => {
-          const m = String(args.time ?? "").trim().match(/^(\d{1,2})[:.](\d{2})/);
+          const m = String(args.time ?? "").trim().match(
+            /^(\d{1,2})[:.](\d{2})/,
+          );
           return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
         })();
         const reschedMatchTime = args.match_time
@@ -3545,9 +4653,17 @@ export function createTools(
           : (!args.match_start_time
             ? extractClockTimes(ctx.userMessage).find((t) => t !== newTimeNorm)
             : undefined);
-        const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, reschedMatchTime);
+        const target = await resolveTarget(
+          supabase,
+          ctx,
+          args.match_start_time ? String(args.match_start_time) : undefined,
+          reschedMatchTime,
+        );
         if (target.none) {
-          return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
+          return {
+            error: "geen_boeking",
+            message: "Ik kan geen aankomende afspraak vinden om te verzetten.",
+          };
         }
         if (target.ambiguous) {
           // R103 (GAP 2 fix, mirrors the SAME fix just added to cancel_appointment's ambiguous
@@ -3558,24 +4674,38 @@ export function createTools(
           // across a re-disambiguation (live-reproduced R103 stuck-loop shape).
           if (target.multipleNamesStated && ctx.conversationId) {
             const { data: rvConv } = await supabase
-              .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-            const rvCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+              .from("whatsapp_conversations").select("context").eq(
+                "id",
+                ctx.conversationId,
+              ).maybeSingle();
+            const rvCtx =
+              ((rvConv as { context?: Record<string, unknown> } | null)
+                ?.context) ?? {};
             if (rvCtx.pending_reschedule_verification) {
-              const { pending_reschedule_verification: _dropAmbigRV, ...restAmbigV } = rvCtx;
-              await supabase.from("whatsapp_conversations").update({ context: restAmbigV }).eq("id", ctx.conversationId);
+              const {
+                pending_reschedule_verification: _dropAmbigRV,
+                ...restAmbigV
+              } = rvCtx;
+              await supabase.from("whatsapp_conversations").update({
+                context: restAmbigV,
+              }).eq("id", ctx.conversationId);
             }
           }
           // R102 (shared-phone identity fix, verify-round finding 2): ALWAYS disclose whose name
           // each candidate is under, same reasoning as cancel_appointment's identical fix above.
           return {
             error: "meerdere_afspraken",
-            message: "Je hebt meerdere aankomende afspraken. Vraag welke de klant wil verzetten.",
-            guidance: "Staat er bij een afspraak een naam die AFWIJKT van wie er nu aan het typen is, noem die naam dan expliciet in je vraag, zodat de klant kan zien als een van de twee niet de eigen afspraak is.",
+            message:
+              "Je hebt meerdere aankomende afspraken. Vraag welke de klant wil verzetten.",
+            guidance:
+              "Staat er bij een afspraak een naam die AFWIJKT van wie er nu aan het typen is, noem die naam dan expliciet in je vraag, zodat de klant kan zien als een van de twee niet de eigen afspraak is.",
             appointments: target.ambiguous.map((b) => ({
               service: b.service_types?.name ?? null,
               when: nlWhen(b.start_time),
               start_time: b.start_time,
-              customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null,
+              customer_name: isRealNameShared(b.customer_name)
+                ? b.customer_name
+                : null,
             })),
           };
         }
@@ -3587,7 +4717,11 @@ export function createTools(
         // name the mismatch AND commit); combined below with whatever was stored on the
         // pending_reschedule_confirm/pending_reschedule_verification markers from an EARLIER turn
         // (the eventual commit turn is often just a bare "ja klopt" that no longer restates it).
-        const reschedFreshCalMismatch = findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id);
+        const reschedFreshCalMismatch = findCalendarMismatch(
+          ctx.calendars,
+          ctx.userMessage,
+          b.calendar_id,
+        );
 
         // R118 (GAP 1, RESCHEDULE-SELF-CONFIRM-FRAGMENTATION-EXPLOIT fix, live-reproduced 3/3 on
         // the S6 testpad): reschedule_appointment is deliberately a ONE-STEP tool (prompt.ts
@@ -3624,19 +4758,45 @@ export function createTools(
         let reschedCtx: Record<string, unknown> = {};
         if (ctx.conversationId) {
           const { data: rvConv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+            .from("whatsapp_conversations").select("context").eq(
+              "id",
+              ctx.conversationId,
+            ).maybeSingle();
+          reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)
+            ?.context) ?? {};
         }
-        const pendingCancelForThisBooking = reschedCtx.pending_cancel as { booking_id?: string; at?: number } | undefined;
+        const pendingCancelForThisBooking = reschedCtx.pending_cancel as {
+          booking_id?: string;
+          at?: number;
+        } | undefined;
         const openForkQuestionForThisBooking = !!pendingCancelForThisBooking &&
           pendingCancelForThisBooking.booking_id === b.id &&
-          (typeof pendingCancelForThisBooking.at !== "number" || (Date.now() - pendingCancelForThisBooking.at) < 15 * 60 * 1000);
-        const messageCarriesExplicitIntent = hasExplicitRescheduleIntent(ctx.userMessage, ctx.allServiceNamesForAmbiguity ?? []);
+          (typeof pendingCancelForThisBooking.at !== "number" ||
+            (Date.now() - pendingCancelForThisBooking.at) < 15 * 60 * 1000);
+        const messageCarriesExplicitIntent = hasExplicitRescheduleIntent(
+          ctx.userMessage,
+          ctx.allServiceNamesForAmbiguity ?? [],
+        );
         const existingReschedConfirm = reschedCtx.pending_reschedule_confirm as
-          { booking_id?: string; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
-        const rescheduleAmbiguityAlreadyConfirmed = ctx.confirmRescheduleAmbiguity === true &&
+          | {
+            booking_id?: string;
+            new_date?: string | null;
+            new_time?: string | null;
+            new_start_time?: string | null;
+            new_end_time?: string | null;
+            new_service_type_id?: string | null;
+            new_calendar_index?: number | null;
+            at?: number;
+            calendar_mismatch?: CalendarMismatch | null;
+          }
+          | undefined;
+        const rescheduleAmbiguityAlreadyConfirmed =
+          ctx.confirmRescheduleAmbiguity === true &&
           existingReschedConfirm?.booking_id === b.id;
-        if (openForkQuestionForThisBooking && !messageCarriesExplicitIntent && !rescheduleAmbiguityAlreadyConfirmed) {
+        if (
+          openForkQuestionForThisBooking && !messageCarriesExplicitIntent &&
+          !rescheduleAmbiguityAlreadyConfirmed
+        ) {
           const confirmAt = Date.now();
           if (ctx.conversationId) {
             // Drop the now-superseded pending_cancel marker (we are asking our OWN, sharper
@@ -3675,13 +4835,28 @@ export function createTools(
             // Purely customer-facing, mirrors customer_reply's role on the naam_verificatie_nodig
             // gates (identityDisambiguationGuard.ts's enforceVerificationGateDisclosure header):
             // never the internal `message` field, so no meta-instruction ever leaks to the customer.
-            customer_reply: `Wil je dat ik de afspraak${b.customer_name && isRealNameShared(b.customer_name) ? ` van ${b.customer_name}` : ""} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) verzet naar ${nlWhen(args.start_time ? String(args.start_time) : `${args.date ?? ""}T${String(args.time ?? "").padStart(5, "0")}:00`)}? Of bedoelde je toch annuleren?`,
+            customer_reply: `Wil je dat ik de afspraak${
+              b.customer_name && isRealNameShared(b.customer_name)
+                ? ` van ${b.customer_name}`
+                : ""
+            } (${b.service_types?.name ?? ""}, ${
+              nlWhen(b.start_time)
+            }) verzet naar ${
+              nlWhen(
+                args.start_time
+                  ? String(args.start_time)
+                  : `${args.date ?? ""}T${
+                    String(args.time ?? "").padStart(5, "0")
+                  }:00`,
+              )
+            }? Of bedoelde je toch annuleren?`,
             message:
               "NIETS verzet. De vorige beurt vroeg 'annuleren of verzetten?' en dit bericht is te kort of onduidelijk om zonder meer als een verzet-bevestiging te lezen (geen werkwoord, geen dienst, geen duidelijke verzet-intentie). " +
               "Stel EXPLICIET de vraag uit customer_reply hierboven en wacht op het antwoord; roep in DEZE beurt GEEN tool meer aan. " +
               "Bevestigt de klant het verzetten? Roep reschedule_appointment dan opnieuw aan (het systeem gebruikt de eerder opgegeven nieuwe datum/tijd, dus geef geen date/time opnieuw door tenzij de klant een nieuwe tijd noemt). " +
               "Blijkt het toch om annuleren te gaan, of twijfelt de klant: verzet niets en volg de annuleer-flow.",
-            guidance: "NIETS verzet. Veiligheidscheck: de vorige beurt stelde de open annuleren-of-verzetten-vraag en dit bericht bevestigt geen van beide expliciet. Stel de vraag en wacht op het antwoord.",
+            guidance:
+              "NIETS verzet. Veiligheidscheck: de vorige beurt stelde de open annuleren-of-verzetten-vraag en dit bericht bevestigt geen van beide expliciet. Stel de vraag en wacht op het antwoord.",
           };
         }
         // R118 (GAP 1 fix, continued): the customer's own reply to OUR ambiguity-confirmation
@@ -3699,16 +4874,34 @@ export function createTools(
         // so a bare args.date is never blindly trusted as proof the customer actually named a day.
         let reschedDayRestoredFromMarker = false;
         if (rescheduleAmbiguityAlreadyConfirmed && existingReschedConfirm) {
-          if (existingReschedConfirm.new_date) { args.date = existingReschedConfirm.new_date; reschedDayRestoredFromMarker = true; }
-          if (existingReschedConfirm.new_time) args.time = existingReschedConfirm.new_time;
-          if (existingReschedConfirm.new_start_time) { args.start_time = existingReschedConfirm.new_start_time; reschedDayRestoredFromMarker = true; }
-          if (existingReschedConfirm.new_end_time) args.end_time = existingReschedConfirm.new_end_time;
-          if (existingReschedConfirm.new_service_type_id) args.service_type_id = existingReschedConfirm.new_service_type_id;
-          if (existingReschedConfirm.new_calendar_index != null) args.calendar_index = existingReschedConfirm.new_calendar_index;
-          reschedRestoredCalMismatch1 = existingReschedConfirm.calendar_mismatch ?? null;
+          if (existingReschedConfirm.new_date) {
+            args.date = existingReschedConfirm.new_date;
+            reschedDayRestoredFromMarker = true;
+          }
+          if (existingReschedConfirm.new_time) {
+            args.time = existingReschedConfirm.new_time;
+          }
+          if (existingReschedConfirm.new_start_time) {
+            args.start_time = existingReschedConfirm.new_start_time;
+            reschedDayRestoredFromMarker = true;
+          }
+          if (existingReschedConfirm.new_end_time) {
+            args.end_time = existingReschedConfirm.new_end_time;
+          }
+          if (existingReschedConfirm.new_service_type_id) {
+            args.service_type_id = existingReschedConfirm.new_service_type_id;
+          }
+          if (existingReschedConfirm.new_calendar_index != null) {
+            args.calendar_index = existingReschedConfirm.new_calendar_index;
+          }
+          reschedRestoredCalMismatch1 =
+            existingReschedConfirm.calendar_mismatch ?? null;
           if (ctx.conversationId) {
-            const { pending_reschedule_confirm: _dropRC, ...restRC } = reschedCtx;
-            await supabase.from("whatsapp_conversations").update({ context: restRC }).eq("id", ctx.conversationId);
+            const { pending_reschedule_confirm: _dropRC, ...restRC } =
+              reschedCtx;
+            await supabase.from("whatsapp_conversations").update({
+              context: restRC,
+            }).eq("id", ctx.conversationId);
             reschedCtx = restRC;
           }
         }
@@ -3723,7 +4916,11 @@ export function createTools(
         // verified, without asking them to resupply the new time. Never fires for the common
         // single-booking-on-this-phone case (totalCandidates<2 short-circuits immediately below,
         // matching cancel/rename's identical frictionless-common-case guarantee).
-        const rescheduleCrossIdentityRisk = crossIdentityActionRisk(target.totalCandidates, b.customer_name, ctx.knownSelfName);
+        const rescheduleCrossIdentityRisk = crossIdentityActionRisk(
+          target.totalCandidates,
+          b.customer_name,
+          ctx.knownSelfName,
+        );
         // R103 (GAP 2 fix, mirrors the SAME fix on cancel_appointment above): read any existing
         // pending_reschedule_verification marker ONCE here (reused below for both the risk-gate
         // check and the args-restore branch, avoiding a second round-trip) so it can be checked
@@ -3735,8 +4932,19 @@ export function createTools(
         // distinct candidates (multipleNamesStated): the customer is actively re-disambiguating, so
         // any prior marker's implicit "already OK'd" no longer applies, exactly the live-reproduced
         // R103 stuck-loop shape.
-        const existingReschedVerification = reschedCtx.pending_reschedule_verification as
-          { booking_id?: string; current_name?: string | null; new_date?: string | null; new_time?: string | null; new_start_time?: string | null; new_end_time?: string | null; new_service_type_id?: string | null; new_calendar_index?: number | null; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
+        const existingReschedVerification = reschedCtx
+          .pending_reschedule_verification as {
+            booking_id?: string;
+            current_name?: string | null;
+            new_date?: string | null;
+            new_time?: string | null;
+            new_start_time?: string | null;
+            new_end_time?: string | null;
+            new_service_type_id?: string | null;
+            new_calendar_index?: number | null;
+            at?: number;
+            calendar_mismatch?: CalendarMismatch | null;
+          } | undefined;
         // R68 (RESCHEDULE-VERIFICATION-TOKEN-BURNED-BEFORE-COMMIT fix): pending_reschedule_verification
         // above is a single-use marker that gets cleared the instant the identity gate passes (see
         // the confirmRescheduleVerification block below), BEFORE several real downstream refusal
@@ -3746,12 +4954,21 @@ export function createTools(
         // those early returns, so a retry on the SAME booking within the freshness window never has
         // to re-prove identity a second time. See identityDisambiguationGuard.ts's
         // rescheduleIdentityConfirmedFresh doc comment for the full reasoning.
-        const reschedIdentityConfirmedMarker = reschedCtx.reschedule_identity_confirmed as
-          { booking_id?: string; at?: number } | undefined;
-        const rescheduleAlreadyVerifiedThisBooking = !target.multipleNamesStated &&
-          ((ctx.confirmRescheduleVerification === true && existingReschedVerification?.booking_id === b.id) ||
-            rescheduleIdentityConfirmedFresh(reschedIdentityConfirmedMarker, b.id));
-        if (rescheduleCrossIdentityRisk && !rescheduleAlreadyVerifiedThisBooking) {
+        const reschedIdentityConfirmedMarker = reschedCtx
+          .reschedule_identity_confirmed as
+            | { booking_id?: string; at?: number }
+            | undefined;
+        const rescheduleAlreadyVerifiedThisBooking =
+          !target.multipleNamesStated &&
+          ((ctx.confirmRescheduleVerification === true &&
+            existingReschedVerification?.booking_id === b.id) ||
+            rescheduleIdentityConfirmedFresh(
+              reschedIdentityConfirmedMarker,
+              b.id,
+            ));
+        if (
+          rescheduleCrossIdentityRisk && !rescheduleAlreadyVerifiedThisBooking
+        ) {
           const verifyAt = Date.now();
           if (ctx.conversationId) {
             await supabase
@@ -3790,13 +5007,21 @@ export function createTools(
             current_name: b.customer_name,
             // R112: purely customer-facing, see identityDisambiguationGuard.ts's
             // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-            customer_reply: `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${b.customer_name} is die verzet moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
+            customer_reply:
+              `De afspraak die ik vond staat op naam van ${b.customer_name} (${
+                b.service_types?.name ?? ""
+              }, ${
+                nlWhen(b.start_time)
+              }). Klopt het dat dit echt de afspraak van ${b.customer_name} is die verzet moet worden? Typ ter bevestiging de naam terug, bijv. "Ja, ${b.customer_name}".`,
             message:
-              `De afspraak die ik vond staat op naam van ${b.customer_name} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). ` +
+              `De afspraak die ik vond staat op naam van ${b.customer_name} (${
+                b.service_types?.name ?? ""
+              }, ${nlWhen(b.start_time)}). ` +
               `Vraag de klant EXPLICIET te bevestigen dat dit ECHT de afspraak van ${b.customer_name} is die verzet moet worden, en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${b.customer_name}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging, en niet een andere afspraak of persoon bedoeld is. ` +
               "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
               "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: verzet niets en vraag om verduidelijking.",
-            guidance: "NIETS verzet. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
+            guidance:
+              "NIETS verzet. Veiligheidscheck: meerdere afspraken op dit nummer en deze afspraak staat mogelijk op naam van een ANDERE persoon dan wie nu typt. Stel de vraag en wacht op het antwoord.",
           };
         }
         // R102: the customer's own reply to OUR verification question just cleared the guard
@@ -3812,16 +5037,29 @@ export function createTools(
         // R65's live repro passed through: the wrong-employee name was stated on the original
         // request turn, the eventual "Ja, <naam> klopt" commit turn never repeats it).
         let reschedRestoredCalMismatch2: CalendarMismatch | null = null;
-        if (ctx.confirmRescheduleVerification === true && !target.multipleNamesStated) {
+        if (
+          ctx.confirmRescheduleVerification === true &&
+          !target.multipleNamesStated
+        ) {
           const vctx = reschedCtx;
           const prv = existingReschedVerification;
           if (prv?.booking_id === b.id) {
-            if (prv.new_date) { args.date = prv.new_date; reschedDayRestoredFromMarker = true; }
+            if (prv.new_date) {
+              args.date = prv.new_date;
+              reschedDayRestoredFromMarker = true;
+            }
             if (prv.new_time) args.time = prv.new_time;
-            if (prv.new_start_time) { args.start_time = prv.new_start_time; reschedDayRestoredFromMarker = true; }
+            if (prv.new_start_time) {
+              args.start_time = prv.new_start_time;
+              reschedDayRestoredFromMarker = true;
+            }
             if (prv.new_end_time) args.end_time = prv.new_end_time;
-            if (prv.new_service_type_id) args.service_type_id = prv.new_service_type_id;
-            if (prv.new_calendar_index != null) args.calendar_index = prv.new_calendar_index;
+            if (prv.new_service_type_id) {
+              args.service_type_id = prv.new_service_type_id;
+            }
+            if (prv.new_calendar_index != null) {
+              args.calendar_index = prv.new_calendar_index;
+            }
             reschedRestoredCalMismatch2 = prv.calendar_mismatch ?? null;
             if (ctx.conversationId) {
               // R68: clear the single-use verification marker (unchanged), AND write the durable
@@ -3830,9 +5068,16 @@ export function createTools(
               // availability, cancellation deadline) can never burn this just-proven identity for
               // nothing; the customer's next reply on this SAME booking checks this durable marker
               // instead of re-arming naam_verificatie_nodig from scratch.
-              const { pending_reschedule_verification: _dropRV, ...restV } = vctx;
+              const { pending_reschedule_verification: _dropRV, ...restV } =
+                vctx;
               await supabase.from("whatsapp_conversations").update({
-                context: { ...restV, reschedule_identity_confirmed: { booking_id: b.id, at: Date.now() } },
+                context: {
+                  ...restV,
+                  reschedule_identity_confirmed: {
+                    booking_id: b.id,
+                    at: Date.now(),
+                  },
+                },
               }).eq("id", ctx.conversationId);
             }
           }
@@ -3840,7 +5085,8 @@ export function createTools(
         // R66: THIS turn's own message wins if it restates a (possibly different) mismatch,
         // otherwise fall back to whichever earlier marker carried one.
         const reschedFinalCalMismatch: CalendarMismatch | null =
-          reschedFreshCalMismatch ?? reschedRestoredCalMismatch1 ?? reschedRestoredCalMismatch2 ?? null;
+          reschedFreshCalMismatch ?? reschedRestoredCalMismatch1 ??
+            reschedRestoredCalMismatch2 ?? null;
         // R103 (GAP 2 fix, explicit stale-marker cleanup, mirrors cancel_appointment's identical
         // cleanup above): a message naming 2+ distinct candidates always invalidates whatever
         // pending_reschedule_verification marker predates it, whether or not the cross-identity
@@ -3851,9 +5097,19 @@ export function createTools(
         // but a fresh 2+-name re-disambiguation this turn means the customer is actively naming a
         // possibly-different person/booking; drop it here too (alongside the transient marker
         // above) so it can never silently satisfy a DIFFERENT booking's identity check later.
-        if (target.multipleNamesStated && (existingReschedVerification || reschedIdentityConfirmedMarker) && ctx.conversationId) {
-          const { pending_reschedule_verification: _dropStaleRV, reschedule_identity_confirmed: _dropStaleRIC, ...restStaleV } = reschedCtx;
-          await supabase.from("whatsapp_conversations").update({ context: restStaleV }).eq("id", ctx.conversationId);
+        if (
+          target.multipleNamesStated &&
+          (existingReschedVerification || reschedIdentityConfirmedMarker) &&
+          ctx.conversationId
+        ) {
+          const {
+            pending_reschedule_verification: _dropStaleRV,
+            reschedule_identity_confirmed: _dropStaleRIC,
+            ...restStaleV
+          } = reschedCtx;
+          await supabase.from("whatsapp_conversations").update({
+            context: restStaleV,
+          }).eq("id", ctx.conversationId);
         }
 
         // R95 (RESCHEDULE-NO-DAY-STONEWALL fix, live-reproduced R94 + this fix's OWN verify round):
@@ -3881,7 +5137,8 @@ export function createTools(
         // that is precisely the silent-assumption shape this guard must catch, same as book_appointment
         // never gets a free pass for "obviously same day" reasoning. Only an explicit day/date in
         // THIS message, or a day genuinely restored from an earlier turn's own marker, passes.
-        const reschedDayEstablished = reschedDayRestoredFromMarker || hasDayMentionAnywhere(ctx.userMessage ?? "", [], new Date());
+        const reschedDayEstablished = reschedDayRestoredFromMarker ||
+          hasDayMentionAnywhere(ctx.userMessage ?? "", [], new Date());
         if (!reschedDayEstablished) {
           return { error: "vraag_dag", message: VRAAG_DAG_RESCHEDULE_MESSAGE };
         }
@@ -3905,7 +5162,8 @@ export function createTools(
         // ACTUAL target booking's service genuinely differs from what the customer just named.
         const targetCurrentServiceName = b.service_types?.name ?? null;
         const distinctVsRealTarget = ctx.distinctServiceForReschedule &&
-          normServiceNameLocal(ctx.distinctServiceForReschedule) !== normServiceNameLocal(targetCurrentServiceName ?? "")
+            normServiceNameLocal(ctx.distinctServiceForReschedule) !==
+              normServiceNameLocal(targetCurrentServiceName ?? "")
           ? ctx.distinctServiceForReschedule
           : null;
         if (!args.service_type_id && distinctVsRealTarget) {
@@ -3924,8 +5182,15 @@ export function createTools(
         // that resolves to the booking's own current calendar (the common "same agenda" case) is a
         // no-op switch, matching prior behaviour exactly.
         let targetCalId = b.calendar_id;
-        if (ctx.calendars.length > 1 && (args.service_type_id || args.calendar_index != null)) {
-          const calRes = resolveBookingCalendar(ctx, args.calendar_index, args.service_type_id);
+        if (
+          ctx.calendars.length > 1 &&
+          (args.service_type_id || args.calendar_index != null)
+        ) {
+          const calRes = resolveBookingCalendar(
+            ctx,
+            args.calendar_index,
+            args.service_type_id,
+          );
           if ("needAsk" in calRes) {
             return {
               error: "meerdere_agendas",
@@ -3945,21 +5210,33 @@ export function createTools(
         // service on the target calendar with the SAME NAME as the booking's current service
         // (the common "same treatment, different staff" case); if none matches by name, refuse
         // to guess and ask which service, exactly like resolveBookingCalendar's own needAsk path.
-        let serviceId = args.service_type_id ? String(args.service_type_id) : b.service_type_id;
+        let serviceId = args.service_type_id
+          ? String(args.service_type_id)
+          : b.service_type_id;
         if (targetCalId !== b.calendar_id && !args.service_type_id) {
-          const { data: oldSvc } = await supabase.from("service_types").select("name").eq("id", b.service_type_id).maybeSingle();
-          const oldName = (oldSvc as { name?: string } | null)?.name?.trim().toLowerCase();
+          const { data: oldSvc } = await supabase.from("service_types").select(
+            "name",
+          ).eq("id", b.service_type_id).maybeSingle();
+          const oldName = (oldSvc as { name?: string } | null)?.name?.trim()
+            .toLowerCase();
           const { data: newCalSvcs } = await supabase
-            .from("service_types").select("id, name").eq("calendar_id", targetCalId).eq("is_active", true)
+            .from("service_types").select("id, name").eq(
+              "calendar_id",
+              targetCalId,
+            ).eq("is_active", true)
             .or("is_deleted.is.null,is_deleted.eq.false");
           const match = oldName
-            ? ((newCalSvcs as Array<{ id: string; name: string }> | null) ?? []).find((s) => s.name.trim().toLowerCase() === oldName)
+            ? ((newCalSvcs as Array<{ id: string; name: string }> | null) ?? [])
+              .find((s) => s.name.trim().toLowerCase() === oldName)
             : null;
           if (!match) {
             return {
               error: "dienst_onbekend",
-              message: "Welke dienst wil de klant bij die andere medewerker/locatie?",
-              options: ((newCalSvcs as Array<{ id: string; name: string }> | null) ?? []).map((s) => s.name),
+              message:
+                "Welke dienst wil de klant bij die andere medewerker/locatie?",
+              options:
+                ((newCalSvcs as Array<{ id: string; name: string }> | null) ??
+                  []).map((s) => s.name),
             };
           }
           serviceId = match.id;
@@ -3976,16 +5253,39 @@ export function createTools(
         // agenda's own booking window / notice / deadline, not the origin agenda's.
         const reschedPolicy = await getCalendarPolicy(supabase, targetCalId);
         if (isPastDateNL(args.date)) {
-          return { error: "datum_verleden", message: "Die nieuwe datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst." };
+          return {
+            error: "datum_verleden",
+            message:
+              "Die nieuwe datum is al geweest. Vraag de klant vriendelijk een datum in de toekomst.",
+          };
         }
         if (isBeyondWindowNL(args.date, reschedPolicy.bookingWindowDays)) {
-          return { error: "datum_te_ver", message: `Zo ver vooruit kun je nog niet verzetten, je kunt tot ${reschedPolicy.bookingWindowDays} dagen vooruit een afspraak zetten. Vraag de klant vriendelijk een eerdere datum.` };
+          return {
+            error: "datum_te_ver",
+            message:
+              `Zo ver vooruit kun je nog niet verzetten, je kunt tot ${reschedPolicy.bookingWindowDays} dagen vooruit een afspraak zetten. Vraag de klant vriendelijk een eerdere datum.`,
+          };
         }
-        if ((!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date && args.time) {
+        if (
+          (!newStart || !/^\d{4}-\d{2}-\d{2}T/.test(newStart)) && args.date &&
+          args.time
+        ) {
           const dur = await serviceDuration(supabase, serviceId);
-          const r = await resolveSlotForTime(supabase, targetCalId, serviceId, String(args.date), String(args.time), dur, reschedPolicy.minimumNoticeHours);
+          const r = await resolveSlotForTime(
+            supabase,
+            targetCalId,
+            serviceId,
+            String(args.date),
+            String(args.time),
+            dur,
+            reschedPolicy.minimumNoticeHours,
+          );
           if ("error" in r) {
-            return { error: "ongeldige_tijd", message: "Ik kon die datum/tijd niet verwerken. Vraag kort de gewenste dag en tijd." };
+            return {
+              error: "ongeldige_tijd",
+              message:
+                "Ik kon die datum/tijd niet verwerken. Vraag kort de gewenste dag en tijd.",
+            };
           }
           if ("tooSoon" in r) {
             const notice = formatHoursNL(reschedPolicy.minimumNoticeHours!);
@@ -3994,8 +5294,14 @@ export function createTools(
               available_slots: r.available,
               message:
                 `Dat nieuwe tijdstip is te kort dag: verzetten kan alleen naar een moment vanaf ${notice} van tevoren. ` +
-                (r.earliestNL ? `Het eerste moment dat kan is ${r.earliestNL}. ` : "") +
-                (r.available.length ? `Bied een van deze vrije tijden aan: ${r.available.join(", ")}.` : "Vraag vriendelijk om een latere dag/tijd."),
+                (r.earliestNL
+                  ? `Het eerste moment dat kan is ${r.earliestNL}. `
+                  : "") +
+                (r.available.length
+                  ? `Bied een van deze vrije tijden aan: ${
+                    r.available.join(", ")
+                  }.`
+                  : "Vraag vriendelijk om een latere dag/tijd."),
             };
           }
           if ("unavailable" in r) {
@@ -4013,30 +5319,42 @@ export function createTools(
               calendar_id: targetCalId,
               // R18: same fix as the book_appointment sibling above, same rationale.
               message: r.available.length
-                ? `Dat nieuwe tijdstip is niet vrij. Stel een van deze vrije tijden voor: ${r.available.join(", ")}.`
+                ? `Dat nieuwe tijdstip is niet vrij. Stel een van deze vrije tijden voor: ${
+                  r.available.join(", ")
+                }.`
                 : "Die dag heeft helemaal geen vrije tijden. Vraag de klant vriendelijk of ze een andere dag willen proberen, zonder zelf een specifieke datum te noemen; je hebt geen gegevens over welke andere dag wel vrij is.",
             };
           }
-          newStart = r.start; newEnd = r.end;
+          newStart = r.start;
+          newEnd = r.end;
         }
         // Safety (legacy start_time path): derive end from the service duration if a valid ISO start
         // was given without an end, so a reschedule is never refused for a missing end the model
         // simply didn't pass (end_time is no longer required).
         if (newStart && /^\d{4}-\d{2}-\d{2}T/.test(newStart) && !newEnd) {
           const dur = await serviceDuration(supabase, serviceId);
-          newEnd = new Date(new Date(newStart).getTime() + dur * 60000).toISOString();
+          newEnd = new Date(new Date(newStart).getTime() + dur * 60000)
+            .toISOString();
         }
         if (!newStart || !newEnd) {
-          return { error: "ontbrekende_tijd", message: "Geef de nieuwe dag en tijd om naar te verzetten." };
+          return {
+            error: "ontbrekende_tijd",
+            message: "Geef de nieuwe dag en tijd om naar te verzetten.",
+          };
         }
 
         // Honour the "Cancellation deadline" Operations setting for reschedules too
         // (a reschedule frees the original slot, so the same lead-time rule applies).
         // reschedPolicy was fetched once above.
-        if (reschedPolicy.cancellationDeadlineHours != null && hoursUntil(b.start_time) < reschedPolicy.cancellationDeadlineHours) {
+        if (
+          reschedPolicy.cancellationDeadlineHours != null &&
+          hoursUntil(b.start_time) < reschedPolicy.cancellationDeadlineHours
+        ) {
           return {
             error: "te_laat_verzetten",
-            message: `Verzetten kan tot ${formatHoursNL(reschedPolicy.cancellationDeadlineHours)} van tevoren. Voor deze afspraak is dat niet meer mogelijk.`,
+            message: `Verzetten kan tot ${
+              formatHoursNL(reschedPolicy.cancellationDeadlineHours)
+            } van tevoren. Voor deze afspraak is dat niet meer mogelijk.`,
           };
         }
 
@@ -4049,24 +5367,51 @@ export function createTools(
         // R48: p_calendar_id = targetCalId always (equal to b.calendar_id when not
         // switching, so this is a no-op on the RPC's own COALESCE for every existing
         // single-calendar / same-calendar caller).
-        const { data: rr, error: rrErr } = await supabase.rpc("reschedule_booking_atomic", {
-          p_booking_id: b.id,
-          p_new_start: newStart,
-          p_new_end: newEnd,
-          p_service_type_id: args.service_type_id ? serviceId : null,
-          p_calendar_id: targetCalId,
-          // SEQP2R5: threads through to the agent_actions row the RPC now writes inside the
-          // same transaction as the move itself; NULL when there is no conversation.
-          p_conversation_id: ctx.conversationId ?? null,
-        });
+        const { data: rr, error: rrErr } = await supabase.rpc(
+          "reschedule_booking_atomic",
+          {
+            p_booking_id: b.id,
+            p_new_start: newStart,
+            p_new_end: newEnd,
+            p_service_type_id: args.service_type_id ? serviceId : null,
+            p_calendar_id: targetCalId,
+            // SEQP2R5: threads through to the agent_actions row the RPC now writes inside the
+            // same transaction as the move itself; NULL when there is no conversation.
+            p_conversation_id: ctx.conversationId ?? null,
+          },
+        );
         if (rrErr) return { error: rrErr.message };
         const rres = rr as { ok?: boolean; error?: string } | null;
         if (!rres?.ok) {
-          if (rres?.error === "slot_taken") return { error: "slot_taken", message: "Dat tijdslot is net bezet geraakt." };
-          if (rres?.error === "in_verleden") return { error: "in_verleden", message: "Je kunt een afspraak niet naar het verleden verzetten." };
-          if (rres?.error === "niet_beschikbaar") return { error: "niet_beschikbaar", message: "Dat nieuwe tijdstip is niet beschikbaar." };
-          if (rres?.error === "geen_boeking") return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om te verzetten." };
-          return { error: rres?.error || "verzetten_mislukt", message: "Het verzetten lukte niet. Probeer een ander tijdstip." };
+          if (rres?.error === "slot_taken") {
+            return {
+              error: "slot_taken",
+              message: "Dat tijdslot is net bezet geraakt.",
+            };
+          }
+          if (rres?.error === "in_verleden") {
+            return {
+              error: "in_verleden",
+              message: "Je kunt een afspraak niet naar het verleden verzetten.",
+            };
+          }
+          if (rres?.error === "niet_beschikbaar") {
+            return {
+              error: "niet_beschikbaar",
+              message: "Dat nieuwe tijdstip is niet beschikbaar.",
+            };
+          }
+          if (rres?.error === "geen_boeking") {
+            return {
+              error: "geen_boeking",
+              message:
+                "Ik kan geen aankomende afspraak vinden om te verzetten.",
+            };
+          }
+          return {
+            error: rres?.error || "verzetten_mislukt",
+            message: "Het verzetten lukte niet. Probeer een ander tijdstip.",
+          };
         }
         const switchedCalendar = targetCalId !== b.calendar_id
           ? ctx.calendars.find((c) => c.id === targetCalId)?.name ?? null
@@ -4075,9 +5420,17 @@ export function createTools(
         // marker (if any) has served its purpose; drop it rather than leaving it to expire on its
         // own TTL, so it can never be mistaken for evidence about a LATER, unrelated reschedule on
         // this same booking further in the conversation.
-        if (reschedIdentityConfirmedMarker?.booking_id === b.id && ctx.conversationId) {
-          const { reschedule_identity_confirmed: _dropCommittedRIC, ...restCommitted } = reschedCtx;
-          await supabase.from("whatsapp_conversations").update({ context: restCommitted }).eq("id", ctx.conversationId);
+        if (
+          reschedIdentityConfirmedMarker?.booking_id === b.id &&
+          ctx.conversationId
+        ) {
+          const {
+            reschedule_identity_confirmed: _dropCommittedRIC,
+            ...restCommitted
+          } = reschedCtx;
+          await supabase.from("whatsapp_conversations").update({
+            context: restCommitted,
+          }).eq("id", ctx.conversationId);
         }
         return {
           ok: true,
@@ -4089,7 +5442,15 @@ export function createTools(
           // X is verzet" instead of always "je afspraak", whenever a real name is on file.
           // R66: surface the customer-STATED-but-wrong calendar/employee name (if any), so the
           // final "Gedaan, ..." reply can correct/disclose it instead of silently proceeding.
-          rescheduled: { from: nlWhen(b.start_time), to: nlWhen(newStart), to_start_time: newStart, customer_name: isRealNameShared(b.customer_name) ? b.customer_name : null, calendar_mismatch: reschedFinalCalMismatch },
+          rescheduled: {
+            from: nlWhen(b.start_time),
+            to: nlWhen(newStart),
+            to_start_time: newStart,
+            customer_name: isRealNameShared(b.customer_name)
+              ? b.customer_name
+              : null,
+            calendar_mismatch: reschedFinalCalMismatch,
+          },
           ...(switchedCalendar ? { new_agenda: switchedCalendar } : {}),
         };
       }
@@ -4118,20 +5479,34 @@ export function createTools(
         let renameCtx: Record<string, unknown> = {};
         if (ctx.conversationId) {
           const { data: conv } = await supabase
-            .from("whatsapp_conversations").select("context").eq("id", ctx.conversationId).maybeSingle();
-          renameCtx = ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
+            .from("whatsapp_conversations").select("context").eq(
+              "id",
+              ctx.conversationId,
+            ).maybeSingle();
+          renameCtx =
+            ((conv as { context?: Record<string, unknown> } | null)?.context) ??
+              {};
         }
-        const pendingRename = renameCtx.pending_rename as
-          { booking_id?: string; start_time?: string; old_name?: string; new_name?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
+        const pendingRename = renameCtx.pending_rename as {
+          booking_id?: string;
+          start_time?: string;
+          old_name?: string;
+          new_name?: string;
+          at?: number;
+          calendar_mismatch?: CalendarMismatch | null;
+        } | undefined;
         const clearPendingRename = async () => {
           if (!ctx.conversationId) return;
           const { pending_rename: _drop, ...rest } = renameCtx;
-          await supabase.from("whatsapp_conversations").update({ context: rest }).eq("id", ctx.conversationId);
+          await supabase.from("whatsapp_conversations").update({
+            context: rest,
+          }).eq("id", ctx.conversationId);
         };
 
         const cleanlyConfirmedRename = args.only_confirming_previous === true;
         const renamePreviewIsSelfWritten =
-          typeof pendingRename?.at === "number" && pendingRename.at === lastSelfWrittenRenameAt;
+          typeof pendingRename?.at === "number" &&
+          pendingRename.at === lastSelfWrittenRenameAt;
         // R40 (renameCommitMissed follow-up): ctx.confirmRename (server-detected, mirrors
         // confirmBook/confirmCancel) is ORed in as a SECOND trigger for the commit attempt,
         // exactly like book_appointment/cancel_appointment's own `args.confirmed === true ||
@@ -4139,8 +5514,11 @@ export function createTools(
         // (ambiguousConfirm, hardConfirm, the self-write-chain guard) still applies identically
         // regardless of which arm triggered the attempt, same safety bar as the OTHER two arms.
         if (
-          (args.confirmed === true || ctx.confirmRename === true) && !ctx.ambiguousConfirm && cleanlyConfirmedRename && ctx.hardConfirm === true &&
-          pendingRename?.booking_id && isRealName(pendingRename?.new_name) && !renamePreviewIsSelfWritten
+          (args.confirmed === true || ctx.confirmRename === true) &&
+          !ctx.ambiguousConfirm && cleanlyConfirmedRename &&
+          ctx.hardConfirm === true &&
+          pendingRename?.booking_id && isRealName(pendingRename?.new_name) &&
+          !renamePreviewIsSelfWritten
         ) {
           // Re-validate at execution (race window: the booking may since have been cancelled or
           // moved by a concurrent turn), same "re-resolve fresh, never trust the stale preview
@@ -4150,13 +5528,24 @@ export function createTools(
             .select("id, status, start_time, customer_phone")
             .eq("id", pendingRename.booking_id)
             .maybeSingle();
-          const freshBooking = fresh as { id: string; status: string; start_time: string; customer_phone: string } | null;
-          if (!freshBooking || freshBooking.customer_phone !== ctx.phone || !["confirmed", "pending"].includes(freshBooking.status) || new Date(freshBooking.start_time) <= new Date()) {
+          const freshBooking = fresh as {
+            id: string;
+            status: string;
+            start_time: string;
+            customer_phone: string;
+          } | null;
+          if (
+            !freshBooking || freshBooking.customer_phone !== ctx.phone ||
+            !["confirmed", "pending"].includes(freshBooking.status) ||
+            new Date(freshBooking.start_time) <= new Date()
+          ) {
             await clearPendingRename();
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           // R56 (RENAME-PHANTOM-SUCCESS fix, same class as R40's cancel fix + R49's reschedule
@@ -4169,21 +5558,35 @@ export function createTools(
           // would narrate a rename that never happened. Fix: re-assert status + phone in the WHERE
           // clause (closes the race window at the SQL level) AND .select("id") so the actual
           // affected-row-count is checked, never just the absence of a Postgres error.
-          const { data: renamedRows, error } = await supabase.from("bookings").update({
-            customer_name: String(pendingRename.new_name),
-            updated_at: new Date().toISOString(),
-          }).eq("id", freshBooking.id).eq("customer_phone", ctx.phone).in("status", ["confirmed", "pending"]).select("id");
+          const { data: renamedRows, error } = await supabase.from("bookings")
+            .update({
+              customer_name: String(pendingRename.new_name),
+              updated_at: new Date().toISOString(),
+            }).eq("id", freshBooking.id).eq("customer_phone", ctx.phone).in(
+              "status",
+              ["confirmed", "pending"],
+            ).select("id");
           if (error) return { error: error.message };
           if (!renamedRows || renamedRows.length === 0) {
             await clearPendingRename();
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           await clearPendingRename();
-          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name, calendar_mismatch: pendingRename.calendar_mismatch ?? null } };
+          return {
+            ok: true,
+            renamed: {
+              when: nlWhen(freshBooking.start_time),
+              old_name: pendingRename.old_name ?? null,
+              new_name: pendingRename.new_name,
+              calendar_mismatch: pendingRename.calendar_mismatch ?? null,
+            },
+          };
         }
 
         // R40 (renameCommitMissed follow-up, live-repro'd this round): when the customer's raw
@@ -4204,44 +5607,74 @@ export function createTools(
         // never silently substituted), and (c) ctx.ambiguousConfirm/ctx.hardConfirm still gate it
         // identically to every other commit path (same three-layer AND as the primary branch).
         const sameNamePreviewIsSelfWritten =
-          typeof pendingRename?.at === "number" && pendingRename.at === lastSelfWrittenRenameAt;
+          typeof pendingRename?.at === "number" &&
+          pendingRename.at === lastSelfWrittenRenameAt;
         if (
-          ctx.confirmRename === true && !ctx.ambiguousConfirm && ctx.hardConfirm === true &&
-          pendingRename?.booking_id && isRealName(pendingRename?.new_name) && !sameNamePreviewIsSelfWritten &&
-          isRealName(args.new_name) && String(args.new_name).trim().toLowerCase() === String(pendingRename.new_name).trim().toLowerCase()
+          ctx.confirmRename === true && !ctx.ambiguousConfirm &&
+          ctx.hardConfirm === true &&
+          pendingRename?.booking_id && isRealName(pendingRename?.new_name) &&
+          !sameNamePreviewIsSelfWritten &&
+          isRealName(args.new_name) &&
+          String(args.new_name).trim().toLowerCase() ===
+            String(pendingRename.new_name).trim().toLowerCase()
         ) {
           const { data: fresh } = await supabase
             .from("bookings")
             .select("id, status, start_time, customer_phone")
             .eq("id", pendingRename.booking_id)
             .maybeSingle();
-          const freshBooking = fresh as { id: string; status: string; start_time: string; customer_phone: string } | null;
-          if (!freshBooking || freshBooking.customer_phone !== ctx.phone || !["confirmed", "pending"].includes(freshBooking.status) || new Date(freshBooking.start_time) <= new Date()) {
+          const freshBooking = fresh as {
+            id: string;
+            status: string;
+            start_time: string;
+            customer_phone: string;
+          } | null;
+          if (
+            !freshBooking || freshBooking.customer_phone !== ctx.phone ||
+            !["confirmed", "pending"].includes(freshBooking.status) ||
+            new Date(freshBooking.start_time) <= new Date()
+          ) {
             await clearPendingRename();
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           // R56 (RENAME-PHANTOM-SUCCESS fix): same reasoning as the primary commit branch above
           // (re-assert status + phone in the WHERE clause, check affected-row-count, never trust
           // absence of a Postgres error alone).
-          const { data: renamedRows2, error } = await supabase.from("bookings").update({
-            customer_name: String(pendingRename.new_name),
-            updated_at: new Date().toISOString(),
-          }).eq("id", freshBooking.id).eq("customer_phone", ctx.phone).in("status", ["confirmed", "pending"]).select("id");
+          const { data: renamedRows2, error } = await supabase.from("bookings")
+            .update({
+              customer_name: String(pendingRename.new_name),
+              updated_at: new Date().toISOString(),
+            }).eq("id", freshBooking.id).eq("customer_phone", ctx.phone).in(
+              "status",
+              ["confirmed", "pending"],
+            ).select("id");
           if (error) return { error: error.message };
           if (!renamedRows2 || renamedRows2.length === 0) {
             await clearPendingRename();
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           await clearPendingRename();
-          return { ok: true, renamed: { when: nlWhen(freshBooking.start_time), old_name: pendingRename.old_name ?? null, new_name: pendingRename.new_name, calendar_mismatch: pendingRename.calendar_mismatch ?? null } };
+          return {
+            ok: true,
+            renamed: {
+              when: nlWhen(freshBooking.start_time),
+              old_name: pendingRename.old_name ?? null,
+              new_name: pendingRename.new_name,
+              calendar_mismatch: pendingRename.calendar_mismatch ?? null,
+            },
+          };
         }
 
         // R59 (RENAME-GATE2-MISS-LOOPBACK fix, sev-2, FINDINGS LEDGER R58): both commit branches
@@ -4273,7 +5706,8 @@ export function createTools(
         // genuine "nee, laat maar" is never trapped in a retry loop either.
         const gate2ArgsNewNameRaw = String(args.new_name ?? "");
         if (
-          isRenameGate2Retry(pendingRename, gate2ArgsNewNameRaw, Date.now()) && !renamePreviewIsSelfWritten && pendingRename
+          isRenameGate2Retry(pendingRename, gate2ArgsNewNameRaw, Date.now()) &&
+          !renamePreviewIsSelfWritten && pendingRename
         ) {
           if (ctx.hardReject === true) {
             await clearPendingRename();
@@ -4281,25 +5715,37 @@ export function createTools(
               ok: true,
               cancelled_action: true,
               message: "Oké, de naam blijft ongewijzigd.",
-              guidance: "Bevestig kort dat er niets is gewijzigd en vraag of er nog iets anders is.",
+              guidance:
+                "Bevestig kort dat er niets is gewijzigd en vraag of er nog iets anders is.",
             };
           }
           const { data: stillFresh } = await supabase
             .from("bookings")
-            .select("id, status, start_time, customer_phone, service_types(name)")
+            .select(
+              "id, status, start_time, customer_phone, service_types(name)",
+            )
             .eq("id", pendingRename.booking_id)
             .maybeSingle();
-          const stillFreshBooking = stillFresh as
-            { id: string; status: string; start_time: string; customer_phone: string; service_types?: { name?: string } } | null;
+          const stillFreshBooking = stillFresh as {
+            id: string;
+            status: string;
+            start_time: string;
+            customer_phone: string;
+            service_types?: { name?: string };
+          } | null;
           if (
-            !stillFreshBooking || stillFreshBooking.customer_phone !== ctx.phone ||
-            !["confirmed", "pending"].includes(stillFreshBooking.status) || new Date(stillFreshBooking.start_time) <= new Date()
+            !stillFreshBooking ||
+            stillFreshBooking.customer_phone !== ctx.phone ||
+            !["confirmed", "pending"].includes(stillFreshBooking.status) ||
+            new Date(stillFreshBooking.start_time) <= new Date()
           ) {
             await clearPendingRename();
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           // Refresh only the marker's timestamp (an active back-and-forth); booking_id/old_name/
@@ -4308,16 +5754,26 @@ export function createTools(
           lastSelfWrittenRenameAt = refreshedAt;
           if (ctx.conversationId) {
             await supabase.from("whatsapp_conversations")
-              .update({ context: { ...renameCtx, pending_rename: { ...pendingRename, at: refreshedAt } } })
+              .update({
+                context: {
+                  ...renameCtx,
+                  pending_rename: { ...pendingRename, at: refreshedAt },
+                },
+              })
               .eq("id", ctx.conversationId);
           }
           return {
             needs_confirmation: true,
-            appointment: { service: stillFreshBooking.service_types?.name ?? null, when: nlWhen(stillFreshBooking.start_time) },
+            appointment: {
+              service: stillFreshBooking.service_types?.name ?? null,
+              when: nlWhen(stillFreshBooking.start_time),
+            },
             current_name: pendingRename.old_name ?? null,
             proposed_name: pendingRename.new_name,
             guidance:
-              `NIETS gewijzigd. De klant heeft de wijziging van "${pendingRename.old_name ?? ""}" naar "${pendingRename.new_name}" nog niet duidelijk genoeg bevestigd. ` +
+              `NIETS gewijzigd. De klant heeft de wijziging van "${
+                pendingRename.old_name ?? ""
+              }" naar "${pendingRename.new_name}" nog niet duidelijk genoeg bevestigd. ` +
               `Vraag het NOGMAALS en leg expliciet uit dat een kort bevestigend antwoord zoals "Klopt" of "Ja, bevestig" genoeg is om het echt door te voeren. ` +
               "Roep update_booking_name NIET opnieuw aan met een andere new_name tenzij de klant echt een ANDERE naam bedoelt; bij twijfel of afwijzing: vraag door, wijzig niets.",
           };
@@ -4335,8 +5791,14 @@ export function createTools(
         // itself only ever stored after resolveTarget found this one specific target) and is
         // the only way this confirm turn can ever complete without the model resupplying a
         // date/time hint it has no reason to repeat.
-        const pendingVerification = renameCtx.pending_rename_verification as
-          { booking_id?: string; current_name?: string | null; new_name?: string; start_time?: string; at?: number; calendar_mismatch?: CalendarMismatch | null } | undefined;
+        const pendingVerification = renameCtx.pending_rename_verification as {
+          booking_id?: string;
+          current_name?: string | null;
+          new_name?: string;
+          start_time?: string;
+          at?: number;
+          calendar_mismatch?: CalendarMismatch | null;
+        } | undefined;
         // R76 hardening: if the model's OWN args.new_name this turn is present AND differs from
         // what the verification marker stored, treat this as the customer stating a CORRECTION
         // alongside their reply (e.g. "ja klopt, maar dan Karim de Vries"), never silently keep
@@ -4346,7 +5808,8 @@ export function createTools(
         // breath as confirming could have the WRONG (earlier-proposed) name silently committed.
         const argsNewNameRaw = String(args.new_name ?? "").trim();
         const verificationNewNameMatches = !argsNewNameRaw ||
-          argsNewNameRaw.toLowerCase() === String(pendingVerification?.new_name ?? "").trim().toLowerCase();
+          argsNewNameRaw.toLowerCase() ===
+            String(pendingVerification?.new_name ?? "").trim().toLowerCase();
         // R123 (RENAME-GATE1-BARE-AFFIRM-FALLTHROUGH fix, sev-2, same bug CLASS as R120's
         // book_appointment double-confirm oscillation, different mechanism): a bare "Ja" (no name
         // restated) answering Gate 1's own identity-verification question correctly fails
@@ -4370,18 +5833,25 @@ export function createTools(
         // legitimate path still falls through unchanged to resolveTarget()'s own "meerdere_afspraken"
         // response below.
         if (
-          !!pendingVerification?.booking_id && verificationNewNameMatches && ctx.renameVerificationAffirmUnresolved === true
+          !!pendingVerification?.booking_id && verificationNewNameMatches &&
+          ctx.renameVerificationAffirmUnresolved === true
         ) {
           if (ctx.hardReject === true) {
             if (ctx.conversationId) {
-              const { pending_rename_verification: _dropRejectG1, ...restRejectG1 } = renameCtx;
-              await supabase.from("whatsapp_conversations").update({ context: restRejectG1 }).eq("id", ctx.conversationId);
+              const {
+                pending_rename_verification: _dropRejectG1,
+                ...restRejectG1
+              } = renameCtx;
+              await supabase.from("whatsapp_conversations").update({
+                context: restRejectG1,
+              }).eq("id", ctx.conversationId);
             }
             return {
               ok: true,
               cancelled_action: true,
               message: "Oké, de naam blijft ongewijzigd.",
-              guidance: "Bevestig kort dat er niets is gewijzigd en vraag of er nog iets anders is.",
+              guidance:
+                "Bevestig kort dat er niets is gewijzigd en vraag of er nog iets anders is.",
             };
           }
           const currentNameG1 = pendingVerification.current_name ?? "";
@@ -4389,20 +5859,27 @@ export function createTools(
             error: "naam_verificatie_nodig",
             current_name: pendingVerification.current_name ?? null,
             customer_reply:
-              `De afspraak die ik vond staat op naam van ${currentNameG1} (${nlWhen(String(pendingVerification.start_time ?? ""))}). ` +
+              `De afspraak die ik vond staat op naam van ${currentNameG1} (${
+                nlWhen(String(pendingVerification.start_time ?? ""))
+              }). ` +
               `Klopt het dat dit echt de afspraak van ${currentNameG1} is die hernoemd moet worden naar "${pendingVerification.new_name}"? Typ ter bevestiging de naam terug, bijv. "Ja, ${currentNameG1}".`,
             message:
               `De klant heeft de identiteitscheck nog NIET ondubbelzinnig bevestigd (geen naam teruggetypt). ` +
               `Vraag de klant EXPLICIET de naam kort terug te typen ter bevestiging (bijv. "Ja, ${currentNameG1}"), een kaal "ja" is niet genoeg.`,
-            guidance: "NIETS gewijzigd. Veiligheidscheck staat nog open: stel de vraag opnieuw en wacht op het antwoord met de naam erin.",
+            guidance:
+              "NIETS gewijzigd. Veiligheidscheck staat nog open: stel de vraag opnieuw en wacht op het antwoord met de naam erin.",
           };
         }
-        const usingVerifiedTarget = ctx.confirmRenameVerification === true && !!pendingVerification?.booking_id && verificationNewNameMatches;
+        const usingVerifiedTarget = ctx.confirmRenameVerification === true &&
+          !!pendingVerification?.booking_id && verificationNewNameMatches;
         const newNameRaw = usingVerifiedTarget
           ? String(pendingVerification!.new_name ?? "").trim()
           : String(args.new_name ?? "").trim();
         if (!isRealName(newNameRaw)) {
-          return { error: "naam_ontbreekt", message: "Welke naam moet er op de afspraak komen te staan?" };
+          return {
+            error: "naam_ontbreekt",
+            message: "Welke naam moet er op de afspraak komen te staan?",
+          };
         }
         let b: UpcomingBooking;
         // totalCandidatesNow: how many upcoming bookings this phone holds, for the cross-identity
@@ -4415,26 +5892,35 @@ export function createTools(
         if (usingVerifiedTarget) {
           const { data: verifiedRow } = await supabase
             .from("bookings")
-            .select("id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name")
+            .select(
+              "id, status, start_time, service_type_id, calendar_id, service_types(name), customer_name",
+            )
             .eq("id", pendingVerification!.booking_id!)
             .maybeSingle();
           const vb = verifiedRow as UpcomingBooking | null;
           const vbStatus = (verifiedRow as { status?: string } | null)?.status;
           if (
-            !vb || vb.customer_name?.trim().toLowerCase() !== (pendingVerification!.current_name ?? "").trim().toLowerCase() ||
+            !vb ||
+            vb.customer_name?.trim().toLowerCase() !==
+              (pendingVerification!.current_name ?? "").trim().toLowerCase() ||
             !vbStatus || !["confirmed", "pending"].includes(vbStatus)
           ) {
             // Race/staleness: the booking vanished, was cancelled, or its name changed since the
             // verification question was asked (a concurrent turn beat this one). Refuse to guess;
             // clear the stale marker and make the model re-establish the target from scratch.
             if (ctx.conversationId) {
-              const { pending_rename_verification: _dropStale, ...restStale } = renameCtx;
-              await supabase.from("whatsapp_conversations").update({ context: restStale }).eq("id", ctx.conversationId);
+              const { pending_rename_verification: _dropStale, ...restStale } =
+                renameCtx;
+              await supabase.from("whatsapp_conversations").update({
+                context: restStale,
+              }).eq("id", ctx.conversationId);
             }
             return {
               error: "geen_boeking",
-              message: "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
-              guidance: "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
+              message:
+                "Die afspraak kan ik niet meer vinden om de naam te wijzigen, mogelijk is hij al weg of verzet.",
+              guidance:
+                "Vraag vriendelijk of er nog iets is waarmee je kunt helpen.",
             };
           }
           b = vb;
@@ -4442,17 +5928,33 @@ export function createTools(
         } else {
           const renameMatchTime = args.match_time
             ? String(args.match_time)
-            : (!args.match_start_time ? extractClockTimes(ctx.userMessage ?? "")[0] : undefined);
-          const target = await resolveTarget(supabase, ctx, args.match_start_time ? String(args.match_start_time) : undefined, renameMatchTime);
+            : (!args.match_start_time
+              ? extractClockTimes(ctx.userMessage ?? "")[0]
+              : undefined);
+          const target = await resolveTarget(
+            supabase,
+            ctx,
+            args.match_start_time ? String(args.match_start_time) : undefined,
+            renameMatchTime,
+          );
           if (target.none) {
-            return { error: "geen_boeking", message: "Ik kan geen aankomende afspraak vinden om de naam op te wijzigen." };
+            return {
+              error: "geen_boeking",
+              message:
+                "Ik kan geen aankomende afspraak vinden om de naam op te wijzigen.",
+            };
           }
           if (target.ambiguous) {
             return {
               error: "meerdere_afspraken",
               message: "Je hebt meerdere aankomende afspraken staan.",
-              guidance: "Vraag kort welke van deze afspraken de klant de naam op wil wijzigen.",
-              appointments: target.ambiguous.map((bb) => ({ service: bb.service_types?.name ?? null, when: nlWhen(bb.start_time), start_time: bb.start_time })),
+              guidance:
+                "Vraag kort welke van deze afspraken de klant de naam op wil wijzigen.",
+              appointments: target.ambiguous.map((bb) => ({
+                service: bb.service_types?.name ?? null,
+                when: nlWhen(bb.start_time),
+                start_time: bb.start_time,
+              })),
             };
           }
           b = target.booking!;
@@ -4464,12 +5966,24 @@ export function createTools(
         // the identity-verification question was asked), so it survives to the eventual bare
         // "ja klopt" commit turn that no longer restates it.
         const renameCalMismatch: CalendarMismatch | null =
-          findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id) ?? pendingVerification?.calendar_mismatch ?? null;
-        const { data: currentRow } = await supabase.from("bookings").select("customer_name").eq("id", b.id).maybeSingle();
-        const currentName = (currentRow as { customer_name?: string } | null)?.customer_name ?? null;
-        if (currentName && currentName.trim().toLowerCase() === newNameRaw.toLowerCase()) {
+          findCalendarMismatch(ctx.calendars, ctx.userMessage, b.calendar_id) ??
+            pendingVerification?.calendar_mismatch ?? null;
+        const { data: currentRow } = await supabase.from("bookings").select(
+          "customer_name",
+        ).eq("id", b.id).maybeSingle();
+        const currentName =
+          (currentRow as { customer_name?: string } | null)?.customer_name ??
+            null;
+        if (
+          currentName &&
+          currentName.trim().toLowerCase() === newNameRaw.toLowerCase()
+        ) {
           // No-op: already that name. Friendly short-circuit, no DB write, no pending marker.
-          return { ok: true, no_change: true, message: `De afspraak staat al onder de naam ${currentName}.` };
+          return {
+            ok: true,
+            no_change: true,
+            message: `De afspraak staat al onder de naam ${currentName}.`,
+          };
         }
         // R76 (RENAME-HIJACK-CROSSTHIRDPARTY, sev-2, PREEMPT): deterministic, code-level guard,
         // NOT a prompt nudge (this bug class has repeatedly proven prompt-only steering
@@ -4512,8 +6026,10 @@ export function createTools(
         // change is proposed, a customer with one booking, or a same-person spelling correction
         // (Willem's own booking, "Willem" -> "Willem Bakker"), never sees this extra turn: normal
         // single-booking self-rename stays exactly as smooth as before this fix.
-        const isDifferentRealName = isRealName(currentName) && currentName!.trim().toLowerCase() !== newNameRaw.toLowerCase();
-        const crossIdentityRisk = (totalCandidatesNow ?? 0) >= 2 && isDifferentRealName;
+        const isDifferentRealName = isRealName(currentName) &&
+          currentName!.trim().toLowerCase() !== newNameRaw.toLowerCase();
+        const crossIdentityRisk = (totalCandidatesNow ?? 0) >= 2 &&
+          isDifferentRealName;
         // ctx.confirmRenameVerification: SERVER-detected (index.ts, mirrors confirmRename exactly:
         // a fresh pending_rename_verification marker + AFFIRM_RE + !NEGATE_RE + !ambiguousConfirm),
         // NOT a model-supplied arg. First attempt at this guard (see round evidence) tried a new
@@ -4531,7 +6047,19 @@ export function createTools(
           if (ctx.conversationId) {
             await supabase
               .from("whatsapp_conversations")
-              .update({ context: { ...dropCrossActionMarkersForBooking(renameCtx, b.id), pending_rename_verification: { booking_id: b.id, current_name: currentName, new_name: newNameRaw, start_time: b.start_time, at: verifyAt, calendar_mismatch: renameCalMismatch } } })
+              .update({
+                context: {
+                  ...dropCrossActionMarkersForBooking(renameCtx, b.id),
+                  pending_rename_verification: {
+                    booking_id: b.id,
+                    current_name: currentName,
+                    new_name: newNameRaw,
+                    start_time: b.start_time,
+                    at: verifyAt,
+                    calendar_mismatch: renameCalMismatch,
+                  },
+                },
+              })
               .eq("id", ctx.conversationId);
           }
           return {
@@ -4539,14 +6067,22 @@ export function createTools(
             current_name: currentName,
             // R112: purely customer-facing, see identityDisambiguationGuard.ts's
             // enforceVerificationGateDisclosure header for why this is kept separate from `message`.
-            customer_reply: `De afspraak die ik vond staat op naam van ${currentName} (${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}). Klopt het dat dit echt de afspraak van ${currentName} is die hernoemd moet worden naar "${newNameRaw}"? Typ ter bevestiging de naam terug, bijv. "Ja, ${currentName}".`,
+            customer_reply:
+              `De afspraak die ik vond staat op naam van ${currentName} (${
+                b.service_types?.name ?? ""
+              }, ${
+                nlWhen(b.start_time)
+              }). Klopt het dat dit echt de afspraak van ${currentName} is die hernoemd moet worden naar "${newNameRaw}"? Typ ter bevestiging de naam terug, bijv. "Ja, ${currentName}".`,
             message:
               `Er staan meerdere afspraken onder dit nummer. De afspraak die ik vond staat op naam van ${currentName}. ` +
-              `Vraag de klant EXPLICIET te bevestigen dat de afspraak van ${currentName} (dienst ${b.service_types?.name ?? ""}, ${nlWhen(b.start_time)}) ` +
+              `Vraag de klant EXPLICIET te bevestigen dat de afspraak van ${currentName} (dienst ${
+                b.service_types?.name ?? ""
+              }, ${nlWhen(b.start_time)}) ` +
               `echt hernoemd moet worden naar "${newNameRaw}", en vraag de klant de naam terug te typen ter bevestiging (bijv. "Ja, ${currentName}"). Een los "ja"/"klopt" zonder de naam telt NIET als bevestiging, en niet een andere afspraak of persoon bedoeld is. ` +
               "Wacht op het antwoord van de klant; roep GEEN tools aan in deze beurt na het stellen van de vraag. " +
               "Bevestigt de klant dit NIET, of blijkt het om een andere afspraak te gaan: wijzig niets en vraag om verduidelijking.",
-            guidance: "NIETS gewijzigd. Veiligheidscheck: meerdere afspraken op dit nummer, dit zou een ANDERE persoon se afspraak hernoemen. Stel de vraag en wacht op het antwoord.",
+            guidance:
+              "NIETS gewijzigd. Veiligheidscheck: meerdere afspraken op dit nummer, dit zou een ANDERE persoon se afspraak hernoemen. Stel de vraag en wacht op het antwoord.",
           };
         }
         // Past the cross-identity guard (either it never applied, or the customer's own prior-turn
@@ -4554,24 +6090,45 @@ export function createTools(
         // pending_rename_verification from the base context object before storing the real
         // pending_rename below, so a stale verification marker from THIS or an earlier attempt can
         // never leak into (and confuse) a later, unrelated rename in this same conversation.
-        const { pending_rename_verification: _dropV, ...renameCtxClean } = renameCtx;
+        const { pending_rename_verification: _dropV, ...renameCtxClean } =
+          renameCtx;
         const renamePreviewAt = Date.now();
         lastSelfWrittenRenameAt = renamePreviewAt;
         if (ctx.conversationId) {
           await supabase
             .from("whatsapp_conversations")
-            .update({ context: { ...dropCrossActionMarkersForBooking(renameCtxClean, b.id), pending_rename: { booking_id: b.id, start_time: b.start_time, old_name: currentName, new_name: newNameRaw, at: renamePreviewAt, calendar_mismatch: renameCalMismatch } } })
+            .update({
+              context: {
+                ...dropCrossActionMarkersForBooking(renameCtxClean, b.id),
+                pending_rename: {
+                  booking_id: b.id,
+                  start_time: b.start_time,
+                  old_name: currentName,
+                  new_name: newNameRaw,
+                  at: renamePreviewAt,
+                  calendar_mismatch: renameCalMismatch,
+                },
+              },
+            })
             .eq("id", ctx.conversationId);
         }
         return {
           needs_confirmation: true,
-          appointment: { service: b.service_types?.name ?? null, when: nlWhen(b.start_time) },
+          appointment: {
+            service: b.service_types?.name ?? null,
+            when: nlWhen(b.start_time),
+          },
           current_name: currentName,
           proposed_name: newNameRaw,
           // R66: surface the customer-STATED-but-wrong calendar/employee name (if any).
-          ...(renameCalMismatch ? { calendar_mismatch: renameCalMismatch } : {}),
-          guidance: "NIETS gewijzigd. Lees de afspraak (dienst + tijd) + de huidige naam + de nieuwe naam terug en vraag of het klopt. Pas NA de bevestiging van de klant: roep update_booking_name opnieuw aan met confirmed:true + only_confirming_previous." +
-            (renameCalMismatch ? ` LET OP: de klant noemde "${renameCalMismatch.statedName}", maar deze afspraak staat bij ${renameCalMismatch.actualName}. Noem dit expliciet (bv. "Ik zie de afspraak bij ${renameCalMismatch.actualName}, niet bij ${renameCalMismatch.statedName}, wil je toch dat ik die naam wijzig?") in plaats van stilzwijgend door te gaan.` : ""),
+          ...(renameCalMismatch
+            ? { calendar_mismatch: renameCalMismatch }
+            : {}),
+          guidance:
+            "NIETS gewijzigd. Lees de afspraak (dienst + tijd) + de huidige naam + de nieuwe naam terug en vraag of het klopt. Pas NA de bevestiging van de klant: roep update_booking_name opnieuw aan met confirmed:true + only_confirming_previous." +
+            (renameCalMismatch
+              ? ` LET OP: de klant noemde "${renameCalMismatch.statedName}", maar deze afspraak staat bij ${renameCalMismatch.actualName}. Noem dit expliciet (bv. "Ik zie de afspraak bij ${renameCalMismatch.actualName}, niet bij ${renameCalMismatch.statedName}, wil je toch dat ik die naam wijzig?") in plaats van stilzwijgend door te gaan.`
+              : ""),
         };
       }
 

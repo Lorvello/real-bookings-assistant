@@ -39,14 +39,14 @@ import { parseISO, isValid as isValidDate } from 'date-fns';
  * Validation result cache for performance optimization
  * Max 1000 entries, LRU eviction
  */
-const validationCache = new Map<string, { result: ValidationResult<any>; timestamp: number }>();
+const validationCache = new Map<string, { result: ValidationResult<unknown>; timestamp: number }>();
 const CACHE_MAX_SIZE = 1000;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Adds a result to the validation cache with LRU eviction
  */
-const addToCache = (key: string, result: ValidationResult<any>): void => {
+const addToCache = (key: string, result: ValidationResult<unknown>): void => {
   // Evict oldest entries if cache is full
   if (validationCache.size >= CACHE_MAX_SIZE) {
     const oldestKey = validationCache.keys().next().value;
@@ -62,7 +62,7 @@ const addToCache = (key: string, result: ValidationResult<any>): void => {
 /**
  * Retrieves a result from cache if valid and not expired
  */
-const getFromCache = (key: string): ValidationResult<any> | null => {
+const getFromCache = (key: string): ValidationResult<unknown> | null => {
   const cached = validationCache.get(key);
   
   if (!cached) return null;
@@ -91,7 +91,7 @@ export interface ValidationResult<T> {
   value?: T;
   /** Array of user-friendly error messages in Dutch */
   errors: string[];
-  /** Always-safe sanitized version of input (even if invalid) */
+  /** Normalized storage text; encode separately if used in an HTML string sink */
   sanitized: string;
   /** Whether suspicious patterns were detected (triggers security logging) */
   suspicious?: boolean;
@@ -166,17 +166,29 @@ const detectSuspiciousPatterns = (input: string, context: string): string[] => {
     { regex: /<iframe[^>]*>/gi, name: 'XSS: Iframe injection', severity: 'high' },
     
     // SQL injection attempts
-    { regex: /'\s*(OR|AND)\s*'?\d+/gi, name: 'SQL: OR/AND injection', severity: 'critical' },
+    // The final quote is often supplied by the vulnerable SQL statement rather
+    // than by the attacker, so accept both closed and deliberately unclosed
+    // right-hand string literals.
+    { regex: /'\s*(OR|AND)\s+(?:'[^']*'|\d+)\s*=\s*(?:'[^']*'?|\d+)/gi, name: 'SQL: OR/AND injection', severity: 'critical' },
     { regex: /UNION\s+SELECT/gi, name: 'SQL: UNION SELECT', severity: 'critical' },
     { regex: /--\s*$/gm, name: 'SQL: Comment terminator', severity: 'high' },
+    { regex: /'\s*#\s*$/gm, name: 'SQL: Hash comment terminator', severity: 'high' },
+    { regex: /\/\*[\s\S]*?\*\//g, name: 'SQL: Block comment', severity: 'high' },
     { regex: /;\s*(DROP|DELETE|UPDATE|INSERT)/gi, name: 'SQL: Destructive command', severity: 'critical' },
     
     // Path traversal
-    { regex: /\.\.[\/\\]/g, name: 'Path traversal: ../', severity: 'high' },
-    { regex: /%2e%2e[\/\\]/gi, name: 'Path traversal: URL encoded', severity: 'high' },
+    { regex: /\.\.[/\\]/g, name: 'Path traversal: ../', severity: 'high' },
+    { regex: /%2e%2e[/\\]/gi, name: 'Path traversal: URL encoded', severity: 'high' },
     
     // Command injection
-    { regex: /[;&|`$()]/g, name: 'Command injection: Shell metacharacters', severity: 'medium' },
+    // Standalone punctuation such as "&" and ";" is normal customer text.
+    // Flag an operator only when it introduces a recognizable shell command,
+    // otherwise common names and notes would flood security telemetry.
+    {
+      regex: /(?:^|[\s"'`])(?:&&|\|\||;|`|\$\()\s*(?:bash|sh|zsh|cmd|powershell|pwsh|curl|wget|rm|cat|nc|python3?|node|id|whoami)\b/gi,
+      name: 'Command injection: Shell command',
+      severity: 'medium'
+    },
     
     // Null bytes
     { regex: /\0|%00/g, name: 'Null byte injection', severity: 'high' },
@@ -355,7 +367,7 @@ export const validatePhoneNumber = (
       return {
         valid: false,
         errors: ['Ongeldig telefoonnummer'],
-        sanitized: trimmed.replace(/[^\d\s\-\(\)\+]/g, ''),
+        sanitized: trimmed.replace(/[^\d\s()+-]/g, ''),
         suspicious: suspicious.length > 0
       };
     }
@@ -375,7 +387,7 @@ export const validatePhoneNumber = (
     return {
       valid: false,
       errors: ['Ongeldig telefoonnummer formaat'],
-      sanitized: trimmed.replace(/[^\d\s\-\(\)\+]/g, ''),
+      sanitized: trimmed.replace(/[^\d\s()+-]/g, ''),
       suspicious: suspicious.length > 0
     };
   }
@@ -668,13 +680,18 @@ export const sanitizeFilename = (
   const suspicious = detectSuspiciousPatterns(sanitized, 'filename');
 
   // Remove path components
-  sanitized = sanitized.replace(/^.*[\\\/]/, '');
+  sanitized = sanitized.replace(/^.*[\\/]/, '');
   
   // Remove null bytes
   sanitized = sanitized.replace(/\0/g, '');
   
   // Remove control characters
-  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+  sanitized = Array.from(sanitized)
+    .filter((character) => {
+      const code = character.charCodeAt(0);
+      return code > 31 && code !== 127;
+    })
+    .join('');
   
   // Normalize unicode (NFC)
   sanitized = sanitized.normalize('NFC');
@@ -731,7 +748,7 @@ export const sanitizeFilename = (
  * 
  * Features:
  * - Removes control characters (0x00-0x1F)
- * - Escapes HTML entities
+ * - Preserves ordinary storage text, including apostrophes, ampersands and slashes
  * - Removes zero-width characters (unicode obfuscation)
  * - Configurable max length
  * - Trims whitespace
@@ -742,7 +759,7 @@ export const sanitizeFilename = (
  * 
  * @example
  * const result = sanitizeText('Hello <b>world</b>');
- * console.log(result.sanitized); // "Hello &lt;b&gt;world&lt;/b&gt;"
+ * console.log(result.sanitized); // "Hello <b>world</b>"
  * 
  * TEST CASES:
  * ✅ VALID:
@@ -750,8 +767,11 @@ export const sanitizeFilename = (
  * - "Text with  spaces" → { sanitized: "Text with spaces" }
  * 
  * 🔧 SANITIZED:
- * - "Text<script>alert(1)</script>" → { sanitized: "Text&lt;script&gt;alert(1)&lt;/script&gt;" }
  * - "Text\u200B\u200C\u200D" → { sanitized: "Text" (zero-width removed) }
+ *
+ * HTML safety belongs at the output sink. Use escapeHtmlForSink/sanitizeHtml
+ * only when interpolating text into an HTML string; normal React text nodes
+ * already escape values automatically.
  */
 export const sanitizeText = (
   text: string,
@@ -772,19 +792,15 @@ export const sanitizeText = (
   const suspicious = detectSuspiciousPatterns(sanitized, 'text');
 
   // Remove control characters (except newline, tab, carriage return)
-  sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  sanitized = Array.from(sanitized)
+    .filter((character) => {
+      const code = character.charCodeAt(0);
+      return code === 9 || code === 10 || code === 13 || (code > 31 && code !== 127);
+    })
+    .join('');
   
   // Remove zero-width characters (unicode obfuscation)
   sanitized = sanitized.replace(/[\u200B-\u200D\uFEFF]/g, '');
-  
-  // Escape HTML entities
-  sanitized = sanitized
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
   
   // Trim
   sanitized = sanitized.trim();
@@ -944,7 +960,7 @@ export const maskCreditCard = (
   }
 
   // Remove spaces and hyphens
-  const cleaned = cardNumber.replace(/[\s\-]/g, '');
+  const cleaned = cardNumber.replace(/[\s-]/g, '');
 
   // Validate format (13-19 digits for various card types)
   if (!/^\d{13,19}$/.test(cleaned)) {
@@ -1079,13 +1095,22 @@ export const sanitizeSqlInput = (
 // BACKWARD COMPATIBLE EXPORTS (DEPRECATED)
 // ============================================================================
 
+/** Escape plain text immediately before it is inserted into an HTML string sink. */
+export const escapeHtmlForSink = (input: string): string =>
+  input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+
 /**
- * @deprecated Use sanitizeHtmlContent() instead for DOMPurify-based sanitization
- * @see sanitizeHtmlContent
+ * Backward-compatible plain-text HTML sink encoder.
+ * For user-authored rich HTML, use sanitizeHtmlContent() instead.
  */
-export const sanitizeHtml = (input: string): string => {
-  return sanitizeText(input).sanitized;
-};
+export const sanitizeHtml = (input: string): string =>
+  escapeHtmlForSink(sanitizeText(input, { allowEmpty: true }).sanitized);
 
 /**
  * @deprecated Use sanitizeText() instead for consistent API

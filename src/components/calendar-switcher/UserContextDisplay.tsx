@@ -51,7 +51,15 @@ export function UserContextDisplay() {
   const { profile } = useProfile();
 
   const tierDisplay = formatSubscriptionTier(profile?.subscription_tier);
-  const hasActiveSubscription = profile?.subscription_status === 'active';
+  const subscriptionEndMs = Date.parse(profile?.subscription_end_date ?? '');
+  const scheduledCancellationStillEntitled =
+    profile?.subscription_status === 'canceled' &&
+    profile.cancel_at_period_end === true &&
+    Number.isFinite(subscriptionEndMs) &&
+    subscriptionEndMs > Date.now();
+  const hasActiveSubscription =
+    profile?.subscription_status === 'active' ||
+    scheduledCancellationStillEntitled;
 
   return (
     <div className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-lg border">

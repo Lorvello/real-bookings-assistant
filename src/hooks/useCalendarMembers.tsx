@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getOrCreateTeamInvitationRequestId } from '@/utils/teamInvitationRequest';
 
 interface CalendarMember {
   id: string;
@@ -22,13 +23,18 @@ interface CalendarMember {
   };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export const useCalendarMembers = (calendarId?: string) => {
   const [members, setMembers] = useState<CalendarMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useTranslation('notifications');
+  const pendingInviteRequestIds = useRef(new Map<string, string>());
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     try {
       setLoading(true);
       let query = supabase
@@ -73,7 +79,7 @@ export const useCalendarMembers = (calendarId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [calendarId, t, toast]);
 
   // New invitation system using email invitations
   const inviteMember = async (
@@ -85,11 +91,20 @@ export const useCalendarMembers = (calendarId?: string) => {
     try {
       setLoading(true);
 
-      console.log('Inviting member via new system:', { email, calendarIdForInvite, role, fullName });
+      const request = getOrCreateTeamInvitationRequestId(
+        pendingInviteRequestIds.current,
+        {
+          calendarId: calendarIdForInvite,
+          email,
+          fullName,
+          role,
+        },
+      );
 
       // Use the new edge function to send invitation
       const { error } = await supabase.functions.invoke('send-team-invitation', {
         body: {
+          request_id: request.requestId,
           calendar_id: calendarIdForInvite,
           email: email,
           full_name: fullName || '',
@@ -104,9 +119,12 @@ export const useCalendarMembers = (calendarId?: string) => {
         // it so the user sees the real reason instead of a generic failure.
         let description = error.message || t('calendarMembers.inviteSendError.description', 'Could not send invitation.');
         try {
-          const body = await (error as any).context?.json?.();
-          if (body?.error) description = body.error;
-        } catch (_) { /* body not JSON, keep generic message */ }
+          const context = (error as { context?: { json?: () => Promise<unknown> } }).context;
+          const body = await context?.json?.();
+          if (isRecord(body) && typeof body.error === 'string') {
+            description = body.error;
+          }
+        } catch { /* body not JSON, keep generic message */ }
         toast({
           title: t('calendarMembers.inviteSendError.title', 'Error'),
           description,
@@ -114,6 +132,8 @@ export const useCalendarMembers = (calendarId?: string) => {
         });
         return false;
       }
+
+      pendingInviteRequestIds.current.delete(request.key);
 
       // Refresh the members list to show any updates
       await fetchMembers();
@@ -188,8 +208,8 @@ export const useCalendarMembers = (calendarId?: string) => {
   };
 
   useEffect(() => {
-    fetchMembers();
-  }, [calendarId]);
+    void fetchMembers();
+  }, [fetchMembers]);
 
   return {
     members,

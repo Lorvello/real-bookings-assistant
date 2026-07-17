@@ -22,7 +22,7 @@ export const useAdminControls = () => {
   ) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc('admin_update_user_subscription', {
+      const { data, error } = await supabase.rpc('admin_update_user_subscription_safe', {
         p_user_id: userId,
         p_subscription_status: updates.subscription_status,
         p_subscription_tier: updates.subscription_tier,
@@ -34,7 +34,7 @@ export const useAdminControls = () => {
 
       if (error) throw error;
 
-      const result = data as { success: boolean; message?: string; user?: any; error?: string };
+      const result = data as { success: boolean; message?: string; user?: Record<string, unknown>; error?: string };
       
       if (result.success) {
         toast({
@@ -93,13 +93,20 @@ export const useAdminControls = () => {
   const getUserSubscriptionDetails = async (userId: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_user_subscription_details', {
+      const { data, error } = await supabase.rpc('admin_get_user_subscription_details_safe', {
         p_user_id: userId,
       });
 
       if (error) throw error;
 
-      const result = data as { success: boolean; user?: any; tier?: any; current_status?: string; days_remaining?: number; error?: string };
+      const result = data as {
+        success: boolean;
+        user?: Record<string, unknown>;
+        tier?: SubscriptionTier;
+        current_status?: string;
+        days_remaining?: number;
+        error?: string;
+      };
       
       if (result.success) {
         return result;

@@ -26,7 +26,7 @@ BEGIN
 
   RETURN v_current_count < v_max_members;
 END;
-$function$
+$function$;
 
 -- Fix: invite_team_member used encode(...,base64url) which Postgres does not support -> URL-safe base64.
 CREATE OR REPLACE FUNCTION public.invite_team_member(p_calendar_id uuid, p_email text, p_full_name text, p_role text DEFAULT 'viewer'::text)
@@ -53,4 +53,4 @@ BEGIN
   VALUES (p_calendar_id, 'team.invitation.created', jsonb_build_object('invitation_id', v_invitation_id, 'email', p_email, 'full_name', p_full_name, 'role', p_role, 'token', v_token, 'business_name', v_business_name, 'invited_by', auth.uid()));
   RETURN jsonb_build_object('success', true, 'invitation_id', v_invitation_id, 'token', v_token);
 END;
-$function$
+$function$;

@@ -47,6 +47,31 @@ export const DashboardMetrics = () => {
     );
   }
 
+  const retainedRevenue = (() => {
+    if (metrics.total_revenue_status === 'mixed_currencies') {
+      return 'Mixed currencies';
+    }
+    if (metrics.total_revenue_status === 'no_retained_revenue') {
+      return 'No revenue';
+    }
+    if (
+      metrics.total_revenue_status !== 'single_currency' ||
+      metrics.total_revenue === null ||
+      metrics.total_revenue_currency === null
+    ) {
+      return 'Unavailable';
+    }
+
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: metrics.total_revenue_currency.toUpperCase(),
+      }).format(metrics.total_revenue);
+    } catch {
+      return `${metrics.total_revenue_currency.toUpperCase()} ${metrics.total_revenue.toFixed(2)}`;
+    }
+  })();
+
   const metricCards = [
     {
       title: 'Today',
@@ -57,7 +82,7 @@ export const DashboardMetrics = () => {
       suffix: metrics.today_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'Pending',
+      title: 'Pending Today',
       value: metrics.pending_bookings,
       icon: Clock,
       color: 'text-yellow-400',
@@ -65,7 +90,7 @@ export const DashboardMetrics = () => {
       suffix: metrics.pending_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'This Week',
+      title: 'Confirmed This Week',
       value: metrics.week_bookings,
       icon: TrendingUp,
       color: 'text-green-400',
@@ -81,20 +106,24 @@ export const DashboardMetrics = () => {
       suffix: metrics.month_bookings === 1 ? ' appointment' : ' appointments'
     },
     {
-      title: 'Revenue',
-      value: `€${metrics.total_revenue.toFixed(2)}`,
+      title: 'Retained Revenue',
+      value: retainedRevenue,
       icon: Euro,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-900/20',
-      suffix: ' this month'
+      suffix: metrics.total_revenue_status === 'single_currency'
+        ? ' after refunds · appointments this month'
+        : metrics.total_revenue_status === 'mixed_currencies'
+          ? ' cannot be totalled across currencies'
+          : ' for appointments this month'
     },
     {
-      title: 'Conversie',
-      value: `${metrics.conversion_rate}%`,
+      title: 'Contacts Later Booked',
+      value: metrics.contacts_later_booked,
       icon: MessageSquare,
       color: 'text-indigo-400',
       bgColor: 'bg-indigo-900/20',
-      suffix: ' WhatsApp'
+      suffix: ` of ${metrics.contacts_later_booked_sample_count} recent contacts · phone/email match`
     }
   ];
 

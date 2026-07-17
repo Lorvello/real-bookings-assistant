@@ -16,6 +16,7 @@
     "overview": {
       "errTitle": "Je dashboardgegevens konden niet worden geladen",
       "errDesc": "Controleer je verbinding en probeer het opnieuw.",
+      "metricsError": "De actuele agendacijfers konden niet worden geladen.",
       "retry": "Opnieuw",
       "sampleData": "Voorbeeldgegevens",
       "nextAppointment": "Volgende afspraak",
@@ -370,13 +371,16 @@
       "errDesc": "Controleer je verbinding en probeer het opnieuw.",
       "retry": "Opnieuw proberen",
       "count": {
-        "sent": "Verzonden",
+        "accepted": "Geaccepteerd",
         "pending": "In behandeling",
         "stuck": "Vastgelopen",
+        "suppressed": "Vervangen",
         "failed": "Mislukt"
       },
       "status": {
-        "sent": "Verzonden",
+        "providerAccepted": "Door provider geaccepteerd",
+        "delivered": "Afgeleverd",
+        "legacyUnverified": "Oud resultaat niet verifieerbaar",
         "pending": "In behandeling",
         "stuck": "Wacht op WhatsApp-goedkeuring",
         "invalidPhone": "Ongeldig telefoonnummer",
@@ -384,13 +388,23 @@
         "paymentRefunded": "Betaling terugbetaald",
         "stripeCheckFailed": "Betalingscontrole mislukt",
         "emailSendFailed": "E-mail aflevering mislukt",
+        "whatsappSendFailed": "WhatsApp-aflevering mislukt",
+        "whatsappConfigMissing": "WhatsApp-configuratie ontbreekt",
+        "deliveryUnknown": "Afleveruitkomst onbekend",
         "noContactInfo": "Geen contactgegevens",
+        "superseded": "Vervangen door nieuwere planning",
         "unknown": "Onbekend"
       },
-      "sentTip": "Herinneringen die daadwerkelijk zijn afgeleverd bij de klant via e-mail of WhatsApp.",
+      "afterAcceptance": {
+        "rescheduled": "Verzet na acceptatie",
+        "refunded": "Terugbetaald na acceptatie",
+        "cancelled": "Geannuleerd na acceptatie"
+      },
+      "acceptedTip": "Geaccepteerd door de e-mail- of WhatsApp-provider. Dit is nog geen afleverbevestiging; 'Afgeleverd' verschijnt pas na bevestiging van de provider.",
       "pendingTip": "Geclaimd en wordt automatisch opnieuw geprobeerd, tot {{max}} pogingen over ongeveer een uur. De meeste worden binnen enkele minuten afgerond. Bekijk het aantal pogingen hieronder als er eentje langer blijft hangen.",
       "stuckTip": "Wacht op goedkeuring van het WhatsApp-sjabloon. Dit wordt ongeveer een uur lang automatisch opnieuw geprobeerd en blijft daarna hier staan tot het is goedgekeurd.",
-      "failedTip": "Deze herinneringen konden niet worden afgeleverd en worden niet meer opnieuw geprobeerd: een ongeldig telefoonnummer, een geannuleerde boeking, een terugbetaalde betaling, een betalingscontrole die bleef mislukken, een e-mail die niet kon worden afgeleverd, of contactgegevens van de klant die zijn verwijderd. Ze hebben je aandacht nodig.",
+      "suppressedTip": "Oudere herinneringsplanningen die veilig zijn vervangen door een verplaatsing of door het nabijere herinneringsmoment. Er is geen providerverzending gestart.",
+      "failedTip": "Deze herinneringen konden niet betrouwbaar worden afgeleverd en worden niet meer automatisch geprobeerd. Dat kan komen door ongeldige contactgegevens, een annulering of terugbetaling, een providerfout, of een onbekende WhatsApp-uitkomst. Controleer deze handmatig.",
       "attemptCount": "Poging {{count}} van {{max}}",
       "listLabel": "Recente herinneringen",
       "unknownCustomer": "Klant",

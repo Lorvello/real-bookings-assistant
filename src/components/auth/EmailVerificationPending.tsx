@@ -42,8 +42,6 @@ export const EmailVerificationPending: React.FC<EmailVerificationPendingProps> =
     setResending(true);
 
     try {
-      console.log('[EmailVerification] Resending verification email to:', email);
-
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,

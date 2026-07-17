@@ -9,7 +9,7 @@ export interface PaymentSettings {
   payment_deadline_hours: number;
   auto_cancel_unpaid_bookings: boolean;
   enabled_payment_methods: string[];
-  payout_option: 'standard' | 'instant';
+  payout_option: "standard" | "instant";
   payment_optional: boolean;
   allowed_payment_timing: string[];
   created_at: string;
@@ -20,11 +20,11 @@ export interface BusinessStripeAccount {
   id: string;
   calendar_id: string;
   stripe_account_id: string;
-  account_status: 'pending' | 'active' | 'restricted' | 'disabled';
+  account_status: "pending" | "active" | "restricted" | "disabled";
   onboarding_completed: boolean;
   charges_enabled: boolean;
   payouts_enabled: boolean;
-  account_type?: 'standard' | 'express' | 'custom';
+  account_type?: "standard" | "express" | "custom";
   country?: string;
   currency: string;
   environment: string;
@@ -49,10 +49,12 @@ export interface BusinessStripeAccount {
  */
 export function selectStripeAccountForMode(
   accounts: BusinessStripeAccount[],
-  currentMode: 'test' | 'live',
+  currentMode: "test" | "live",
 ): BusinessStripeAccount | null {
   return (
-    accounts.find((a) => a.environment === currentMode && a.onboarding_completed) ??
+    accounts.find(
+      (a) => a.environment === currentMode && a.onboarding_completed,
+    ) ??
     accounts.find((a) => a.environment === currentMode) ??
     accounts.find((a) => a.onboarding_completed) ??
     accounts[0] ??
@@ -73,8 +75,8 @@ export function selectStripeAccountForMode(
  */
 export function deriveStripeAccountState(
   account: BusinessStripeAccount | null,
-  currentMode: 'test' | 'live',
-): 'complete' | 'incomplete' | 'other-environment' | 'none' {
+  currentMode: "test" | "live",
+): "complete" | "incomplete" | "other-environment" | "none" {
   const matchesMode = !!account && account.environment === currentMode;
   const setupComplete =
     matchesMode &&
@@ -83,10 +85,10 @@ export function deriveStripeAccountState(
     !!account?.payouts_enabled;
   const hasInMode = matchesMode && !!account?.stripe_account_id;
   const hasOtherEnv = !!account?.stripe_account_id && !matchesMode;
-  if (setupComplete) return 'complete';
-  if (hasInMode) return 'incomplete';
-  if (hasOtherEnv) return 'other-environment';
-  return 'none';
+  if (setupComplete) return "complete";
+  if (hasInMode) return "incomplete";
+  if (hasOtherEnv) return "other-environment";
+  return "none";
 }
 
 export interface BookingPayment {
@@ -97,8 +99,8 @@ export interface BookingPayment {
   amount_cents: number;
   currency: string;
   platform_fee_cents: number;
-  status: 'pending' | 'succeeded' | 'failed' | 'canceled' | 'refunded';
-  payment_method_type?: 'card' | 'ideal' | 'bancontact';
+  status: "pending" | "succeeded" | "failed" | "canceled" | "refunded";
+  payment_method_type?: "card" | "ideal" | "bancontact";
   customer_email?: string;
   customer_name?: string;
   refund_amount_cents: number;
@@ -129,33 +131,32 @@ export interface PaymentResponse {
 }
 
 export interface PaymentTiming {
-  type: 'pay_now' | 'pay_on_site';
+  type: "pay_now" | "pay_on_site";
   label: string;
   description: string;
 }
 
 export const PAYMENT_TIMING_OPTIONS: PaymentTiming[] = [
   {
-    type: 'pay_now',
-    label: 'Pay Now',
-    description: 'Complete payment immediately during booking',
+    type: "pay_now",
+    label: "Pay Now",
+    description: "Complete payment immediately during booking",
   },
   {
-    type: 'pay_on_site',
-    label: 'Pay On-Site',
-    description: 'Pay when service is provided',
+    type: "pay_on_site",
+    label: "Pay On-Site",
+    description: "Pay when service is provided",
   },
 ];
 
 export interface FeeBreakdown {
   applicationFeeCents: number;
   platformFeeCents: number;
-  paymentMethodFeeCents: number;
-  payoutFeeCents: number;
+  connectedAccountNetCents: number;
   breakdown: {
     platformFeePercent: number;
     platformFeeFixed: number;
-    paymentMethodFeePercent: number;
-    paymentMethodFeeFixed: number;
+    chargeModel: "destination";
+    stripeFeePayer: "platform";
   };
 }

@@ -111,10 +111,8 @@ export const LoginForm: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('[Login] Starting email login for:', emailResult.value);
-      
       // Sign in with remember device option
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: emailResult.value!,
         password: formData.password
       });
@@ -186,8 +184,6 @@ export const LoginForm: React.FC = () => {
         return;
       }
 
-      console.log('[Login] Email login successful:', data);
-      
       // Reset failed attempts on success
       setFailedAttempts(0);
       setShowCaptcha(false);

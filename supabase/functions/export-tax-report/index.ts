@@ -1,18 +1,29 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
-import { classifyJurisdictionLine, computePerJurisdictionReport, computeRefundAdjustedRow, computeReportPeriod, type JurisdictionRowInput, resolvePaymentTaxCents, resolveRefundedCents, retrieveBookingPaymentIntent } from "../_shared/taxReport.ts";
+import {
+  classifyJurisdictionLine,
+  computePerJurisdictionReport,
+  computeRefundAdjustedRow,
+  computeReportPeriod,
+  type JurisdictionRowInput,
+  resolvePaymentTaxCents,
+  resolveRefundedCents,
+  retrieveBookingPaymentIntent,
+} from "../_shared/taxReport.ts";
 import { isEuMemberState } from "../_shared/ossThreshold.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+const logStep = (step: string, details?: unknown) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[EXPORT-TAX-REPORT] ${step}${detailsStr}`);
 };
 
@@ -22,13 +33,20 @@ const logStep = (step: string, details?: any) => {
 // "register for OSS".
 function vatTypeLabel(lineType: string): string {
   switch (lineType) {
-    case 'reverse_charge': return 'Reverse charge (B2B 0%)';
-    case 'cross_border_unavailable': return 'EU cross-border (not collecting - register for OSS)';
-    case 'non_eu_unavailable': return 'Non-EU destination (outside OSS - not collecting)';
-    case 'domestic_unavailable': return 'Domestic (rate unavailable)';
-    case 'collected': return 'Standard rated';
-    case 'domestic': return 'Domestic';
-    default: return 'Standard rated';
+    case "reverse_charge":
+      return "Reverse charge (B2B 0%)";
+    case "cross_border_unavailable":
+      return "EU cross-border (not collecting - register for OSS)";
+    case "non_eu_unavailable":
+      return "Non-EU destination (outside OSS - not collecting)";
+    case "domestic_unavailable":
+      return "Domestic (rate unavailable)";
+    case "collected":
+      return "Standard rated";
+    case "domestic":
+      return "Domestic";
+    default:
+      return "Standard rated";
   }
 }
 
@@ -38,28 +56,29 @@ const exportRequestSchema = z.object({
   calendar_id: z.string().uuid().optional(),
   quarter: z.number().int().min(1).max(4).default(1),
   year: z.number().int().min(2000).max(2100).optional(),
-  format: z.enum(['csv']).default('csv'),
+  format: z.enum(["csv"]).default("csv"),
 });
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } },
     );
 
     // Authenticate the user
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
+    const authHeader = req.headers.get("Authorization")!;
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabaseClient.auth
+      .getUser(token);
+
     if (userError || !user) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
 
     const rawBody = await req.json().catch(() => ({}));
@@ -68,11 +87,14 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: false,
-          code: 'INVALID_INPUT',
-          error: parsed.error.errors[0]?.message || 'Invalid export request',
+          code: "INVALID_INPUT",
+          error: parsed.error.errors[0]?.message || "Invalid export request",
           details: parsed.error.flatten().fieldErrors,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
     // format is validated (csv only) but not otherwise consumed; the response is
@@ -82,66 +104,78 @@ serve(async (req) => {
     // SECURITY (F-CLOSE-04 mode-bypass class): mode/key/environment is server-derived
     // from STRIPE_MODE, never from the request body. The body's test_mode (if any) is
     // now INERT for key/env selection. Defaults to test when STRIPE_MODE is unset.
-    const test_mode = validateStripeMode().mode === 'test';
+    const test_mode = validateStripeMode().mode === "test";
 
     // Check user's subscription tier
     const { data: userData, error: userDataError } = await supabaseClient
-      .from('users')
-      .select('subscription_tier, account_owner_id')
-      .eq('id', user.id)
+      .from("users")
+      .select("subscription_tier, account_owner_id")
+      .eq("id", user.id)
       .single();
 
     if (userDataError) {
       throw new Error(`Failed to fetch user data: ${userDataError.message}`);
     }
 
-    if (!userData?.subscription_tier || !['professional', 'enterprise'].includes(userData.subscription_tier)) {
+    if (
+      !userData?.subscription_tier ||
+      !["professional", "enterprise"].includes(userData.subscription_tier)
+    ) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          code: 'UPGRADE_REQUIRED',
-          error: 'Tax export features require Professional or Enterprise subscription' 
+        JSON.stringify({
+          success: false,
+          code: "UPGRADE_REQUIRED",
+          error:
+            "Tax export features require Professional or Enterprise subscription",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
 
     const accountOwnerId = userData.account_owner_id || user.id;
 
     // Initialize Stripe
-    const stripeSecretKey = test_mode 
+    const stripeSecretKey = test_mode
       ? Deno.env.get("STRIPE_SECRET_KEY_TEST")
       : Deno.env.get("STRIPE_SECRET_KEY_LIVE");
-    
+
     if (!stripeSecretKey) {
-      throw new Error(`Missing Stripe secret key for ${test_mode ? 'test' : 'live'} mode`);
+      throw new Error(
+        `Missing Stripe secret key for ${test_mode ? "test" : "live"} mode`,
+      );
     }
-    
+
     const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" });
 
     // Get platform account
     const platformAccount = await stripe.accounts.retrieve();
     const platformAccountId = platformAccount.id;
-    const environment = test_mode ? 'test' : 'live';
+    const environment = test_mode ? "test" : "live";
 
     // Get user's Stripe account
     const { data: stripeAccount } = await supabaseClient
-      .from('business_stripe_accounts')
-      .select('*')
-      .eq('account_owner_id', accountOwnerId)
-      .eq('environment', environment)
-      .eq('platform_account_id', platformAccountId)
-      .eq('charges_enabled', true)
+      .from("business_stripe_accounts")
+      .select("*")
+      .eq("account_owner_id", accountOwnerId)
+      .eq("environment", environment)
+      .eq("platform_account_id", platformAccountId)
+      .eq("charges_enabled", true)
       .single();
 
     if (!stripeAccount) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          code: 'NO_ACCOUNT',
-          error: 'No active Stripe account found' 
+        JSON.stringify({
+          success: false,
+          code: "NO_ACCOUNT",
+          error: "No active Stripe account found",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        },
       );
     }
 
@@ -150,13 +184,17 @@ serve(async (req) => {
     // old `new Date(y, q*3, 0)` + `created_at <= quarterEnd` silently dropped the entire
     // last day from the filing the merchant downloads). Identical boundary to
     // generate-tax-report.
-    const period = computeReportPeriod('quarterly', year, quarter);
+    const period = computeReportPeriod("quarterly", year, quarter);
 
-    logStep('Exporting tax report', { quarter, year, accountId: stripeAccount.stripe_account_id });
+    logStep("Exporting tax report", {
+      quarter,
+      year,
+      accountId: stripeAccount.stripe_account_id,
+    });
 
     // Get payment data for the quarter
     let bookingQuery = supabaseClient
-      .from('booking_payments')
+      .from("booking_payments")
       .select(`
         *,
         bookings!inner(
@@ -167,21 +205,21 @@ serve(async (req) => {
           service_types(name)
         )
       `)
-      .eq('stripe_account_id', stripeAccount.stripe_account_id)
-      .gte('created_at', period.startIso)
+      .eq("stripe_account_id", stripeAccount.stripe_account_id)
+      .gte("created_at", period.startIso)
       // CB-F-11: strict `<` on the EXCLUSIVE next-quarter start (was `<= last-day-00:00:00`).
-      .lt('created_at', period.endExclusiveIso)
-      .in('status', ['succeeded', 'completed']);
+      .lt("created_at", period.endExclusiveIso)
+      .in("status", ["succeeded", "completed", "partially_refunded"]);
 
     if (calendar_id) {
-      bookingQuery = bookingQuery.eq('bookings.calendar_id', calendar_id);
+      bookingQuery = bookingQuery.eq("bookings.calendar_id", calendar_id);
     }
 
     const { data: payments, error: paymentsError } = await bookingQuery;
 
     if (paymentsError) {
-      logStep('Error fetching payments', paymentsError);
-      throw new Error('Failed to fetch payment data');
+      logStep("Error fetching payments", paymentsError);
+      throw new Error("Failed to fetch payment data");
     }
 
     // Prepare CSV data. Refunded (€) is added so the export round-trips the
@@ -190,7 +228,19 @@ serve(async (req) => {
     // a B2B reverse-charge 0% DISTINCTLY from a not_collecting 0% (read from the
     // authoritative persisted columns, never the stale PI metadata.tax_rate / CB-F-04).
     const csvRows = [
-      ['Date', 'Customer Name', 'Customer Email', 'Service', 'Country', 'VAT Type', 'Gross Amount (€)', 'VAT Amount (€)', 'Net Amount (€)', 'Refunded (€)', 'Payment ID']
+      [
+        "Date",
+        "Customer Name",
+        "Customer Email",
+        "Service",
+        "Country",
+        "VAT Type",
+        "Gross Amount (€)",
+        "VAT Amount (€)",
+        "Net Amount (€)",
+        "Refunded (€)",
+        "Payment ID",
+      ],
     ];
 
     // X6: per-row inputs for the per-jurisdiction summary + OSS bucket appended below.
@@ -199,7 +249,7 @@ serve(async (req) => {
     // CB-F-10: the merchant's home country (the OSS cross-border boundary). Defined here
     // so the per-row non-EU re-map in the loop and the per-jurisdiction summary below use
     // the same value.
-    const merchantCountry = stripeAccount.country || 'NL';
+    const merchantCountry = stripeAccount.country || "NL";
 
     let totalGross = 0;
     let totalVat = 0;
@@ -215,7 +265,7 @@ serve(async (req) => {
           stripe,
           payment.stripe_payment_intent_id,
           stripeAccount.stripe_account_id,
-          ['latest_charge'],
+          ["latest_charge"],
         );
 
         // F-TAX-02: identical authoritative tax-source resolution as
@@ -225,7 +275,11 @@ serve(async (req) => {
         const grossOrigCents = paymentIntent.amount;
         const taxOrigCents = resolvePaymentTaxCents(paymentIntent);
         const refundedCents = resolveRefundedCents(paymentIntent);
-        const row = computeRefundAdjustedRow(grossOrigCents, taxOrigCents, refundedCents);
+        const row = computeRefundAdjustedRow(
+          grossOrigCents,
+          taxOrigCents,
+          refundedCents,
+        );
 
         const grossAmount = row.grossCents / 100;
         const vatAmount = row.taxCents / 100;
@@ -236,15 +290,18 @@ serve(async (req) => {
         totalVat += vatAmount;
         totalRefunded += refundedAmount;
 
-        const date = new Date(payment.created_at).toLocaleDateString('nl-NL');
-        const customerName = payment.bookings?.customer_name || 'Unknown';
-        const customerEmail = payment.bookings?.customer_email || '';
-        const serviceName = payment.bookings?.service_types?.name || 'Unknown Service';
+        const date = new Date(payment.created_at).toLocaleDateString("nl-NL");
+        const customerName = payment.bookings?.customer_name || "Unknown";
+        const customerEmail = payment.bookings?.customer_email || "";
+        const serviceName = payment.bookings?.service_types?.name ||
+          "Unknown Service";
 
         // X6: per-row jurisdiction input (authoritative persisted columns + refund-
         // adjusted figures) for the summary sections; also classify THIS row so the
         // per-transaction line shows its VAT Type (reverse-charge distinct from 0%).
-        const rowCountry = typeof payment.customer_country === 'string' ? payment.customer_country : null;
+        const rowCountry = typeof payment.customer_country === "string"
+          ? payment.customer_country
+          : null;
         const rowReverse = payment.reverse_charge === true;
         const rowBreakdown = payment.tax_breakdown ?? null;
         jurisdictionRows.push({
@@ -263,14 +320,14 @@ serve(async (req) => {
         // CB-F-10: re-map a cross-border-guard line on a NON-EU destination to the
         // non-EU marker for THIS transaction line, so the per-row VAT Type matches the
         // per-jurisdiction summary (OSS is EU-only; never "register for OSS" for non-EU).
-        const ccUpper = (rowCountry || '').toUpperCase();
+        const ccUpper = (rowCountry || "").toUpperCase();
         if (
-          lineType === 'cross_border_unavailable' &&
+          lineType === "cross_border_unavailable" &&
           ccUpper.length === 2 &&
           ccUpper !== merchantCountry.toUpperCase() &&
           !isEuMemberState(ccUpper)
         ) {
-          lineType = 'non_eu_unavailable';
+          lineType = "non_eu_unavailable";
         }
 
         csvRows.push([
@@ -284,29 +341,57 @@ serve(async (req) => {
           vatAmount.toFixed(2),
           netAmount.toFixed(2),
           refundedAmount.toFixed(2),
-          payment.stripe_payment_intent_id
+          payment.stripe_payment_intent_id,
         ]);
-
       } catch (stripeError) {
         // F-TAX-21: surface a PI that could not be read in any account context
         // instead of silently dropping it from the export.
-        logStep('DROPPED row: payment intent unreadable in any account context', { paymentId: payment.stripe_payment_intent_id, error: stripeError.message });
+        logStep(
+          "DROPPED row: payment intent unreadable in any account context",
+          {
+            paymentId: payment.stripe_payment_intent_id,
+            error: errorMessage(stripeError),
+          },
+        );
       }
     }
 
     // Add summary row (11 columns now: the X6 Country + VAT Type columns were inserted).
     csvRows.push([]);
-    csvRows.push(['TOTAL', '', '', '', '', '', totalGross.toFixed(2), totalVat.toFixed(2), (totalGross - totalVat).toFixed(2), totalRefunded.toFixed(2), '']);
+    csvRows.push([
+      "TOTAL",
+      "",
+      "",
+      "",
+      "",
+      "",
+      totalGross.toFixed(2),
+      totalVat.toFixed(2),
+      (totalGross - totalVat).toFixed(2),
+      totalRefunded.toFixed(2),
+      "",
+    ]);
 
     // X6: per-jurisdiction VAT summary section + OSS-eligible bucket, appended below the
     // per-transaction lines so the export is a complete filing aid (Dutch VAT per country
     // + the OSS return base), reading the authoritative persisted columns. merchantCountry
     // was resolved above (used by the per-row non-EU re-map too).
-    const perJurisdiction = computePerJurisdictionReport(jurisdictionRows, merchantCountry);
+    const perJurisdiction = computePerJurisdictionReport(
+      jurisdictionRows,
+      merchantCountry,
+    );
 
     csvRows.push([]);
-    csvRows.push(['PER-JURISDICTION VAT SUMMARY']);
-    csvRows.push(['Country', 'VAT Type', 'Transactions', 'Gross (€)', 'VAT (€)', 'Net (€)', 'Rate (%)']);
+    csvRows.push(["PER-JURISDICTION VAT SUMMARY"]);
+    csvRows.push([
+      "Country",
+      "VAT Type",
+      "Transactions",
+      "Gross (€)",
+      "VAT (€)",
+      "Net (€)",
+      "Rate (%)",
+    ]);
     for (const l of perJurisdiction.lines) {
       csvRows.push([
         l.country,
@@ -322,59 +407,63 @@ serve(async (req) => {
     csvRows.push([]);
     // CB-F-10: the OSS bucket is EU cross-border B2C ONLY. Non-EU cross-border sales are
     // surfaced on their own line (outside OSS scope), never counted toward the EUR10k.
-    csvRows.push(['OSS-ELIGIBLE (EU cross-border B2C, ties to the EUR10,000 OSS threshold)']);
-    csvRows.push(['Transactions', 'Gross (€)', 'Taxable (€)', 'Countries']);
+    csvRows.push([
+      "OSS-ELIGIBLE (EU cross-border B2C, ties to the EUR10,000 OSS threshold)",
+    ]);
+    csvRows.push(["Transactions", "Gross (€)", "Taxable (€)", "Countries"]);
     csvRows.push([
       String(perJurisdiction.ossEligible.transactionCount),
       (perJurisdiction.ossEligible.grossCents / 100).toFixed(2),
       (perJurisdiction.ossEligible.taxableCents / 100).toFixed(2),
-      perJurisdiction.ossEligible.countries.join(' '),
+      perJurisdiction.ossEligible.countries.join(" "),
     ]);
 
     // CB-F-10: a separate, explicit non-EU cross-border line so a US/GB/CH sale is
     // visible as out-of-OSS-scope (never silently folded into the OSS bucket).
     csvRows.push([]);
-    csvRows.push(['NON-EU CROSS-BORDER (outside OSS scope - not counted toward the EUR10,000 threshold)']);
-    csvRows.push(['Transactions']);
+    csvRows.push([
+      "NON-EU CROSS-BORDER (outside OSS scope - not counted toward the EUR10,000 threshold)",
+    ]);
+    csvRows.push(["Transactions"]);
     csvRows.push([String(perJurisdiction.nonEuTransactionCount)]);
 
     // Convert to CSV string
     const csvContent = csvRows
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
+      .map((row) => row.map((cell) => `"${cell}"`).join(","))
+      .join("\n");
 
     const filename = `tax-report-Q${quarter}-${year}.csv`;
 
-    logStep('Tax report generated', {
+    logStep("Tax report generated", {
       quarter,
       year,
       totalTransactions: payments?.length || 0,
       totalGross: totalGross.toFixed(2),
       totalVat: totalVat.toFixed(2),
-      totalRefunded: totalRefunded.toFixed(2)
+      totalRefunded: totalRefunded.toFixed(2),
     });
 
     return new Response(csvContent, {
-      headers: { 
-        ...corsHeaders, 
-        'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="${filename}"`
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
       status: 200,
     });
-
   } catch (error) {
-    logStep('ERROR', { message: error.message });
+    const message = errorMessage(error);
+    logStep("ERROR", { message });
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        code: 'SERVER_ERROR',
-        error: error.message 
+      JSON.stringify({
+        success: false,
+        code: "SERVER_ERROR",
+        error: message,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   }
 });
