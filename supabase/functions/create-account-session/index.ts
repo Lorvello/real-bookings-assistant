@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
+import Stripe from "npm:stripe@14.21.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 import {
   isAccountOwnerRequiredError,
@@ -106,8 +106,11 @@ serve(async (req) => {
       );
     }
 
+    // R2-SKEW: deze functie stuurt Stripe-API-versie 2024-06-20, terwijl stripe-node
+    // 14.21.0 (de gepinde runtime, en de versie die vandaag LIVE draait) alleen
+    // "2023-10-16" in zijn typen kent. Waarde ONGEWIJZIGD; zie PARKEER-lijst R2.
     const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2024-06-20",
+      apiVersion: "2024-06-20" as Stripe.StripeConfig["apiVersion"],
     });
 
     // Get platform account for tenant isolation
@@ -266,7 +269,9 @@ serve(async (req) => {
         account_id: connectedAccountId,
         components: requestedComponents,
         expires_at: accountSession.expires_at,
-        session_id: accountSession.id,
+        // R2-SKEW: AccountSession heeft in 14.21.0 geen `id`. Gedrag ONGEWIJZIGD
+        // gelaten (dit veld draait vandaag zo live); zie PARKEER-lijst R2.
+        session_id: (accountSession as unknown as { id?: string }).id,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -5,7 +5,7 @@
 // actually EUR50" negotiation answer, a multi-service sum, a deposit/percentage line, and a price-less
 // service list must NEVER be rewritten.
 // Run: deno test priceGuard.test.ts
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 import {
   buildRealPriceSet,
   dedupServices,

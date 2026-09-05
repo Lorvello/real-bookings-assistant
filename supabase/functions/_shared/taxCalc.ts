@@ -56,7 +56,7 @@
  * format-only until the owner flips the flag; flipping it is a one-liner.
  */
 
-import { z } from "https://esm.sh/zod@3.23.8";
+import { z } from "npm:zod@3.23.8";
 
 const STRIPE_TAX_API = "https://api.stripe.com/v1/tax/calculations";
 const STRIPE_VAT_VALIDATION_API = "https://api.stripe.com/v1/tax_ids";

@@ -2,7 +2,7 @@
 // explicit day+month deterministic resolution (near or far, beyond the old 14-day table too).
 // Pure extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
 // Run: deno test relativeDateHint.test.ts
-import { assertEquals, assertMatch } from "jsr:@std/assert";
+import { assertEquals, assertMatch } from "jsr:@std/assert@1.0.19";
 import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
 

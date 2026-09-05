@@ -2,7 +2,7 @@
 // fix) service-disambiguation guard. Pins the exact false-negative (must block) and false-positive
 // (must NOT block) shapes proven live each round.
 // Run: deno test serviceDisambiguationGuard.test.ts
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { shouldBlockForMissingServiceChoice, shouldBlockForAmbiguousBranch, findDistinctServiceForReschedule, shouldBlockReturningServiceDefault, shouldBlockForMultiServiceRequest, mentionsAnyServiceName, enforceReturningServiceDisclosure, BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE, findServiceSwitchForPendingPreview, mentionsDistinguishing, type RecencyWindowMessage } from "./serviceDisambiguationGuard.ts";
 import { scopeToCurrentTopicWindow, type PreFilterServiceInfo } from "./preFilterCalendars.ts";
 

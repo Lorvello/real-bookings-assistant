@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "npm:stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
@@ -132,7 +132,8 @@ serve(async (req) => {
       expires_at: number | null;
       livemode: boolean;
       status: Stripe.Tax.Registration.Status;
-      type: Stripe.Tax.Registration.Type;
+      // R2-SKEW: `Type` bestaat niet in de Tax.Registration-typen van 14.21.0.
+      type: string | undefined;
     }> = [];
     try {
       const registrations = await stripe.tax.registrations.list({
@@ -148,7 +149,7 @@ serve(async (req) => {
         expires_at: reg.expires_at,
         livemode: reg.livemode,
         status: reg.status,
-        type: reg.type,
+        type: (reg as unknown as { type?: string }).type,
       }));
     } catch (error) {
       logStep("Tax registrations not available", {

@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 import { parsePublicBookingCommitResult } from "../_shared/publicBookingSnapshot.ts";
 import { getClientIp, RateLimiter } from "../_shared/rateLimit.ts";
 import { validatePhoneServerSide } from "../_shared/phoneValidation.ts";

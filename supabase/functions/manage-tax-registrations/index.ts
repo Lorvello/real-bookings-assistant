@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { z } from "https://esm.sh/zod@3.23.8";
+import Stripe from "npm:stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { z } from "npm:zod@3.23.8";
 import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
@@ -266,7 +266,8 @@ serve(async (req) => {
             active_from: reg.active_from,
             expires_at: reg.expires_at,
             livemode: reg.livemode,
-            type: reg.type,
+            // R2-SKEW: `type` staat niet in de Tax.Registration-typen van 14.21.0.
+            type: (reg as unknown as { type?: string }).type,
             country_options: reg.country_options,
             is_supported: SUPPORTED_COUNTRY_SET.has(reg.country),
             business_country: businessCountry,
@@ -366,7 +367,8 @@ serve(async (req) => {
                 active_from: registration.active_from,
                 expires_at: registration.expires_at,
                 livemode: registration.livemode,
-                type: registration.type,
+                // R2-SKEW: idem, zie boven.
+                type: (registration as unknown as { type?: string }).type,
                 country_options: registration.country_options,
                 business_country: businessCountry,
               },

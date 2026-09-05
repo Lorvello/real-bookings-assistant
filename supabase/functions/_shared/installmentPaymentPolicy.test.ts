@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { resolveInstallmentPaymentPolicy } from "./installmentPaymentPolicy.ts";
 
 Deno.test("service installment deposit is required when general pay-on-site is optional", () => {

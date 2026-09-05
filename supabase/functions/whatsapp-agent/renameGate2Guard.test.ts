@@ -1,5 +1,5 @@
 // R59 (RENAME-GATE2-MISS-LOOPBACK fix, FINDINGS LEDGER R58/R59) unit tests.
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { isRenameGate2Retry, RENAME_MARKER_FRESH_WINDOW_MS } from "./renameGate2Guard.ts";
 
 const NOW = 1_700_000_000_000;

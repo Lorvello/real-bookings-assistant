@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { parseReminderProcessRequest } from "./request.ts";
 
 Deno.test("empty reminder request intentionally selects a bounded batch", () => {

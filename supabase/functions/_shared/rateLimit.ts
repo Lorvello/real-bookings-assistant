@@ -1,4 +1,4 @@
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { SupabaseClient } from 'npm:@supabase/supabase-js@2.50.0';
 
 export interface RateLimitConfig {
   endpoint: string;
@@ -173,7 +173,7 @@ export class RateLimiter {
     };
   }
 
-  private async logViolation(ipAddress: string, eventType: string, details: any) {
+  private async logViolation(ipAddress: string, eventType: string, details: unknown) {
     const { error } = await this.supabase
       .from('security_events_log')
       .insert({

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "npm:stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 import {
   isAccountOwnerRequiredError,
@@ -338,18 +338,23 @@ serve(async (req) => {
     }
 
     // Create account session with appropriate components based on onboarding status
+    // R2-SKEW: `account_management` en `balances` zijn geldige AccountSession-componenten
+    // in de live Stripe-API maar staan niet in de Components-typen van stripe-node 14.21.0
+    // (de gepinde runtime, en de versie die vandaag LIVE draait). De verstuurde waarden
+    // zijn ONGEWIJZIGD; alleen het type is hier verbreed. Zie PARKEER-lijst R2.
+    const accountSessionComponents = {
+      // Only enable onboarding if account is NOT completed
+      account_onboarding: { enabled: !isOnboardingCompleted },
+      // Always enable account management for dashboard view
+      account_management: { enabled: true },
+      balances: { enabled: true },
+      documents: { enabled: true },
+      payments: { enabled: true },
+      payouts: { enabled: true },
+    } as unknown as Stripe.AccountSessionCreateParams.Components;
     const accountSession = await stripe.accountSessions.create({
       account: accountId,
-      components: {
-        // Only enable onboarding if account is NOT completed
-        account_onboarding: { enabled: !isOnboardingCompleted },
-        // Always enable account management for dashboard view
-        account_management: { enabled: true },
-        balances: { enabled: true },
-        documents: { enabled: true },
-        payments: { enabled: true },
-        payouts: { enabled: true },
-      },
+      components: accountSessionComponents,
     });
 
     logStep("Account session created", {

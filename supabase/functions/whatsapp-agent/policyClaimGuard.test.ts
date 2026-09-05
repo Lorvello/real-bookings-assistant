@@ -6,7 +6,7 @@
 // same live sessions that must NEVER be rewritten (false-positive safety is the harder bar here, since
 // this guard is deliberately narrower/fuzzier than the owner-escalation guard).
 // Run: deno test policyClaimGuard.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   enforceNoPolicyHallucination,
   looksLikeAnaphoricPolicyConfirmation,

@@ -1,7 +1,7 @@
 // Deterministic unit tests for the R18 date-offer guard. Pure extraction/formatting logic only
 // (the RPC-verification/scan orchestration lives in index.ts, same split as slotOfferGuard.ts).
 // Run: deno test dateOfferGuard.test.ts
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { buildDeterministicDateAlternatives, dateLabelFromISO, extractOfferedDates, mentionsFalsePastClaim, noNearbyOpenDateReply } from "./dateOfferGuard.ts";
 
 // ── extractOfferedDates ──────────────────────────────────────────────────────

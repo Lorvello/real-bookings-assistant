@@ -3,7 +3,7 @@
  * CRITICAL: These functions provide server-side validation that cannot be bypassed by client manipulation
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 
 export interface StripeModeValidation {
   isValid: boolean;

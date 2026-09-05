@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { canCancelUnconfirmedPaymentIntent } from "./paymentIntentCancellation.ts";
 
 Deno.test("only unconfirmed or uncaptured PaymentIntents are race-cancelled", () => {

@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { readFunctionInvokeFailure } from "./functionInvokeFailure.ts";
 
 Deno.test("reads cancel_safe from a non-2xx Functions invoke response", async () => {

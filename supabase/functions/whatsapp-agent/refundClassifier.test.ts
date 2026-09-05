@@ -1,5 +1,5 @@
 // Unit test for the extracted refund classifier. 10/10 representative policies (mirrors AS-3-V1 §3c).
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 
 const cases: [string, "granted" | "denied" | "unknown"][] = [

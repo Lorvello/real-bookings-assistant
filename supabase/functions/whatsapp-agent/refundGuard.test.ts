@@ -4,7 +4,7 @@
 // These tests also pin false-positive safety: a CORRECT "no refund" answer, a GRANTED refund
 // affirmation, and an UNKNOWN/defer reply must NEVER be rewritten.
 // Run: deno test refundGuard.test.ts
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 import {
   AFFIRM_REFUND_RE,
   NEGATED_REFUND_RE,

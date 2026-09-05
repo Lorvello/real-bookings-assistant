@@ -22,7 +22,7 @@
 // (the same value already used everywhere else in this codebase as the identity key), which is the
 // mechanically correct equivalent of the design's intent on the schema that actually exists.
 
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 import { isRealName } from "./identityDisambiguationGuard.ts";
 
 // ---------------------------------------------------------------------------

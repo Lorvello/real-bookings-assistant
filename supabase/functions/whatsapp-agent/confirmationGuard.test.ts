@@ -3,7 +3,7 @@
 // exercising the logic directly. These tests also pin false-positive safety: a legit successful
 // commit, an offer/proposal, and an info/recall reply must NEVER be stripped.
 // Run: deno test confirmationGuard.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   CONFIRM_CLAIM_RE,
   committedMutationThisTurn,

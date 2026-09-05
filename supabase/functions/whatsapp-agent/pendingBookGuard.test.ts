@@ -1,6 +1,6 @@
 // Deterministic unit tests for the R118/R119 pending-booking intervening-exchange guard.
 // Run: deno test pendingBookGuard.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   computePendingBookInterveningExchange,
   matchesAbandonPreviousPreview,
@@ -213,6 +213,6 @@ Deno.test("a bare 'ja' with no new information does not match (no false-positive
 
 Deno.test("null/empty raw message -> false (defensive)", () => {
   assert(!matchesSecondBookingDifferentPerson(""));
-  // deno-lint-ignore no-explicit-any
-  assert(!matchesSecondBookingDifferentPerson(null as any));
+  // De poort moet ook een niet-string overleven; de aanroeper kan null doorgeven.
+  assert(!matchesSecondBookingDifferentPerson(null as unknown as string));
 });

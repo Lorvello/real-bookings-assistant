@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
-import Stripe from 'https://esm.sh/stripe@14.21.0'
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0'
+import Stripe from 'npm:stripe@14.21.0'
 import { validateStripeMode } from '../_shared/stripeValidation.ts'
 
 const corsHeaders = {
@@ -8,12 +8,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-SERVICE-TYPE-WITH-STRIPE] ${step}${detailsStr}`);
 };
 
-const json = (body: any, status = 200) =>
+const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
 serve(async (req) => {
@@ -62,7 +62,7 @@ serve(async (req) => {
     let svcName: string | undefined;
     let svcPrice: number | undefined;
     let svcDuration: number | string | undefined;
-    let existingService: any = null;
+    let existingService: Record<string, unknown> | null = null;
 
     if (isExisting) {
       const { data: svc, error: svcErr } = await supabaseClient
@@ -108,7 +108,8 @@ serve(async (req) => {
         .from('users')
         .select('id, account_owner_id')
         .in('id', [cal.user_id, userData.user.id]);
-      const acct = (id: string) => owners?.find((o: any) => o.id === id)?.account_owner_id || id;
+      const acct = (id: string) => owners?.find((o: { id: string; account_owner_id?: string | null }) => o.id === id)
+          ?.account_owner_id || id;
       if (acct(cal.user_id) !== acct(userData.user.id)) {
         return json({ success: false, error: 'Access denied: calendar not owned by caller' }, 403);
       }
@@ -162,7 +163,9 @@ serve(async (req) => {
           logStep("Tax codes auto-assigned");
         }
       } catch (taxError) {
-        logStep("Auto tax assignment failed, continuing without tax", { error: (taxError as any).message });
+        logStep("Auto tax assignment failed, continuing without tax", {
+          error: (taxError as { message?: string })?.message,
+        });
       }
     }
 
@@ -176,25 +179,27 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Build the Stripe price. product_data supports name/metadata/tax_code (no description).
-    const priceData: any = {
+    const productMetadata: Record<string, string> = {
+      service_duration: svcDuration != null ? String(svcDuration) : '',
+      calendar_id: calId || '',
+      description: String((serviceData?.description ?? existingService?.description) || ''),
+    };
+    const productData: Stripe.PriceCreateParams.ProductData = {
+      name: svcName as string,
+      metadata: productMetadata,
+    };
+    const priceData: Stripe.PriceCreateParams = {
       currency: currency || 'eur',
       unit_amount: Math.round((svcPrice || 0) * 100),
-      product_data: {
-        name: svcName,
-        metadata: {
-          service_duration: svcDuration != null ? String(svcDuration) : '',
-          calendar_id: calId || '',
-          description: (serviceData?.description ?? existingService?.description) || '',
-        },
-      },
+      product_data: productData,
     };
     if (serviceData?.tax_enabled && serviceData?.tax_code) {
-      priceData.product_data.tax_code = serviceData.tax_code;
-      priceData.tax_behavior = serviceData.tax_behavior;
+      productData.tax_code = serviceData.tax_code as string;
+      priceData.tax_behavior = serviceData.tax_behavior as Stripe.PriceCreateParams.TaxBehavior;
     }
     if (serviceData?.allow_installments) {
-      priceData.product_data.metadata.allow_installments = 'true';
-      priceData.product_data.metadata.installment_plans = JSON.stringify(serviceData.installment_plans || []);
+      productMetadata.allow_installments = 'true';
+      productMetadata.installment_plans = JSON.stringify(serviceData.installment_plans || []);
     }
 
     const stripePrice = await stripe.prices.create(priceData);
@@ -204,7 +209,7 @@ serve(async (req) => {
 
     // Persist. On any DB failure, deactivate the just-created Stripe price/product so
     // we don't orphan it (the original bug: a failed insert left a dangling price).
-    let savedService: any = null;
+    let savedService: Record<string, unknown> | null = null;
     try {
       if (isExisting) {
         const { data, error } = await supabaseClient
@@ -218,7 +223,7 @@ serve(async (req) => {
       } else {
         // NOTE: service_types has NO user_id column — the previous version spread
         // user_id into the insert, which failed every time. Insert only real columns.
-        const insertData: any = { ...serviceData, ...priceIdField };
+        const insertData: Record<string, unknown> = { ...serviceData, ...priceIdField };
         delete insertData.user_id;
         const { data, error } = await supabaseClient
           .from('service_types')
@@ -228,20 +233,23 @@ serve(async (req) => {
         if (error) throw error;
         savedService = data;
       }
-    } catch (dbErr: any) {
-      logStep("DB persist failed, cleaning up orphaned Stripe price", { error: dbErr.message });
+    } catch (dbErr) {
+      const dbErrMsg = (dbErr as { message?: string })?.message ?? String(dbErr);
+      logStep("DB persist failed, cleaning up orphaned Stripe price", { error: dbErrMsg });
       try {
         await stripe.prices.update(stripePrice.id, { active: false });
         if (stripePrice.product) {
           await stripe.products.update(stripePrice.product as string, { active: false });
         }
       } catch (cleanupErr) {
-        logStep("Stripe cleanup failed (price left inactive-pending)", { error: (cleanupErr as any).message });
+        logStep("Stripe cleanup failed (price left inactive-pending)", {
+          error: (cleanupErr as { message?: string })?.message,
+        });
       }
-      throw new Error('Failed to save service: ' + dbErr.message);
+      throw new Error('Failed to save service: ' + dbErrMsg);
     }
 
-    logStep("Service persisted", { serviceId: savedService.id });
+    logStep("Service persisted", { serviceId: savedService?.id });
     return json({
       success: true,
       service: savedService,
@@ -249,8 +257,8 @@ serve(async (req) => {
       test_mode: testMode,
     }, 200);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error in create-service-type-with-stripe:', error);
-    return json({ success: false, error: error.message }, 500);
+    return json({ success: false, error: (error as { message?: string })?.message }, 500);
   }
 })

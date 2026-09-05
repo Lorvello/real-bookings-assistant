@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 import { buildSetPasswordEmail } from "./setPasswordEmail.ts";
 
 Deno.test("stored invitation name is encoded at the set-password HTML sink", () => {

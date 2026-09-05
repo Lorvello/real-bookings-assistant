@@ -21,7 +21,7 @@ import { composeAbortSignal } from "./abortSignal.ts";
 // creates two nominally distinct classes because SupabaseClient has protected
 // members, so the entrypoint cannot be type-checked even though the API shape
 // is compatible at runtime.
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 
 export interface RefundCheckResult {
   // true only when a live Stripe lookup genuinely completed and returned an answer.

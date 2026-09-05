@@ -3,7 +3,7 @@
 // path can only be proven by exercising the logic directly. These tests also pin the
 // false-positive safety (opening-hours ranges, recall/info turns, customer-echoed times must
 // NEVER be rewritten). Run: deno test slotOfferGuard.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   buildDeterministicOffer,
   collectTurnSlots,

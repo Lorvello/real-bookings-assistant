@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 import { errorMessage } from "../_shared/errorMessage.ts";
 import { createPreflightResponse, getAllHeaders } from "../_shared/headers.ts";
 

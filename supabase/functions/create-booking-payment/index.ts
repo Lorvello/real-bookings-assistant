@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import Stripe from "npm:stripe@14.21.0";
 import {
   calculateApplicationFee,
   PLATFORM_FEE_PERCENTAGE,
@@ -810,10 +810,10 @@ serve(async (req) => {
     if (automaticTaxEnabled) {
       // Manual tax calculation is already included in `amount`; record the breakdown
       // so the tax reports (which read metadata.tax_amount) see the correct VAT.
-      paymentIntentData.metadata.manual_tax_calculated = "true";
-      paymentIntentData.metadata.tax_rate = tax.applicableTaxRate?.toString() ||
-        "0";
-      paymentIntentData.metadata.tax_behavior = tax.taxBehavior;
+      const piMetadata = paymentIntentData.metadata as Record<string, string>;
+      piMetadata.manual_tax_calculated = "true";
+      piMetadata.tax_rate = tax.applicableTaxRate?.toString() || "0";
+      piMetadata.tax_behavior = tax.taxBehavior;
       logStep("Using manual tax calculation based on service configuration", {
         useStripeTaxAPI,
         note:

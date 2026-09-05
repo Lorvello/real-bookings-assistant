@@ -6,7 +6,7 @@
 //
 // Body: { phone, calendar_id, message, contact_name? }
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 import {
   buildSystemPrompt,
   DEFAULT_WHATSAPP_WELCOME,

@@ -1,8 +1,8 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0'
 import { createPreflightResponse, createErrorResponse, createSuccessResponse } from '../_shared/headers.ts'
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[TOGGLE-COMPANY-TAX-CONFIGURED] ${step}${detailsStr}`);
 };
@@ -86,8 +86,9 @@ serve(async (req) => {
         ? 'Tax configuration marked as complete' 
         : 'Tax configuration marked as incomplete'
     });
-  } catch (error: any) {
-    logStep("ERROR", { message: error.message });
-    return createErrorResponse(req, error.message, 500);
+  } catch (error) {
+    const message = (error as { message?: string })?.message ?? String(error);
+    logStep("ERROR", { message });
+    return createErrorResponse(req, message, 500);
   }
 })

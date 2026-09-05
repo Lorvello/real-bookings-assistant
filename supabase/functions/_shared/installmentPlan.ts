@@ -1,4 +1,4 @@
-import { z } from "https://esm.sh/zod@3.23.8";
+import { z } from "npm:zod@3.23.8";
 
 const timingSchema = z.enum(["now", "appointment"]);
 const depositSchema = z.object({

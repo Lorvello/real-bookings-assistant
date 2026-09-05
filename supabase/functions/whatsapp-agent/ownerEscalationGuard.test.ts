@@ -4,7 +4,7 @@
 // directly against the ACTUAL replies captured live on the §6 testpad (IUX_r64.md), plus the correct
 // referral/refusal replies from the same live sessions that must NEVER be rewritten.
 // Run: deno test ownerEscalationGuard.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   enforceNoOwnerEscalationClaim,
   looksLikeOwnerEscalationClaim,

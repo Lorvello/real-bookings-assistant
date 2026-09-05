@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "jsr:@std/assert@1";
+import { assertEquals, assertRejects } from "jsr:@std/assert@1.0.19";
 import {
   fetchStripeRefundState,
   MAX_PAYMENTS_PER_BOOKING_CHECKED,

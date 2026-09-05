@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assertEquals, assertThrows } from "jsr:@std/assert@1.0.19";
 import { deriveRefundLedgerState } from "./refundLedger.ts";
 
 Deno.test("partial refunds preserve their exact amount and state", () => {

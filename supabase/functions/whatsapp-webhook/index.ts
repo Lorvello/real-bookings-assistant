@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
+import { createClient } from 'npm:@supabase/supabase-js@2.50.0'
 import { createHmac } from "node:crypto"
 import { RateLimiter, getClientIp } from '../_shared/rateLimit.ts';
 import { sendWhatsAppText, sendReadReceiptWithTyping } from '../_shared/whatsappSend.ts';
@@ -89,7 +89,9 @@ async function validateSignature(payload: string, signature: string | null): Pro
 }
 
 // Helper: Check rate limit
-async function checkRateLimit(supabaseClient: any, identifier: string): Promise<{ allowed: boolean; reason?: string }> {
+type SupabaseClientLike = typeof supabaseClient;
+
+async function checkRateLimit(supabaseClient: SupabaseClientLike, identifier: string): Promise<{ allowed: boolean; reason?: string }> {
   const now = new Date();
   const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW * 1000);
 
@@ -174,10 +176,10 @@ async function checkRateLimit(supabaseClient: any, identifier: string): Promise<
 // instead of disappearing again; still not awaited by callers beyond this function,
 // and still never throws.
 async function logSecurityEvent(
-  supabaseClient: any,
+  supabaseClient: SupabaseClientLike,
   eventType: string,
   severity: string,
-  details: any,
+  details: unknown,
   ipAddress?: string
 ) {
   const { error } = await supabaseClient
@@ -393,8 +395,9 @@ serve(async (req) => {
                 .rpc('resolve_owner_calendar_by_code', { p_code: tm[1].toLowerCase() });
               if (rcErr) console.error('resolve_owner_calendar_by_code faalde:', rcErr);
               const row = Array.isArray(rc) ? rc[0] : rc;
-              const oid = (row as any)?.owner_id ?? null;
-              if (oid) trackingCodeMatch = { ownerId: oid, calendarId: (row as any)?.calendar_id ?? null };
+              const codeRow = row as { owner_id?: string | null; calendar_id?: string | null } | null;
+              const oid = codeRow?.owner_id ?? null;
+              if (oid) trackingCodeMatch = { ownerId: oid, calendarId: codeRow?.calendar_id ?? null };
             }
             // SEV-1 fix (cross-tenant fallback misroute): the single shared WhatsApp number
             // means a phone's conversation history can span MULTIPLE distinct tenants. The old
@@ -457,7 +460,10 @@ serve(async (req) => {
                 const { data: oc } = await supabaseClient
                   .from('calendars').select('id').eq('user_id', ownerByTest.id)
                   .order('is_default', { ascending: false }).limit(1).maybeSingle();
-                ownerTestPhoneMatch = { ownerId: ownerByTest.id, defaultCalendarId: (oc as any)?.id ?? null };
+                ownerTestPhoneMatch = {
+                  ownerId: ownerByTest.id,
+                  defaultCalendarId: (oc as { id?: string } | null)?.id ?? null,
+                };
               }
             }
 

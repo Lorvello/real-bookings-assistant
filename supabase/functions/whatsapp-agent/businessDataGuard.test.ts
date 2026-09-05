@@ -4,7 +4,7 @@
 // ownerEscalationClassifier.test.ts, because the whole point of this mechanism is that it judges
 // GROUNDING via a real model call, not a deterministic function. Requires GROQ_API_KEY.
 // Run: GROQ_API_KEY=$(cat ~/.config/ba/groq.key) deno test --allow-env --allow-net businessDataGuard.test.ts
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 import {
   buildGroundingSummary,
   classifyBusinessDataGrounding,

@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assertEquals, assertThrows } from "jsr:@std/assert@1.0.19";
 import { parseStripeEventClaim } from "./stripeEventClaim.ts";
 
 Deno.test("Stripe event claim parser distinguishes claimed, completed and in-progress", () => {

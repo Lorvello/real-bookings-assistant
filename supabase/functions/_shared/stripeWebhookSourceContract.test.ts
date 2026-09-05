@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 
 const source = await Deno.readTextFile(
   new URL("../stripe-webhook/index.ts", import.meta.url),

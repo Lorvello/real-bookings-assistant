@@ -2,7 +2,7 @@
 // crossIdentityRisk from update_booking_name to resolveTarget/cancel/reschedule). Pins the exact
 // R101 + verify-round repro shapes (Sanne/Tim, Anne/Anna) as regression tests.
 // Run: deno test identityDisambiguationGuard.test.ts
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   bookIdentityVerificationResolved,
   crossIdentityActionRisk,

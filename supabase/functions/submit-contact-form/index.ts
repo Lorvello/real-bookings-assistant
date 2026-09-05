@@ -1,5 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 import { getClientIp, RateLimiter } from "../_shared/rateLimit.ts";
 import * as contactDelivery from "./contactDelivery.ts";
 import * as contactMeeting from "./contactMeeting.ts";

@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 
 const migration = await Deno.readTextFile(
   new URL(

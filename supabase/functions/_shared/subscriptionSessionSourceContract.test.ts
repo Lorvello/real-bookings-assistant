@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 
 const code = await Deno.readTextFile(
   new URL("../check-subscription-by-session/index.ts", import.meta.url),

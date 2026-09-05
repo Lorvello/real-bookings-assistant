@@ -4,7 +4,7 @@
 // logic directly against the exact slips observed in round 2, plus the false-positive safety
 // (legit words that merely START with a forbidden one, and other-language text, must NEVER change).
 // Run: deno test forbiddenWordGuard.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   hasForbiddenAvailabilityWord,
   langKeyOf,

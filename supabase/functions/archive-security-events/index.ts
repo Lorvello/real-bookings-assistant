@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.50.0';
 import { createSuccessResponse } from '../_shared/headers.ts';
 
 Deno.cron("Archive old security events", "0 2 * * *", async () => {

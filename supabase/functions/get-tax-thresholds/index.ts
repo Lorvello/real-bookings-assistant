@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "npm:stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 import {
   computeOssBucket,
@@ -14,7 +14,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const logStep = (step: string, details?: any) => {
+const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[GET-TAX-THRESHOLDS] ${step}${detailsStr}`);
 };
@@ -157,7 +157,7 @@ serve(async (req) => {
       throw new Error(`Failed to read booking payments: ${paymentsError.message}`);
     }
 
-    const rows: BookingPaymentRowLike[] = (payments ?? []).map((p: any) => ({
+    const rows: BookingPaymentRowLike[] = (payments ?? []).map((p: BookingPaymentRowLike) => ({
       amount_cents: p.amount_cents,
       customer_country: p.customer_country,
       reverse_charge: p.reverse_charge,

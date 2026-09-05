@@ -260,7 +260,7 @@ Deno.test("F-TAX-04: tax-behavior comes from the Tax Settings enum, never an unr
 // ['professional','enterprise'] predicate the other tax fns use. Trial users have
 // subscription_tier='professional', so the gate does not block onboarding.
 // ---------------------------------------------------------------------------
-import { z } from "https://esm.sh/zod@3.23.8";
+import { z } from "npm:zod@3.23.8";
 
 // Mirror of assign-tax-codes' AssignSchema after the F-TAX-12 fix (no business_country).
 const AssignSchemaMirror = z.object({

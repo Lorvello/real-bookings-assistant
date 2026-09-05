@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { sendWhatsAppTemplate } from "./whatsappSend.ts";
 
 Deno.test("Meta template fetch is cancelled by the reminder stage signal", async () => {

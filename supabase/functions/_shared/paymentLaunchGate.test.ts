@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals } from "jsr:@std/assert@1";
+import { assertEquals, assertNotEquals } from "jsr:@std/assert@1.0.19";
 import { evaluatePaymentLaunchGate } from "./paymentLaunchGate.ts";
 
 const TENANT_A = "00000000-0000-4000-8000-000000000001";

@@ -1,0 +1,7 @@
+{
+  "//": "LAUNCH-RUN 2026-09 R2. De edge-runtime lost `npm:`-specifiers op uit zijn eigen cache;",
+  "//2": "deze repo heeft een package.json voor de Vite-frontend, waardoor Deno lokaal node_modules",
+  "//3": "zou eisen voor elke npm:-import. nodeModulesDir=none laat `deno check`/`deno test` exact",
+  "//4": "resolven zoals supabase-edge-runtime dat doet. Gemeten in R2 (00a/00b).",
+  "nodeModulesDir": "none"
+}

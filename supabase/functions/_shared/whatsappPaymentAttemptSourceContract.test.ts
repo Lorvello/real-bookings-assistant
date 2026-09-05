@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 
 const handlerUrl = new URL(
   "../whatsapp-payment-handler/index.ts",

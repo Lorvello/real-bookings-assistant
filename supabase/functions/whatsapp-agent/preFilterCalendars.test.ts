@@ -2,7 +2,7 @@
 // token-based matching logic only, mirrors relativeDateHint.test.ts's structure. No network,
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
 
 const CALENDARS = [

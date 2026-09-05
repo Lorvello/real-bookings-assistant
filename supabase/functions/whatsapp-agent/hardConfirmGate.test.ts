@@ -6,7 +6,7 @@
 // book/cancel, with pleasantries), and novel adversarial attempts invented specifically to try to
 // defeat the gate.
 // Run: deno test hardConfirmGate.test.ts
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   classifyHardConfirm,
   HARD_CONFIRM_EXACT,

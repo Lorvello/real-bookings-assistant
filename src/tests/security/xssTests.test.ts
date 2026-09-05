@@ -127,8 +127,18 @@ describe('XSS (Cross-Site Scripting) Prevention', () => {
     it('should prevent mXSS via nesting', () => {
       const mXssAttack = '<noscript><p title="</noscript><img src=x onerror=alert(1)>">';
       const cleaned = DOMPurify.sanitize(mXssAttack);
-      
-      expect(cleaned).not.toContain('onerror');
+
+      // DOMPurify 3.2.7 neutralises this payload by collapsing it into an inert
+      // title ATTRIBUTE VALUE (`<p title="</noscript><img src=x onerror=alert(1)>"></p>`),
+      // so the substring "onerror" survives while nothing executable does. Asserting on
+      // the substring tests the sanitiser's spelling, not its safety. Use the same
+      // structural instrument as the sibling backticks test below: re-parse the output
+      // and assert that no executable handler and no injected element survive.
+      const container = document.createElement('div');
+      container.innerHTML = cleaned;
+      expect(container.querySelector('[onerror]')).toBeNull();
+      expect(container.querySelector('img')).toBeNull();
+      expect(container.querySelector('script')).toBeNull();
     });
 
     it('should prevent mXSS via backticks', () => {

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "npm:stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
@@ -187,7 +187,10 @@ serve(async (req) => {
       defaultTaxBehavior: realDefaults?.tax_behavior || "exclusive",
       pricesIncludeTax: realDefaults?.tax_behavior === "inclusive",
       presetProductTaxCode: realDefaults?.tax_code || "txcd_10000000",
-      taxProvider: realDefaults?.provider || null,
+      // R2-SKEW: `provider` staat niet in de Tax.Settings.Defaults-typen van 14.21.0.
+      taxProvider:
+        (realDefaults as unknown as { provider?: string } | undefined)
+          ?.provider || null,
       settingsStatus: settingsStatus,
       // automaticTax now reflects whether Tax Settings are actually active on the
       // account (head office set + provider configured), not a hard-coded true.
@@ -208,7 +211,7 @@ serve(async (req) => {
       enabled: taxRegistrations.length > 0,
       registrations: taxRegistrations.map((reg: Stripe.Tax.Registration) => ({
         country: reg.country,
-        type: reg.type,
+        type: (reg as unknown as { type?: string }).type,
         status: reg.status,
         active_from: reg.active_from,
       })),

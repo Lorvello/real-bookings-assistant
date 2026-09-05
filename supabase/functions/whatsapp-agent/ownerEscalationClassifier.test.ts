@@ -8,7 +8,7 @@
 // misses (17 true-claim cases attempted, 14 confirmed missed + 3 more named inline), R65-verify Lens
 // 2's 3 live NL misses. Plus 8 benign false-positive controls and 12 of this round's own NEW
 // adversarial phrasings (see IUX_r66.md for the full offline 55-case tuning pass this file mirrors).
-import { assert } from "jsr:@std/assert";
+import { assert } from "jsr:@std/assert@1.0.19";
 import { classifyOwnerEscalationClaim, classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
 
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");

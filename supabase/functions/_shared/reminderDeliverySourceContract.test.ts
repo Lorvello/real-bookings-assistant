@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1.0.19";
 
 const source = await Deno.readTextFile(
   new URL("../process-booking-reminders/index.ts", import.meta.url),

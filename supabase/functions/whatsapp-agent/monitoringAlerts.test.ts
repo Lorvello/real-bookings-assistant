@@ -3,8 +3,8 @@
 // section 5): fabricated turnCtx objects, no real agent turn, no live DB write beyond the isolated
 // ownership-check test below (which uses a stubbed Supabase client, not the real project).
 // Run: deno test monitoringAlerts.test.ts
-import { assertEquals } from "jsr:@std/assert";
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 import {
   detectDateMismatch,
   detectThreadHijackNameMismatch,

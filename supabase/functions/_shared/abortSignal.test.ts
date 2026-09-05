@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import { composeAbortSignal } from "./abortSignal.ts";
 
 Deno.test("provider signal aborts immediately with its parent", () => {

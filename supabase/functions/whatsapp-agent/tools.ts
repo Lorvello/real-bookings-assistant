@@ -4,7 +4,7 @@
 // service/time/name. cancel/reschedule always act on THIS phone's own upcoming
 // booking (looked up server-side), never an id the model picks.
 
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import {
   BEVESTIG_TERUGKERENDE_DIENST_MESSAGE,

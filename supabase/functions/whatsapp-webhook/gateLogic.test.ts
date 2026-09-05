@@ -1,7 +1,7 @@
 // Unit tests for the three WhatsApp inbound-message gates (WHATSAPP_E2E_TEST_INFRA Item 2).
 // index.ts imports these exact functions (see gateLogic.ts header), so these tests exercise the
 // real gate code, not a reimplementation of it. Run: deno test gateLogic.test.ts
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert@1.0.19";
 import {
   resolveSenderGate,
   checkEntitlementGate,

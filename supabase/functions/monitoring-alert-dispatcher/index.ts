@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
+import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 
 // MONITORING/ALERTS ITEM 4 (see ../../../Bookings Assistant/launch-ready-loop/
 // MONITORING_ALERTS_DESIGN.md section 4, and GOAL_PROMPT_BA_MONITORING_ALERTS.md backlog Item 4).
@@ -244,9 +244,10 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("monitoring-alert-dispatcher error:", error);
-    return new Response(JSON.stringify({ error: error.message, success: false }), {
+    const message = (error as { message?: string })?.message ?? String(error);
+    return new Response(JSON.stringify({ error: message, success: false }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

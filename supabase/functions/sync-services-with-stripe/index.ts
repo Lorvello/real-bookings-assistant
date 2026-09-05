@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import Stripe from "npm:stripe@14.21.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { errorMessage } from "../_shared/errorMessage.ts";
 import { validateStripeMode } from "../_shared/stripeValidation.ts";
 
@@ -169,21 +169,28 @@ serve(async (req) => {
           country: businessCountry,
         });
 
+        // R2-SKEW: `description` staat NIET in Stripe.PriceCreateParams.ProductData van
+        // stripe-node 14.21.0. De waarde is hier ONGEWIJZIGD gelaten (dit draait vandaag
+        // live); alleen de typen worden verbreed. Zie de PARKEER-lijst in de R2-bewijsmap:
+        // onder de oude esm.sh-import was elke Stripe-typefout onzichtbaar.
+        const productMetadata: Record<string, string> = {
+          service_duration: service.duration.toString(),
+          calendar_id: service.calendar_id || "",
+          service_type_id: service.id,
+          business_country: businessCountry,
+        };
+        const productData = {
+          name: service.name,
+          description: service.payment_description ||
+            `${service.name} - ${service.duration} minutes`,
+          metadata: productMetadata,
+        } as Stripe.PriceCreateParams.ProductData;
+
         // Create Stripe Price with international support
         const priceData: Stripe.PriceCreateParams = {
           currency: stripeAccount.currency || "eur",
           unit_amount: Math.round((service.price || 0) * 100), // Convert to cents
-          product_data: {
-            name: service.name,
-            description: service.payment_description ||
-              `${service.name} - ${service.duration} minutes`,
-            metadata: {
-              service_duration: service.duration.toString(),
-              calendar_id: service.calendar_id || "",
-              service_type_id: service.id,
-              business_country: businessCountry,
-            },
-          },
+          product_data: productData,
         };
 
         // Add tax configuration if enabled - with international support
@@ -195,13 +202,13 @@ serve(async (req) => {
             applicable_rate: service.applicable_tax_rate,
           });
 
-          priceData.product_data.tax_code = service.tax_code;
+          productData.tax_code = service.tax_code;
           priceData.tax_behavior = service.tax_behavior || "exclusive";
 
           // Add country-specific tax metadata
-          priceData.product_data.metadata.tax_country = businessCountry;
-          priceData.product_data.metadata.tax_rate =
-            service.applicable_tax_rate?.toString() || "0";
+          productMetadata.tax_country = businessCountry;
+          productMetadata.tax_rate = service.applicable_tax_rate?.toString() ||
+            "0";
         }
 
         const price = await stripe.prices.create(priceData, {
