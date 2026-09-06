@@ -1152,3 +1152,73 @@ Deno.test("R125-8 still blocks: genuine two-service message survives the substri
   });
   assertEquals(out, ["Knippen Dames", "Knippen Heren"]);
 });
+
+// =============================================================================================
+// R142 (LAUNCH-RUN 2026-09 / R6-PRE). DE DIENST-AANNAMEVRAAG OP EEN ANNULEER- OF VERZETVERZOEK.
+//
+// LIVE GEMETEN, staging v22, suite-scenario's S16 en S25. De klant met een bestaande boeking typt
+// "ik wil mn afspraak annuleren, krijg ik dan mn geld terug?" respectievelijk "annuleer mn
+// afspraak ff". `shouldBlockReturningServiceDefault` kijkt alleen of de klant in DIT bericht zelf
+// een dienstnaam noemt; dat doet hij niet, dus de poort vuurt, `enforceReturningServiceDisclosure`
+// herschrijft het hele antwoord naar "Ik ga uit van dezelfde dienst als de vorige keer, Knippen,
+// klopt dat?" en de annulering gebeurt nooit. Gemeten: S16-G5 en S25-G2 rood in vier
+// opeenvolgende metingen, en in S25 zelfs op de tweede beurt nog, waar de klant al "nee laat maar
+// staan" zegt.
+//
+// De poort bestaat om te voorkomen dat er een dienst wordt AANGENOMEN voor een NIEUWE boeking
+// (R111). Bij annuleren of verzetten wordt er geen dienst gekozen: de bestaande boeking draagt
+// zijn eigen dienst al. De aannamevraag is daar dus niet alleen overbodig, hij blokkeert de
+// gevraagde handeling. Vandaar een expliciete uitsluiting op de MUTATIE-INTENTIE van het huidige
+// bericht, die de aanroeper (index.ts) uit zijn eigen bestaande annuleer- en verzet-regexes leest.
+// =============================================================================================
+
+Deno.test("R142: een annuleerverzoek zet de dienst-aannamevraag uit", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen",
+      currentMessage: "ik wil mn afspraak annuleren, krijg ik dan mn geld terug?",
+      allServiceNames: ["Knippen", "Kleuren"],
+      returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: true,
+    }),
+    false,
+  );
+});
+
+Deno.test("R142: een verzetverzoek zet de dienst-aannamevraag uit", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen",
+      currentMessage: "kan mn afspraak verzet worden",
+      allServiceNames: ["Knippen", "Kleuren"],
+      returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: true,
+    }),
+    false,
+  );
+});
+
+Deno.test("R142: zonder mutatie-intentie blijft de poort vuren (R111 ongewijzigd)", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen",
+      currentMessage: "ik wil weer een afspraak inplannen",
+      allServiceNames: ["Knippen", "Kleuren"],
+      returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: false,
+    }),
+    true,
+  );
+});
+
+Deno.test("R142: het veld weglaten reproduceert het oude gedrag byte-voor-byte", () => {
+  assertEquals(
+    shouldBlockReturningServiceDefault({
+      lastService: "Knippen",
+      currentMessage: "ik wil weer een afspraak inplannen",
+      allServiceNames: ["Knippen", "Kleuren"],
+      returningServiceConfirmed: false,
+    }),
+    true,
+  );
+});

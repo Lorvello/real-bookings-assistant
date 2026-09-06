@@ -780,3 +780,54 @@ Deno.test("cancelToolCallHadPolicyRefusal: false when no cancel_appointment call
 Deno.test("cancelToolCallHadPolicyRefusal: false on an empty tool-call list", () => {
   assertEquals(cancelToolCallHadPolicyRefusal([]), false);
 });
+
+// =============================================================================================
+// R141 (LAUNCH-RUN 2026-09 / R6-PRE). DE VOORNAAM TEGEN DE VOLLEDIGE NAAM VAN DEZELFDE PERSOON.
+//
+// LIVE GEMETEN, staging v22, scenario S24 van de launch-suite. De klant typt in EEN bericht
+// "thursday 2pm works, Emma Visser". Het model doet dan twee dingen in dezelfde beurt:
+//   update_lead      -> `whatsapp_conversations.context.booking_name = "Emma"`   (VOORnaam)
+//   book_appointment -> `pending_booking.customer_name  = "Emma Visser"`         (VOLLEDIGE naam)
+// Bij de commit-beurt vergelijkt `crossIdentityBookRisk` die twee. `isRealName("Emma")` is waar,
+// dus regel "een mismatch tegen een ECHTE, al vastgestelde knownSelfName is altijd risico" vuurt,
+// en de klant krijgt een identiteitsvraag over ZIJN EIGEN boeking. Gemeten gevolg: de boeking komt
+// er nooit (S24-G1 rood in vier opeenvolgende metingen).
+//
+// Dit is precies de vorm waarvoor R120 al een uitzondering maakte voor het NULL-geval; het
+// voornaam-geval bleef staan. De carve-out geldt UITSLUITEND voor book_appointment, want daar is
+// de "target" de naam die de HUIDIGE spreker zojuist zelf in dit gesprek typte. Voor
+// cancel/reschedule/rename komt de target uit een ECHTE bookings-rij van mogelijk een ander mens;
+// daar blijft prefix-gelijkheid wel degelijk risico en verandert er niets.
+// =============================================================================================
+
+Deno.test("R141: voornaam tegen volledige naam van dezelfde persoon is GEEN boek-risico", () => {
+  assertEquals(crossIdentityBookRisk("Emma Visser", "Emma", true), false);
+  assertEquals(crossIdentityBookRisk("Emma Visser", "Emma", false), false);
+});
+
+Deno.test("R141: andersom ook (volledige naam bekend, preview draagt de voornaam)", () => {
+  assertEquals(crossIdentityBookRisk("Emma", "Emma Visser", true), false);
+});
+
+Deno.test("R141: drie naamdelen tegen twee, zelfde begin, blijft dezelfde persoon", () => {
+  assertEquals(crossIdentityBookRisk("Anna de Vries", "Anna de", true), false);
+});
+
+Deno.test("R141: een ECHT andere naam blijft risico (S26 name-takeover moet blijven vuren)", () => {
+  assertEquals(crossIdentityBookRisk("Sophie", "Daan Peters", true), true);
+  assertEquals(crossIdentityBookRisk("Bram Jansen", "Anna de Vries", true), true);
+});
+
+Deno.test("R141: gelijke voornaam maar andere achternaam blijft risico", () => {
+  assertEquals(crossIdentityBookRisk("Emma Jansen", "Emma Visser", true), true);
+});
+
+Deno.test("R141: de carve-out raakt cancel/reschedule/rename NIET", () => {
+  assertEquals(crossIdentityActionRisk(1, "Emma Visser", "Emma"), true);
+  assertEquals(crossIdentityRenameRisk(2, "Emma Visser", "Emma"), true);
+});
+
+Deno.test("R141: regressie, het R120 null-geval blijft werken zoals het was", () => {
+  assertEquals(crossIdentityBookRisk("Emma Visser", null, false), false);
+  assertEquals(crossIdentityBookRisk("Emma Visser", null, true), true);
+});

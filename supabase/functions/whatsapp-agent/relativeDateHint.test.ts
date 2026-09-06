@@ -507,3 +507,150 @@ Deno.test("R137: regression, 'vandaag' still resolves to today unaffected", () =
   const h = extractRelativeDayHint("Kan het vandaag nog?", THURSDAY);
   assertEquals(h?.iso, "2026-07-09");
 });
+
+// =============================================================================================
+// R140 (LAUNCH-RUN 2026-09 / R6-PRE). DE ENGELSE WEEKDAG EN DE NEDERLANDSE AFKORTING.
+//
+// GEMETEN OORZAAK, niet vermoed. Van de 30 suite-scenario's noemen er 14 hun dag UITSLUITEND als
+// een Engelse weekdagnaam ("thursday 2pm", "wednesday", "friday", "tues 10", "sat 10") of als een
+// Nederlandse afkorting ("do 2 uur", "di 10 uur", "wo 4 uur", "ma langskomen"). `NL_WEEKDAYS` kende
+// alleen de zeven VOLUIT geschreven Nederlandse namen, dus `extractRelativeDayHint` gaf op al die
+// zinnen `null`. Gevolg, gemeten op de gedeployde staging-functie: `hasDayMentionAnywhere` is dan
+// false, `index.ts` zet `blockForNoDayNamed`, en `tools.ts` weigert ZOWEL `get_available_slots` als
+// `book_appointment` met `vraag_dag`. De agent antwoordt daarop "Which day would you like?" op een
+// bericht waarin de klant de dag AL noemde, en de boeking komt er nooit. Dit is de grootste enkele
+// oorzaak achter de 30 gefaalde aanwezigheidspoorten van R5-A.
+//
+// DE VALKUIL, en waarom de afkortingen een eigen, strengere pas krijgen: "do", "ma", "zo", "wed",
+// "sat" en "sun" zijn ook GEWONE woorden. De suite draagt de tegenvoorbeelden zelf:
+//   S02 "hi what do u do and whats the price?"   <- twee keer het Engelse werkwoord
+//   S08 "yeah fine. can we do 3 instead tho?"    <- werkwoord, met een getal erachter
+//   S28 "whats the latest u can do me on friday" <- werkwoord EN een echte dag in dezelfde zin
+// Een afkorting die vals matcht is erger dan geen match: hij injecteert een VERKEERDE datum in de
+// prompt. Daarom: voluit geschreven namen (NL + EN) winnen altijd eerst; de afkortingen draaien
+// alleen als daar niets uit kwam, en de dubbelzinnige vormen dragen een expliciete uitsluiting.
+// =============================================================================================
+
+// Referentiemoment: zondag 2026-09-06 12:00 Amsterdam (de dag van deze meting).
+const ZONDAG_R140 = new Date("2026-09-06T10:00:00Z");
+
+Deno.test("R140: Engelse weekdagnaam voluit ('thursday') resolves", () => {
+  const h = extractRelativeDayHint("hi id like a haircut thursday 2pm, name is tom bakker", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-10");
+});
+
+Deno.test("R140: 'wednesday' resolves", () => {
+  const h = extractRelativeDayHint("hi can i book a colour wednesday", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-09");
+});
+
+Deno.test("R140: 'friday' resolves, ook met het Engelse werkwoord 'do' in dezelfde zin", () => {
+  const h = extractRelativeDayHint("whats the latest u can do me on friday", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-11");
+});
+
+Deno.test("R140: Engelse afkorting 'tues' resolves", () => {
+  const h = extractRelativeDayHint("can u move my appt to tues 10?", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-08");
+});
+
+Deno.test("R140: Engelse afkorting 'sat' resolves", () => {
+  const h = extractRelativeDayHint("can i just pay on the day? if not book me sat 10", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-12");
+});
+
+Deno.test("R140: Engelse daypart-suffix ('friday morning') resolves", () => {
+  const h = extractRelativeDayHint("friday morning would be great", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-11");
+});
+
+Deno.test("R140: NL-afkorting 'do' met tijd resolves naar donderdag", () => {
+  const h = extractRelativeDayHint("do 2 uur knippen kan dat? -Sanne", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-10");
+});
+
+Deno.test("R140: NL-afkorting 'di' resolves naar dinsdag", () => {
+  const h = extractRelativeDayHint("di 10 uur knippen? karim", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-08");
+});
+
+Deno.test("R140: NL-afkorting 'wo' resolves naar woensdag", () => {
+  const h = extractRelativeDayHint("kan ik ook nog ff een andere tijd, wo 4 uur?", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-09");
+});
+
+Deno.test("R140: NL-afkorting 'ma' zonder tijd resolves naar maandag", () => {
+  const h = extractRelativeDayHint("kan ik ma langskomen voor knippen", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-07");
+});
+
+Deno.test("R140: 'do' vlak voor een lidwoord resolves ('do een balayage')", () => {
+  const h = extractRelativeDayHint("hoi kan ik do een balayage boeken?", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-10");
+});
+
+Deno.test("R140: 'do half 5' resolves naar donderdag", () => {
+  const h = extractRelativeDayHint("kan mn afspraak naar do half 5?", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-10");
+});
+
+Deno.test("R140: 'do open?' aan het begin resolves naar donderdag", () => {
+  const h = extractRelativeDayHint("hoi! do open? en hoe laat dan", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-10");
+});
+
+// --- DE VALS-POSITIEVEN. Deze MOETEN null blijven. ---
+
+Deno.test("R140 VALSE MATCH: 'what do u do' is het Engelse werkwoord, GEEN donderdag", () => {
+  const h = extractRelativeDayHint("hi what do u do and whats the price? how long does it take", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140 VALSE MATCH: 'can we do 3 instead' is het werkwoord, GEEN donderdag", () => {
+  const h = extractRelativeDayHint("yeah fine. can we do 3 instead tho?", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140 VALSE MATCH: 'zo snel mogelijk' is een bijwoord, GEEN zondag", () => {
+  const h = extractRelativeDayHint("kan het zo snel mogelijk?", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140 VALSE MATCH: 'zo laat mogelijk' is een bijwoord, GEEN zondag", () => {
+  const h = extractRelativeDayHint("ik wil zo laat mogelijk komen", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140 VALSE MATCH: 'ik sat' bestaat niet, maar 'I sat' wel: GEEN zaterdag", () => {
+  const h = extractRelativeDayHint("i sat in the waiting room for ages", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140 VALSE MATCH: 'mn ma' is moeder, GEEN maandag", () => {
+  const h = extractRelativeDayHint("ik kom samen met mn ma langs", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140 VALSE MATCH: 'wat kan je doen' bevat geen losse 'do'", () => {
+  const h = extractRelativeDayHint("wat kan je doen aan mn haar", ZONDAG_R140);
+  assertEquals(h, null);
+});
+
+Deno.test("R140: hasDayMentionAnywhere ziet nu de Engelse dag in het huidige bericht", () => {
+  assertEquals(hasDayMentionAnywhere("hi can i book a haircut thursday 2pm?", [], ZONDAG_R140), true);
+});
+
+Deno.test("R140: hasDayMentionAnywhere blijft false op een bericht zonder dag", () => {
+  assertEquals(hasDayMentionAnywhere("hi what do u do and whats the price?", [], ZONDAG_R140), false);
+});
+
+// GEPARKEERD, met de exacte blokkade: "vrijdag 1 uur volgende week" levert de EERSTVOLGENDE
+// vrijdag (11 sep), niet die van de week erna. Het qualifier-venster van de regex eist dat
+// "volgende week" DIRECT achter de weekdagnaam staat; hier staat "1 uur" ertussen. Dat is een
+// APARTE, oudere beperking (zij bestaat evengoed voor de voluit geschreven NL-naam) en staat los
+// van deze vocabulaire-reparatie; hij wordt hier VASTGELEGD als gedrag, niet stilzwijgend
+// meegenomen. S13 van de suite hangt hierop.
+Deno.test("R140: regressie, voluit NL blijft winnen; 'volgende week' op afstand telt (nog) niet", () => {
+  const h = extractRelativeDayHint("kan mn afspraak naar vrijdag 1 uur volgende week", ZONDAG_R140);
+  assertEquals(h?.iso, "2026-09-11");
+});

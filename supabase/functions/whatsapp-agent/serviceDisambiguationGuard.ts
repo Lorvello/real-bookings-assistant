@@ -541,6 +541,12 @@ export interface ReturningServiceDefaultInput {
   // additive: omitting it (as every pre-existing R111 test does) reproduces the exact prior
   // behaviour byte-for-byte. See the block below for why this exists.
   recentInboundTexts?: string[];
+  // R142 (LAUNCH-RUN 2026-09 / R6-PRE): draagt DIT bericht een expliciete annuleer- of
+  // verzet-intentie? De aanroeper (index.ts) leest dat uit zijn eigen, al bestaande annuleerwoord-
+  // regex en identityDisambiguationGuard's RESCHEDULE_VERB_RE; hier komt geen tweede vocabulaire
+  // bij. Optioneel en additief: het veld weglaten reproduceert het gedrag van voor R142
+  // byte-voor-byte, zodat elke bestaande R111/R118-test ongewijzigd blijft gelden.
+  mutationIntentOnCurrentMessage?: boolean;
 }
 
 // CODE-REVIEW FIX (found during this guard's own live testing, S6 testpad): the generic
@@ -591,9 +597,18 @@ function mentionsServiceNameStrict(text: string, allServiceNames: string[]): boo
 }
 
 export function shouldBlockReturningServiceDefault(input: ReturningServiceDefaultInput): boolean {
-  const { lastService, currentMessage, allServiceNames, returningServiceConfirmed, recentInboundTexts } = input;
+  const { lastService, currentMessage, allServiceNames, returningServiceConfirmed, recentInboundTexts, mutationIntentOnCurrentMessage } = input;
   if (!lastService || !lastService.trim()) return false; // no history: not a returning customer
   if (returningServiceConfirmed) return false; // already asked+answered this conversation
+  // R142 (LIVE GEMETEN, staging v22, suite S16 + S25): dit hele mechanisme bestaat om te
+  // voorkomen dat er stilzwijgend een dienst wordt AANGENOMEN voor een NIEUWE boeking (R111). Bij
+  // annuleren of verzetten wordt er helemaal geen dienst gekozen: de bestaande boeking draagt zijn
+  // eigen dienst al, en cancel_appointment/reschedule_appointment lezen die uit de bookings-rij,
+  // nooit uit deze aanname. De aannamevraag is daar dus niet alleen overbodig, hij VERVANGT via
+  // enforceReturningServiceDisclosure het hele antwoord en blokkeert daarmee precies de handeling
+  // die de klant vroeg ("ik wil mn afspraak annuleren" kreeg "Ik ga uit van dezelfde dienst als de
+  // vorige keer, Knippen, klopt dat?", vier metingen op rij, en de annulering kwam nooit).
+  if (mutationIntentOnCurrentMessage) return false;
   // A customer who names ANY real configured service themselves (including the returning one)
   // has resolved the ambiguity; nothing to silently assume.
   if (mentionsServiceNameStrict(currentMessage, allServiceNames)) return false;

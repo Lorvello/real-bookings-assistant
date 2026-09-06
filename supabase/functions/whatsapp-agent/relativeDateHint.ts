@@ -47,6 +47,78 @@ const NL_WEEKDAYS: Record<string, number> = {
   zondag: 0, maandag: 1, dinsdag: 2, woensdag: 3, donderdag: 4, vrijdag: 5, zaterdag: 6,
 };
 
+// R140 (LAUNCH-RUN 2026-09 / R6-PRE). ENGELSE WEEKDAGEN EN NEDERLANDSE AFKORTINGEN.
+//
+// GEMETEN OORZAAK. `NL_WEEKDAYS` hierboven kende alleen de zeven VOLUIT geschreven Nederlandse
+// namen. Van de 30 scenario's in de launch-suite noemen er 14 hun dag uitsluitend als een Engelse
+// naam ("thursday 2pm", "wednesday", "friday", "tues 10", "sat 10") of als een Nederlandse
+// afkorting ("do 2 uur", "di 10 uur", "wo 4 uur", "ma langskomen"). Op al die zinnen gaf
+// `extractRelativeDayHint` `null`, waarna `hasDayMentionAnywhere` false werd,
+// `index.ts` `blockForNoDayNamed` zette en `tools.ts` ZOWEL `get_available_slots` ALS
+// `book_appointment` weigerde met `vraag_dag`. Live gemeten gevolg op de staging-functie: de agent
+// antwoordde "Which day would you like?" op een bericht waarin de klant de dag AL had genoemd, en
+// er kwam nooit een boeking. Dit is het schoolvoorbeeld van een filter dat de woorden van de
+// BOUWER kent en niet die van de wereld.
+//
+// TWEE VOCABULAIRES, met opzet verschillend streng:
+//   STERK      voluit geschreven NL + EN namen, plus de Engelse afkortingen die GEEN gewoon woord
+//              zijn (mon/tue/tues/weds/thu/thur/thurs/fri). Die matchen overal, zonder voorwaarde.
+//   DUBBELZINNIG  de Nederlandse tweeletterafkortingen (ma/di/wo/do/vr/za/zo) en de Engelse
+//              vormen die WEL een gewoon woord zijn (wed/sat/sun). Die draaien pas als de sterke
+//              pas niets vond, en dragen per woord een expliciete uitsluiting. Een afkorting die
+//              vals matcht is namelijk ERGER dan geen match: hij injecteert via
+//              `formatRelativeDateHint` een VERKEERDE datum in de prompt. De suite draagt de
+//              tegenvoorbeelden zelf: "hi what do u do and whats the price?" (twee keer het
+//              Engelse werkwoord), "can we do 3 instead tho?" (werkwoord met een getal erachter)
+//              en "whats the latest u can do me on friday" (werkwoord EN een echte dag in
+//              dezelfde zin, waar de sterke pas dus moet winnen).
+const EN_WEEKDAYS: Record<string, number> = {
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+  // Engelse afkortingen die in geen enkele taal een gewoon woord zijn.
+  mon: 1, tue: 2, tues: 2, weds: 3, thu: 4, thur: 4, thurs: 4, fri: 5,
+};
+
+// De dubbelzinnige vormen. `deny` is een lijst van (voorafgaand woord | volgend woord)-regels:
+// matcht een daarvan, dan telt deze afkorting in DIT bericht niet als weekdag.
+const AMBIGUOUS_WEEKDAY_ABBR: Array<
+  { word: string; dow: number; prev?: RegExp; next?: RegExp }
+> = [
+  // "ma" is ook moeder. Blokkeer na een bezittelijk/aanwijzend woord ("mn ma", "je ma").
+  { word: "ma", dow: 1, prev: /\b(mn|m'n|mijn|je|jouw|jullie|onze|z'n|zijn|haar|de|die|deze)$/ },
+  { word: "di", dow: 2 },
+  { word: "wo", dow: 3 },
+  // "do" is het Engelse werkwoord. Blokkeer de hulpwerkwoord- en voornaamwoord-omgeving.
+  {
+    word: "do",
+    dow: 4,
+    prev: /\b(can|could|would|will|shall|to|what|how|why|when|we|you|u|they|i|it|lets|let's|dont|don't|didnt|didn't|does|did|pls|please|must|should|may|might|cant|can't|gonna|wanna)$/,
+    next: /^\s*(you|u|i|we|they|it|this|that|not|n't|so|the|any|some|something|nothing|anything|instead|nails|hair)\b/,
+  },
+  { word: "vr", dow: 5 },
+  { word: "za", dow: 6 },
+  // "zo" is het Nederlandse bijwoord ("zo snel mogelijk", "zo laat mogelijk").
+  {
+    word: "zo",
+    dow: 0,
+    prev: /\b(is|was|het|dat|hoe|niet)$/,
+    next: /^\s*(snel|laat|vroeg|veel|ver|lang|goed|net|meteen|mogelijk|straks|dadelijk|gauw|vlug|druk|duur|erg|graag|even|maar|dat|als|ja|hoor|te|zo)\b/,
+  },
+  // "wed" is ook het Engelse werkwoord trouwen; "sat"/"sun" zijn gewone Engelse woorden.
+  { word: "wed", dow: 3, next: /^\s*(to)\b/ },
+  {
+    word: "sat",
+    dow: 6,
+    prev: /\b(i|he|she|we|they|you|u|it|who|everyone|nobody)$/,
+    next: /^\s*(down|in|on|there|next|at|through|waiting|for)\b/,
+  },
+  {
+    word: "sun",
+    dow: 0,
+    prev: /\b(the|a|no)$/,
+    next: /^\s*(shine|screen|light|glasses|burn|day|bathing|bed|is|was)\b/,
+  },
+];
+
 export interface RelativeDateHint {
   iso: string; // YYYY-MM-DD, Amsterdam-local
   label: string; // "vrijdag 10 juli" (Dutch, matches the <kalender> table's own label style)
@@ -302,7 +374,12 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
   // followed by "(diezelfde/dezelfde/die) week" or "deze week". "volgende [weekday]" or
   // "[weekday] volgende week" skip to the following full week; every other qualifier (or none)
   // means the nearest upcoming occurrence, matching prompt.ts's documented rule exactly.
-  const dayNames = Object.keys(NL_WEEKDAYS).join("|");
+  // R140: de sterke pas kent nu OOK de Engelse namen en de niet-dubbelzinnige Engelse
+  // afkortingen. Langste eerst, anders knipt "tue" de match van "tuesday" af.
+  const strongDays: Record<string, number> = { ...NL_WEEKDAYS, ...EN_WEEKDAYS };
+  const dayNames = Object.keys(strongDays)
+    .sort((a, b) => b.length - a.length)
+    .join("|");
   // R82: a weekday name fused directly onto a daypart word ("dinsdagavond", "vrijdagmiddag",
   // "maandagochtend", zero space, one token) used to fall straight through this whole function
   // (the old regex required a word boundary immediately after the weekday name, so "dinsdagavond"
@@ -319,17 +396,47 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
   // unaffected, so date resolution (resolveWeekday) needs no changes.
   const DAYPART_SUFFIX_RE = "ochtend|voormiddag|namiddag|middag|avond|nacht";
   const re = new RegExp(
-    `\\b(volgende\\s+week\\s+)?(aanstaande|komende|deze|volgende|diezelfde|dezelfde)?\\s*(${dayNames})(?:${DAYPART_SUFFIX_RE})?\\b(\\s+(diezelfde|dezelfde|die|deze)\\s+week)?(\\s+volgende\\s+week)?`,
+    `\\b((?:volgende|next)\\s+week\\s+)?(aanstaande|komende|deze|volgende|diezelfde|dezelfde|next|this|coming|upcoming)?\\s*(${dayNames})(?:${DAYPART_SUFFIX_RE})?\\b(\\s+(diezelfde|dezelfde|die|deze)\\s+week)?(\\s+(?:volgende|next)\\s+week)?`,
     "i",
   );
   const m = re.exec(s);
-  if (!m) return null;
-  const dow = NL_WEEKDAYS[m[3]];
-  if (dow === undefined) return null;
-  const skipWeek = !!(m[1] || m[6] || (m[2] && m[2] === "volgende"));
-  const d = resolveWeekday(now, dow, skipWeek);
-  const iso = amsterdamISO(d);
-  return { iso, label: dutchLabel(d), matchedPhrase: m[0].trim() };
+  if (m) {
+    const dow = strongDays[m[3]];
+    if (dow !== undefined) {
+      const skipWeek = !!(m[1] || m[6] || (m[2] && (m[2] === "volgende" || m[2] === "next")));
+      const d = resolveWeekday(now, dow, skipWeek);
+      const iso = amsterdamISO(d);
+      return { iso, label: dutchLabel(d), matchedPhrase: m[0].trim() };
+    }
+  }
+
+  // R140, TWEEDE PAS: de dubbelzinnige afkortingen. Draait ALLEEN als hierboven geen voluit
+  // geschreven naam is gevonden, zodat "whats the latest u can do me on friday" altijd op
+  // vrijdag uitkomt en nooit op de "do". Per kandidaat wordt de directe omgeving getoetst; een
+  // treffer die aan een uitsluitingsregel voldoet wordt overgeslagen en de scan loopt door naar
+  // het volgende voorkomen van datzelfde woord (zodat "what do u do ... do 2 uur" nog steeds de
+  // echte dag zou vinden als die er stond). De vroegste geldige treffer in de zin wint.
+  let best: { index: number; dow: number; phrase: string } | null = null;
+  for (const cand of AMBIGUOUS_WEEKDAY_ABBR) {
+    const wre = new RegExp(`\\b${cand.word}\\b`, "gi");
+    let wm: RegExpExecArray | null;
+    while ((wm = wre.exec(s)) !== null) {
+      const before = s.slice(0, wm.index).trimEnd();
+      const after = s.slice(wm.index + wm[0].length);
+      if (cand.prev && cand.prev.test(before)) continue;
+      if (cand.next && cand.next.test(after)) continue;
+      if (best === null || wm.index < best.index) {
+        best = { index: wm.index, dow: cand.dow, phrase: wm[0] };
+      }
+      break;
+    }
+  }
+  if (best) {
+    const d = resolveWeekday(now, best.dow, false);
+    const iso = amsterdamISO(d);
+    return { iso, label: dutchLabel(d), matchedPhrase: best.phrase };
+  }
+  return null;
 }
 
 // Renders the prompt-injected hint block, or "" when there is nothing to say (byte-identical

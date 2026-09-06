@@ -1552,12 +1552,23 @@ Deno.serve(async (req) => {
     // did not persist in time for this turn's read. See serviceDisambiguationGuard.ts for the full
     // root-cause writeup.
     const recentInboundTextsForReturning = inboundTexts.slice(0, 4);
+    // R142 (LAUNCH-RUN 2026-09 / R6-PRE): draagt DIT bericht een expliciete annuleer- of
+    // verzet-intentie? Dan wordt er geen dienst gekozen (de bestaande boeking draagt de zijne al)
+    // en mag de terugkerende-dienst-aannamevraag het antwoord niet overnemen. Hergebruikt de
+    // ANNULEERWOORDEN die deze file verderop zelf al voert (CANCEL_WORD_RE_FOR_INTERVENING) en
+    // identityDisambiguationGuard's RESCHEDULE_VERB_RE: geen tweede vocabulaire.
+    const MUTATION_INTENT_CANCEL_RE =
+      /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|afzeg|cancelar)\w*\b/i;
+    const mutationIntentOnCurrentMessage =
+      MUTATION_INTENT_CANCEL_RE.test(String(message ?? "")) ||
+      RESCHEDULE_VERB_RE.test(String(message ?? ""));
     const blockForReturningServiceDefault = shouldBlockReturningServiceDefault({
       lastService,
       currentMessage: String(message ?? ""),
       allServiceNames: allServiceNamesForReturning,
       returningServiceConfirmed,
       recentInboundTexts: recentInboundTextsForReturning,
+      mutationIntentOnCurrentMessage,
     });
     // Store the pending-confirm marker the FIRST time this turn's guard fires (fresh, i.e. not
     // already set), so a subsequent bare "ja"/"klopt" reply (no service named) can be recognized

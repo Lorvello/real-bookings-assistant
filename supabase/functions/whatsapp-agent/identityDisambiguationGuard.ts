@@ -296,12 +296,41 @@ export function crossIdentityActionRisk(
 // turn in the SAME conversation (satisfying condition b) by the time a second, conflicting name
 // shows up; it is only the impossible-to-satisfy "null vs the name I just gave you, in the exact
 // message that gave it" case that this additionally excludes.
+// R141 (LAUNCH-RUN 2026-09 / R6-PRE, live-reproduced op staging v22, suite-scenario S24): is de
+// ene naam simpelweg de BEGINNENDE naamdelen van de andere ("Emma" tegen "Emma Visser", "Anna de"
+// tegen "Anna de Vries")? Dan is dat een en dezelfde persoon die zich de ene keer korter noemde
+// dan de andere, geen tweede identiteit. Deliberately woordgrens-op-woordgrens en NOOIT fuzzy:
+// "Emma Jansen" tegen "Emma Visser" deelt alleen het eerste deel en is dus WEL een mismatch,
+// precies zoals normName's eigen commentaar over "Anne" tegen "Anna" eist.
+function sameNameByLeadingParts(a: string, b: string): boolean {
+  const pa = normName(a).split(" ").filter(Boolean);
+  const pb = normName(b).split(" ").filter(Boolean);
+  if (pa.length === 0 || pb.length === 0) return false;
+  const n = Math.min(pa.length, pb.length);
+  for (let i = 0; i < n; i++) {
+    if (pa[i] !== pb[i]) return false;
+  }
+  return true;
+}
+
 export function crossIdentityBookRisk(
   targetCustomerName: string | null | undefined,
   knownSelfName: string | null | undefined,
   priorRealIdentityExists: boolean,
 ): boolean {
   if (!nameMismatch(targetCustomerName, knownSelfName)) return false;
+  // R141: de VOORNAAM tegen de VOLLEDIGE naam van dezelfde spreker. LIVE GEMETEN op S24: het model
+  // zet in EEN beurt `update_lead` met "Emma" en `book_appointment` met "Emma Visser", waarna deze
+  // poort de klant een identiteitsvraag stelde over zijn EIGEN boeking en de boeking nooit kwam.
+  // Alleen hier, niet in crossIdentityActionRisk/crossIdentityRenameRisk: daar komt de target uit
+  // een ECHTE bookings-rij van mogelijk een ander mens, hier uit wat de HUIDIGE spreker zojuist
+  // zelf in deze conversatie over zichzelf typte (zie R120's kop voor diezelfde redenering).
+  if (
+    isRealName(knownSelfName) &&
+    sameNameByLeadingParts(String(targetCustomerName), String(knownSelfName))
+  ) {
+    return false;
+  }
   // A mismatch against a REAL, already-established knownSelfName is always a genuine risk,
   // independent of prior-booking history (the phone-handoff-mid-flow shape: the SAME conversation
   // already told us who is texting, via an earlier update_lead call or an earlier real booking on
