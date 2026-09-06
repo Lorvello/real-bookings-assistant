@@ -11,6 +11,13 @@ import {
   classifyBusinessDataGroundingRobust,
   noUngroundedClaimReply,
 } from "./businessDataGuard.ts";
+import { classifierVotes } from "./ownerEscalationClassifier.ts";
+
+// LAUNCH-RUN 2026-09 / R4: het stemaantal is nu een INSTELLING met een GEMETEN standaard (3), geen
+// vast getal in de code. Een test die letterlijk 7 eist toetst de implementatie en niet het gedrag.
+// Het gedrag dat WEL geldt: er zijn evenveel stemmen als de instelling zegt, en bij een ontbrekende
+// sleutel valt elke stem dicht.
+const EXPECTED_VOTES = classifierVotes("GROUNDING_CLF_VOTES", 3);
 
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
 
@@ -284,11 +291,11 @@ Deno.test({
 });
 
 Deno.test({
-  name: "businessDataGuard: robust N=7 vote fails closed on GROQ_API_KEY missing",
+  name: "businessDataGuard: robust vote (N = instelling) fails closed on GROQ_API_KEY missing",
   fn: async () => {
     const r = await classifyBusinessDataGroundingRobust("De Standaard Afspraak kost €50.", GROUND_TRUTH, undefined);
     assertEquals(r.isUngroundedClaim, true);
-    assertEquals(r.votes.length, 7);
+    assertEquals(r.votes.length, EXPECTED_VOTES);
     assert(r.votes.every((v) => v === "error"));
   },
 });

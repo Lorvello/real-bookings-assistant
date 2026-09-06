@@ -117,6 +117,12 @@
 //
 // dash-free of em dashes per house rule.
 
+
+// LAUNCH-RUN 2026-09 / R4. De model-, timeout- en stemknoppen staan in
+// ownerEscalationClassifier.ts en worden HIER HERGEBRUIKT, niet gekopieerd: twee kopieen van
+// dezelfde knop is twee waarheden, en dan zet een deploy er stil een van beide verkeerd.
+import { classifierModel, classifierTimeoutMs, classifierVotes } from "./ownerEscalationClassifier.ts";
+
 export interface GroundingClassifierResult {
   isUngroundedClaim: boolean;
   reason: "yes" | "no" | "timeout" | "error" | "empty_or_unparseable";
@@ -319,7 +325,7 @@ const SYSTEM_PROMPT =
 // Same timeout budget as ownerEscalationClassifier.ts: generous vs the observed sub-second
 // typical single-call latency on this Groq infra, while still leaving ample slack in the <3s
 // end-to-end gate even on a full timeout-then-fail-closed path.
-const TIMEOUT_MS = 1400;
+// (De waarde 1400 leeft nu als DEFAULT_CLASSIFIER_TIMEOUT_MS in ownerEscalationClassifier.ts.)
 
 export async function classifyBusinessDataGrounding(
   replyText: string,
@@ -332,7 +338,7 @@ export async function classifyBusinessDataGrounding(
     return { isUngroundedClaim: true, reason: "error", latencyMs: Date.now() - t0 };
   }
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), classifierTimeoutMs());
   try {
     const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -343,7 +349,7 @@ export async function classifyBusinessDataGrounding(
         "User-Agent": "Mozilla/5.0",
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-20b",
+        model: classifierModel(),
         reasoning_effort: "low",
         temperature: 0,
         max_completion_tokens: 200,
@@ -417,7 +423,33 @@ export async function classifyBusinessDataGrounding(
 // measured deficiency. Cost/latency impact: 2 more parallel Groq calls per turn on this classifier
 // only (Promise.all, so wall-clock is still bounded by the slowest single call, not the call
 // count); measured p50 stayed well inside the <3s gate on the clean-fixture retest.
-const VOTE_COUNT = 7;
+// LAUNCH-RUN 2026-09 / R4, GEMETEN VERLAGING 7 -> 3.
+//
+// Alle bovenstaande N-keuzes (5, dan 7) zijn gemaakt als "goedkope verzekering", nooit tegen een
+// gemeten deficientie. R4 heeft die verzekering EEN keer geprijsd, op de eigen regressiebank van
+// dit bestand, met de ECHTE classifier en de ECHTE buildGroundingSummary
+// (`_automation/r4_grounding_vote_proof.ts`, bewijs `R04/D3_stemproef_grounding_20260906.json`):
+//
+//   21 ongegronde claims, K=10 herhalingen elk (210 calls): ALLE 21 op p(YES) = 1,000.
+//   11 gegronde controles, K=10 elk (110 calls): 10 op p(YES) = 0,000.
+//
+// Bij any-YES-wins is de uitkomst uit die p exact uit te rekenen: 1-(1-p)^N voor een claim,
+// (1-p)^N voor een gegronde controle. Met p=1,000 op elke claim is de vloer aan de claimkant
+// 1,0000 bij ELKE N vanaf 1: N=7 koopt daar aantoonbaar NIETS. Aan de gegronde kant werkt N de
+// VERKEERDE kant op, want elke extra stem is een extra kans op een YES: meer stemmen betekent
+// meer valse herschrijvingen, niet minder. Datzelfde geldt voor de fail-closed-regel op een
+// timeout: N stemmen zijn N kansen op een infra-hik die de klant de terugvaltekst geeft (precies
+// de storing die de V3-simulatie zag, zie index.ts's R4-blok: grounding_clf_reason="timeout").
+//
+// N=3 in plaats van N=1: de bank is eindig. Een ONGEZIENE parafrase kan wel wiebelen, en daar
+// houdt 3 stemmen een echte marge tegen (bij een hypothetische p=0,5 nog altijd 87,5 procent),
+// terwijl het de kosten met 57 procent verlaagt en de staart van max-van-N inkort.
+//
+// De knop staat in de omgeving (GROUNDING_CLF_VOTES), zodat R5 dit zonder deploy kan bijzetten.
+const VOTE_COUNT_DEFAULT = 3;
+function voteCount(): number {
+  return classifierVotes("GROUNDING_CLF_VOTES", VOTE_COUNT_DEFAULT);
+}
 
 export interface GroundingVoteResult extends GroundingClassifierResult {
   votes: Array<"yes" | "no" | "timeout" | "error" | "empty_or_unparseable">;
@@ -429,15 +461,16 @@ export async function classifyBusinessDataGroundingRobust(
   groqApiKey: string | undefined,
 ): Promise<GroundingVoteResult> {
   const t0 = Date.now();
+  const n = voteCount();
   const votes = await Promise.all(
-    Array.from({ length: VOTE_COUNT }, () =>
+    Array.from({ length: n }, () =>
       classifyBusinessDataGrounding(replyText, groundingSummary, groqApiKey)),
   );
   const anyYes = votes.some((v) => v.isUngroundedClaim);
   const matchingVote = votes.find((v) => v.isUngroundedClaim === anyYes)!;
   if (anyYes && !votes.every((v) => v.isUngroundedClaim)) {
     console.warn(
-      `business-data-guard: ${VOTE_COUNT}-call split (votes=${JSON.stringify(votes.map((v) => v.reason))}), failing closed per any-YES-wins policy`,
+      `business-data-guard: ${n}-call split (votes=${JSON.stringify(votes.map((v) => v.reason))}), failing closed per any-YES-wins policy`,
     );
   }
   return {

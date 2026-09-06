@@ -9,7 +9,22 @@
 // 2's 3 live NL misses. Plus 8 benign false-positive controls and 12 of this round's own NEW
 // adversarial phrasings (see IUX_r66.md for the full offline 55-case tuning pass this file mirrors).
 import { assert } from "jsr:@std/assert@1.0.19";
-import { classifyOwnerEscalationClaim, classifyOwnerEscalationClaimRobust } from "./ownerEscalationClassifier.ts";
+import {
+  classifierModel,
+  classifierTimeoutMs,
+  classifierVotes,
+  classifyOwnerEscalationClaim,
+  classifyOwnerEscalationClaimRobust,
+  DEFAULT_CLASSIFIER_MODEL,
+  DEFAULT_CLASSIFIER_TIMEOUT_MS,
+} from "./ownerEscalationClassifier.ts";
+
+// LAUNCH-RUN 2026-09 / R4: het stemaantal is nu een INSTELLING met een bewezen standaard (3), geen
+// vast getal in de code. Een test die letterlijk 10 eist, toetst de implementatie en niet het
+// gedrag, en zou elke gemeten verlaging rood maken zonder dat er iets stuk is. De eis die WEL
+// gedrag is: er zijn evenveel stemmen als de instelling zegt, en er bestaat geen sequentiele
+// tie-breaker-call meer.
+const EXPECTED_VOTES = classifierVotes("OWNER_CLF_VOTES", 3);
 
 const GROQ_KEY = Deno.env.get("GROQ_API_KEY");
 
@@ -141,11 +156,11 @@ if (GROQ_KEY) {
     );
     assert(!r.isEscalationClaim, `expected NO but got votes=${JSON.stringify(r.votes)}`);
   });
-  Deno.test("robust classifier: fail-closed with missing key, all 10 votes error->yes", async () => {
+  Deno.test("robust classifier: fail-closed with missing key, alle stemmen error->yes", async () => {
     const r = await classifyOwnerEscalationClaimRobust("hallo", undefined);
     assert(r.isEscalationClaim);
     assert(r.tieBreakerFired === false);
-    assert(r.votes.length === 10);
+    assert(r.votes.length === EXPECTED_VOTES, `verwacht ${EXPECTED_VOTES} stemmen, kreeg ${r.votes.length}`);
     assert(r.votes.every((v) => v === "error"));
   });
 
@@ -168,7 +183,7 @@ if (GROQ_KEY) {
     const r = await classifyOwnerEscalationClaimRobust("Vinkje erbij gezet, we kunnen door.", GROQ_KEY);
     assert(r.isEscalationClaim, `expected YES but got votes=${JSON.stringify(r.votes)}`);
   });
-  Deno.test("R69: no 3rd/sequential tie-breaker path exists (tieBreakerFired always false, votes.length always 10)", async () => {
+  Deno.test("R69/R4: no 3rd/sequential tie-breaker path exists (tieBreakerFired always false, votes.length == de instelling)", async () => {
     // Run across a mix of clear-cut and borderline text; regardless of outcome, tieBreakerFired must
     // always be false and votes must always be length 10 (R68/R69 fire all N calls unconditionally,
     // every time, in parallel -- no conditional sequential call exists anymore).
@@ -180,7 +195,10 @@ if (GROQ_KEY) {
     for (const p of phrases) {
       const r = await classifyOwnerEscalationClaimRobust(p, GROQ_KEY);
       assert(r.tieBreakerFired === false, `tieBreakerFired should always be false, got true for "${p}"`);
-      assert(r.votes.length === 10, `votes should always be length 10, got ${r.votes.length} for "${p}"`);
+      assert(
+        r.votes.length === EXPECTED_VOTES,
+        `votes should always be length ${EXPECTED_VOTES}, got ${r.votes.length} for "${p}"`,
+      );
     }
   });
 } else {
@@ -188,3 +206,75 @@ if (GROQ_KEY) {
     console.warn("ownerEscalationClassifier.test.ts: GROQ_API_KEY not set, skipping live classifier tests");
   });
 }
+
+
+// ============================================================================================
+// LAUNCH-RUN 2026-09 / R4. POORTEN OP DE KNOPPEN ZELF.
+// Zonder deze tests is "de classifier is model-configureerbaar" een bewering en geen meting: een
+// typefout in de variabelenaam zou stil op het oude model blijven draaien, en dan schrijft de
+// bake-off van R5 het verkeerde etiket boven zijn kolom.
+// ============================================================================================
+Deno.test("R4 knop: zonder CLASSIFIER_MODEL is het model exact de oude harde waarde", () => {
+  Deno.env.delete("CLASSIFIER_MODEL");
+  assert(classifierModel() === DEFAULT_CLASSIFIER_MODEL, `kreeg ${classifierModel()}`);
+  assert(DEFAULT_CLASSIFIER_MODEL === "openai/gpt-oss-20b");
+});
+
+Deno.test("R4 knop: CLASSIFIER_MODEL wordt ECHT gevolgd (en weer opgeruimd)", () => {
+  Deno.env.set("CLASSIFIER_MODEL", "openai/gpt-oss-120b");
+  try {
+    assert(classifierModel() === "openai/gpt-oss-120b", `kreeg ${classifierModel()}`);
+  } finally {
+    Deno.env.delete("CLASSIFIER_MODEL");
+  }
+  assert(classifierModel() === DEFAULT_CLASSIFIER_MODEL);
+});
+
+Deno.test("R4 knop: een lege of onzinnige waarde valt terug op de standaard, nooit op ''", () => {
+  for (const bad of ["", "   "]) {
+    Deno.env.set("CLASSIFIER_MODEL", bad);
+    try {
+      assert(classifierModel() === DEFAULT_CLASSIFIER_MODEL, `kreeg ${classifierModel()} bij ${JSON.stringify(bad)}`);
+    } finally {
+      Deno.env.delete("CLASSIFIER_MODEL");
+    }
+  }
+});
+
+Deno.test("R4 knop: timeout volgt CLASSIFIER_TIMEOUT_MS binnen grenzen, anders de standaard", () => {
+  Deno.env.delete("CLASSIFIER_TIMEOUT_MS");
+  assert(classifierTimeoutMs() === DEFAULT_CLASSIFIER_TIMEOUT_MS);
+  Deno.env.set("CLASSIFIER_TIMEOUT_MS", "2500");
+  try {
+    assert(classifierTimeoutMs() === 2500, `kreeg ${classifierTimeoutMs()}`);
+  } finally {
+    Deno.env.delete("CLASSIFIER_TIMEOUT_MS");
+  }
+  for (const bad of ["0", "99", "999999", "abc"]) {
+    Deno.env.set("CLASSIFIER_TIMEOUT_MS", bad);
+    try {
+      assert(classifierTimeoutMs() === DEFAULT_CLASSIFIER_TIMEOUT_MS, `kreeg ${classifierTimeoutMs()} bij ${bad}`);
+    } finally {
+      Deno.env.delete("CLASSIFIER_TIMEOUT_MS");
+    }
+  }
+});
+
+Deno.test("R4 knop: het stemaantal volgt de omgeving en blijft binnen 1..20", () => {
+  Deno.env.delete("OWNER_CLF_VOTES");
+  assert(classifierVotes("OWNER_CLF_VOTES", 3) === 3);
+  Deno.env.set("OWNER_CLF_VOTES", "5");
+  try {
+    assert(classifierVotes("OWNER_CLF_VOTES", 3) === 5);
+  } finally {
+    Deno.env.delete("OWNER_CLF_VOTES");
+  }
+  for (const bad of ["0", "21", "-1", "x"]) {
+    Deno.env.set("OWNER_CLF_VOTES", bad);
+    try {
+      assert(classifierVotes("OWNER_CLF_VOTES", 3) === 3, `kreeg ${classifierVotes("OWNER_CLF_VOTES", 3)} bij ${bad}`);
+    } finally {
+      Deno.env.delete("OWNER_CLF_VOTES");
+    }
+  }
+});

@@ -169,7 +169,60 @@ const SYSTEM_PROMPT =
 // batch showed occasional contention-induced slowdowns near 900ms that do not reproduce on realistic
 // SEQUENTIAL calls, IUX_r66.md), while still leaving >1.5s of the 3s end-to-end gate even on a full
 // timeout-then-fail-closed path.
-const TIMEOUT_MS = 1400;
+// (De waarde 1400 leeft nu als DEFAULT_CLASSIFIER_TIMEOUT_MS hieronder.)
+
+// ============================================================================================
+// LAUNCH-RUN 2026-09 / R4. HET MODEL EN DE STEMKNOPPEN, UIT DE CODE EN IN DE OMGEVING.
+//
+// WAAROM. GEMETEN in R-STAGING op een echte beurt: 18 LLM-calls, waarvan 1 de agent-call en 17
+// de stemmen van deze twee classifiers. De agent-call volgt `LLM_PROVIDER`/`GROQ_MODEL`, deze
+// 17 niet: hun modelnaam stond HARD in de code. Een bake-off die "kosten per gesprek" of
+// "latency per beurt" aan een kandidaatmodel toeschrijft, zou dus 1 van de 18 calls verwisselen
+// en 17 op het oude model laten staan, en boven de kolom het verkeerde etiket schrijven.
+//
+// DE STANDAARD VERANDERT NIET. Zonder gezette omgevingsvariabele levert dit exact de waarden op
+// die hier vóór R4 hard in de code stonden (model openai/gpt-oss-20b, timeout 1400 ms). Een
+// omgeving die niets zet, gedraagt zich dus byte-identiek aan de vorige versie; dat is met de
+// suite bewezen, niet aangenomen.
+//
+// DE TIMEOUT MOET MEE. Die 1400 ms is afgestemd op de GEMETEN sub-seconde latency van dit ene
+// 20B-model. Een trager kandidaatmodel zou er stil in vallen, en deze guards vallen DICHT bij
+// een timeout: de klant krijgt dan de veilige terugvaltekst in plaats van het echte antwoord.
+// Een vaste timeout bij een wisselend model is precies een terugval die de afgewezen waarde
+// draagt, dus de timeout hoort bij het model gezet te kunnen worden.
+// ============================================================================================
+export const DEFAULT_CLASSIFIER_MODEL = "openai/gpt-oss-20b";
+export const DEFAULT_CLASSIFIER_TIMEOUT_MS = 1400;
+
+function envStr(key: string): string | null {
+  try {
+    const v = Deno.env.get(key);
+    return v && v.trim().length > 0 ? v.trim() : null;
+  } catch {
+    return null; // een omgeving zonder --allow-env mag deze guard nooit breken
+  }
+}
+
+/** Het model waarop DEZE classifier draait. Zonder CLASSIFIER_MODEL: de oude harde waarde. */
+export function classifierModel(): string {
+  return envStr("CLASSIFIER_MODEL") ?? DEFAULT_CLASSIFIER_MODEL;
+}
+
+/** De per-call timeout. Zonder CLASSIFIER_TIMEOUT_MS: de oude harde 1400 ms. */
+export function classifierTimeoutMs(): number {
+  const raw = envStr("CLASSIFIER_TIMEOUT_MS");
+  const n = raw === null ? NaN : Number(raw);
+  return Number.isFinite(n) && n >= 100 && n <= 30000 ? Math.round(n) : DEFAULT_CLASSIFIER_TIMEOUT_MS;
+}
+
+/** Het stemaantal, met een ondergrens van 1 en een bovengrens van 20 (een typefout mag nooit
+ *  honderden parallelle calls afvuren). Zonder de variabele: de bewezen standaard. */
+export function classifierVotes(key: string, fallback: number): number {
+  const raw = envStr(key);
+  const n = raw === null ? NaN : Number(raw);
+  return Number.isFinite(n) && n >= 1 && n <= 20 ? Math.round(n) : fallback;
+}
+
 
 // Draft-reply-only, single classification call. NOT the conversational agent path: no history, no
 // tools, minimal token budget. Fails CLOSED (returns isEscalationClaim: true) on any error/timeout/
@@ -184,7 +237,7 @@ export async function classifyOwnerEscalationClaim(
     return { isEscalationClaim: true, reason: "error", latencyMs: Date.now() - t0 };
   }
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), classifierTimeoutMs());
   try {
     const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -195,7 +248,7 @@ export async function classifyOwnerEscalationClaim(
         "User-Agent": "Mozilla/5.0",
       },
       body: JSON.stringify({
-        model: "openai/gpt-oss-20b",
+        model: classifierModel(),
         reasoning_effort: "low",
         temperature: 0,
         max_completion_tokens: 200,
@@ -317,7 +370,43 @@ export interface MajorityVoteResult extends ClassifierResult {
 // orchestrator decision (see IUX_r69.md STEP 0), not because N=10 reaches literal 100%-by-construction
 // (it provably cannot, for the same reason N=7 could not: a finite N always leaves a (1-p)^n chance of
 // unanimous-NO on a true coin-flip-adjacent phrase).
-const ROBUST_VOTE_COUNT = 10;
+// R4: het getal blijft 10 tenzij de omgeving iets anders zegt. Zie de R4-stemproef
+// (`.reliability/launch_run_2026_09/R04/D1_stemproef_owner_20260906.json`): daar staat per
+// stemaantal de GEMETEN vloer van de zwakste zin van de regressiebank, met zijn noemer.
+// LAUNCH-RUN 2026-09 / R4, GEMETEN VERLAGING 10 -> 3.
+//
+// R68/R69 kozen 7 en daarna 10 op EEN gemeten grootheid: p(YES) van een enkele call op de
+// wiebelzin "Vinkje erbij gezet, we kunnen door." (toen ongeveer 0,43). R69 voegde in DEZELFDE
+// ronde een expliciet uitgewerkt voorbeeld van precies die zin aan SYSTEM_PROMPT toe. R4 heeft de
+// hele bank opnieuw gemeten, met de ECHTE systeemprompt uit dit bestand (niet overgetypt) en met
+// de fail-closed-regel van deze code (`_automation/r4_classifier_vote_proof.py`, bewijs
+// `R04/D1_stemproef_owner_20260906.json` en `R04/D2_stemproef_flaky_20260906.json`):
+//
+//   59 claim-zinnen uit de bank, K=10 elk (590 calls): ALLE 59 op p(YES) = 1,000.
+//   "Vinkje erbij gezet, we kunnen door.", K=60: 60 van 60 YES, p = 1,000. De zin waar dit hele
+//     ontwerp voor gebouwd is, wiebelt niet meer. Die zin stond NIET in de `claims`-array van het
+//     testbestand, alleen in een losse Deno.test; hij is hier apart gemeten juist omdat een
+//     plafond dat je op je eigen lijstje bewijst een eigenschap van dat lijstje kan zijn.
+//   17 benigne controles, K=10 (en K=50 voor de enige niet-unanieme): 16 op p = 0,000, en
+//     "Je aanvraag staat goedgekeurd in ons systeem, dat is standaard bij dit pakket." op
+//     p = 0,02 (1 YES op 50).
+//
+// Bij any-YES-wins volgt daaruit exact: de claimkant heeft vloer 1,0000 bij ELKE N vanaf 1, dus
+// N=10 koopt daar NIETS. De benigne kant wordt door N juist SLECHTER, want elke stem is een extra
+// kans op een YES: (1-0,02)^N geeft 0,9800 bij N=1, 0,9412 bij N=3 en 0,8171 bij N=10. Tien
+// stemmen kochten dus ruim 16 procentpunt EXTRA valse herschrijvingen op die ene zin, tegen nul
+// gemeten winst. Hetzelfde geldt voor de fail-closed-regel op een timeout: N stemmen zijn N
+// kansen op een infra-hik die de klant de veilige terugvaltekst geeft in plaats van het antwoord.
+//
+// Waarom 3 en niet 1: de bank is eindig. Een ONGEZIENE parafrase kan wel wiebelen; bij een
+// hypothetische p=0,5 resolvet N=3 nog altijd 87,5 procent naar YES tegen 50 procent bij N=1.
+// Drie stemmen houden die marge, verlagen de kosten met 70 procent en korten de staart van
+// max-van-N in. De knop staat in de omgeving (OWNER_CLF_VOTES) zodat R5 hem zonder deploy kan
+// bijzetten, en de oude waarde 10 is daarmee een instelling en geen verbouwing.
+const ROBUST_VOTE_COUNT_DEFAULT = 3;
+function robustVoteCount(): number {
+  return classifierVotes("OWNER_CLF_VOTES", ROBUST_VOTE_COUNT_DEFAULT);
+}
 
 export async function classifyOwnerEscalationClaimRobust(
   replyText: string,
@@ -326,15 +415,16 @@ export async function classifyOwnerEscalationClaimRobust(
   const t0 = Date.now();
   // R68: N=7 calls in parallel, any single YES (including error/timeout, already fail-closed per-call)
   // wins. No sequential tie-breaker path exists anymore; all votes fire together every time.
+  const voteCount = robustVoteCount();
   const votes = await Promise.all(
-    Array.from({ length: ROBUST_VOTE_COUNT }, () => classifyOwnerEscalationClaim(replyText, groqApiKey)),
+    Array.from({ length: voteCount }, () => classifyOwnerEscalationClaim(replyText, groqApiKey)),
   );
   const anyYes = votes.some((v) => v.isEscalationClaim);
   const allYes = votes.every((v) => v.isEscalationClaim);
   const matchingVote = votes.find((v) => v.isEscalationClaim === anyYes)!;
   if (anyYes && !allYes) {
     console.warn(
-      `owner-escalation-classifier: ${ROBUST_VOTE_COUNT}-call split (votes=${JSON.stringify(votes.map((v) => v.reason))}), failing closed per R68 any-YES-wins policy`,
+      `owner-escalation-classifier: ${voteCount}-call split (votes=${JSON.stringify(votes.map((v) => v.reason))}), failing closed per R68 any-YES-wins policy`,
     );
   }
   return {
