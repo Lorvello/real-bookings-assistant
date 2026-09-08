@@ -1222,3 +1222,247 @@ Deno.test("R142: het veld weglaten reproduceert het oude gedrag byte-voor-byte",
     true,
   );
 });
+
+// R19: real R06PRE NB1/NB2/NB3 S10 wording. The old verb-only R142
+// caller reports false even though the customer explicitly asks for another time.
+for (const currentMessage of [
+  "kan ik ook nog ff een andere tijd, wo 4 uur?",
+  "kan ik een ander tijdstip krijgen?",
+  "ik wil graag een andere tijd",
+  "can I have a different time on Wednesday?",
+  "could we do another time?",
+]) {
+  Deno.test(`R19: existing appointment time change: ${currentMessage}`, () => {
+    const input = {
+      lastService: "Knippen", currentMessage,
+      allServiceNames: ["Knippen", "Kleuren"], returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: false, hasUpcomingBooking: true,
+    };
+    assertEquals(shouldBlockReturningServiceDefault(input), false);
+  });
+}
+for (const currentMessage of [
+  "een andere tijd voor een nieuwe afspraak",
+  "kan ik een andere tijd voor een nieuwe afspraak?",
+  "kan ik een andere tijd voor een tweede afspraak?",
+  "can I have a different time for a new appointment?",
+  "can I have another time for an extra appointment?",
+  "can I have a different time for another appointment?",
+  "ik wil geen andere tijd",
+  "kan ik niet op een andere tijd?",
+  "I don't want a different time",
+  "ik wil weer een afspraak",
+  "wat kost een afspraak op een andere tijd?",
+  "wo 4 uur?",
+  "de vorige keer was een andere tijd",
+]) {
+  Deno.test(`R19: retain service gate: ${currentMessage}`, () => {
+    const input = {
+      lastService: "Knippen", currentMessage,
+      allServiceNames: ["Knippen", "Kleuren"], returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: false, hasUpcomingBooking: true,
+    };
+    assertEquals(shouldBlockReturningServiceDefault(input), true);
+  });
+}
+for (const hasUpcomingBooking of [false, undefined]) {
+  Deno.test(`R19: time change needs upcoming booking evidence: ${hasUpcomingBooking}`, () => {
+    const input = {
+      lastService: "Knippen", currentMessage: "kan ik ook nog ff een andere tijd, wo 4 uur?",
+      allServiceNames: ["Knippen", "Kleuren"], returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: false, hasUpcomingBooking,
+    };
+    assertEquals(shouldBlockReturningServiceDefault(input), true);
+  });
+}
+
+// R19 FIX1: independent review found wildcard gaps before the time phrase.
+// Unknown extra content must fail closed, regardless of where it appears.
+for (const currentMessage of [
+  "kan ik nog een losse afspraak op een andere tijd boeken?",
+  "can I book one more appointment at a different time?",
+  "kan ik voor mijn dochter ook een afspraak op een andere tijd boeken?",
+  "kan ik mijn zoon een andere tijd geven?",
+  "can I give my friend a different time?",
+  "kan ik een andere tijd voor mijn dochter krijgen?",
+  "can I have a different time for my sister?",
+  "could we do another time for a separate appointment?",
+  "kan ik een andere tijd, en ook een afspraak voor mijn moeder?",
+  "can I have a different time on Wednesday for a colleague?",
+  "kan ik een andere tijd boeken?",
+  "kan ik graag een andere tijd en mijn huidige afspraak houden?",
+]) {
+  Deno.test(`R19 FIX1: retain service gate: ${currentMessage}`, () => {
+    const input = {
+      lastService: "Knippen", currentMessage,
+      allServiceNames: ["Knippen", "Kleuren"], returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: false, hasUpcomingBooking: true,
+    };
+    assertEquals(shouldBlockReturningServiceDefault(input), true);
+  });
+}
+for (const currentMessage of [
+  "kan ik een andere tijd, woensdag 16:00?",
+  "mag ik misschien een andere tijd morgen?",
+  "can I have a different time on Friday at 4 pm please?",
+  "I would like another time tomorrow",
+]) {
+  Deno.test(`R19 FIX1: ordinary time question: ${currentMessage}`, () => {
+    const input = {
+      lastService: "Knippen", currentMessage,
+      allServiceNames: ["Knippen", "Kleuren"], returningServiceConfirmed: false,
+      mutationIntentOnCurrentMessage: false, hasUpcomingBooking: true,
+    };
+    assertEquals(shouldBlockReturningServiceDefault(input), false);
+  });
+}
+
+
+// R23: exact recorded S21 catalog; aliases are part of configured names.
+import { findAmbiguousServiceChoice, ambiguousServiceChoiceReply, guardAmbiguousServiceTools } from "./serviceDisambiguationGuard.ts";
+const R23_NAMES = ["Balayage", "Kleuren (colour)", "Kleurspoeling (colour gloss)", "Knippen"];
+const R23_CHOICES = R23_NAMES.slice(1, 3);
+const R23_ASK = "hi can i book a colour wednesday";
+function r23Choice(currentMessage: string, recentInboundTexts: string[] = []) {
+  return findAmbiguousServiceChoice({ allServiceNames: R23_NAMES, currentMessage, recentInboundTexts });
+}
+Deno.test("R23 exact S21 shared parenthetical colour must clarify", () => {
+  assertEquals(r23Choice(R23_ASK), R23_CHOICES);
+  assertEquals(ambiguousServiceChoiceReply(r23Choice(R23_ASK), "het Engels"),
+    "Which service would you like: Kleuren (colour) or Kleurspoeling (colour gloss)?");
+  assertEquals(ambiguousServiceChoiceReply(R23_CHOICES, null),
+    "Welke dienst bedoel je: Kleuren (colour) of Kleurspoeling (colour gloss)?");
+});
+for (const name of ["colour gloss", "gloss", "Kleuren", "Kleurspoeling", ...R23_NAMES]) {
+  Deno.test(`R23 distinguishing or configured service resolves: ${name}`, () => {
+    assertEquals(r23Choice(`hi can i book ${name} wednesday`), null);
+    assertEquals(r23Choice(name, [R23_ASK]), null);
+    assertEquals(r23Choice("Wednesday at 10 please", [R23_ASK, name]), null);
+  });
+}
+for (const message of ["wednesday at 10 please", "ja graag", "10:00 graag", "morgen 16:00"]) {
+  Deno.test(`R23 unresolved short continuation retains service question: ${message}`, () => {
+    assertEquals(r23Choice(message, [R23_ASK]), R23_CHOICES);
+  });
+}
+Deno.test("R23 current ambiguous correction outranks previous explicit service", () => {
+  assertEquals(r23Choice("actually colour please", ["can i book Knippen"]), R23_CHOICES);
+  assertEquals(r23Choice("not colour gloss but just colour", [R23_ASK, "colour gloss"]), R23_CHOICES);
+  assertEquals(r23Choice("not colour but colour gloss", [R23_ASK]), null);
+});
+for (const message of [
+  "what does colour cost?", "what is the price to book colour?", "hoeveel kost colour?",
+  "cancel my colour appointment", "reschedule my colour appointment",
+  "ik wil mijn colour afspraak verzetten", "don't book colour", "ik wil geen afspraak boeken",
+  "thanks", "yes what is your address?", "can i book another appointment",
+  "what is colour?", "tell me about colour", "last time I had colour",
+]) {
+  Deno.test(`R23 unrelated or fresh request keeps existing path: ${message}`, () => {
+    assertEquals(r23Choice(message, [R23_ASK]), null);
+  });
+}
+Deno.test("R23 no match inside a word and catalog scope has no imported services", () => {
+  assertEquals(r23Choice("can i book discolouration"), null);
+  assertEquals(findAmbiguousServiceChoice({allServiceNames: ["Kleuren (colour)"], currentMessage: R23_ASK}), null);
+  assertEquals(findAmbiguousServiceChoice({allServiceNames: ["Massage", "Nagels"], currentMessage: R23_ASK}), null);
+  assertEquals(r23Choice("wednesday at 10", [R23_ASK, ...Array(6).fill("hello")]), null);
+});
+Deno.test("R23 production executor wrapper refuses primary and retry book/slot guesses", async () => {
+  const calls: Array<[string, Record<string, unknown>]> = [];
+  const execute = guardAmbiguousServiceTools(async (name, args) => {
+    calls.push([name, args]); return {original: true};
+  }, r23Choice(R23_ASK), "en");
+  for (const tool of ["get_available_slots", "book_appointment", "book_appointment"]) {
+    const out = await execute(tool, {service_type_id: "guessed", confirmed: true, only_confirming_previous: true}) as {error: string};
+    assertEquals(out.error, "kies_specifieke_dienst");
+  }
+  assertEquals(calls, []);
+  for (const tool of ["get_business_data", "get_my_appointments", "cancel_appointment", "reschedule_appointment"]) {
+    const args = {confirmed: false};
+    assertEquals(await execute(tool, args), {original: true});
+    assertEquals(calls.at(-1), [tool, args]);
+  }
+});
+Deno.test("R23 resolved wrapper delegates unchanged without granting confirmation", async () => {
+  const args = {service_type_id: "real", confirmed: false};
+  let received: unknown;
+  const execute = guardAmbiguousServiceTools(async (name, passed) => {
+    received = [name, passed]; return {error: "needs_confirmation"};
+  }, r23Choice("colour gloss", [R23_ASK]), null);
+  assertEquals(await execute("book_appointment", args), {error: "needs_confirmation"});
+  assertEquals(received, ["book_appointment", args]);
+  assertEquals(ambiguousServiceChoiceReply(null, null), null);
+});
+
+Deno.test("R23 FIX1 mixed booking/information keeps only booking clause's service", async () => {
+  for (const message of [
+    "hi can i book a colour wednesday? Also what does it cost?",
+    "I want to book colour Wednesday, and what is the price?",
+    "Ik wil colour boeken woensdag. Wat kost dat?",
+    "Can I book colour Wednesday and what is the price of gloss?",
+    "What is the price of gloss? Can I book colour Wednesday?",
+  ]) {
+    assertEquals(r23Choice(message), R23_CHOICES, message);
+    assertEquals(r23Choice("Wednesday at 10", [message]), R23_CHOICES, message);
+    let delegated = false;
+    const execute = guardAmbiguousServiceTools(async () => { delegated = true; return {}; }, r23Choice(message), "en");
+    await execute("book_appointment", { confirmed: true, service_type_id: "guessed" });
+    assertEquals(delegated, false, message);
+  }
+  for (const message of ["what is the price to book colour?", "How do I book colour?", "wat kost colour boeken?", "reschedule my colour appointment", "don't book colour"]) {
+    assertEquals(r23Choice(message, [R23_ASK]), null, message);
+  }
+});
+Deno.test("R23 FIX1 comparison polarity survives the following date reply", () => {
+  for (const [message, expected] of [
+    ["book colour gloss instead of colour on Wednesday", null],
+    ["can I book gloss rather than colour?", null],
+    ["gloss instead of colour", null],
+    ["colour instead of gloss", R23_CHOICES],
+    ["colour rather than gloss", R23_CHOICES],
+    ["gloss in plaats van colour", null],
+    ["colour in plaats van gloss", R23_CHOICES],
+    ["liever colour dan gloss", R23_CHOICES],
+    ["not colour but gloss", null],
+    ["colour, not gloss", R23_CHOICES],
+    ["rather than gloss, colour", R23_CHOICES],
+  ] as Array<[string, string[] | null]>) {
+    assertEquals(r23Choice(message, [R23_ASK]), expected, message);
+    assertEquals(r23Choice("Wednesday at 10", [R23_ASK, message]), expected, message);
+  }
+});
+
+import { findMissingSingleCalendarServiceChoice } from "./serviceDisambiguationGuard.ts";
+Deno.test("R38 positive/negative catalogue choices agree across service gates", () => {
+  const names = ["Knippen", "Kleuren", "Balayage"];
+  for (const currentMessage of [
+    "Geen Kleuren, Knippen graag. Zaterdag 10u kan? youssef",
+    "Knippen, niet Kleuren. Zaterdag 10u kan? youssef",
+    "Niet Kleuren maar Knippen op zaterdag om 10u, youssef",
+    "Knippen in plaats van Kleuren op zaterdag om 10u, youssef",
+    "Knippen instead of Kleuren on Saturday at 10, youssef",
+    "Knippen rather than Kleuren on Saturday at 10, youssef",
+    "no, keep it for Daan, no Knippen, Balayage instead",
+    "nee gewoon voor Daan, geen Knippen, liever Balayage",
+  ]) {
+    assertEquals(shouldBlockForMultiServiceRequest({allServiceNames:names,currentMessage}), null, currentMessage);
+    assertEquals(findMissingSingleCalendarServiceChoice({allServiceNames:names,currentMessage,recentInboundTexts:[]}), null, currentMessage);
+  }
+  for (const currentMessage of ["Knippen en Balayage, niet Kleuren", "geen Kleuren, Knippen and Balayage", "Knippen instead of Kleuren, and Balayage"]) {
+    assertEquals(shouldBlockForMultiServiceRequest({allServiceNames:names,currentMessage}), ["Knippen", "Balayage"], currentMessage);
+  }
+  for (const currentMessage of ["geen Knippen", "no Knippen", "niet Kleuren en Knippen"]) {
+    assertEquals(findMissingSingleCalendarServiceChoice({allServiceNames:names,currentMessage,recentInboundTexts:["Knippen"]}), names, currentMessage);
+  }
+});
+
+Deno.test("R38 FIX1 polarity stays in its sentence while later positive services survive", () => {
+  const allServiceNames = ["Knippen", "Kleuren", "Balayage"];
+  for (const boundary of [",", ".", ";", "!", "?"]) {
+    for (const currentMessage of [
+      `Knippen instead of Kleuren${boundary} and Balayage on Saturday at 10, youssef`,
+      `Knippen in plaats van Kleuren${boundary} Ook Balayage zaterdag 10u, youssef`,
+      `Geen Kleuren${boundary} Knippen en Balayage graag`,
+    ]) assertEquals(shouldBlockForMultiServiceRequest({allServiceNames,currentMessage}), ["Knippen", "Balayage"], currentMessage);
+  }
+});

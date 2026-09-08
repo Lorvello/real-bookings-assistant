@@ -26,6 +26,8 @@ import {
   isRealName as isRealNameShared,
   nameSuffix,
   previewTakeoverRisk,
+  freshTakeoverPreview,
+  boundTakeoverMarker,
   rescheduleIdentityConfirmedFresh,
   takeoverVerificationResolution,
 } from "./identityDisambiguationGuard.ts";
@@ -45,6 +47,7 @@ import {
   resolveAuthoritativePaymentPolicy,
 } from "../_shared/authoritativePaymentPolicy.ts";
 import { readFunctionInvokeFailure } from "../_shared/functionInvokeFailure.ts";
+import { isCancellationPolicyQuestion } from "./policyIntentGuard.ts";
 
 export interface ToolContext {
   calendarId: string; // the ENTRY calendar the webhook routed this customer to (default target)
@@ -1045,8 +1048,9 @@ export function formatHoursNL(hours: number): string {
 export async function getCalendarPolicy(
   supabase: SupabaseClient,
   calendarId: string,
+  requireKnownCancellationPolicy = false,
 ): Promise<CalendarPolicy> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("calendar_settings")
     .select(
       "allow_cancellations, cancellation_deadline_hours, max_bookings_per_day, booking_window_days, minimum_notice_hours",
@@ -1065,6 +1069,21 @@ export async function getCalendarPolicy(
   // numeric comparisons rather than relying on JS string→number coercion.
   const num = (v: number | string | null | undefined): number | null =>
     v == null ? null : Number.isFinite(Number(v)) ? Number(v) : null;
+  // Informational answers must not convert an unavailable/unknown policy into
+  // permissive defaults. Existing enforcement callers keep their current contract.
+  if (
+    requireKnownCancellationPolicy && (
+      error || !row || typeof row.allow_cancellations !== "boolean" ||
+      (row.allow_cancellations && (
+        !["number", "string"].includes(
+          typeof row.cancellation_deadline_hours,
+        ) ||
+        String(row.cancellation_deadline_hours).trim() === "" ||
+        num(row.cancellation_deadline_hours) == null ||
+        Number(row.cancellation_deadline_hours) < 0
+      ))
+    )
+  ) throw new Error("cancellation_policy_unavailable");
   return {
     allowCancellations: row?.allow_cancellations ?? true,
     cancellationDeadlineHours: num(row?.cancellation_deadline_hours),
@@ -1161,6 +1180,7 @@ export function createTools(
   supabase: SupabaseClient,
   ctx: ToolContext,
 ): { decls: ToolDecl[]; execute: ToolExecutor } {
+  const policyOnly = isCancellationPolicyQuestion(ctx.userMessage);
   const decls: ToolDecl[] = [
     {
       name: "get_business_data",
@@ -1534,6 +1554,10 @@ export function createTools(
   let lastSelfWrittenTakeoverVerifyAt: number | undefined;
 
   const execute: ToolExecutor = async (name, args) => {
+    // Schema filtering alone is not a trust boundary: a model may still emit an
+    // unadvertised tool. Route every attempt in a pure policy turn to the bounded
+    // read path BEFORE any conversation marker, contact or booking write.
+    if (policyOnly) name = "get_my_appointments";
     // R29 (RELATIVE-DATE-HINT-ENFORCE, real bug: R28 full-journey agent simulation): a bare
     // relative-weekday reference ("vrijdag", "vrijdag diezelfde week") in the customer's CURRENT
     // message can get resolved by the model against a STALE date already sitting in earlier
@@ -1597,7 +1621,7 @@ export function createTools(
       case "get_my_appointments": {
         // Read-only lookup of THIS customer's upcoming bookings. NO side effects (unlike using
         // cancel/reschedule as a lookup, which sets a pending_cancel marker, a mis-commit landmine).
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("bookings")
           .select(
             "start_time, status, calendar_id, service_types(name), customer_name",
@@ -1619,6 +1643,62 @@ export function createTools(
             customer_name?: string | null;
           }
         >) ?? [];
+        if (policyOnly) {
+          const unavailable = {
+            policy_only: true,
+            message: ctx.customerLocale === "en"
+              ? "I cannot retrieve the cancellation policy reliably right now. Please contact the business for the exact terms."
+              : "Ik kan het annuleringsbeleid nu niet betrouwbaar ophalen. Neem voor de exacte voorwaarden contact op met het bedrijf.",
+          };
+          if (error) return unavailable;
+          if (list.length !== 1) {
+            return {
+              policy_only: true,
+              message: ctx.customerLocale === "en"
+                ? (list.length
+                  ? "Which appointment is your cancellation policy question about?"
+                  : "Which staff member or location is your cancellation policy question about?")
+                : (list.length
+                  ? "Over welke afspraak wil je het annuleringsbeleid weten?"
+                  : "Bij welke medewerker of locatie wil je het annuleringsbeleid weten?"),
+            };
+          }
+          const target = list[0];
+          // Keep the bound owner's allowlist as the final trust boundary, even
+          // if an upstream read unexpectedly returns an out-of-scope row.
+          if (!ctx.calendars.some((c) => c.id === target.calendar_id)) {
+            return unavailable;
+          }
+          try {
+            const policy = await getCalendarPolicy(
+              supabase,
+              target.calendar_id,
+              true,
+            );
+            const hours = policy.cancellationDeadlineHours;
+            const en = ctx.customerLocale === "en";
+            return {
+              policy_only: true,
+              allow_cancellations: policy.allowCancellations,
+              ...(policy.allowCancellations
+                ? { cancellation_deadline_hours: hours }
+                : {}),
+              message: !policy.allowCancellations
+                ? (en
+                  ? "You cannot cancel this appointment via WhatsApp. Please contact the business."
+                  : "Deze afspraak kan niet via WhatsApp worden geannuleerd. Neem contact op met het bedrijf.")
+                : en
+                ? (hours! > 0
+                  ? `You can cancel this appointment free of charge up to ${hours} hours in advance.`
+                  : "You can cancel this appointment free of charge before its start time.")
+                : formatCancellationPolicyNL(policy),
+              guidance:
+                "Beantwoord alleen de beleidsvraag met deze termijn van de kalender van de afspraak. Annuleer of wijzig niets en vraag niet om identiteitsbevestiging. Verzin geen bedrag of terugbetaling buiten dit beleid.",
+            };
+          } catch {
+            return unavailable;
+          }
+        }
         if (list.length === 0) {
           return {
             appointments: [],
@@ -1842,6 +1922,52 @@ export function createTools(
         if (!refused && first && !looksLikeName(first)) {
           return { ok: true };
         }
+        // R28: read BEFORE either identity write. A proposed booking participant
+        // does not establish who owns this phone, even after named verification.
+        let leadContext: Record<string, unknown> = {};
+        if (ctx.conversationId) {
+          const { data: conv, error: readError } = await supabase
+            .from("whatsapp_conversations").select("context")
+            .eq("id", ctx.conversationId).maybeSingle();
+          if (readError || !conv) return { error: "gesprek_niet_beschikbaar" };
+          leadContext = (conv as { context?: Record<string, unknown> }).context ?? {};
+        }
+        const identityPreview = freshTakeoverPreview(leadContext);
+        if (identityPreview && !ctx.calendars.some(c => c.id === identityPreview.calendar_id)) {
+          return { error: "agenda_niet_toegestaan" };
+        }
+        const activeTakeover = boundTakeoverMarker(leadContext);
+        // FIX1: returning to the original participant is still an appointment
+        // answer, not evidence of the phone owner's identity. Do not backfill a
+        // previously NULL contact/context or reach R118 on this route.
+        if (!refused && first && identityPreview &&
+            (activeTakeover || identityPreview.verified_participant_name) &&
+            first.toLowerCase() === identityPreview.originator_name.toLowerCase()) {
+          return { ok: true, participant_only: true, booking_renamed: false,
+            message: "The original appointment participant is retained. No sender identity or existing booking was changed." };
+        }
+        if (!refused && first && identityPreview &&
+            previewTakeoverRisk(identityPreview.originator_name, first, ctx.userMessage)) {
+          if (identityPreview.customer_name === first && identityPreview.verified_participant_name === first) {
+            return { ok: true, participant_only: true, booking_renamed: false };
+          }
+          const prior = boundTakeoverMarker(leadContext);
+          // Repeated update_lead must not re-stamp a prior-turn marker and make
+          // book_appointment mistake the customer's actual answer for a self-write.
+          if (!prior || prior.proposed_name !== first) {
+            const at = Date.now();
+            lastSelfWrittenTakeoverVerifyAt = at;
+            const { start_time, originator_name, service_type_id, calendar_id, end_time } = identityPreview;
+            const marker = { start_time, originator_name, service_type_id, calendar_id, end_time, proposed_name: first, at };
+            const { error: markerError } = await supabase.from("whatsapp_conversations")
+              .update({ context: { ...leadContext, pending_book_takeover_verification: marker } })
+              .eq("id", ctx.conversationId);
+            if (markerError) return { error: markerError.message };
+          }
+          return { error: "naam_verificatie_nodig", current_name: identityPreview.originator_name,
+            proposed_name: first, booking_renamed: false,
+            message: "The proposed participant is stored for this appointment only. No contact or booking changed. Ask whether this appointment should be for the proposed participant instead of the original person." };
+        }
         // Keep the global contacts row updated for the dashboard contacts list (display only).
         const update: Record<string, unknown> = {
           first_name: first || "Privé",
@@ -1859,14 +1985,7 @@ export function createTools(
         // declined "Privé" apart from a premature placeholder.
         let priorBookingName: string | null = null;
         if (ctx.conversationId) {
-          const { data: conv } = await supabase
-            .from("whatsapp_conversations").select("context").eq(
-              "id",
-              ctx.conversationId,
-            ).maybeSingle();
-          const context =
-            ((conv as { context?: Record<string, unknown> } | null)?.context) ??
-              {};
+          const context = leadContext;
           priorBookingName = typeof context.booking_name === "string"
             ? context.booking_name.trim()
             : null;
@@ -2029,6 +2148,7 @@ export function createTools(
             at?: number;
             originator_name?: string | null;
             preview_price?: number | null;
+            verified_participant_name?: string | null;
           } | undefined;
           const clearPendingBook = async () => {
             if (!ctx.conversationId) return;
@@ -2071,10 +2191,7 @@ export function createTools(
               proposed_name?: string | null;
               at?: number;
             } | undefined;
-          const pendingTakeoverVerificationFresh =
-            !!pendingTakeoverVerification &&
-            (typeof pendingTakeoverVerification.at !== "number" ||
-              (Date.now() - pendingTakeoverVerification.at) < 15 * 60 * 1000);
+          const pendingTakeoverVerificationFresh = !!boundTakeoverMarker(bookCtx);
           // R25 (AFFIRM-CONFIRM-COVERAGE-GAP-NAME, sev-3): a name-correction stated on the SAME
           // turn as the confirmation ("Klopt, maar dan voor Iris" on a Dana preview) was silently
           // swallowed: the commit always sourced customer_name from the STORED pendingBook proposal
@@ -3048,7 +3165,8 @@ export function createTools(
             pendingTakeoverVerification.at === lastSelfWrittenTakeoverVerifyAt;
           let takeoverJustConfirmed = false;
           if (
-            pendingTakeoverVerificationFresh &&
+            pendingTakeoverVerification && pendingTakeoverVerificationFresh &&
+            !argsRestatesDifferentSlot &&
             !takeoverVerificationIsSelfWritten &&
             pendingTakeoverVerification?.start_time ===
               pendingBook?.start_time &&
@@ -3083,6 +3201,7 @@ export function createTools(
                 needs_confirmation: true,
                 start_time: pendingBook!.start_time,
                 proposal: {
+                  when: nlWhen(String(pendingBook!.start_time)),
                   customer_name: pendingTakeoverVerification.originator_name,
                 },
                 message:
@@ -3172,6 +3291,9 @@ export function createTools(
                     pending_book_takeover_verification: {
                       start_time: pendingBook!.start_time,
                       originator_name: pendingBook!.originator_name,
+                      service_type_id: pendingBook!.service_type_id,
+                      calendar_id: pendingBook!.calendar_id,
+                      end_time: pendingBook!.end_time,
                       proposed_name: args.customer_name,
                       at: verifyAt,
                     },
@@ -3471,6 +3593,10 @@ export function createTools(
                     customer_locale: ctx.customerLocale ?? "nl",
                     at: previewAt,
                     originator_name: originatorName,
+                    verified_participant_name: takeoverJustConfirmed
+                      ? customerName
+                      : (!argsRestatesDifferentSlot && pendingBook?.customer_name === customerName
+                        ? pendingBook?.verified_participant_name ?? null : null),
                     preview_price: previewPrice,
                   },
                 },
@@ -6137,5 +6263,14 @@ export function createTools(
     }
   };
 
-  return { decls, execute };
+  return {
+    decls: policyOnly
+      ? decls.filter((d) => d.name === "get_my_appointments").map((d) => ({
+        ...d,
+        description:
+          "ALLEEN LEZEN: beantwoord de huidige annuleringsbeleidsvraag. Lees de termijn van de kalender van de afspraak van deze klant. Annuleert of wijzigt niets.",
+      }))
+      : decls,
+    execute,
+  };
 }

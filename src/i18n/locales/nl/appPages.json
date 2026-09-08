@@ -390,7 +390,9 @@
       "loadFailed": "Kan WhatsApp-instellingen niet laden"
     },
     "userIdRequired": "Gebruikers-ID is vereist",
-    "notLoggedIn": "Niet ingelogd"
+    "notLoggedIn": "Niet ingelogd",
+    "activationNotice": "Een QR-code activeert de assistent niet. Controleer of WhatsApp aanstaat voor de bedoelde agenda en test je link voordat je hem deelt.",
+    "reviewActivation": "Activatie bekijken"
   },
   "profilePage": {
     "header": {

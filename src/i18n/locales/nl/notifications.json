@@ -635,7 +635,9 @@
     "activatedDescription": "Je bot is nu actief en reageert op berichten",
     "pausedDescription": "Je bot is gepauzeerd",
     "errorTitle": "Fout bij wijzigen botstatus",
-    "unknownError": "Onbekende fout"
+    "unknownError": "Onbekende fout",
+    "savedForCalendar": "De instelling is opgeslagen voor deze agenda.",
+    "saveFailed": "De instelling kon niet worden opgeslagen. Controleer de status en probeer opnieuw."
   },
   "errorHandler": {
     "title": "Fout",

@@ -233,7 +233,7 @@ export function shouldBlockForMultiServiceRequest(input: {
     if (!trimmed) continue;
     const norm = normServiceName(trimmed);
     if (seen.has(norm)) continue; // same service configured on 2+ calendars: count once
-    if (mentionsServiceNameStrictAgainst(currentMessage, trimmed, allServiceNames)) {
+    if (mentionsServiceNameStrictAgainst(positiveServiceChoice(currentMessage), trimmed, allServiceNames)) {
       seen.add(norm);
       matched.push(trimmed);
     }
@@ -547,6 +547,9 @@ export interface ReturningServiceDefaultInput {
   // bij. Optioneel en additief: het veld weglaten reproduceert het gedrag van voor R142
   // byte-voor-byte, zodat elke bestaande R111/R118-test ongewijzigd blijft gelden.
   mutationIntentOnCurrentMessage?: boolean;
+  // R19: evidence from the caller's existing phone + entry-calendar scoped query.
+  // Historical lastService alone does not prove there is an appointment to change.
+  hasUpcomingBooking?: boolean;
 }
 
 // CODE-REVIEW FIX (found during this guard's own live testing, S6 testpad): the generic
@@ -596,6 +599,26 @@ function mentionsServiceNameStrict(text: string, allServiceNames: string[]): boo
   return false;
 }
 
+// R19: "een andere tijd" has no reschedule verb (R06PRE S10). This
+// recognizes only a positive request to change time, not a new/second booking.
+// Deliberately local to the service-assumption gate: it grants no identity or
+// mutation confirmation and must never broaden RESCHEDULE_VERB_RE.
+function asksForDifferentAppointmentTime(message: string): boolean {
+  // Whole-message positive grammar: arbitrary content before OR after "another
+  // time" can be a request for an additional booking or a different person.
+  // Unknown wording therefore retains the service gate rather than expanding an
+  // ever-growing exclusion dictionary. This does not resolve a date or a target.
+  const request = message.trim().match(
+    /^(?:(?:kan|kun|mag)\s+(?:ik|je|jij|u)|ik\s+(?:wil|wou)|(?:can|could)\s+(?:i|we|you)|i\s+would\s+like)\s+(?:(?:ook|nog|ff|even|graag|misschien|liever|dan|have|do|please)\s+)*(?:(?:een\s+)?(?:andere\s+tijd|ander\s+tijdstip)|(?:a\s+)?different\s+time|another\s+time)\b(.*)$/i,
+  );
+  if (!request) return false;
+  // Only optional courtesy and date/time words may follow. Booking, person and
+  // additional-clause language cannot slip through an unrestricted suffix.
+  const tail = request[1].toLowerCase().replace(/[,.?!]/g, " ").trim();
+  const timeWord = /^(?:\d{1,4}(?::\d{2})?(?:u|h|am|pm)?|op|om|on|at|uur|u|am|pm|krijgen|please|alsjeblieft|vandaag|morgen|overmorgen|today|tomorrow|deze|volgende|this|next|week|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|ma|di|wo|do|vr|za|zo|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)$/;
+  return !tail || tail.split(/\s+/).every((word) => timeWord.test(word));
+}
+
 export function shouldBlockReturningServiceDefault(input: ReturningServiceDefaultInput): boolean {
   const { lastService, currentMessage, allServiceNames, returningServiceConfirmed, recentInboundTexts, mutationIntentOnCurrentMessage } = input;
   if (!lastService || !lastService.trim()) return false; // no history: not a returning customer
@@ -609,6 +632,7 @@ export function shouldBlockReturningServiceDefault(input: ReturningServiceDefaul
   // die de klant vroeg ("ik wil mn afspraak annuleren" kreeg "Ik ga uit van dezelfde dienst als de
   // vorige keer, Knippen, klopt dat?", vier metingen op rij, en de annulering kwam nooit).
   if (mutationIntentOnCurrentMessage) return false;
+  if (input.hasUpcomingBooking === true && asksForDifferentAppointmentTime(currentMessage)) return false;
   // A customer who names ANY real configured service themselves (including the returning one)
   // has resolved the ambiguity; nothing to silently assume.
   if (mentionsServiceNameStrict(currentMessage, allServiceNames)) return false;
@@ -733,4 +757,216 @@ export function enforceReturningServiceDisclosure(
   // used by the gate itself), so trust it rather than second-guess correct model output.
   if (mentionsServiceNameStrict(replyText, allServiceNames)) return replyText;
   return BEVESTIG_TERUGKERENDE_DIENST_CUSTOMER_MESSAGE(lastService);
+}
+
+// R23 (launch-run S21): a shared word in ONE calendar is not a service choice.
+// Names are supplied only from the caller's entry-calendar catalog. Parenthetical
+// aliases participate as words, not privileged exact matches: "colour" also occurs
+// in "colour gloss". This does not replace the existing multi-calendar guards.
+export interface AmbiguousServiceChoiceInput {
+  allServiceNames: string[];
+  currentMessage: string;
+  recentInboundTexts?: string[]; // same conversation, oldest first; at most six used
+}
+const serviceWords = (text: string): string[] =>
+  text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+const servicePhrase = (text: string): string => serviceWords(text).join(" ");
+const includesServicePhrase = (text: string, phrase: string): boolean =>
+  !!phrase && ` ${text} `.includes(` ${phrase} `);
+const SERVICE_BOOKING_REQUEST = /\b(book|boeken|boeking|inplannen|afspraak\s+(?:maken|plannen)|reserve|reserveren)\b/i;
+const SERVICE_OTHER_INTENT = /\b(cancel\w*|annuleer\w*|annuler\w*|afzeg\w*|reschedul\w*|verzet\w*|verplaats\w*|cost\w*|price\w*|kost\w*|prijs\w*|opening\w*|hours|refund\w*|terugbeta\w*)\b/i;
+const SERVICE_NEGATIVE_REQUEST = /\b(?:don['’]?t|do\s+not|niet|geen)\s+(?:want\s+to\s+)?(?:book|boeken|inplannen|afspraak)\b/i;
+const SERVICE_CONTINUATION = /^(?:(?:(?:yes|ja|please|graag|dan|om|op|at|on|woensdag|wednesday|morgen|tomorrow|maandag|monday|dinsdag|tuesday|donderdag|thursday|vrijdag|friday|zaterdag|saturday|zondag|sunday|uur|am|pm)|\d{1,4}(?::\d{2})?)(?:[\s,.!?]+|$))+$/i;
+
+// Booking and information may coexist. Only the clause that actually asks to
+// book supplies the service choice; a later price question cannot exempt it or
+// lend it a different service name. A price/how question ABOUT booking is not a
+// booking request merely because it contains the verb "book".
+function serviceBookingClauses(message: string): string[] {
+  return message.split(/[.!?;]+|,\s*|\b(?:and|en)\s+(?=(?:what|how|wat|hoe|hoeveel)\b)/i)
+    .filter((clause) => {
+      const bookingAt = clause.search(SERVICE_BOOKING_REQUEST);
+      return bookingAt >= 0 && !SERVICE_NEGATIVE_REQUEST.test(clause) &&
+        !/\b(?:cancel\w*|annuleer\w*|annuler\w*|afzeg\w*|reschedul\w*|verzet\w*|verplaats\w*)\b/i.test(clause) &&
+        !/\b(?:cost\w*|price\w*|kost\w*|prijs\w*|what|how|wat|hoe|hoeveel)\b/i.test(clause.slice(0, bookingAt));
+    });
+}
+
+function positiveServiceChoice(message: string): string {
+  // Polarity never crosses a sentence boundary. Resolve each sentence first,
+  // then aggregate its positive catalogue mentions: a comparison or rejection
+  // in sentence one cannot erase an additional service in sentence two.
+  return message.split(/[.!?;]+/).map(positiveServiceSentence).join(" ");
+}
+
+function positiveServiceSentence(message: string): string {
+  // Comparisons reject their right-hand service; a fronted comparison rejects
+  // only its first clause ("instead of X, Y"). A trailing "instead" is not a
+  // separator: "Y instead" still chooses Y. Keep this shared by both the
+  // compound-service and missing/ambiguous-choice gates.
+  const comparison = /\b(?:instead\s+of|rather\s+than|in\s+plaats\s+van)\b/i.exec(message);
+  if (comparison) {
+    const before = message.slice(0, comparison.index).trim();
+    const afterRejectedClause = message.slice(comparison.index + comparison[0].length)
+      .split(/,|\b(?:i\s+want|ik\s+wil)\b/i).slice(1).join(" ");
+    message = [before, afterRejectedClause].filter(Boolean).join(", ");
+  }
+  if (/^\s*(?:liever|rather)\b/i.test(message)) {
+    message = message.split(/\b(?:dan|than)\b/i)[0];
+  }
+  // A contrast explicitly replaces the preceding choice. Plain conjunctions
+  // remain, so two positive catalogue services still require clarification.
+  message = message.split(/\b(?:maar|but|alleen|just|liever|actually)\b/i).at(-1) ?? message;
+  return message.split(/,+/).map((clause) =>
+    // Negation belongs to this clause, never to the entire customer message.
+    // Thus "no X, Y instead" retains Y while "X, not Y" retains X.
+    clause.split(/\b(?:not|niet|geen|no|don['’]?t)\b/i)[0]
+  ).join(" ");
+}
+
+export function findAmbiguousServiceChoice(input: AmbiguousServiceChoiceInput): string[] | null {
+  const names = [...new Set(input.allServiceNames.map((name) => name.trim()).filter(Boolean))];
+  if (names.length < 2) return null;
+  const current = input.currentMessage.trim();
+  const bookingClauses = serviceBookingClauses(current);
+  const bookingNow = bookingClauses.length > 0;
+  if (!bookingNow && (SERVICE_OTHER_INTENT.test(current) || SERVICE_NEGATIVE_REQUEST.test(current))) return null;
+  const history = (input.recentInboundTexts ?? []).slice(-6);
+  const bookingBefore = history.some((text) => serviceBookingClauses(text).length > 0);
+  if (!bookingNow && !bookingBefore) return null;
+
+  const match = (message: string): { mentioned: boolean; ambiguous: string[] | null } => {
+    // A positive correction after a contrast outranks the service being rejected.
+    const positive = positiveServiceChoice(message);
+    const text = servicePhrase(positive);
+    const candidates = names.filter((name) => serviceWords(name).some((word) =>
+      word.length >= 3 && !GENERIC_NAME_WORDS.has(word) && includesServicePhrase(text, word)
+    ));
+    if (candidates.length < 2) return { mentioned: candidates.length > 0, ambiguous: null };
+    const exact = candidates.filter((name) =>
+      includesServicePhrase(text, servicePhrase(name)) ||
+      includesServicePhrase(text, servicePhrase(name.split("(")[0]))
+    );
+    // Longer full names subsume a shorter name mentioned only as their prefix.
+    const independentExact = exact.filter((name) => !exact.some((other) =>
+      other !== name && includesServicePhrase(servicePhrase(other), servicePhrase(name))
+    ));
+    if (independentExact.length === 1) return { mentioned: true, ambiguous: null };
+    const distinctive = candidates.filter((name) => serviceWords(name).some((word) =>
+      word.length >= 3 && !GENERIC_NAME_WORDS.has(word) && includesServicePhrase(text, word) &&
+      !names.some((other) => other !== name && serviceWords(other).includes(word))
+    ));
+    return { mentioned: true, ambiguous: distinctive.length === 1 ? null : candidates };
+  };
+  // A past booking request does not turn later questions ABOUT a service into
+  // booking intent. Only a bounded choice/date reply may continue that flow.
+  const choiceWords = new Set(names.flatMap(serviceWords));
+  const choiceFiller = /^(?:i|ik|would|like|wil|want|have|can|could|please|graag|the|de|het|a|een|not|niet|no|nee|maar|but|instead|rather|of|than|in|plaats|van|dan|alleen|just|liever|actually)$/;
+  const isChoiceReply = (text: string): boolean => serviceWords(text).every((word) =>
+    choiceWords.has(word) || choiceFiller.test(word) || SERVICE_CONTINUATION.test(word)
+  );
+  const now = match(bookingNow ? bookingClauses.join(" ") : current);
+  if (now.mentioned) return bookingNow || isChoiceReply(current) ? now.ambiguous : null;
+  // Fresh requests without a service and unrelated messages never inherit old ambiguity.
+  if (bookingNow || !SERVICE_CONTINUATION.test(current)) return null;
+  for (const prior of history.slice().reverse()) {
+    const priorBooking = serviceBookingClauses(prior);
+    if (!priorBooking.length && (SERVICE_OTHER_INTENT.test(prior) || SERVICE_NEGATIVE_REQUEST.test(prior))) return null;
+    const previous = match(priorBooking.length ? priorBooking.join(" ") : prior);
+    if (previous.mentioned && (priorBooking.length > 0 || isChoiceReply(prior))) return previous.ambiguous;
+    if (priorBooking.length) return null;
+  }
+  return null;
+}
+
+// R27 S29: one calendar can still require a service choice. A model-supplied
+// service UUID is not evidence that the customer selected it. This boundary is
+// consumed only by slot/new-booking tools; other intents retain their own gates.
+export function findMissingSingleCalendarServiceChoice(input: {
+  allServiceNames: string[];
+  currentMessage: string;
+  recentInboundTexts: string[]; // oldest first, within this conversation
+  confirmedServiceName?: string | null;
+  // Existing confirmed returning/preview evidence, positioned after the user
+  // message which confirmed it. -1 means it predates the available history.
+  confirmationAfterInboundIndex?: number;
+  confirmedThisTurn?: boolean;
+}): string[] | null {
+  const names = [...new Set(input.allServiceNames.map((name) => name.trim()).filter(Boolean))];
+  if (names.length < 2) return null;
+  const mentioned = (text: string): string[] => names.filter((name) => {
+    if (text.toLowerCase().includes(name.toLowerCase())) return true;
+    return [...distinguishingWordsFor(name, names)].some((word) =>
+      new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text)
+    );
+  });
+  const confirmedName = names.find((name) =>
+    name.toLowerCase() === input.confirmedServiceName?.trim().toLowerCase()
+  );
+  let selected = new Set(confirmedName ? [confirmedName] : []);
+  const messages = [...input.recentInboundTexts, input.currentMessage];
+  for (let index = 0; index < messages.length; index++) {
+    // Process clauses in spoken order. New attempts and withdrawals close the
+    // previous selection; a later positive choice can open the new one.
+    for (const clause of messages[index].split(/[.!?;,]+|\b(?:maar|but)\b(?=\s*(?:ik|i|liever|rather|wel|instead)\b)/i)) {
+      if (/\b(?:laat\b.{0,60}\b(?:zitten|vallen)|laat maar|forget (?:that|it)|never mind|nevermind)\b/i.test(clause)) {
+        selected.clear();
+        continue;
+      }
+      if (/\b(?:(?:nieuwe|extra|tweede|andere)\s+(?:afspraak|boeking)|(?:new|extra|another|second)\s+(?:appointment|booking)|(?:nog|ook)\s+(?:een\s+)?afspraak)\b/i.test(clause)) {
+        selected.clear();
+      }
+      const bookingClauses = serviceBookingClauses(clause);
+      if (!bookingClauses.length && SERVICE_OTHER_INTENT.test(clause)) continue;
+      const source = bookingClauses.length ? bookingClauses.join(" ") : clause;
+      const negativeTail = /\b(?:geen|niet|not|no)\b(.*)/i.exec(source)?.[1];
+      if (negativeTail) for (const name of mentioned(negativeTail)) selected.delete(name);
+      if (!bookingClauses.length && SERVICE_NEGATIVE_REQUEST.test(clause)) continue;
+      // Keep the existing positive correction/comparison grammar. Here 'geen'
+      // is the same catalog negation as 'niet'; it never supplies positive proof.
+      const positive = mentioned(positiveServiceChoice(source.replace(/\b(?:geen|no)\b/gi, "niet")));
+      if (positive.length) selected = new Set(positive);
+    }
+    if (confirmedName && index === input.confirmationAfterInboundIndex) selected = new Set([confirmedName]);
+  }
+  if (confirmedName && input.confirmedThisTurn) selected = new Set([confirmedName]);
+  return selected.size ? null : names;
+}
+
+// The tool boundary above applies regardless of the model's guess. Its prose
+// backstop is narrower: a booking/date request or a genuine answer to our open
+// service question. Reuses the existing date and confirmation decisions.
+export function needsMissingServiceChoiceReply(input: {
+  currentMessage: string;
+  lastAssistantMessage: string;
+  hasDateHint: boolean;
+  hardConfirm: boolean;
+}): boolean {
+  const bookingNow = serviceBookingClauses(input.currentMessage).length > 0;
+  if (!bookingNow && (SERVICE_OTHER_INTENT.test(input.currentMessage) || SERVICE_NEGATIVE_REQUEST.test(input.currentMessage))) return false;
+  return bookingNow || input.hasDateHint || (input.hardConfirm &&
+    /\b(?:welke|which|what)\s+(?:dienst|behandeling|service|treatment)\b/i.test(input.lastAssistantMessage));
+}
+
+export function ambiguousServiceChoiceReply(choices: string[] | null, language: string | null): string | null {
+  if (!choices || choices.length < 2) return null;
+  const joined = `${choices.slice(0, -1).join(", ")} ${language != null ? "or" : "of"} ${choices.at(-1)}`;
+  return language != null ? `Which service would you like: ${joined}?` : `Welke dienst bedoel je: ${joined}?`;
+}
+
+// Wrap the actual per-request executor ONCE, reused by primary and retry calls.
+// No guessed IDs reach the slot or booking path, including confirmed:true attempts.
+// Read-only business/appointment queries and existing-booking mutations keep their gates.
+export function guardAmbiguousServiceTools(
+  execute: (name: string, args: Record<string, unknown>) => Promise<unknown>,
+  choices: string[] | null,
+  language: string | null,
+): (name: string, args: Record<string, unknown>) => Promise<unknown> {
+  const customerReply = ambiguousServiceChoiceReply(choices, language);
+  return (name, args) => {
+    if (customerReply && (name === "get_available_slots" || name === "book_appointment")) {
+      return Promise.resolve({ error: "kies_specifieke_dienst", message: customerReply, customer_reply: customerReply });
+    }
+    return execute(name, args);
+  };
 }

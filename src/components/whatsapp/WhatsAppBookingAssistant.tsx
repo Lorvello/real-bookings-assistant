@@ -7,6 +7,7 @@ import { WhatsAppWelcomeMessage } from '@/components/whatsapp/WhatsAppWelcomeMes
 import { supabase } from '@/integrations/supabase/client';
 import QRCodeSVG from 'react-qr-code';
 import { Download, Copy, Check, QrCode } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 interface WhatsAppBookingAssistantProps {
@@ -112,6 +113,12 @@ export function WhatsAppBookingAssistant({ userId }: WhatsAppBookingAssistantPro
 
   return (
     <div className="max-w-[1400px] mx-auto fade-up">
+      <p className="mb-6 text-sm leading-6 text-muted-foreground">
+        {t('waPage.activationNotice', 'A QR code does not activate the assistant. Check that WhatsApp is enabled for the intended calendar, then test your link before sharing it.')}{' '}
+        <Link to="/settings?tab=operations" className="text-accent-foreground underline underline-offset-4">
+          {t('waPage.reviewActivation', 'Review activation')}
+        </Link>
+      </p>
       {/* Main Grid: 70/30 split */}
       <div className="grid lg:grid-cols-[70%_30%] gap-6">
         

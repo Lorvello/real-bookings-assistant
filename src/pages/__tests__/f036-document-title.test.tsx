@@ -19,7 +19,7 @@ const successMocks = vi.hoisted(() => ({
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
-    auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'title-test-token' } }, error: null }) },
+    auth: { getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'title-test-token', user: { id: 'title-test-owner' } } }, error: null }) },
     functions: {
       invoke: vi.fn().mockResolvedValue({
         data: {
@@ -35,6 +35,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 vi.mock('@/contexts/UserStatusContext', () => ({ useUserStatus: () => ({ invalidateCache: successMocks.invalidateCache }) }));
 vi.mock('@/hooks/useProfile', () => ({ useProfile: () => ({ refetch: successMocks.refetchProfile }) }));
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: { id: 'title-test-owner' }, loading: false }) }));
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
 
 import Success from '@/pages/Success';

@@ -44,6 +44,16 @@ export interface LanguageSignal {
   confidentDutch: boolean;
 }
 
+// A short scheduling clause can carry two meaningful signals even when the stopword
+// list sees only one: "thursday 2pm works" / "donderdag 14:00 past". Require a
+// temporal reference directly followed by acceptance, never "works", a name, a
+// service or a clock alone. This is language evidence, not booking confirmation.
+const ACCEPTANCE_CLOCK = String.raw`(?:(?:[01]?\d|2[0-3])[:.][0-5]\d(?:\s*(?:uur|u))?|(?:0?[1-9]|1[0-2])(?::[0-5]\d)?\s*[ap]\.?m\.?|(?:[01]?\d|2[0-3])\s*(?:uur|u))`;
+const SCHEDULE_ACCEPTANCE: Record<string, RegExp> = {
+  en: new RegExp(String.raw`(?<![\p{L}\p{N}:.])(?:(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow)(?:\s+(?:at\s+)?${ACCEPTANCE_CLOCK})?|${ACCEPTANCE_CLOCK})\s+(?:works|is fine|is good)(?!\p{L})`, "u"),
+  nl: new RegExp(String.raw`(?<![\p{L}\p{N}:.])(?:(?:maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|vandaag|morgen)(?:\s+(?:om\s+)?${ACCEPTANCE_CLOCK})?|${ACCEPTANCE_CLOCK})\s+(?:past|schikt|is goed|kan)(?!\p{L})`, "u"),
+};
+
 export function detectLanguageSignal(msg: string): LanguageSignal {
   const text = (msg || "").toLowerCase();
   // Strip diacritics for word matching so casual accent-less typing still scores ("ola"≈"olá",
@@ -56,6 +66,9 @@ export function detectLanguageSignal(msg: string): LanguageSignal {
     let s = 0;
     for (const w of words) if (tokens.has(strip(w))) s++;
     scores[lang] = s;
+  }
+  for (const [lang, pattern] of Object.entries(SCHEDULE_ACCEPTANCE)) {
+    if (pattern.test(text)) scores[lang] = Math.max(scores[lang], 2);
   }
   if (/[ß]/.test(text)) scores.de += 2;
   if (/[äöü]/.test(text)) scores.de += 1;

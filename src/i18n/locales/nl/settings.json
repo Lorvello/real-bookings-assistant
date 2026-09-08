@@ -1358,6 +1358,22 @@
       },
       "howPaymentsWork": "Hoe betalingen werken",
       "ownerOnly": "Alleen accounteigenaren kunnen betaalinstellingen beheren. Neem contact op met je accounteigenaar om Stripe Connect en betaalopties in te stellen."
+    },
+    "calendarBot": {
+      "title": "Assistent voor deze agenda",
+      "scope": "Kies hierboven een agenda en controleer de opgeslagen WhatsApp-instelling.",
+      "label": "WhatsApp voor {{calendar}}",
+      "selected": "gekozen agenda",
+      "description": "Deze schakelaar wijzigt alleen deze agenda. Zet hem aan zodra je diensten en openingstijden klaarstaan. Uitzetten pauzeert de antwoorden voor deze agenda.",
+      "select": "Kies eerst een agenda.",
+      "loading": "Opgeslagen status controleren…",
+      "saving": "Opslaan…",
+      "unavailable": "De opgeslagen status is niet beschikbaar. Laad deze opnieuw voordat je iets wijzigt.",
+      "access": "WhatsApp vereist een geschikt abonnement of proefperiode. Je opgeslagen keuze blijft behouden.",
+      "on": "Ingeschakeld voor deze agenda. Test je WhatsApp-link voordat je hem deelt.",
+      "off": "Gepauzeerd voor deze agenda. De assistent antwoordt niet.",
+      "failed": "De wijziging kon niet worden opgeslagen. Controleer de status en probeer opnieuw.",
+      "reload": "Status opnieuw laden"
     }
   }
 }

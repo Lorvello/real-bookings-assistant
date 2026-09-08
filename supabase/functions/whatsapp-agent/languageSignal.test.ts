@@ -47,3 +47,43 @@ Deno.test("a short but real Dutch phrase (>=2 NL signal words) still counts as c
   assertEquals(sig.confidentDutch, true);
   assertEquals(sig.nonDutch, null);
 });
+
+Deno.test("R22 S24: short English scheduling acceptance carries a real language signal", () => {
+  assertEquals(detectLanguageSignal("hoi kan ik do een balayage boeken?"), {
+    nonDutch: null, confidentDutch: true,
+  });
+  for (const msg of [
+    "thursday 2pm works, Emma Visser", "Thursday works", "saturday works",
+    "sunday 14:00 works", "tomorrow works", "today works", "2pm works",
+    "2:30 p.m. works", "14:00 works", "Friday is fine", "Sunday is good",
+  ]) {
+    assertEquals(detectLanguageSignal(msg), { nonDutch: "het Engels", confidentDutch: false }, msg);
+  }
+});
+
+Deno.test("R22: short Dutch scheduling acceptance can clear a stale English thread", () => {
+  for (const msg of [
+    "donderdag 14:00 past, Emma Visser", "woensdag past", "vrijdag schikt",
+    "zaterdag 14 uur kan", "zondag is goed", "vandaag past", "morgen schikt",
+    "14:00 past", "14u schikt", "maandag is goed", "dinsdag past",
+  ]) {
+    assertEquals(detectLanguageSignal(msg), { nonDutch: null, confidentDutch: true }, msg);
+  }
+});
+
+Deno.test("R22: acknowledgements, clocks, names and services alone do not choose a language", () => {
+  for (const msg of [
+    "ok", "ja", "yes", "2pm", "14:00", "14u", "2", "Emma Visser",
+    "Balayage", "Keratin Treatment", "Emma Works", "works", "past", "schikt",
+    "Balayage works", "Keratin Treatment works", "thursday", "donderdag",
+    "25:00 works", "14:99 works", "1232pm works", "32pm works", "foo2pm works",
+  ]) {
+    assertEquals(detectLanguageSignal(msg), { nonDutch: null, confidentDutch: false }, msg);
+  }
+});
+
+Deno.test("R22: temporal acceptance does not overpower a clear competing language", () => {
+  assertEquals(detectCustomerLanguage("Guten Tag, ich möchte gerne buchen, thursday works"), "het Duits");
+  assertEquals(detectLanguageSignal("Ik wil graag een afspraak, thursday works").confidentDutch, true);
+  assertEquals(detectCustomerLanguage("I would like to book, donderdag past"), "het Engels");
+});

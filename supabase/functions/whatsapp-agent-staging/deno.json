@@ -1,0 +1,11 @@
+{
+  "//": "LAUNCH-RUN 2026-09 / R-STAGING. Per-functie import-map, raakt geen andere functie.",
+  "//1": "R2 heeft GEMETEN dat https://esm.sh/@supabase/supabase-js@2.50.0 vandaag DOOD op de edge komt",
+  "//2": "(00a: Cannot destructure property 'URL'). whatsapp-agent/tools.ts en monitoringAlerts.ts dragen",
+  "//3": "die specifier als TYPE-ONLY import; die bestanden mogen in deze ronde niet worden aangeraakt.",
+  "//4": "Deze map stuurt de specifier naar exact hetzelfde pakket en dezelfde versie via npm:, zodat",
+  "//5": "(a) de runtime nooit langs esm.sh gaat en (b) index.ts en tools.ts EEN clienttype delen.",
+  "imports": {
+    "https://esm.sh/@supabase/supabase-js@2.50.0": "npm:@supabase/supabase-js@2.50.0"
+  }
+}

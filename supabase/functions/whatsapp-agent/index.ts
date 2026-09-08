@@ -6,6 +6,7 @@
 //
 // Body: { phone, calendar_id, message, contact_name? }
 
+import { bookingContinuation, cancellationKeep, KEEP_REPLY_NL, KEEP_REPLY_EN } from "./bookingContinuity.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 import {
   buildSystemPrompt,
@@ -61,6 +62,10 @@ import {
   enforceExistingAppointmentDisclosure,
   enforceRescheduleAmbiguityDisclosure,
   enforceVerificationGateDisclosure,
+  takeoverPreemptCandidate,
+  takeoverQuestion,
+  boundTakeoverMarker,
+  takeoverVerificationResolution,
   identityVerificationResolved,
   mentionsOwnAppointmentClaim,
   messageNamesPendingBookOwner,
@@ -88,6 +93,11 @@ import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
 import {
   enforceReturningServiceDisclosure,
+  findAmbiguousServiceChoice,
+  ambiguousServiceChoiceReply,
+  findMissingSingleCalendarServiceChoice,
+  needsMissingServiceChoiceReply,
+  guardAmbiguousServiceTools,
   findDistinctServiceForReschedule,
   mentionsAnyServiceName,
   mentionsDistinguishing,
@@ -113,7 +123,8 @@ import {
   pickThreadHijackAlert,
   writeMonitoringAlert,
 } from "./monitoringAlerts.ts";
-import { type Content, runAgent } from "./llm.ts";
+import { type AgentResult, type Content, runAgent } from "./llm.ts";
+import { isCancellationPolicyQuestion } from "./policyIntentGuard.ts";
 import {
   detectCustomerLanguage,
   detectLanguageSignal,
@@ -942,6 +953,17 @@ Deno.serve(async (req) => {
     return new Response("warm", { status: 200, headers: corsHeaders });
   }
 
+  // Only the internal webhook may process messages with service-role privileges.
+  // Gateway JWT validation also accepts public/user tokens, so require the exact
+  // current internal credential before parsing customer input or doing any work.
+  const internalKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!internalKey?.trim() || req.headers.get("authorization") !== `Bearer ${internalKey}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   // Hoisted so the catch can send the customer a graceful fallback instead of leaving them
   // hanging: the inbound message is already recorded + the webhook already 200'd Meta, so a
   // thrown agent run would otherwise silently drop the message (Meta won't retry).
@@ -976,6 +998,9 @@ Deno.serve(async (req) => {
         },
       );
     }
+    // Decide from this inbound turn before any action-state prepass or pending claim.
+    // Pending work and service/history mentions cannot turn information into consent.
+    const pureCancellationPolicyQuestion = isCancellationPolicyQuestion(String(message));
     phoneForFallback = phone;
     fallbackMessage = String(message);
 
@@ -1562,13 +1587,18 @@ Deno.serve(async (req) => {
     const mutationIntentOnCurrentMessage =
       MUTATION_INTENT_CANCEL_RE.test(String(message ?? "")) ||
       RESCHEDULE_VERB_RE.test(String(message ?? ""));
-    const blockForReturningServiceDefault = shouldBlockReturningServiceDefault({
+    const continuityInboundId = sharedMsgsDesc[0]?.direction === "inbound" && sharedMsgsDesc[0]?.content === String(message)
+      ? sharedMsgsDesc[0].id : null;
+    const keepCancellation = cancellationKeep(String(message), sharedMsgsAsc, new Date(), continuityInboundId);
+    const blockForReturningServiceDefault = !keepCancellation && !pureCancellationPolicyQuestion && shouldBlockReturningServiceDefault({
       lastService,
       currentMessage: String(message ?? ""),
       allServiceNames: allServiceNamesForReturning,
       returningServiceConfirmed,
       recentInboundTexts: recentInboundTextsForReturning,
       mutationIntentOnCurrentMessage,
+      // R19: reuse scoped upcoming-booking evidence; no extra DB request.
+      hasUpcomingBooking: !upcomingBRes.error && upcomingBRes.data != null,
     });
     // Store the pending-confirm marker the FIRST time this turn's guard fires (fresh, i.e. not
     // already set), so a subsequent bare "ja"/"klopt" reply (no service named) can be recognized
@@ -1592,7 +1622,7 @@ Deno.serve(async (req) => {
     // returning_service_confirmed now so a later, unrelated bare follow-up in this same
     // conversation never re-triggers the guard. No-op when already set or not a returning customer.
     if (
-      lastService && !returningServiceConfirmed && conversationId &&
+      !pureCancellationPolicyQuestion && lastService && !returningServiceConfirmed && conversationId &&
       mentionsAnyServiceName(String(message ?? ""), allServiceNamesForReturning)
     ) {
       await supabase.from("whatsapp_conversations")
@@ -1787,12 +1817,15 @@ Deno.serve(async (req) => {
     // (see detectLanguageSignal header comment) instead of silently inheriting it forever.
     const langSignal = detectLanguageSignal(String(message));
     const detectedThisMsg = langSignal.nonDutch;
-    const customerLanguage = detectedThisMsg ??
+    const continuityProof = !isMultiCalendar && !convContext.pending_cancel
+      ? bookingContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
+    const continuity = !convContext.pending_booking ? continuityProof : null;
+    const customerLanguage = continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
       (langSignal.confidentDutch
         ? null
         : (typeof convContext.detected_language === "string"
           ? convContext.detected_language
-          : null));
+          : null)));
 
     const now = new Date();
     // R29: deterministic pre-parse of the CURRENT customer message for a bare relative-weekday
@@ -1844,7 +1877,9 @@ Deno.serve(async (req) => {
         servicesByCalendarForTopicScope,
       )
       : priorInboundTexts;
-    const blockForNoDayNamed = !hasDayMentionAnywhere(
+    const continuityChoiceWithoutDay = !isMultiCalendar && !convContext.pending_booking &&
+      services.some(service => service.name.toLowerCase() === String(message).trim().toLowerCase()) && !continuity;
+    const blockForNoDayNamed = continuityChoiceWithoutDay || !hasDayMentionAnywhere(
       String(message ?? ""),
       dayScanWindowTexts,
       now,
@@ -1865,7 +1900,7 @@ Deno.serve(async (req) => {
         now,
       )
       : null;
-    const effectiveDateHint = relativeDateHint ?? carriedForwardDayHint;
+    const effectiveDateHint = relativeDateHint ?? continuity?.hint ?? carriedForwardDayHint;
     const effectiveDateHintText = relativeDateHint
       ? formatRelativeDateHint(relativeDateHint)
       : formatCarriedForwardDayHint(carriedForwardDayHint);
@@ -1883,7 +1918,7 @@ Deno.serve(async (req) => {
     // so a reschedule verb from a PREVIOUS, now-switched-away-from calendar's flow can never make
     // this flag true for an unrelated fresh request on a different calendar (see the header
     // comment above dayScanWindowTexts for the full mechanism and live evidence).
-    const rescheduleNoDayThisTurn = rescheduleFlowActiveWithNoDay(
+    const rescheduleNoDayThisTurn = !pureCancellationPolicyQuestion && rescheduleFlowActiveWithNoDay(
       String(message ?? ""),
       dayScanWindowTexts,
       now,
@@ -2223,7 +2258,9 @@ Deno.serve(async (req) => {
     // annuleer?", "wat is het annuleringsbeleid?", "wat als ik afzeg?") must NEVER arm or commit a real
     // cancellation, it's an info question, answered from <business_data>. Without this, asking about the
     // refund policy armed a cancel and the next "ja" destroyed the booking (adversarial finding).
-    const cancelPolicyQuestion =
+    // Keep the older, wider refund/confirmation protection; the shared pure-policy
+    // decision additionally keeps caller retries aligned with the tool boundary.
+    const cancelPolicyQuestion = pureCancellationPolicyQuestion ||
       /\b(beleid|policy|terugbetaling|terug ?betaald|geld terug|refund|kosten|hoeveel|als ik|wat als|stel dat|wat gebeurt|hoe zit het|wanneer kan ik)\b/i
         .test(msgLower);
     // R23 (AFFIRM-CONFIRM-FALSEPOS, sev-2): AFFIRM_RE/NEGATE_RE are pure keyword regexes with ZERO
@@ -2382,7 +2419,7 @@ Deno.serve(async (req) => {
     } | undefined;
     const prscFresh = !!prsc &&
       (typeof prsc.at !== "number" || (Date.now() - prsc.at) < 15 * 60 * 1000);
-    const returningServiceJustConfirmedByAffirm = prscFresh &&
+    const returningServiceJustConfirmedByAffirm = !pureCancellationPolicyQuestion && prscFresh &&
       !returningServiceConfirmed &&
       AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
       !ambiguousConfirm;
@@ -2782,7 +2819,7 @@ Deno.serve(async (req) => {
     // request) still falls through to the full, unchanged ambiguousConfirm gate.
     const restatesPendingBookOwnTime = pendingBookFresh &&
       messageRestatesPendingBookTime(pbk?.start_time ?? null, msgLower);
-    const confirmBook = pendingBookFresh && AFFIRM_RE.test(msgLower) &&
+    const confirmBook = !pureCancellationPolicyQuestion && pendingBookFresh && AFFIRM_RE.test(msgLower) &&
       !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
       (restatesPendingBookOwnTime
         ? !ambiguousConfirmForVerification(msgLower)
@@ -2832,7 +2869,8 @@ Deno.serve(async (req) => {
     // "already processing" reply, still zero LLM steps for a genuine duplicate concurrent request).
     let confirmBurstLost = false;
     let bookClaimId: string | undefined;
-    if (pendingBookFresh && pbk?.at != null) {
+    // Information does not acquire a proposal lock or resume a pending action.
+    if (!pureCancellationPolicyQuestion && pendingBookFresh && pbk?.at != null) {
       const claimCalendarId = pbk.calendar_id ?? calendar_id;
       const claimProposalAt = new Date(pbk.at).toISOString();
       const { data: claimRows, error: claimErr } = await supabase.rpc(
@@ -2908,7 +2946,8 @@ Deno.serve(async (req) => {
     // the book-path claim, keyed off this turn's actual `isCommittedMutation` outcome.
     let confirmCancelBurstLost = false;
     let cancelClaimId: string | undefined;
-    if (pendingFresh && pc?.at != null) {
+    // Same current-turn information boundary as the booking claim above.
+    if (!pureCancellationPolicyQuestion && pendingFresh && pc?.at != null) {
       const cancelClaimProposalAt = new Date(pc.at).toISOString();
       const { data: cancelClaimRows, error: cancelClaimErr } = await supabase
         .rpc("claim_whatsapp_confirm", {
@@ -3084,7 +3123,71 @@ Deno.serve(async (req) => {
     // decline ("nee", "niet doen") apart from a plain non-curated-phrase MISS, and clear the
     // pending rename instead of re-asking it on a genuine decline.
     const hardReject = hardVerdict === "reject";
-    const { decls, execute } = createTools(supabase, {
+    // R23: one-calendar partial-name ambiguity, using only real entry-calendar
+    // services and the already scoped same-conversation window; no new DB read.
+    const ambiguousServiceChoices = !isMultiCalendar
+      ? findAmbiguousServiceChoice({
+        allServiceNames: services.map((service) => service.name),
+        currentMessage: String(message ?? ""),
+        recentInboundTexts: history.filter((row) => row.direction === "inbound")
+          .map((row) => row.content ?? ""),
+      })
+      : null;
+    // R27: a single agenda with several services has no implicit default.
+    // Preserve an actual confirmed returning choice and the existing pending
+    // preview confirmation route; neither a bare yes nor model prose selects one.
+    // FIX1: a named answer to the bound participant question inherits the
+    // already chosen proposal service. "No, keep it for Daan" rejects a name
+    // change, not that service; the service guard must not consume the answer.
+    const activeParticipantMarker = boundTakeoverMarker(convContext);
+    const namedParticipantAnswer = !!activeParticipantMarker &&
+      takeoverVerificationResolution(String(activeParticipantMarker.originator_name),
+        String(activeParticipantMarker.proposed_name), String(message)) !== "unresolved";
+    const confirmedServiceName = lastService &&
+        (returningServiceConfirmed || returningServiceJustConfirmedByAffirm)
+      ? lastService
+      : pendingBookFresh && (confirmBook || confirmBookVerification || confirmBookOwnerRestated || bookVerificationAffirmUnresolved || namedParticipantAnswer)
+      ? services.find((service) => service.id === pbk?.service_type_id)?.name ?? null
+      : null;
+    const serviceChoiceInbound = history.filter((row) => row.direction === "inbound");
+    // Position existing confirmed returning evidence after its actual yes turn.
+    // This is ordering evidence only: the durable confirmed flag AND known service
+    // are still required. A later new attempt/rejection then invalidates that proof.
+    const confirmationAfterInboundIndex = returningServiceConfirmed && lastService
+      ? serviceChoiceInbound.findLastIndex((row) => {
+        if (classifyHardConfirm(row.content ?? "") !== "confirm") return false;
+        const priorReply = history.slice(0, history.indexOf(row))
+          .filter((prior) => prior.direction === "outbound").at(-1)?.content ?? "";
+        return /\b(?:(?:de)?zelfde dienst|same (?:service|treatment))\b/i.test(priorReply) &&
+          priorReply.toLowerCase().includes(lastService.toLowerCase());
+      })
+      : -1;
+    // An unresolved returning choice already has its specific named-confirmation
+    // guard and reply. Keep that route in charge instead of replacing its question.
+    const missingServiceChoices = !isMultiCalendar && !blockForReturningServiceDefaultEffective
+      ? findMissingSingleCalendarServiceChoice({
+        allServiceNames: services.map((service) => service.name),
+        currentMessage: String(message),
+        recentInboundTexts: serviceChoiceInbound.map((row) => row.content ?? ""),
+        confirmedServiceName,
+        confirmationAfterInboundIndex,
+        // FIX2: a name answer supplies earlier proposal context, not a new
+        // service confirmation after the current text. Preserve a withdrawal
+        // or replacement that the service resolver just read in that text.
+        confirmedThisTurn: returningServiceJustConfirmedByAffirm ||
+          (pendingBookFresh && (confirmBook || confirmBookVerification || confirmBookOwnerRestated || bookVerificationAffirmUnresolved)),
+      })
+      : null;
+    // Specific ambiguity narrows the real catalog; missing-choice is its fallback.
+    // Share this ordering between tool refusal and the final customer reply.
+    const serviceChoiceOptions = ambiguousServiceChoices ?? missingServiceChoices;
+    const missingServiceReplyNeeded = missingServiceChoices && needsMissingServiceChoiceReply({
+      currentMessage: String(message),
+      lastAssistantMessage: history.filter((row) => row.direction === "outbound").at(-1)?.content ?? "",
+      hasDateHint: effectiveDateHint !== null,
+      hardConfirm,
+    });
+    const { decls, execute: executeTools } = createTools(supabase, {
       calendarId: calendar_id,
       calendars,
       serviceCalendarMap,
@@ -3127,20 +3230,95 @@ Deno.serve(async (req) => {
       bookVerificationAffirmUnresolved,
       renameVerificationAffirmUnresolved,
     });
+    const execute = guardAmbiguousServiceTools(executeTools, serviceChoiceOptions, customerLanguage);
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
     // R22 (T3-LATENCY-RETRY tail): the stall-retry now gets the SAME short-circuit (its accept-gate
     // no longer needs retry.text on a committed mutation, see retryCommitted below).
-    let result = await runAgent({
-      system,
-      contents,
-      tools: decls,
-      execute,
-      maxSteps: 6,
-      temperature: 0.2,
-      stopOnToolResult: isCommittedMutation,
-    });
+    // Pure policy is already a server-recognized read-only operation. Always read
+    // the booking-owned policy, including its unavailable/ambiguous result, before
+    // answering. A model's zero-tool answer must not substitute entry-calendar data.
+    const policyOnlyResult = pureCancellationPolicyQuestion
+      ? await executeTools("get_my_appointments", {}) as Record<string, unknown>
+      : null;
+    // R28: actual participant-only route, before a model can select a booking tool.
+    // Keep the performed update_lead in the trace; no tool call is hidden/deleted.
+    const participantCandidate = !pureCancellationPolicyQuestion
+      ? takeoverPreemptCandidate(convContext, String(message)) : null;
+    const participantResult = participantCandidate
+      ? await executeTools("update_lead", { first_name: participantCandidate }) as Record<string, unknown>
+      : null;
+    let continuityResult: AgentResult | null = null;
+    if (keepCancellation) {
+      // Withdrawal closes cancellation, including a selection question with no proposal.
+      const markerKeys = ["pending_cancel", "pending_cancel_verification", "pending_returning_service_confirm"];
+      let originalMarkers: Record<string, unknown> | null = null;
+      let keepApplied = false;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { data: keepConv, error: keepReadError } = await supabase.from("whatsapp_conversations").select("context").eq("id", conversationId).maybeSingle();
+        if (keepReadError || !keepConv) throw new Error("Cannot safely close cancellation context");
+        const snapshot = (keepConv as {context?: Record<string, unknown>}).context ?? {};
+        const keepContext = { ...snapshot };
+        if (!originalMarkers) originalMarkers = Object.fromEntries(markerKeys.filter(key => key in snapshot).map(key => [key, snapshot[key]]));
+        for (const [key, original] of Object.entries(originalMarkers)) {
+          if (key in snapshot && JSON.stringify(snapshot[key]) !== JSON.stringify(original)) throw new Error("Cancellation proposal changed during withdrawal");
+          delete keepContext[key];
+        }
+        if (Object.keys(originalMarkers).every(key => !(key in snapshot))) { keepApplied = true; break; }
+        // Compare-and-set: PostgreSQL evaluates this JSONB equality together with
+        // the update. A concurrent writer yields zero rows; never report success.
+        const { data: kept, error: keepWriteError } = await supabase.from("whatsapp_conversations")
+          .update({context:keepContext}).eq("id",conversationId)
+          .eq("context", JSON.stringify(snapshot)).select("id");
+        if (keepWriteError) throw new Error("Cannot persist cancellation withdrawal");
+        if (Array.isArray(kept) && kept.length === 1 && kept[0].id === conversationId) { keepApplied = true; break; }
+      }
+      if (!keepApplied) throw new Error("Cancellation context changed twice during withdrawal");
+      for (const key of Object.keys(originalMarkers ?? {})) delete convContext[key];
+      continuityResult = {text:customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL,steps:0,toolCalls:[]};
+    } else if (confirmBook && hardConfirm && pendingBookFresh && !activeParticipantMarker &&
+        continuityProof?.serviceId === pbk?.service_type_id && continuityProof?.name === pbk?.customer_name &&
+        pbk?.start_time && continuityProof?.hint.iso === new Date(pbk.start_time).toLocaleDateString("en-CA",{timeZone:"Europe/Amsterdam"}) &&
+        continuityProof.times.includes(new Date(pbk.start_time).toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"}))) {
+      // The same fresh customer request and real proposal already agree. The
+      // actual tool still owns identity, expiry, race, payment and commit gates.
+      const committedResult = await execute("book_appointment", {});
+      continuityResult = {text:"",steps:0,toolCalls:[{name:"book_appointment",args:{},result:committedResult}]};
+    } else if (continuity?.serviceId && continuity.times.length && !serviceChoiceOptions && !participantResult && !policyOnlyResult && !blockForReturningServiceDefaultEffective && !blockForMultiService) {
+      const args = { service_type_id: continuity.serviceId, date: continuity.hint.iso };
+      const slots = await execute("get_available_slots", args) as Record<string, unknown>;
+      const trace: AgentResult["toolCalls"] = [{name:"get_available_slots",args,result:slots}];
+      const available = Array.isArray(slots.available_slots) ? slots.available_slots as {tijd:string;start:string}[] : [];
+      const matching = available.filter(slot=>continuity.times.includes(slot.tijd));
+      let text = customerLanguage ? "I couldn't check availability. Please try again." : "Ik kon de beschikbaarheid niet controleren. Probeer het nog eens.";
+      if (!slots.error && matching.length===1) {
+        const bookArgs = {...args, time:matching[0].tijd, start_time:matching[0].start, ...(continuity.name && !knownName ? {customer_name:continuity.name} : {})};
+        const preview = await execute("book_appointment",bookArgs);
+        trace.push({name:"book_appointment",args:bookArgs,result:preview});
+      } else if (!slots.error) {
+        const options = (matching.length ? matching : available).slice(0,2).map(slot=>slot.tijd);
+        text = options.length ? (customerLanguage ? `Available times are ${options.join(" or ")}. Which works for you?` : `Er is plek om ${options.join(" of ")}. Welke tijd past?`) : (customerLanguage ? "There are no available times on that day. Which other day works for you?" : "Er zijn die dag geen tijden beschikbaar. Welke andere dag past?");
+      }
+      continuityResult = {text,steps:0,toolCalls:trace};
+    }
+    let result: AgentResult = continuityResult ?? (participantResult
+      ? { text: "", steps: 0, toolCalls: [{ name: "update_lead", args: { first_name: participantCandidate }, result: participantResult }] }
+      : policyOnlyResult
+      ? {
+        text: typeof policyOnlyResult.message === "string" ? policyOnlyResult.message : "",
+        steps: 0,
+        toolCalls: [{ name: "get_my_appointments", args: {}, result: policyOnlyResult }],
+      }
+      : await runAgent({
+        system,
+        contents,
+        tools: decls,
+        execute,
+        maxSteps: 6,
+        temperature: 0.2,
+        stopOnToolResult: isCommittedMutation,
+      }));
 
     // Safety net for "announce-then-stop": gpt-5-mini sometimes emits a mid-action filler
     // ("ik check even / momentje / one moment / ich prüfe …") and ends the turn WITHOUT
@@ -3420,10 +3598,12 @@ Deno.serve(async (req) => {
       OFFER_CONTEXT_RE.test(result.text || "");
 
     if (
-      looksLikeStall || cancelPreviewMissed || confirmStall ||
-      bookPreviewMissed || reschedStall || cancelCommitMissed ||
-      bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
-      emptyNoAction || slotOfferUnbacked
+      !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
+        looksLikeStall || cancelPreviewMissed || confirmStall ||
+        bookPreviewMissed || reschedStall || cancelCommitMissed ||
+        bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
+        emptyNoAction || slotOfferUnbacked
+      )
     ) {
       // T3-LATENCY-RETRY follow-up (R22): the stall-retry DOUBLES the turn's sequential LLM
       // round-trips, and when accepted, `result = retry` makes the primary call's step count
@@ -4030,7 +4210,9 @@ Deno.serve(async (req) => {
             lastAppointmentsResult.appointments,
             customerLanguage,
           );
-        } else if (mentionsOwnAppointmentClaim(replyText)) {
+        } else if (!policyOnlyResult && mentionsOwnAppointmentClaim(replyText)) {
+          // A policy-only result intentionally contains no appointment identity.
+          // Its "deze afspraak" policy wording is not an appointment-status claim.
           // R107 (NO-FRESH-TOOL-CALL coverage gap fix): the model answered a possessive-booking-
           // shaped reply ("je staat op maandag...", "your appointment is...") WITHOUT calling
           // get_my_appointments this turn at all, most often a follow-up answered purely from its
@@ -4260,7 +4442,12 @@ Deno.serve(async (req) => {
           }
           : null;
         const groundingSummary = buildGroundingSummary({
-          businessData,
+          // Validate against the actual bounded policy read, never a generic entry
+          // calendar fallback. Unknown policy provides no policy fact to the guard.
+          businessData: policyOnlyResult
+            ? { ...businessData, cancellation_policy: Object.hasOwn(policyOnlyResult, "allow_cancellations")
+                ? policyOnlyResult.message : undefined }
+            : businessData,
           services: calendarsForPrompt ? undefined : priceCheckServices,
           refundDisposition,
           calendars: calendarsForPrompt,
@@ -4370,9 +4557,41 @@ Deno.serve(async (req) => {
       }
     }
 
+    // R23: S21 guessed a service with ZERO tool calls. Apply the same catalog
+    // question after prose guards, before the shared persisted/sent reply. A real
+    // committed mutation retains its authoritative confirmation.
+    if (!pureCancellationPolicyQuestion && !committed) {
+      const missingChoiceRefused = result.toolCalls.some((call) =>
+        (call.name === "get_available_slots" || call.name === "book_appointment") &&
+        (call.result as { error?: string } | null)?.error === "kies_specifieke_dienst"
+      );
+      replyText = ambiguousServiceChoiceReply(
+        ambiguousServiceChoices || missingServiceReplyNeeded || missingChoiceRefused
+          ? serviceChoiceOptions
+          : null,
+        customerLanguage,
+      ) ?? replyText;
+    }
+
+    // R28: only a CURRENT server-owned pending verification may replace filtered
+    // prose. Read after the tools, bind the complete proposal, then use the SAME
+    // sanitized text for send/persist. Ordinary claims get no bypass.
+    const lastParticipantAction = result.toolCalls.findLast(call =>
+      call.name === "update_lead" || call.name === "book_appointment");
+    if (!committed && conversationId &&
+      (lastParticipantAction?.result as { error?: string } | null)?.error === "naam_verificatie_nodig") {
+      const { data: verificationConversation, error: verificationReadError } = await supabase
+        .from("whatsapp_conversations").select("context").eq("id", conversationId).maybeSingle();
+      if (!verificationReadError && verificationConversation) {
+        const currentVerificationContext = (verificationConversation as { context?: Record<string, unknown> }).context ?? {};
+        replyText = takeoverQuestion(currentVerificationContext, customerLanguage) ?? replyText;
+      }
+    }
+
     // Deterministic outbound hygiene: strip em-dashes etc. (the "written by AI" tell) so it
     // never depends on the model obeying the prompt rule. Applied once, used for BOTH the
     // WhatsApp send and the persisted transcript so they always match.
+    if (keepCancellation) replyText = customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL;
     const reply = sanitizeReply(replyText) ||
       "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
@@ -4671,7 +4890,9 @@ Deno.serve(async (req) => {
           // language the customer already moved away from.
           ctxUpdate.detected_language = null;
         }
-        if (Object.keys(ctxUpdate).length > 0) {
+        // This deterministic policy answer is neither a greeting nor a change
+        // request. Keep a pure informational turn free of conversation mutations.
+        if (!pureCancellationPolicyQuestion && Object.keys(ctxUpdate).length > 0) {
           // CRITICAL: merge onto a FRESH read, not the turn-START convContext. The tools wrote
           // to context DURING this turn (pending_booking / pending_cancel / booking_name); using
           // the stale snapshot here clobbered those, e.g. a first-contact booking preview's

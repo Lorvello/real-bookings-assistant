@@ -10,7 +10,7 @@ export const SecurityHeaders = {
     // Connect embedded components. Voiceflow is limited to its widget CDN and
     // the two configured runtime endpoints used by useVoiceflowChatbot.
     'script-src': "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.voiceflow.com https://checkout.stripe.com https://connect-js.stripe.com https://js.stripe.com https://*.js.stripe.com https://maps.googleapis.com",
-    'style-src': "'self' 'unsafe-inline' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='",
+    'style-src': "'self' 'unsafe-inline'",
     'img-src': "'self' data: https: blob:",
     'font-src': "'self' data:",
     'connect-src': "'self' https://*.supabase.co wss://*.supabase.co https://general-runtime.voiceflow.com https://runtime-api.voiceflow.com https://checkout.stripe.com https://api.stripe.com https://maps.googleapis.com",

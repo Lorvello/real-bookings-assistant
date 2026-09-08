@@ -77,6 +77,51 @@ function renderAlertHtml(alert: MonitoringAlertRow): string {
     </body></html>`;
 }
 
+// notified_at means provider acceptance, not mailbox delivery. Keep the provider's
+// receipt on that same row so a later delivery check can correlate its actual event.
+async function sendAndRecordAcceptance(alert: MonitoringAlertRow, alertEmail: string): Promise<void> {
+  if (!alert.details || typeof alert.details !== "object" || Array.isArray(alert.details) ||
+    Object.prototype.hasOwnProperty.call(alert.details, "email_provider_receipt")) {
+    throw new Error("alert details invalid or provider receipt already present; reconcile before retry");
+  }
+  const emailResp = await resend.emails.send({
+    from: "Bookings Assistant Monitoring <noreply@bookingsassistant.com>",
+    to: [alertEmail],
+    subject: `BA monitoring alert: ${alert.failure_class}`,
+    html: renderAlertHtml(alert),
+  });
+  if (emailResp.error) throw new Error("provider rejected monitoring alert");
+  const messageId = emailResp.data?.id;
+  if (typeof messageId !== "string" || !messageId.trim()) {
+    throw new Error("provider accepted response missing message id");
+  }
+  const acceptedAt = new Date().toISOString();
+  const { data: stamped, error: updateErr } = await supabase
+    .from("monitoring_alerts")
+    .update({
+      notified_at: acceptedAt,
+      details: {
+        ...alert.details,
+        email_provider_receipt: {
+          provider: "resend",
+          message_id: messageId,
+          status: "accepted",
+          accepted_at: acceptedAt,
+          recipient: alertEmail,
+        },
+      },
+    })
+    .eq("id", alert.id)
+    .is("notified_at", null)
+    // Refuse to clobber details changed since the pending-row read.
+    .eq("details", JSON.stringify(alert.details))
+    .select("id")
+    .maybeSingle();
+  if (updateErr || stamped?.id !== alert.id) {
+    throw new Error("provider accepted but receipt not persisted; delivery unknown");
+  }
+}
+
 // R17 GAP B FIX (see _BA_MONITORING_ALERTS_STATE.md R17 finding): the heartbeat's own
 // `config_disabled` self-alert (migration 20260713150000_MONITEM3_R9_gap4_heartbeat.sql) exists
 // specifically to warn that monitoring_alert_config.enabled has gone false - but the enabled-gate
@@ -107,27 +152,7 @@ async function dispatchConfigDisabledHeartbeatAlerts(
 
   for (const alert of pending as MonitoringAlertRow[]) {
     try {
-      const emailResp = await resend.emails.send({
-        from: "Bookings Assistant Monitoring <noreply@bookingsassistant.com>",
-        to: [alertEmail],
-        subject: `BA monitoring alert: ${alert.failure_class}`,
-        html: renderAlertHtml(alert),
-      });
-      if (emailResp.error) {
-        failed++;
-        console.error("monitoring-alert-dispatcher config_disabled send error:", alert.id, emailResp.error);
-        continue;
-      }
-      const { error: updateErr } = await supabase
-        .from("monitoring_alerts")
-        .update({ notified_at: new Date().toISOString() })
-        .eq("id", alert.id)
-        .is("notified_at", null);
-      if (updateErr) {
-        failed++;
-        console.error("monitoring-alert-dispatcher config_disabled stamp error:", alert.id, updateErr);
-        continue;
-      }
+      await sendAndRecordAcceptance(alert, alertEmail);
       sent++;
     } catch (e) {
       failed++;
@@ -196,27 +221,7 @@ async function dispatchPendingAlerts(): Promise<{
       continue;
     }
     try {
-      const emailResp = await resend.emails.send({
-        from: "Bookings Assistant Monitoring <noreply@bookingsassistant.com>",
-        to: [config.alert_email],
-        subject: `BA monitoring alert: ${alert.failure_class}`,
-        html: renderAlertHtml(alert),
-      });
-      if (emailResp.error) {
-        failed++;
-        console.error("monitoring-alert-dispatcher send error:", alert.id, emailResp.error);
-        continue;
-      }
-      const { error: updateErr } = await supabase
-        .from("monitoring_alerts")
-        .update({ notified_at: new Date().toISOString() })
-        .eq("id", alert.id)
-        .is("notified_at", null);
-      if (updateErr) {
-        failed++;
-        console.error("monitoring-alert-dispatcher stamp error:", alert.id, updateErr);
-        continue;
-      }
+      await sendAndRecordAcceptance(alert, config.alert_email);
       sent++;
     } catch (e) {
       failed++;

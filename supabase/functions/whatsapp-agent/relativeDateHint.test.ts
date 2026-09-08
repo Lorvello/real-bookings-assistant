@@ -644,13 +644,88 @@ Deno.test("R140: hasDayMentionAnywhere blijft false op een bericht zonder dag", 
   assertEquals(hasDayMentionAnywhere("hi what do u do and whats the price?", [], ZONDAG_R140), false);
 });
 
-// GEPARKEERD, met de exacte blokkade: "vrijdag 1 uur volgende week" levert de EERSTVOLGENDE
-// vrijdag (11 sep), niet die van de week erna. Het qualifier-venster van de regex eist dat
-// "volgende week" DIRECT achter de weekdagnaam staat; hier staat "1 uur" ertussen. Dat is een
-// APARTE, oudere beperking (zij bestaat evengoed voor de voluit geschreven NL-naam) en staat los
-// van deze vocabulaire-reparatie; hij wordt hier VASTGELEGD als gedrag, niet stilzwijgend
-// meegenomen. S13 van de suite hangt hierop.
-Deno.test("R140: regressie, voluit NL blijft winnen; 'volgende week' op afstand telt (nog) niet", () => {
+// R18: repair R06PRE's parked S13 qualifier gap. Keep the established arithmetic:
+// next/volgende adds seven days to the nearest occurrence, including on Sundays.
+Deno.test("R18: parked S13 'vrijdag 1 uur volgende week' preserves the week qualifier", () => {
   const h = extractRelativeDayHint("kan mn afspraak naar vrijdag 1 uur volgende week", ZONDAG_R140);
-  assertEquals(h?.iso, "2026-09-11");
+  assertEquals(h?.iso, "2026-09-18");
+  assertEquals(h?.matchedPhrase, "vrijdag 1 uur volgende week");
 });
+
+for (const phrase of [
+  "vrijdag om 13:00 volgende week",
+  "vrijdag om half twee volgende week",
+  "vrijdag om kwart over twee volgende week",
+  "vrijdag middag volgende week",
+  "vrijdagmiddag om 13.30 volgende week",
+  "friday 1pm next week",
+  "friday at 1 pm next week",
+  "friday at 13:30 next week",
+  "friday morning next week",
+  "fri at 1pm next week",
+  "vrijdag volgende week",
+  "next week friday",
+]) {
+  Deno.test(`R18: local time/daypart qualifier '${phrase}'`, () => {
+    assertEquals(extractRelativeDayHint(phrase, THURSDAY)?.iso, "2026-07-17");
+  });
+}
+
+for (const phrase of [
+  "vrijdag om 13:00, volgende week maandag om 10:00",
+  "vrijdag 1 uur en volgende week maandag",
+  "friday at 1pm or next week monday",
+  "friday at 1pm. next week monday",
+  "friday at 1pm\nnext week monday",
+  "vrijdag 1 uur volgende week maandag",
+  "friday at 1 next week tuesday",
+  "friday at 1 next week on monday",
+  "vrijdag 1 uur volgende week op maandag",
+  "vrijdag volgende week maandag",
+  "vrijdag 1 uur en ik bel je volgende week",
+  "friday at 1pm I will call next week",
+  "vrijdag om 25:00 volgende week",
+  "vrijdag om 13:99 volgende week",
+  "vrijdag 1 uur 2 uur volgende week",
+  "vrijdag om half twee drie volgende week",
+]) {
+  Deno.test(`R18: no qualifier cross-association '${phrase}'`, () => {
+    assertEquals(extractRelativeDayHint(phrase, THURSDAY)?.iso, "2026-07-10");
+  });
+}
+
+Deno.test("R18: first qualified weekday keeps its own qualifier with a later alternative", () => {
+  assertEquals(extractRelativeDayHint("friday at 1pm next week, or monday at 10", THURSDAY)?.iso, "2026-07-17");
+});
+
+Deno.test("R18: explicit date still wins over a time-gap weekday qualifier", () => {
+  assertEquals(extractRelativeDayHint("vrijdag 24 juli om 13:00 volgende week", THURSDAY)?.iso, "2026-07-24");
+});
+
+Deno.test("R18: qualifier gap retains DST-safe date arithmetic at a month boundary", () => {
+  assertEquals(extractRelativeDayHint("friday at 1pm next week", new Date("2026-10-29T23:30:00Z"))?.iso, "2026-11-06");
+});
+
+// R18 FIX1: qualifier ownership must apply R140's ambiguous-word exclusions.
+for (const phrase of [
+  "friday next week do you have space?",
+  "vrijdag volgende week zo laat mogelijk",
+  "friday at 1pm next week do you have space?",
+  "vrijdag 1 uur volgende week zo laat mogelijk",
+  "friday next week sat in the waiting room",
+  "friday next week sun is shining",
+]) {
+  Deno.test(`R18 FIX1: ordinary word preserves qualifier '${phrase}'`, () => {
+    assertEquals(extractRelativeDayHint(phrase, THURSDAY)?.iso, "2026-07-17");
+  });
+}
+for (const phrase of [
+  "vrijdag 1 uur volgende week do 2 uur",
+  "vrijdag 1 uur volgende week zo 10 uur",
+  "friday next week sat 10",
+  "friday next week sun 10",
+]) {
+  Deno.test(`R18 FIX1: actual abbreviation retains qualifier ownership '${phrase}'`, () => {
+    assertEquals(extractRelativeDayHint(phrase, THURSDAY)?.iso, "2026-07-10");
+  });
+}

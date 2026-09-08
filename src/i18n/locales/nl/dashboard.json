@@ -17,6 +17,7 @@
       "errTitle": "Je dashboardgegevens konden niet worden geladen",
       "errDesc": "Controleer je verbinding en probeer het opnieuw.",
       "metricsError": "De actuele agendacijfers konden niet worden geladen.",
+      "metricsLoading": "De actuele agendacijfers worden geladen...",
       "retry": "Opnieuw",
       "sampleData": "Voorbeeldgegevens",
       "nextAppointment": "Volgende afspraak",

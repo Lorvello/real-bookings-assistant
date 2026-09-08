@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
+import { useCalendarContext } from '@/contexts/CalendarContext';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Circle, ArrowRight, Settings, Calendar, Clock, Bot, MessageCircle } from 'lucide-react';
@@ -9,32 +10,35 @@ import { CreateCalendarDialog } from '@/components/calendar-switcher/CreateCalen
 
 export const OnboardingWizard = () => {
   const { t } = useTranslation('app');
-  const { completionPercentage, completedSteps, totalSteps, nextSteps, allSteps } = useOnboardingProgress();
+  const { completionPercentage, completedSteps, totalSteps, allSteps, setupComplete, isLoading, isError } = useOnboardingProgress();
   const { userStatus, invalidateCache } = useUserStatus();
   const navigate = useNavigate();
+  const { calendars } = useCalendarContext();
   const [showCreateCalendarDialog, setShowCreateCalendarDialog] = useState(false);
   const promotedRef = useRef(false);
 
   // When all setup steps are done, the per-step checklist (useOnboardingProgress)
-  // flips to 100%, but the GLOBAL user status is fetched once on mount and never
+  // completes the four setup requirements, but the GLOBAL user status is fetched once on mount and never
   // refetched during navigation — so it stays 'setup_incomplete' (overlays + gating
   // stay up) until a hard reload, even though setup is finished. Force a status
-  // re-query the moment we reach 100% so the trial unlocks seamlessly. The ref guards
+  // re-query when setup is complete (even while the assistant is paused) so the trial unlocks seamlessly. The ref guards
   // against repeat calls; once the status leaves setup_incomplete the guard below stops.
   useEffect(() => {
-    if (completionPercentage === 100 && userStatus.isSetupIncomplete && !promotedRef.current) {
+    if (setupComplete && userStatus.isSetupIncomplete && !promotedRef.current) {
       promotedRef.current = true;
       invalidateCache();
     }
-  }, [completionPercentage, userStatus.isSetupIncomplete, invalidateCache]);
+  }, [setupComplete, userStatus.isSetupIncomplete, invalidateCache]);
 
-  // Hide setup section when all steps are completed
-  if (!userStatus.isSetupIncomplete || completionPercentage === 100) {
+  // Readiness remains visible after setup until explicit activation is verified.
+  if (completionPercentage === 100) {
     return null;
   }
 
-  const getStepIcon = (step: any) => {
+  const getStepIcon = (step: ReturnType<typeof useOnboardingProgress>['allSteps'][number]) => {
     switch (step.key) {
+      case 'bot_activation':
+        return MessageCircle;
       case 'business_info':
         return Settings;
       case 'service_types':
@@ -48,14 +52,16 @@ export const OnboardingWizard = () => {
     }
   };
 
-  const getStepAction = (step: any) => {
+  const getStepAction = (step: ReturnType<typeof useOnboardingProgress>['allSteps'][number]) => {
     switch (step.key) {
+      case 'bot_activation':
+        return () => navigate('/settings?tab=operations');
       case 'business_info':
         return () => navigate('/settings?tab=knowledge');
       case 'service_types':
         return () => navigate('/settings?tab=services');
       case 'calendar_creation':
-        return () => setShowCreateCalendarDialog(true);
+        return () => calendars.length > 0 ? navigate('/settings?tab=operations') : setShowCreateCalendarDialog(true);
       case 'availability':
         return () => navigate('/availability');
       default:
@@ -65,8 +71,10 @@ export const OnboardingWizard = () => {
 
   // Clear, labelled call-to-action per step (an icon-only arrow leaves new users
   // guessing what each step does).
-  const getStepCta = (step: any) => {
+  const getStepCta = (step: ReturnType<typeof useOnboardingProgress>['allSteps'][number]) => {
     switch (step.key) {
+      case 'bot_activation':
+        return t('app.onboarding.cta.botActivation', 'Review activation');
       case 'business_info':
         return t('app.onboarding.cta.businessInfo', 'Set up');
       case 'service_types':
@@ -125,6 +133,9 @@ export const OnboardingWizard = () => {
           </div>
         </div>
 
+        {isLoading && <p role="status" className="relative mt-4 text-sm text-muted-foreground">{t('app.onboarding.checking', 'Checking this calendar…')}</p>}
+        {isError && <p role="alert" className="relative mt-4 text-sm text-destructive">{t('app.onboarding.checkFailed', 'Some settings could not be checked. Open settings to reload the saved status.')}</p>}
+
         {/* Steps: eased staggered entrance (reduced-motion safe via the .stagger-fade rule).
             The whole row is now clickable for MOUSE users (not just the CTA button),
             with a hover lift plus brighter icon tile, so the row reads as interactive
@@ -144,7 +155,7 @@ export const OnboardingWizard = () => {
               <div
                 key={step.key}
                 onClick={isCompleted ? undefined : action}
-                className={`group flex items-center gap-4 rounded-xl border p-4 transition-all duration-200 motion-reduce:transition-none ${
+                className={`group grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-3 rounded-xl border p-4 sm:flex sm:gap-4 transition-all duration-200 motion-reduce:transition-none ${
                   isCompleted
                     ? 'border-primary/20 bg-primary/[0.06]'
                     : 'cursor-pointer border-white/[0.06] bg-white/[0.02] hover:-translate-y-0.5 hover:border-primary/30 hover:bg-primary/[0.05] hover:shadow-[0_8px_20px_-8px_hsl(var(--primary)/0.35)] motion-reduce:hover:translate-y-0'
@@ -152,24 +163,24 @@ export const OnboardingWizard = () => {
               >
                 <div
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                    isCompleted ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground group-hover:bg-primary/15 group-hover:text-primary'
+                    isCompleted ? 'bg-primary/15 text-accent-foreground' : 'bg-muted text-muted-foreground group-hover:bg-primary/15 group-hover:text-primary'
                   }`}
                 >
                   {isCompleted ? <CheckCircle className="h-5 w-5" /> : <StepIcon className="h-5 w-5" />}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className={`font-medium ${isCompleted ? 'text-primary' : 'text-foreground'}`}>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <h4 className={`font-medium ${isCompleted ? 'text-accent-foreground' : 'text-foreground'}`}>
                       {step.name}
                     </h4>
                     {isCompleted && (
-                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-accent-foreground">
                         {t('app.onboarding.done', 'Done')}
                       </span>
                     )}
                   </div>
-                  <p className={`mt-0.5 text-sm ${isCompleted ? 'text-primary/60' : 'text-muted-foreground'}`}>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
                     {step.description}
                   </p>
                 </div>
@@ -181,7 +192,7 @@ export const OnboardingWizard = () => {
                       e.stopPropagation();
                       action();
                     }}
-                    className="shrink-0 gap-1.5 rounded-lg transition-transform group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
+                    className="col-start-2 justify-self-start shrink-0 gap-1.5 rounded-lg transition-transform group-hover:translate-x-0.5 motion-reduce:group-hover:translate-x-0"
                   >
                     {getStepCta(step)}
                     <ArrowRight className="h-4 w-4" />
@@ -200,7 +211,7 @@ export const OnboardingWizard = () => {
             <MessageCircle className="h-4 w-4 text-accent-foreground" aria-hidden="true" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {t('app.onboarding.payoff', 'Once these steps are done, your WhatsApp assistant goes live and starts booking appointments for you.')}
+            {t('app.onboarding.payoff', 'Complete setup, then explicitly activate your assistant for this calendar. Test your WhatsApp link before sharing it.')}
           </p>
         </div>
       </div>

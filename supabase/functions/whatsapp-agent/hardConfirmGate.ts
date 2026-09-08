@@ -32,7 +32,7 @@ const EDGE_CHAR_CLASS = ".,!?:;\"'`~()\\[\\]{}*_‘’“”…\\-";
 // in place, which only ever makes a match FAIL SAFE (falls through to "not hard-confirmed"), never
 // falsely succeed.
 const TRAILING_DECOR_RE =
-  /[\u{1F44D}\u{1F44C}\u{1F642}\u{1F600}-\u{1F64F}\u{2764}\u{FE0F}\u{2705}\u{1F389}\u{1F60A}\u{1F44B}\s]+$/gu;
+  /[\u{FE0F}\u{1F44D}\u{1F44C}\u{1F642}\u{1F600}-\u{1F64F}\u{2764}\u{2705}\u{1F389}\u{1F60A}\u{1F44B}\s]+$/gu;
 const EDGE_TRIM_RE = new RegExp(`^[${EDGE_CHAR_CLASS}\\s]+|[${EDGE_CHAR_CLASS}\\s]+$`, "gu");
 
 function stripEdges(s: string): string {
@@ -56,7 +56,7 @@ function stripEdges(s: string): string {
 // so removing them anywhere in the string can never delete meaningful customer content. This can
 // only ever make a genuine clean confirm match MORE reliably; it cannot manufacture a match for a
 // message that carries real extra content, since the visible characters are untouched.
-const INVISIBLE_RE = /[​‌‍‎‏﻿⁠-⁤]/g;
+const INVISIBLE_RE = /[\u200B-\u200F\uFEFF\u2060-\u2064]/g;
 
 // R5 fix (sev-1, FULL_JOURNEY_AGENT_SIMULATION R4 finding): a customer whose phone number's
 // message history is ambiguous across 2+ distinct owners (gateLogic.ts's `resolveSenderGate`
@@ -123,7 +123,7 @@ export const HARD_CONFIRM_EXACT: ReadonlySet<string> = new Set([
   // NL
   "ja", "jaa", "jaaa", "jaaaa", "jazeker", "jawel", "jaha", "klopt", "klopt.", "akkoord", "oke",
   "oké", "okay", "ok", "prima", "graag", "doe maar", "inderdaad", "correct", "top", "helemaal goed",
-  "helemaal juist", "dat klopt", "dat is correct", "is goed",
+  "helemaal juist", "dat klopt", "dat is correct", "is goed", "ja is goed",
   // R149: "graag bevestigen" ("please confirm") is unambiguous standalone too, same reasoning as
   // "confirm"/"confirmed" below.
   "graag bevestigen", "bevestig maar", "bevestigd",

@@ -1,7 +1,8 @@
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCalendarContext } from '@/contexts/CalendarContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export type DashboardRevenueStatus =
   | 'single_currency'
@@ -108,129 +109,71 @@ export const parseDashboardMetrics = (
 
 export const useDashboardAnalytics = () => {
   const { selectedCalendar } = useCalendarContext();
+  const { user, loading: authLoading } = useAuth();
   const calendarId = selectedCalendar?.id;
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
-    today_bookings: 0,
-    pending_bookings: 0,
-    week_bookings: 0,
-    month_bookings: 0,
-    total_revenue: null,
-    total_revenue_currency: null,
-    total_revenue_status: 'unavailable',
-    total_revenue_window_start: null,
-    total_revenue_window_end: null,
-    total_revenue_window_basis: null,
-    contacts_later_booked: 0,
-    contacts_later_booked_sample_count: 0,
-    contacts_later_booked_source: null,
-    avg_response_time: null,
-    avg_response_time_sample_count: 0,
-    whatsapp_conversations: 0,
-    whatsapp_messages_today: 0,
-    last_updated: new Date().toISOString()
-  });
-  // Start with loading false to prevent skeleton screens on tab switches
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchMetrics = useCallback(async () => {
-    if (!calendarId) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      console.log('Fetching enhanced dashboard metrics for calendar:', calendarId);
-
-      const { data, error: rpcError } = await supabase
-        .rpc('get_dashboard_metrics', {
-          p_calendar_id: calendarId
-        });
-
-      if (rpcError) {
-        console.error('RPC Error:', rpcError);
-        setError('Fout bij ophalen dashboard gegevens');
-        return;
-      }
-
-      console.log('Enhanced dashboard metrics data:', data);
-
-      if (data && typeof data === 'object') {
-        const metricsData = data as Record<string, unknown>;
-        setMetrics(parseDashboardMetrics(metricsData));
-      }
-    } catch (error) {
-      console.error('Error fetching enhanced dashboard metrics:', error);
-      setError('Er is een fout opgetreden bij het laden van de dashboard gegevens');
-    } finally {
-      setLoading(false);
-    }
-  }, [calendarId]);
+  const key = user?.id && calendarId && !authLoading
+    ? JSON.stringify([user.id, calendarId])
+    : null;
+  const [snapshot, setSnapshot] = useState<{
+    key: string | null;
+    metrics: DashboardMetrics | null;
+    loading: boolean;
+    error: string | null;
+  }>({ key: null, metrics: null, loading: false, error: null });
+  const refresh = useRef<() => void>(() => {});
 
   useEffect(() => {
-    if (calendarId) {
-      void fetchMetrics();
-      
-      // Set up real-time subscription for WhatsApp analytics
-      const channel = supabase
-        .channel(`whatsapp-analytics-${calendarId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'whatsapp_messages',
-          },
-          () => {
-            console.log('WhatsApp message change detected, refreshing metrics');
-            void fetchMetrics();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'whatsapp_conversations',
-          },
-          () => {
-            console.log('WhatsApp conversation change detected, refreshing metrics');
-            void fetchMetrics();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'booking_intents',
-          },
-          () => {
-            console.log('Booking intent change detected, refreshing metrics');
-            void fetchMetrics();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } else {
-      setLoading(false);
+    if (!key || !calendarId) {
+      refresh.current = () => {};
+      setSnapshot({ key: null, metrics: null, loading: false, error: null });
+      return;
     }
-  }, [calendarId, fetchMetrics]);
 
-  const refreshMetrics = () => {
-    if (calendarId) {
-      void fetchMetrics();
+    let active = true;
+    let request = 0;
+    const fetchMetrics = async () => {
+      if (!active) return;
+      const currentRequest = ++request;
+      setSnapshot({ key, metrics: null, loading: true, error: null });
+      try {
+        const { data, error: rpcError } = await supabase.rpc('get_dashboard_metrics', {
+          p_calendar_id: calendarId,
+        });
+        if (!active || currentRequest !== request) return;
+        if (rpcError || !data || typeof data !== 'object' || Array.isArray(data)) {
+          setSnapshot({ key, metrics: null, loading: false, error: 'Fout bij ophalen dashboard gegevens' });
+          return;
+        }
+        setSnapshot({ key, metrics: parseDashboardMetrics(data as Record<string, unknown>), loading: false, error: null });
+      } catch {
+        if (!active || currentRequest !== request) return;
+        setSnapshot({ key, metrics: null, loading: false, error: 'Er is een fout opgetreden bij het laden van de dashboard gegevens' });
+      }
+    };
+
+    refresh.current = () => { void fetchMetrics(); };
+    void fetchMetrics();
+    const channel = supabase.channel(`whatsapp-analytics-${calendarId}`);
+    for (const table of ['whatsapp_messages', 'whatsapp_conversations', 'booking_intents']) {
+      channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => { void fetchMetrics(); });
     }
-  };
+    channel.subscribe();
+    return () => {
+      active = false;
+      refresh.current = () => {};
+      supabase.removeChannel(channel);
+    };
+  }, [key, calendarId]);
 
+  const refreshMetrics = useCallback(() => refresh.current(), []);
+  // Mask the old account/calendar snapshot in the switching render, before
+  // effect cleanup or the next request can run. Unknown is not measured zero.
+  const current = key !== null && snapshot.key === key;
   return {
-    metrics,
-    loading,
-    error,
+    metrics: current ? snapshot.metrics : null,
+    loading: key !== null && (!current || snapshot.loading),
+    error: current ? snapshot.error : null,
     refreshMetrics,
-    hasCalendar: !!calendarId
+    hasCalendar: key !== null,
   };
 };

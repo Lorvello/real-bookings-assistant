@@ -1,133 +1,75 @@
-import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import { useProfile } from './useProfile';
 import { useCalendarContext } from '@/contexts/CalendarContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useBotStatus } from './useBotStatus';
+import { useUserStatus } from '@/contexts/UserStatusContext';
 
 export const useOnboardingProgress = () => {
-  const { t, i18n } = useTranslation('app');
+  const { t } = useTranslation('app');
   const { profile } = useProfile();
   const { selectedCalendar, calendars } = useCalendarContext();
-  const [serviceTypeCount, setServiceTypeCount] = useState(0);
-  const [availabilityRulesCount, setAvailabilityRulesCount] = useState(0);
-  const [bookingSettingsConfigured, setBookingSettingsConfigured] = useState(false);
-
-  // Fetch additional onboarding data
-  useEffect(() => {
-    const fetchOnboardingData = async () => {
-      if (!profile?.id) return;
-
-      try {
-        // Check service types for any calendar the user owns
-        if (calendars.length > 0) {
-          const { data: serviceTypes } = await supabase
-            .from('service_types')
-            .select('id, calendar_id')
-            .in('calendar_id', calendars.map(cal => cal.id))
-            .eq('is_active', true);
-          
-          setServiceTypeCount(serviceTypes?.length || 0);
-        } else {
-          setServiceTypeCount(0);
-        }
-
-        // Check availability rules for any calendar the user owns
-        if (calendars.length > 0) {
-          const { data: availabilitySchedules } = await supabase
-            .from('availability_schedules')
-            .select('id')
-            .in('calendar_id', calendars.map(cal => cal.id));
-          
-          if (availabilitySchedules && availabilitySchedules.length > 0) {
-            const { data: availabilityRules } = await supabase
-              .from('availability_rules')
-              .select('id')
-              .in('schedule_id', availabilitySchedules.map(schedule => schedule.id));
-            
-            setAvailabilityRulesCount(availabilityRules?.length || 0);
-          } else {
-            setAvailabilityRulesCount(0);
-          }
-        } else {
-          setAvailabilityRulesCount(0);
-        }
-
-        // Check booking settings for any calendar the user owns
-        if (calendars.length > 0) {
-          const { data: bookingSettings } = await supabase
-            .from('calendar_settings')
-            .select('id')
-            .in('calendar_id', calendars.map(cal => cal.id));
-          
-          setBookingSettingsConfigured(!!bookingSettings && bookingSettings.length > 0);
-        } else {
-          setBookingSettingsConfigured(false);
-        }
-      } catch (error) {
-        console.error('Error fetching onboarding data:', error);
+  const { accessControl, isLoading: accessLoading } = useUserStatus();
+  // No aggregation: services, hours and activation must belong to THIS calendar.
+  const calendarId = calendars.find(cal => cal.id === selectedCalendar?.id)?.id;
+  const bot = useBotStatus(calendarId);
+  const setup = useQuery({
+    queryKey: ['onboarding-setup', profile?.id, calendarId],
+    enabled: !!profile?.id && !!calendarId,
+    staleTime: 0,
+    queryFn: async () => {
+      const services = await supabase.from('service_types').select('id')
+        .eq('calendar_id', calendarId!).eq('is_active', true)
+        .or('is_deleted.is.null,is_deleted.eq.false');
+      if (services.error) throw services.error;
+      const schedules = await supabase.from('availability_schedules').select('id')
+        .eq('calendar_id', calendarId!);
+      if (schedules.error) throw schedules.error;
+      let hasHours = false;
+      if (schedules.data?.length) {
+        const rules = await supabase.from('availability_rules').select('id')
+          .in('schedule_id', schedules.data.map(schedule => schedule.id))
+          .eq('is_available', true);
+        if (rules.error) throw rules.error;
+        hasHours = !!rules.data?.length;
       }
-    };
-
-    fetchOnboardingData();
-  }, [profile?.id, calendars]);
-
-  // NOTE: Auto-promotion logic has been REMOVED.
-  // The database RPC function `get_user_status_type` now handles status determination
-  // by checking all 4 setup requirements (business info, calendar, services, availability).
-  // This prevents race conditions and ensures consistent status across the app.
-  // Status only changes when the user completes ALL setup steps AND the database is queried.
-
-  const progress = useMemo(() => {
-    if (!profile) {
-      return {
-        completionPercentage: 0,
-        completedSteps: 0,
-        totalSteps: 4,
-        nextSteps: [],
-        allSteps: []
-      };
-    }
-
-    // Updated to 4 essential steps
-    const steps = [
-      {
-        key: 'business_info',
-        completed: !!(profile.business_name && profile.business_type),
-        name: t('app.onboarding.steps.businessInfo.name', 'Business Information'),
-        description: t('app.onboarding.steps.businessInfo.description', 'Complete your business profile')
-      },
-      {
-        key: 'service_types',
-        completed: serviceTypeCount > 0,
-        name: t('app.onboarding.steps.serviceTypes.name', 'Service Types'),
-        description: t('app.onboarding.steps.serviceTypes.description', 'Add your services and pricing')
-      },
-      {
-        key: 'calendar_creation',
-        completed: calendars.length > 0,
-        name: t('app.onboarding.steps.calendarCreation.name', 'Create Your Calendar'),
-        description: t('app.onboarding.steps.calendarCreation.description', 'Set up your booking calendar')
-      },
-      {
-        key: 'availability',
-        completed: availabilityRulesCount > 0,
-        name: t('app.onboarding.steps.availability.name', 'Availability'),
-        description: t('app.onboarding.steps.availability.description', 'Set your working hours')
-      }
-    ];
-
-    const completedSteps = steps.filter(step => step.completed).length;
-    const completionPercentage = Math.round((completedSteps / steps.length) * 100);
-    const nextSteps = steps.filter(step => !step.completed).slice(0, 3);
-
-    return {
-      completionPercentage,
-      completedSteps,
-      totalSteps: steps.length,
-      nextSteps,
-      allSteps: steps
-    };
-  }, [profile, selectedCalendar, calendars.length, serviceTypeCount, availabilityRulesCount, bookingSettingsConfigured, t, i18n.language]);
-
-  return progress;
+      return { hasServices: !!services.data?.length, hasHours };
+    },
+  });
+  const verifiedSetup = setup.isSuccess && !setup.isError ? setup.data : undefined;
+  const setupSteps = [
+    { key: 'business_info', completed: !!(profile?.business_name && profile.business_type),
+      name: t('app.onboarding.steps.businessInfo.name', 'Business Information'),
+      description: t('app.onboarding.steps.businessInfo.description', 'Complete your business profile') },
+    { key: 'service_types', completed: !!verifiedSetup?.hasServices,
+      name: t('app.onboarding.steps.serviceTypes.name', 'Service Types'),
+      description: t('app.onboarding.steps.serviceTypes.description', 'Add your services and pricing') },
+    { key: 'calendar_creation', completed: !!profile?.id && !!calendarId,
+      name: t('app.onboarding.steps.calendarCreation.name', 'Create Your Calendar'),
+      description: t('app.onboarding.steps.calendarCreation.description', 'Set up your booking calendar') },
+    { key: 'availability', completed: !!verifiedSetup?.hasHours,
+      name: t('app.onboarding.steps.availability.name', 'Availability'),
+      description: t('app.onboarding.steps.availability.description', 'Set your working hours') },
+  ];
+  // Four setup requirements still unlock the trial; activation never gates that RPC.
+  const setupComplete = setupSteps.every(step => step.completed);
+  const allSteps = [...setupSteps, {
+    key: 'bot_activation',
+    completed: setupComplete && bot.ready && bot.data?.whatsapp_bot_active === true
+      && !accessLoading && accessControl.canAccessWhatsApp,
+    name: t('app.onboarding.steps.botActivation.name', 'Activate your assistant'),
+    description: t('app.onboarding.steps.botActivation.description', 'Review and activate WhatsApp for the selected calendar'),
+  }];
+  const completedSteps = allSteps.filter(step => step.completed).length;
+  return {
+    completionPercentage: Math.round(completedSteps / allSteps.length * 100),
+    completedSteps,
+    totalSteps: allSteps.length,
+    nextSteps: allSteps.filter(step => !step.completed).slice(0, 3),
+    allSteps,
+    setupComplete,
+    isLoading: setup.isLoading || bot.isLoading,
+    isError: setup.isError || bot.isError,
+  };
 };

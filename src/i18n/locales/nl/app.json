@@ -109,7 +109,8 @@
         "serviceTypes": "Diensten toevoegen",
         "calendarCreation": "Aanmaken",
         "availability": "Tijden instellen",
-        "default": "Starten"
+        "default": "Starten",
+        "botActivation": "Activatie bekijken"
       },
       "steps": {
         "businessInfo": {
@@ -127,9 +128,15 @@
         "availability": {
           "name": "Beschikbaarheid",
           "description": "Stel je werktijden in"
+        },
+        "botActivation": {
+          "name": "Activeer je assistent",
+          "description": "Controleer en activeer WhatsApp voor de gekozen agenda"
         }
       },
-      "payoff": "Zodra deze stappen klaar zijn, gaat je WhatsApp-assistent live en boekt hij afspraken voor je."
+      "payoff": "Rond de inrichting af en activeer daarna zelf de assistent voor deze agenda. Test je WhatsApp-link voordat je hem deelt.",
+      "checking": "Deze agenda wordt gecontroleerd…",
+      "checkFailed": "Niet alle instellingen konden worden gecontroleerd. Open de instellingen om de opgeslagen status opnieuw te laden."
     },
     "sidebar": {
       "collapse": "Zijbalk inklappen",

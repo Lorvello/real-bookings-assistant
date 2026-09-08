@@ -544,8 +544,8 @@ export function previewTakeoverRisk(
 // (release = the reply names the SAME target the marker is protecting), which is backwards for
 // this marker's actual question ("do you genuinely want this changed FROM <originator> TO
 // <proposedName>"). A takeover verification is resolved one of two ways, both requiring the
-// SAME clean-affirm cleanliness bar (AFFIRM_RE/!NEGATE_RE/!ambiguousConfirm) every release in this
-// codebase already requires, applied by the caller before this function is even consulted:
+// clean affirmative-without-negation requirement for a proposed participant is enforced
+// inside this helper. Returning to the original participant has its own negative-safe branch:
 //   1. the customer explicitly reaffirms the NEW name ("ja, echt voor Bram", "klopt, Bram") --
 //      deliberate, repeated intent to change it, strong enough evidence to proceed with the change.
 //   2. the customer instead names the ORIGINATOR ("nee, gewoon voor Anna", "laat maar op Anna") --
@@ -570,8 +570,16 @@ export function takeoverVerificationResolution(
   // Both mentioned (rare, e.g. "niet Bram maar Anna" said as a correction of the correction):
   // never guess between two explicit signals in the same message, stay unresolved and re-ask.
   if (namesProposed && namesOriginator) return "unresolved";
-  if (namesProposed) return "confirmed_new";
-  if (namesOriginator) return "reverted_to_originator";
+  // FIX1: mentioning a name is not agreement. This function must enforce its
+  // own release contract; its caller previously did not enforce the documented
+  // clean affirmative check, so "no, not for Sophie" granted verification.
+  const affirmative = /\b(?:ja|yes|yeah|yep|klopt|correct|inderdaad|zeker|absoluut)\b/i.test(msg);
+  const negative = /\b(?:nee|no|niet|not|geen|nooit|never|don['’]t|stop|cancel)\b/i.test(msg);
+  if (namesProposed && affirmative && !negative) return "confirmed_new";
+  // An explicit return can start with "nee/no" (rejecting the change), while
+  // negating the original person's name must not restore that person either.
+  const rejectsOriginator = /\b(?:niet|not|geen|nooit|never|don['’]t)\b/i.test(msg);
+  if (namesOriginator && !rejectsOriginator) return "reverted_to_originator";
   return "unresolved";
 }
 
@@ -970,4 +978,52 @@ export function cancelToolCallHadPolicyRefusal(toolCalls: VerificationGateToolRe
     const err = (t.result as Record<string, unknown>).error;
     return err === "te_laat_annuleren" || err === "annuleren_niet_toegestaan";
   });
+}
+
+// R28: participant identity is scoped to a live proposal, never the sender/contact.
+export type TakeoverPreview = Record<string, unknown> & {
+  start_time: string; originator_name: string; at: number;
+};
+export function freshTakeoverPreview(context: Record<string, unknown>, now = Date.now()): TakeoverPreview | null {
+  const p = context.pending_booking as TakeoverPreview | undefined;
+  return p && typeof p.at === "number" && now >= p.at && now - p.at < 15 * 60_000 &&
+      typeof p.start_time === "string" && isRealName(p.originator_name) ? p : null;
+}
+export function boundTakeoverMarker(context: Record<string, unknown>, now = Date.now()): Record<string, unknown> | null {
+  const p = freshTakeoverPreview(context, now);
+  const m = context.pending_book_takeover_verification as Record<string, unknown> | undefined;
+  if (!p || !m || typeof m.at !== "number" || now < m.at || now - m.at >= 15 * 60_000 || !isRealName(m.proposed_name as string)) return null;
+  return ["start_time", "originator_name", "service_type_id", "calendar_id", "end_time"].every(k => m[k] === p[k]) ? m : null;
+}
+export function takeoverQuestion(context: Record<string, unknown>, language: string | null): string | null {
+  const m = boundTakeoverMarker(context);
+  if (!m) return null;
+  return language !== null && language !== "nl"
+    ? `The appointment proposal is for ${m.originator_name}. Should it be for ${m.proposed_name} instead of ${m.originator_name}?`
+    : `Het afspraakvoorstel staat op naam van ${m.originator_name}. Moet het voor ${m.proposed_name} zijn in plaats van ${m.originator_name}?`;
+}
+// Deliberately name-only syntax. Time/service changes and ordinary own-name statements
+// stay with the normal agent. This is routing, never an identity-verification release.
+export function explicitParticipantSwitch(message: string): string | null {
+  const name = "([\\p{L}][\\p{L}'’.-]*(?: [\\p{L}][\\p{L}'’.-]*){0,5})";
+  for (const pattern of [
+    `^make it ${name} instead(?:,? not (?:for )?me)?[.!]?$`,
+    `^maak er ${name} van(?:,? niet (?:voor )?mij)?[.!]?$`,
+    `^(?:for|voor) ${name},? (?:not (?:for )?me|niet (?:voor )?mij)[.!]?$`,
+  ]) {
+    const match = message.trim().match(new RegExp(pattern, "iu"));
+    if (match) return match[1];
+  }
+  return null;
+}
+export function takeoverPreemptCandidate(context: Record<string, unknown>, message: string): string | null {
+  const p = freshTakeoverPreview(context);
+  if (!p) return null;
+  const candidate = explicitParticipantSwitch(message);
+  if (candidate && previewTakeoverRisk(p.originator_name, candidate, message)) return candidate;
+  const m = boundTakeoverMarker(context);
+  // Only bare affirmations re-ask here. Named answers and all corrections keep their
+  // existing tool resolution route (including return to originator/refusal).
+  return m && /^(?:yes|yeah|yep|ja|jawel|klopt|ok|okay)[.!]?$/i.test(message.trim())
+    ? String(m.proposed_name) : null;
 }

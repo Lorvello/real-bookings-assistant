@@ -119,6 +119,18 @@ const AMBIGUOUS_WEEKDAY_ABBR: Array<
   },
 ];
 
+// Share the same semantic exclusions between weekday extraction and qualifier ownership.
+// A raw "do"/"zo" token may be an ordinary verb/adverb, not a later weekday.
+function isAmbiguousWeekdayContext(
+  cand: (typeof AMBIGUOUS_WEEKDAY_ABBR)[number],
+  text: string,
+  index: number,
+): boolean {
+  const before = text.slice(0, index).trimEnd();
+  const after = text.slice(index + cand.word.length);
+  return !(cand.prev?.test(before) || cand.next?.test(after));
+}
+
 export interface RelativeDateHint {
   iso: string; // YYYY-MM-DD, Amsterdam-local
   label: string; // "vrijdag 10 juli" (Dutch, matches the <kalender> table's own label style)
@@ -395,18 +407,45 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
   // without a following daypart word, fused or spaced; the captured weekday group (group 3) is
   // unaffected, so date resolution (resolveWeekday) needs no changes.
   const DAYPART_SUFFIX_RE = "ochtend|voormiddag|namiddag|middag|avond|nacht";
+  // R18: the parked S13 "vrijdag 1 uur volgende week" lost its week qualifier.
+  // Permit exactly one clock/spoken-time/daypart between the weekday and qualifier.
+  // Horizontal whitespace and a closed grammar prevent reaching across another clause;
+  // never use a wildcard window here. A directly following weekday owns "next week"
+  // instead ("friday 1pm next week monday" must not shift Friday).
+  const hs = "[ \\t]";
+  const clock = `(?:[01]?[0-9]|2[0-3])(?:[:.][0-5][0-9])?(?:${hs}*(?:uur|u|am|pm))?`;
+  const spokenHour = "(?:[1-9]|1[0-2]|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)";
+  const spokenTime = `(?:half${hs}+|kwart${hs}+(?:over|voor)${hs}+)${spokenHour}`;
+  const timeGap = `(?:${hs}+(?:(?:om|at)${hs}+)?(?:${clock}|${spokenTime}|${DAYPART_SUFFIX_RE}|morning|afternoon|evening|night))?`;
+  const anyDay = `${dayNames}|${AMBIGUOUS_WEEKDAY_ABBR.map((cand) => cand.word).join("|")}`;
+  const nextWeekTail = `${timeGap}${hs}+(?:volgende|next)${hs}+week\\b`;
   const re = new RegExp(
-    `\\b((?:volgende|next)\\s+week\\s+)?(aanstaande|komende|deze|volgende|diezelfde|dezelfde|next|this|coming|upcoming)?\\s*(${dayNames})(?:${DAYPART_SUFFIX_RE})?\\b(\\s+(diezelfde|dezelfde|die|deze)\\s+week)?(\\s+(?:volgende|next)\\s+week)?`,
+    `\\b((?:volgende|next)\\s+week\\s+)?(aanstaande|komende|deze|volgende|diezelfde|dezelfde|next|this|coming|upcoming)?\\s*(${dayNames})(?:${DAYPART_SUFFIX_RE})?\\b(\\s+(diezelfde|dezelfde|die|deze)\\s+week)?(${nextWeekTail})?`,
     "i",
   );
   const m = re.exec(s);
   if (m) {
     const dow = strongDays[m[3]];
     if (dow !== undefined) {
-      const skipWeek = !!(m[1] || m[6] || (m[2] && (m[2] === "volgende" || m[2] === "next")));
+      let tail: string | undefined = m[6];
+      if (tail) {
+        const end = m.index + m[0].length;
+        const following = new RegExp(
+          `^(${hs}+(?:(?:on|op)${hs}+)?)(?:(${anyDay})(?:${DAYPART_SUFFIX_RE})?)\\b`,
+          "i",
+        ).exec(s.slice(end));
+        if (following) {
+          const cand = AMBIGUOUS_WEEKDAY_ABBR.find((day) => day.word === following[2]);
+          if (!cand || isAmbiguousWeekdayContext(cand, s, end + following[1].length)) {
+            tail = undefined;
+          }
+        }
+      }
+      const skipWeek = !!(m[1] || tail || (m[2] && (m[2] === "volgende" || m[2] === "next")));
       const d = resolveWeekday(now, dow, skipWeek);
       const iso = amsterdamISO(d);
-      return { iso, label: dutchLabel(d), matchedPhrase: m[0].trim() };
+      const matchedPhrase = m[6] && !tail ? m[0].slice(0, -m[6].length).trim() : m[0].trim();
+      return { iso, label: dutchLabel(d), matchedPhrase };
     }
   }
 
@@ -421,10 +460,7 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
     const wre = new RegExp(`\\b${cand.word}\\b`, "gi");
     let wm: RegExpExecArray | null;
     while ((wm = wre.exec(s)) !== null) {
-      const before = s.slice(0, wm.index).trimEnd();
-      const after = s.slice(wm.index + wm[0].length);
-      if (cand.prev && cand.prev.test(before)) continue;
-      if (cand.next && cand.next.test(after)) continue;
+      if (!isAmbiguousWeekdayContext(cand, s, wm.index)) continue;
       if (best === null || wm.index < best.index) {
         best = { index: wm.index, dow: cand.dow, phrase: wm[0] };
       }

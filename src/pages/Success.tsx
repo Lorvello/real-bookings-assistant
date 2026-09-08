@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { useUserStatus } from '@/contexts/UserStatusContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
 import {
   getPublicEnterpriseClaims,
   getPublicFeatureAvailability,
@@ -26,18 +27,32 @@ export default function Success() {
   const location = useLocation();
   const { t } = useTranslation(['payment', 'app']);
   const { t: tHome } = useTranslation('home');
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id;
   const { invalidateCache } = useUserStatus();
   const { refetch: refetchProfile } = useProfile();
+  // Cache callback identities may change after a profile update. They must not
+  // restart checkout verification or its countdown for the same session.
+  const refreshCallbacks = useRef({ userId, refetchProfile, invalidateCache });
+  useEffect(() => {
+    refreshCallbacks.current = { userId, refetchProfile, invalidateCache };
+  }, [userId, refetchProfile, invalidateCache]);
   const publicFeatureAvailability = getPublicFeatureAvailability();
   const enterpriseClaims = getPublicEnterpriseClaims(publicFeatureAvailability, {
     canonical: (key, fallback) => tHome(key, fallback),
     legacy: (key, fallback) => t(key, fallback),
     surface: 'success',
   });
-  const [verificationState, setVerificationState] = useState<VerificationState>('verifying');
+  const [verification, setVerification] = useState<{ key: string; state: VerificationState } | null>(null);
   const [verificationAttempt, setVerificationAttempt] = useState(0);
   const [subscriptionTier, setSubscriptionTier] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
+  const verificationKey = JSON.stringify([userId, authLoading, location.search, verificationAttempt]);
+  // Hide a previous account/session result during the render that changes it,
+  // before effect cleanup/reset runs.
+  const verificationState: VerificationState = verification?.key === verificationKey
+    ? verification.state
+    : 'verifying';
 
   // F-036: /success wraps no DashboardLayout, so the F-035 title effect never runs
   // here and the page previously set no document.title, leaving the browser tab on
@@ -58,11 +73,13 @@ export default function Success() {
     let cancelled = false;
 
     const verifySubscription = async () => {
-      setVerificationState('verifying');
+      setVerification({ key: verificationKey, state: 'verifying' });
       setSubscriptionTier(null);
       setCountdown(5);
 
+      if (authLoading) return;
       try {
+        if (!userId) throw new Error('An authenticated account is required.');
         const urlParams = new URLSearchParams(location.search);
         const sessionId = urlParams.get('session_id')?.trim();
         if (!sessionId) {
@@ -70,8 +87,9 @@ export default function Success() {
         }
 
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (cancelled) return;
         const accessToken = sessionData.session?.access_token;
-        if (sessionError || !accessToken) {
+        if (sessionError || !accessToken || sessionData.session?.user?.id !== userId) {
           throw new Error('An authenticated session is required to verify this checkout.');
         }
 
@@ -82,6 +100,7 @@ export default function Success() {
           },
         });
 
+        if (cancelled) return;
         if (error) {
           throw new Error(error.message || 'Checkout verification failed.');
         }
@@ -92,19 +111,19 @@ export default function Success() {
 
         if (!cancelled) {
           setSubscriptionTier(displayTierName(data.subscription_tier));
-          setVerificationState('success');
+          setVerification({ key: verificationKey, state: 'success' });
         }
 
         // The checkout-session response is the verification authority. Local
         // cache refreshes are best-effort and must not leave a confirmed payment
         // stuck on the verifying screen if one of them is slow or unavailable.
         void Promise.allSettled([
-          Promise.resolve().then(() => refetchProfile()),
-          Promise.resolve().then(() => invalidateCache('paid_subscriber')),
+          Promise.resolve().then(() => !cancelled && refreshCallbacks.current.userId === userId && refreshCallbacks.current.refetchProfile()),
+          Promise.resolve().then(() => !cancelled && refreshCallbacks.current.userId === userId && refreshCallbacks.current.invalidateCache('paid_subscriber')),
         ]);
       } catch {
         if (!cancelled) {
-          setVerificationState('error');
+          setVerification({ key: verificationKey, state: 'error' });
         }
       }
     };
@@ -113,7 +132,7 @@ export default function Success() {
     return () => {
       cancelled = true;
     };
-  }, [invalidateCache, location.search, refetchProfile, verificationAttempt]);
+  }, [authLoading, userId, location.search, verificationKey]);
 
   useEffect(() => {
     if (verificationState !== 'success') return;

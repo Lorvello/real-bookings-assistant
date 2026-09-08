@@ -6,8 +6,8 @@ import { useCalendarContext } from '@/contexts/CalendarContext';
 import { Button } from '@/components/ui/button';
 import { CalendarClock, CalendarDays, MessageSquare, SlidersHorizontal } from 'lucide-react';
 import { CalendarSwitcher } from '@/components/CalendarSwitcher';
-import { GlobalSettings } from '@/components/calendar-settings/GlobalSettings';
 import { CalendarRequiredEmptyState } from '@/components/ui/CalendarRequiredEmptyState';
+import { CalendarBotSettings } from '@/components/calendar-settings/CalendarBotSettings';
 import { SettingsSection } from './SettingsSection';
 
 export function CalendarTab() {
@@ -15,15 +15,15 @@ export function CalendarTab() {
   const navigate = useNavigate();
   const { selectedCalendar, calendars } = useCalendarContext();
 
-  // The master on/off for the assistant — always shown, top of the page.
+  // This control follows the selected calendar; it never changes other calendars.
   const assistant = (
     <SettingsSection
       icon={MessageSquare}
-      title={t('settings.operations.sections.whatsappAssistant.title', 'WhatsApp assistant')}
-      description={t('settings.operations.sections.whatsappAssistant.description', 'Turn the automated booking assistant on or off across every calendar.')}
+      title={t('settings.calendarBot.title', 'Assistant for this calendar')}
+      description={t('settings.calendarBot.scope', 'Choose the calendar above, then review its saved WhatsApp setting.')}
       usedByAgent
     >
-      <GlobalSettings />
+      <CalendarBotSettings calendarId={selectedCalendar?.id} calendarName={selectedCalendar?.name} />
     </SettingsSection>
   );
 
@@ -61,8 +61,6 @@ export function CalendarTab() {
 
   return (
     <div className="space-y-6">
-      {assistant}
-
       <SettingsSection
         icon={CalendarDays}
         title={t('settings.operations.sections.calendar.title', 'Calendar')}
@@ -70,6 +68,8 @@ export function CalendarTab() {
       >
         <CalendarSwitcher hideAllCalendarsOption={true} />
       </SettingsSection>
+
+      {assistant}
 
       {availability}
 

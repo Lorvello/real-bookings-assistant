@@ -533,3 +533,10 @@ Deno.test("R5 ADVERSARIAL: a code-shaped token that is NOT at the very start of 
   // happens to mention "code" mid-sentence, that is real content and must not be silently deleted.
   assertEquals(classifyHardConfirm("Ja klopt, mijn code: f744eddc is toch goed?"), "none");
 });
+
+Deno.test("R29 exact S05 confirm does not accept trailing changes or negation", () => {
+  if (classifyHardConfirm("ja is goed") !== "confirm") throw new Error("S05 confirm missed");
+  for (const text of ["ja is goed maar niet doen", "ja is goed zaterdag 11:00", "ja is goed voor Sophie"]) {
+    if (classifyHardConfirm(text) === "confirm") throw new Error("unsafe confirm: " + text);
+  }
+});

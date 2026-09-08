@@ -108,7 +108,11 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
       )}
       {calendarIds.length === 1 && dashboardMetrics.hasCalendar && (
         <section aria-label="Current calendar metrics" aria-busy={dashboardMetrics.loading}>
-          {dashboardMetrics.error ? (
+          {dashboardMetrics.loading ? (
+            <p role="status" className="px-4 py-3 text-sm text-muted-foreground">
+              {t('dashboard.overview.metricsLoading', 'Loading current calendar metrics...')}
+            </p>
+          ) : dashboardMetrics.error ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3">
               <p className="text-sm text-destructive-foreground">
                 {t('dashboard.overview.metricsError', 'Could not load current calendar metrics.')}
@@ -118,9 +122,9 @@ export function OverviewTab({ calendarIds }: OverviewTabProps) {
                 {t('dashboard.overview.retry', 'Retry')}
               </Button>
             </div>
-          ) : (
+          ) : dashboardMetrics.metrics ? (
             <EnhancedDashboardMetrics analytics={dashboardMetrics.metrics} />
-          )}
+          ) : null}
         </section>
       )}
       {/* ── THE SIGNATURE ─────────────────────────────────────────────────
