@@ -91,3 +91,9 @@ verify_jwt = false
 # x-internal-secret instead).
 [functions.monitoring-alert-dispatcher]
 verify_jwt = false
+
+# LAUNCH-RUN 2026-09 R1: the Meta callback watchdog is invoked by pg_cron via pg_net, same posture
+# as monitoring-alert-dispatcher above (a SQL caller cannot mint a JWT, gated at the app layer by
+# x-internal-secret instead).
+[functions.meta-callback-guard]
+verify_jwt = false

@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "type-check": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:webhooks": "bash _automation/test-stripe-webhooks.sh",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
@@ -97,6 +99,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",

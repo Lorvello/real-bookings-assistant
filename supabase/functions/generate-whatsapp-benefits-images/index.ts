@@ -48,11 +48,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'gpt-image-2.5-sunburst',
         prompt: prompt,
         n: 1,
         size: size,
-        quality: 'hd',
+        quality: 'high',
         output_format: 'png'
       }),
     });

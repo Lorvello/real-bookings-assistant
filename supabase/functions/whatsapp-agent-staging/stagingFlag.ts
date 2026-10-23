@@ -1,0 +1,18 @@
+// LAUNCH-RUN 2026-09 / R-STAGING.
+// De STAGING-VLAG zit in de BUILD, niet in een secret en niet in een header.
+// Alleen een build waarin deze constante `true` is accepteert een provider/model-override.
+// De productiefunctie `whatsapp-agent` heeft dit bestand niet en kan de override dus
+// niet kennen, ook niet als iemand de header meestuurt.
+export const STAGING_BUILD = true as const;
+
+// Slug van deze functie (alleen voor logregels/diagnose).
+export const STAGING_SLUG = "whatsapp-agent-staging";
+
+// De run-marker van LAUNCH-RUN 2026-09. Elke rij die deze functie zelf schrijft draagt hem,
+// zodat het opruimscript exact zijn eigen rijen terugvindt en niets anders aanraakt.
+export const RUN_MARKER = "BA-LR-2026-09";
+
+// Prefix voor de message_id van elke outbound rij die in staging ontstaat.
+// De latency-meter ankert op INBOUND message_id LIKE 'BA-LR-2026-09%', dus deze
+// outbound-prefix stoort de meting niet en maakt opruimen wel eenduidig.
+export const STAGING_OUTBOUND_PREFIX = `${RUN_MARKER}-STGOUT-`;
