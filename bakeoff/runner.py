@@ -136,7 +136,10 @@ def run_candidate(args) -> int:
             return 2
 
     dates = sorted({core.MON, core.TUE, core.WED, core.THU, core.FRI, core.SAT, core.FRI2})
-    print(f"=== BAKE-OFF kandidaat {tag}  provider={args.provider} model={args.model} ===")
+    # R84 (2026-10-24): de Claude-denkstand reist mee in de getekende override. getattr, zodat de
+    # R79-entry.py (Namespace zonder effort) ongewijzigd blijft werken.
+    effort = getattr(args, "effort", None)
+    print(f"=== BAKE-OFF kandidaat {tag}  provider={args.provider} model={args.model} effort={effort} ===")
     print("feiten ophalen uit de database...")
     facts = core.facts_cached({"cal": fx["calA"], "cal_iris": fx["calA"], "cal_bram": fx["calB"]},
                               fx, dates, os.path.join(core.R05, "facts_cache.json"))
@@ -145,7 +148,7 @@ def run_candidate(args) -> int:
     # De schil weigert een TTL langer dan 900 s (overrideAuth.ts MAX_TTL_S). De header wordt
     # daarom PER BEURT vers getekend; een run duurt langer dan een enkele header geldig is.
     def fresh_ov():
-        return core.override_header(provider=args.provider, model=args.model, ttl=600) \
+        return core.override_header(provider=args.provider, model=args.model, ttl=600, effort=effort) \
             if args.provider else None
 
     totaal_429 = 0
@@ -236,7 +239,7 @@ def run_candidate(args) -> int:
                     break
 
             bundel = {"scenario": sid, "candidate": tag, "provider": args.provider,
-                      "model": args.model, "phone": phone, "bind": bind, "prep": prep,
+                      "model": args.model, "effort": effort, "phone": phone, "bind": bind, "prep": prep,
                       "facts": facts, "snap0": snap0, "turns": turns, "t0": t0}
             if R36 is not None:
                 bundel['r36_binding'] = R36['binding']
@@ -260,7 +263,7 @@ def run_candidate(args) -> int:
             return 2
 
     meta = {
-        "candidate": tag, "provider": args.provider, "model": args.model,
+        "candidate": tag, "provider": args.provider, "model": args.model, "effort": effort,
         "scenarios": [b["scenario"] for b in bundels],
         "beurten": sum(len(b["turns"]) for b in bundels),
         "n429_totaal": totaal_429,
@@ -284,8 +287,10 @@ def run_candidate(args) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--candidate", required=True)
-    ap.add_argument("--provider", default=None, choices=["groq", "openai", "gemini"])
+    ap.add_argument("--provider", default=None, choices=["groq", "openai", "gemini", "anthropic"])
     ap.add_argument("--model", default=None)
+    ap.add_argument("--effort", default=None, choices=["low", "medium", "high", "xhigh", "max"],
+                    help="R84: Claude-denkstand, alleen met --provider anthropic")
     ap.add_argument("--scenarios", default=None)
     ap.add_argument("--token-floor", type=int, default=150000)
     return run_candidate(ap.parse_args())
