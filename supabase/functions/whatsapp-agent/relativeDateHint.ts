@@ -164,6 +164,63 @@ function resolveWeekday(now: Date, targetDow: number, skipWeek: boolean): Date {
   return new Date(Date.UTC(y, m - 1, d + offset, 11, 0, 0)); // noon UTC, DST-safe like buildCalendarHint
 }
 
+// R84 (original11 S09, run 2026-09-08 22:01 Amsterdam): "di 10 uur knippen? karim" on a Tuesday
+// evening resolved to TODAY (resolveWeekday counts today), so get_available_slots read an empty
+// evening and the agent told the customer the whole day was full, while next Tuesday had
+// 09:00/09:30/10:30 free. When the named weekday is today and the clock time the customer names
+// has already passed today in EVERY plausible reading (1-11 without am/pm may mean h or h+12),
+// the customer means the next occurrence. "vandaag", an explicit this-week qualifier
+// ("deze/this/diezelfde/dezelfde", "... die week") and a message without a clock time keep today.
+function amsterdamMinutesOfDay(d: Date): number {
+  const [h, m] = d
+    .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" })
+    .split(":")
+    .map(Number);
+  return (h % 24) * 60 + m;
+}
+
+const SPOKEN_HOURS: Record<string, number> = {
+  een: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10, elf: 11, twaalf: 12,
+};
+
+// Latest plausible minute-of-day for the FIRST clock time in the message, or null when there is
+// none. Closed grammar on purpose ("17 september", "30 minuten", "40 euro" are not times).
+function latestReadingOfFirstClockTime(s: string): number | null {
+  const patterns: Array<{ re: RegExp; read: (m: RegExpExecArray) => { h: number; min: number; ampm?: string } | null }> = [
+    { re: /\bhalf\s+(\d{1,2}|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)\b/i, read: (m) => {
+      const n = /^\d+$/.test(m[1]) ? Number(m[1]) : SPOKEN_HOURS[m[1].toLowerCase()];
+      return n >= 1 && n <= 24 ? { h: n - 1, min: 30 } : null;
+    } },
+    { re: /\b([01]?\d|2[0-3])[:.]([0-5]\d)\s*(am|pm)?\b/i, read: (m) => ({ h: Number(m[1]), min: Number(m[2]), ampm: m[3] }) },
+    { re: /\b([01]?\d|2[0-3])\s*(am|pm)\b/i, read: (m) => ({ h: Number(m[1]), min: 0, ampm: m[2] }) },
+    { re: /\b([01]?\d|2[0-3])\s*(?:uur|u)\b/i, read: (m) => ({ h: Number(m[1]), min: 0 }) },
+    { re: /\b(?:om|at)\s+([01]?\d|2[0-3])\b/i, read: (m) => ({ h: Number(m[1]), min: 0 }) },
+  ];
+  let first: { index: number; minutes: number } | null = null;
+  for (const p of patterns) {
+    const m = p.re.exec(s);
+    if (!m) continue;
+    const t = p.read(m);
+    if (!t) continue;
+    let h = t.h;
+    const ampm = t.ampm?.toLowerCase();
+    if (ampm === "pm" && h >= 1 && h <= 11) h += 12;
+    else if (ampm === "am" && h === 12) h = 0;
+    else if (!ampm && h >= 1 && h <= 11) h += 12; // latest plausible reading
+    const minutes = h * 60 + t.min;
+    if (first === null || m.index < first.index) first = { index: m.index, minutes };
+  }
+  return first?.minutes ?? null;
+}
+
+function resolveWeekdayPastTimeAware(now: Date, targetDow: number, text: string, keepToday: boolean): Date {
+  const d = resolveWeekday(now, targetDow, false);
+  if (keepToday || amsterdamISO(d) !== amsterdamISO(now)) return d;
+  const latest = latestReadingOfFirstClockTime(text);
+  if (latest === null || latest > amsterdamMinutesOfDay(now)) return d;
+  return resolveWeekday(now, targetDow, true);
+}
+
 // Scans ONLY the given text (the current customer message) for the first explicit relative-date
 // phrase. First mention wins (mirrors dateOfferGuard.ts's own "first date named is the one being
 // offered" convention).
@@ -442,7 +499,8 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
         }
       }
       const skipWeek = !!(m[1] || tail || (m[2] && (m[2] === "volgende" || m[2] === "next")));
-      const d = resolveWeekday(now, dow, skipWeek);
+      const keepToday = !!(m[4] || (m[2] && /^(deze|this|diezelfde|dezelfde)$/.test(m[2])));
+      const d = skipWeek ? resolveWeekday(now, dow, true) : resolveWeekdayPastTimeAware(now, dow, s, keepToday);
       const iso = amsterdamISO(d);
       const matchedPhrase = m[6] && !tail ? m[0].slice(0, -m[6].length).trim() : m[0].trim();
       return { iso, label: dutchLabel(d), matchedPhrase };
@@ -468,7 +526,7 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
     }
   }
   if (best) {
-    const d = resolveWeekday(now, best.dow, false);
+    const d = resolveWeekdayPastTimeAware(now, best.dow, s, false);
     const iso = amsterdamISO(d);
     return { iso, label: dutchLabel(d), matchedPhrase: best.phrase };
   }

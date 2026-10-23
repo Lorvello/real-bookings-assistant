@@ -1,3 +1,4 @@
+import { openingHoursQuestion, answerOpeningHours } from "./openingHoursAnswer.ts";
 // whatsapp-agent — the AI WhatsApp bookings agent (port off n8n).
 // Invoked by whatsapp-webhook (service-role, internal) after it has persisted the
 // inbound message via process_whatsapp_message. Loads conversation history, runs a
@@ -1909,6 +1910,7 @@ Deno.serve(async (req) => {
     // language). null = Dutch or unsure → no override (the prompt's own language rules apply).
     // R81 fix: a CONFIDENTLY Dutch message actively overrides any stale stored non-Dutch language
     // (see detectLanguageSignal header comment) instead of silently inheriting it forever.
+    const openingHoursRequest = openingHoursQuestion(String(message), new Date());
     const langSignal = detectLanguageSignal(String(message));
     const detectedThisMsg = langSignal.nonDutch;
     const continuityProof = !isMultiCalendar && !convContext.pending_cancel
@@ -1917,7 +1919,7 @@ Deno.serve(async (req) => {
     const latestAvailability = !isMultiCalendar && !convContext.pending_booking && !convContext.pending_cancel
       ? latestAvailabilityContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
 
-    const customerLanguage = continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
+    const customerLanguage = openingHoursRequest ? (openingHoursRequest.language === "en" ? "het Engels" : null) : continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
       (langSignal.confidentDutch
         ? null
         : (typeof convContext.detected_language === "string"
@@ -3490,7 +3492,12 @@ Deno.serve(async (req) => {
         }
       }
     }
-    let result: AgentResult = paymentFlowActive
+    // Typed information-only answer; every displayed interval is read and validated.
+    const openingHoursResult = openingHoursRequest && !paymentFlowActive && !participantResult && !policyOnlyResult
+      ? await answerOpeningHours(supabase, openingHoursRequest, calendars) : null;
+    let result: AgentResult = openingHoursResult
+      ? {text:openingHoursResult.text,steps:0,toolCalls:[]}
+      : paymentFlowActive
       ? continuityResult ?? {text: paymentTimingReply(paymentAnswer, ambiguousServiceChoiceReply(serviceChoiceOptions, customerLanguage), customerLanguage != null), steps:0, toolCalls:[]}
       : continuityResult ?? (participantResult
       ? { text: "", steps: 0, toolCalls: [{ name: "update_lead", args: { first_name: participantCandidate }, result: participantResult }] }
@@ -3783,12 +3790,12 @@ Deno.serve(async (req) => {
       result.text || "",
       String(message),
     );
-    const slotOfferUnbacked = !calledMutationTool && !calledSlots &&
+    const slotOfferUnbacked = !openingHoursResult && !calledMutationTool && !calledSlots &&
       offeredTimesPrimary.length > 0 &&
       OFFER_CONTEXT_RE.test(result.text || "");
 
     if (
-      !paymentFlowActive && !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
+      !openingHoursResult && !paymentFlowActive && !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
         looksLikeStall || cancelPreviewMissed || confirmStall ||
         bookPreviewMissed || reschedStall || cancelCommitMissed ||
         bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
@@ -4129,7 +4136,7 @@ Deno.serve(async (req) => {
           replyText = noFalseConfirmReply(customerLanguage);
         }
       }
-    } else {
+    } else if (!openingHoursResult) {
       // ITEM 12: on a successful booking PREVIEW turn, OVERRIDE the model's prose read-back with the
       // server-templated one so the date the customer confirms is exactly the slot stored in
       // pending_booking (the commit reuses it). This makes the "confirmed 25 juni / stored 30 juni"
@@ -4846,6 +4853,7 @@ Deno.serve(async (req) => {
     // never depends on the model obeying the prompt rule. Applied once, used for BOTH the
     // WhatsApp send and the persisted transcript so they always match.
     if (keepCancellation) replyText = customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL;
+    if (openingHoursResult) replyText = openingHoursResult.text;
     const reply = sanitizeReply(replyText) ||
       "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
