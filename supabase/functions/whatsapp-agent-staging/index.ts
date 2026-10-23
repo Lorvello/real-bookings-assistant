@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 2f5295f96b6f931e4f0355a768fa874e168e0143f0b2dda205dc78aab79fe90b)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 fdb2f43481b1a8900c6b111840021d026396d31f797488e602c2ce7ef99ab533)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -69,6 +69,7 @@ import {
   formatCarriedForwardDayHint,
   formatRelativeDateHint,
   hasDayMentionAnywhere,
+  latestEndTodayMinutes,
   rescheduleFlowActiveWithNoDay,
 } from "../whatsapp-agent/relativeDateHint.ts";
 import {
@@ -1256,6 +1257,9 @@ stagingServe(async (req: Request) => {
     // right staff/location calendar from the chosen service alone (no "which agenda?" turn). Built
     // from the SAME per-calendar service query, zero extra round-trip; only in multi-calendar mode.
     let serviceCalendarMap: Record<string, string> | undefined;
+    // R84 review round 3: the structured weekly hours of the OTHER calendars in play this turn (the
+    // entry calendar's are weeklyHours.byDay), for latestEndTodayMinutes below.
+    let otherCalendarsByDay: Array<Record<string, { open: boolean; start?: string; end?: string }> | null> = [];
     if (isMultiCalendar) {
       const ids = calendars.map((c) => c.id);
       const { data: setSvc } = await supabase
@@ -1335,6 +1339,7 @@ stagingServe(async (req: Request) => {
       otherCals.forEach((c, i) =>
         hoursByCal.set(c.id, otherHours[i]?.text ?? null)
       );
+      otherCalendarsByDay = otherHours.map((h) => h?.byDay ?? null);
       // T3-A1 (R7): per-calendar cancellation policy, same pattern as openingHours above, so the
       // model can correctly answer a question about a NAMED DIFFERENT calendar's policy (the
       // <business_data> override further below only ever resolves to the CUSTOMER'S OWN upcoming
@@ -1953,7 +1958,17 @@ stagingServe(async (req: Request) => {
     // never from conversation history. See relativeDateHint.ts header for the full bug this
     // closes (R28: long/rambling message with an unnumbered weekday got resolved against a STALE
     // date already sitting in earlier conversation history instead of the real today).
-    const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now);
+    // R84 review round 3: a spoken 7-9 ("om 8") only reads as this evening while some calendar in
+    // play is still open then today. The exact-date override only applies to a single calendar
+    // (the same rule buildCalendarHint uses). Unknown hours keep the evening possible.
+    const dayHintOpts = {
+      todayLatestEndMinutes: latestEndTodayMinutes(
+        now,
+        [weeklyHours?.byDay ?? null, ...otherCalendarsByDay],
+        isMultiCalendar ? undefined : dateOverrides ?? undefined,
+      ),
+    };
+    const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now, dayHintOpts);
     // R93 (SILENT-TODAY-DEFAULT fix, confirmed live bug filed R92): true ONLY when NO explicit day
     // reference has been named ANYWHERE in this conversation yet, this turn's message included.
     // Reuses the SAME already-loaded 12-message history window (`history`, populated further down
@@ -2025,6 +2040,7 @@ stagingServe(async (req: Request) => {
         dayScanWindowTexts,
         now,
         dayScanWindowTexts === priorInboundTexts ? priorInboundSentAt : undefined,
+        dayHintOpts,
       )
       : null;
     const effectiveDateHint = relativeDateHint ?? continuity?.hint ?? latestAvailability?.hint ?? carriedForwardDayHint;
