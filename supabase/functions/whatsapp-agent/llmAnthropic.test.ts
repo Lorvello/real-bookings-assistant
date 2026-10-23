@@ -5,6 +5,7 @@ import type Anthropic from "npm:@anthropic-ai/sdk@0.133.0";
 import {
   ALREADY_SENT_NOTE,
   type AnthropicMessages,
+  effectiveAnthropicEffort,
   runAgentAnthropic,
   systemBlocks,
   toAnthropicMessages,
@@ -245,6 +246,26 @@ Deno.test("R84 Haiku: the real system prompt splits at its static part, losing a
 
 Deno.test("R84 Haiku: a prompt without the marker stays one cached block", () => {
   assertEquals(systemBlocks("geen tools blok"), [{ type: "text", text: "geen tools blok", cache_control: { type: "ephemeral" } }]);
+});
+
+Deno.test("R84 Haiku review 3: a whitespace-only tail stays on the stable block, so nothing is lost", () => {
+  const prompt = "<role>\nX\n</role>\n<tools>\nT\n</tools>\n \n";
+  const blocks = systemBlocks(prompt);
+  assertEquals(blocks.map((b) => b.text).join(""), prompt);
+  assertEquals(blocks.length, 1);
+});
+
+Deno.test("R84 Haiku review 3: separate text blocks are joined with a line break, never glued", async () => {
+  const { client } = fakeClient([reply([text("Hoi!"), text("Welke dienst wil je?")], "end_turn")]);
+  const r = await runAgentAnthropic(opts(), cfg(client));
+  assertEquals(r.text, "Hoi!\nWelke dienst wil je?");
+});
+
+Deno.test("R84 Haiku review 3: effectiveAnthropicEffort is what is actually sent", () => {
+  assertEquals(effectiveAnthropicEffort(undefined), "low");
+  assertEquals(effectiveAnthropicEffort(""), "low");
+  assertEquals(effectiveAnthropicEffort("MEDIUM"), "medium");
+  assertEquals(effectiveAnthropicEffort("turbo"), "low");
 });
 
 Deno.test("R84 Haiku: LLM_PROVIDER=anthropic reaches this adapter and fails closed without a key", async () => {

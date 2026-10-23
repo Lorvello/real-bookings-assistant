@@ -30,6 +30,7 @@
 // en volledig parallel, precies als productie.
 
 import { runAgent as baseRunAgent } from "../whatsapp-agent/llm.ts";
+import { effectiveAnthropicEffort } from "../whatsapp-agent/llmAnthropic.ts";
 import type { AgentResult, Content, RunOpts, ToolDecl, ToolExecutor } from "../whatsapp-agent/llm.ts";
 import type { OverrideProvider } from "./overrideAuth.ts";
 
@@ -74,7 +75,8 @@ export function currentEnvLlm(): EffectiveLlm {
     classifier_model: Deno.env.get("CLASSIFIER_MODEL") ?? null,
     owner_votes: Deno.env.get("OWNER_CLF_VOTES") ?? null,
     grounding_votes: Deno.env.get("GROUNDING_CLF_VOTES") ?? null,
-    effort: provider === "anthropic" ? (Deno.env.get("ANTHROPIC_EFFORT") ?? null) : null,
+    // The effort that is actually SENT (unset or unknown means low), never the raw setting.
+    effort: provider === "anthropic" ? effectiveAnthropicEffort(Deno.env.get("ANTHROPIC_EFFORT")) : null,
   };
 }
 
@@ -155,7 +157,9 @@ export async function withOverride<T>(
         grounding_votes: ov.groundingVotes
           ? String(ov.groundingVotes)
           : (originalGet("GROUNDING_CLF_VOTES") ?? null),
-        effort: effectiveProvider === "anthropic" ? (ov.effort ?? originalGet("ANTHROPIC_EFFORT") ?? null) : null,
+        effort: effectiveProvider === "anthropic"
+          ? effectiveAnthropicEffort(ov.effort ?? originalGet("ANTHROPIC_EFFORT"))
+          : null,
       };
       console.log(
         "[staging-override-applied]",

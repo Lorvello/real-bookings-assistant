@@ -3,7 +3,7 @@
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
 import { assertEquals } from "jsr:@std/assert@1.0.19";
-import { resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
+import { calendarsRequestedIn, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
 
 const CALENDARS = [
   { id: "sanne", name: "Sanne" },
@@ -283,3 +283,25 @@ Deno.test("resolveCandidateCalendarIds: a genuinely shared service (Knippen) sti
   assertEquals(r.matched, true);
   assertEquals(r.candidateIds.size > 1, true);
 });
+
+// R84 live probe on staging (2026-10-24): which staff member or location did the customer ASK for?
+const STAFF = [
+  { id: "bo", name: "Bo (Nagels)" },
+  { id: "sanne", name: "Sanne (Knippen)" },
+  { id: "milan", name: "Milan (Kleuren)" },
+];
+for (
+  const [msg, want] of [
+    ["kan ik vrijdag om 14:00 knippen bij Sanne?", ["sanne"]],
+    ["Can I book a haircut with Sanne on Friday?", ["sanne"]],
+    ["niet bij Sanne maar bij Bo graag", ["bo"]],
+    ["Sanne is ziek, wie heeft er vrijdag plek?", []],
+    ["knippen bij Sanne of bij Milan, maakt niet uit", ["sanne", "milan"]],
+    ["ik wil kleuren", []],
+    ["boeken bij bo", ["bo"]],
+  ] as const
+) {
+  Deno.test(`R84 live: calendarsRequestedIn ${JSON.stringify(msg)}`, () => {
+    assertEquals(calendarsRequestedIn(msg, STAFF), [...want]);
+  });
+}

@@ -35,7 +35,7 @@
 // improves; re-run the §6 testpad before adopting. GEMINI_MODEL secret = gemini-3.5-flash (harmless
 // while provider=openai; the code below handles it correctly now).
 
-import { ANTHROPIC_EFFORTS, type AnthropicEffort, runAgentAnthropic } from "./llmAnthropic.ts";
+import { effectiveAnthropicEffort, runAgentAnthropic } from "./llmAnthropic.ts";
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
@@ -108,9 +108,9 @@ export async function runAgent(opts: RunOpts): Promise<AgentResult> {
   // R84 (2026-10-23): Claude Haiku 5.5 as a switchable option for the Groq-vs-Haiku bake-off that
   // Mathieu asked for ("Haiku op low reasoning"). Not live: production keeps LLM_PROVIDER=groq.
   if (provider === "anthropic") {
-    const asked = (Deno.env.get("ANTHROPIC_EFFORT") || "low").toLowerCase();
-    const effort = (ANTHROPIC_EFFORTS as readonly string[]).includes(asked) ? asked as AnthropicEffort : "low";
-    if (effort !== asked) console.warn(`[llm] ANTHROPIC_EFFORT=${asked} is unknown; using low`);
+    const asked = Deno.env.get("ANTHROPIC_EFFORT");
+    const effort = effectiveAnthropicEffort(asked);
+    if (asked && effort !== asked.toLowerCase()) console.warn(`[llm] ANTHROPIC_EFFORT=${asked} is unknown; using low`);
     return runAgentAnthropic(opts, {
       key: Deno.env.get("ANTHROPIC_API_KEY") ?? "",
       model: Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-5-5",

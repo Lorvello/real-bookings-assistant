@@ -174,6 +174,28 @@ function primaryCalendarNameTokens(name: string): string[] {
 // cases this round), naming the OLD one only to rule it out and the NEW one as the actual ask
 // ("Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken..." names Iris
 // first, Bo last, and Bo is unambiguously what this turn is about).
+// R84 live probe on staging (2026-10-24): the calendars this text ASKS FOR by name, in calendar
+// order, each at most once: the name right after "bij", "with" or "at" ("knippen bij Sanne",
+// "with Sanne"), never after "niet bij" / "not with". A name said for another reason ("Sanne is
+// ziek, wie heeft er plek?") does not count, and service names never count here, unlike
+// lastMentionedCalendar below: this answers "which person or place did the customer ask for".
+export function calendarsRequestedIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {
+  const tokens = tokenize(text ?? "");
+  if (tokens.length === 0) return [];
+  return calendars
+    .filter((cal) => {
+      const name = primaryCalendarNameTokens(cal.name);
+      if (name.length === 0) return false;
+      for (let i = 1; i + name.length <= tokens.length; i++) {
+        if (!["bij", "with", "at"].includes(tokens[i - 1])) continue;
+        if (["niet", "geen", "not", "no"].includes(tokens[i - 2] ?? "")) continue;
+        if (name.every((t, j) => tokens[i + j] === t)) return true;
+      }
+      return false;
+    })
+    .map((cal) => cal.id);
+}
+
 export function lastMentionedCalendar(
   text: string,
   calendars: Array<{ id: string; name: string }>,

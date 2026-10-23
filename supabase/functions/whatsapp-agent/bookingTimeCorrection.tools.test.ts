@@ -156,11 +156,25 @@ Deno.test("R84 S08: both readings free -> ask which, pending withdrawn", async (
   assertEquals(pendingStart(h), null);
 });
 
-Deno.test("R84 review B4: the model's own date wins over the pending preview's date", async () => {
+// Round 1 (B4) asked that the model's own date win over a fresh preview's date; round 3 showed that
+// this silently moves a time-only correction to another day. A time-only message says nothing about
+// the day, so a disagreement is now asked, unless index.ts established the day deterministically.
+Deno.test("R84 review 3 (replaces B4): a model date that differs from the fresh preview's day is asked", async () => {
   const h = harness({ context: pending(60_000), slots: { [TUE]: daySlots(TUE), [FRI]: daySlots(FRI) } });
-  await run(h, S08, { service_type_id: "S1", date: FRI, time: "14:00", customer_name: "Karim" });
-  assert(pendingStart(h)?.startsWith(FRI), "expected a Friday preview, got " + pendingStart(h));
-  assertEquals(pendingStart(h), "2026-11-13T14:00:00+00:00");
+  const out = await run(h, S08, { service_type_id: "S1", date: FRI, time: "14:00", customer_name: "Karim" });
+  assertEquals(out.error, "tijd_correctie_welke_dag");
+  assert(String(out.message).includes("dinsdag 10 november") && String(out.message).includes("vrijdag 13 november"), String(out.message));
+  assertEquals(pendingStart(h), null);
+});
+
+Deno.test("R84 review 3 C4/C5: the model's own day with the asked or the old time is asked too", async () => {
+  const WED = "2026-11-11";
+  for (const time of ["15:00", "14:00"]) {
+    const h = harness({ context: pending(60_000), slots: { [TUE]: daySlots(TUE), [WED]: daySlots(WED) } });
+    const out = await run(h, S08, { service_type_id: "S1", date: WED, time, customer_name: "Karim" });
+    assertEquals(out.error, "tijd_correctie_welke_dag", time);
+    assertEquals(pendingStart(h), null, time);
+  }
 });
 
 Deno.test("R84 review B5: a stale pending preview (2 h) never binds the date", async () => {
@@ -233,7 +247,9 @@ Deno.test("R84 review 2 N7: a correction on a full day echoes date, service and 
 
 // R84 live probe on staging v35 (2026-10-24, multi-calendar tenant): the model re-sent another
 // calendar's service id for the same service; the correction must keep the open preview's own target.
-Deno.test("R84 live v35: a time-only correction keeps the open preview's service and calendar", async () => {
+// Narrowed in review round 3: only a call WITHOUT a service takes the open preview's target. A call
+// with a different service keeps its own route (next test).
+Deno.test("R84 live v35: a time-only correction without a service keeps the open preview's service and calendar", async () => {
   const ctx0 = pending(60_000) as Record<string, unknown>;
   Object.assign(ctx0.pending_booking as Record<string, unknown>, { calendar_id: "B", service_type_id: "S2" });
   const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
@@ -241,7 +257,6 @@ Deno.test("R84 live v35: a time-only correction keeps the open preview's service
     ...baseCtx(S08),
     calendars: [{ id: "A", name: "Iris" }, { id: "B", name: "Sanne" }],
   } as ToolContext).execute("book_appointment", {
-    service_type_id: "S1",
     start_time: "2026-11-10T13:00:00+00:00",
     customer_name: "Karim",
   }) as Record<string, unknown>;
@@ -252,4 +267,69 @@ Deno.test("R84 live v35: a time-only correction keeps the open preview's service
     h.rpcCalls.some((c) => c.fn === "get_available_slots" && c.args.p_calendar_id === "B"),
     "slot read did not go to the preview's calendar: " + JSON.stringify(h.rpcCalls.map((c) => c.args)),
   );
+});
+
+// R84 review round 3 (C1/C2): the customer may have moved on to another service or stylist. A call
+// with a DIFFERENT service is never forced onto the open preview; the open-preview guard asks.
+const TWO_CAL = (msg: string): ToolContext => ({
+  ...baseCtx(msg),
+  calendars: [{ id: "A", name: "Iris" }, { id: "B", name: "Sanne (Knippen)" }],
+  serviceCalendarMap: { S1: "A", S2: "B" },
+} as ToolContext);
+
+Deno.test("R84 review 3 C1/C2: a different service is never forced onto the open preview", async () => {
+  for (const customer_name of ["Karim", "Bob"]) {
+    const h = harness({ context: pending(60_000), slots: { [TUE]: daySlots(TUE) } });
+    const out = await createTools(h.client, TWO_CAL(S08)).execute("book_appointment", {
+      service_type_id: "S2", date: TUE, time: "15:00", customer_name,
+    }) as Record<string, unknown>;
+    assertEquals(out.error, "vorige_boeking_nog_open", customer_name);
+    const pb = h.ctx().pending_booking as Record<string, unknown>;
+    assertEquals([pb.service_type_id, pb.calendar_id, pb.start_time, pb.customer_name], ["S1", "A", "2026-11-10T13:00:00+00:00", "Karim"]);
+  }
+});
+
+Deno.test("R84 review 3: a time-only correction never changes who the booking is for", async () => {
+  const h = harness({ context: pending(60_000), slots: { [TUE]: daySlots(TUE) } });
+  await run(h, S08, { ...OLD_ISO, customer_name: "Bob" });
+  const pb = h.ctx().pending_booking as Record<string, unknown>;
+  assertEquals([pb.start_time, pb.customer_name], ["2026-11-10T14:00:00+00:00", "Karim"]);
+});
+
+// R84 live probe on staging v36 (2026-10-24): "knippen bij Sanne" was previewed with another
+// stylist's "Knippen" (Sanne only offers "Knippen Dames"/"Knippen Heren").
+const BIJ_SANNE = "kan ik dinsdag 10 november om 14:00 knippen bij Sanne? naam is Tom Bakker";
+
+Deno.test("R84 live: a service of another stylist than the one asked for is refused, nothing is previewed", async () => {
+  const h = harness({ context: {}, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, TWO_CAL(BIJ_SANNE)).execute("book_appointment", {
+    service_type_id: "S1", date: TUE, time: "14:00", customer_name: "Tom Bakker",
+  }) as Record<string, unknown>;
+  assertEquals(out.error, "dienst_van_andere_medewerker");
+  assert(String(out.message).includes("Sanne (Knippen)") && String(out.message).includes("Iris"), String(out.message));
+  assertEquals(h.ctx().pending_booking, undefined);
+  assertEquals(h.rpcCalls.filter((c) => c.fn === "get_available_slots").length, 0);
+});
+
+Deno.test("R84 live: the slot list of another stylist than the one asked for is refused too", async () => {
+  const h = harness({ context: {}, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, TWO_CAL(BIJ_SANNE)).execute("get_available_slots", {
+    service_type_id: "S1", date: TUE,
+  }) as Record<string, unknown>;
+  assertEquals(out.error, "dienst_van_andere_medewerker");
+  assertEquals(h.rpcCalls.filter((c) => c.fn === "get_available_slots").length, 0);
+});
+
+Deno.test("R84 live: the stylist's own service, 'niet bij Sanne' and a name said in passing are not refused", async () => {
+  for (const [msg, service] of [
+    [BIJ_SANNE, "S2"],
+    ["niet bij Sanne maar bij Iris, dinsdag 10 november om 14:00 knippen", "S1"],
+    ["Sanne is ziek, kan ik dinsdag 10 november om 14:00 knippen?", "S1"],
+  ] as const) {
+    const h = harness({ context: {}, slots: { [TUE]: daySlots(TUE) } });
+    const out = await createTools(h.client, TWO_CAL(msg)).execute("book_appointment", {
+      service_type_id: service, date: TUE, time: "14:00", customer_name: "Tom Bakker",
+    }) as Record<string, unknown>;
+    assert(out.error !== "dienst_van_andere_medewerker", `${msg}: ${JSON.stringify(out)}`);
+  }
 });

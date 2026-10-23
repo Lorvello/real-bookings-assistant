@@ -8,6 +8,7 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
 import { explicitNameRefusal, affirmationInventsName } from "./nameInputGuard.ts";
 import { correctedPreviewHours } from "./bookingTimeCorrection.ts";
+import { calendarsRequestedIn } from "./preFilterCalendars.ts";
 import {
   BEVESTIG_TERUGKERENDE_DIENST_MESSAGE,
   findServiceSwitchForPendingPreview,
@@ -352,6 +353,25 @@ function normServiceNameLocal(n: string): string {
 // (the common case) ignores the index entirely and returns the entry calendar, so that path is
 // behaviourally unchanged. When multiple calendars exist and the model gave no valid index, we
 // REFUSE to guess (booking in the wrong staff/location calendar is a real error) and ask.
+// R84 live probe on staging (2026-10-24, four-calendar tenant): "kan ik vrijdag 30 oktober om 14:00
+// knippen bij Sanne?" previewed Bo's "Knippen", because Sanne only offers "Knippen Dames" and
+// "Knippen Heren" and the service id pins the calendar (resolveBookingCalendar). The preview text
+// names no staff member, so the customer could not have noticed. When the message asks for exactly
+// ONE staff member or location ("bij Sanne", "with Sanne") and the chosen service belongs to another,
+// never read slots or preview there: the model picks that person's own service, or asks which one.
+function namedCalendarMismatch(ctx: ToolContext, calId: string): { error: string; message: string } | null {
+  if (ctx.calendars.length <= 1) return null;
+  const named = calendarsRequestedIn(String(ctx.userMessage ?? ""), ctx.calendars);
+  if (named.length !== 1 || named[0] === calId) return null;
+  const want = ctx.calendars.find((c) => c.id === named[0])?.name ?? "de genoemde medewerker";
+  const got = ctx.calendars.find((c) => c.id === calId)?.name ?? "een andere medewerker";
+  return {
+    error: "dienst_van_andere_medewerker",
+    message: `De klant vraagt om ${want}, maar de gekozen dienst hoort bij ${got}. Boek of zoek NIET bij ${got}. ` +
+      `Kies de passende dienst van ${want} uit <kalenders>; passen er meerdere (bijvoorbeeld dames of heren), vraag dan kort welke.`,
+  };
+}
+
 function resolveBookingCalendar(
   ctx: ToolContext,
   rawIndex: unknown,
@@ -1891,6 +1911,8 @@ export function createTools(
           args.calendar_index,
           args.service_type_id,
         );
+        const slotMismatch = "id" in slotCal ? namedCalendarMismatch(ctx, slotCal.id) : null;
+        if (slotMismatch) return slotMismatch;
         if ("needAsk" in slotCal) {
           return {
             error: "kies_medewerker",
@@ -2573,15 +2595,14 @@ export function createTools(
             };
           }
 
-          // R84 live probe on staging v35 (2026-10-24, multi-calendar tenant): "yeah fine. can we do 3
-          // instead tho?" after a 14:00 preview. The model re-sent the service id of another calendar's
-          // "Knippen"; the correction block below then saw a different target and stood aside, and
-          // the open-preview guard asked whether to confirm 14:00 or book "the new service". The
-          // correction grammar only matches a time-only message (no day, service or person), so with
-          // a fresh preview open it is about THAT preview: its own service and calendar are the
-          // target, whatever the model sent, and the fresh-request gates below do not apply.
+          // R84 (2026-10-24): a time-only correction ("can we do 3 instead") with a fresh preview open,
+          // where the model sent NO service at all, corrects that preview: its own service and
+          // calendar are the target and the fresh-request gates below do not apply. Review round 3
+          // showed why this must stay this narrow: when the model sends a DIFFERENT service, the
+          // customer may really have moved on (another stylist or service), so that call keeps its
+          // own route and the open-preview guard asks about the earlier preview, the safe question.
           const correctsFreshPreview = !committing && !namePreviewOnly && !!pendingBook?.start_time &&
-            !!pendingBook?.service_type_id &&
+            !!pendingBook?.service_type_id && !String(args.service_type_id ?? "").trim() &&
             (typeof pendingBook.at !== "number" || Date.now() - pendingBook.at < 15 * 60 * 1000) &&
             correctedPreviewHours(String(ctx.userMessage ?? "")) !== null;
           const serviceId = String(
@@ -2669,6 +2690,8 @@ export function createTools(
               };
             }
             calId = bookCal.id;
+            const bookMismatch = namedCalendarMismatch(ctx, calId);
+            if (bookMismatch) return bookMismatch;
           }
 
           // FAST PATH (preview only): the customer named a concrete date+time, so resolve the EXACT
@@ -2721,33 +2744,42 @@ export function createTools(
               const modelTime = startIsIso
                 ? nlTimeOnly(start).slice(0, 5)
                 : String(args.time ?? "").trim().slice(0, 5);
-              if (!askedTimes.includes(modelTime)) {
-                const amsDate = (iso: string) =>
-                  new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
-                const argDate = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date ?? "")) ? String(args.date) : "";
-                const pendingDate = pendingSameTarget ? amsDate(String(pendingBook!.start_time)) : "";
-                const startDate = startIsIso ? amsDate(start) : "";
-                // R84 review round 2 (N6): the model's own date and the day of the time it re-sent
-                // disagree, and no day the customer named this turn settles it. A time-only
-                // correction says nothing about the day, so neither day is safe to pick: withdraw a
-                // fresh preview and ask which day is meant.
-                if (argDate && startDate && argDate !== startDate && argDate !== (ctx.relativeDateHintISO ?? "")) {
-                  if (pendingSameTarget) {
-                    await clearPendingBook();
-                    bookCtx = { ...bookCtx, pending_booking: undefined };
-                  }
-                  const dayNL = (d: string) => nlWhen(`${d}T12:00:00Z`).replace(/\s\d{2}:\d{2}$/, "");
-                  return {
-                    error: "tijd_correctie_welke_dag",
-                    message: `De klant vraagt om ${askedTimes.join(" of ")}, maar het is niet duidelijk op welke dag: ${
-                      dayNL(startDate)
-                    } of ${dayNL(argDate)}. Vraag kort welke dag bedoeld is.${
-                      pendingSameTarget
-                        ? " Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor."
-                        : " Stel het oude tijdstip NIET opnieuw voor."
-                    }`,
-                  };
+              const amsDate = (iso: string) =>
+                new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
+              const argDate = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date ?? "")) ? String(args.date) : "";
+              const pendingDate = pendingSameTarget ? amsDate(String(pendingBook!.start_time)) : "";
+              const startDate = startIsIso ? amsDate(start) : "";
+              // R84 review rounds 2 and 3 (N6): a time-only correction says nothing about the day.
+              // When the model's day disagrees with the day of the time it re-sent, or with the
+              // fresh preview's own day, and no day index.ts established deterministically
+              // (ctx.relativeDateHintISO) settles it, neither day is safe to pick: withdraw a fresh
+              // preview and ask which day is meant. (This replaces round 1's "the model's date wins".)
+              const modelDate = argDate || startDate;
+              const settled = (d: string) => d === (ctx.relativeDateHintISO ?? "");
+              const startConflict = !!argDate && !!startDate && argDate !== startDate && !settled(argDate);
+              const pendingConflict = pendingSameTarget && !!modelDate && !!pendingDate && modelDate !== pendingDate &&
+                !settled(modelDate);
+              if (startConflict || pendingConflict) {
+                if (pendingSameTarget) {
+                  await clearPendingBook();
+                  bookCtx = { ...bookCtx, pending_booking: undefined };
                 }
+                const dayNL = (d: string) => nlWhen(`${d}T12:00:00Z`).replace(/\s\d{2}:\d{2}$/, "");
+                const [dayA, dayB] = startConflict ? [startDate, argDate] : [pendingDate, modelDate];
+                return {
+                  error: "tijd_correctie_welke_dag",
+                  message: `De klant vraagt om ${askedTimes.join(" of ")}, maar het is niet duidelijk op welke dag: ${
+                    dayNL(dayA)
+                  } of ${dayNL(dayB)}. Vraag kort welke dag bedoeld is.${
+                    pendingSameTarget
+                      ? " Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor."
+                      : " Stel het oude tijdstip NIET opnieuw voor."
+                  }`,
+                };
+              }
+              // R84 review round 3: a time-only message never changes WHO the booking is for.
+              if (pendingSameTarget && pendingBook?.customer_name) args.customer_name = pendingBook.customer_name;
+              if (!askedTimes.includes(modelTime)) {
                 const boundDate = argDate || pendingDate || startDate;
                 const withdrawsPending = pendingSameTarget && pendingDate === boundDate;
                 if (boundDate) {

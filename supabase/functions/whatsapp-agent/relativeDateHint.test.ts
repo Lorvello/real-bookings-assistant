@@ -3,7 +3,7 @@
 // Pure extraction/formatting logic only, mirrors dateOfferGuard.test.ts's structure.
 // Run: deno test relativeDateHint.test.ts
 import { assertEquals, assertMatch } from "jsr:@std/assert@1.0.19";
-import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
+import { extractRelativeDayHint, formatRelativeDateHint, extractCarriedForwardDayHint, formatCarriedForwardDayHint, hasDayMentionAnywhere, latestEndTodayMinutes, rescheduleFlowActiveWithNoDay, enforceRescheduleNoDayDisclosure } from "./relativeDateHint.ts";
 import { scopeToCurrentTopicWindow } from "./preFilterCalendars.ts";
 
 const CALENDARS_TEST = [
@@ -869,4 +869,84 @@ Deno.test("R84 review 2 N2: without a send time the carried hint resolves agains
     extractCarriedForwardDayHint("doe maar 10:30", ["dinsdag 10 uur knippen?"], tueAt("10:02"), [new Date("x")])?.iso,
     NEXT_TUE,
   );
+});
+
+// R84 review round 3 (independent reviewer, 2026-10-24), the reviewer's own inputs. A daypart only
+// counts for its own day or time; "voormiddag" is morning; a spoken 7-9 is evening only while the
+// business is still open then (todayLatestEndMinutes); several times: the latest decides.
+const CLOSES_17 = { todayLatestEndMinutes: 17 * 60 };
+const CLOSES_21 = { todayLatestEndMinutes: 21 * 60 };
+const CLOSES_22 = { todayLatestEndMinutes: 22 * 60 };
+for (
+  const [label, msg, hhmm, want, opts] of [
+    ["K1 'dinsdagvoormiddag 10 uur' at 14:00 rolls (voormiddag is morning)", "dinsdagvoormiddag 10 uur?", "14:00", NEXT_TUE, undefined],
+    ["K2 an evening word of another day does not make 10 uur evening", "dinsdag 10 uur, of anders woensdagavond", "14:00", NEXT_TUE, undefined],
+    ["K3 'morgenavond' in the next sentence does not either", "di 10 uur? morgenavond kan ook", "14:00", NEXT_TUE, undefined],
+    ["K4 bare '10.00' after the weekday is a time", "di 10.00 knippen?", "22:01", NEXT_TUE, undefined],
+    ["K6 'kan het tot 5 uur?' is an upper bound and rolls at 17:30", "kan het dinsdag tot 5 uur?", "17:30", NEXT_TUE, undefined],
+    ["K13 bare time after a comma", "di, 10.30 knippen?", "22:01", NEXT_TUE, undefined],
+    ["K14 bare time after a qualifier", "aanstaande dinsdag 10.30?", "22:01", NEXT_TUE, undefined],
+    ["K7 'di 9 uur' at 14:00 rolls when the business closes at 17:00", "di 9 uur knippen?", "14:00", NEXT_TUE, CLOSES_17],
+    ["K7b the same message keeps today when it is open until 22:00", "di 9 uur knippen?", "14:00", TUE, CLOSES_22],
+    ["K7d an appointment cannot start at closing time (open until 21:00, '9 uur' rolls)", "di 9 uur knippen?", "14:00", NEXT_TUE, CLOSES_21],
+    ["K7c and keeps today when the hours are unknown", "di 9 uur knippen?", "14:00", TUE, undefined],
+    ["K8 'dinsdag half 9' at 10:00 rolls when the business closes at 17:00", "dinsdag half 9?", "10:00", NEXT_TUE, CLOSES_17],
+    ["K9 '8 uur 's ochtends' at 08:30 rolls", "dinsdag 8 uur 's ochtends?", "08:30", NEXT_TUE, undefined],
+    ["K10 '8 in the morning' at 09:00 rolls", "tuesday 8 in the morning?", "09:00", NEXT_TUE, undefined],
+    ["K11 'dinsdagochtend 9 uur' at 10:00 rolls", "dinsdagochtend 9 uur?", "10:00", NEXT_TUE, undefined],
+    ["K12 'dinsdag 7 uur' at 21:00 rolls", "dinsdag 7 uur?", "21:00", NEXT_TUE, undefined],
+    ["R1 'dinsdagmiddag 2 uur' at 13:00 keeps today", "dinsdagmiddag 2 uur?", "13:00", TUE, undefined],
+    ["R2 ''s middags om 1' at 12:30 keeps today", "dinsdag 's middags om 1?", "12:30", TUE, undefined],
+    ["R3 '12 uur 's middags' at 11:00 keeps today", "di 12 uur 's middags?", "11:00", TUE, undefined],
+    ["R6 'di 8.30 's avonds' at 17:00 keeps today", "di 8.30 's avonds?", "17:00", TUE, undefined],
+    ["R7 'na 7' at 18:00 keeps today", "kan ik dinsdag na 7?", "18:00", TUE, undefined],
+    ["R8 'vanaf half 6' at 18:00 keeps today", "dinsdag vanaf half 6?", "18:00", TUE, undefined],
+    ["R10 two options, the second still ahead, keeps today", "di 10 uur, kan ook 4 uur", "14:00", TUE, undefined],
+    ["R11 'om 3 of 4 uur' at 15:30 keeps today", "dinsdag om 3 of 4 uur?", "15:30", TUE, undefined],
+    ["R12 'tuesday at 7' at 17:00 keeps today while open until 21:00", "tuesday at 7?", "17:00", TUE, CLOSES_21],
+    ["S09 exact still rolls with the real 09:00-17:00 hours", "di 10 uur knippen? karim", "22:01", NEXT_TUE, CLOSES_17],
+  ] as const
+) {
+  Deno.test(`R84 review 3: ${label}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm), opts)?.iso, want);
+  });
+}
+
+Deno.test("R84 review 3: '14.10' after a weekday stays a possible date (14 October), not a time", () => {
+  // Deliberately not read: minutes 01-12 are also a month. A bare .00 or .13-.59 is read (K4, D1).
+  assertEquals(extractRelativeDayHint("di 14.10 knippen?", tueAt("15:00"))?.iso, TUE);
+});
+
+Deno.test("R84 review 3 B: a stale day from two weeks ago resolves to the upcoming one, never a past date", () => {
+  const hint = extractCarriedForwardDayHint(
+    "is 10:30 nog vrij?",
+    ["kan ik dinsdag knippen?"],
+    new Date("2026-09-14T10:00:00+02:00"),
+    [new Date("2026-09-01T10:00:00+02:00")],
+  );
+  assertEquals(hint?.iso, NEXT_TUE);
+});
+
+Deno.test("R84 review 3 B: yesterday's 'morgen' still means today", () => {
+  const hint = extractCarriedForwardDayHint(
+    "is 10:30 vrij?",
+    ["kan ik morgen knippen?"],
+    tueAt("09:00"),
+    [new Date("2026-09-07T20:00:00+02:00")],
+  );
+  assertEquals(hint?.iso, TUE);
+});
+
+Deno.test("R84 review 3: latestEndTodayMinutes reads today's latest closing time", () => {
+  const tue = tueAt("12:00");
+  const iris = { Dinsdag: { open: true, start: "09:00", end: "17:00" } };
+  const bram = { Dinsdag: { open: true, start: "10:00", end: "21:00" } };
+  const closed = { Dinsdag: { open: false } };
+  assertEquals(latestEndTodayMinutes(tue, [iris, bram]), 21 * 60);
+  assertEquals(latestEndTodayMinutes(tue, [iris, closed]), 17 * 60);
+  assertEquals(latestEndTodayMinutes(tue, [closed]), 0);
+  assertEquals(latestEndTodayMinutes(tue, [null, undefined]), null);
+  // An exact-date override wins: closed today, or other hours today.
+  assertEquals(latestEndTodayMinutes(tue, [iris], { [TUE]: { isAvailable: false } }), 0);
+  assertEquals(latestEndTodayMinutes(tue, [iris], { [TUE]: { isAvailable: true, start: "12:00", end: "20:00" } }), 20 * 60);
 });

@@ -167,22 +167,25 @@ function resolveWeekday(now: Date, targetDow: number, skipWeek: boolean): Date {
 // R84 (original11 S09, run 2026-09-08 22:01 Amsterdam): "di 10 uur knippen? karim" on a Tuesday
 // evening resolved to TODAY (resolveWeekday counts today), so get_available_slots read an empty
 // evening and the agent told the customer the whole day was full, while next Tuesday had
-// 09:00/09:30/10:30 free. When the named weekday is today and the clock time the customer gives FOR
-// that day has already passed in EVERY plausible reading, the customer means the next occurrence.
-// The plausible readings follow Dutch appointment language (review round 2, 2026-10-23):
-// - am/pm, or a daypart near the day or the time ("dinsdagavond", "'s avonds", "evening",
-//   "'s middags", "afternoon", "'s ochtends", "morning"), decides the reading;
+// 09:00/09:30/10:30 free. When the named weekday is today and EVERY time the customer asks FOR that
+// day has already passed in every plausible reading, the customer means the next occurrence.
+// Plausible readings follow Dutch appointment language (review rounds 2 and 3, 2026-10-23/24):
+// - am/pm, or a daypart that belongs to this day or this time, decides the reading: in the weekday
+//   word ("dinsdagavond", "dinsdagvoormiddag"), right after it ("dinsdag 's avonds", "tuesday
+//   evening") or right after the time ("8 uur 's avonds", "8 in the morning"). A daypart in another
+//   clause ("10 uur, of anders woensdagavond") belongs to that other day. "voormiddag" is morning;
 // - otherwise 1-6 is afternoon ("3 uur" = 15:00), 10-12 is morning or noon ("10 uur" = 10:00),
 //   "half een" is 12:30, and 0 and 13-23 are literal;
-// - a spoken 7, 8 or 9 ("7 uur", "half 8", "om 8") can be morning or evening (late opening,
-//   barbers until 21:00), so the day only rolls once the evening reading has passed too; written
-//   with minutes ("8:30", "8.30", "8u30") it is the 24-hour clock and literal.
+// - a spoken 7, 8 or 9 ("7 uur", "half 8", "om 8") is evening as well only while the business is
+//   still open then today (opts.todayLatestEndMinutes; unknown hours keep the evening possible).
+//   Written with minutes ("8:30", "8.30", "8u30") it is the 24-hour clock and literal;
+// - with several times for the day ("di 10 uur, kan ook 4 uur") the latest one decides.
 // Today is kept for "vandaag/today/vanavond/tonight", any this-week wording ("deze week",
 // "this week", "deze di", "this tuesday", "diezelfde week") and a message without a clock time.
-// Only a real clock time counts: a duration ("duurt dat 1 uur"), a price ("12.50") or a date
-// ("15.09") is not one, and a lower bound ("na 5 uur", "after 5pm", "vanaf 6", "ik werk tot 5")
-// is not the requested time, because later times today can still fit. When several times appear,
-// the one written after the weekday wins ("ik werk tot 5 uur, kan dinsdag om 6 uur?" is 18:00).
+// Only a real requested time counts: a duration ("duurt dat 1 uur"), a price ("12.50") or a date
+// ("15.09") is not one, and neither is a lower bound ("na 5 uur", "after 5pm", "vanaf 6", "ik werk
+// tot 5"), because later times today can still fit. "kan het tot 5 uur?" is an upper bound and a
+// requested time. A bare "10.30" or "10.00" right after the weekday is a time; "15.09" is a date.
 function amsterdamMinutesOfDay(d: Date): number {
   const [h, m] = d
     .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" })
@@ -200,18 +203,29 @@ const KEEP_TODAY_RE =
 const THIS_QUALIFIER_BEFORE_RE = /\b(?:deze|this|diezelfde|dezelfde)\s+$/i;
 const DURATION_BEFORE_RE =
   /\b(?:duurt|duur|duren|lang|hoelang|ongeveer|zo'?n|minstens|maximaal|circa|ca\.?|bijna|ruim|takes?|lasts?)\b(?:\s+\S+){0,2}\s*$/i;
-const LOWER_BOUND_BEFORE_RE = /\b(?:na|after|vanaf|from|tot|until|till)\s+(?:om\s+|at\s+)?$/i;
-// "avond" also matches "dinsdagavond"; "'s morgens" needs its "'s": a bare "morgen" is tomorrow.
-const EVENING_RE = /avond|'s\s*avonds|\bsavonds\b|\bevening\b|\bnight\b/i;
-const AFTERNOON_RE = /middag|'s\s*middags|\bsmiddags\b|\bafternoon\b/i;
-const MORNING_RE = /ochtend|'s\s*ochtends|\bsochtends\b|'s\s*morgens|\bsmorgens\b|\bmorning\b/i;
+// "na/after/vanaf/from" always open a lower bound; "tot/until/till" only after a work or busy verb
+// ("ik werk tot 5", "busy until 5"), since "kan het tot 5 uur?" asks for a time before 17:00.
+const LOWER_BOUND_BEFORE_RE =
+  /(?:\b(?:na|after|vanaf|from)\s+(?:om\s+|at\s+)?|\b(?:werk|werkt|ben|bezig|zit|work|working|busy)\b[^,.;!?\d]{0,20}\b(?:tot|until|till)\s+(?:om\s+|at\s+)?)$/i;
+// The end of the clause that owns a weekday: punctuation that ends a sentence, or another day word.
+const CLAUSE_END_RE =
+  /[.;!?\n]|\b(?:maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morgen\w*|overmorgen|vandaag|today|tomorrow)/i;
+
+// "pm" = afternoon or evening wording, "am" = morning wording; both in one phrase keeps the later.
+// "voormiddag" is morning; a bare "morgen" is tomorrow, so only "'s morgens" counts.
+function daypartIn(phrase: string): "am" | "pm" | null {
+  const t = phrase.toLowerCase();
+  const pm = /(?<!voor)middag|avond|\bafternoon\b|\bevening\b|\bnight\b/.test(t);
+  const am = /voormiddag|ochtend|'s\s*morgens|\bsmorgens\b|\bmorning\b/.test(t);
+  return pm ? "pm" : am ? "am" : null;
+}
 
 // spoken: said as an hour ("8 uur", "half 8", "om 8"), not written with minutes ("8:30").
 type ClockHit = { index: number; end: number; h: number; min: number; ampm?: string; spoken: boolean };
 
 // The latest plausible minute of day for a clock time (see the header above). The day rolls only
-// when even this reading has passed. daypart "pm" = evening or afternoon wording, "am" = morning.
-function latestReading(hit: ClockHit, daypart: "am" | "pm" | null): number | null {
+// when even this reading has passed.
+function latestReading(hit: ClockHit, daypart: "am" | "pm" | null, todayLatestEnd?: number | null): number | null {
   let h = hit.h;
   const marker = hit.ampm?.toLowerCase();
   if (marker === "am" || marker === "pm") {
@@ -222,7 +236,8 @@ function latestReading(hit: ClockHit, daypart: "am" | "pm" | null): number | nul
   } else if (h >= 1 && h <= 6) {
     h += 12;
   } else if (hit.spoken && h >= 7 && h <= 9) {
-    h += 12;
+    const evening = (h + 12) * 60 + hit.min;
+    if (todayLatestEnd == null || evening < todayLatestEnd) h += 12;
   }
   return h > 23 ? null : h * 60 + hit.min;
 }
@@ -264,6 +279,11 @@ function clockTimesIn(s: string): ClockHit[] {
       re: /\b(?:om|at)\s+([01]?\d|2[0-3])\b(?![:.]\d)(?!\s*(?:uur|u\b|am\b|pm\b))/gi,
       read: (m) => ({ h: Number(m[1]), min: 0, spoken: true }),
     },
+    {
+      // A bare hour with its own daypart phrase: "tuesday 8 in the morning", "dinsdag 8 's avonds".
+      re: /\b([01]?\d|2[0-3])(?=\s+(?:in\s+the\s+(?:morning|afternoon|evening)|at\s+night|'s\s*(?:ochtends|morgens|middags|avonds)|in\s+de\s+(?:ochtend|voormiddag|middag|namiddag|avond)))/gi,
+      read: (m) => ({ h: Number(m[1]), min: 0, spoken: true }),
+    },
   ];
   const hits: ClockHit[] = [];
   for (const p of patterns) {
@@ -287,16 +307,20 @@ function clockTimesIn(s: string): ClockHit[] {
   return kept;
 }
 
-// The time that belongs to the weekday: the first one written after it, otherwise the last one
-// before it, read with any daypart near the day or the time. null when the message names no
-// requested clock time at all (lower bounds do not count).
-function clockTimeForDay(s: string, dayIndex: number): number | null {
-  const hits = clockTimesIn(s).filter((h) => !LOWER_BOUND_BEFORE_RE.test(s.slice(Math.max(0, h.index - 16), h.index)));
-  // A bare H.MM written right after the weekday ("di 10.30") is a clock time as well. With minutes
-  // 13-59 it cannot be a dd.mm date, and a price directly after a weekday would carry "euro".
-  const bare = /^[a-z]+\.?\s+(?:om\s+|at\s+)?(([01]?\d|2[0-3])\.([0-5]\d))(?!\d|[.,]\d)(?!\s*(?:euro|eur)\b)/i
+// The latest requested time for the weekday at dayIndex: all requested times written after the
+// weekday in its own clause, otherwise the last one before it, each read with the daypart that
+// belongs to the day or to that time. null when the message asks no clock time for that day.
+function clockTimeForDay(s: string, dayIndex: number, todayLatestEnd?: number | null): number | null {
+  const dayToken = /^(?:(?:aanstaande|komende|coming|upcoming|this|next)\s+)?[a-z]+/i.exec(s.slice(dayIndex))?.[0] ?? "";
+  const tokenEnd = dayIndex + dayToken.length;
+  const rest = s.slice(tokenEnd);
+  const clauseEnd = tokenEnd + (CLAUSE_END_RE.exec(rest)?.index ?? rest.length);
+  const hits = clockTimesIn(s).filter((h) => !LOWER_BOUND_BEFORE_RE.test(s.slice(Math.max(0, h.index - 40), h.index)));
+  // A bare H.MM written right after the weekday ("di 10.30", "di, 10.00") is a clock time as well.
+  // Minutes 00 or 13-59 cannot be a dd.mm month, and a price directly after a weekday carries "euro".
+  const bare = /^(?:(?:aanstaande|komende|coming|upcoming|this|next)\s+)?[a-z]+\.?,?\s+(?:om\s+|at\s+)?(([01]?\d|2[0-3])\.([0-5]\d))(?!\d|[.,]\d)(?!\s*(?:euro|eur)\b)/i
     .exec(s.slice(dayIndex));
-  if (bare && Number(bare[3]) > 12) {
+  if (bare && (bare[3] === "00" || Number(bare[3]) > 12)) {
     const end = dayIndex + bare[0].length;
     const index = end - bare[1].length;
     if (!hits.some((h) => h.index < end && index < h.end)) {
@@ -305,10 +329,54 @@ function clockTimeForDay(s: string, dayIndex: number): number | null {
     }
   }
   if (!hits.length) return null;
-  const chosen = hits.find((h) => h.index >= dayIndex) ?? hits[hits.length - 1];
-  const near = s.slice(Math.max(0, Math.min(dayIndex, chosen.index) - 12), chosen.end + 25);
-  const daypart = EVENING_RE.test(near) || AFTERNOON_RE.test(near) ? "pm" : MORNING_RE.test(near) ? "am" : null;
-  return latestReading(chosen, daypart);
+  // The daypart of the day itself: in the weekday word or in the two words right after it.
+  const dayPhrase = /^[a-z]+(?:\s+(?:'s\s*)?[a-z]+){0,2}/i.exec(s.slice(tokenEnd - (dayToken.match(/[a-z]+$/i)?.[0].length ?? 0)))?.[0] ?? dayToken;
+  const dayDaypart = daypartIn(dayPhrase);
+  const owned = hits.filter((h) => h.index >= dayIndex && h.index < clauseEnd);
+  const chosen = owned.length ? owned : [hits.filter((h) => h.index < dayIndex).at(-1) ?? hits[0]];
+  let latest: number | null = null;
+  for (const hit of chosen) {
+    // The time's own daypart: up to three words right after it, never across punctuation.
+    const tail = /^[^,.;!?\n]*/.exec(s.slice(hit.end))![0].split(/\s+/).slice(0, 4).join(" ");
+    const reading = latestReading(hit, daypartIn(tail) ?? dayDaypart, todayLatestEnd);
+    if (reading !== null && (latest === null || reading > latest)) latest = reading;
+  }
+  return latest;
+}
+
+// R84 round 3: the latest closing minute of day TODAY over the given weekly schedules (the shape of
+// getCalendarWeeklyHours().byDay: capitalized Dutch day name -> { open, start, end "HH:MM" }).
+// An exact-date override (single calendar) wins. null when no schedule is known at all, 0 when
+// every known calendar is closed today.
+export function latestEndTodayMinutes(
+  now: Date,
+  byDays: Array<Record<string, { open: boolean; start?: string; end?: string }> | null | undefined>,
+  overrides?: Record<string, { isAvailable: boolean; start?: string; end?: string }>,
+): number | null {
+  const toMin = (t: string) => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(t);
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  };
+  const ov = overrides?.[amsterdamISO(now)];
+  if (ov && !ov.isAvailable) return 0;
+  if (ov?.isAvailable && ov.end) return toMin(ov.end);
+  const known = byDays.filter((b): b is Record<string, { open: boolean; start?: string; end?: string }> => !!b);
+  if (!known.length) return null;
+  const name = now.toLocaleDateString("nl-NL", { weekday: "long", timeZone: "Europe/Amsterdam" });
+  const day = name.charAt(0).toUpperCase() + name.slice(1);
+  let latest = 0;
+  for (const byDay of known) {
+    const hours = byDay[day];
+    const end = hours?.open && hours.end ? toMin(hours.end) : null;
+    if (end !== null && end > latest) latest = end;
+  }
+  return latest;
+}
+
+export interface DayHintOptions {
+  // R84 round 3: the latest closing minute of day TODAY across the calendars in play (null or
+  // undefined = unknown). Only used to decide whether a spoken 7-9 can still mean this evening.
+  todayLatestEndMinutes?: number | null;
 }
 
 function resolveWeekdayPastTimeAware(
@@ -317,11 +385,12 @@ function resolveWeekdayPastTimeAware(
   text: string,
   keepToday: boolean,
   dayIndex: number,
+  opts?: DayHintOptions,
 ): Date {
   const d = resolveWeekday(now, targetDow, false);
   if (amsterdamISO(d) !== amsterdamISO(now)) return d;
   if (keepToday || KEEP_TODAY_RE.test(text) || THIS_QUALIFIER_BEFORE_RE.test(text.slice(0, dayIndex))) return d;
-  const asked = clockTimeForDay(text, dayIndex);
+  const asked = clockTimeForDay(text, dayIndex, opts?.todayLatestEndMinutes);
   if (asked === null || asked > amsterdamMinutesOfDay(now)) return d;
   return resolveWeekday(now, targetDow, true);
 }
@@ -478,7 +547,7 @@ function addCalendarYears(now: Date, years: number): { iso: string; label: strin
   return addCalendarMonths(now, years * 12);
 }
 
-export function extractRelativeDayHint(text: string, now: Date): RelativeDateHint | null {
+export function extractRelativeDayHint(text: string, now: Date, opts?: DayHintOptions): RelativeDateHint | null {
   const s = (text || "").toLowerCase();
 
   // "over N dag(en)/week(en)" (R137): resolved before everything else below, it is just as
@@ -605,7 +674,7 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
       }
       const skipWeek = !!(m[1] || tail || (m[2] && (m[2] === "volgende" || m[2] === "next")));
       const keepToday = !!(m[4] || (m[2] && /^(deze|this|diezelfde|dezelfde)$/.test(m[2])));
-      const d = skipWeek ? resolveWeekday(now, dow, true) : resolveWeekdayPastTimeAware(now, dow, s, keepToday, m.index);
+      const d = skipWeek ? resolveWeekday(now, dow, true) : resolveWeekdayPastTimeAware(now, dow, s, keepToday, m.index, opts);
       const iso = amsterdamISO(d);
       const matchedPhrase = m[6] && !tail ? m[0].slice(0, -m[6].length).trim() : m[0].trim();
       return { iso, label: dutchLabel(d), matchedPhrase };
@@ -631,7 +700,7 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
     }
   }
   if (best) {
-    const d = resolveWeekdayPastTimeAware(now, best.dow, s, false, best.index);
+    const d = resolveWeekdayPastTimeAware(now, best.dow, s, false, best.index, opts);
     const iso = amsterdamISO(d);
     return { iso, label: dutchLabel(d), matchedPhrase: best.phrase };
   }
@@ -701,13 +770,23 @@ export function extractCarriedForwardDayHint(
   priorInboundTextsOldestFirst: string[],
   now: Date,
   priorInboundSentAtOldestFirst?: Array<Date | null>,
+  opts?: DayHintOptions,
 ): RelativeDateHint | null {
   if (extractRelativeDayHint(currentText, now) !== null) return null;
   if (!BARE_CLOCK_TIME_RE.test(currentText || "")) return null;
   for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
     const sent = priorInboundSentAtOldestFirst?.[i];
     const at = sent && Number.isFinite(sent.getTime()) && sent.getTime() <= now.getTime() + 1000 ? sent : now;
-    const hint = extractRelativeDayHint(priorInboundTextsOldestFirst[i], at);
+    // Today's opening hours only describe a message that was sent today.
+    let hint = extractRelativeDayHint(
+      priorInboundTextsOldestFirst[i],
+      at,
+      amsterdamISO(at) === amsterdamISO(now) ? opts : undefined,
+    );
+    // R84 review round 3: a day that has already passed was never "established" for this booking.
+    // A returning customer's "dinsdag" from two weeks ago would otherwise force a past date onto
+    // the tools; read that old message against today instead (the upcoming occurrence).
+    if (hint && at !== now && hint.iso < amsterdamISO(now)) hint = extractRelativeDayHint(priorInboundTextsOldestFirst[i], now, opts);
     if (hint) return hint;
   }
   return null;

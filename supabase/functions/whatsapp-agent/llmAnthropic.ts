@@ -18,6 +18,13 @@ import type { AgentResult, Content, RunOpts } from "./llm.ts";
 export type AnthropicEffort = "low" | "medium" | "high" | "xhigh" | "max";
 export const ANTHROPIC_EFFORTS: readonly AnthropicEffort[] = ["low", "medium", "high", "xhigh", "max"];
 
+// The one place that turns the ANTHROPIC_EFFORT setting into what is actually sent: unset or an
+// unknown value means low. llm.ts and the staging label both read it here, so they cannot drift.
+export function effectiveAnthropicEffort(raw: string | null | undefined): AnthropicEffort {
+  const asked = (raw || "low").toLowerCase();
+  return (ANTHROPIC_EFFORTS as readonly string[]).includes(asked) ? asked as AnthropicEffort : "low";
+}
+
 // Room for adaptive thinking plus a WhatsApp-sized reply or a tool call. Thinking counts toward this cap.
 const MAX_TOKENS = 4096;
 
@@ -40,12 +47,14 @@ export function systemBlocks(system: string): Anthropic.TextBlockParam[] {
   const at = system.indexOf(STABLE_PREFIX_END);
   if (at < 0) return [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
   const cut = at + STABLE_PREFIX_END.length;
-  const blocks: Anthropic.TextBlockParam[] = [
-    { type: "text", text: system.slice(0, cut), cache_control: { type: "ephemeral" } },
-  ];
   const rest = system.slice(cut);
-  if (rest.trim()) blocks.push({ type: "text", text: rest });
-  return blocks;
+  // A whitespace-only tail cannot be its own block (the API rejects blank text), so it stays on
+  // the stable block: the joined blocks are always exactly the original prompt.
+  if (!rest.trim()) return [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
+  return [
+    { type: "text", text: system.slice(0, cut), cache_control: { type: "ephemeral" } },
+    { type: "text", text: rest },
+  ];
 }
 
 export function toAnthropicMessages(contents: Content[]): Anthropic.MessageParam[] {
@@ -118,11 +127,11 @@ export async function runAgentAnthropic(opts: RunOpts, cfg: AnthropicConfig): Pr
 
     const callT0 = Date.now();
     const resp = await client.messages.create(body);
-    // Explicit block types on purpose. In the full index.ts graph the SDK's optional zod peer
-    // resolves to _shared's zod@3.23.8 (the SDK wants ^3.25 || ^4), and `deno check index.ts` then
-    // sees the SDK types as any. Runtime is unaffected (zod is only loaded by the SDK's zod helper,
-    // which this file never imports; measured 2026-10-23). `deno check llmAnthropic.ts` on its own
-    // and the tests keep the strict types.
+    // Explicit block types on purpose. Without a lock file the SDK's optional zod peer can resolve
+    // to _shared's zod@3.23.8 (the SDK wants ^3.25 || ^4), and `deno check index.ts` then saw the
+    // SDK types as any (measured 2026-10-23); with the repo's deno.lock the review of 2026-10-24
+    // found them strict. Runtime is unaffected either way: zod is only loaded by the SDK's zod
+    // helper, which this file never imports.
     const toolUses = resp.content.filter((b: Anthropic.ContentBlock): b is Anthropic.ToolUseBlock =>
       b.type === "tool_use"
     );
@@ -146,11 +155,13 @@ export async function runAgentAnthropic(opts: RunOpts, cfg: AnthropicConfig): Pr
     // tool_use block: its input may be cut off, so it is never executed.
     if (resp.stop_reason === "refusal") return { text: "", steps: step + 1, toolCalls };
     if (resp.stop_reason !== "tool_use" || toolUses.length === 0) {
+      // Separate text blocks are separate pieces of the answer: join them with a line break, never
+      // glue them ("Hoi!Welke dienst wil je?", review round 3).
       const text = resp.content
         .filter((b: Anthropic.ContentBlock): b is Anthropic.TextBlock => b.type === "text")
-        .map((b: Anthropic.TextBlock) => b.text)
-        .join("")
-        .trim();
+        .map((b: Anthropic.TextBlock) => b.text.trim())
+        .filter(Boolean)
+        .join("\n");
       return { text, steps: step + 1, toolCalls };
     }
 
