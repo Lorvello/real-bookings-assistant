@@ -144,3 +144,42 @@ Deno.test("R84 S18 weekly answer attributes different hours to each calendar in 
   assert(bram.includes("Saturday 10:00 to 14:00"), bram);
   assert(!bram.includes("09:00"), "Iris hours leaked into Bram: " + bram);
 });
+
+// R84 review round (independent reviewer, 2026-10-23).
+Deno.test("R84 review: an English weekday makes a short question English", async () => {
+  for (const msg of ["friday open?", "sunday open?", "monday open?"]) {
+    assertEquals(openingHoursQuestion(msg, NOW)?.language, "en", msg);
+  }
+  const a = await answerOpeningHours(singleCalendar(), openingHoursQuestion("friday open?", NOW)!, [CAL]);
+  assertEquals(a.text, "On Friday 11 September we're open from 09:00 to 17:00.");
+});
+
+Deno.test("R84 review: Dutch short forms stay Dutch", () => {
+  assertEquals(openingHoursQuestion("vrijdag open?", NOW)?.language, "nl");
+  assertEquals(openingHoursQuestion("hoi! do 17 september open? en hoe laat dan", NOW)?.language, "nl");
+});
+
+Deno.test("R84 review: two default schedules are unknown, not some schedule's hours", async () => {
+  const client = fakeClient({
+    availability_schedules: {
+      data: [
+        { id: "s1", calendar_id: "cal-a", is_default: true, created_at: "2026-01-01" },
+        { id: "s2", calendar_id: "cal-a", is_default: true, created_at: "2026-02-01" },
+      ],
+    },
+    availability_rules: { data: [...weekRules("s1", WEEKDAYS_9_17), ...weekRules("s2", { 4: [["12:00:00", "20:00:00"]] })] },
+    availability_overrides: { data: [] },
+  });
+  const a = await answerOpeningHours(client, { language: "nl", date: "2026-09-17" }, [CAL]);
+  assert(/niet controleren/.test(a.text), a.text);
+});
+
+Deno.test("R84 review: no default schedule is unknown (the booking RPC would not use it either)", async () => {
+  const client = fakeClient({
+    availability_schedules: { data: [{ id: "s9", calendar_id: "cal-a", is_default: false, created_at: "2026-01-01" }] },
+    availability_rules: { data: weekRules("s9", WEEKDAYS_9_17) },
+    availability_overrides: { data: [] },
+  });
+  const a = await answerOpeningHours(client, { language: "nl", date: "2026-09-17" }, [CAL]);
+  assert(/niet controleren/.test(a.text), a.text);
+});

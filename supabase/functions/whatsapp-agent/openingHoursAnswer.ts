@@ -43,6 +43,13 @@ export function openingHoursQuestion(message: string, now: Date): HoursQuestion 
   } else return null;
   const hint = extractRelativeDayHint(dateText, now);
   if (!hint) return null;
+  // R84 review: "friday open?" matches the shorter Dutch shape; an English weekday, an English-only
+  // month name or today/tomorrow makes it an English question (september/november/december and
+  // "open" are the same word in both languages and decide nothing).
+  if (
+    /\b(?:monday|mon|tuesday|tue|tues|wednesday|wed|thursday|thu|thur|thurs|friday|fri|saturday|sat|sunday|sun|today|tomorrow|january|february|march|may|june|july|august|october)\b/
+      .test(dateText)
+  ) language = "en";
   const escape = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const rest = dateText.replace(new RegExp(escape(hint.matchedPhrase), "i"), "").trim();
   if (rest) {
@@ -98,9 +105,11 @@ function isoWeekday(date: string): number {
 export async function readOpeningHours(client: any, calendar: Calendar, date: string | null): Promise<HoursSource> {
   const unknown: HoursSource = { calendar, status: "unknown" };
   try {
+    // Only the DEFAULT schedule counts, the same one get_available_slots uses (is_default = true).
+    // Two defaults or none is not knowable, so unknown, never "some" schedule's hours.
     const schedules = await client.from("availability_schedules").select("id,is_default,created_at")
-      .eq("calendar_id", calendar.id).order("is_default", { ascending: false })
-      .order("created_at", { ascending: true }).limit(1);
+      .eq("calendar_id", calendar.id).eq("is_default", true)
+      .order("created_at", { ascending: true }).limit(2);
     if (
       schedules.error || !Array.isArray(schedules.data) || schedules.data.length !== 1 ||
       typeof schedules.data[0].id !== "string"

@@ -747,7 +747,7 @@ Deno.test("R84 full weekday name with a passed colon time rolls to next week", (
   assertEquals(extractRelativeDayHint("kan dinsdag om 10:30?", TUESDAY_2201)?.iso, "2026-09-15");
 });
 
-Deno.test("R84 ambiguous 1-11 hour keeps today while the pm reading is still ahead", () => {
+Deno.test("R84 an hour 1-6 reads as afternoon and keeps today while still ahead", () => {
   // 14:00 Amsterdam: '3 uur' may mean 15:00, which has not passed.
   assertEquals(extractRelativeDayHint("dinsdag 3 uur knippen", new Date("2026-09-08T12:00:00Z"))?.iso, "2026-09-08");
 });
@@ -774,4 +774,43 @@ Deno.test("R84 other weekday and volgende are unchanged", () => {
 Deno.test("R84 dates and durations are not read as clock times", () => {
   // '30 minuten' and '40 euro' are no clock times, so today stays today.
   assertEquals(extractRelativeDayHint("di, duurt 30 minuten en kost 40 euro?", TUESDAY_2201)?.iso, "2026-09-08");
+});
+
+// R84 review round (independent reviewer, 2026-10-23): inputs that must NOT roll to next week,
+// plus the appointment-language reading (7-12 morning, 1-6 afternoon, "half een" = 12:30).
+const tueAt = (hhmm: string) => new Date(`2026-09-08T${hhmm}:00+02:00`); // Tuesday, CEST
+const TUE = "2026-09-08";
+const NEXT_TUE = "2026-09-15";
+for (
+  const [label, msg, hhmm, want] of [
+    ["'di 10 uur' at 14:00 means next week (10 uur is morning)", "di 10 uur knippen?", "14:00", NEXT_TUE],
+    ["'dinsdag 6 uur' at 17:00 keeps today (18:00 ahead)", "dinsdag 6 uur?", "17:00", TUE],
+    ["'half 11 dinsdag' at 12:00 means next week", "half 11 dinsdag kan dat?", "12:00", NEXT_TUE],
+    ["'tuesday at 2:30' at 14:10 keeps today (14:30 ahead)", "tuesday at 2:30?", "14:10", TUE],
+    ["'dinsdag om 10.30' at 22:15 means next week (10:30 is morning)", "kan dinsdag om 10.30?", "22:15", NEXT_TUE],
+    ["'dinsdag half 1' at 09:00 keeps today (half een = 12:30)", "dinsdag half 1 knippen?", "09:00", TUE],
+    ["'di half een' at 09:00 keeps today", "di half een?", "09:00", TUE],
+    ["'deze week dinsdag 9 uur' keeps today", "deze week dinsdag 9 uur", "22:00", TUE],
+    ["'dinsdag 9 uur deze week' keeps today", "dinsdag 9 uur deze week", "22:00", TUE],
+    ["'deze di 10 uur' keeps today", "deze di 10 uur knippen", "22:01", TUE],
+    ["'tuesday this week 9am' keeps today", "tuesday this week 9am?", "10:00", TUE],
+    ["'today, tuesday at 1pm' keeps today", "can i come today, tuesday at 1pm?", "14:00", TUE],
+    ["'tuesday tonight at 9' keeps today", "tuesday tonight at 9?", "14:00", TUE],
+    ["duration 'duurt dat 1 uur' is not a time", "di knippen, duurt dat 1 uur?", "14:00", TUE],
+    ["duration 'duurt toch 2 uur' is not a time", "dinsdag kleuren, dat duurt toch 2 uur?", "15:00", TUE],
+    ["price '12.50' is not a time", "di knippen, kost dat 12.50?", "14:00", TUE],
+    ["the time after the weekday wins ('tot 5 uur ... om 6 uur')", "ik werk tot 5 uur, kan dinsdag om 6 uur?", "17:30", TUE],
+    ["explicit am that passed rolls ('tuesday at 9 am')", "tuesday at 9 am?", "10:00", NEXT_TUE],
+    ["'10u30' is a clock time", "di 10u30 knippen?", "14:00", NEXT_TUE],
+  ] as const
+) {
+  Deno.test(`R84 review: ${label}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
+  });
+}
+
+Deno.test("R84 review: a dd.mm date is not a time ('dinsdag 15.09' on Tuesday 15 Sep 16:00)", () => {
+  const tue15 = new Date("2026-09-15T16:00:00+02:00");
+  assertEquals(extractRelativeDayHint("dinsdag 15.09 knippen?", tue15)?.iso, "2026-09-15");
+  assertEquals(extractRelativeDayHint("di 15.09 nog plek?", tue15)?.iso, "2026-09-15");
 });

@@ -1,4 +1,5 @@
 import { openingHoursQuestion, answerOpeningHours } from "./openingHoursAnswer.ts";
+import { correctedPreviewHours } from "./bookingTimeCorrection.ts";
 // whatsapp-agent — the AI WhatsApp bookings agent (port off n8n).
 // Invoked by whatsapp-webhook (service-role, internal) after it has persisted the
 // inbound message via process_whatsapp_message. Loads conversation history, runs a
@@ -2918,7 +2919,10 @@ Deno.serve(async (req) => {
     // request) still falls through to the full, unchanged ambiguousConfirm gate.
     const restatesPendingBookOwnTime = pendingBookFresh &&
       messageRestatesPendingBookTime(pbk?.start_time ?? null, msgLower);
-    const confirmBook = !pureCancellationPolicyQuestion && pendingBookFresh && AFFIRM_RE.test(msgLower) &&
+    // R84 (review round): "ok can we do 3 instead" contains an affirm word but corrects the time;
+    // it never confirms the old preview (tools.ts book_appointment re-previews or withdraws it).
+    const isTimeCorrection = correctedPreviewHours(String(message)) !== null;
+    const confirmBook = !pureCancellationPolicyQuestion && !isTimeCorrection && pendingBookFresh && AFFIRM_RE.test(msgLower) &&
       !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
       (restatesPendingBookOwnTime
         ? !ambiguousConfirmForVerification(msgLower)
@@ -3493,7 +3497,8 @@ Deno.serve(async (req) => {
       }
     }
     // Typed information-only answer; every displayed interval is read and validated.
-    const openingHoursResult = openingHoursRequest && !paymentFlowActive && !participantResult && !policyOnlyResult
+    const openingHoursResult = openingHoursRequest && !paymentFlowActive && !participantResult && !policyOnlyResult &&
+      !continuityResult && !paymentPreviewed && !paymentFollowupReply
       ? await answerOpeningHours(supabase, openingHoursRequest, calendars) : null;
     let result: AgentResult = openingHoursResult
       ? {text:openingHoursResult.text,steps:0,toolCalls:[]}

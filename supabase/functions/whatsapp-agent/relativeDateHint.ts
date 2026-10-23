@@ -167,10 +167,16 @@ function resolveWeekday(now: Date, targetDow: number, skipWeek: boolean): Date {
 // R84 (original11 S09, run 2026-09-08 22:01 Amsterdam): "di 10 uur knippen? karim" on a Tuesday
 // evening resolved to TODAY (resolveWeekday counts today), so get_available_slots read an empty
 // evening and the agent told the customer the whole day was full, while next Tuesday had
-// 09:00/09:30/10:30 free. When the named weekday is today and the clock time the customer names
-// has already passed today in EVERY plausible reading (1-11 without am/pm may mean h or h+12),
-// the customer means the next occurrence. "vandaag", an explicit this-week qualifier
-// ("deze/this/diezelfde/dezelfde", "... die week") and a message without a clock time keep today.
+// 09:00/09:30/10:30 free. When the named weekday is today and the clock time the customer gives FOR
+// that day has already passed, the customer means the next occurrence. Without am/pm the hour is
+// read the way Dutch appointment language reads it: 7-12 is morning or noon ("10 uur" = 10:00),
+// 1-6 is afternoon ("3 uur" = 15:00), "half een" is 12:30; 0 and 13-23 are literal. A stricter
+// "every reading" rule kept "di 10 uur" on a Tuesday afternoon on today (22:00 had not passed).
+// Today is kept for "vandaag/today/vanavond/tonight", any this-week wording ("deze week",
+// "this week", "deze di", "this tuesday", "diezelfde week") and a message without a clock time.
+// Only a real clock time counts: a duration ("duurt dat 1 uur"), a price ("12.50") or a date
+// ("15.09") is not one. When several times appear, the one written after the weekday wins
+// ("ik werk tot 5 uur, kan dinsdag om 6 uur?" is about 18:00).
 function amsterdamMinutesOfDay(d: Date): number {
   const [h, m] = d
     .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" })
@@ -183,41 +189,101 @@ const SPOKEN_HOURS: Record<string, number> = {
   een: 1, twee: 2, drie: 3, vier: 4, vijf: 5, zes: 6, zeven: 7, acht: 8, negen: 9, tien: 10, elf: 11, twaalf: 12,
 };
 
-// Latest plausible minute-of-day for the FIRST clock time in the message, or null when there is
-// none. Closed grammar on purpose ("17 september", "30 minuten", "40 euro" are not times).
-function latestReadingOfFirstClockTime(s: string): number | null {
-  const patterns: Array<{ re: RegExp; read: (m: RegExpExecArray) => { h: number; min: number; ampm?: string } | null }> = [
-    { re: /\bhalf\s+(\d{1,2}|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)\b/i, read: (m) => {
-      const n = /^\d+$/.test(m[1]) ? Number(m[1]) : SPOKEN_HOURS[m[1].toLowerCase()];
-      return n >= 1 && n <= 24 ? { h: n - 1, min: 30 } : null;
-    } },
-    { re: /\b([01]?\d|2[0-3])[:.]([0-5]\d)\s*(am|pm)?\b/i, read: (m) => ({ h: Number(m[1]), min: Number(m[2]), ampm: m[3] }) },
-    { re: /\b([01]?\d|2[0-3])\s*(am|pm)\b/i, read: (m) => ({ h: Number(m[1]), min: 0, ampm: m[2] }) },
-    { re: /\b([01]?\d|2[0-3])\s*(?:uur|u)\b/i, read: (m) => ({ h: Number(m[1]), min: 0 }) },
-    { re: /\b(?:om|at)\s+([01]?\d|2[0-3])\b/i, read: (m) => ({ h: Number(m[1]), min: 0 }) },
-  ];
-  let first: { index: number; minutes: number } | null = null;
-  for (const p of patterns) {
-    const m = p.re.exec(s);
-    if (!m) continue;
-    const t = p.read(m);
-    if (!t) continue;
-    let h = t.h;
-    const ampm = t.ampm?.toLowerCase();
-    if (ampm === "pm" && h >= 1 && h <= 11) h += 12;
-    else if (ampm === "am" && h === 12) h = 0;
-    else if (!ampm && h >= 1 && h <= 11) h += 12; // latest plausible reading
-    const minutes = h * 60 + t.min;
-    if (first === null || m.index < first.index) first = { index: m.index, minutes };
+const KEEP_TODAY_RE =
+  /\b(?:vandaag|today|vanavond|tonight|vanmiddag|vanochtend|this (?:morning|afternoon|evening)|deze week|this week|diezelfde week|dezelfde week|die week)\b/i;
+const THIS_QUALIFIER_BEFORE_RE = /\b(?:deze|this|diezelfde|dezelfde)\s+$/i;
+const DURATION_BEFORE_RE =
+  /\b(?:duurt|duur|duren|lang|hoelang|ongeveer|zo'?n|minstens|maximaal|circa|ca\.?|bijna|ruim|takes?|lasts?)\b(?:\s+\S+){0,2}\s*$/i;
+
+type ClockHit = { index: number; end: number; minutes: number };
+
+// Appointment-language minute of day for an hour/minute pair (see the header above).
+function appointmentMinutes(h: number, min: number, ampm?: string): number | null {
+  const marker = ampm?.toLowerCase();
+  if (marker === "am" || marker === "pm") {
+    if (h < 1 || h > 12) return null;
+    h = (h % 12) + (marker === "pm" ? 12 : 0);
+  } else if (h >= 1 && h <= 6) {
+    h += 12;
   }
-  return first?.minutes ?? null;
+  return h > 23 ? null : h * 60 + min;
 }
 
-function resolveWeekdayPastTimeAware(now: Date, targetDow: number, text: string, keepToday: boolean): Date {
+// Every clock time in the message, leftmost first, overlaps removed (the longest form at a
+// position wins, so "at 2:30" is 14:30 and never "at 2").
+function clockTimesIn(s: string): ClockHit[] {
+  const cue = String.raw`\b(?:om|at|rond|tegen|vanaf|around|by)\s+`;
+  const patterns: Array<{ re: RegExp; read: (m: RegExpExecArray) => number | null }> = [
+    {
+      re: /\bhalf\s+(\d{1,2}|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)\b/gi,
+      read: (m) => {
+        const n = /^\d+$/.test(m[1]) ? Number(m[1]) : SPOKEN_HOURS[m[1].toLowerCase()];
+        if (!(n >= 1 && n <= 24)) return null;
+        return appointmentMinutes(n - 1 === 0 ? 12 : n - 1, 30);
+      },
+    },
+    {
+      re: /\b([01]?\d|2[0-3]):([0-5]\d)\s*(am|pm)?\b/gi,
+      read: (m) => appointmentMinutes(Number(m[1]), Number(m[2]), m[3]),
+    },
+    {
+      // A dot is a clock time only with a time cue before it or uur/u/am/pm after it:
+      // "12.50" (a price) and "15.09" (a date) are not times.
+      re: new RegExp(String.raw`(?:${cue})([01]?\d|2[0-3])\.([0-5]\d)\b|\b([01]?\d|2[0-3])\.([0-5]\d)\s*(uur|u|am|pm)\b`, "gi"),
+      read: (m) =>
+        m[1] !== undefined
+          ? appointmentMinutes(Number(m[1]), Number(m[2]))
+          : appointmentMinutes(Number(m[3]), Number(m[4]), /^(am|pm)$/i.test(m[5]) ? m[5] : undefined),
+    },
+    { re: /\b([01]?\d|2[0-3])u([0-5]\d)\b/gi, read: (m) => appointmentMinutes(Number(m[1]), Number(m[2])) },
+    { re: /\b(1[0-2]|0?[1-9])\s*(am|pm)\b/gi, read: (m) => appointmentMinutes(Number(m[1]), 0, m[2]) },
+    { re: /\b([01]?\d|2[0-3])\s*(?:uur|u)\b(?!\s*(?:lang|durend|duren))/gi, read: (m) => appointmentMinutes(Number(m[1]), 0) },
+    {
+      re: /\b(?:om|at)\s+([01]?\d|2[0-3])\b(?![:.]\d)(?!\s*(?:uur|u\b|am\b|pm\b))/gi,
+      read: (m) => appointmentMinutes(Number(m[1]), 0),
+    },
+  ];
+  const hits: ClockHit[] = [];
+  for (const p of patterns) {
+    p.re.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = p.re.exec(s)) !== null) {
+      if (/uur|u\b/i.test(m[0]) && !/[:.]/.test(m[0]) && DURATION_BEFORE_RE.test(s.slice(0, m.index))) continue;
+      const minutes = p.read(m);
+      if (minutes !== null) hits.push({ index: m.index, end: m.index + m[0].length, minutes });
+    }
+  }
+  hits.sort((a, b) => a.index - b.index || (b.end - b.index) - (a.end - a.index));
+  const kept: ClockHit[] = [];
+  for (const h of hits) {
+    const last = kept.at(-1);
+    if (last && h.index < last.end) continue;
+    kept.push(h);
+  }
+  return kept;
+}
+
+// The time that belongs to the weekday: the first one written after it, otherwise the last one
+// before it. null when the message names no clock time at all.
+function clockTimeForDay(s: string, dayIndex: number): number | null {
+  const hits = clockTimesIn(s);
+  if (!hits.length) return null;
+  const after = hits.find((h) => h.index >= dayIndex);
+  return (after ?? hits[hits.length - 1]).minutes;
+}
+
+function resolveWeekdayPastTimeAware(
+  now: Date,
+  targetDow: number,
+  text: string,
+  keepToday: boolean,
+  dayIndex: number,
+): Date {
   const d = resolveWeekday(now, targetDow, false);
-  if (keepToday || amsterdamISO(d) !== amsterdamISO(now)) return d;
-  const latest = latestReadingOfFirstClockTime(text);
-  if (latest === null || latest > amsterdamMinutesOfDay(now)) return d;
+  if (amsterdamISO(d) !== amsterdamISO(now)) return d;
+  if (keepToday || KEEP_TODAY_RE.test(text) || THIS_QUALIFIER_BEFORE_RE.test(text.slice(0, dayIndex))) return d;
+  const asked = clockTimeForDay(text, dayIndex);
+  if (asked === null || asked > amsterdamMinutesOfDay(now)) return d;
   return resolveWeekday(now, targetDow, true);
 }
 
@@ -500,7 +566,7 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
       }
       const skipWeek = !!(m[1] || tail || (m[2] && (m[2] === "volgende" || m[2] === "next")));
       const keepToday = !!(m[4] || (m[2] && /^(deze|this|diezelfde|dezelfde)$/.test(m[2])));
-      const d = skipWeek ? resolveWeekday(now, dow, true) : resolveWeekdayPastTimeAware(now, dow, s, keepToday);
+      const d = skipWeek ? resolveWeekday(now, dow, true) : resolveWeekdayPastTimeAware(now, dow, s, keepToday, m.index);
       const iso = amsterdamISO(d);
       const matchedPhrase = m[6] && !tail ? m[0].slice(0, -m[6].length).trim() : m[0].trim();
       return { iso, label: dutchLabel(d), matchedPhrase };
@@ -526,7 +592,7 @@ export function extractRelativeDayHint(text: string, now: Date): RelativeDateHin
     }
   }
   if (best) {
-    const d = resolveWeekdayPastTimeAware(now, best.dow, s, false);
+    const d = resolveWeekdayPastTimeAware(now, best.dow, s, false, best.index);
     const iso = amsterdamISO(d);
     return { iso, label: dutchLabel(d), matchedPhrase: best.phrase };
   }

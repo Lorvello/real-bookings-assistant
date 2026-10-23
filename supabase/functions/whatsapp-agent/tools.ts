@@ -2687,17 +2687,22 @@ export function createTools(
           // The model re-sent the OLD preview's ISO start, which skips the fast path below and
           // refreshed the obsolete time. When THIS message is a time-only correction (closed
           // grammar, bookingTimeCorrection.ts) and the model's time is not one the customer just
-          // asked for, the server resolves the asked time itself on the bound date. Exactly one
-          // actually-free reading becomes the new preview; otherwise the old proposal is withdrawn
-          // (a later bare "yes" cannot book the time the customer just rejected) and the model must
-          // ask. Same service and calendar only: a service or calendar change keeps its own route.
+          // asked for, the server resolves the asked time itself. The date is the model's own
+          // date when it gave one, else the date of a FRESH pending preview (same 15-minute window
+          // as index.ts pendingBookFresh), else the date of the model's start. Exactly one
+          // actually-free reading becomes the new preview. Otherwise a fresh pending preview for
+          // that same date, service and calendar is withdrawn (a later bare "yes" cannot book the
+          // time the customer just rejected) and the model must ask. Own error codes, so index.ts
+          // never reads this as a lost booking race. A fresh preview for another service or
+          // calendar keeps its own route.
           if (!committing && !namePreviewOnly && serviceId) {
             const askedTimes = correctedPreviewHours(String(ctx.userMessage ?? ""));
-            const pendingSameTarget = !pendingBook || (
-              pendingBook.service_type_id === serviceId &&
-              (pendingBook.calendar_id ?? ctx.calendarId) === calId
-            );
-            if (askedTimes && pendingSameTarget) {
+            const pendingFresh = !!pendingBook?.start_time &&
+              (typeof pendingBook.at !== "number" || Date.now() - pendingBook.at < 15 * 60 * 1000);
+            const pendingSameTarget = pendingFresh &&
+              pendingBook!.service_type_id === serviceId &&
+              (pendingBook!.calendar_id ?? ctx.calendarId) === calId;
+            if (askedTimes && (!pendingFresh || pendingSameTarget)) {
               const startIsIso = /^\d{4}-\d{2}-\d{2}T/.test(start);
               const modelTime = startIsIso
                 ? nlTimeOnly(start).slice(0, 5)
@@ -2705,18 +2710,16 @@ export function createTools(
               if (!askedTimes.includes(modelTime)) {
                 const amsDate = (iso: string) =>
                   new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
-                const boundDate = pendingBook?.start_time
-                  ? amsDate(String(pendingBook.start_time))
-                  : /^\d{4}-\d{2}-\d{2}$/.test(String(args.date ?? ""))
-                  ? String(args.date)
-                  : startIsIso
-                  ? amsDate(start)
-                  : "";
+                const argDate = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date ?? "")) ? String(args.date) : "";
+                const pendingDate = pendingSameTarget ? amsDate(String(pendingBook!.start_time)) : "";
+                const boundDate = argDate || pendingDate || (startIsIso ? amsDate(start) : "");
+                const withdrawsPending = pendingSameTarget && pendingDate === boundDate;
                 if (boundDate) {
                   const dur = await serviceDuration(supabase, serviceId);
                   const free: Array<{ time: string; start: string; end: string }> = [];
                   let otherFree: string[] = [];
                   let readFailed = false;
+                  let tooSoon = false;
                   for (const t of askedTimes) {
                     const r = await resolveSlotForTime(
                       supabase,
@@ -2729,7 +2732,10 @@ export function createTools(
                     );
                     if ("start" in r) free.push({ time: t, start: r.start, end: r.end });
                     else if ("error" in r) readFailed = true;
-                    else if (r.available.length) otherFree = r.available;
+                    else {
+                      if ("tooSoon" in r) tooSoon = true;
+                      if (r.available.length) otherFree = r.available;
+                    }
                   }
                   if (free.length === 1 && !readFailed) {
                     start = free[0].start;
@@ -2737,21 +2743,39 @@ export function createTools(
                     args.date = boundDate;
                     args.time = free[0].time;
                   } else {
-                    if (pendingBook) {
+                    if (withdrawsPending) {
                       await clearPendingBook();
                       bookCtx = { ...bookCtx, pending_booking: undefined };
                     }
                     const asked = askedTimes.join(" of ");
+                    const withdrawn = withdrawsPending
+                      ? " Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor."
+                      : " Stel het oude tijdstip NIET opnieuw voor.";
+                    const offer = otherFree.length
+                      ? ` Bied een van deze vrije tijden op dezelfde dag aan: ${otherFree.join(", ")}.`
+                      : " Vraag kort welke andere tijd of dag past.";
+                    if (free.length > 1) {
+                      return {
+                        error: "tijd_correctie_kies",
+                        message: `De klant vraagt om ${asked}; beide tijden zijn vrij. Vraag kort welke van de twee bedoeld is.${withdrawn}`,
+                      };
+                    }
+                    if (readFailed) {
+                      return {
+                        error: "tijd_correctie_onleesbaar",
+                        message: `De klant vraagt om ${asked} in plaats van het eerdere voorstel, maar de beschikbaarheid kon niet worden gelezen.${withdrawn} Vraag de klant het zo nog eens te proberen of een andere tijd te noemen.`,
+                      };
+                    }
+                    if (tooSoon && bookPolicy.minimumNoticeHours) {
+                      return {
+                        error: "tijd_correctie_te_vroeg",
+                        message: `De klant vraagt om ${asked}, maar een afspraak kan pas vanaf ${formatHoursNL(bookPolicy.minimumNoticeHours)} van tevoren worden gemaakt.${withdrawn}${offer}`,
+                        available_slots: otherFree,
+                      };
+                    }
                     return {
-                      error: free.length > 1 ? "kies_tijd" : "niet_beschikbaar",
-                      message: free.length > 1
-                        ? `De klant vraagt om ${asked}; beide tijden zijn vrij. Vraag kort welke van de twee bedoeld is. Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor.`
-                        : readFailed
-                        ? `De klant vraagt om ${asked} in plaats van het eerdere voorstel, maar de beschikbaarheid kon niet worden gelezen. Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor en vraag de klant het zo nog eens te proberen of een andere tijd te noemen.`
-                        : `De klant vraagt om ${asked} in plaats van het eerdere voorstel, maar dat is niet vrij. Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor. ` +
-                          (otherFree.length
-                            ? `Bied een van deze vrije tijden op dezelfde dag aan: ${otherFree.join(", ")}.`
-                            : "Vraag kort welke andere tijd of dag past."),
+                      error: "tijd_correctie_niet_vrij",
+                      message: `De klant vraagt om ${asked} in plaats van het eerdere voorstel, maar dat is niet vrij.${withdrawn}${offer}`,
                       available_slots: otherFree,
                     };
                   }
