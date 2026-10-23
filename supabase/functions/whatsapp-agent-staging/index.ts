@@ -1,10 +1,10 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 59f14ce988812ba1fa9ca424b1de39c64af24031fe3e161a82721cbf6d0d949d)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 2f5295f96b6f931e4f0355a768fa874e168e0143f0b2dda205dc78aab79fe90b)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
-// Dit is `whatsapp-agent` met exact 28 herschreven regels. Alles daarbuiten is
+// Dit is `whatsapp-agent` met exact 30 herschreven regels. Alles daarbuiten is
 // byte-identiek aan de productiefunctie, zodat een meting op deze functie een meting op de
 // echte agent is.
 //
@@ -18,6 +18,8 @@
 import "./netGuard.ts"; // MOET als eerste staan: installeert de wachter op globalThis.fetch.
 import { stagingServe } from "./stagingServe.ts";
 
+import { openingHoursQuestion, answerOpeningHours } from "../whatsapp-agent/openingHoursAnswer.ts";
+import { correctedPreviewHours } from "../whatsapp-agent/bookingTimeCorrection.ts";
 // whatsapp-agent — the AI WhatsApp bookings agent (port off n8n).
 // Invoked by whatsapp-webhook (service-role, internal) after it has persisted the
 // inbound message via process_whatsapp_message. Loads conversation history, runs a
@@ -1929,6 +1931,7 @@ stagingServe(async (req: Request) => {
     // language). null = Dutch or unsure → no override (the prompt's own language rules apply).
     // R81 fix: a CONFIDENTLY Dutch message actively overrides any stale stored non-Dutch language
     // (see detectLanguageSignal header comment) instead of silently inheriting it forever.
+    const openingHoursRequest = openingHoursQuestion(String(message), new Date());
     const langSignal = detectLanguageSignal(String(message));
     const detectedThisMsg = langSignal.nonDutch;
     const continuityProof = !isMultiCalendar && !convContext.pending_cancel
@@ -1937,7 +1940,7 @@ stagingServe(async (req: Request) => {
     const latestAvailability = !isMultiCalendar && !convContext.pending_booking && !convContext.pending_cancel
       ? latestAvailabilityContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
 
-    const customerLanguage = continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
+    const customerLanguage = openingHoursRequest ? (openingHoursRequest.language === "en" ? "het Engels" : null) : continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
       (langSignal.confidentDutch
         ? null
         : (typeof convContext.detected_language === "string"
@@ -1961,6 +1964,12 @@ stagingServe(async (req: Request) => {
     const priorInboundTexts = history
       .filter((m) => m.direction === "inbound")
       .map((m) => m.content ?? "");
+    // R84 review round 2: the send moment of each of those messages, same filter and order
+    // (history IS sharedMsgsAsc), so the carried-forward day hint resolves every earlier message at
+    // its own time instead of against this turn's clock (see extractCarriedForwardDayHint).
+    const priorInboundSentAt = sharedMsgsAsc
+      .filter((m) => m.direction === "inbound")
+      .map((m) => new Date(m.meta_timestamp ?? m.created_at));
     // R98 (DAY/INTENT TOPIC-BLEED fix): both hasDayMentionAnywhere below and
     // rescheduleFlowActiveWithNoDay further down used to scan priorInboundTexts UNCONDITIONALLY,
     // with no awareness of a mid-conversation topic switch to a different calendar/service. Live-
@@ -2015,6 +2024,7 @@ stagingServe(async (req: Request) => {
         String(message ?? ""),
         dayScanWindowTexts,
         now,
+        dayScanWindowTexts === priorInboundTexts ? priorInboundSentAt : undefined,
       )
       : null;
     const effectiveDateHint = relativeDateHint ?? continuity?.hint ?? latestAvailability?.hint ?? carriedForwardDayHint;
@@ -2825,10 +2835,15 @@ stagingServe(async (req: Request) => {
     // repro). Re-asking Q2 is a pure read (never commits anything), so R118's stale-proposal
     // protection does not apply here at all; only the SAME clean-affirm bar (AFFIRM_RE/NEGATE_RE/
     // ambiguousConfirm) every other release signal in this file already requires.
+    // R84 review round 2 (N4): a time correction ("ok can we do 3 instead") is never an answer to the
+    // name check. Without this exclusion the re-ask fired for the OLD slot, and typing the name back
+    // would then have committed the old time instead of the one the customer asked for.
+    const isTimeCorrection = correctedPreviewHours(String(message)) !== null;
     const bookVerificationAffirmUnresolved = pendingBookVerificationFresh &&
       AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
       !ambiguousConfirm &&
-      !confirmBookVerification;
+      !confirmBookVerification &&
+      !isTimeCorrection;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
@@ -2936,7 +2951,9 @@ stagingServe(async (req: Request) => {
     // request) still falls through to the full, unchanged ambiguousConfirm gate.
     const restatesPendingBookOwnTime = pendingBookFresh &&
       messageRestatesPendingBookTime(pbk?.start_time ?? null, msgLower);
-    const confirmBook = !pureCancellationPolicyQuestion && pendingBookFresh && AFFIRM_RE.test(msgLower) &&
+    // R84 (review round): "ok can we do 3 instead" contains an affirm word but corrects the time;
+    // it never confirms the old preview (tools.ts book_appointment re-previews or withdraws it).
+    const confirmBook = !pureCancellationPolicyQuestion && !isTimeCorrection && pendingBookFresh && AFFIRM_RE.test(msgLower) &&
       !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
       (restatesPendingBookOwnTime
         ? !ambiguousConfirmForVerification(msgLower)
@@ -3510,7 +3527,13 @@ stagingServe(async (req: Request) => {
         }
       }
     }
-    let result: AgentResult = paymentFlowActive
+    // Typed information-only answer; every displayed interval is read and validated.
+    const openingHoursResult = openingHoursRequest && !paymentFlowActive && !participantResult && !policyOnlyResult &&
+      !continuityResult && !paymentPreviewed && !paymentFollowupReply
+      ? await answerOpeningHours(supabase, openingHoursRequest, calendars) : null;
+    let result: AgentResult = openingHoursResult
+      ? {text:openingHoursResult.text,steps:0,toolCalls:[]}
+      : paymentFlowActive
       ? continuityResult ?? {text: paymentTimingReply(paymentAnswer, ambiguousServiceChoiceReply(serviceChoiceOptions, customerLanguage), customerLanguage != null), steps:0, toolCalls:[]}
       : continuityResult ?? (participantResult
       ? { text: "", steps: 0, toolCalls: [{ name: "update_lead", args: { first_name: participantCandidate }, result: participantResult }] }
@@ -3803,12 +3826,12 @@ stagingServe(async (req: Request) => {
       result.text || "",
       String(message),
     );
-    const slotOfferUnbacked = !calledMutationTool && !calledSlots &&
+    const slotOfferUnbacked = !openingHoursResult && !calledMutationTool && !calledSlots &&
       offeredTimesPrimary.length > 0 &&
       OFFER_CONTEXT_RE.test(result.text || "");
 
     if (
-      !paymentFlowActive && !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
+      !openingHoursResult && !paymentFlowActive && !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
         looksLikeStall || cancelPreviewMissed || confirmStall ||
         bookPreviewMissed || reschedStall || cancelCommitMissed ||
         bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
@@ -4149,7 +4172,7 @@ stagingServe(async (req: Request) => {
           replyText = noFalseConfirmReply(customerLanguage);
         }
       }
-    } else {
+    } else if (!openingHoursResult) {
       // ITEM 12: on a successful booking PREVIEW turn, OVERRIDE the model's prose read-back with the
       // server-templated one so the date the customer confirms is exactly the slot stored in
       // pending_booking (the commit reuses it). This makes the "confirmed 25 juni / stored 30 juni"
@@ -4249,7 +4272,9 @@ stagingServe(async (req: Request) => {
           if (
             (t.name === "book_appointment" ||
               t.name === "reschedule_appointment") &&
-            r.error === "niet_beschikbaar"
+            // R84 review round 2 (N7): a time correction on a day without any free time is the
+            // same "day fully closed" ground truth as niet_beschikbaar with no slots.
+            (r.error === "niet_beschikbaar" || r.error === "tijd_correctie_niet_vrij")
           ) {
             return Array.isArray(r.available_slots) &&
               r.available_slots.length === 0;
@@ -4266,6 +4291,8 @@ stagingServe(async (req: Request) => {
           >;
           const declinedDate = typeof dcArgs.date === "string"
             ? dcArgs.date
+            : typeof dcResult.date === "string"
+            ? dcResult.date
             : null;
           // R52: prefer the tool's own RESOLVED service_type_id/calendar_id (tools.ts now echoes
           // these back on the niet_beschikbaar/empty-slots result) over the model's tool-call args.
@@ -4866,6 +4893,7 @@ stagingServe(async (req: Request) => {
     // never depends on the model obeying the prompt rule. Applied once, used for BOTH the
     // WhatsApp send and the persisted transcript so they always match.
     if (keepCancellation) replyText = customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL;
+    if (openingHoursResult) replyText = openingHoursResult.text;
     const reply = sanitizeReply(replyText) ||
       "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
 
