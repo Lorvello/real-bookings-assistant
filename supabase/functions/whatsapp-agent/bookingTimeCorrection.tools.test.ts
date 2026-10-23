@@ -230,3 +230,26 @@ Deno.test("R84 review 2 N7: a correction on a full day echoes date, service and 
   assertEquals(out.error, "tijd_correctie_niet_vrij");
   assertEquals([out.date, out.service_type_id, out.calendar_id, out.available_slots], [TUE, "S1", "A", []]);
 });
+
+// R84 live probe on staging v35 (2026-10-24, multi-calendar tenant): the model re-sent another
+// calendar's service id for the same service; the correction must keep the open preview's own target.
+Deno.test("R84 live v35: a time-only correction keeps the open preview's service and calendar", async () => {
+  const ctx0 = pending(60_000) as Record<string, unknown>;
+  Object.assign(ctx0.pending_booking as Record<string, unknown>, { calendar_id: "B", service_type_id: "S2" });
+  const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, {
+    ...baseCtx(S08),
+    calendars: [{ id: "A", name: "Iris" }, { id: "B", name: "Sanne" }],
+  } as ToolContext).execute("book_appointment", {
+    service_type_id: "S1",
+    start_time: "2026-11-10T13:00:00+00:00",
+    customer_name: "Karim",
+  }) as Record<string, unknown>;
+  assert(out.error !== "vorige_boeking_nog_open", JSON.stringify(out));
+  const pb = h.ctx().pending_booking as Record<string, unknown>;
+  assertEquals([pb.start_time, pb.service_type_id, pb.calendar_id], ["2026-11-10T14:00:00+00:00", "S2", "B"]);
+  assert(
+    h.rpcCalls.some((c) => c.fn === "get_available_slots" && c.args.p_calendar_id === "B"),
+    "slot read did not go to the preview's calendar: " + JSON.stringify(h.rpcCalls.map((c) => c.args)),
+  );
+});

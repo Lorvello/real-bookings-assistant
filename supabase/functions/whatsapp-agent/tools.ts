@@ -2573,8 +2573,19 @@ export function createTools(
             };
           }
 
+          // R84 live probe on staging v35 (2026-10-24, multi-calendar tenant): "yeah fine. can we do 3
+          // instead tho?" after a 14:00 preview. The model re-sent the service id of another calendar's
+          // "Knippen"; the correction block below then saw a different target and stood aside, and
+          // the open-preview guard asked whether to confirm 14:00 or book "the new service". The
+          // correction grammar only matches a time-only message (no day, service or person), so with
+          // a fresh preview open it is about THAT preview: its own service and calendar are the
+          // target, whatever the model sent, and the fresh-request gates below do not apply.
+          const correctsFreshPreview = !committing && !namePreviewOnly && !!pendingBook?.start_time &&
+            !!pendingBook?.service_type_id &&
+            (typeof pendingBook.at !== "number" || Date.now() - pendingBook.at < 15 * 60 * 1000) &&
+            correctedPreviewHours(String(ctx.userMessage ?? "")) !== null;
           const serviceId = String(
-            ((committing || namePreviewOnly)
+            ((committing || namePreviewOnly || correctsFreshPreview)
               ? pendingBook!.service_type_id
               : args.service_type_id) ?? "",
           );
@@ -2596,7 +2607,7 @@ export function createTools(
           // guess (booking in the wrong staff/location is a real error) and ask which one. Every
           // value of calId comes from ctx.calendars → it can never point at another owner's calendar.
           let calId = ctx.calendarId;
-          if (committing || namePreviewOnly) {
+          if (committing || namePreviewOnly || correctsFreshPreview) {
             calId = (pendingBook?.calendar_id) ?? ctx.calendarId;
           } else {
             // R71 (R70-3 fix): on a FRESH preview only (never on commit/namePreviewOnly, which
