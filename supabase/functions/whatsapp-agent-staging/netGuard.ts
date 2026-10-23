@@ -89,6 +89,8 @@ export interface LlmUsage {
   prompt_tokens: number | null;
   completion_tokens: number | null;
   total_tokens: number | null;
+  // R84: tokens served from the provider's prompt cache (Claude cache reads, Groq cached_tokens).
+  cached_tokens: number | null;
   status: number | null;
 }
 
@@ -197,16 +199,31 @@ function captureUsage(resp: Response, seq: number, label: string, host: string, 
   clone.json().then((j: Record<string, unknown>) => {
     const u = (j?.usage ?? null) as Record<string, number> | null;
     const g = (j?.usageMetadata ?? null) as Record<string, number> | null;
+    // R84: Anthropic reports input_tokens/output_tokens, with cache reads and writes counted
+    // OUTSIDE input_tokens. The full prompt is the sum, so Groq and Claude rows compare 1:1.
+    const a = u && typeof u.input_tokens === "number" ? u : null;
+    const aPrompt = a
+      ? a.input_tokens + (a.cache_read_input_tokens ?? 0) + (a.cache_creation_input_tokens ?? 0)
+      : null;
     const row: LlmUsage = {
       seq,
       label,
       host,
       model: (typeof j?.model === "string" ? j.model : null) ?? model,
-      prompt_tokens: u ? (u.prompt_tokens ?? null) : (g ? (g.promptTokenCount ?? null) : null),
-      completion_tokens: u
+      prompt_tokens: a ? aPrompt : u ? (u.prompt_tokens ?? null) : (g ? (g.promptTokenCount ?? null) : null),
+      completion_tokens: a
+        ? (a.output_tokens ?? null)
+        : u
         ? (u.completion_tokens ?? null)
         : (g ? (g.candidatesTokenCount ?? null) : null),
-      total_tokens: u ? (u.total_tokens ?? null) : (g ? (g.totalTokenCount ?? null) : null),
+      total_tokens: a
+        ? aPrompt! + (a.output_tokens ?? 0)
+        : u
+        ? (u.total_tokens ?? null)
+        : (g ? (g.totalTokenCount ?? null) : null),
+      cached_tokens: a
+        ? (a.cache_read_input_tokens ?? 0)
+        : ((u?.prompt_tokens_details as unknown as Record<string, number> | undefined)?.cached_tokens ?? null),
       status: resp.status,
     };
     push(state.usage, row, 400);

@@ -2,8 +2,10 @@
 //   LLM_PROVIDER=groq    -> Groq LPU, OpenAI-compatible (default model openai/gpt-oss-20b: fastest+cheapest)
 //   LLM_PROVIDER=openai  -> OpenAI Chat Completions (default model gpt-5-nano: fast + cheap)
 //   LLM_PROVIDER=gemini  -> Gemini Flash-Lite (original; kept for easy revert)
+//   LLM_PROVIDER=anthropic -> Claude Haiku 5.5, effort low (R84 bake-off option; llmAnthropic.ts)
 // Default is gemini unless LLM_PROVIDER is set. groq + openai share runAgentOpenAI (Chat
-// Completions wire format) parameterized by {baseUrl, key, model}. Only this file knows the formats.
+// Completions wire format) parameterized by {baseUrl, key, model}. Only this file and
+// llmAnthropic.ts (the Anthropic Messages format) know the formats.
 // LIVE (Supabase secrets, 2026-06-23 A1c): LLM_PROVIDER=groq, GROQ_MODEL=openai/gpt-oss-20b
 // -> production runs Groq gpt-oss-20b (paid Dev tier). Proven on the §6 gate testpad: warm p50
 // ~2.2s, no turn >5s (hits the <3s gate gpt-4.1-mini missed at ~4s), all hard gates green
@@ -32,6 +34,8 @@
 // and dormant — a flip to gemini will work functionally (no more 400s) the moment Google's latency
 // improves; re-run the §6 testpad before adopting. GEMINI_MODEL secret = gemini-3.5-flash (harmless
 // while provider=openai; the code below handles it correctly now).
+
+import { ANTHROPIC_EFFORTS, type AnthropicEffort, runAgentAnthropic } from "./llmAnthropic.ts";
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
@@ -99,6 +103,19 @@ export async function runAgent(opts: RunOpts): Promise<AgentResult> {
       baseUrl: "https://api.openai.com/v1",
       key: Deno.env.get("OPENAI_API_KEY") ?? "",
       model: Deno.env.get("OPENAI_MODEL") || "gpt-5-nano",
+    });
+  }
+  // R84 (2026-10-23): Claude Haiku 5.5 as a switchable option for the Groq-vs-Haiku bake-off that
+  // Mathieu asked for ("Haiku op low reasoning"). Not live: production keeps LLM_PROVIDER=groq.
+  if (provider === "anthropic") {
+    const asked = (Deno.env.get("ANTHROPIC_EFFORT") || "low").toLowerCase();
+    const effort = (ANTHROPIC_EFFORTS as readonly string[]).includes(asked) ? asked as AnthropicEffort : "low";
+    if (effort !== asked) console.warn(`[llm] ANTHROPIC_EFFORT=${asked} is unknown; using low`);
+    return runAgentAnthropic(opts, {
+      key: Deno.env.get("ANTHROPIC_API_KEY") ?? "",
+      model: Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-5-5",
+      effort,
+      timeoutMs: LLM_CALL_TIMEOUT_MS,
     });
   }
   return runAgentGemini(opts);

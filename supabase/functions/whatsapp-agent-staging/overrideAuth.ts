@@ -11,8 +11,9 @@
 //
 // PAYLOAD
 //   { "exp": <unix seconds, verplicht>,
-//     "provider": "groq" | "openai" | "gemini",     (optioneel)
+//     "provider": "groq" | "openai" | "gemini" | "anthropic",   (optioneel)
 //     "model": "<modelnaam>",                        (optioneel, alleen met provider)
+//     "effort": "low"|"medium"|"high"|"xhigh"|"max", (optioneel, alleen met provider anthropic)
 //     "op": "net-report"|"net-reset"|"net-probe"|"recorder-report"|"recorder-reset"|"whoami" }
 //                                                    (optioneel diagnose-commando)
 //
@@ -24,12 +25,17 @@ import { STAGING_BUILD } from "./stagingFlag.ts";
 
 export const OVERRIDE_HEADER = "x-agent-override";
 
-export type OverrideProvider = "groq" | "openai" | "gemini";
+export type OverrideProvider = "groq" | "openai" | "gemini" | "anthropic";
 
 export interface OverridePayload {
   exp: number;
   provider?: OverrideProvider;
   model?: string;
+  // R84 (2026-10-23). De denkstand van Claude (output_config.effort), per verzoek, voor de
+  // Groq-tegen-Haiku-vergelijking. Alleen geldig met provider "anthropic": op een ander model
+  // betekent het niets, en een rij met een effort-etiket dat niet over de lijn ging is een
+  // verkeerd etiket. Leeg laten = ANTHROPIC_EFFORT uit de secrets (standaard low).
+  effort?: string;
   // LAUNCH-RUN 2026-09 / R4. Het model van de twee veiligheidsclassifiers, APART van het
   // agent-model. Bewust NIET gekoppeld aan `model`: 17 van de 18 calls per beurt zijn
   // classifier-stemmen, dus een stille koppeling zou een bake-off-rij het verkeerde etiket
@@ -57,7 +63,8 @@ export type OverrideVerdict =
   | { kind: "ok"; payload: OverridePayload }
   | { kind: "refused"; code: string; detail: string };
 
-const VALID_PROVIDERS: OverrideProvider[] = ["groq", "openai", "gemini"];
+const VALID_PROVIDERS: OverrideProvider[] = ["groq", "openai", "gemini", "anthropic"];
+export const VALID_EFFORTS = ["low", "medium", "high", "xhigh", "max"];
 const VALID_OPS = ["net-report", "net-reset", "net-probe", "recorder-report", "recorder-reset", "whoami", "hop-probe"];
 
 // Maximale toegestane geldigheidsduur vooruit. Een handtekening die een jaar geldig is, is een
@@ -172,6 +179,14 @@ export async function verifyOverrideHeader(req: Request): Promise<OverrideVerdic
     }
     if (payload.provider === undefined) {
       return { kind: "refused", code: "model_without_provider", detail: "model zonder provider is dubbelzinnig" };
+    }
+  }
+  if (payload.effort !== undefined) {
+    if (typeof payload.effort !== "string" || !VALID_EFFORTS.includes(payload.effort)) {
+      return { kind: "refused", code: "bad_effort", detail: `effort moet een van ${VALID_EFFORTS.join(", ")} zijn` };
+    }
+    if (payload.provider !== "anthropic") {
+      return { kind: "refused", code: "effort_without_anthropic", detail: "effort geldt alleen met provider anthropic" };
     }
   }
   if (payload.op !== undefined && !VALID_OPS.includes(payload.op)) {
