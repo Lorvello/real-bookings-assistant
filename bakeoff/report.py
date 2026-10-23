@@ -50,6 +50,7 @@ def kosten(tag: str, score: dict) -> dict:
     model = (score.get("meta") or {}).get("model") or ""
     ap = ac = cp = cc = 0
     a_read = a_write = 0  # R84: agent-tokens uit de cache gelezen en naar de cache geschreven
+    a_max_prompt = 0  # R84: het grootste agent-prompt; boven 100K geldt het hogere Claude-tarief
     n = 0
     for sid, info in score["tokens"]["per_scenario"].items():
         if info["type"] != "book":
@@ -64,6 +65,7 @@ def kosten(tag: str, score: dict) -> dict:
                     ac += c.get("completion_tokens") or 0
                     a_read += c.get("cached_tokens") or 0
                     a_write += c.get("cache_write_tokens") or 0
+                    a_max_prompt = max(a_max_prompt, c.get("prompt_tokens") or 0)
                 else:
                     cp += c.get("prompt_tokens") or 0
                     cc += c.get("completion_tokens") or 0
@@ -86,6 +88,9 @@ def kosten(tag: str, score: dict) -> dict:
             agent_in = vers * p["in"] + a_read * p["cache_read"] + a_write * p["cache_write"]
             out["agent_cache_read_tokens_per_conversatie"] = round(a_read / n)
             out["agent_cache_write_tokens_per_conversatie"] = round(a_write / n)
+            if a_max_prompt > 100_000:
+                out["prijswaarschuwing"] = (f"agent-prompt van {a_max_prompt} tokens: boven 100K rekent Claude "
+                                            "het hogere tarief; deze telling is dan te laag")
         else:
             # Groq en de rest: elk prompt-token tegen het volle tarief (de bestaande, voorzichtige telling).
             agent_in = ap * p["in"]

@@ -1,4 +1,4 @@
-import {
+import { type DayHintOptions,
   extractRelativeDayHint,
   type RelativeDateHint,
 } from "./relativeDateHint.ts";
@@ -71,6 +71,7 @@ export function bookingContinuation(
   services: Service[],
   now: Date,
   currentInboundId?: string | null,
+  opts?: DayHintOptions,
 ): BookingContinuation | null {
   if (!isCurrentInbound(message, history, now, currentInboundId)) return null;
   const rows = history;
@@ -92,7 +93,15 @@ export function bookingContinuation(
       draft = null;
       continue;
     }
-    const hint = extractRelativeDayHint(text, at);
+    // R84 review round 4: today's opening hours only describe a message written today.
+    const hint = extractRelativeDayHint(
+      text,
+      at,
+      at.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" }) ===
+          now.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" })
+        ? opts
+        : undefined,
+    );
     const matches = [
       ...text.matchAll(/\b(\d{1,2})(?::([0-5]\d)|\s*(uur|u|am|pm)\b)/gi),
     ];

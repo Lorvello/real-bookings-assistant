@@ -139,6 +139,10 @@ def run_candidate(args) -> int:
     # R84 (2026-10-24): de Claude-denkstand reist mee in de getekende override. getattr, zodat de
     # R79-entry.py (Namespace zonder effort) ongewijzigd blijft werken.
     effort = getattr(args, "effort", None)
+    # Review round 4: effort only means something for Claude; without it the label would lie.
+    if effort and args.provider != "anthropic":
+        print(f"MEETFOUT: --effort {effort} geldt alleen met --provider anthropic")
+        return 2
     print(f"=== BAKE-OFF kandidaat {tag}  provider={args.provider} model={args.model} effort={effort} ===")
     print("feiten ophalen uit de database...")
     facts = core.facts_cached({"cal": fx["calA"], "cal_iris": fx["calA"], "cal_bram": fx["calB"]},
@@ -148,7 +152,10 @@ def run_candidate(args) -> int:
     # De schil weigert een TTL langer dan 900 s (overrideAuth.ts MAX_TTL_S). De header wordt
     # daarom PER BEURT vers getekend; een run duurt langer dan een enkele header geldig is.
     def fresh_ov():
-        return core.override_header(provider=args.provider, model=args.model, ttl=600, effort=effort) \
+        # Only pass effort when set, so an older staging_harness.py (without the effort parameter,
+        # it lives in the hub, outside this repo) keeps working for Groq runs.
+        extra = {"effort": effort} if effort else {}
+        return core.override_header(provider=args.provider, model=args.model, ttl=600, **extra) \
             if args.provider else None
 
     totaal_429 = 0

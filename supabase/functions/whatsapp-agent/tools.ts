@@ -126,6 +126,13 @@ export interface ToolContext {
   // small model fails to pass match_time on a multi-booking cancel/reschedule (it often does):
   // we extract the clock time the customer named and resolve which booking they meant.
   userMessage?: string;
+  // R84 review round 4: the staff members/locations the customer ASKED for in this topic (index.ts:
+  // this message, otherwise the most recent earlier message of the topic that asks for one).
+  requestedCalendarIds?: string[];
+  // Each calendar's own services (id + name), multi-calendar only.
+  servicesByCalendar?: Record<string, Array<{ id: string; name: string }>>;
+  // Today's opening hours for the day reading (relativeDateHint DayHintOptions).
+  dayHintOpts?: { todayLatestEndMinutes?: number | null };
   // R29 (relativeDateHint.ts): deterministic ISO date (YYYY-MM-DD) resolved server-side from a
   // bare relative-weekday phrase found in THIS TURN's raw customer message ("vrijdag", "vrijdag
   // diezelfde week"), computed fresh from the real server "now", never from conversation history.
@@ -356,19 +363,33 @@ function normServiceNameLocal(n: string): string {
 // R84 live probe on staging (2026-10-24, four-calendar tenant): "kan ik vrijdag 30 oktober om 14:00
 // knippen bij Sanne?" previewed Bo's "Knippen", because Sanne only offers "Knippen Dames" and
 // "Knippen Heren" and the service id pins the calendar (resolveBookingCalendar). The preview text
-// names no staff member, so the customer could not have noticed. When the message asks for exactly
-// ONE staff member or location ("bij Sanne", "with Sanne") and the chosen service belongs to another,
-// never read slots or preview there: the model picks that person's own service, or asks which one.
-function namedCalendarMismatch(ctx: ToolContext, calId: string): { error: string; message: string } | null {
+// names no staff member, so the customer could not have noticed. When the customer asked for exactly
+// ONE staff member or location ("bij Sanne", "with Sanne"; ctx.requestedCalendarIds also covers an
+// earlier message of the topic) and the chosen service belongs to another person who offers a
+// similar service (a word in common, "Knippen" and "Knippen Dames"), do not read slots or preview
+// there: the model picks the asked person's own service, or asks. Review round 4: a service the asked
+// person offers nothing like may be a deliberate choice, so that call keeps its own route.
+const SERVICE_WORD_STOP = new Set(["en", "and", "de", "het", "met", "with", "of", "the", "van"]);
+function serviceWords(name: string): string[] {
+  return name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 && !SERVICE_WORD_STOP.has(w));
+}
+function namedCalendarMismatch(ctx: ToolContext, calId: string, serviceId: string): { error: string; message: string } | null {
   if (ctx.calendars.length <= 1) return null;
-  const named = calendarsRequestedIn(String(ctx.userMessage ?? ""), ctx.calendars);
+  const named = ctx.requestedCalendarIds ?? calendarsRequestedIn(String(ctx.userMessage ?? ""), ctx.calendars);
   if (named.length !== 1 || named[0] === calId) return null;
+  const chosen = ctx.servicesByCalendar?.[calId]?.find((x) => x.id === serviceId)?.name;
+  const theirs = ctx.servicesByCalendar?.[named[0]];
+  if (chosen && theirs) {
+    const words = new Set(serviceWords(chosen));
+    if (!theirs.some((x) => serviceWords(x.name).some((w) => words.has(w)))) return null;
+  }
   const want = ctx.calendars.find((c) => c.id === named[0])?.name ?? "de genoemde medewerker";
   const got = ctx.calendars.find((c) => c.id === calId)?.name ?? "een andere medewerker";
   return {
     error: "dienst_van_andere_medewerker",
-    message: `De klant vraagt om ${want}, maar de gekozen dienst hoort bij ${got}. Boek of zoek NIET bij ${got}. ` +
-      `Kies de passende dienst van ${want} uit <kalenders>; passen er meerdere (bijvoorbeeld dames of heren), vraag dan kort welke.`,
+    message: `De klant vroeg om ${want}, maar de gekozen dienst hoort bij ${got}. Boek of zoek niet zomaar bij ${got}: ` +
+      `kies de passende dienst van ${want} uit <kalenders>. Passen er meerdere (bijvoorbeeld dames of heren), of is niet ` +
+      `duidelijk of de klant echt bij ${want} wil, vraag het dan kort.`,
   };
 }
 
@@ -1911,7 +1932,7 @@ export function createTools(
           args.calendar_index,
           args.service_type_id,
         );
-        const slotMismatch = "id" in slotCal ? namedCalendarMismatch(ctx, slotCal.id) : null;
+        const slotMismatch = "id" in slotCal ? namedCalendarMismatch(ctx, slotCal.id, String(args.service_type_id ?? "")) : null;
         if (slotMismatch) return slotMismatch;
         if ("needAsk" in slotCal) {
           return {
@@ -2601,8 +2622,17 @@ export function createTools(
           // showed why this must stay this narrow: when the model sends a DIFFERENT service, the
           // customer may really have moved on (another stylist or service), so that call keeps its
           // own route and the open-preview guard asks about the earlier preview, the safe question.
+          // Round 4: also when the model re-sent the SAME service under another staff member's id
+          // ("Knippen" of Bo for an open "Knippen" preview at Sanne, the v35 live shape): a time-only
+          // message cannot move a booking to another person.
+          const sentService = String(args.service_type_id ?? "").trim();
+          const serviceNameById = (id: string) =>
+            Object.values(ctx.servicesByCalendar ?? {}).flat().find((x) => x.id === id)?.name;
+          const sentName = sentService ? serviceNameById(sentService) : undefined;
+          const pendingName = pendingBook?.service_type_id ? serviceNameById(String(pendingBook.service_type_id)) : undefined;
           const correctsFreshPreview = !committing && !namePreviewOnly && !!pendingBook?.start_time &&
-            !!pendingBook?.service_type_id && !String(args.service_type_id ?? "").trim() &&
+            !!pendingBook?.service_type_id &&
+            (!sentService || (!!sentName && !!pendingName && normServiceNameLocal(sentName) === normServiceNameLocal(pendingName))) &&
             (typeof pendingBook.at !== "number" || Date.now() - pendingBook.at < 15 * 60 * 1000) &&
             correctedPreviewHours(String(ctx.userMessage ?? "")) !== null;
           const serviceId = String(
@@ -2690,7 +2720,7 @@ export function createTools(
               };
             }
             calId = bookCal.id;
-            const bookMismatch = namedCalendarMismatch(ctx, calId);
+            const bookMismatch = namedCalendarMismatch(ctx, calId, serviceId);
             if (bookMismatch) return bookMismatch;
           }
 
@@ -5111,7 +5141,7 @@ export function createTools(
         const waitingTime = reschedCtx.pending_reschedule_time_clarification as { booking_id?: string } | undefined;
         if (waitingTime?.booking_id === b.id && spokenTimes === null) {
           const statedTimes = extractClockTimes(ctx.userMessage);
-          if (statedTimes.length !== 1 || !extractRelativeDayHint(String(ctx.userMessage ?? ""), new Date())) {
+          if (statedTimes.length !== 1 || !extractRelativeDayHint(String(ctx.userMessage ?? ""), new Date(), ctx.dayHintOpts)) {
             return { error: "verduidelijk_tijd", message: "Welk nieuw tijdstip bedoel je precies? Noem de dag en tijd." };
           }
           spokenTimes = statedTimes;
@@ -5135,7 +5165,7 @@ export function createTools(
             }
             reschedCtx = freshContext;
           }
-          const spokenDay = extractRelativeDayHint(String(ctx.userMessage ?? ""), new Date());
+          const spokenDay = extractRelativeDayHint(String(ctx.userMessage ?? ""), new Date(), ctx.dayHintOpts);
           const proposedCalendar = args.calendar_index == null ? b.calendar_id
             : ctx.calendars[Number(args.calendar_index) - 1]?.id;
           if (!spokenDay || !spokenTimes.length || proposedCalendar !== b.calendar_id ||

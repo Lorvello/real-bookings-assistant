@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 fdb2f43481b1a8900c6b111840021d026396d31f797488e602c2ce7ef99ab533)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 8ed98a87cfd155f2c9e543317c7c8c9cb8a14e16e02201968b22218516b2cd8b)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -157,6 +157,7 @@ import {
   detectLanguageSignal,
 } from "../whatsapp-agent/languageSignal.ts";
 import {
+  calendarsRequestedIn,
   enforceNoRedundantLocationAsk,
   resolveCandidateCalendarIds,
   scopeToCurrentTopicWindow,
@@ -1257,9 +1258,9 @@ stagingServe(async (req: Request) => {
     // right staff/location calendar from the chosen service alone (no "which agenda?" turn). Built
     // from the SAME per-calendar service query, zero extra round-trip; only in multi-calendar mode.
     let serviceCalendarMap: Record<string, string> | undefined;
-    // R84 review round 3: the structured weekly hours of the OTHER calendars in play this turn (the
-    // entry calendar's are weeklyHours.byDay), for latestEndTodayMinutes below.
-    let otherCalendarsByDay: Array<Record<string, { open: boolean; start?: string; end?: string }> | null> = [];
+    // R84 review rounds 3 and 4: the structured weekly hours per calendar in play this turn (entry
+    // calendar plus the other fetched calendars), for latestEndTodayMinutes below.
+    const byDayByCal = new Map<string, Record<string, { open: boolean; start?: string; end?: string }> | null>();
     if (isMultiCalendar) {
       const ids = calendars.map((c) => c.id);
       const { data: setSvc } = await supabase
@@ -1339,7 +1340,8 @@ stagingServe(async (req: Request) => {
       otherCals.forEach((c, i) =>
         hoursByCal.set(c.id, otherHours[i]?.text ?? null)
       );
-      otherCalendarsByDay = otherHours.map((h) => h?.byDay ?? null);
+      byDayByCal.set(calendar_id, weeklyHours?.byDay ?? null);
+      otherCals.forEach((c, i) => byDayByCal.set(c.id, otherHours[i]?.byDay ?? null));
       // T3-A1 (R7): per-calendar cancellation policy, same pattern as openingHours above, so the
       // model can correctly answer a question about a NAMED DIFFERENT calendar's policy (the
       // <business_data> override further below only ever resolves to the CUSTOMER'S OWN upcoming
@@ -1936,11 +1938,30 @@ stagingServe(async (req: Request) => {
     // language). null = Dutch or unsure → no override (the prompt's own language rules apply).
     // R81 fix: a CONFIDENTLY Dutch message actively overrides any stale stored non-Dutch language
     // (see detectLanguageSignal header comment) instead of silently inheriting it forever.
+    const now = new Date();
+    // R84 review rounds 3 and 4: a spoken 7-9 ("om 8") only reads as this evening while the business
+    // is still open then today. When this message asks for exactly one staff member ("om 8 uur bij
+    // Sanne"), that person's hours count; otherwise every calendar in play. The exact-date override
+    // only applies to a single calendar (the same rule buildCalendarHint uses). Unknown hours keep
+    // the evening possible. The same options reach every other place that reads a day.
+    const requestedNow = isMultiCalendar ? calendarsRequestedIn(String(message ?? ""), calendars) : [];
+    const dayHintOpts = {
+      todayLatestEndMinutes: latestEndTodayMinutes(
+        now,
+        requestedNow.length === 1 && byDayByCal.has(requestedNow[0])
+          ? [byDayByCal.get(requestedNow[0]) ?? null]
+          : [weeklyHours?.byDay ?? null, ...byDayByCal.values()],
+        isMultiCalendar ? undefined : dateOverrides ?? undefined,
+      ),
+    };
+    const sameAmsterdamDay = (a: Date, b: Date) =>
+      a.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" }) ===
+        b.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
     const openingHoursRequest = openingHoursQuestion(String(message), new Date());
     const langSignal = detectLanguageSignal(String(message));
     const detectedThisMsg = langSignal.nonDutch;
     const continuityProof = !isMultiCalendar && !convContext.pending_cancel
-      ? bookingContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
+      ? bookingContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId, dayHintOpts) : null;
     const continuity = !convContext.pending_booking ? continuityProof : null;
     const latestAvailability = !isMultiCalendar && !convContext.pending_booking && !convContext.pending_cancel
       ? latestAvailabilityContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
@@ -1952,22 +1973,11 @@ stagingServe(async (req: Request) => {
           ? convContext.detected_language
           : null)));
 
-    const now = new Date();
     // R29: deterministic pre-parse of the CURRENT customer message for a bare relative-weekday
     // reference ("vrijdag", "vrijdag diezelfde week"), computed fresh from the real server "now",
     // never from conversation history. See relativeDateHint.ts header for the full bug this
     // closes (R28: long/rambling message with an unnumbered weekday got resolved against a STALE
     // date already sitting in earlier conversation history instead of the real today).
-    // R84 review round 3: a spoken 7-9 ("om 8") only reads as this evening while some calendar in
-    // play is still open then today. The exact-date override only applies to a single calendar
-    // (the same rule buildCalendarHint uses). Unknown hours keep the evening possible.
-    const dayHintOpts = {
-      todayLatestEndMinutes: latestEndTodayMinutes(
-        now,
-        [weeklyHours?.byDay ?? null, ...otherCalendarsByDay],
-        isMultiCalendar ? undefined : dateOverrides ?? undefined,
-      ),
-    };
     const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now, dayHintOpts);
     // R93 (SILENT-TODAY-DEFAULT fix, confirmed live bug filed R92): true ONLY when NO explicit day
     // reference has been named ANYWHERE in this conversation yet, this turn's message included.
@@ -2018,6 +2028,22 @@ stagingServe(async (req: Request) => {
         servicesByCalendarForTopicScope,
       )
       : priorInboundTexts;
+    // R84 review round 4: the staff member the customer asked for, also when that was an earlier
+    // message of this topic ("bij Sanne" in turn 1, only the time in turn 2). The topic window starts
+    // fresh on a switch to another calendar, so an old request never outlives a switch.
+    const requestedCalendarIds = !isMultiCalendar ? [] : requestedNow.length ? requestedNow : (() => {
+      for (let i = dayScanWindowTexts.length - 1; i >= 0; i--) {
+        const r = calendarsRequestedIn(dayScanWindowTexts[i], calendars);
+        if (r.length) return r;
+      }
+      return [];
+    })();
+    // Each calendar's own services (id + name), for the staff check and the same-service correction.
+    const servicesByCalendar = isMultiCalendar && calendarsForPrompt
+      ? Object.fromEntries(
+        calendarsForPrompt.map((c) => [calendars[c.index - 1].id, c.services.map((s) => ({ id: s.id, name: s.name }))]),
+      )
+      : undefined;
     const continuityChoiceWithoutDay = !isMultiCalendar && !convContext.pending_booking &&
       services.some(service => service.name.toLowerCase() === String(message).trim().toLowerCase()) && !continuity;
     const blockForNoDayNamed = continuityChoiceWithoutDay || !hasDayMentionAnywhere(
@@ -3361,8 +3387,11 @@ stagingServe(async (req: Request) => {
       hardConfirm,
       hardReject,
       userMessage: String(message),
+      requestedCalendarIds,
+      servicesByCalendar,
+      dayHintOpts,
       relativeDateHintISO: paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentCondition
-        ? conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at))?.date ?? effectiveDateHint?.iso ?? null
+        ? conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at), sameAmsterdamDay(new Date(paymentCondition.at), now) ? dayHintOpts : undefined)?.date ?? effectiveDateHint?.iso ?? null
         : effectiveDateHint?.iso ?? null,
       customerLocale: customerLanguage != null ? "en" : "nl",
       blockForMissingServiceChoice,
@@ -3372,7 +3401,7 @@ stagingServe(async (req: Request) => {
       confirmSecondBookingFromMessage,
       blockForReturningServiceDefault: blockForReturningServiceDefaultEffective,
       lastServiceForReturningDefault: lastService,
-      blockForNoDayNamed: blockForNoDayNamed && !(paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentCondition && conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at))),
+      blockForNoDayNamed: blockForNoDayNamed && !(paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentCondition && conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at), sameAmsterdamDay(new Date(paymentCondition.at), now) ? dayHintOpts : undefined)),
       blockForMultiService,
       allServiceNamesForAmbiguity: allServiceNamesForReturning,
       pendingBookInterveningExchange,
@@ -3486,7 +3515,7 @@ stagingServe(async (req: Request) => {
     // selected service. Preview uses the ordinary tools and never auto-confirms.
     if (paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentServiceId && paymentCondition && !paymentCondition.declined) {
       const offeredSelection = paymentOfferAttempt ? resolveOfferedPaymentTime({message:String(message),currentInboundId:continuityInboundId,now:Date.now(),calendar:calendar_id,conversation:conversationId!,marker:paymentCondition,history:sharedMsgsAsc}) : null;
-      const requested = paymentOfferAttempt ? offeredSelection : paymentCondition.selected_slot ?? conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at));
+      const requested = paymentOfferAttempt ? offeredSelection : paymentCondition.selected_slot ?? conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at), sameAmsterdamDay(new Date(paymentCondition.at), now) ? dayHintOpts : undefined);
       if (paymentOfferAttempt && !offeredSelection) paymentFollowupReply = customerLanguage ? "Please choose one of the times I just offered, or make a new booking request." : "Kies een tijd die ik zojuist aanbood, of vraag opnieuw om te boeken.";
       if (offeredSelection && conversationId) {
         const {data: current,error: readError}=await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle();

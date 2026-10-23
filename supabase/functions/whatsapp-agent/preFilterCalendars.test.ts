@@ -303,6 +303,9 @@ for (
     ["in plaats van bij Sanne graag bij Bo", ["bo"]],
     ["ik wil niet meer bij Sanne, kan het bij Milan?", ["milan"]],
     ["kan ik naar Sanne voor knippen?", ["sanne"]],
+    ["kan ik vrijdag knippen bij Sanne of Bo? om 14:00", ["bo", "sanne"]],
+    ["een afspraak met Sanne graag", ["sanne"]],
+    ["bij voorkeur Sanne, vrijdag", ["sanne"]],
   ] as const
 ) {
   Deno.test(`R84 live: calendarsRequestedIn ${JSON.stringify(msg)}`, () => {

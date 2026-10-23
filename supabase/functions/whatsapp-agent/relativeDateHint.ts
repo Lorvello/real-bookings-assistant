@@ -205,11 +205,13 @@ const DURATION_BEFORE_RE =
   /\b(?:duurt|duur|duren|lang|hoelang|ongeveer|zo'?n|minstens|maximaal|circa|ca\.?|bijna|ruim|takes?|lasts?)\b(?:\s+\S+){0,2}\s*$/i;
 // "na/after/vanaf/from" always open a lower bound; "tot/until/till" only after a work or busy verb
 // ("ik werk tot 5", "busy until 5"), since "kan het tot 5 uur?" asks for a time before 17:00.
+// Round 4: "ben/zit ... tot" is not one, because "dinsdag ben ik vrij tot 5 uur" is an upper bound.
 const LOWER_BOUND_BEFORE_RE =
-  /(?:\b(?:na|after|vanaf|from)\s+(?:om\s+|at\s+)?|\b(?:werk|werkt|ben|bezig|zit|work|working|busy)\b[^,.;!?\d]{0,20}\b(?:tot|until|till)\s+(?:om\s+|at\s+)?)$/i;
-// The end of the clause that owns a weekday: punctuation that ends a sentence, or another day word.
+  /(?:\b(?:na|after|vanaf|from)\s+(?:om\s+|at\s+)?|\b(?:werk|werkt|bezig|druk|work|working|busy)\b[^,.;!?\d]{0,20}\b(?:tot|until|till)\s+(?:om\s+|at\s+)?)$/i;
+// The end of the clause that owns a weekday: punctuation that ends a sentence (a dot inside a time
+// such as "9.30" does not), or another day word.
 const CLAUSE_END_RE =
-  /[.;!?\n]|\b(?:maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morgen\w*|overmorgen|vandaag|today|tomorrow)/i;
+  /(?<!\d)\.(?!\d)|[;!?\n]|\b(?:maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morgen\w*|overmorgen|vandaag|today|tomorrow)/i;
 
 // "pm" = afternoon or evening wording, "am" = morning wording; both in one phrase keeps the later.
 // "voormiddag" is morning; a bare "morgen" is tomorrow, so only "'s morgens" counts.
@@ -280,6 +282,12 @@ function clockTimesIn(s: string): ClockHit[] {
       read: (m) => ({ h: Number(m[1]), min: 0, spoken: true }),
     },
     {
+      // Round 4: a bare dot time offered as the alternative ("10.30 of 11.30"); minutes 01-12 stay
+      // a possible dd.mm date, exactly like the bare time right after the weekday.
+      re: /(?<=\b(?:of|or)\s+(?:om\s+|at\s+)?)([01]?\d|2[0-3])\.([0-5]\d)\b(?!\s*(?:euro|eur)\b)/gi,
+      read: (m) => (m[2] === "00" || Number(m[2]) > 12) ? { h: Number(m[1]), min: Number(m[2]), spoken: false } : null,
+    },
+    {
       // A bare hour with its own daypart phrase: "tuesday 8 in the morning", "dinsdag 8 's avonds".
       re: /\b([01]?\d|2[0-3])(?=\s+(?:in\s+the\s+(?:morning|afternoon|evening)|at\s+night|'s\s*(?:ochtends|morgens|middags|avonds)|in\s+de\s+(?:ochtend|voormiddag|middag|namiddag|avond)))/gi,
       read: (m) => ({ h: Number(m[1]), min: 0, spoken: true }),
@@ -333,7 +341,13 @@ function clockTimeForDay(s: string, dayIndex: number, todayLatestEnd?: number | 
   const dayPhrase = /^[a-z]+(?:\s+(?:'s\s*)?[a-z]+){0,2}/i.exec(s.slice(tokenEnd - (dayToken.match(/[a-z]+$/i)?.[0].length ?? 0)))?.[0] ?? dayToken;
   const dayDaypart = daypartIn(dayPhrase);
   const owned = hits.filter((h) => h.index >= dayIndex && h.index < clauseEnd);
-  const chosen = owned.length ? owned : [hits.filter((h) => h.index < dayIndex).at(-1) ?? hits[0]];
+  // Round 4: a later time in the clause only counts when it is offered as an ALTERNATIVE ("of",
+  // "kan ook", "anders"); "dinsdag 10 uur, ik moet om 3 uur weer weg" asks for 10:00 only.
+  const chosen: ClockHit[] = owned.length ? [owned[0]] : [hits.filter((h) => h.index < dayIndex).at(-1) ?? hits[0]];
+  for (let k = 1; k < owned.length; k++) {
+    if (!/\b(?:of|or|ook|anders|otherwise|also)\b/i.test(s.slice(owned[k - 1].end, owned[k].index))) break;
+    chosen.push(owned[k]);
+  }
   let latest: number | null = null;
   for (const hit of chosen) {
     // The time's own daypart: up to three words right after it, never across punctuation.

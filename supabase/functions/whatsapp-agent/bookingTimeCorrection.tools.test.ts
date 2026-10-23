@@ -333,3 +333,53 @@ Deno.test("R84 live: the stylist's own service, 'niet bij Sanne' and a name said
     assert(out.error !== "dienst_van_andere_medewerker", `${msg}: ${JSON.stringify(out)}`);
   }
 });
+
+// R84 review round 4: the staff check across turns, its precision, and the v35 shape.
+const SVC = {
+  A: [{ id: "S1", name: "Knippen" }],
+  B: [{ id: "S2", name: "Manicure" }, { id: "S3", name: "Knippen" }, { id: "S4", name: "Knippen Dames" }],
+};
+const TWO_CAL_SVC = (msg: string, extra: Partial<ToolContext> = {}): ToolContext => ({
+  ...TWO_CAL(msg),
+  serviceCalendarMap: { S1: "A", S2: "B", S3: "B", S4: "B" },
+  servicesByCalendar: SVC,
+  ...extra,
+} as ToolContext);
+
+Deno.test("R84 review 4 G3: a staff member asked for in an earlier message still counts", async () => {
+  const h = harness({ context: {}, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, TWO_CAL_SVC("dinsdag 10 november om 14:00", { requestedCalendarIds: ["B"] }))
+    .execute("book_appointment", { service_type_id: "S1", date: TUE, time: "14:00", customer_name: "Tom Bakker" }) as Record<string, unknown>;
+  assertEquals(out.error, "dienst_van_andere_medewerker");
+  assertEquals(h.ctx().pending_booking, undefined);
+});
+
+Deno.test("R84 review 4: the check stays off when the asked person offers nothing like the chosen service", async () => {
+  const h = harness({ context: {}, slots: { [TUE]: daySlots(TUE) } });
+  const svc = { A: [{ id: "S1", name: "Balayage" }], B: SVC.B };
+  const out = await createTools(h.client, TWO_CAL_SVC("ik was vorige keer bij Sanne, nu balayage dinsdag 10 november 14:00", { servicesByCalendar: svc }))
+    .execute("book_appointment", { service_type_id: "S1", date: TUE, time: "14:00", customer_name: "Tom Bakker" }) as Record<string, unknown>;
+  assert(out.error !== "dienst_van_andere_medewerker", JSON.stringify(out));
+});
+
+Deno.test("R84 review 4 G6: the same service under another stylist's id corrects the open preview (v35 shape)", async () => {
+  const ctx0 = pending(60_000) as Record<string, unknown>;
+  Object.assign(ctx0.pending_booking as Record<string, unknown>, { calendar_id: "B", service_type_id: "S3" });
+  const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, TWO_CAL_SVC(S08)).execute("book_appointment", {
+    service_type_id: "S1", start_time: "2026-11-10T13:00:00+00:00", customer_name: "Karim",
+  }) as Record<string, unknown>;
+  assert(out.error !== "vorige_boeking_nog_open", JSON.stringify(out));
+  const pb = h.ctx().pending_booking as Record<string, unknown>;
+  assertEquals([pb.service_type_id, pb.calendar_id, pb.start_time], ["S3", "B", "2026-11-10T14:00:00+00:00"]);
+});
+
+Deno.test("R84 review 4: a different service still keeps its own route with names known (C1 stays safe)", async () => {
+  const ctx0 = pending(60_000) as Record<string, unknown>;
+  Object.assign(ctx0.pending_booking as Record<string, unknown>, { calendar_id: "B", service_type_id: "S3" });
+  const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, TWO_CAL_SVC(S08)).execute("book_appointment", {
+    service_type_id: "S2", date: TUE, time: "15:00", customer_name: "Karim",
+  }) as Record<string, unknown>;
+  assertEquals(out.error, "vorige_boeking_nog_open");
+});

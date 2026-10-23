@@ -950,3 +950,18 @@ Deno.test("R84 review 3: latestEndTodayMinutes reads today's latest closing time
   assertEquals(latestEndTodayMinutes(tue, [iris], { [TUE]: { isAvailable: false } }), 0);
   assertEquals(latestEndTodayMinutes(tue, [iris], { [TUE]: { isAvailable: true, start: "12:00", end: "20:00" } }), 20 * 60);
 });
+
+// R84 review round 4 (independent reviewer, 2026-10-24).
+for (
+  const [label, msg, hhmm, want] of [
+    ["a dot inside a time does not end the clause ('9.30 of om 11 uur' at 10:00 keeps today)", "dinsdag om 9.30 of om 11 uur?", "10:00", TUE],
+    ["the alternative bare dot time is read ('10.30 of 11.30' at 11:00 keeps today)", "dinsdag 10.30 of 11.30?", "11:00", TUE],
+    ["a later time that is not an alternative does not count ('ik moet om 3 uur weer weg')", "dinsdag 10 uur, ik moet om 3 uur weer weg", "14:00", NEXT_TUE],
+    ["'ben ik vrij tot 5 uur' is an upper bound and rolls at 17:30", "dinsdag ben ik vrij tot 5 uur", "17:30", NEXT_TUE],
+    ["'ik ben bezig tot 5 uur' is still a lower bound", "dinsdag ben ik bezig tot 5 uur, daarna?", "17:30", TUE],
+  ] as const
+) {
+  Deno.test(`R84 review 4: ${label}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
+  });
+}

@@ -183,7 +183,8 @@ function primaryCalendarNameTokens(name: string): string[] {
 // for another reason ("Sanne is ziek, wie heeft er plek?") does not count either, and service names
 // never count here, unlike lastMentionedCalendar below: this answers "which person or place did the
 // customer ask for".
-const REQUEST_WORDS = ["bij", "naar", "with", "at"];
+const REQUEST_WORDS = ["bij", "naar", "met", "with", "at"];
+const JOIN_WORDS = ["of", "en", "or", "and"];
 const RULE_OUT_WORDS = ["niet", "geen", "not", "no", "ipv", "behalve", "zonder", "except", "without"];
 // tokens[p] is the request word; is the phrase right before it a rule-out?
 function ruledOut(tokens: string[], p: number): boolean {
@@ -195,18 +196,30 @@ function ruledOut(tokens: string[], p: number): boolean {
 export function calendarsRequestedIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {
   const tokens = tokenize(text ?? "");
   if (tokens.length === 0) return [];
-  return calendars
-    .filter((cal) => {
-      const name = primaryCalendarNameTokens(cal.name);
-      if (name.length === 0) return false;
-      for (let i = 1; i + name.length <= tokens.length; i++) {
-        if (!REQUEST_WORDS.includes(tokens[i - 1])) continue;
-        if (ruledOut(tokens, i - 1)) continue;
-        if (name.every((t, j) => tokens[i + j] === t)) return true;
-      }
-      return false;
-    })
-    .map((cal) => cal.id);
+  // Where each requested name ends, so a name joined to it ("bij Sanne of Bo") counts as well.
+  const requestedEnds = new Set<number>();
+  const at = (name: string[], i: number) => name.every((t, j) => tokens[i + j] === t);
+  const requested = new Set<string>();
+  for (const cal of calendars) {
+    const name = primaryCalendarNameTokens(cal.name);
+    if (name.length === 0) continue;
+    for (let i = 1; i + name.length <= tokens.length; i++) {
+      // "bij voorkeur Sanne" asks for Sanne too.
+      const p = tokens[i - 1] === "voorkeur" && tokens[i - 2] === "bij" ? i - 2 : i - 1;
+      if (!REQUEST_WORDS.includes(tokens[p]) || ruledOut(tokens, p) || !at(name, i)) continue;
+      requested.add(cal.id);
+      requestedEnds.add(i + name.length - 1);
+    }
+  }
+  // Round 4: "knippen bij Sanne of Bo" asks for either, so the staff check must see both names.
+  for (const cal of calendars) {
+    const name = primaryCalendarNameTokens(cal.name);
+    if (name.length === 0 || requested.has(cal.id)) continue;
+    for (let i = 2; i + name.length <= tokens.length; i++) {
+      if (JOIN_WORDS.includes(tokens[i - 1]) && requestedEnds.has(i - 2) && at(name, i)) requested.add(cal.id);
+    }
+  }
+  return calendars.filter((cal) => requested.has(cal.id)).map((cal) => cal.id);
 }
 
 export function lastMentionedCalendar(

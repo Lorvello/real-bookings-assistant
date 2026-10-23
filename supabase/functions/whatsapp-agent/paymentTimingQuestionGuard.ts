@@ -1,4 +1,4 @@
-import { extractRelativeDayHint } from "./relativeDateHint.ts";
+import { type DayHintOptions, extractRelativeDayHint } from "./relativeDateHint.ts";
 // The caller must pass successful exact-calendar
 // reads and (when selected) the existing authoritative service-policy result.
 export type TimingAnswer = 'online_required' | 'on_site_allowed' | 'unknown';
@@ -82,8 +82,9 @@ export function currentServiceChoice(message: string, services: {id:string;name:
 
 // Only a separately written clock following a resolved date is usable. Missing
 // or compound time language stays a clarification, never a model guess.
-export function conditionalRequestedSlot(clause: string, now: Date): {date:string;time:string}|null {
-  const hint=extractRelativeDayHint(clause,now);
+// R84 review round 4: opts carries today's opening hours (only passed for a clause written today).
+export function conditionalRequestedSlot(clause: string, now: Date, opts?: DayHintOptions): {date:string;time:string}|null {
+  const hint=extractRelativeDayHint(clause,now,opts);
   if (!hint) return null;
   const rest=clause.slice(clause.toLowerCase().lastIndexOf(hint.matchedPhrase.toLowerCase())+hint.matchedPhrase.length);
   const clock=rest.match(/^\s*(?:(?:at|om)\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm|uur)?\s*[.!]?$/i);

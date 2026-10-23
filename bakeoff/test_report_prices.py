@@ -54,6 +54,10 @@ class KostenTests(unittest.TestCase):
         self.assertAlmostEqual(out["usd_agent_per_conversatie"], round(20_000 * 0.075 / 1e6 + 300 * 0.30 / 1e6, 6))
         self.assertNotIn("agent_cache_read_tokens_per_conversatie", out)
 
+    def test_claude_prompt_over_100k_is_flagged(self):
+        out = self.run_kosten("R84_BIG", "claude-haiku-5-5", [call("llm.agent", 120_000, 10, cached=0, write=0)])
+        self.assertIn("prijswaarschuwing", out)
+
     def test_unknown_model_is_never_priced(self):
         out = self.run_kosten("R84_X", "some-unpriced-model", [call("llm.agent", 1_000, 10)])
         self.assertIsNone(out["usd_totaal_per_conversatie"])
