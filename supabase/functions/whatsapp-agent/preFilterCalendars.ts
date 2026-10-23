@@ -175,10 +175,23 @@ function primaryCalendarNameTokens(name: string): string[] {
 // ("Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken..." names Iris
 // first, Bo last, and Bo is unambiguously what this turn is about).
 // R84 live probe on staging (2026-10-24): the calendars this text ASKS FOR by name, in calendar
-// order, each at most once: the name right after "bij", "with" or "at" ("knippen bij Sanne",
-// "with Sanne"), never after "niet bij" / "not with". A name said for another reason ("Sanne is
-// ziek, wie heeft er plek?") does not count, and service names never count here, unlike
-// lastMentionedCalendar below: this answers "which person or place did the customer ask for".
+// order, each at most once: the name right after "bij", "naar", "with" or "at" ("knippen bij Sanne",
+// "kan ik naar Iris", "with Sanne"). A name that is ruled out does not count: "niet bij", "niet meer
+// bij", "ipv bij", "in plaats van bij", "behalve bij", "instead of with", "not with", always directly
+// before ITS OWN "bij"/"naar" (full30/original11 S19: "kan ik ipv bij bram naar iris?" asks for Iris,
+// and the "ipv" of Bram must not rule out Iris). A name said
+// for another reason ("Sanne is ziek, wie heeft er plek?") does not count either, and service names
+// never count here, unlike lastMentionedCalendar below: this answers "which person or place did the
+// customer ask for".
+const REQUEST_WORDS = ["bij", "naar", "with", "at"];
+const RULE_OUT_WORDS = ["niet", "geen", "not", "no", "ipv", "behalve", "zonder", "except", "without"];
+// tokens[p] is the request word; is the phrase right before it a rule-out?
+function ruledOut(tokens: string[], p: number): boolean {
+  const before = (n: number) => tokens.slice(Math.max(0, p - n), p).join(" ");
+  return RULE_OUT_WORDS.includes(tokens[p - 1] ?? "") ||
+    /^(?:niet|geen|not|no) (?:meer|langer|more|longer)$/.test(before(2)) ||
+    before(3) === "in plaats van" || before(2) === "instead of";
+}
 export function calendarsRequestedIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {
   const tokens = tokenize(text ?? "");
   if (tokens.length === 0) return [];
@@ -187,8 +200,8 @@ export function calendarsRequestedIn(text: string, calendars: Array<{ id: string
       const name = primaryCalendarNameTokens(cal.name);
       if (name.length === 0) return false;
       for (let i = 1; i + name.length <= tokens.length; i++) {
-        if (!["bij", "with", "at"].includes(tokens[i - 1])) continue;
-        if (["niet", "geen", "not", "no"].includes(tokens[i - 2] ?? "")) continue;
+        if (!REQUEST_WORDS.includes(tokens[i - 1])) continue;
+        if (ruledOut(tokens, i - 1)) continue;
         if (name.every((t, j) => tokens[i + j] === t)) return true;
       }
       return false;

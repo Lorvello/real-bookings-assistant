@@ -299,6 +299,10 @@ for (
     ["knippen bij Sanne of bij Milan, maakt niet uit", ["sanne", "milan"]],
     ["ik wil kleuren", []],
     ["boeken bij bo", ["bo"]],
+    ["kan ik ipv bij sanne naar milan? wo 3 uur", ["milan"]],
+    ["in plaats van bij Sanne graag bij Bo", ["bo"]],
+    ["ik wil niet meer bij Sanne, kan het bij Milan?", ["milan"]],
+    ["kan ik naar Sanne voor knippen?", ["sanne"]],
   ] as const
 ) {
   Deno.test(`R84 live: calendarsRequestedIn ${JSON.stringify(msg)}`, () => {
