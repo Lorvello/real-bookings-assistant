@@ -6,7 +6,7 @@
 //
 // Body: { phone, calendar_id, message, contact_name? }
 
-import { bookingContinuation, cancellationKeep, KEEP_REPLY_NL, KEEP_REPLY_EN } from "./bookingContinuity.ts";
+import { bookingContinuation, latestAvailabilityContinuation, cancellationKeep, KEEP_REPLY_NL, KEEP_REPLY_EN } from "./bookingContinuity.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.50.0";
 import {
   buildSystemPrompt,
@@ -88,6 +88,7 @@ import {
   buildGroundingSummary,
   classifyBusinessDataGroundingRobust,
   noUngroundedClaimReply,
+  enforceMissingBusinessAddressReply,
 } from "./businessDataGuard.ts";
 import { classifyRefundDisposition } from "./refundClassifier.ts";
 import { neutralizeForbiddenAvailabilityWords } from "./forbiddenWordGuard.ts";
@@ -124,6 +125,9 @@ import {
   writeMonitoringAlert,
 } from "./monitoringAlerts.ts";
 import { type AgentResult, type Content, runAgent } from "./llm.ts";
+import { explicitCancelWithRefund, refundInformationOnly, unknownRefundReply } from "./cancelRefundGuard.ts";
+import { offeredClock, resolveOfferedPaymentTime, type PaymentSlotOffer, paymentIntentChange, conditionalRequestedSlot, paymentTimingConditional, paymentTimingAnswer, paymentTimingReply, conditionFresh, explicitNewBooking, currentServiceChoice, guardConditionalPaymentTools, type TimingCondition, type TimingAnswer } from "./paymentTimingQuestionGuard.ts";
+import { resolveAuthoritativePaymentPolicy } from "../_shared/authoritativePaymentPolicy.ts";
 import { isCancellationPolicyQuestion } from "./policyIntentGuard.ts";
 import {
   detectCustomerLanguage,
@@ -1000,7 +1004,10 @@ Deno.serve(async (req) => {
     }
     // Decide from this inbound turn before any action-state prepass or pending claim.
     // Pending work and service/history mentions cannot turn information into consent.
-    const pureCancellationPolicyQuestion = isCancellationPolicyQuestion(String(message));
+    const cancelWithRefund = explicitCancelWithRefund(String(message));
+    let refundOnly = refundInformationOnly(String(message));
+    let pureCancellationPolicyQuestion = isCancellationPolicyQuestion(String(message)) || refundOnly;
+    const paymentConditional = paymentTimingConditional(String(message));
     phoneForFallback = phone;
     fallbackMessage = String(message);
 
@@ -1149,9 +1156,10 @@ Deno.serve(async (req) => {
         ? supabase.from("whatsapp_conversations").select("id, context")
           .eq("calendar_id", calendar_id).eq("contact_id", contactId)
           .maybeSingle()
-          .then((r) =>
-            r.data as { id?: string; context?: Record<string, unknown> } | null
-          )
+          .then((r) => {
+            if (r.error) throw new Error("Conversation context unavailable");
+            return r.data as { id?: string; context?: Record<string, unknown> } | null;
+          })
         : Promise.resolve(null),
       // A2 multi-calendar: the FULL active calendar-set of THIS owner (staff/location).
       // The inbound webhook routed the customer to ONE entry calendar (calendar_id), but a
@@ -1349,6 +1357,86 @@ Deno.serve(async (req) => {
     const convContext: Record<string, unknown> =
       ((conv as { context?: Record<string, unknown> } | null)?.context) ?? {};
 
+    const MUTATION_INTENT_CANCEL_RE =
+      /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|afzeg|cancelar)\w*\b/i;
+    const mutationIntentOnCurrentMessage =
+      MUTATION_INTENT_CANCEL_RE.test(String(message ?? "")) ||
+      RESCHEDULE_VERB_RE.test(String(message ?? ""));
+
+    // A refund entitlement question is information, not permission to cancel an
+    // earlier proposal. Retire only cancellation markers in this conversation.
+    if (refundOnly && conversationId && (convContext.pending_cancel || convContext.pending_cancel_verification)) {
+      const previous=JSON.stringify(convContext);
+      delete convContext.pending_cancel;delete convContext.pending_cancel_verification;
+      const {data: cleared,error: clearError}=await supabase.from("whatsapp_conversations").update({context:convContext}).eq("id",conversationId).eq("calendar_id",calendar_id).eq("context",previous).select("id").maybeSingle();
+      if(clearError||cleared?.id!==conversationId)throw new Error("Refund information cancellation context changed");
+    }
+
+    // A payment condition is customer intent, so resolve it before pending claims
+    // or any booking prepass. This marker never itself authorizes a confirmation.
+    let paymentCondition = convContext.pending_payment_timing_condition as TimingCondition | undefined;
+    let paymentFlowActive = !!paymentConditional || !!paymentCondition;
+    let paymentAnswer: TimingAnswer = "unknown";
+    let paymentServiceId: string | null = null;
+    let paymentConditionUsable = false;
+    let paymentOfferAttempt = false;
+    if (paymentFlowActive) {
+      if (!conversationId) throw new Error("Payment condition context unavailable");
+      const originalContext = JSON.parse(JSON.stringify(convContext));
+      const bound = paymentCondition?.calendar_id === calendar_id && paymentCondition?.conversation_id === conversationId;
+      const fresh = !!paymentCondition && bound && conditionFresh(paymentCondition, calendar_id, conversationId, Date.now());
+      if (!paymentConditional && bound && (explicitNewBooking(String(message)) || mutationIntentOnCurrentMessage || pureCancellationPolicyQuestion)) {
+        delete convContext.pending_payment_timing_condition;
+        paymentFlowActive = false;
+        paymentCondition = undefined;
+      } else {
+        if (!paymentConditional && bound && paymentCondition) {
+          paymentOfferAttempt = fresh && offeredClock(String(message)) !== null && !!paymentCondition.offered_slots;
+          const changed = paymentOfferAttempt ? null : paymentIntentChange(String(message), new Date());
+          if (changed) paymentCondition = {...paymentCondition, superseded: changed};
+        }
+        paymentConditionUsable = !!paymentConditional || (fresh && !paymentCondition?.superseded);
+        paymentServiceId = !isMultiCalendar ? currentServiceChoice(String(message), services) : null;
+        if (!paymentServiceId && fresh && paymentCondition?.service_id && services.some(service=>service.id===paymentCondition?.service_id)) paymentServiceId=paymentCondition.service_id;
+        if (!paymentServiceId && services.length === 1 && !isMultiCalendar) paymentServiceId = services[0].id;
+        let selectedRequired: boolean | null = null;
+        if (paymentServiceId) {
+          const [ownerRead, configRead, serviceRead] = await Promise.all([
+            supabase.from("users").select("installments_enabled").eq("id", businessUserId).maybeSingle(),
+            supabase.from("service_installment_configs").select("enabled").eq("service_type_id", paymentServiceId).maybeSingle(),
+            supabase.from("service_types").select("installments_enabled").eq("id", paymentServiceId).eq("calendar_id", calendar_id).maybeSingle(),
+          ]);
+          try { selectedRequired = resolveAuthoritativePaymentPolicy(psRes, ownerRead, configRead, serviceRead).paymentRequired; }
+          catch { selectedRequired = null; }
+        }
+        const ps = psRes.data;
+        paymentAnswer = paymentConditionUsable && !isMultiCalendar ? paymentTimingAnswer({
+          readSucceeded: !psRes.error && !!ps && (!paymentServiceId || selectedRequired !== null),
+          securePaymentsEnabled: ps?.secure_payments_enabled ?? null,
+          globalRequired: ps?.payment_required_for_booking ?? null,
+          timing: ps?.allowed_payment_timing,
+          selectedServicePaymentRequired: selectedRequired,
+        }) : "unknown";
+        if (paymentConditional) paymentCondition = {
+          at: Date.now(), calendar_id, conversation_id: conversationId,
+          source_message: String(message), booking_clause: paymentConditional.bookingClause, state: paymentAnswer, declined: paymentAnswer === "on_site_allowed", ...(paymentServiceId ? {service_id:paymentServiceId}: {}),
+        };
+        else if (paymentCondition && bound) paymentCondition = {...paymentCondition, state: paymentAnswer, declined: paymentCondition.declined || paymentCondition.state === "on_site_allowed" || paymentAnswer === "on_site_allowed", ...(paymentServiceId ? {service_id:paymentServiceId}: {})};
+        if (paymentCondition && (paymentConditional || bound)) convContext.pending_payment_timing_condition = paymentCondition;
+      }
+      // Even false/expired conditions cannot resurrect a previous proposal on yes.
+      // Only same-calendar booking markers are invalidated; other actions survive.
+      const oldBooking = convContext.pending_booking as {calendar_id?:string} | undefined;
+      if (oldBooking && oldBooking.calendar_id === calendar_id) {
+        delete convContext.pending_booking;
+        delete convContext.pending_book_verification;
+      }
+      const {data: savedCondition, error: conditionSaveError} = await supabase.from("whatsapp_conversations")
+        .update({context: convContext}).eq("id", conversationId).eq("calendar_id", calendar_id)
+        .eq("context", JSON.stringify(originalContext)).select("id").maybeSingle();
+      if (conditionSaveError || savedCondition?.id !== conversationId) throw new Error("Payment condition context changed");
+    }
+
     // Phase 3, message history (needs conversation_id).
     // R97 (T3-LATENCY fix): this 12-row both-directions fetch and R96's own 6-row both-directions
     // recency fetch further below used to be TWO separate sequential `whatsapp_messages`
@@ -1443,6 +1531,17 @@ Deno.serve(async (req) => {
       console.log(
         `R100 out-of-order arrival detected (conversation ${conversationId}), re-sorted window by meta_timestamp.`,
       );
+    }
+    // A bare acknowledgement to a refund-only answer is still information, not
+    // a new cancellation instruction. Bind to the immediately preceding reply.
+    const refundPrevious = sharedMsgsAsc.at(-2);
+    const refundCurrent = sharedMsgsAsc.at(-1);
+    if (classifyHardConfirm(String(message)) === "confirm" && refundCurrent?.direction === "inbound" &&
+        refundCurrent.content === String(message) && refundCurrent.id === sharedMsgsDesc[0]?.id &&
+        refundPrevious?.direction === "outbound" &&
+        /^(?:Ik kan niet bevestigen of je geld terugkrijgt\.|I can't confirm whether you are entitled to a refund\.|Het terugbetalingsbeleid van het bedrijf zegt:|The business's refund policy says:)/.test(refundPrevious.content ?? "")) {
+      refundOnly = true;
+      pureCancellationPolicyQuestion = true;
     }
     const history: Array<{ direction: string; content: string | null }> =
       sharedMsgsAsc;
@@ -1582,11 +1681,6 @@ Deno.serve(async (req) => {
     // en mag de terugkerende-dienst-aannamevraag het antwoord niet overnemen. Hergebruikt de
     // ANNULEERWOORDEN die deze file verderop zelf al voert (CANCEL_WORD_RE_FOR_INTERVENING) en
     // identityDisambiguationGuard's RESCHEDULE_VERB_RE: geen tweede vocabulaire.
-    const MUTATION_INTENT_CANCEL_RE =
-      /\b(annuleer|annuleren|cancel|annuler|annulla|annullare|stornier|afzeggen|afzeg|cancelar)\w*\b/i;
-    const mutationIntentOnCurrentMessage =
-      MUTATION_INTENT_CANCEL_RE.test(String(message ?? "")) ||
-      RESCHEDULE_VERB_RE.test(String(message ?? ""));
     const continuityInboundId = sharedMsgsDesc[0]?.direction === "inbound" && sharedMsgsDesc[0]?.content === String(message)
       ? sharedMsgsDesc[0].id : null;
     const keepCancellation = cancellationKeep(String(message), sharedMsgsAsc, new Date(), continuityInboundId);
@@ -1820,6 +1914,9 @@ Deno.serve(async (req) => {
     const continuityProof = !isMultiCalendar && !convContext.pending_cancel
       ? bookingContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
     const continuity = !convContext.pending_booking ? continuityProof : null;
+    const latestAvailability = !isMultiCalendar && !convContext.pending_booking && !convContext.pending_cancel
+      ? latestAvailabilityContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
+
     const customerLanguage = continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
       (langSignal.confidentDutch
         ? null
@@ -1900,7 +1997,7 @@ Deno.serve(async (req) => {
         now,
       )
       : null;
-    const effectiveDateHint = relativeDateHint ?? continuity?.hint ?? carriedForwardDayHint;
+    const effectiveDateHint = relativeDateHint ?? continuity?.hint ?? latestAvailability?.hint ?? carriedForwardDayHint;
     const effectiveDateHintText = relativeDateHint
       ? formatRelativeDateHint(relativeDateHint)
       : formatCarriedForwardDayHint(carriedForwardDayHint);
@@ -2870,7 +2967,7 @@ Deno.serve(async (req) => {
     let confirmBurstLost = false;
     let bookClaimId: string | undefined;
     // Information does not acquire a proposal lock or resume a pending action.
-    if (!pureCancellationPolicyQuestion && pendingBookFresh && pbk?.at != null) {
+    if (!paymentFlowActive && !pureCancellationPolicyQuestion && pendingBookFresh && pbk?.at != null) {
       const claimCalendarId = pbk.calendar_id ?? calendar_id;
       const claimProposalAt = new Date(pbk.at).toISOString();
       const { data: claimRows, error: claimErr } = await supabase.rpc(
@@ -2947,7 +3044,7 @@ Deno.serve(async (req) => {
     let confirmCancelBurstLost = false;
     let cancelClaimId: string | undefined;
     // Same current-turn information boundary as the booking claim above.
-    if (!pureCancellationPolicyQuestion && pendingFresh && pc?.at != null) {
+    if (!paymentFlowActive && !pureCancellationPolicyQuestion && pendingFresh && pc?.at != null) {
       const cancelClaimProposalAt = new Date(pc.at).toISOString();
       const { data: cancelClaimRows, error: cancelClaimErr } = await supabase
         .rpc("claim_whatsapp_confirm", {
@@ -3211,7 +3308,9 @@ Deno.serve(async (req) => {
       hardConfirm,
       hardReject,
       userMessage: String(message),
-      relativeDateHintISO: effectiveDateHint?.iso ?? null,
+      relativeDateHintISO: paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentCondition
+        ? conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at))?.date ?? effectiveDateHint?.iso ?? null
+        : effectiveDateHint?.iso ?? null,
       customerLocale: customerLanguage != null ? "en" : "nl",
       blockForMissingServiceChoice,
       blockForAmbiguousBranch,
@@ -3220,7 +3319,7 @@ Deno.serve(async (req) => {
       confirmSecondBookingFromMessage,
       blockForReturningServiceDefault: blockForReturningServiceDefaultEffective,
       lastServiceForReturningDefault: lastService,
-      blockForNoDayNamed,
+      blockForNoDayNamed: blockForNoDayNamed && !(paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentCondition && conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at))),
       blockForMultiService,
       allServiceNamesForAmbiguity: allServiceNamesForReturning,
       pendingBookInterveningExchange,
@@ -3230,7 +3329,10 @@ Deno.serve(async (req) => {
       bookVerificationAffirmUnresolved,
       renameVerificationAffirmUnresolved,
     });
-    const execute = guardAmbiguousServiceTools(executeTools, serviceChoiceOptions, customerLanguage);
+    const execute = guardConditionalPaymentTools(
+      guardAmbiguousServiceTools(executeTools, serviceChoiceOptions, customerLanguage),
+      () => paymentFlowActive,
+    );
     // B1: stopOnToolResult ends the loop right after a successful book/cancel/reschedule COMMIT, so
     // the model's compose call (call 2) is skipped on the primary turn (the ~2-2.5s win + removes the
     // ~40% preview-prose drift on commit turns; the reply is templated deterministically below).
@@ -3250,6 +3352,10 @@ Deno.serve(async (req) => {
       ? await executeTools("update_lead", { first_name: participantCandidate }) as Record<string, unknown>
       : null;
     let continuityResult: AgentResult | null = null;
+    let paymentFollowupReply: string | null = null;
+    let paymentPreviewed = false;
+    let paymentOfferToPersist: PaymentSlotOffer | null = null;
+    let cancelRefundStartedAt: number | null = null;
     if (keepCancellation) {
       // Withdrawal closes cancellation, including a selection question with no proposal.
       const markerKeys = ["pending_cancel", "pending_cancel_verification", "pending_returning_service_confirm"];
@@ -3277,7 +3383,7 @@ Deno.serve(async (req) => {
       if (!keepApplied) throw new Error("Cancellation context changed twice during withdrawal");
       for (const key of Object.keys(originalMarkers ?? {})) delete convContext[key];
       continuityResult = {text:customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL,steps:0,toolCalls:[]};
-    } else if (confirmBook && hardConfirm && pendingBookFresh && !activeParticipantMarker &&
+    } else if (!paymentFlowActive && confirmBook && hardConfirm && pendingBookFresh && !activeParticipantMarker &&
         continuityProof?.serviceId === pbk?.service_type_id && continuityProof?.name === pbk?.customer_name &&
         pbk?.start_time && continuityProof?.hint.iso === new Date(pbk.start_time).toLocaleDateString("en-CA",{timeZone:"Europe/Amsterdam"}) &&
         continuityProof.times.includes(new Date(pbk.start_time).toLocaleTimeString("nl-NL",{timeZone:"Europe/Amsterdam",hour:"2-digit",minute:"2-digit"}))) {
@@ -3285,7 +3391,7 @@ Deno.serve(async (req) => {
       // actual tool still owns identity, expiry, race, payment and commit gates.
       const committedResult = await execute("book_appointment", {});
       continuityResult = {text:"",steps:0,toolCalls:[{name:"book_appointment",args:{},result:committedResult}]};
-    } else if (continuity?.serviceId && continuity.times.length && !serviceChoiceOptions && !participantResult && !policyOnlyResult && !blockForReturningServiceDefaultEffective && !blockForMultiService) {
+    } else if (!paymentFlowActive && continuity?.serviceId && continuity.times.length && !serviceChoiceOptions && !participantResult && !policyOnlyResult && !blockForReturningServiceDefaultEffective && !blockForMultiService) {
       const args = { service_type_id: continuity.serviceId, date: continuity.hint.iso };
       const slots = await execute("get_available_slots", args) as Record<string, unknown>;
       const trace: AgentResult["toolCalls"] = [{name:"get_available_slots",args,result:slots}];
@@ -3302,7 +3408,91 @@ Deno.serve(async (req) => {
       }
       continuityResult = {text,steps:0,toolCalls:trace};
     }
-    let result: AgentResult = continuityResult ?? (participantResult
+
+    // Availability inquiry only: use the normal tool and its complete last slot.
+    if (!continuityResult && latestAvailability && !paymentFlowActive && !activeParticipantMarker && !serviceChoiceOptions && !participantResult && !policyOnlyResult && !blockForReturningServiceDefaultEffective && !blockForMultiService && !blockForAmbiguousBranch) {
+      const args = { service_type_id: latestAvailability.serviceId, date: latestAvailability.hint.iso };
+      const slots = await execute("get_available_slots", args) as Record<string, unknown>;
+      const last = slots.laatste_slot as {tijd?:unknown;start?:unknown}|null;
+      const service = services.find(s => s.id === latestAvailability.serviceId)?.name ?? "";
+      const en = customerLanguage != null;
+      let text = en ? "I couldn't check availability. Please try again." : "Ik kon de beschikbaarheid niet controleren. Probeer het nog eens.";
+      if (!slots.error && slots.date === args.date && Number(slots.count) > 0 && typeof last?.tijd === "string" && typeof last.start === "string") {
+        text = en ? `The latest available time for ${service} on ${args.date} is ${last.tijd}. Would you like that time?` : `Het laatste vrije tijdstip voor ${service} op ${args.date} is ${last.tijd}. Wil je dat tijdstip?`;
+      } else if (!slots.error && slots.date === args.date && slots.count === 0) {
+        text = en ? `There are no available times for ${service} on ${args.date}. Which other day works for you?` : `Er zijn geen tijden beschikbaar voor ${service} op ${args.date}. Welke andere dag past?`;
+      }
+      continuityResult = {text, steps:0, toolCalls:[{name:"get_available_slots",args,result:slots}]};
+    }
+    if (cancelWithRefund) {
+      cancelRefundStartedAt = Date.now();
+      const cancellation = await executeTools("cancel_appointment", {confirmed:false,only_confirming_previous:false});
+      continuityResult = {text:"",steps:0,toolCalls:[{name:"cancel_appointment",args:{confirmed:false,only_confirming_previous:false},result:cancellation}]};
+    }
+    // A true condition can resume only its fresh stored date/time and a real
+    // selected service. Preview uses the ordinary tools and never auto-confirms.
+    if (paymentFlowActive && paymentConditionUsable && paymentAnswer === "online_required" && paymentServiceId && paymentCondition && !paymentCondition.declined) {
+      const offeredSelection = paymentOfferAttempt ? resolveOfferedPaymentTime({message:String(message),currentInboundId:continuityInboundId,now:Date.now(),calendar:calendar_id,conversation:conversationId!,marker:paymentCondition,history:sharedMsgsAsc}) : null;
+      const requested = paymentOfferAttempt ? offeredSelection : paymentCondition.selected_slot ?? conditionalRequestedSlot(paymentCondition.booking_clause, new Date(paymentCondition.at));
+      if (paymentOfferAttempt && !offeredSelection) paymentFollowupReply = customerLanguage ? "Please choose one of the times I just offered, or make a new booking request." : "Kies een tijd die ik zojuist aanbood, of vraag opnieuw om te boeken.";
+      if (offeredSelection && conversationId) {
+        const {data: current,error: readError}=await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle();
+        if(readError||!current)throw new Error("Payment offered selection read failed");
+        const before=current.context as Record<string,unknown>;
+        const marker=before.pending_payment_timing_condition as TimingCondition|undefined;
+        if(marker?.at!==paymentCondition.at||marker?.source_message!==paymentCondition.source_message||marker?.offered_slots?.at!==paymentCondition.offered_slots?.at)throw new Error("Payment offered selection changed");
+        const selected={...marker,selected_slot:{...offeredSelection,offer_at:marker.offered_slots!.at}};
+        const next={...before,pending_payment_timing_condition:selected};
+        const {data: saved,error: saveError}=await supabase.from("whatsapp_conversations").update({context:next}).eq("id",conversationId).eq("calendar_id",calendar_id).eq("context",JSON.stringify(before)).select("id").maybeSingle();
+        if(saveError||saved?.id!==conversationId)throw new Error("Payment offered selection save failed");
+        paymentCondition=selected;convContext.pending_payment_timing_condition=selected;
+      }
+      if (requested && !activeParticipantMarker && !blockForMultiService) {
+        const args = {service_type_id:paymentServiceId,date:requested.date};
+        const slots = await guardAmbiguousServiceTools(executeTools, null, customerLanguage)("get_available_slots",args) as Record<string,unknown>;
+        const available = Array.isArray(slots.available_slots) ? slots.available_slots as {tijd:string;start:string}[] : [];
+        const matching = available.filter(slot=>slot.tijd===requested.time && (!("start" in requested) || slot.start===requested.start));
+        if (!slots.error && matching.length===1) {
+          const statedName = String(message).match(/^(?:my name is|mijn naam is)\s+([\p{L}][\p{L} '’-]{0,70})[.!]?$/iu)?.[1]?.trim();
+          const bookArgs = {...args,time:requested.time,start_time:matching[0].start,confirmed:false,only_confirming_previous:false,...((statedName ?? knownName) ? {customer_name:statedName ?? knownName}: {})};
+          const preview = await executeTools("book_appointment",bookArgs);
+          const trace = [{name:"get_available_slots",args,result:slots},{name:"book_appointment",args:bookArgs,result:preview}];
+          // Keep refusal/identity/payment outcomes on their existing renderer.
+          continuityResult = {text:"",steps:0,toolCalls:trace};
+          const {data: afterCondition,error: readConditionError} = await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId!).maybeSingle();
+          if(readConditionError||!afterCondition)throw new Error("Payment condition readback failed");
+          const beforeContext=afterCondition.context as Record<string,unknown>;
+          const marker=beforeContext.pending_payment_timing_condition as TimingCondition|undefined;
+          if(marker?.source_message!==paymentCondition.source_message||marker?.at!==paymentCondition.at)throw new Error("Payment condition changed during preview");
+          const realPreview=beforeContext.pending_booking as {service_type_id?:string;start_time?:string}|undefined;
+          if (realPreview?.service_type_id === paymentServiceId && realPreview.start_time === matching[0].start) {
+            const nextContext={...beforeContext};delete nextContext.pending_payment_timing_condition;
+            const {data: saved,error: saveError}=await supabase.from("whatsapp_conversations").update({context:nextContext}).eq("id",conversationId!).eq("context",JSON.stringify(beforeContext)).select("id").maybeSingle();
+            if(saveError||saved?.id!==conversationId)throw new Error("Payment condition release failed");
+            paymentFlowActive=false;
+            paymentPreviewed=true;
+            Object.assign(convContext,nextContext);delete convContext.pending_payment_timing_condition;
+          } else {
+            const refusal=preview as {error?:string;customer_reply?:string};
+            paymentFollowupReply = refusal.error === "naam_ontbreekt"
+              ? (customerLanguage ? "What name should I use? Please write 'my name is' followed by your name." : "Op welke naam mag de afspraak? Schrijf 'mijn naam is' met je naam erachter.")
+              : refusal.customer_reply ?? (customerLanguage ? "I could not prepare that booking. Please make a new booking request." : "Ik kon die afspraak niet voorbereiden. Vraag opnieuw om de afspraak te boeken.");
+          }
+        } else {
+          continuityResult = {text:"",steps:0,toolCalls:[{name:"get_available_slots",args,result:slots}]};
+          const times = available.map(slot=>slot.tijd).filter((time): time is string => typeof time === "string").slice(0,3);
+          paymentFollowupReply = slots.error
+            ? (customerLanguage ? "I couldn't check availability. Please try your booking request again." : "Ik kon de beschikbaarheid niet controleren. Vraag de afspraak opnieuw aan.")
+            : times.length
+            ? (customerLanguage ? `That time is unavailable. Available times are ${times.join(" or ")}. Which time would you like?` : `Die tijd is niet beschikbaar. Er is plek om ${times.join(" of ")}. Welke tijd wil je?`)
+            : (customerLanguage ? "There are no available times on that day. Which other day would you like?" : "Er zijn die dag geen tijden beschikbaar. Welke andere dag wil je?");
+          if (!slots.error && times.length) paymentOfferToPersist={at:Date.now(),condition_at:paymentCondition.at,source_message:paymentCondition.source_message,date:requested.date,service_id:paymentServiceId,reply:"",slots:available.filter(slot=>times.includes(slot.tijd)).map(slot=>({time:slot.tijd,start:slot.start}))};
+        }
+      }
+    }
+    let result: AgentResult = paymentFlowActive
+      ? continuityResult ?? {text: paymentTimingReply(paymentAnswer, ambiguousServiceChoiceReply(serviceChoiceOptions, customerLanguage), customerLanguage != null), steps:0, toolCalls:[]}
+      : continuityResult ?? (participantResult
       ? { text: "", steps: 0, toolCalls: [{ name: "update_lead", args: { first_name: participantCandidate }, result: participantResult }] }
       : policyOnlyResult
       ? {
@@ -3598,7 +3788,7 @@ Deno.serve(async (req) => {
       OFFER_CONTEXT_RE.test(result.text || "");
 
     if (
-      !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
+      !paymentFlowActive && !pureCancellationPolicyQuestion && !participantResult && !continuityResult && (
         looksLikeStall || cancelPreviewMissed || confirmStall ||
         bookPreviewMissed || reschedStall || cancelCommitMissed ||
         bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
@@ -4560,7 +4750,7 @@ Deno.serve(async (req) => {
     // R23: S21 guessed a service with ZERO tool calls. Apply the same catalog
     // question after prose guards, before the shared persisted/sent reply. A real
     // committed mutation retains its authoritative confirmation.
-    if (!pureCancellationPolicyQuestion && !committed) {
+    if (!paymentFlowActive && !pureCancellationPolicyQuestion && !committed) {
       const missingChoiceRefused = result.toolCalls.some((call) =>
         (call.name === "get_available_slots" || call.name === "book_appointment") &&
         (call.result as { error?: string } | null)?.error === "kies_specifieke_dienst"
@@ -4571,6 +4761,14 @@ Deno.serve(async (req) => {
           : null,
         customerLanguage,
       ) ?? replyText;
+    }
+
+    // R66: missing address is deterministic even when model grounding is skipped.
+    // Current participant/cancellation templates below retain their authority.
+    if (!committed) {
+      replyText = enforceMissingBusinessAddressReply(
+        replyText, message, businessData, customerLanguage,
+      );
     }
 
     // R28: only a CURRENT server-owned pending verification may replace filtered
@@ -4588,12 +4786,82 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (paymentFlowActive && !committed) {
+      replyText = paymentCondition?.superseded
+        ? (paymentCondition.superseded === "withdrawn"
+          ? (customerLanguage ? "Okay, I will not make that booking." : "Prima, ik maak die afspraak niet.")
+          : (customerLanguage ? "I will not use the earlier day or time. Please make a new booking request with the day and time you want." : "Ik gebruik de eerdere dag of tijd niet. Vraag opnieuw om de afspraak met de gewenste dag en tijd."))
+        : paymentCondition?.declined && paymentAnswer !== "on_site_allowed"
+        ? (customerLanguage ? "The payment conditions have changed. Please make a new booking request if you still want an appointment." : "De betaalvoorwaarden zijn veranderd. Vraag opnieuw om te boeken als je nog een afspraak wilt.")
+        : paymentFollowupReply ? `${customerLanguage ? "Payment is required online in advance." : "Betaling is vooraf online verplicht."} ${paymentFollowupReply}` : paymentTimingReply(paymentAnswer, ambiguousServiceChoiceReply(serviceChoiceOptions, customerLanguage), customerLanguage != null);
+    }
+
+    if (paymentPreviewed && !committed) replyText = `${customerLanguage ? "Payment is required online in advance." : "Betaling is vooraf online verplicht."} ${replyText}`;
+
+    if (!committed && (cancelWithRefund || refundOnly)) {
+      let actionReply = "";
+      let refundReply = unknownRefundReply(customerLanguage != null);
+      if (cancelWithRefund && conversationId) {
+        const call=result.toolCalls.findLast(call=>call.name === "cancel_appointment");
+        const cancellation=call?.result as {needs_confirmation?:boolean;appointment?:{service?:string;when?:string;start_time?:string;customer_name?:string};error?:string;customer_reply?:string}|undefined;
+        const {data: current,error: currentError}=await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle();
+        if(currentError||!current)throw new Error("Cancellation refund preview readback failed");
+        const context=current.context as Record<string,unknown>;
+        const pending=context.pending_cancel as {booking_id?:string;start_time?:string;at?:number}|undefined;
+        const verify=context.pending_cancel_verification as {booking_id?:string;current_name?:string;at?:number}|undefined;
+        if(cancellation?.needs_confirmation && cancellation.appointment?.start_time && pending?.start_time===cancellation.appointment.start_time && typeof pending.at === "number" && cancelRefundStartedAt !== null && pending.at >= cancelRefundStartedAt) {
+          const appointment=cancellation.appointment;
+          const details=[appointment.service,appointment.when,appointment.customer_name].filter(Boolean).join(", ");
+          actionReply=customerLanguage ? `Would you like me to cancel this appointment: ${details}?` : `Wil je dat ik deze afspraak annuleer: ${details}?`;
+        } else if(cancellation?.error === "naam_verificatie_nodig" && verify?.current_name && typeof verify.at === "number" && cancelRefundStartedAt !== null && verify.at >= cancelRefundStartedAt && cancellation.customer_reply?.includes(verify.current_name)) {
+          actionReply=cancellation.customer_reply;
+        } else {
+          actionReply=customerLanguage ? "I could not prepare the cancellation. Please contact the business." : "Ik kon de annulering niet voorbereiden. Neem rechtstreeks contact op met het bedrijf.";
+        }
+      }
+      // Only the appointment-owned calendar may supply its refund wording.
+      const refundTarget = cancelWithRefund && conversationId
+        ? await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle()
+        : null;
+      const targetContext=refundTarget?.data?.context as Record<string,{booking_id?:string}>|undefined;
+      let targetId=targetContext?.pending_cancel?.booking_id ?? targetContext?.pending_cancel_verification?.booking_id;
+      if (refundOnly) {
+        const scope=isMultiCalendar ? calendars.map(calendar=>calendar.id) : [calendar_id];
+        const {data: owned,error: ownedError}=await supabase.from("bookings").select("id,calendar_id")
+          .eq("customer_phone",phone).in("calendar_id",scope).in("status",["confirmed","pending_payment"])
+          .gte("start_time",new Date().toISOString()).limit(2);
+        if (!ownedError && Array.isArray(owned) && owned.length===1) targetId=owned[0].id;
+      }
+      if (targetId && !refundTarget?.error) {
+        const {data: target,error: targetError}=await supabase.from("bookings").select("calendar_id").eq("id",targetId).eq("customer_phone",phone).maybeSingle();
+        if (!targetError && target?.calendar_id && (target.calendar_id===calendar_id || calendars.some(cal=>cal.id===target.calendar_id))) {
+          const {data: refund,error: refundError}=await supabase.from("payment_settings").select("refund_policy_text").eq("calendar_id",target.calendar_id).maybeSingle();
+          if (!refundError && typeof refund?.refund_policy_text === "string" && refund.refund_policy_text.trim()) refundReply=customerLanguage ? `The business's refund policy says: ${refund.refund_policy_text.trim()}` : `Het terugbetalingsbeleid van het bedrijf zegt: ${refund.refund_policy_text.trim()}`;
+        }
+      }
+      replyText=[actionReply,refundReply].filter(Boolean).join(" ");
+    }
+
     // Deterministic outbound hygiene: strip em-dashes etc. (the "written by AI" tell) so it
     // never depends on the model obeying the prompt rule. Applied once, used for BOTH the
     // WhatsApp send and the persisted transcript so they always match.
     if (keepCancellation) replyText = customerLanguage ? KEEP_REPLY_EN : KEEP_REPLY_NL;
     const reply = sanitizeReply(replyText) ||
       "Sorry, daar ging even iets mis. Kun je het nog een keer sturen? 🙏";
+
+    if (paymentOfferToPersist && paymentCondition && conversationId) {
+      const {data: current,error: readError}=await supabase.from("whatsapp_conversations").select("context").eq("id",conversationId).eq("calendar_id",calendar_id).maybeSingle();
+      if(readError||!current)throw new Error("Payment offer read failed");
+      const before=current.context as Record<string,unknown>;
+      const marker=before.pending_payment_timing_condition as TimingCondition|undefined;
+      if(marker?.at!==paymentCondition.at||marker.source_message!==paymentCondition.source_message||marker.declined||marker.superseded)throw new Error("Payment offer condition changed");
+      const offered={...marker,offered_slots:{...paymentOfferToPersist,reply}};
+      delete offered.selected_slot;
+      const next={...before,pending_payment_timing_condition:offered};
+      const {data: saved,error: saveError}=await supabase.from("whatsapp_conversations").update({context:next}).eq("id",conversationId).eq("calendar_id",calendar_id).eq("context",JSON.stringify(before)).select("id").maybeSingle();
+      if(saveError||saved?.id!==conversationId)throw new Error("Payment offer save failed");
+      paymentCondition=offered;convContext.pending_payment_timing_condition=offered;
+    }
 
     // One-question-per-turn discipline (ITEM 4): the prompt (<role>/<booking_flow>) asks for
     // exactly one clear next step per turn, but a 20B/temp-0.2 model does not always hold it

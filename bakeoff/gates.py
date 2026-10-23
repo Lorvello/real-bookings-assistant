@@ -500,6 +500,38 @@ def s05g4(ev: Ev):
     return V(RED, "; ".join(bad)) if bad else V(PASS)
 
 
+def _same_money(left, right):
+    from decimal import Decimal, InvalidOperation
+    if left is None or right is None or isinstance(left, bool) or isinstance(right, bool):
+        return False
+    try:
+        a, b = Decimal(str(left)), Decimal(str(right))
+        return a.is_finite() and b.is_finite() and a == b
+    except (InvalidOperation, ValueError):
+        return False
+
+
+def _same_booking_instant(audit_value, snapshot_value):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    try:
+        audit = datetime.fromisoformat(audit_value.replace('Z', '+00:00'))
+        snapshot = datetime.fromisoformat(snapshot_value.replace('Z', '+00:00'))
+        if audit.tzinfo is None:
+            return False
+        # SNAP_SQL explicitly emits naive Europe/Amsterdam timestamps.
+        if snapshot.tzinfo is None:
+            snapshot = snapshot.replace(tzinfo=ZoneInfo('Europe/Amsterdam'))
+        return audit == snapshot
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
+def _visible_name(name, reply):
+    # Only Unicode whitespace presentation differs; identity spelling stays exact.
+    return bool(name) and ' '.join(name.split()) in ' '.join(reply.split())
+
+
 @gate("S05-G5")
 def s05g5(ev: Ev):
     rows = ev.bookings(ev.snap(2))
@@ -518,7 +550,7 @@ def s05g5(ev: Ev):
         bad.append(f"channel={a.get('channel')}")
     nv = a.get("new_value") or {}
     if isinstance(nv, dict) and nv.get("start_time"):
-        if str(nv["start_time"])[:16] != str(rows[0]["start_time"])[:16]:
+        if not _same_booking_instant(nv["start_time"], rows[0]["start_time"]):
             bad.append("new_value.start_time wijkt af van bookings.start_time")
     return V(RED, "; ".join(bad)) if bad else V(PASS)
 
@@ -1587,6 +1619,8 @@ R36_SUITE_SHA = '2187c7ce70efb143224262214a01e241898e196283d6488f49e995ccc1937c8
 R36_BASE_SHA = '5ca5b2f14b1b1871e894c95a63295c3c53f17a27a48bcc5ce57dcf265a6a4e31'
 R36_VERSION = 'R36-CONTRACT-V2-ADAPTER-V1'
 UNMEASURED = 'UNMEASURED'
+# Explicit R55 variants; no arbitrary suite or date-program acceptance.
+R55_VARIANTS = {'f0a5263a70f2c7d2a375810752e961193cbb1f8e4dfa20ec4bc8a4eaef4df521': {'version': 'R55-DATE-ADAPTER-V1-full30', 'policy_sha256': '6300b9479ab1f85f0286d6d3d10d652c1e208cdd12737d714bb57dc630aa4066', 'program_sha256': 'bd9b2f0634f2bee013455a2122503ef2eda046d5fc80a6f4ba2194e55c4f72e3'}, '0b49299e66bc4c91448dcacf2142fc3ca4b7a8a29879e56a50cc34fbe57ce46d': {'version': 'R55-DATE-ADAPTER-V1-original11', 'policy_sha256': '6300b9479ab1f85f0286d6d3d10d652c1e208cdd12737d714bb57dc630aa4066', 'program_sha256': 'bd9b2f0634f2bee013455a2122503ef2eda046d5fc80a6f4ba2194e55c4f72e3'}}
 
 
 def r36_digest(path):
@@ -1627,7 +1661,9 @@ def r36_bootstrap(execution=False):
     path = os.environ.get('BA_BAKEOFF_SUITE')
     if not path:
         return None
-    if os.environ.get('BA_BAKEOFF_SUITE_SHA256') != R36_SUITE_SHA or r36_digest(path) != R36_SUITE_SHA:
+    suite_sha = r36_digest(path)
+    variant = R55_VARIANTS.get(suite_sha)
+    if os.environ.get('BA_BAKEOFF_SUITE_SHA256') != suite_sha or (suite_sha != R36_SUITE_SHA and not variant):
         raise ValueError('R36 suite hash mismatch')
     suite = json.loads(Path(path).read_text())
     if suite['meta'].get('r36_contract_version') != 'R36-CONTRACT-V2':
@@ -1638,9 +1674,27 @@ def r36_bootstrap(execution=False):
     if (not build or not re.fullmatch(r'sha256:[a-f0-9]{64}', build)
             or not fixture or not out or not Path(out).is_absolute()):
         raise ValueError('Explicit build, fixture file and absolute output required')
-    binding = {'suite_sha256': R36_SUITE_SHA, 'base_sha256': R36_BASE_SHA,
+    binding = {'suite_sha256': suite_sha, 'base_sha256': R36_BASE_SHA,
                'adapter_version': R36_VERSION, 'adapter_sha256': r36_adapter_digest(),
                'build_id': build, 'fixtures_sha256': r36_digest(fixture)}
+    if variant:
+        policy_path = os.environ.get('BA_BAKEOFF_DATE_POLICY')
+        program_path = os.environ.get('BA_BAKEOFF_DATE_PROGRAM')
+        if (not policy_path or not program_path
+                or r36_digest(policy_path) != variant['policy_sha256']
+                or r36_digest(program_path) != variant['program_sha256']):
+            raise ValueError('R55 date policy/program mismatch')
+        program = json.loads(Path(program_path).read_text())
+        if not program or any(r36_digest(p) != digest for p, digest in program.items()):
+            raise ValueError('R55 execution wrapper source drift')
+        import sys
+        entry = Path(program_path).resolve().parent / 'entry.py'
+        main_path = getattr(sys.modules.get('__main__'), '__file__', '')
+        if str(entry) not in program or not main_path or Path(main_path).resolve() != entry:
+            raise ValueError('R55 requires the reviewed entrypoint; direct runner/scorer refused')
+        binding.update(date_policy_sha256=variant['policy_sha256'],
+                       date_program_sha256=variant['program_sha256'],
+                       adapter_version=variant['version'])
     if execution:
         receipt_path = os.environ.get('BA_BAKEOFF_EXECUTION_READINESS')
         if not receipt_path:
@@ -1772,7 +1826,7 @@ def r36_preview(ev, sid):
         marker = ctx.get('pending_cancel') or {}
         return (r36_same_bookings(ev, 3) and not ev.actions(ev.snap(3))
                 and marker.get('booking_id') == bid and not ctx.get('pending_cancel_verification')
-                and original['customer_name'] in reply
+                and _visible_name(original['customer_name'], reply)
                 and times_in(reply) == {r36_booking_clock(original)}
                 and bool(re.search(r'annul|afzeg', reply, re.I)))
     from zoneinfo import ZoneInfo
@@ -1784,7 +1838,7 @@ def r36_preview(ev, sid):
             and marker.get('calendar_id') == ev.bind['cal']
             and marker.get('service_type_id') == service['id']
             and str(marker.get('customer_name', '')).casefold() == ev.bind['name'].casefold()
-            and marker.get('preview_price') == service['price']
+            and _same_money(marker.get('preview_price'), service['price'])
             and r36_visible_service_values_match(reply, service)
             and r36_no_checkout_before_consent(ev, 3)
             and (end - start).total_seconds() == service['duration'] * 60
@@ -1806,7 +1860,7 @@ def r36_prefix(ev, sid):
             ctx = ev.context(ev.snap(n)); marker = ctx.get('pending_cancel_verification') or {}
             if (not r36_same_bookings(ev, n) or ev.actions(ev.snap(n)) or ctx.get('pending_cancel')
                     or marker.get('booking_id') != bid or marker.get('current_name') != name
-                    or name not in ev.reply(n) or not re.search(r'naam', ev.reply(n), re.I)):
+                    or not _visible_name(name, ev.reply(n)) or not re.search(r'naam', ev.reply(n), re.I)):
                 return False
     if sid in ('S28', 'S29'):
         for n in ((1,) if sid == 'S28' else (1, 2)):
@@ -1914,7 +1968,7 @@ def r36_gate(ev, gid):
         # bound by score.py's independent sidecar to exact raw bundle and suite.
         if (not conditional.get('reviewer') or not conditional.get('maker')
                 or conditional.get('reviewer') == conditional.get('maker')
-                or conditional.get('suite_sha256') != R36_SUITE_SHA
+                or conditional.get('suite_sha256') != ev.b.get('r36_binding', {}).get('suite_sha256')
                 or not conditional.get('evidence_turns')
                 or not all(n in [t['n'] for t in ev.turns] for n in conditional['evidence_turns'])
                 or not conditional.get('reason')):
@@ -1952,7 +2006,7 @@ def r36_controls(ev, scenario):
         add('S25-STOP', lambda: r36_same_bookings(ev, 2)
             and not ev.context(ev.snap(2)).get('pending_returning_service_confirm')
             and not ev.context(ev.snap(2)).get('pending_booking')
-            and bool(re.search(r'laat.*staan|niet.*annul|niets.*(wijzig|verander)', ev.reply(2), re.I))
+            and bool(re.search(r'laat.*staan|niet.*annul|niets.*(wijzig|verander)|afspraken blijven ongewijzigd staan', ev.reply(2), re.I))
             and '?' not in ev.reply(2))
     if sid == 'S14':
         add('B14-1', lambda: by_id(ev.bookings(ev.snap(4)), prep_booking(ev)).get('cancellation_reason')

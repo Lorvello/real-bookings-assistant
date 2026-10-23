@@ -6,6 +6,7 @@
 
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.50.0";
 import type { ToolDecl, ToolExecutor } from "./llm.ts";
+import { explicitNameRefusal, affirmationInventsName } from "./nameInputGuard.ts";
 import {
   BEVESTIG_TERUGKERENDE_DIENST_MESSAGE,
   findServiceSwitchForPendingPreview,
@@ -33,6 +34,7 @@ import {
 } from "./identityDisambiguationGuard.ts";
 import { isRenameGate2Retry } from "./renameGate2Guard.ts";
 import {
+  extractRelativeDayHint,
   hasDayMentionAnywhere,
   VRAAG_DAG_MESSAGE,
   VRAAG_DAG_RESCHEDULE_MESSAGE,
@@ -591,6 +593,30 @@ export function extractClockTimes(msg: unknown): string[] {
   }
   return out;
 }
+// Dutch spoken target time is deliberately separate from extractClockTimes:
+// its two half-day candidates must never become old-booking selection hints.
+function dutchSpokenTargetTimes(message: unknown): string[] | null {
+  const text = typeof message === "string" ? message : "";
+  if (!/\b(?:half|kwart)\b/i.test(text)) return null;
+  const hours = ["twaalf", "een", "twee", "drie", "vier", "vijf", "zes", "zeven", "acht", "negen", "tien", "elf", "twaalf"];
+  const matches = [...text.matchAll(/\b(half|kwart[ \t]+over|kwart[ \t]+voor)[ \t]+(1[0-2]|[1-9]|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)\b/gi)];
+  if (matches.length !== 1) return [];
+  const match = matches[0];
+  // A later target would make this spoken time the old appointment's time.
+  if (/\b(?:naar|tot|of|or)\b|\d/.test(text.slice(match.index! + match[0].length))) return [];
+  const h = /^\d+$/.test(match[2]) ? Number(match[2]) : hours.indexOf(match[2].toLowerCase());
+  const kind = match[1].toLowerCase().replace(/[ \t]+/g, " ");
+  const hour = ((h - (kind === "kwart over" ? 0 : 1)) + 12) % 12;
+  const minute = kind === "half" ? "30" : kind === "kwart over" ? "15" : "45";
+  let values = [hour, hour + 12];
+  const morning = /\b(?:ochtend|ochtends|morgen vroeg)\b/i.test(text);
+  const afternoon = /\b(?:middag|middags|avond|avonds)\b/i.test(text);
+  if (morning && afternoon) return [];
+  if (morning) values = [hour];
+  if (afternoon) values = [hour + 12];
+  return values.map(value => `${String(value).padStart(2, "0")}:${minute}`);
+}
+
 // A booking's local month-day in Amsterdam as "MM-DD" (for disambiguating bookings that
 // share a clock time but fall on different days).
 function localMMDD(iso: string): string {
@@ -1906,8 +1932,8 @@ export function createTools(
       }
 
       case "update_lead": {
-        const first = String(args.first_name ?? "").trim();
-        const refused = args.name_refused === true;
+        const refused = explicitNameRefusal(ctx.userMessage) || args.name_refused === true;
+        const first = refused ? "" : String(args.first_name ?? "").trim();
         // R75 (T1, third-party-booker persona): live-reproduced the small model calling
         // update_lead with a junk placeholder like "?" (no letters at all) when a booking
         // turn had no real name in it yet, because first_name is a schema-required string
@@ -1967,6 +1993,17 @@ export function createTools(
           return { error: "naam_verificatie_nodig", current_name: identityPreview.originator_name,
             proposed_name: first, booking_renamed: false,
             message: "The proposed participant is stored for this appointment only. No contact or booking changed. Ask whether this appointment should be for the proposed participant instead of the original person." };
+        }
+        // An explicitly different participant is not the sender's identity,
+        // even when no service/slot preview could be created on the prior turn.
+        if (!identityPreview && !refused && first &&
+            /\b(?:not\s+(?:for\s+)?me|niet\s+(?:voor\s+)?mij)\b/i.test(ctx.userMessage ?? "")) {
+          return { error: "naam_verificatie_nodig", proposed_name: first,
+            booking_renamed: false,
+            message: "This name is for another participant, not the sender. No contact or booking changed. Clarify the appointment participant without saving it as the sender's name." };
+        }
+        if (!refused && affirmationInventsName(ctx.userMessage, first, leadContext.booking_name)) {
+          return {error:"naam_ontbreekt",message:"Een bevestiging is geen nieuwe naam. Behoud een eerdere naamweigering en vraag zo nodig expliciet om de naam."};
         }
         // Keep the global contacts row updated for the dashboard contacts list (display only).
         const update: Record<string, unknown> = {
@@ -2814,10 +2851,11 @@ export function createTools(
           // R25: on a namePreviewOnly turn, use the model's THIS-TURN args.customer_name (the
           // corrected name), not the stale pendingBook name, so the re-preview reflects the
           // correction the customer just stated.
-          const rawName = String(
+          let rawName = String(
             (committing ? pendingBook!.customer_name : args.customer_name) ??
               "",
           ).trim();
+          if (!committing && !namePreviewOnly && affirmationInventsName(ctx.userMessage, rawName, bookCtx.booking_name ?? ctx.knownSelfName)) rawName = "";
           // R76 (BOOKAPPT-NAME-GATE-MISSING, sev-2, PREEMPT): identical junk-placeholder bug R75
           // fixed in update_lead (a value like "?"/"???" -- non-empty, not "Privé", but containing
           // NO letters at all -- satisfying a schema-required string field the small model fills
@@ -4883,13 +4921,79 @@ export function createTools(
         // the sibling cross-identity gate below.
         let reschedCtx: Record<string, unknown> = {};
         if (ctx.conversationId) {
-          const { data: rvConv } = await supabase
+          const { data: rvConv, error: rvError } = await supabase
             .from("whatsapp_conversations").select("context").eq(
               "id",
               ctx.conversationId,
             ).maybeSingle();
+          if (rvError || !rvConv) {
+            return { error: "context_onbeschikbaar", message: "Ik kan het eerdere voorstel niet veilig controleren. Probeer het opnieuw." };
+          }
           reschedCtx = ((rvConv as { context?: Record<string, unknown> } | null)
             ?.context) ?? {};
+        }
+        let spokenTimes = dutchSpokenTargetTimes(ctx.userMessage);
+        const waitingTime = reschedCtx.pending_reschedule_time_clarification as { booking_id?: string } | undefined;
+        if (waitingTime?.booking_id === b.id && spokenTimes === null) {
+          const statedTimes = extractClockTimes(ctx.userMessage);
+          if (statedTimes.length !== 1 || !extractRelativeDayHint(String(ctx.userMessage ?? ""), new Date())) {
+            return { error: "verduidelijk_tijd", message: "Welk nieuw tijdstip bedoel je precies? Noem de dag en tijd." };
+          }
+          spokenTimes = statedTimes;
+        }
+        if (spokenTimes !== null) {
+          // New target speech supersedes only this booking's old reschedule
+          // targets. Do this even on ambiguity, so a later bare yes cannot
+          // confirm an obsolete time. Keep all unrelated context intact.
+          const freshContext: Record<string, unknown> = { ...reschedCtx, pending_reschedule_time_clarification: { booking_id: b.id, at: Date.now() } };
+          for (const key of ["pending_reschedule_confirm", "pending_reschedule_verification"]) {
+            const marker = freshContext[key] as { booking_id?: string } | undefined;
+            if (marker?.booking_id === b.id) delete freshContext[key];
+          }
+          if (JSON.stringify(freshContext) !== JSON.stringify(reschedCtx)) {
+            if (!ctx.conversationId) return { error: "context_onbeschikbaar", message: "Welk nieuw tijdstip bedoel je precies?" };
+            const { data: saved, error: saveError } = await supabase.from("whatsapp_conversations")
+              .update({ context: freshContext }).eq("id", ctx.conversationId)
+              .eq("context", JSON.stringify(reschedCtx)).select("id").maybeSingle();
+            if (saveError || saved?.id !== ctx.conversationId) {
+              return { error: "context_onbeschikbaar", message: "Ik kon het oude voorstel niet veilig sluiten. Probeer het opnieuw." };
+            }
+            reschedCtx = freshContext;
+          }
+          const spokenDay = extractRelativeDayHint(String(ctx.userMessage ?? ""), new Date());
+          const proposedCalendar = args.calendar_index == null ? b.calendar_id
+            : ctx.calendars[Number(args.calendar_index) - 1]?.id;
+          if (!spokenDay || !spokenTimes.length || proposedCalendar !== b.calendar_id ||
+              (args.service_type_id && args.service_type_id !== b.service_type_id) ||
+              ctx.distinctServiceForReschedule) {
+            return { error: "verduidelijk_tijd", message: "Welke dag, tijd en medewerker bedoel je precies voor het verzetten?" };
+          }
+          const policy = await getCalendarPolicy(supabase, b.calendar_id);
+          if (isPastDateNL(spokenDay.iso) || isBeyondWindowNL(spokenDay.iso, policy.bookingWindowDays)) {
+            return { error: "ongeldige_datum", message: "Welke datum in de boekbare periode bedoel je?" };
+          }
+          const duration = await serviceDuration(supabase, b.service_type_id);
+          const available: Array<{ time: string; start: string; end: string }> = [];
+          for (const time of spokenTimes) {
+            const slot = await resolveSlotForTime(supabase, b.calendar_id, b.service_type_id, spokenDay.iso, time, duration, policy.minimumNoticeHours);
+            if ("error" in slot) return { error: "tijd_onbeschikbaar", message: "Ik kan de beschikbaarheid nu niet controleren. Probeer het opnieuw." };
+            if ("start" in slot) available.push({ time, start: slot.start, end: slot.end });
+          }
+          if (available.length !== 1) {
+            return { error: "verduidelijk_tijd", message: available.length > 1
+              ? `Bedoel je ${spokenTimes.join(" of ")}?`
+              : "Dat tijdstip is niet beschikbaar. Welk ander tijdstip wil je?" };
+          }
+          const chosen = available[0];
+          const { pending_reschedule_time_clarification: _closedTimeQuestion, ...resolvedContext } = reschedCtx;
+          const { data: closed, error: closeError } = await supabase.from("whatsapp_conversations")
+            .update({ context: resolvedContext }).eq("id", ctx.conversationId!)
+            .eq("context", JSON.stringify(reschedCtx)).select("id").maybeSingle();
+          if (closeError || closed?.id !== ctx.conversationId) {
+            return { error: "context_onbeschikbaar", message: "Ik kon het tijdvoorstel niet veilig opslaan. Probeer het opnieuw." };
+          }
+          reschedCtx = resolvedContext;
+          args = { ...args, date: spokenDay.iso, time: chosen.time, start_time: chosen.start, end_time: chosen.end };
         }
         const pendingCancelForThisBooking = reschedCtx.pending_cancel as {
           booking_id?: string;

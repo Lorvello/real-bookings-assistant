@@ -894,7 +894,14 @@ export function findMissingSingleCalendarServiceChoice(input: {
 }): string[] | null {
   const names = [...new Set(input.allServiceNames.map((name) => name.trim()).filter(Boolean))];
   if (names.length < 2) return null;
+  // A common English request may identify a Dutch catalogue entry. Only use
+  // this equivalence when the catalogue has exactly one haircut option; variants
+  // (e.g. heren/dames) still require the customer to choose.
+  const haircutOptions = names.filter((name) => /\b(?:knippen|hair\s*cut)\b/i.test(name));
   const mentioned = (text: string): string[] => names.filter((name) => {
+    if (haircutOptions.length === 1 && haircutOptions[0] === name && /\bhair\s*cut\b/i.test(text)) return true;
+    // A translated generic word must not favour an English-labelled variant.
+    if (haircutOptions.length > 1) text = text.replace(/\bhair\s*cut\b/gi, " ");
     if (text.toLowerCase().includes(name.toLowerCase())) return true;
     return [...distinguishingWordsFor(name, names)].some((word) =>
       new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text)
@@ -936,6 +943,14 @@ export function findMissingSingleCalendarServiceChoice(input: {
 // The tool boundary above applies regardless of the model's guess. Its prose
 // backstop is narrower: a booking/date request or a genuine answer to our open
 // service question. Reuses the existing date and confirmation decisions.
+// Only explicit business opening-state questions; "open slot" stays booking intent.
+function isOpeningStateQuestion(message: string): boolean {
+  if (/\b(?:open|free|available)\s+(?:slot|appointment|plek|plaats)|\b(?:slot|appointment|plek|plaats)\w*\s+(?:open|free|available)\b/i.test(message)) return false;
+  return /\b(?:open|closed|gesloten|dicht)\s*\?/i.test(message) ||
+    /\b(?:are|is|when|what time)\b[^.!?]*\b(?:you|salon|shop)\b[^.!?]*\b(?:open|closed)\b/i.test(message) ||
+    /\b(?:zijn|is|wanneer|hoe laat)\b[^.!?]*\b(?:jullie|salon|zaak)\b[^.!?]*\b(?:open|gesloten|dicht)\b/i.test(message);
+}
+
 export function needsMissingServiceChoiceReply(input: {
   currentMessage: string;
   lastAssistantMessage: string;
@@ -943,7 +958,7 @@ export function needsMissingServiceChoiceReply(input: {
   hardConfirm: boolean;
 }): boolean {
   const bookingNow = serviceBookingClauses(input.currentMessage).length > 0;
-  if (!bookingNow && (SERVICE_OTHER_INTENT.test(input.currentMessage) || SERVICE_NEGATIVE_REQUEST.test(input.currentMessage))) return false;
+  if (!bookingNow && (isOpeningStateQuestion(input.currentMessage) || SERVICE_OTHER_INTENT.test(input.currentMessage) || SERVICE_NEGATIVE_REQUEST.test(input.currentMessage))) return false;
   return bookingNow || input.hasDateHint || (input.hardConfirm &&
     /\b(?:welke|which|what)\s+(?:dienst|behandeling|service|treatment)\b/i.test(input.lastAssistantMessage));
 }

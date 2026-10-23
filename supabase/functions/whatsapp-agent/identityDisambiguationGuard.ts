@@ -999,8 +999,8 @@ export function takeoverQuestion(context: Record<string, unknown>, language: str
   const m = boundTakeoverMarker(context);
   if (!m) return null;
   return language !== null && language !== "nl"
-    ? `The appointment proposal is for ${m.originator_name}. Should it be for ${m.proposed_name} instead of ${m.originator_name}?`
-    : `Het afspraakvoorstel staat op naam van ${m.originator_name}. Moet het voor ${m.proposed_name} zijn in plaats van ${m.originator_name}?`;
+    ? `The appointment proposal is for ${m.originator_name}. Should it be for ${m.proposed_name} instead of ${m.originator_name}? Please reply "Yes, ${m.proposed_name}" to confirm the name.`
+    : `Het afspraakvoorstel staat op naam van ${m.originator_name}. Moet het voor ${m.proposed_name} zijn in plaats van ${m.originator_name}? Typ "Ja, ${m.proposed_name}" om de naam te bevestigen.`;
 }
 // Deliberately name-only syntax. Time/service changes and ordinary own-name statements
 // stay with the normal agent. This is routing, never an identity-verification release.

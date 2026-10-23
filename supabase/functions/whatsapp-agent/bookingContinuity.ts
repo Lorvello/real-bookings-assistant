@@ -119,7 +119,33 @@ export function bookingContinuation(
         ?.[1] ?? /\?\s*([\p{L}][\p{L}'’-]*)\s*$/u.exec(text)?.[1];
     let residue = text;
     if (signature) residue = residue.slice(0, residue.lastIndexOf(signature));
-    if (hint) residue = residue.replace(hint.matchedPhrase, "");
+    if (hint) {
+      residue = residue.replace(
+        new RegExp(hint.matchedPhrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"),
+        "",
+      );
+      // An absolute date can carry a redundant weekday ("zaterdag 19 september").
+      // Accept only a weekday agreeing with that resolved date; never discard a
+      // contradictory day or relax the unrelated-word residue gate below.
+      const weekdays = [
+        ["zondag", "sunday"], ["maandag", "monday"], ["dinsdag", "tuesday"],
+        ["woensdag", "wednesday"], ["donderdag", "thursday"],
+        ["vrijdag", "friday"], ["zaterdag", "saturday"],
+      ];
+      const weekday = new Date(`${hint.iso}T12:00:00Z`).getUTCDay();
+      let mismatch = false;
+      residue = residue.replace(
+        /\b(?:zondag|maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/gi,
+        (word) => {
+          if (!weekdays[weekday]?.includes(word.toLowerCase())) mismatch = true;
+          return "";
+        },
+      );
+      if (mismatch) {
+        draft = null;
+        continue;
+      }
+    }
     for (const service of chosen) {
       residue = residue.replace(
         new RegExp(service.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig"),
@@ -179,4 +205,37 @@ export function bookingContinuation(
     }
   }
   return draft;
+}
+
+// Read-only availability intent. Deliberately separate from BookingContinuation:
+// asking for the latest available slot never authorizes a booking preview.
+export function latestAvailabilityContinuation(
+  message: string, history: Message[], services: Service[], now: Date,
+  currentInboundId?: string | null,
+): { hint: RelativeDateHint; serviceId: string } | null {
+  if (!isCurrentInbound(message, history, now, currentInboundId)) return null;
+  const current = history.find(row => row.id === currentInboundId);
+  const index = current ? history.indexOf(current) : -1;
+  const question = history[index - 1];
+  const request = history[index - 2];
+  if (!question || question.direction !== "outbound" || !request || request.direction !== "inbound") return null;
+  if (!/\b(?:which service|welke (?:dienst|behandeling))\b/i.test(question.content ?? "")) return null;
+  const stamp = Date.parse(request.meta_timestamp ?? request.created_at);
+  const questionStamp = Date.parse(question.created_at);
+  if (![stamp, questionStamp].every(Number.isFinite) || stamp > questionStamp || questionStamp > now.getTime() + 1000 || now.getTime() - stamp > 15 * 60000) return null;
+  const text = request.content ?? "";
+  // Narrow unambiguous forms, with precisely one date phrase as the remainder.
+  const match = /^(?:what'?s the latest (?:u|you) can do me on|what is the latest available (?:slot|time) on|wat is (?:het|de) laatste (?:vrije )?(?:tijdstip|tijd|plek) op)\s+(.+?)[?.!\s]*$/i.exec(text.trim());
+  if (!match || STOP.test(text) || STOP.test(message)) return null;
+  const dateText = match[1].trim();
+  const hint = extractRelativeDayHint(dateText, new Date(stamp));
+  if (!hint) return null;
+  let residue = dateText.replace(new RegExp(hint.matchedPhrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), "").trim();
+  if (residue) {
+    const names = [["sunday","zondag"],["monday","maandag"],["tuesday","dinsdag"],["wednesday","woensdag"],["thursday","donderdag"],["friday","vrijdag"],["saturday","zaterdag"]];
+    if (!names[new Date(`${hint.iso}T12:00:00Z`).getUTCDay()].includes(residue.toLowerCase())) return null;
+  }
+  const choice = message.trim().replace(/[.!?]+$/, "").replace(/\s+(?:please|pls|graag)$/i, "").trim();
+  const chosen = services.filter(service => service.name.toLowerCase() === choice.toLowerCase());
+  return chosen.length === 1 ? { hint, serviceId: chosen[0].id } : null;
 }

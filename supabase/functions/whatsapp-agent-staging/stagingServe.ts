@@ -292,6 +292,16 @@ export function stagingServe(handler: (req: Request) => Promise<Response>): void
             run_marker: RUN_MARKER,
             record_only: true,
             env_llm: currentEnvLlm(),
+            // Signed diagnostic only: booleans, never credential values or hashes.
+            internal_auth_diagnostic: {
+              configured: Boolean(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim()),
+              authorization_present: req.headers.has("authorization"),
+              apikey_present: req.headers.has("apikey"),
+              bearer_equals_apikey: req.headers.get("authorization") === `Bearer ${req.headers.get("apikey")}`,
+              bearer_matches: req.headers.get("authorization") === `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              bearer_matches_trimmed: req.headers.get("authorization") === `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim()}`,
+              apikey_matches: req.headers.get("apikey") === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+            },
             net: netReport(),
             recorder: recorderReport(),
           });
@@ -325,6 +335,20 @@ export function stagingServe(handler: (req: Request) => Promise<Response>): void
       return await handler(req);
     }
 
+    // A verified staging operator forwards through the same runtime credential
+    // used by the production webhook. Never export that credential or trust JWT roles.
+    let handlerRequest = req;
+    if (STAGING_BUILD && verdict.kind === "ok" && !payload?.op) {
+      const runtimeKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!runtimeKey?.trim()) {
+        return jsonResponse({ error: "staging_internal_credential_unavailable" }, 503);
+      }
+      const headers = new Headers(req.headers);
+      headers.set("authorization", `Bearer ${runtimeKey}`);
+      headers.set("apikey", runtimeKey);
+      handlerRequest = new Request(req, { headers });
+    }
+
     const t0 = Date.now();
     const netBefore = netReport();
     const recBefore = recorderReport();
@@ -344,7 +368,7 @@ export function stagingServe(handler: (req: Request) => Promise<Response>): void
             groundingVotes: payload.grounding_votes,
           }
           : null,
-        () => handler(req),
+        () => handler(handlerRequest),
       );
     } catch (e) {
       // Nooit een kale "Internal Server Error": die is niet te diagnosticeren en lijkt op een

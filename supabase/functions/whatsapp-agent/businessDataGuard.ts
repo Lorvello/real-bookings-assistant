@@ -502,3 +502,24 @@ export function noUngroundedClaimReply(
     ? `Ik heb daar geen bevestigde informatie over, dus ik ga daar niet naar gokken. Voor een definitief antwoord kun je het beste rechtstreeks contact opnemen via ${contactLine}.`
     : `Ik heb daar geen bevestigde informatie over, dus ik ga daar niet naar gokken. Voor een definitief antwoord kun je het beste rechtstreeks contact opnemen.`;
 }
+
+// R66: deterministic truth for a current standalone address question.
+export function enforceMissingBusinessAddressReply(
+  replyText: string,
+  currentMessage: string,
+  businessData: Record<string, unknown> | null | undefined,
+  customerLanguage: string | null,
+): string {
+  const text = currentMessage.toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ").trim();
+  const addressQuestion = /\bwhere (?:are|r) (?:you|u)(?:\b|\?)/.test(text) ||
+    /\b(?:what(?:'s| is)|what is) (?:your|the) (?:address|location)\b/.test(text) ||
+    /\bwaar (?:zitten|zijn) jullie\b|\bwaar is (?:jullie|de) (?:salon|zaak)\b|\bwat is (?:jullie|het) adres\b/.test(text);
+  // This repair concerns standalone location questions. A mixed action/info
+  // request keeps the existing booking/identity/filter path and its confirmation.
+  const otherRequest = /\b(?:book(?:ing|ed)?|appointment|reschedule|cancel|confirm|afspraak|boeken|verzet(?:ten)?|annuleren|bevestig|price|cost|hours|available|availability|phone|email|prijs|kost|openingstijden|beschikbaar|telefoon)\b/.test(text);
+  if (!addressQuestion || otherRequest) return replyText;
+  if (typeof businessData?.address === "string" && businessData.address.trim()) return replyText;
+  return customerLanguage
+    ? "I don't have the salon's address in the business information, so I can't give you a confirmed location."
+    : "Het adres van de salon staat niet in de bedrijfsgegevens, dus ik kan je geen bevestigde locatie geven.";
+}

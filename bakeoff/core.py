@@ -272,7 +272,7 @@ def snapshot(phone: str, cals: list[str], t0: str) -> dict:
     template = SNAP_SQL
     if _R36 is not None:
         template = template.replace('s.payment_url, s.created_at',
-                                    's.payment_url, s.created_at, s.booking_id, s.stripe_session_id')
+                                    "s.payment_url, s.created_at, to_jsonb(s)->>'booking_id' AS booking_id, s.stripe_session_id")
     sql = template.format(phone=q(phone), cals=", ".join(q(c) + "::uuid" for c in cals), t0=q(t0))
     return mgmt_sql(sql)[0]["snap"]
 

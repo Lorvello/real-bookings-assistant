@@ -9,7 +9,7 @@ Deno.test("stagingServe actual callback preserves build stamp and safety behavio
   const originalGet = Deno.env.get;
   const originalServe = Object.getOwnPropertyDescriptor(Deno, "serve")!;
   const originalFetch = globalThis.fetch;
-  const env: Record<string, string> = { INTERNAL_FUNCTION_SECRET: "local-test-only" };
+  const env: Record<string, string> = { INTERNAL_FUNCTION_SECRET: "local-test-only", SUPABASE_SERVICE_ROLE_KEY: "local-runtime-only" };
   Deno.env.get = (key: string) => env[key];
   let callback: (req: Request) => Promise<Response>;
   Object.defineProperty(Deno, "serve", { configurable: true,
@@ -68,6 +68,41 @@ Deno.test("stagingServe actual callback preserves build stamp and safety behavio
       const body = await response.json();
       equal(Object.hasOwn(body.staging, "staging_build_id"), true);
       equal(body.staging.staging_build_id, flag.STAGING_BUILD_ID);
+    });
+    await t.step("signed operator forwards body with internal credential", async () => {
+      stagingServe(async (req) => {
+        equal(req.headers.get("authorization"), "Bearer local-runtime-only");
+        equal(req.headers.get("apikey"), "local-runtime-only");
+        equal(req.method, "POST");
+        equal(await req.json(), { message: "same body" });
+        return Response.json({ ok: true }, { status: 400 });
+      });
+      const response = await callback!(new Request("https://local.invalid/", { method: "POST",
+        headers: { authorization: "Bearer external-other", apikey: "external-other",
+          "x-agent-override": await signed({}) }, body: JSON.stringify({ message: "same body" }) }));
+      equal(response.status, 400);
+    });
+    await t.step("unsigned caller gets no internal credential", async () => {
+      stagingServe(async (req) => {
+        equal(req.headers.get("authorization"), "Bearer external-other");
+        return Response.json({ error: "Unauthorized" }, { status: 401 });
+      });
+      equal((await callback!(new Request("https://local.invalid/", { method: "POST",
+        headers: { authorization: "Bearer external-other" } }))).status, 401);
+    });
+    await t.step("expired signature cannot reach internal handler", async () => {
+      let called = false;
+      stagingServe(async () => { called = true; return Response.json({}); });
+      equal((await callback!(request(await signed({ exp: Math.floor(Date.now() / 1000) - 60 })))).status, 401);
+      equal(called, false);
+    });
+    await t.step("missing runtime credential fails closed", async () => {
+      delete env.SUPABASE_SERVICE_ROLE_KEY;
+      let called = false;
+      stagingServe(async () => { called = true; return Response.json({}); });
+      equal((await callback!(request(await signed({})))).status, 503);
+      equal(called, false);
+      env.SUPABASE_SERVICE_ROLE_KEY = "local-runtime-only";
     });
   } finally {
     Deno.env.get = originalGet;

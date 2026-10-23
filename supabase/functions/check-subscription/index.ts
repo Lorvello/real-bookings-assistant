@@ -232,7 +232,9 @@ serve(async (req) => {
       stripe_status: stripeStatus,
       stripe_subscription_id: subscription.id,
       cancel_at_period_end: cancelPending,
-      payment_status: subscribed
+      payment_status: stripeStatus === "trialing"
+        ? "trialing"
+        : subscribed
         ? "paid"
         : stripeStatus === "canceled"
         ? "canceled"
