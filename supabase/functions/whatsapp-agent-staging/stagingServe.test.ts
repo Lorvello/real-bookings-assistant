@@ -1,4 +1,6 @@
-// Offline callback tests: no HTTP listener, secrets, network permission or external imports.
+// Offline callback tests: no HTTP listener, secrets or network permission. Since R84 the import
+// graph (overrideLlm -> llm.ts -> llmAnthropic.ts) holds one external package, the pinned
+// Anthropic SDK; it loads from the Deno cache and makes no call here.
 function equal(actual: unknown, expected: unknown) {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
     throw new Error(`expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
@@ -60,6 +62,26 @@ Deno.test("stagingServe actual callback preserves build stamp and safety behavio
       equal(body.provider, "groq");
       equal(body.staging.staging_build_id, flag.STAGING_BUILD_ID);
       equal(Deno.env.get("LLM_PROVIDER"), undefined);
+    });
+    await t.step("R84 signed anthropic override sets provider, model and effort, then restores", async () => {
+      stagingServe(async () => Response.json({
+        provider: Deno.env.get("LLM_PROVIDER"),
+        model: Deno.env.get("ANTHROPIC_MODEL"),
+        effort: Deno.env.get("ANTHROPIC_EFFORT"),
+      }));
+      const body = await (await callback!(request(await signed({
+        provider: "anthropic", model: "claude-haiku-5-5", effort: "medium",
+      })))).json();
+      equal([body.provider, body.model, body.effort], ["anthropic", "claude-haiku-5-5", "medium"]);
+      equal(body.staging.llm_effective.effort, "medium");
+      equal([Deno.env.get("LLM_PROVIDER"), Deno.env.get("ANTHROPIC_EFFORT")], [undefined, undefined]);
+    });
+    await t.step("R84 effort without anthropic, or an unknown effort, is refused before the handler", async () => {
+      let called = false;
+      stagingServe(async () => { called = true; return Response.json({}); });
+      equal((await callback!(request(await signed({ provider: "groq", effort: "low" })))).status, 401);
+      equal((await callback!(request(await signed({ provider: "anthropic", effort: "turbo" })))).status, 401);
+      equal(called, false);
     });
     await t.step("shell failure retains identity", async () => {
       stagingServe(async () => { throw new Error("local intentional failure"); });

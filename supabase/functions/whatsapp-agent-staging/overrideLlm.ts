@@ -39,6 +39,7 @@ const ENV_MODEL_KEY: Record<OverrideProvider, string> = {
   groq: "GROQ_MODEL",
   openai: "OPENAI_MODEL",
   gemini: "GEMINI_MODEL",
+  anthropic: "ANTHROPIC_MODEL",
 };
 
 export interface EffectiveLlm {
@@ -52,6 +53,8 @@ export interface EffectiveLlm {
   // Zonder dit veld is "we hebben met N=3 gemeten" een bewering en geen aflezing.
   owner_votes: string | null;
   grounding_votes: string | null;
+  // R84: de denkstand van Claude zoals deze beurt gelezen, alleen bij provider anthropic.
+  effort: string | null;
 }
 
 // Wat de LAATSTE agent-run in deze isolate feitelijk gebruikte. Wordt in het antwoord gezet.
@@ -71,6 +74,7 @@ export function currentEnvLlm(): EffectiveLlm {
     classifier_model: Deno.env.get("CLASSIFIER_MODEL") ?? null,
     owner_votes: Deno.env.get("OWNER_CLF_VOTES") ?? null,
     grounding_votes: Deno.env.get("GROUNDING_CLF_VOTES") ?? null,
+    effort: provider === "anthropic" ? (Deno.env.get("ANTHROPIC_EFFORT") ?? null) : null,
   };
 }
 
@@ -85,6 +89,7 @@ export async function withOverride<T>(
       classifierModel?: string;
       ownerVotes?: number;
       groundingVotes?: number;
+      effort?: string;
     }
     | null,
   fn: () => Promise<T>,
@@ -92,7 +97,7 @@ export async function withOverride<T>(
   // R4: een override die ALLEEN het classifier-model zet is geldig, want 17 van de 18 calls per
   // beurt zijn classifier-stemmen. De oude voorwaarde (`!ov.provider` -> niets doen) zou zo'n
   // override stil hebben genegeerd, en dat is precies de fout die deze schil moet voorkomen.
-  if (!ov || (!ov.provider && !ov.classifierModel && !ov.ownerVotes && !ov.groundingVotes)) {
+  if (!ov || (!ov.provider && !ov.classifierModel && !ov.ownerVotes && !ov.groundingVotes && !ov.effort)) {
     lastEffective = currentEnvLlm();
     return await fn();
   }
@@ -109,6 +114,8 @@ export async function withOverride<T>(
       // op 1..20; hier wordt alleen het GELEZEN antwoord vervangen, nooit de omgeving geschreven.
       if (ov.ownerVotes && key === "OWNER_CLF_VOTES") return String(ov.ownerVotes);
       if (ov.groundingVotes && key === "GROUNDING_CLF_VOTES") return String(ov.groundingVotes);
+      // R84: llm.ts leest ANTHROPIC_EFFORT op het moment van de call; ook hier alleen lezen.
+      if (ov.effort && key === "ANTHROPIC_EFFORT") return ov.effort;
       return originalGet(key);
     };
     let placed = false;
@@ -122,22 +129,25 @@ export async function withOverride<T>(
       const seenClf = ov.classifierModel ? Deno.env.get("CLASSIFIER_MODEL") : null;
       const seenOwnerV = ov.ownerVotes ? Deno.env.get("OWNER_CLF_VOTES") : null;
       const seenGrndV = ov.groundingVotes ? Deno.env.get("GROUNDING_CLF_VOTES") : null;
+      const seenEffort = ov.effort ? Deno.env.get("ANTHROPIC_EFFORT") : null;
       if (
         (ov.provider && seenProvider !== ov.provider) ||
         (ov.model && seenModel !== ov.model) ||
         (ov.classifierModel && seenClf !== ov.classifierModel) ||
         (ov.ownerVotes && seenOwnerV !== String(ov.ownerVotes)) ||
-        (ov.groundingVotes && seenGrndV !== String(ov.groundingVotes))
+        (ov.groundingVotes && seenGrndV !== String(ov.groundingVotes)) ||
+        (ov.effort && seenEffort !== ov.effort)
       ) {
         throw new Error(
           `[staging-override] de override is NIET geland (gelezen provider=${seenProvider}, ` +
             `model=${seenModel}, classifier_model=${seenClf}, owner_votes=${seenOwnerV}, ` +
-            `grounding_votes=${seenGrndV}). Weigeren in plaats van op het oude model of het ` +
+            `grounding_votes=${seenGrndV}, effort=${seenEffort}). Weigeren in plaats van op het oude model of het ` +
             `oude stemaantal draaien.`,
         );
       }
+      const effectiveProvider = ov.provider ?? (originalGet("LLM_PROVIDER") || "gemini").toLowerCase();
       lastEffective = {
-        provider: ov.provider ?? (originalGet("LLM_PROVIDER") || "gemini").toLowerCase(),
+        provider: effectiveProvider,
         model: ov.model ?? (modelKey ? (originalGet(modelKey) ?? null) : null),
         source: "x-agent-override",
         classifier_model: ov.classifierModel ?? (originalGet("CLASSIFIER_MODEL") ?? null),
@@ -145,6 +155,7 @@ export async function withOverride<T>(
         grounding_votes: ov.groundingVotes
           ? String(ov.groundingVotes)
           : (originalGet("GROUNDING_CLF_VOTES") ?? null),
+        effort: effectiveProvider === "anthropic" ? (ov.effort ?? originalGet("ANTHROPIC_EFFORT") ?? null) : null,
       };
       console.log(
         "[staging-override-applied]",
@@ -154,6 +165,7 @@ export async function withOverride<T>(
           classifier_model: lastEffective.classifier_model,
           owner_votes: lastEffective.owner_votes,
           grounding_votes: lastEffective.grounding_votes,
+          effort: lastEffective.effort,
         }),
       );
       return await fn();

@@ -359,13 +359,14 @@ export function stagingServe(handler: (req: Request) => Promise<Response>): void
     try {
       resp = await withOverride(
         (payload?.provider || payload?.classifier_model || payload?.owner_votes ||
-            payload?.grounding_votes)
+            payload?.grounding_votes || payload?.effort)
           ? {
             provider: payload.provider,
             model: payload.model,
             classifierModel: payload.classifier_model,
             ownerVotes: payload.owner_votes,
             groundingVotes: payload.grounding_votes,
+            effort: payload.effort,
           }
           : null,
         () => handler(handlerRequest),
