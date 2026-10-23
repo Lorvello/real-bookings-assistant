@@ -2543,7 +2543,10 @@ export function createTools(
             pendingBook?.start_time === pendingBookVerification.start_time &&
             (pendingBook?.customer_name ?? null) ===
               (pendingBookVerification.customer_name ?? null) &&
-            ctx.bookVerificationAffirmUnresolved === true
+            ctx.bookVerificationAffirmUnresolved === true &&
+            // R84 review round 2 (N4), second lock next to index.ts: a time correction goes to the
+            // correction block below, never to a name re-ask for the slot the customer just changed.
+            correctedPreviewHours(String(ctx.userMessage ?? "")) === null
           ) {
             return {
               error: "naam_verificatie_nodig",
@@ -2712,7 +2715,29 @@ export function createTools(
                   new Date(iso).toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
                 const argDate = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date ?? "")) ? String(args.date) : "";
                 const pendingDate = pendingSameTarget ? amsDate(String(pendingBook!.start_time)) : "";
-                const boundDate = argDate || pendingDate || (startIsIso ? amsDate(start) : "");
+                const startDate = startIsIso ? amsDate(start) : "";
+                // R84 review round 2 (N6): the model's own date and the day of the time it re-sent
+                // disagree, and no day the customer named this turn settles it. A time-only
+                // correction says nothing about the day, so neither day is safe to pick: withdraw a
+                // fresh preview and ask which day is meant.
+                if (argDate && startDate && argDate !== startDate && argDate !== (ctx.relativeDateHintISO ?? "")) {
+                  if (pendingSameTarget) {
+                    await clearPendingBook();
+                    bookCtx = { ...bookCtx, pending_booking: undefined };
+                  }
+                  const dayNL = (d: string) => nlWhen(`${d}T12:00:00Z`).replace(/\s\d{2}:\d{2}$/, "");
+                  return {
+                    error: "tijd_correctie_welke_dag",
+                    message: `De klant vraagt om ${askedTimes.join(" of ")}, maar het is niet duidelijk op welke dag: ${
+                      dayNL(startDate)
+                    } of ${dayNL(argDate)}. Vraag kort welke dag bedoeld is.${
+                      pendingSameTarget
+                        ? " Het eerdere voorstel is ingetrokken: stel het oude tijdstip NIET opnieuw voor."
+                        : " Stel het oude tijdstip NIET opnieuw voor."
+                    }`,
+                  };
+                }
+                const boundDate = argDate || pendingDate || startDate;
                 const withdrawsPending = pendingSameTarget && pendingDate === boundDate;
                 if (boundDate) {
                   const dur = await serviceDuration(supabase, serviceId);
@@ -2777,6 +2802,11 @@ export function createTools(
                       error: "tijd_correctie_niet_vrij",
                       message: `De klant vraagt om ${asked} in plaats van het eerdere voorstel, maar dat is niet vrij.${withdrawn}${offer}`,
                       available_slots: otherFree,
+                      // R84 review round 2 (N7): the same echo niet_beschikbaar carries, so index.ts's
+                      // date-offer guard can check an alternative day the model offers for a full day.
+                      date: boundDate,
+                      service_type_id: serviceId,
+                      calendar_id: calId,
                     };
                   }
                 }

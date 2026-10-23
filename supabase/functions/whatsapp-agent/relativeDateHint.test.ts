@@ -814,3 +814,59 @@ Deno.test("R84 review: a dd.mm date is not a time ('dinsdag 15.09' on Tuesday 15
   assertEquals(extractRelativeDayHint("dinsdag 15.09 knippen?", tue15)?.iso, "2026-09-15");
   assertEquals(extractRelativeDayHint("di 15.09 nog plek?", tue15)?.iso, "2026-09-15");
 });
+
+// R84 review round 2 (independent reviewer, 2026-10-23). N1: an explicit evening or other daypart
+// decides the reading; a spoken 7-9 can be evening, so the day only rolls once the evening has passed;
+// N3: a lower bound is not the requested time; N5: a bare H.MM right after the weekday is a time.
+for (
+  const [label, msg, hhmm, want] of [
+    ["N1 'dinsdagavond 8 uur' at 17:00 keeps today", "dinsdagavond 8 uur nog plek?", "17:00", TUE],
+    ["N1 'dinsdag 's avonds om 8' at 17:00 keeps today", "dinsdag 's avonds om 8?", "17:00", TUE],
+    ["N1 'om 8 uur 's avonds' at 17:00 keeps today", "kan dinsdag om 8 uur 's avonds?", "17:00", TUE],
+    ["N1 'tuesday evening at 8' at 17:00 keeps today", "tuesday evening at 8?", "17:00", TUE],
+    ["N1 'dinsdagavond half 8' at 17:00 keeps today", "dinsdagavond half 8?", "17:00", TUE],
+    ["N1 an evening time that passed still rolls", "dinsdagavond 8 uur nog plek?", "20:30", NEXT_TUE],
+    ["7-9 'dinsdag 7 uur' at 17:30 keeps today (19:00 ahead)", "dinsdag 7 uur nog plek?", "17:30", TUE],
+    ["7-9 'di half 8' at 18:00 keeps today (19:30 ahead)", "di half 8 nog plek?", "18:00", TUE],
+    ["7-9 'dinsdag om 8' at 21:00 rolls (20:00 passed too)", "kan dinsdag om 8?", "21:00", NEXT_TUE],
+    ["7-9 written with minutes is the 24-hour clock ('8:30' at 12:00 rolls)", "kan dinsdag om 8:30?", "12:00", NEXT_TUE],
+    ["morning daypart 'dinsdagochtend 8 uur' at 17:00 rolls", "dinsdagochtend 8 uur?", "17:00", NEXT_TUE],
+    ["morning daypart ''s ochtends 6 uur' stays 06:00 and rolls at 09:00", "dinsdag 6 uur 's ochtends?", "09:00", NEXT_TUE],
+    ["afternoon daypart 'dinsdagmiddag 3 uur' at 14:00 keeps today", "dinsdagmiddag 3 uur?", "14:00", TUE],
+    ["afternoon daypart 'dinsdagmiddag 3 uur' at 16:00 rolls", "dinsdagmiddag 3 uur?", "16:00", NEXT_TUE],
+    ["morning daypart ''s morgens' makes a spoken 9 the morning (rolls at 12:00)", "dinsdag om 9 's morgens?", "12:00", NEXT_TUE],
+    ["without a daypart the same spoken 9 can still be 21:00 (keeps today at 12:00)", "dinsdag om 9?", "12:00", TUE],
+    ["N3 'na 5 uur' at 17:30 keeps today", "kan ik dinsdag na 5 uur?", "17:30", TUE],
+    ["N3 'after 5pm' at 17:30 keeps today", "tuesday after 5pm?", "17:30", TUE],
+    ["N3 'ik werk tot 5 uur' at 17:30 keeps today", "ik werk tot 5 uur, kan dinsdag?", "17:30", TUE],
+    ["N3 'vanaf 6 uur' at 18:30 keeps today", "dinsdag vanaf 6 uur?", "18:30", TUE],
+    ["N3 an upper bound is a requested time ('voor 5 uur' at 17:30 rolls)", "dinsdag voor 5 uur?", "17:30", NEXT_TUE],
+    ["N5 'di 10.30' at 22:01 rolls", "di 10.30", "22:01", NEXT_TUE],
+    ["N5 'dinsdag 9.45, kan dat?' at 12:00 rolls", "dinsdag 9.45, kan dat?", "12:00", NEXT_TUE],
+    ["N5 'di 10.30' at 08:00 keeps today", "di 10.30", "08:00", TUE],
+    ["N5 a price after the weekday is not a time", "dinsdag 12.50 euro?", "14:00", TUE],
+  ] as const
+) {
+  Deno.test(`R84 review 2: ${label}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
+  });
+}
+
+// N2: an earlier message is resolved at the moment it was sent, never against the current clock.
+Deno.test("R84 review 2 N2: 'dinsdag 10 uur' sent 09:00, 'doe maar 10:30' at 10:02 stays on today", () => {
+  const hint = extractCarriedForwardDayHint("doe maar 10:30", ["dinsdag 10 uur knippen?"], tueAt("10:02"), [tueAt("09:00")]);
+  assertEquals(hint?.iso, TUE);
+});
+
+Deno.test("R84 review 2 N2: 'di 2 uur' sent 13:30, 'ok 14:30 dan' at 14:01 stays on today", () => {
+  assertEquals(extractCarriedForwardDayHint("ok 14:30 dan", ["di 2 uur?"], tueAt("14:01"), [tueAt("13:30")])?.iso, TUE);
+});
+
+Deno.test("R84 review 2 N2: without a send time the carried hint resolves against now (old behaviour)", () => {
+  assertEquals(extractCarriedForwardDayHint("doe maar 10:30", ["dinsdag 10 uur knippen?"], tueAt("10:02"))?.iso, NEXT_TUE);
+  // An unreadable or future send time is ignored the same way.
+  assertEquals(
+    extractCarriedForwardDayHint("doe maar 10:30", ["dinsdag 10 uur knippen?"], tueAt("10:02"), [new Date("x")])?.iso,
+    NEXT_TUE,
+  );
+});

@@ -168,15 +168,21 @@ function resolveWeekday(now: Date, targetDow: number, skipWeek: boolean): Date {
 // evening resolved to TODAY (resolveWeekday counts today), so get_available_slots read an empty
 // evening and the agent told the customer the whole day was full, while next Tuesday had
 // 09:00/09:30/10:30 free. When the named weekday is today and the clock time the customer gives FOR
-// that day has already passed, the customer means the next occurrence. Without am/pm the hour is
-// read the way Dutch appointment language reads it: 7-12 is morning or noon ("10 uur" = 10:00),
-// 1-6 is afternoon ("3 uur" = 15:00), "half een" is 12:30; 0 and 13-23 are literal. A stricter
-// "every reading" rule kept "di 10 uur" on a Tuesday afternoon on today (22:00 had not passed).
+// that day has already passed in EVERY plausible reading, the customer means the next occurrence.
+// The plausible readings follow Dutch appointment language (review round 2, 2026-10-23):
+// - am/pm, or a daypart near the day or the time ("dinsdagavond", "'s avonds", "evening",
+//   "'s middags", "afternoon", "'s ochtends", "morning"), decides the reading;
+// - otherwise 1-6 is afternoon ("3 uur" = 15:00), 10-12 is morning or noon ("10 uur" = 10:00),
+//   "half een" is 12:30, and 0 and 13-23 are literal;
+// - a spoken 7, 8 or 9 ("7 uur", "half 8", "om 8") can be morning or evening (late opening,
+//   barbers until 21:00), so the day only rolls once the evening reading has passed too; written
+//   with minutes ("8:30", "8.30", "8u30") it is the 24-hour clock and literal.
 // Today is kept for "vandaag/today/vanavond/tonight", any this-week wording ("deze week",
 // "this week", "deze di", "this tuesday", "diezelfde week") and a message without a clock time.
 // Only a real clock time counts: a duration ("duurt dat 1 uur"), a price ("12.50") or a date
-// ("15.09") is not one. When several times appear, the one written after the weekday wins
-// ("ik werk tot 5 uur, kan dinsdag om 6 uur?" is about 18:00).
+// ("15.09") is not one, and a lower bound ("na 5 uur", "after 5pm", "vanaf 6", "ik werk tot 5")
+// is not the requested time, because later times today can still fit. When several times appear,
+// the one written after the weekday wins ("ik werk tot 5 uur, kan dinsdag om 6 uur?" is 18:00).
 function amsterdamMinutesOfDay(d: Date): number {
   const [h, m] = d
     .toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Europe/Amsterdam" })
@@ -194,37 +200,50 @@ const KEEP_TODAY_RE =
 const THIS_QUALIFIER_BEFORE_RE = /\b(?:deze|this|diezelfde|dezelfde)\s+$/i;
 const DURATION_BEFORE_RE =
   /\b(?:duurt|duur|duren|lang|hoelang|ongeveer|zo'?n|minstens|maximaal|circa|ca\.?|bijna|ruim|takes?|lasts?)\b(?:\s+\S+){0,2}\s*$/i;
+const LOWER_BOUND_BEFORE_RE = /\b(?:na|after|vanaf|from|tot|until|till)\s+(?:om\s+|at\s+)?$/i;
+// "avond" also matches "dinsdagavond"; "'s morgens" needs its "'s": a bare "morgen" is tomorrow.
+const EVENING_RE = /avond|'s\s*avonds|\bsavonds\b|\bevening\b|\bnight\b/i;
+const AFTERNOON_RE = /middag|'s\s*middags|\bsmiddags\b|\bafternoon\b/i;
+const MORNING_RE = /ochtend|'s\s*ochtends|\bsochtends\b|'s\s*morgens|\bsmorgens\b|\bmorning\b/i;
 
-type ClockHit = { index: number; end: number; minutes: number };
+// spoken: said as an hour ("8 uur", "half 8", "om 8"), not written with minutes ("8:30").
+type ClockHit = { index: number; end: number; h: number; min: number; ampm?: string; spoken: boolean };
 
-// Appointment-language minute of day for an hour/minute pair (see the header above).
-function appointmentMinutes(h: number, min: number, ampm?: string): number | null {
-  const marker = ampm?.toLowerCase();
+// The latest plausible minute of day for a clock time (see the header above). The day rolls only
+// when even this reading has passed. daypart "pm" = evening or afternoon wording, "am" = morning.
+function latestReading(hit: ClockHit, daypart: "am" | "pm" | null): number | null {
+  let h = hit.h;
+  const marker = hit.ampm?.toLowerCase();
   if (marker === "am" || marker === "pm") {
     if (h < 1 || h > 12) return null;
     h = (h % 12) + (marker === "pm" ? 12 : 0);
+  } else if (daypart && h >= 1 && h <= 11) {
+    if (daypart === "pm") h += 12;
   } else if (h >= 1 && h <= 6) {
     h += 12;
+  } else if (hit.spoken && h >= 7 && h <= 9) {
+    h += 12;
   }
-  return h > 23 ? null : h * 60 + min;
+  return h > 23 ? null : h * 60 + hit.min;
 }
 
 // Every clock time in the message, leftmost first, overlaps removed (the longest form at a
 // position wins, so "at 2:30" is 14:30 and never "at 2").
 function clockTimesIn(s: string): ClockHit[] {
   const cue = String.raw`\b(?:om|at|rond|tegen|vanaf|around|by)\s+`;
-  const patterns: Array<{ re: RegExp; read: (m: RegExpExecArray) => number | null }> = [
+  type Read = Omit<ClockHit, "index" | "end">;
+  const patterns: Array<{ re: RegExp; read: (m: RegExpExecArray) => Read | null }> = [
     {
       re: /\bhalf\s+(\d{1,2}|een|twee|drie|vier|vijf|zes|zeven|acht|negen|tien|elf|twaalf)\b/gi,
       read: (m) => {
         const n = /^\d+$/.test(m[1]) ? Number(m[1]) : SPOKEN_HOURS[m[1].toLowerCase()];
         if (!(n >= 1 && n <= 24)) return null;
-        return appointmentMinutes(n - 1 === 0 ? 12 : n - 1, 30);
+        return { h: n - 1 === 0 ? 12 : n - 1, min: 30, spoken: true };
       },
     },
     {
       re: /\b([01]?\d|2[0-3]):([0-5]\d)\s*(am|pm)?\b/gi,
-      read: (m) => appointmentMinutes(Number(m[1]), Number(m[2]), m[3]),
+      read: (m) => ({ h: Number(m[1]), min: Number(m[2]), ampm: m[3], spoken: false }),
     },
     {
       // A dot is a clock time only with a time cue before it or uur/u/am/pm after it:
@@ -232,15 +251,18 @@ function clockTimesIn(s: string): ClockHit[] {
       re: new RegExp(String.raw`(?:${cue})([01]?\d|2[0-3])\.([0-5]\d)\b|\b([01]?\d|2[0-3])\.([0-5]\d)\s*(uur|u|am|pm)\b`, "gi"),
       read: (m) =>
         m[1] !== undefined
-          ? appointmentMinutes(Number(m[1]), Number(m[2]))
-          : appointmentMinutes(Number(m[3]), Number(m[4]), /^(am|pm)$/i.test(m[5]) ? m[5] : undefined),
+          ? { h: Number(m[1]), min: Number(m[2]), spoken: false }
+          : { h: Number(m[3]), min: Number(m[4]), ampm: /^(am|pm)$/i.test(m[5]) ? m[5] : undefined, spoken: false },
     },
-    { re: /\b([01]?\d|2[0-3])u([0-5]\d)\b/gi, read: (m) => appointmentMinutes(Number(m[1]), Number(m[2])) },
-    { re: /\b(1[0-2]|0?[1-9])\s*(am|pm)\b/gi, read: (m) => appointmentMinutes(Number(m[1]), 0, m[2]) },
-    { re: /\b([01]?\d|2[0-3])\s*(?:uur|u)\b(?!\s*(?:lang|durend|duren))/gi, read: (m) => appointmentMinutes(Number(m[1]), 0) },
+    { re: /\b([01]?\d|2[0-3])u([0-5]\d)\b/gi, read: (m) => ({ h: Number(m[1]), min: Number(m[2]), spoken: false }) },
+    { re: /\b(1[0-2]|0?[1-9])\s*(am|pm)\b/gi, read: (m) => ({ h: Number(m[1]), min: 0, ampm: m[2], spoken: true }) },
+    {
+      re: /\b([01]?\d|2[0-3])\s*(?:uur|u)\b(?!\s*(?:lang|durend|duren))/gi,
+      read: (m) => ({ h: Number(m[1]), min: 0, spoken: true }),
+    },
     {
       re: /\b(?:om|at)\s+([01]?\d|2[0-3])\b(?![:.]\d)(?!\s*(?:uur|u\b|am\b|pm\b))/gi,
-      read: (m) => appointmentMinutes(Number(m[1]), 0),
+      read: (m) => ({ h: Number(m[1]), min: 0, spoken: true }),
     },
   ];
   const hits: ClockHit[] = [];
@@ -249,8 +271,10 @@ function clockTimesIn(s: string): ClockHit[] {
     let m: RegExpExecArray | null;
     while ((m = p.re.exec(s)) !== null) {
       if (/uur|u\b/i.test(m[0]) && !/[:.]/.test(m[0]) && DURATION_BEFORE_RE.test(s.slice(0, m.index))) continue;
-      const minutes = p.read(m);
-      if (minutes !== null) hits.push({ index: m.index, end: m.index + m[0].length, minutes });
+      const read = p.read(m);
+      if (!read) continue;
+      const hit = { index: m.index, end: m.index + m[0].length, ...read };
+      if (latestReading(hit, null) !== null) hits.push(hit);
     }
   }
   hits.sort((a, b) => a.index - b.index || (b.end - b.index) - (a.end - a.index));
@@ -264,12 +288,27 @@ function clockTimesIn(s: string): ClockHit[] {
 }
 
 // The time that belongs to the weekday: the first one written after it, otherwise the last one
-// before it. null when the message names no clock time at all.
+// before it, read with any daypart near the day or the time. null when the message names no
+// requested clock time at all (lower bounds do not count).
 function clockTimeForDay(s: string, dayIndex: number): number | null {
-  const hits = clockTimesIn(s);
+  const hits = clockTimesIn(s).filter((h) => !LOWER_BOUND_BEFORE_RE.test(s.slice(Math.max(0, h.index - 16), h.index)));
+  // A bare H.MM written right after the weekday ("di 10.30") is a clock time as well. With minutes
+  // 13-59 it cannot be a dd.mm date, and a price directly after a weekday would carry "euro".
+  const bare = /^[a-z]+\.?\s+(?:om\s+|at\s+)?(([01]?\d|2[0-3])\.([0-5]\d))(?!\d|[.,]\d)(?!\s*(?:euro|eur)\b)/i
+    .exec(s.slice(dayIndex));
+  if (bare && Number(bare[3]) > 12) {
+    const end = dayIndex + bare[0].length;
+    const index = end - bare[1].length;
+    if (!hits.some((h) => h.index < end && index < h.end)) {
+      hits.push({ index, end, h: Number(bare[2]), min: Number(bare[3]), spoken: false });
+      hits.sort((a, b) => a.index - b.index);
+    }
+  }
   if (!hits.length) return null;
-  const after = hits.find((h) => h.index >= dayIndex);
-  return (after ?? hits[hits.length - 1]).minutes;
+  const chosen = hits.find((h) => h.index >= dayIndex) ?? hits[hits.length - 1];
+  const near = s.slice(Math.max(0, Math.min(dayIndex, chosen.index) - 12), chosen.end + 25);
+  const daypart = EVENING_RE.test(near) || AFTERNOON_RE.test(near) ? "pm" : MORNING_RE.test(near) ? "am" : null;
+  return latestReading(chosen, daypart);
 }
 
 function resolveWeekdayPastTimeAware(
@@ -652,15 +691,23 @@ export function formatRelativeDateHint(hint: RelativeDateHint | null): string {
 // a day at all (nothing to carry forward).
 const BARE_CLOCK_TIME_RE = /\b\d{1,2}[:.]\d{2}\b/;
 
+// R84 review round 2 (2026-10-23): each earlier message is resolved at the moment it was SENT, the
+// way bookingContinuity.ts already does. Resolved against the current clock, "dinsdag 10 uur" sent
+// at 09:00 and confirmed with "doe maar 10:30" at 10:02 moved to next Tuesday, because 10:00 had
+// passed by then: exactly the silent day drift this function exists to stop. A missing or
+// unreadable send time falls back to `now` (the old behaviour).
 export function extractCarriedForwardDayHint(
   currentText: string,
   priorInboundTextsOldestFirst: string[],
   now: Date,
+  priorInboundSentAtOldestFirst?: Array<Date | null>,
 ): RelativeDateHint | null {
   if (extractRelativeDayHint(currentText, now) !== null) return null;
   if (!BARE_CLOCK_TIME_RE.test(currentText || "")) return null;
   for (let i = priorInboundTextsOldestFirst.length - 1; i >= 0; i--) {
-    const hint = extractRelativeDayHint(priorInboundTextsOldestFirst[i], now);
+    const sent = priorInboundSentAtOldestFirst?.[i];
+    const at = sent && Number.isFinite(sent.getTime()) && sent.getTime() <= now.getTime() + 1000 ? sent : now;
+    const hint = extractRelativeDayHint(priorInboundTextsOldestFirst[i], at);
     if (hint) return hint;
   }
   return null;

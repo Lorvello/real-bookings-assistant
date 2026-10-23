@@ -176,3 +176,57 @@ Deno.test("R84 S08: after a withdrawal a bare yes cannot commit", async () => {
     .execute("book_appointment", { confirmed: true, only_confirming_previous: true });
   assert(!h.writes.some((w) => w.table === "bookings" && w.op === "insert"), "bare yes committed after withdrawal");
 });
+
+// R84 review round 2 (independent reviewer, 2026-10-23).
+Deno.test("R84 review 2 N6: model date Wed + re-sent Tue time on a fresh Tue preview -> ask which day, withdraw", async () => {
+  const WED = "2026-11-11";
+  const h = harness({ context: pending(60_000), slots: { [TUE]: daySlots(TUE), [WED]: daySlots(WED) } });
+  const out = await run(h, S08, { service_type_id: "S1", date: WED, start_time: "2026-11-10T13:00:00+00:00", customer_name: "Karim" });
+  assertEquals(out.error, "tijd_correctie_welke_dag");
+  assert(String(out.message).includes("dinsdag 10 november") && String(out.message).includes("woensdag 11 november"), String(out.message));
+  assertEquals(pendingStart(h), null);
+  assertEquals(h.rpcCalls.filter((c) => c.fn === "get_available_slots").length, 0);
+});
+
+Deno.test("R84 review 2 N6: a day index.ts established deterministically (relativeDateHintISO) settles the conflict", async () => {
+  // The correction grammar only accepts time-only messages, so the hint here comes from the
+  // conversation (continuity or carried-forward day), never from a day word in this message.
+  const WED = "2026-11-11";
+  const h = harness({ context: pending(60_000), slots: { [TUE]: daySlots(TUE), [WED]: daySlots(WED) } });
+  const out = await createTools(h.client, { ...baseCtx(S08), relativeDateHintISO: WED } as ToolContext)
+    .execute("book_appointment", { service_type_id: "S1", date: WED, start_time: "2026-11-10T13:00:00+00:00", customer_name: "Karim" }) as Record<string, unknown>;
+  assert(out.error !== "tijd_correctie_welke_dag", String(out.error));
+  assertEquals(pendingStart(h), "2026-11-11T14:00:00+00:00");
+});
+
+Deno.test("R84 review 2 N4: an open name check never swallows a time correction (tools-level lock)", async () => {
+  const ctx0 = pending(60_000) as Record<string, unknown>;
+  const pb = ctx0.pending_booking as Record<string, unknown>;
+  ctx0.pending_book_verification = { start_time: pb.start_time, customer_name: pb.customer_name, at: Date.now() - 30_000 };
+  const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, {
+    ...baseCtx("ok can we do 3 instead"),
+    ambiguousConfirm: false,
+    bookVerificationAffirmUnresolved: true,
+  } as ToolContext).execute("book_appointment", OLD_ISO) as Record<string, unknown>;
+  assert(out.error !== "naam_verificatie_nodig", "time correction swallowed by a name re-ask for the old slot");
+  assertEquals(pendingStart(h), "2026-11-10T14:00:00+00:00");
+});
+
+Deno.test("R84 review 2 N4: the name check still re-asks on a plain yes", async () => {
+  const ctx0 = pending(60_000) as Record<string, unknown>;
+  const pb = ctx0.pending_booking as Record<string, unknown>;
+  ctx0.pending_book_verification = { start_time: pb.start_time, customer_name: pb.customer_name, at: Date.now() - 30_000 };
+  const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, { ...baseCtx("ja"), ambiguousConfirm: false, bookVerificationAffirmUnresolved: true } as ToolContext)
+    .execute("book_appointment", OLD_ISO) as Record<string, unknown>;
+  assertEquals(out.error, "naam_verificatie_nodig");
+});
+
+Deno.test("R84 review 2 N7: a correction on a full day echoes date, service and calendar for the day guard", async () => {
+  const allTaken = daySlots(TUE).map((r) => ({ ...r, is_available: false }));
+  const h = harness({ context: pending(60_000), slots: { [TUE]: allTaken } });
+  const out = await run(h, S08, OLD_ISO);
+  assertEquals(out.error, "tijd_correctie_niet_vrij");
+  assertEquals([out.date, out.service_type_id, out.calendar_id, out.available_slots], [TUE, "S1", "A", []]);
+});

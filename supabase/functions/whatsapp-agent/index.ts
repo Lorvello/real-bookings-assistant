@@ -1944,6 +1944,12 @@ Deno.serve(async (req) => {
     const priorInboundTexts = history
       .filter((m) => m.direction === "inbound")
       .map((m) => m.content ?? "");
+    // R84 review round 2: the send moment of each of those messages, same filter and order
+    // (history IS sharedMsgsAsc), so the carried-forward day hint resolves every earlier message at
+    // its own time instead of against this turn's clock (see extractCarriedForwardDayHint).
+    const priorInboundSentAt = sharedMsgsAsc
+      .filter((m) => m.direction === "inbound")
+      .map((m) => new Date(m.meta_timestamp ?? m.created_at));
     // R98 (DAY/INTENT TOPIC-BLEED fix): both hasDayMentionAnywhere below and
     // rescheduleFlowActiveWithNoDay further down used to scan priorInboundTexts UNCONDITIONALLY,
     // with no awareness of a mid-conversation topic switch to a different calendar/service. Live-
@@ -1998,6 +2004,7 @@ Deno.serve(async (req) => {
         String(message ?? ""),
         dayScanWindowTexts,
         now,
+        dayScanWindowTexts === priorInboundTexts ? priorInboundSentAt : undefined,
       )
       : null;
     const effectiveDateHint = relativeDateHint ?? continuity?.hint ?? latestAvailability?.hint ?? carriedForwardDayHint;
@@ -2808,10 +2815,15 @@ Deno.serve(async (req) => {
     // repro). Re-asking Q2 is a pure read (never commits anything), so R118's stale-proposal
     // protection does not apply here at all; only the SAME clean-affirm bar (AFFIRM_RE/NEGATE_RE/
     // ambiguousConfirm) every other release signal in this file already requires.
+    // R84 review round 2 (N4): a time correction ("ok can we do 3 instead") is never an answer to the
+    // name check. Without this exclusion the re-ask fired for the OLD slot, and typing the name back
+    // would then have committed the old time instead of the one the customer asked for.
+    const isTimeCorrection = correctedPreviewHours(String(message)) !== null;
     const bookVerificationAffirmUnresolved = pendingBookVerificationFresh &&
       AFFIRM_RE.test(msgLower) && !NEGATE_RE.test(msgLower) &&
       !ambiguousConfirm &&
-      !confirmBookVerification;
+      !confirmBookVerification &&
+      !isTimeCorrection;
 
     // Booking confirmation, detected server-side (mirrors confirmCancel). A NEW booking is
     // two-phase: the first book_appointment call only PREVIEWS (stores a pending_booking
@@ -2921,7 +2933,6 @@ Deno.serve(async (req) => {
       messageRestatesPendingBookTime(pbk?.start_time ?? null, msgLower);
     // R84 (review round): "ok can we do 3 instead" contains an affirm word but corrects the time;
     // it never confirms the old preview (tools.ts book_appointment re-previews or withdraws it).
-    const isTimeCorrection = correctedPreviewHours(String(message)) !== null;
     const confirmBook = !pureCancellationPolicyQuestion && !isTimeCorrection && pendingBookFresh && AFFIRM_RE.test(msgLower) &&
       !NEGATE_RE.test(msgLower) && !cancelWord && !confirmCancel &&
       (restatesPendingBookOwnTime
@@ -4241,7 +4252,9 @@ Deno.serve(async (req) => {
           if (
             (t.name === "book_appointment" ||
               t.name === "reschedule_appointment") &&
-            r.error === "niet_beschikbaar"
+            // R84 review round 2 (N7): a time correction on a day without any free time is the
+            // same "day fully closed" ground truth as niet_beschikbaar with no slots.
+            (r.error === "niet_beschikbaar" || r.error === "tijd_correctie_niet_vrij")
           ) {
             return Array.isArray(r.available_slots) &&
               r.available_slots.length === 0;
@@ -4258,6 +4271,8 @@ Deno.serve(async (req) => {
           >;
           const declinedDate = typeof dcArgs.date === "string"
             ? dcArgs.date
+            : typeof dcResult.date === "string"
+            ? dcResult.date
             : null;
           // R52: prefer the tool's own RESOLVED service_type_id/calendar_id (tools.ts now echoes
           // these back on the niet_beschikbaar/empty-slots result) over the model's tool-call args.
