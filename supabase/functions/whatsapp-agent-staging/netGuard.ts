@@ -91,6 +91,9 @@ export interface LlmUsage {
   total_tokens: number | null;
   // R84: tokens served from the provider's prompt cache (Claude cache reads, Groq cached_tokens).
   cached_tokens: number | null;
+  // R84: tokens written to the prompt cache (Claude cache_creation_input_tokens; null elsewhere).
+  // Priced differently from both fresh input and cache reads, so the report counts them apart.
+  cache_write_tokens: number | null;
   status: number | null;
 }
 
@@ -224,6 +227,7 @@ function captureUsage(resp: Response, seq: number, label: string, host: string, 
       cached_tokens: a
         ? (a.cache_read_input_tokens ?? 0)
         : ((u?.prompt_tokens_details as unknown as Record<string, number> | undefined)?.cached_tokens ?? null),
+      cache_write_tokens: a ? (a.cache_creation_input_tokens ?? 0) : null,
       status: resp.status,
     };
     push(state.usage, row, 400);

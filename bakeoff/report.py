@@ -26,6 +26,10 @@ PRIJS = {
     "openai/gpt-oss-20b": {"in": 0.075, "out": 0.30, "bron": "console.groq.com/docs/models 2026-09-06"},
     "openai/gpt-oss-120b": {"in": 0.15, "out": 0.60, "bron": "console.groq.com/docs/models 2026-09-06"},
     "qwen/qwen3.8-27b": {"in": 0.80, "out": 4.00, "bron": "console.groq.com/docs/models 2026-09-06"},
+    # R84 (2026-10-24): Claude Haiku 5.5, tarief bij een prompt tot 100K tokens. Cache-lezen 0,1x en
+    # cache-schrijven (5 minuten) 1,25x van de invoerprijs; netGuard telt beide apart per call.
+    "claude-haiku-5-5": {"in": 0.10, "out": 0.50, "cache_read": 0.01, "cache_write": 0.125,
+                         "bron": "Anthropic, Haiku 5.5-migratiegids (claude-api skill) 2026-10-24"},
 }
 CLASSIFIER_MODEL = "openai/gpt-oss-20b"  # staat hard in de code, wisselt niet mee
 
@@ -45,6 +49,7 @@ def kosten(tag: str, score: dict) -> dict:
     d = os.path.join(core.R05, "runs", tag)
     model = (score.get("meta") or {}).get("model") or ""
     ap = ac = cp = cc = 0
+    a_read = a_write = 0  # R84: agent-tokens uit de cache gelezen en naar de cache geschreven
     n = 0
     for sid, info in score["tokens"]["per_scenario"].items():
         if info["type"] != "book":
@@ -57,6 +62,8 @@ def kosten(tag: str, score: dict) -> dict:
                 if c.get("label") == "llm.agent":
                     ap += c.get("prompt_tokens") or 0
                     ac += c.get("completion_tokens") or 0
+                    a_read += c.get("cached_tokens") or 0
+                    a_write += c.get("cache_write_tokens") or 0
                 else:
                     cp += c.get("prompt_tokens") or 0
                     cc += c.get("completion_tokens") or 0
@@ -73,7 +80,16 @@ def kosten(tag: str, score: dict) -> dict:
     p = PRIJS.get(model)
     pc = PRIJS.get(CLASSIFIER_MODEL)
     if p:
-        agent_usd = (ap / n) * p["in"] / 1e6 + (ac / n) * p["out"] / 1e6
+        if "cache_read" in p:
+            # prompt_tokens is het HELE prompt (netGuard telt cache-lezen en -schrijven erbij op).
+            vers = max(ap - a_read - a_write, 0)
+            agent_in = vers * p["in"] + a_read * p["cache_read"] + a_write * p["cache_write"]
+            out["agent_cache_read_tokens_per_conversatie"] = round(a_read / n)
+            out["agent_cache_write_tokens_per_conversatie"] = round(a_write / n)
+        else:
+            # Groq en de rest: elk prompt-token tegen het volle tarief (de bestaande, voorzichtige telling).
+            agent_in = ap * p["in"]
+        agent_usd = (agent_in / n) / 1e6 + (ac / n) * p["out"] / 1e6
         clf_usd = ((cp / n) * pc["in"] / 1e6 + (cc / n) * pc["out"] / 1e6) if pc else None
         out["usd_agent_per_conversatie"] = round(agent_usd, 6)
         out["usd_classifiers_per_conversatie"] = round(clf_usd, 6) if clf_usd is not None else None
