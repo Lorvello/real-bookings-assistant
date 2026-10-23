@@ -205,9 +205,17 @@ const DURATION_BEFORE_RE =
   /\b(?:duurt|duur|duren|lang|hoelang|ongeveer|zo'?n|minstens|maximaal|circa|ca\.?|bijna|ruim|takes?|lasts?)\b(?:\s+\S+){0,2}\s*$/i;
 // "na/after/vanaf/from" always open a lower bound; "tot/until/till" only after a work or busy verb
 // ("ik werk tot 5", "busy until 5"), since "kan het tot 5 uur?" asks for a time before 17:00.
-// Round 4: "ben/zit ... tot" is not one, because "dinsdag ben ik vrij tot 5 uur" is an upper bound.
-const LOWER_BOUND_BEFORE_RE =
-  /(?:\b(?:na|after|vanaf|from)\s+(?:om\s+|at\s+)?|\b(?:werk|werkt|bezig|druk|work|working|busy)\b[^,.;!?\d]{0,20}\b(?:tot|until|till)\s+(?:om\s+|at\s+)?)$/i;
+// Rounds 4 and 5: "na/after/vanaf/from" always open a lower bound. "tot/until/till" does only when
+// work or another busy reason sits in the same sentence ("ik werk tot 5", "ben ik tot 5 uur aan het
+// werk", "ik zit tot 5 uur op mijn werk"); "ben ik vrij tot 5 uur" and "kan het tot 5 uur?" are
+// upper bounds, so requested times.
+const LOWER_BOUND_ALWAYS_RE = /\b(?:na|after|vanaf|from)\s+(?:om\s+|at\s+)?$/i;
+const UNTIL_BEFORE_RE = /\b(?:tot|until|till)\s+(?:om\s+|at\s+)?$/i;
+const BUSY_REASON_RE = /\b(?:werk\w*|bezig|druk|school|college|les|vergader\w*|dienst|work\w*|busy|meeting|class)\b/i;
+// Round 5: a later time is NOT another option when a constraint sits next to it ("ik moet om 3 uur
+// weer weg", "ik ben ook om 3 uur weg"); every other later time in the clause is an alternative
+// ("4 uur kan ook", "liever 4 uur", "desnoods 4 uur", "10 uur / 4 uur", "4pm works too").
+const CONSTRAINT_RE = /\b(?:weg|vertrek\w*|ophalen|halen|moet|moeten|leave|leaving|gone|pick\s*up)\b/i;
 // The end of the clause that owns a weekday: punctuation that ends a sentence (a dot inside a time
 // such as "9.30" does not), or another day word.
 const CLAUSE_END_RE =
@@ -323,7 +331,16 @@ function clockTimeForDay(s: string, dayIndex: number, todayLatestEnd?: number | 
   const tokenEnd = dayIndex + dayToken.length;
   const rest = s.slice(tokenEnd);
   const clauseEnd = tokenEnd + (CLAUSE_END_RE.exec(rest)?.index ?? rest.length);
-  const hits = clockTimesIn(s).filter((h) => !LOWER_BOUND_BEFORE_RE.test(s.slice(Math.max(0, h.index - 40), h.index)));
+  const sentenceAround = (h: ClockHit) => {
+    const before = s.slice(0, h.index).split(/(?<!\d)\.(?!\d)|[;!?\n]/).at(-1) ?? "";
+    const after = s.slice(h.end).split(/(?<!\d)\.(?!\d)|[;!?\n]/)[0] ?? "";
+    return before + " " + after;
+  };
+  const isLowerBound = (h: ClockHit) => {
+    const lead = s.slice(Math.max(0, h.index - 40), h.index);
+    return LOWER_BOUND_ALWAYS_RE.test(lead) || (UNTIL_BEFORE_RE.test(lead) && BUSY_REASON_RE.test(sentenceAround(h)));
+  };
+  const hits = clockTimesIn(s).filter((h) => !isLowerBound(h));
   // A bare H.MM written right after the weekday ("di 10.30", "di, 10.00") is a clock time as well.
   // Minutes 00 or 13-59 cannot be a dd.mm month, and a price directly after a weekday carries "euro".
   const bare = /^(?:(?:aanstaande|komende|coming|upcoming|this|next)\s+)?[a-z]+\.?,?\s+(?:om\s+|at\s+)?(([01]?\d|2[0-3])\.([0-5]\d))(?!\d|[.,]\d)(?!\s*(?:euro|eur)\b)/i
@@ -341,11 +358,12 @@ function clockTimeForDay(s: string, dayIndex: number, todayLatestEnd?: number | 
   const dayPhrase = /^[a-z]+(?:\s+(?:'s\s*)?[a-z]+){0,2}/i.exec(s.slice(tokenEnd - (dayToken.match(/[a-z]+$/i)?.[0].length ?? 0)))?.[0] ?? dayToken;
   const dayDaypart = daypartIn(dayPhrase);
   const owned = hits.filter((h) => h.index >= dayIndex && h.index < clauseEnd);
-  // Round 4: a later time in the clause only counts when it is offered as an ALTERNATIVE ("of",
-  // "kan ook", "anders"); "dinsdag 10 uur, ik moet om 3 uur weer weg" asks for 10:00 only.
+  // Round 5: every later time in the clause is another option, until one carries a constraint (the
+  // text since the previous time, or right after it up to a comma, names a reason to be gone).
   const chosen: ClockHit[] = owned.length ? [owned[0]] : [hits.filter((h) => h.index < dayIndex).at(-1) ?? hits[0]];
   for (let k = 1; k < owned.length; k++) {
-    if (!/\b(?:of|or|ook|anders|otherwise|also)\b/i.test(s.slice(owned[k - 1].end, owned[k].index))) break;
+    const near = s.slice(owned[k - 1].end, owned[k].index) + " " + (/^[^,.;!?\n]*/.exec(s.slice(owned[k].end))?.[0] ?? "");
+    if (CONSTRAINT_RE.test(near)) break;
     chosen.push(owned[k]);
   }
   let latest: number | null = null;

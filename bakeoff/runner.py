@@ -115,6 +115,13 @@ def usage_of(turn: dict) -> dict:
 
 
 def run_candidate(args) -> int:
+    # R84 (2026-10-24): de Claude-denkstand reist mee in de getekende override. getattr, zodat de
+    # R79-entry.py (Namespace zonder effort) ongewijzigd blijft werken. Rounds 4 and 5: effort only
+    # means something for Claude, and the refusal comes before anything is created on disk.
+    effort = getattr(args, "effort", None)
+    if effort and args.provider != "anthropic":
+        print(f"MEETFOUT: --effort {effort} geldt alleen met --provider anthropic")
+        return 2
     expected_build_id, config_error = core.build_identity_expectation()
     if config_error:
         print(f"MEETFOUT: {config_error}; geen database-acties uitgevoerd")
@@ -136,13 +143,6 @@ def run_candidate(args) -> int:
             return 2
 
     dates = sorted({core.MON, core.TUE, core.WED, core.THU, core.FRI, core.SAT, core.FRI2})
-    # R84 (2026-10-24): de Claude-denkstand reist mee in de getekende override. getattr, zodat de
-    # R79-entry.py (Namespace zonder effort) ongewijzigd blijft werken.
-    effort = getattr(args, "effort", None)
-    # Review round 4: effort only means something for Claude; without it the label would lie.
-    if effort and args.provider != "anthropic":
-        print(f"MEETFOUT: --effort {effort} geldt alleen met --provider anthropic")
-        return 2
     print(f"=== BAKE-OFF kandidaat {tag}  provider={args.provider} model={args.model} effort={effort} ===")
     print("feiten ophalen uit de database...")
     facts = core.facts_cached({"cal": fx["calA"], "cal_iris": fx["calA"], "cal_bram": fx["calB"]},

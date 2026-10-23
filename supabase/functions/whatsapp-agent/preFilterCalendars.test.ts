@@ -3,7 +3,7 @@
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
 import { assertEquals } from "jsr:@std/assert@1.0.19";
-import { calendarsRequestedIn, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
+import { calendarsRequestedIn, noStaffPreference, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
 
 const CALENDARS = [
   { id: "sanne", name: "Sanne" },
@@ -306,9 +306,22 @@ for (
     ["kan ik vrijdag knippen bij Sanne of Bo? om 14:00", ["bo", "sanne"]],
     ["een afspraak met Sanne graag", ["sanne"]],
     ["bij voorkeur Sanne, vrijdag", ["sanne"]],
+    ["kan ik bij Sanne, Bo of Milan terecht vrijdag?", ["bo", "sanne", "milan"]],
+    ["ik kom met Milan mee, vrijdag om 2 uur?", []],
+    ["vorige keer was ik bij Sanne, nu maakt het niet uit", []],
+    ["ik ben bij Bo geweest, kan ik nu bij Milan?", ["milan"]],
   ] as const
 ) {
   Deno.test(`R84 live: calendarsRequestedIn ${JSON.stringify(msg)}`, () => {
     assertEquals(calendarsRequestedIn(msg, STAFF), [...want]);
   });
 }
+
+Deno.test("R84 review 5: noStaffPreference recognises an explicit no-preference", () => {
+  for (const msg of ["nu maakt het niet uit bij wie", "geen voorkeur", "it doesn't matter who", "Maakt me niet uit"]) {
+    assertEquals(noStaffPreference(msg), true, msg);
+  }
+  for (const msg of ["bij Sanne graag", "maakt het uit hoe lang het duurt?"]) {
+    assertEquals(noStaffPreference(msg), false, msg);
+  }
+});

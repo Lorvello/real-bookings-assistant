@@ -383,3 +383,24 @@ Deno.test("R84 review 4: a different service still keeps its own route with name
   }) as Record<string, unknown>;
   assertEquals(out.error, "vorige_boeking_nog_open");
 });
+
+// R84 review round 5.
+Deno.test("R84 review 5: after 'kan het ook bij Iris?' a same-named service is a deliberate switch, not a correction", async () => {
+  const ctx0 = pending(60_000) as Record<string, unknown>;
+  Object.assign(ctx0.pending_booking as Record<string, unknown>, { calendar_id: "B", service_type_id: "S3" });
+  const h = harness({ context: ctx0, slots: { [TUE]: daySlots(TUE) } });
+  const out = await createTools(h.client, TWO_CAL_SVC(S08, { requestedCalendarIds: ["A"] })).execute("book_appointment", {
+    service_type_id: "S1", date: TUE, time: "15:00", customer_name: "Karim",
+  }) as Record<string, unknown>;
+  assertEquals(out.error, "vorige_boeking_nog_open");
+  const pb = h.ctx().pending_booking as Record<string, unknown>;
+  assertEquals([pb.service_type_id, pb.calendar_id, pb.start_time], ["S3", "B", "2026-11-10T13:00:00+00:00"]);
+});
+
+Deno.test("R84 review 5: unit words never make two services alike ('15 min' and '60 min')", async () => {
+  const h = harness({ context: {}, slots: { [TUE]: daySlots(TUE) } });
+  const svc = { A: [{ id: "S1", name: "Baardtrim 15 min" }], B: [{ id: "S2", name: "Massage 60 min" }] };
+  const out = await createTools(h.client, TWO_CAL_SVC("kan ik een baardtrim bij Sanne dinsdag 10 november om 14:00?", { servicesByCalendar: svc }))
+    .execute("book_appointment", { service_type_id: "S1", date: TUE, time: "14:00", customer_name: "Tom Bakker" }) as Record<string, unknown>;
+  assert(out.error !== "dienst_van_andere_medewerker", JSON.stringify(out));
+});

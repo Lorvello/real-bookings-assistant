@@ -369,9 +369,14 @@ function normServiceNameLocal(n: string): string {
 // similar service (a word in common, "Knippen" and "Knippen Dames"), do not read slots or preview
 // there: the model picks the asked person's own service, or asks. Review round 4: a service the asked
 // person offers nothing like may be a deliberate choice, so that call keeps its own route.
-const SERVICE_WORD_STOP = new Set(["en", "and", "de", "het", "met", "with", "of", "the", "van"]);
+// Round 5: units and generic words ("15 min", "60 min", "behandeling") never make two services alike.
+const SERVICE_WORD_STOP = new Set([
+  "en", "and", "de", "het", "met", "with", "of", "the", "van", "voor", "for",
+  "min", "mins", "minuten", "minutes", "uur", "hour", "hours", "behandeling", "treatment", "afspraak", "sessie", "session",
+]);
 function serviceWords(name: string): string[] {
-  return name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 && !SERVICE_WORD_STOP.has(w));
+  return name.toLowerCase().split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length > 2 && !/\d/.test(w) && !SERVICE_WORD_STOP.has(w));
 }
 function namedCalendarMismatch(ctx: ToolContext, calId: string, serviceId: string): { error: string; message: string } | null {
   if (ctx.calendars.length <= 1) return null;
@@ -2630,9 +2635,14 @@ export function createTools(
             Object.values(ctx.servicesByCalendar ?? {}).flat().find((x) => x.id === id)?.name;
           const sentName = sentService ? serviceNameById(sentService) : undefined;
           const pendingName = pendingBook?.service_type_id ? serviceNameById(String(pendingBook.service_type_id)) : undefined;
+          // Round 5: never when the customer asked for ANOTHER staff member since ("kan het ook bij Bo?"):
+          // then the same-named service is a deliberate switch, and the open-preview guard asks.
+          const askedOther = (ctx.requestedCalendarIds ?? []).length > 0 &&
+            !(ctx.requestedCalendarIds ?? []).includes(String(pendingBook?.calendar_id ?? ctx.calendarId));
           const correctsFreshPreview = !committing && !namePreviewOnly && !!pendingBook?.start_time &&
             !!pendingBook?.service_type_id &&
-            (!sentService || (!!sentName && !!pendingName && normServiceNameLocal(sentName) === normServiceNameLocal(pendingName))) &&
+            (!sentService ||
+              (!askedOther && !!sentName && !!pendingName && normServiceNameLocal(sentName) === normServiceNameLocal(pendingName))) &&
             (typeof pendingBook.at !== "number" || Date.now() - pendingBook.at < 15 * 60 * 1000) &&
             correctedPreviewHours(String(ctx.userMessage ?? "")) !== null;
           const serviceId = String(

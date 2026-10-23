@@ -186,12 +186,20 @@ function primaryCalendarNameTokens(name: string): string[] {
 const REQUEST_WORDS = ["bij", "naar", "met", "with", "at"];
 const JOIN_WORDS = ["of", "en", "or", "and"];
 const RULE_OUT_WORDS = ["niet", "geen", "not", "no", "ipv", "behalve", "zonder", "except", "without"];
-// tokens[p] is the request word; is the phrase right before it a rule-out?
+// tokens[p] is the request word; is the phrase right before it a rule-out? Round 5 adds a past visit
+// ("vorige keer was ik bij Sanne", "laatst bij Sanne"): that names who it WAS, not who it should be.
 function ruledOut(tokens: string[], p: number): boolean {
   const before = (n: number) => tokens.slice(Math.max(0, p - n), p).join(" ");
   return RULE_OUT_WORDS.includes(tokens[p - 1] ?? "") ||
     /^(?:niet|geen|not|no) (?:meer|langer|more|longer)$/.test(before(2)) ||
-    before(3) === "in plaats van" || before(2) === "instead of";
+    before(3) === "in plaats van" || before(2) === "instead of" ||
+    /\b(?:vorige keer|last time|laatst|was ik|were|was)\b/.test(before(4));
+}
+
+// Round 5: an explicit "no preference" ends any earlier request for a staff member.
+export function noStaffPreference(text: string): boolean {
+  return /\b(?:maakt (?:het )?(?:mij |me )?niet uit(?: bij wie)?|geen voorkeur|wie dan ook|doesn'?t matter|no preference|anyone is fine)\b/i
+    .test(normalize(text ?? ""));
 }
 export function calendarsRequestedIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {
   const tokens = tokenize(text ?? "");
@@ -207,16 +215,31 @@ export function calendarsRequestedIn(text: string, calendars: Array<{ id: string
       // "bij voorkeur Sanne" asks for Sanne too.
       const p = tokens[i - 1] === "voorkeur" && tokens[i - 2] === "bij" ? i - 2 : i - 1;
       if (!REQUEST_WORDS.includes(tokens[p]) || ruledOut(tokens, p) || !at(name, i)) continue;
+      // Round 5: "ik kom met Iris mee" is a companion, and "bij Iris geweest" a past visit.
+      const after = tokens[i + name.length] ?? "";
+      if ((tokens[p] === "met" && after === "mee") || ["geweest", "gezeten"].includes(after)) continue;
       requested.add(cal.id);
       requestedEnds.add(i + name.length - 1);
     }
   }
-  // Round 4: "knippen bij Sanne of Bo" asks for either, so the staff check must see both names.
-  for (const cal of calendars) {
-    const name = primaryCalendarNameTokens(cal.name);
-    if (name.length === 0 || requested.has(cal.id)) continue;
-    for (let i = 2; i + name.length <= tokens.length; i++) {
-      if (JOIN_WORDS.includes(tokens[i - 1]) && requestedEnds.has(i - 2) && at(name, i)) requested.add(cal.id);
+  // Rounds 4 and 5: "bij Sanne of Bo" and "bij Sanne, Bo of Iris" ask for any of them, so the staff
+  // check must see every name of the list (joined by of/en/or/and, or by a comma, which tokenizing
+  // drops so the names sit side by side).
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const cal of calendars) {
+      const name = primaryCalendarNameTokens(cal.name);
+      if (name.length === 0 || requested.has(cal.id)) continue;
+      for (let i = 1; i + name.length <= tokens.length; i++) {
+        const joined = JOIN_WORDS.includes(tokens[i - 1]) ? requestedEnds.has(i - 2) : requestedEnds.has(i - 1);
+        if (joined && at(name, i)) {
+          requested.add(cal.id);
+          requestedEnds.add(i + name.length - 1);
+          grew = true;
+          break;
+        }
+      }
     }
   }
   return calendars.filter((cal) => requested.has(cal.id)).map((cal) => cal.id);

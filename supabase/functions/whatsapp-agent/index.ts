@@ -139,6 +139,7 @@ import {
 import {
   calendarsRequestedIn,
   enforceNoRedundantLocationAsk,
+  noStaffPreference,
   resolveCandidateCalendarIds,
   scopeToCurrentTopicWindow,
 } from "./preFilterCalendars.ts";
@@ -1918,47 +1919,6 @@ Deno.serve(async (req) => {
     // language). null = Dutch or unsure → no override (the prompt's own language rules apply).
     // R81 fix: a CONFIDENTLY Dutch message actively overrides any stale stored non-Dutch language
     // (see detectLanguageSignal header comment) instead of silently inheriting it forever.
-    const now = new Date();
-    // R84 review rounds 3 and 4: a spoken 7-9 ("om 8") only reads as this evening while the business
-    // is still open then today. When this message asks for exactly one staff member ("om 8 uur bij
-    // Sanne"), that person's hours count; otherwise every calendar in play. The exact-date override
-    // only applies to a single calendar (the same rule buildCalendarHint uses). Unknown hours keep
-    // the evening possible. The same options reach every other place that reads a day.
-    const requestedNow = isMultiCalendar ? calendarsRequestedIn(String(message ?? ""), calendars) : [];
-    const dayHintOpts = {
-      todayLatestEndMinutes: latestEndTodayMinutes(
-        now,
-        requestedNow.length === 1 && byDayByCal.has(requestedNow[0])
-          ? [byDayByCal.get(requestedNow[0]) ?? null]
-          : [weeklyHours?.byDay ?? null, ...byDayByCal.values()],
-        isMultiCalendar ? undefined : dateOverrides ?? undefined,
-      ),
-    };
-    const sameAmsterdamDay = (a: Date, b: Date) =>
-      a.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" }) ===
-        b.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
-    const openingHoursRequest = openingHoursQuestion(String(message), new Date());
-    const langSignal = detectLanguageSignal(String(message));
-    const detectedThisMsg = langSignal.nonDutch;
-    const continuityProof = !isMultiCalendar && !convContext.pending_cancel
-      ? bookingContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId, dayHintOpts) : null;
-    const continuity = !convContext.pending_booking ? continuityProof : null;
-    const latestAvailability = !isMultiCalendar && !convContext.pending_booking && !convContext.pending_cancel
-      ? latestAvailabilityContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
-
-    const customerLanguage = openingHoursRequest ? (openingHoursRequest.language === "en" ? "het Engels" : null) : continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
-      (langSignal.confidentDutch
-        ? null
-        : (typeof convContext.detected_language === "string"
-          ? convContext.detected_language
-          : null)));
-
-    // R29: deterministic pre-parse of the CURRENT customer message for a bare relative-weekday
-    // reference ("vrijdag", "vrijdag diezelfde week"), computed fresh from the real server "now",
-    // never from conversation history. See relativeDateHint.ts header for the full bug this
-    // closes (R28: long/rambling message with an unnumbered weekday got resolved against a STALE
-    // date already sitting in earlier conversation history instead of the real today).
-    const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now, dayHintOpts);
     // R93 (SILENT-TODAY-DEFAULT fix, confirmed live bug filed R92): true ONLY when NO explicit day
     // reference has been named ANYWHERE in this conversation yet, this turn's message included.
     // Reuses the SAME already-loaded 12-message history window (`history`, populated further down
@@ -2011,9 +1971,16 @@ Deno.serve(async (req) => {
     // R84 review round 4: the staff member the customer asked for, also when that was an earlier
     // message of this topic ("bij Sanne" in turn 1, only the time in turn 2). The topic window starts
     // fresh on a switch to another calendar, so an old request never outlives a switch.
-    const requestedCalendarIds = !isMultiCalendar ? [] : requestedNow.length ? requestedNow : (() => {
-      for (let i = dayScanWindowTexts.length - 1; i >= 0; i--) {
-        const r = calendarsRequestedIn(dayScanWindowTexts[i], calendars);
+    // Review round 5: at most the three most recent earlier messages, and an explicit "no preference"
+    // ("maakt niet uit bij wie", "geen voorkeur") ends the search: that request is over.
+    const requestedNow = isMultiCalendar && !noStaffPreference(String(message ?? ""))
+      ? calendarsRequestedIn(String(message ?? ""), calendars)
+      : [];
+    const requestedCalendarIds = !isMultiCalendar || noStaffPreference(String(message ?? "")) ? [] : requestedNow.length ? requestedNow : (() => {
+      const earlier = dayScanWindowTexts.filter((t) => t !== String(message ?? ""));
+      for (let i = earlier.length - 1; i >= Math.max(0, earlier.length - 3); i--) {
+        if (noStaffPreference(earlier[i])) return [];
+        const r = calendarsRequestedIn(earlier[i], calendars);
         if (r.length) return r;
       }
       return [];
@@ -2024,6 +1991,47 @@ Deno.serve(async (req) => {
         calendarsForPrompt.map((c) => [calendars[c.index - 1].id, c.services.map((s) => ({ id: s.id, name: s.name }))]),
       )
       : undefined;
+    const now = new Date();
+    // R84 review rounds 3 to 5: a spoken 7-9 ("om 8") only reads as this evening while the business
+    // is still open then today. When the customer asked for exactly one staff member ("om 8 uur bij
+    // Sanne", also in an earlier message of the topic), that person's hours count; otherwise every
+    // calendar in play. The exact-date override
+    // only applies to a single calendar (the same rule buildCalendarHint uses). Unknown hours keep
+    // the evening possible. The same options reach every other place that reads a day.
+    const dayHintOpts = {
+      todayLatestEndMinutes: latestEndTodayMinutes(
+        now,
+        requestedCalendarIds.length === 1 && byDayByCal.has(requestedCalendarIds[0])
+          ? [byDayByCal.get(requestedCalendarIds[0]) ?? null]
+          : [weeklyHours?.byDay ?? null, ...byDayByCal.values()],
+        isMultiCalendar ? undefined : dateOverrides ?? undefined,
+      ),
+    };
+    const sameAmsterdamDay = (a: Date, b: Date) =>
+      a.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" }) ===
+        b.toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
+    const openingHoursRequest = openingHoursQuestion(String(message), new Date());
+    const langSignal = detectLanguageSignal(String(message));
+    const detectedThisMsg = langSignal.nonDutch;
+    const continuityProof = !isMultiCalendar && !convContext.pending_cancel
+      ? bookingContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId, dayHintOpts) : null;
+    const continuity = !convContext.pending_booking ? continuityProof : null;
+    const latestAvailability = !isMultiCalendar && !convContext.pending_booking && !convContext.pending_cancel
+      ? latestAvailabilityContinuation(String(message), sharedMsgsAsc, services, new Date(), continuityInboundId) : null;
+
+    const customerLanguage = openingHoursRequest ? (openingHoursRequest.language === "en" ? "het Engels" : null) : continuity?.language ?? (continuity?.confidentDutch ? null : detectedThisMsg ??
+      (langSignal.confidentDutch
+        ? null
+        : (typeof convContext.detected_language === "string"
+          ? convContext.detected_language
+          : null)));
+
+    // R29: deterministic pre-parse of the CURRENT customer message for a bare relative-weekday
+    // reference ("vrijdag", "vrijdag diezelfde week"), computed fresh from the real server "now",
+    // never from conversation history. See relativeDateHint.ts header for the full bug this
+    // closes (R28: long/rambling message with an unnumbered weekday got resolved against a STALE
+    // date already sitting in earlier conversation history instead of the real today).
+    const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now, dayHintOpts);
     const continuityChoiceWithoutDay = !isMultiCalendar && !convContext.pending_booking &&
       services.some(service => service.name.toLowerCase() === String(message).trim().toLowerCase()) && !continuity;
     const blockForNoDayNamed = continuityChoiceWithoutDay || !hasDayMentionAnywhere(
