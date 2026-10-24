@@ -3,7 +3,7 @@
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
 import { assertEquals } from "jsr:@std/assert@1.0.19";
-import { calendarsRequestedIn, noStaffPreference, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk, staffRequestOverTopic } from "./preFilterCalendars.ts";
+import { calendarsRequestedIn, noStaffPreference, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk, staffRequestOverTopic, staffSwitchKeepsPreviousDay } from "./preFilterCalendars.ts";
 
 const CALENDARS = [
   { id: "sanne", name: "Sanne" },
@@ -399,9 +399,11 @@ Deno.test("R84 review 8: without the customer's name a misread choice only switc
   assertEquals(staffRequestOverTopic(["knippen bij Bo", "ok Sanne"], R7_CALS, ["Sanne"]), ["bo"]);
 });
 
-// R84 (duel D08, 24-10-2026): a staff switch inside the same request keeps the topic window, a new request
-// starts fresh; and a service name shared by several calendars names none of them. Tenant shaped like
-// Salon Sanne, where Bo and Milan both offer "Knippen". Counterexample table written before the change.
+// R84 round 10 (duel D08, 24-10-2026). Round 9 kept the whole topic window on a staff switch; review refused it
+// (the old staff request, a stale day and a reschedule intent survived into new requests). Now every switch to
+// another staff member starts the window empty again, as R98 intended, and staffSwitchKeepsPreviousDay only tells
+// index.ts that the no-day block may be lifted for a clear switch right after a message that named a day. Tenant
+// shaped like Salon Sanne, where Bo and Milan both offer "Knippen". The reviewer's sequences are rows here.
 const D08_CALS = [{ id: "sanne", name: "Sanne (Knippen)" }, { id: "bo", name: "Bo (Nagels)" }, { id: "milan", name: "Milan (Kleuren)" }, { id: "iris", name: "Iris (Weekend)" }];
 const D08_SERVICES = new Map([
   ["sanne", [{ id: "s1", name: "Knippen Dames" }, { id: "s2", name: "Knippen Heren" }]],
@@ -411,34 +413,20 @@ const D08_SERVICES = new Map([
 ]);
 for (
   const [prior, current, want] of [
-    [["knippen bij Milan vrijdag 30 oktober"], "liever bij Bo, om 11:00. naam Kees", "keep"],
-    [["knippen dames bij Sanne, vrijdag 30 oktober"], "liever Bo, om 14:00", "keep"],
-    [["ik wil graag knippen dames bij Sanne, vrijdag 30 oktober om 11:00, naam Eva de Vries"], "maakt niet uit, doe maar Bo", "keep"],
-    [["knippen bij Sanne zaterdag 31 oktober"], "of anders bij Bo?", "keep"],
-    [["knippen bij Sanne zaterdag 31 oktober"], "kan het ook bij Milan?", "keep"],
-    [["haircut with Sanne on friday 30 october"], "I'd rather go to Bo, 2pm", "keep"],
-    [["haircut with Sanne on friday 30 october"], "Bo instead please, 2pm", "keep"],
-    [["knippen bij Sanne vrijdag"], "dan maar bij Bo", "keep"],
-    [["knippen bij Sanne vrijdag"], "toch liever bij Milan", "keep"],
-    [["knippen bij Sanne woensdag 4 november"], "kan ik ipv bij Sanne naar Milan?", "keep"],
-    [["Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?", "Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?", "zondag 2 augustus graag"], "Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?", "reset"],
-    [["Ik wil graag een afspraak bij Iris boeken, wanneer heb je tijd?", "zondag 2 augustus graag"], "Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken, wanneer heb je tijd?", "reset"],
-    [["Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden naar donderdag 30 juli 18:00?", "Zondag 2 augustus is goed, 18:00 graag", "12:00 is prima"], "Los van die Iris-afspraak, ik wil ook nog een keer een afspraak bij Bo boeken, wanneer heb je tijd?", "reset"],
-    [["knippen bij Sanne vrijdag 30 oktober"], "ik wil ook nog gelnagels bij Bo", "reset"],
-    [["knippen bij Sanne vrijdag 30 oktober"], "en liever ook een manicure bij Bo", "reset"],
-    [["kan mijn afspraak bij Iris verzet worden naar zondag 1 november?"], "liever een nieuwe afspraak bij Bo", "reset"],
-    [["knippen bij Sanne vrijdag 30 oktober"], "doe maar een tweede afspraak bij Bo", "reset"],
-    [["haircut with Sanne on friday 30 october"], "also book me a manicure with Bo instead", "reset"],
-    [["knippen bij Sanne vrijdag 30 oktober"], "Ik wil graag een afspraak bij Bo boeken", "reset"],
+    [["knippen bij Milan vrijdag 30 oktober"], "liever bij Bo, om 11:00. naam Kees", "reset"],
+    [["haircut with Sanne on friday 30 october"], "Bo instead please, 2pm", "reset"],
+    [["Kan mijn afspraak bij Iris verzet worden naar zondag 1 november?"], "Mijn dochter wil ook gelnagels bij Bo, liever na 15:00", "reset"],
+    [["Kan mijn afspraak bij Iris verzet worden?", "zondag 1 november graag", "12:00 is prima"], "Dank je! Mijn man wil knippen bij Milan, doe maar 14:00", "reset"],
+    [["Kan mijn afspraak bij Iris verzet worden?"], "Laat maar zitten. Doe maar een manicure bij Bo, wanneer kan dat?", "reset"],
+    [["Can I reschedule my appointment with Iris?"], "Never mind, I'd rather get a manicure with Bo. When are you free?", "reset"],
+    [["Ik wil bij Bo knippen op zaterdag 31 oktober om 10:00"], "Los daarvan wil ik ook nog een nieuwe afspraak voor highlights bij Milan, om 14:00", "reset"],
+    // Salon Sanne R97 shape: before the longest-name rule this Iris topic read as Bo, so Iris's day leaked into Bo.
+    [["Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?", "zondag 1 november graag"], "Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?", "reset"],
     [["knippen bij Sanne vrijdag 30 oktober"], "Kan het bij Sanne ook om 15:00?", "keep"],
     [["knippen bij Sanne vrijdag 30 oktober"], "Kan het om 15:00?", "keep"],
-    // R102 shape: a shared service after a topic about a calendar that does not offer it is a switch.
-    [["ik had een vraag over mijn afspraak bij Iris voor Bruidskapsel"], "Ik wil graag Knippen boeken, zaterdag 7 november om 11:00.", "reset"],
-    // A shared service after a topic about a calendar that DOES offer it is no switch.
-    [["kan ik bij Bo knippen vrijdag 30 oktober?"], "ok, knippen om 11:00 dan", "keep"],
   ] as Array<[string[], string, "keep" | "reset"]>
 ) {
-  Deno.test(`R84 duel D08: scopeToCurrentTopicWindow ${want}s on ${JSON.stringify(current)}`, () => {
+  Deno.test(`R84 round 10: scopeToCurrentTopicWindow ${want}s on ${JSON.stringify(current)}`, () => {
     const window = scopeToCurrentTopicWindow(current, prior, D08_CALS, D08_SERVICES);
     assertEquals(window.length === 0 ? "reset" : "keep", want);
   });
@@ -446,16 +434,43 @@ for (
 for (
   const [text, want] of [
     ["Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?", "iris"],
-    ["ik wil knippen", null],
     ["knippen dames graag", "sanne"],
     ["knippen bij Bo", "bo"],
     ["highlights graag", "milan"],
-    ["manicure", "bo"],
-    ["Los van de Iris-afspraak: ik wil ook graag een nieuwe afspraak bij Bo boeken", "bo"],
-    ["ik wil knippen bij Milan en daarna gelnagels", "bo"],
+    ["Ik wil bij Bo knippen op zaterdag 31 oktober om 10:00", "bo"],
   ] as Array<[string, string | null]>
 ) {
-  Deno.test(`R84 duel D08: lastMentionedCalendar ${JSON.stringify(text)}`, () => {
+  Deno.test(`R84 round 10: lastMentionedCalendar ${JSON.stringify(text)}`, () => {
     assertEquals(lastMentionedCalendar(text, D08_CALS, D08_SERVICES), want);
+  });
+}
+for (
+  const [previous, current, want] of [
+    ["knippen bij Milan vrijdag 30 oktober", "liever bij Bo, om 11:00. naam Kees", true],
+    ["knippen dames bij Sanne, vrijdag 30 oktober", "liever Bo, om 14:00", true],
+    ["ik wil graag knippen dames bij Sanne, vrijdag 30 oktober om 11:00, naam Eva de Vries", "maakt niet uit, doe maar Bo", true],
+    ["knippen bij Sanne zaterdag 31 oktober", "of anders bij Bo?", true],
+    ["knippen bij Sanne zaterdag 31 oktober", "kan het ook bij Milan?", true],
+    ["haircut with Sanne on friday 30 october", "Bo instead please, 2pm", true],
+    ["haircut with Sanne on friday 30 october", "I'd rather go to Bo, 2pm", true],
+    ["haircut with Sanne on friday 30 october", "Can I go to Bo instead?", true],
+    ["knippen bij Milan vrijdag 30 oktober", "Bij Bo dan, om 11:00", true],
+    ["knippen bij Milan vrijdag 30 oktober", "Kan ik ook bij Bo terecht om 11:00?", true],
+    ["Kan mijn afspraak bij Iris verzet worden naar zondag 1 november?", "Mijn dochter wil ook gelnagels bij Bo, liever na 15:00", false],
+    ["12:00 is prima", "Dank je! Mijn man wil knippen bij Milan, doe maar 14:00", false],
+    ["Kan mijn afspraak bij Iris verzet worden naar zondag 1 november?", "My son needs a manicure with Bo, he'd prefer 16:00", false],
+    ["Kan mijn afspraak bij Iris verzet worden?", "Laat maar zitten. Doe maar een manicure bij Bo, wanneer kan dat?", false],
+    ["Can I reschedule my appointment with Iris?", "Never mind, I'd rather get a manicure with Bo. When are you free?", false],
+    ["Ik wil bij Bo knippen op zaterdag 31 oktober om 10:00", "Los daarvan wil ik ook nog een nieuwe afspraak voor highlights bij Milan, om 14:00", false],
+    ["knippen bij Sanne vrijdag 30 oktober", "ik wil ook nog gelnagels bij Bo", false],
+    ["knippen bij Sanne vrijdag 30 oktober", "Ik wil graag een afspraak bij Bo boeken", false],
+    ["knippen bij Sanne vrijdag 30 oktober", "Bo, liever na 15:00", false],
+    ["knippen bij Sanne vrijdag 30 oktober", "liever niet bij Bo", false],
+    ["knippen bij Sanne vrijdag 30 oktober", "doe maar bij Sanne", false],
+    ["kan ik vrijdag 30 oktober bij Milan voor knippen komen?", "laat maar, doe maar bij Bo", false],
+  ] as Array<[string, string, boolean]>
+) {
+  Deno.test(`R84 round 10: staffSwitchKeepsPreviousDay ${want} on ${JSON.stringify(current)}`, () => {
+    assertEquals(staffSwitchKeepsPreviousDay(current, previous, D08_CALS, D08_SERVICES), want);
   });
 }

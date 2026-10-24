@@ -316,47 +316,33 @@ export function lastMentionedCalendar(
   calendars: Array<{ id: string; name: string }>,
   servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
 ): string | null {
-  const set = lastMentionedCalendarSet(text, calendars, servicesByCalendar);
-  return set !== null && set.length === 1 ? set[0] : null;
-}
-
-// R84 (24-10-2026, found while repairing the staff-switch day bug): the calendars the LAST mention in
-// the text can mean. A calendar name means that calendar; a service name means every calendar that
-// offers it ("Knippen" at Bo, Sanne and Milan means all three), so a shared name never silently becomes
-// the first calendar in the list; at the same position the longer match wins ("Knippen + Stylen" of
-// Iris over "Knippen"). Before this, "Kan mijn Knippen + Stylen afspraak verzet worden?" read as Bo in
-// Salon Sanne. null when nothing is named.
-function lastMentionedCalendarSet(
-  text: string,
-  calendars: Array<{ id: string; name: string }>,
-  servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
-): string[] | null {
   const messageTokens = tokenize(text ?? "");
   if (messageTokens.length === 0) return null;
-  const offeredBy = new Map<string, string[]>();
-  for (const cal of calendars) {
-    for (const svc of servicesByCalendar?.get(cal.id) ?? []) {
-      const key = tokenize(svc.name).join(" ");
-      if (!key) continue;
-      const ids = offeredBy.get(key) ?? [];
-      if (!ids.includes(cal.id)) ids.push(cal.id);
-      offeredBy.set(key, ids);
+  // R84 (24-10-2026): at the same position the longer name wins ("Knippen + Stylen" of Iris over the
+  // "Knippen" that Bo also offers). Before this, "Kan mijn Knippen + Stylen afspraak verzet worden?" read
+  // as Bo in Salon Sanne, so a later Bo request looked like the same topic and Iris's day could leak in.
+  // Otherwise unchanged: a later mention wins, and a name several calendars share still reads as the first
+  // of them (review of round 9: treating it as all of them let new requests pass as the same topic).
+  let bestId: string | null = null;
+  let bestIndex = -1;
+  let bestLength = 0;
+  const consider = (index: number, length: number, id: string) => {
+    if (index > bestIndex || (index >= 0 && index === bestIndex && length > bestLength)) {
+      bestIndex = index;
+      bestLength = length;
+      bestId = id;
     }
-  }
-  let best: { index: number; length: number; ids: string[] } | null = null;
-  const consider = (index: number, length: number, ids: string[]) => {
-    if (index < 0) return;
-    if (!best || index > best.index || (index === best.index && length > best.length)) best = { index, length, ids };
   };
   for (const cal of calendars) {
     const nameTokens = primaryCalendarNameTokens(cal.name);
-    consider(maxTokenMatchIndex(messageTokens, nameTokens), nameTokens.length, [cal.id]);
+    consider(maxTokenMatchIndex(messageTokens, nameTokens), nameTokens.length, cal.id);
+    const services = servicesByCalendar?.get(cal.id) ?? [];
+    for (const svc of services) {
+      const svcTokens = tokenize(svc.name);
+      consider(maxTokenMatchIndex(messageTokens, svcTokens), svcTokens.length, cal.id);
+    }
   }
-  for (const [key, ids] of offeredBy) {
-    const svcTokens = key.split(" ");
-    consider(maxTokenMatchIndex(messageTokens, svcTokens), svcTokens.length, ids);
-  }
-  return best ? (best as { ids: string[] }).ids : null;
+  return bestId;
 }
 
 // R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix, live-reproduced R96/R100): resolveCandidateCalendarIds
@@ -425,9 +411,8 @@ export function scopeToCurrentTopicWindow(
   servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
 ): string[] {
   if (calendars.length <= 1) return priorInboundTextsOldestFirst;
-  // R84: the calendars the current mention can mean ("Knippen" can mean three), see lastMentionedCalendarSet.
-  const currentSet = lastMentionedCalendarSet(currentText, calendars, servicesByCalendar);
-  if (currentSet === null) return priorInboundTextsOldestFirst;
+  const currentCal = lastMentionedCalendar(currentText, calendars, servicesByCalendar);
+  if (currentCal === null) return priorInboundTextsOldestFirst;
   // R98 (live-verify fix): the real webhook path inserts THIS turn's own inbound row into
   // whatsapp_messages BEFORE invoking this agent (see index.ts's own "newestIsCurrentInbound"
   // dedup a few hundred lines below, the same established shape), so the newest entry in
@@ -441,27 +426,52 @@ export function scopeToCurrentTopicWindow(
       priorInboundTextsOldestFirst[priorInboundTextsOldestFirst.length - 1] === currentText
     ? priorInboundTextsOldestFirst.slice(0, -1)
     : priorInboundTextsOldestFirst;
-  let recentSet: string[] | null = null;
+  let recentCal: string | null = null;
   for (let i = historyTexts.length - 1; i >= 0; i--) {
-    recentSet = lastMentionedCalendarSet(historyTexts[i], calendars, servicesByCalendar);
-    if (recentSet !== null) break;
+    recentCal = lastMentionedCalendar(historyTexts[i], calendars, servicesByCalendar);
+    if (recentCal !== null) break;
   }
-  // A switch only when no calendar the current message can mean is one the previous topic meant: "Knippen"
-  // after an Iris topic (Iris offers no Knippen) is a switch, "Knippen" after a Sanne topic is not.
-  if (recentSet !== null && !recentSet.some((id) => currentSet.includes(id))) {
-    // R84 (duel D08, 24-10-2026): a change of staff member INSIDE the same request ("liever bij Bo",
-    // "doe maar Bo", "of anders bij Bo", "kan het ook bij Milan?", "Bo instead") keeps the window, so the
-    // day the customer already gave still counts. Before this, blockForNoDayNamed refused the booking with
-    // vraag_dag for both models. A new request ("los van ...", "ook nog", "een nieuwe of tweede afspraak",
-    // "een afspraak bij Bo boeken") still starts fresh, as R98 intended; without a clear switch word it
-    // starts fresh too, because a stale day leaking into a new topic is the worse error.
-    const norm = normalize(currentText ?? "");
-    if (SAME_REQUEST_SWITCH_RE.test(norm) && !NEW_REQUEST_RE.test(norm)) return priorInboundTextsOldestFirst;
-    return [];
-  }
+  if (recentCal !== null && recentCal !== currentCal) return [];
   return priorInboundTextsOldestFirst;
 }
-const SAME_REQUEST_SWITCH_RE =
-  /\b(?:liever|doe maar|dan maar|dan toch|toch maar|toch liever|of anders|kan het ook|mag het ook|is ook goed|ipv|in plaats van|rather|instead|prefer)\b/;
-const NEW_REQUEST_RE =
-  /\b(?:los van|ook nog|ook een|nog een|nieuwe|tweede|andere afspraak|extra afspraak|apart|another|also|second|separate)\b|\bafspraak (?:bij \S+ )?(?:boeken|maken|inplannen)\b|\bbook(?:ing)? an? appointment\b/;
+// R84 round 10 (duel D08; review of round 9 refused keeping the whole window): is the current message a clear
+// change of staff member INSIDE the booking request of the message right before it ("knippen bij Milan vrijdag 30
+// oktober", then "liever bij Bo, om 11:00")? index.ts then lifts only the no-day block; the topic window still
+// starts empty, so no old staff request, reschedule intent or carried day hint is forced onto the new message.
+// The switch word must sit right next to the new name ("liever bij Bo", "doe maar Bo", "of anders bij Bo", "kan
+// het ook bij Milan", "Bo dan", "Bo instead", "rather go to Bo"): "Bo, liever na 15:00" is about the time. Never
+// for another person, a new or second request, "laat maar zitten", or a reschedule or cancellation on either side.
+const SWITCH_NOT_SAME_REQUEST_RE =
+  /\b(?:los van|ook nog|ook een|nog een|nieuwe|tweede|andere afspraak|extra afspraak|apart|another|also|second|separate|laat maar|vergeet (?:het|dat)|never ?mind|forget (?:it|that))\b|\bafspraak (?:bij \S+ )?(?:boeken|maken|inplannen)\b|\bbook(?:ing)? an? appointment\b|\b(?:mijn|m'n|my)\s+(?:zoon|dochter|man|vrouw|vriend|vriendin|partner|moeder|vader|kind|kinderen|zus|broer|collega|son|daughter|husband|wife|kid|kids|friend|mother|father|mum|mom|dad|sister|brother)\b|\b(?:voor (?:mijn|m'n)|for my)\b/;
+const RESCHEDULE_OR_CANCEL_RE = /\b(?:verzet\w*|verplaats\w*|annuleer\w*|annulering\w*|afzeg\w*|cancel\w*|reschedul\w*|move my)\b/;
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+export function staffSwitchKeepsPreviousDay(
+  currentText: string,
+  previousInboundText: string,
+  calendars: Array<{ id: string; name: string }>,
+  servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
+): boolean {
+  if (calendars.length <= 1) return false;
+  const current = normalize(currentText ?? "");
+  const previous = normalize(previousInboundText ?? "");
+  if (SWITCH_NOT_SAME_REQUEST_RE.test(current) || RESCHEDULE_OR_CANCEL_RE.test(current) || RESCHEDULE_OR_CANCEL_RE.test(previous)) {
+    return false;
+  }
+  const previousCal = lastMentionedCalendar(previousInboundText, calendars, servicesByCalendar);
+  if (previousCal === null) return false;
+  for (const cal of calendars) {
+    if (cal.id === previousCal) continue;
+    const name = primaryCalendarNameTokens(cal.name).map(escapeRe).join("\\s+");
+    if (!name) continue;
+    const near = new RegExp(
+      `\\b(?:liever|doe maar|dan maar|dan toch|toch maar|toch liever|of anders|anders)\\s+(?:(?:bij|naar|met|with|to)\\s+)?${name}\\b` +
+        `|\\b(?:kan|mag) (?:het|ik) ook (?:bij|naar) ${name}\\b` +
+        `|\\b(?:rather|prefer)\\s+(?:go\\s+)?(?:(?:to|with|at)\\s+)?${name}\\b` +
+        `|\\b${name}\\s+(?:dan|instead)\\b`,
+    );
+    if (near.test(current)) return true;
+  }
+  return false;
+}
