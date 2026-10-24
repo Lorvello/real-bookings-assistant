@@ -67,7 +67,7 @@ FIXTURES_PATH = os.environ.get("BA_BAKEOFF_FIXTURES") or os.path.join(R05, "fixt
 if not os.path.exists(FIXTURES_PATH):
     FIXTURES_PATH = os.path.join(BA, ".reliability/launch_run_2026_09/RSTG/fixtures.json")
 
-TZ = "+02"  # Europe/Amsterdam in september
+TZ = "+02"  # Europe/Amsterdam in september; historical, ts() computes the offset per date since R84
 
 
 def q(s) -> str:
@@ -100,7 +100,13 @@ FRI2 = "2026-09-18"  # vrijdag volgende week                       : S13
 
 
 def ts(date: str, hhmm: str) -> str:
-    return f"{date} {hhmm}:00{TZ}"
+    # R84 (24-10-2026): the Europe/Amsterdam offset of THIS date, +02 in summer and +01 in winter. The
+    # fixed TZ above put every fixture from 25 October on one hour early (10:00 became 09:00 local),
+    # while the self-checks built with the same offset still passed.
+    import datetime as _dt
+    from zoneinfo import ZoneInfo as _Zone
+    local = _dt.datetime.fromisoformat(f"{date}T{hhmm}").replace(tzinfo=_Zone("Europe/Amsterdam"))
+    return f"{date} {hhmm}:00{int(local.utcoffset().total_seconds() // 3600):+03d}"
 
 
 # ==========================================================================================
