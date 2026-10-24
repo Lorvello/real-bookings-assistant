@@ -141,7 +141,6 @@ import {
   resolveCandidateCalendarIds,
   scopeToCurrentTopicWindow,
   staffRequestOverTopic,
-  staffSwitchKeepsPreviousDay,
 } from "./preFilterCalendars.ts";
 import { sendWhatsAppText } from "../_shared/whatsappSend.ts";
 import {
@@ -2031,25 +2030,11 @@ Deno.serve(async (req) => {
     const relativeDateHint = extractRelativeDayHint(String(message ?? ""), now, dayHintOpts);
     const continuityChoiceWithoutDay = !isMultiCalendar && !convContext.pending_booking &&
       services.some(service => service.name.toLowerCase() === String(message).trim().toLowerCase()) && !continuity;
-    // R84 round 10 (duel D08): a clear change of staff member right after a message that named a day ("knippen bij
-    // Milan vrijdag 30 oktober", then "liever bij Bo, om 11:00") still empties the topic window like any switch, so no
-    // old staff request, reschedule intent or carried day hint survives; only this no-day block is lifted, and the
-    // model reads the day from that previous message. That message must be the customer's last one and at most two
-    // hours old. Review of round 9 refused keeping the whole window (wrong staff, stale day, wrong flow).
-    const previousInboundIndex = (() => {
-      for (let i = priorInboundTexts.length - 1; i >= 0; i--) if (priorInboundTexts[i] !== String(message ?? "")) return i;
-      return -1;
-    })();
-    const previousInboundFresh = previousInboundIndex >= 0 &&
-      now.getTime() - (priorInboundSentAt[previousInboundIndex]?.getTime() ?? 0) <= 2 * 60 * 60 * 1000;
-    const staffSwitchCarriesDay = isMultiCalendar && previousInboundFresh &&
-      staffSwitchKeepsPreviousDay(String(message ?? ""), priorInboundTexts[previousInboundIndex], calendars, servicesByCalendarForTopicScope) &&
-      hasDayMentionAnywhere(priorInboundTexts[previousInboundIndex], [], now);
-    const blockForNoDayNamed = continuityChoiceWithoutDay || (!hasDayMentionAnywhere(
+    const blockForNoDayNamed = continuityChoiceWithoutDay || !hasDayMentionAnywhere(
       String(message ?? ""),
       dayScanWindowTexts,
       now,
-    ) && !staffSwitchCarriesDay);
+    );
     // R127 (SILENT-DAY-DRIFT fix, live-reproduced R126): relativeDateHint above is null whenever
     // the CURRENT message names no day at all (only extractRelativeDayHint(message) feeds it). A
     // bare time-only confirmation turn ("Doe maar 10:00", or a mixed price-question + time-only
