@@ -3,7 +3,7 @@
 // no live model calls.
 // Run: deno test --allow-env preFilterCalendars.test.ts
 import { assertEquals } from "jsr:@std/assert@1.0.19";
-import { calendarsRequestedIn, noStaffPreference, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk } from "./preFilterCalendars.ts";
+import { calendarsRequestedIn, noStaffPreference, resolveCandidateCalendarIds, lastMentionedCalendar, scopeToCurrentTopicWindow, enforceNoRedundantLocationAsk, staffRequestOverTopic } from "./preFilterCalendars.ts";
 
 const CALENDARS = [
   { id: "sanne", name: "Sanne" },
@@ -328,3 +328,53 @@ Deno.test("R84 review 5: noStaffPreference recognises an explicit no-preference"
     assertEquals(noStaffPreference(msg), false, msg);
   }
 });
+
+// R84 review round 7 (independent reviewer, 2026-10-24): the staff request over the topic. A different
+// name said without "bij" switches it, asking for someone else or for whoever has room ends it, a bare
+// name never starts one. Counterexample table in both directions; index.ts passes at most three earlier
+// messages, so the table does the same.
+const R7_CALS = [{ id: "sanne", name: "Sanne (Knippen)" }, { id: "bo", name: "Bo" }, { id: "iris", name: "Iris" }, { id: "bram", name: "Bram" }];
+for (
+  const [texts, want] of [
+    [["ik wil graag knippen bij Sanne", "maakt niet uit, doe maar Bo"], ["bo"]],
+    [["ik wil graag knippen bij Sanne", "doe maar Bo"], ["bo"]],
+    [["ik wil graag knippen bij Sanne", "Bo is ook goed"], ["bo"]],
+    [["ik wil graag knippen bij Sanne", "doe maar Bo", "vrijdag om 14:00"], ["bo"]],
+    [["ik wil graag knippen bij Sanne", "de tijd maakt me niet uit", "vrijdag om 14:00"], ["sanne"]],
+    [["ik wil graag knippen bij Sanne", "maakt niet uit"], ["sanne"]],
+    [["ik wil graag knippen bij Sanne", "maakt niet uit bij wie, vrijdag om 14:00"], []],
+    [["ik wil graag knippen bij Sanne", "Sanne graag, vrijdag"], ["sanne"]],
+    [["hoi, wie heeft er vrijdag plek?", "Bo"], []],
+    [["ik wil graag knippen bij Sanne", "of anders iemand anders"], []],
+    [["ik wil graag knippen bij Sanne", "wie heeft er vrijdag dan wel plek?"], []],
+    [["ik was vorige week bij Sanne, nu graag iemand anders"], []],
+    [["I was told to book with Sanne"], ["sanne"]],
+    [["vorige keer was ik bij Sanne, nu graag bij Bo"], ["bo"]],
+    [["ik was al eens bij Sanne, kan ik weer bij haar?"], []],
+    [["ik wil knippen bij Sanne", "Sanne niet, doe maar Bo"], ["bo"]],
+    [["ik wil knippen bij Sanne", "niet Bo hoor, gewoon Sanne"], ["sanne"]],
+    [["ik wil knippen bij Sanne", "Bo of Sanne, allebei goed"], ["sanne", "bo"]],
+    [["kan ik ipv bij bram naar iris?"], ["iris"]],
+    [["ik wil knippen bij Sanne", "ik kom met Bo mee", "vrijdag 14:00"], ["sanne"]],
+    [["knippen bij Sanne vrijdag", "ok", "14:00 graag"], ["sanne"]],
+    [["knippen bij Sanne", "maakt niet uit hoe laat, als het maar bij Sanne is"], ["sanne"]],
+    [["kan ik bij iemand anders dan Sanne?"], []],
+    [["ik wil graag bij Sanne", "Sanne is ziek, wie heeft er plek?"], []],
+    [["Sanne is ziek, kan ik vrijdag knippen?"], []],
+    [["ik boek ook voor iemand anders, bij Sanne graag"], ["sanne"]],
+    [["knippen bij Sanne", "ik boek ook voor iemand anders"], ["sanne"]],
+    [["haircut with Sanne please", "someone else is fine too"], []],
+    [["haircut with Sanne please", "ok Bo then"], ["bo"]],
+    [["haircut with Sanne please", "it doesn’t matter who"], []],
+    [["haircut with Sanne please", "the time doesn't matter"], ["sanne"]],
+    [["knippen bij Sanne", "geen voorkeur voor de tijd"], ["sanne"]],
+    [["knippen bij Sanne", "mag ook bij een andere kapper"], []],
+    [["knippen bij Sanne", "ok", "prima", "Bo"], ["bo"]],
+    [["knippen bij Sanne", "vrijdag 14:00", "ok", "prima", "Bo"], []],
+    [["knippen bij Sanne", "a", "b", "c", "vrijdag 14:00"], []],
+  ] as Array<[string[], string[]]>
+) {
+  Deno.test(`R84 review 7: staffRequestOverTopic ${JSON.stringify(texts)}`, () => {
+    assertEquals(staffRequestOverTopic([...texts.slice(0, -1).slice(-3), texts.at(-1)!], R7_CALS), want);
+  });
+}

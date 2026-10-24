@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 e7519f379ad1ade5299d216800b4d3e91237aa9081ddd57b9b240b83970f6ee2)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 2a519698c474372fab4bcb49b2ccd8f9bf025e94f963874c6767d0f41db04a32)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -157,11 +157,10 @@ import {
   detectLanguageSignal,
 } from "../whatsapp-agent/languageSignal.ts";
 import {
-  calendarsRequestedIn,
   enforceNoRedundantLocationAsk,
-  noStaffPreference,
   resolveCandidateCalendarIds,
   scopeToCurrentTopicWindow,
+  staffRequestOverTopic,
 } from "../whatsapp-agent/preFilterCalendars.ts";
 import { sendWhatsAppText } from "./recorderSend.ts";
 import {
@@ -1994,17 +1993,12 @@ stagingServe(async (req: Request) => {
     // Review round 5: at most the three most recent earlier messages, and an explicit "no preference"
     // ("maakt niet uit bij wie", "geen voorkeur") ends the search: that request is over.
     // Round 6: a request in the same message always wins over a "no preference" phrase.
-    const requestedNow = isMultiCalendar ? calendarsRequestedIn(String(message ?? ""), calendars) : [];
-    const requestedCalendarIds = !isMultiCalendar ? [] : requestedNow.length ? requestedNow
-      : noStaffPreference(String(message ?? "")) ? [] : (() => {
-      const earlier = dayScanWindowTexts.filter((t) => t !== String(message ?? ""));
-      for (let i = earlier.length - 1; i >= Math.max(0, earlier.length - 3); i--) {
-        const r = calendarsRequestedIn(earlier[i], calendars);
-        if (r.length) return r;
-        if (noStaffPreference(earlier[i])) return [];
-      }
-      return [];
-    })();
+    // Round 7: staffRequestOverTopic reads the same three earlier messages plus this one, oldest first;
+    // a different name said without "bij" ("doe maar Bo") now switches the request as well.
+    const requestedCalendarIds = !isMultiCalendar ? [] : staffRequestOverTopic(
+      [...dayScanWindowTexts.filter((t) => t !== String(message ?? "")).slice(-3), String(message ?? "")],
+      calendars,
+    );
     // Each calendar's own services (id + name), for the staff check and the same-service correction.
     const servicesByCalendar = isMultiCalendar && calendarsForPrompt
       ? Object.fromEntries(

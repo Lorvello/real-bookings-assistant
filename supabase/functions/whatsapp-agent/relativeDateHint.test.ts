@@ -998,3 +998,44 @@ for (
     assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
   });
 }
+
+// R84 review round 7 (independent reviewer, 2026-10-24): each time is judged in its own part of the
+// sentence, so a time ruled out before an alternative no longer hides it ("om 10 uur lukt me niet, kan het
+// om 4 uur?"). Counterexample table in both directions, written before the change.
+for (
+  const [msg, hhmm, want] of [
+    ["dinsdag om 10 uur lukt me niet, kan het om 4 uur?", "14:00", TUE],
+    ["dinsdag om 4 uur lukt me niet, kan het om 10 uur?", "12:00", NEXT_TUE],
+    ["dinsdag om 4 uur lukt me niet, kan het om 10 uur?", "08:00", TUE],
+    ["tuesday 10am doesn't work, can we do 4pm?", "14:00", TUE],
+    ["tuesday 4pm doesn't work, 10am?", "12:00", NEXT_TUE],
+    ["dinsdag om 10 uur kan ik niet", "14:00", NEXT_TUE],
+    ["dinsdag om 10 uur kan ik niet", "08:00", TUE],
+    ["dinsdag ik kan niet om 10 uur, wel om 4 uur", "14:00", TUE],
+    ["dinsdag kan ik niet om 4 uur, wel om 10 uur", "12:00", NEXT_TUE],
+    ["tuesday can't do 4pm, 10am works", "12:00", NEXT_TUE],
+    ["tuesday can't do 10am, 4pm?", "14:00", TUE],
+    ["dinsdag om 10 uur gaat niet, om 4 uur wel", "14:00", TUE],
+    ["dinsdag om 4 uur gaat niet, om 10 uur wel", "12:00", NEXT_TUE],
+    ["dinsdag 10 uur niet, 4 uur wel", "14:00", TUE],
+    ["dinsdag 4 uur niet, 10 uur wel", "12:00", NEXT_TUE],
+    ["tuesday 4pm won't work, 10am?", "12:00", NEXT_TUE],
+    ["dinsdag om 10 uur lukt me niet want dan moet ik werken, om 4 uur?", "14:00", TUE],
+    ["dinsdag om 3 uur moet ik weg, kan het om 10 uur?", "12:00", NEXT_TUE],
+    ["dinsdag om 3 uur moet ik weg, kan het om 10 uur?", "08:00", TUE],
+    ["kan het niet om 4 uur dinsdag?", "14:00", TUE],
+    ["dinsdag om 10 uur, of kan het niet om 4 uur?", "14:00", TUE],
+    ["tuesday 10am doesn’t work, can we do 4pm?", "14:00", TUE],
+    ["tuesday can’t do 4pm, 10am works", "12:00", NEXT_TUE],
+    ["dinsdag om 10 uur lukt het me helaas niet, om 4 uur wel", "14:00", TUE],
+    ["dinsdag liever niet om 4 uur, 10 uur?", "12:00", NEXT_TUE],
+    ["dinsdag om 10 uur of om 4 uur", "14:00", TUE],
+    ["dinsdag om 10 uur", "14:00", NEXT_TUE],
+    ["tuesday 10am or i can't do 4pm", "12:00", NEXT_TUE],
+    ["di 10 uur knippen? karim", "14:00", NEXT_TUE],
+  ] as const
+) {
+  Deno.test(`R84 review 7: ${JSON.stringify(msg)} at ${hhmm}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
+  });
+}

@@ -219,8 +219,17 @@ const BUSY_REASON_RE = /\b(?:werk\w*|bezig|druk|school|college|les|vergader\w*|d
 // rules out is one ("om 4 uur kan ik niet", "4pm doesn't work").
 // Work is a constraint ("om 3 uur moet ik werken"), but "na mijn werk om 4 uur" offers 16:00 and
 // "4pm works too" agrees to it.
-const CONSTRAINT_RE =
-  /\b(?:weg|vertrek\w*|ophalen|halen|school|leave|leaving|gone|pick\s*up)\b|(?<!\b(?:na|after)\s+(?:mijn\s+|het\s+|my\s+)?)\b(?:werk\w*|work(?!s\b)\w*)\b|\b(?:kan ik niet|lukt (?:me |mij |het )?niet|kan niet|can'?t|cannot|doesn'?t work|does not work)\b/i;
+// Round 7: a reason to be gone, read in the time's own part of the sentence (see clockTimeForDay);
+// "doesn't work" is about the time itself, not a job.
+const GONE_RE =
+  /\b(?:weg|vertrek\w*|ophalen|halen|school|leave|leaving|gone|pick\s*up)\b|(?<!\b(?:na|after)\s+(?:mijn\s+|het\s+|my\s+)?)(?<!\b(?:doesn['’]?t|does\s+not|won['’]?t|will\s+not)\s+)\b(?:werk\w*|work(?!s\b)\w*)\b/i;
+// Round 7: words right after a time that rule it out ("om 10 uur lukt me niet", "10 uur niet", "4pm
+// doesn't work"), and words right before one ("ik kan niet om 10 uur", "liever niet om 10 uur", "can't do
+// 4pm"). "kan het niet om 4 uur?" asks for 4 uur, so the words before need a first person or "liever".
+const RULED_OUT_AFTER_RE =
+  /^\s*(?:(?:ook|helaas|echt|toch)\s+)*niet\b|^\s*(?:kan|lukt|gaat|past)\b(?:\s+(?:ik|het|me|mij|dat|echt|helaas|toch|dan))*\s+niet\b|\b(?:doesn['’]?t|does\s+not|won['’]?t|will\s+not)\s+work\b|^\s*(?:i\s+)?(?:can['’]?t|cannot)\b/i;
+const RULED_OUT_BEFORE_RE =
+  /(?:\b(?:kan ik|ik kan|lukt (?:het )?(?:me|mij)|liever)\s+(?:\w+\s+)?niet|\b(?:can['’]?t|cannot)(?:\s+(?:do|make|make it|come))?|\bnot)\s+(?:om\s+|at\s+)?$/i;
 // The end of the clause that owns a weekday: punctuation that ends a sentence (a dot inside a time
 // such as "9.30" does not), or another day word.
 const CLAUSE_END_RE =
@@ -365,14 +374,27 @@ function clockTimeForDay(s: string, dayIndex: number, todayLatestEnd?: number | 
   const dayPhrase = /^[a-z]+(?:\s+(?:'s\s*)?[a-z]+){0,2}/i.exec(s.slice(tokenEnd - (dayToken.match(/[a-z]+$/i)?.[0].length ?? 0)))?.[0] ?? dayToken;
   const dayDaypart = daypartIn(dayPhrase);
   const owned = hits.filter((h) => h.index >= dayIndex && h.index < clauseEnd);
-  // Round 5: every later time in the clause is another option, until one carries a constraint (the
-  // text since the previous time, or right after it up to a comma, names a reason to be gone).
-  const chosen: ClockHit[] = owned.length ? [owned[0]] : [hits.filter((h) => h.index < dayIndex).at(-1) ?? hits[0]];
-  for (let k = 1; k < owned.length; k++) {
-    const near = s.slice(owned[k - 1].end, owned[k].index) + " " + (/^[^,.;!?\n]*/.exec(s.slice(owned[k].end))?.[0] ?? "");
-    if (CONSTRAINT_RE.test(near)) break;
-    chosen.push(owned[k]);
-  }
+  // Round 5: every later time in the clause is another option ("4 uur kan ook", "liever 4 uur").
+  // Round 7 (review round 6 found "om 10 uur lukt me niet, kan het om 4 uur?" read as ruling out 16:00):
+  // each time is judged in its own part of the sentence, the words since the previous time or the last
+  // comma, and right after it up to the next comma or time. It is no option when that part rules it out
+  // or names a reason to be gone ("ik moet om 3 uur weer weg"). Words that rule out the NEXT time ("or i
+  // can't do 4pm") never count for the previous one. When every time is out, the first still decides the
+  // day, as before.
+  const partBefore = (k: number) => {
+    const text = s.slice(k > 0 ? owned[k - 1].end : tokenEnd, owned[k].index);
+    return text.slice(Math.max(text.lastIndexOf(","), text.lastIndexOf(";")) + 1);
+  };
+  const partAfter = (k: number) => {
+    const text = s.slice(owned[k].end, k + 1 < owned.length ? owned[k + 1].index : s.length);
+    return (/^[^,.;!?\n]*/.exec(text)?.[0] ?? "").replace(RULED_OUT_BEFORE_RE, "");
+  };
+  const options = owned.filter((_, k) =>
+    !RULED_OUT_AFTER_RE.test(partAfter(k)) && !RULED_OUT_BEFORE_RE.test(partBefore(k)) &&
+    !GONE_RE.test(partBefore(k) + " " + partAfter(k))
+  );
+  const chosen: ClockHit[] = options.length ? options
+    : owned.length ? [owned[0]] : [hits.filter((h) => h.index < dayIndex).at(-1) ?? hits[0]];
   let latest: number | null = null;
   for (const hit of chosen) {
     // The time's own daypart: up to three words right after it, never across punctuation.
