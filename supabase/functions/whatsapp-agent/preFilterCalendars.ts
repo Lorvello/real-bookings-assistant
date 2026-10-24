@@ -316,20 +316,47 @@ export function lastMentionedCalendar(
   calendars: Array<{ id: string; name: string }>,
   servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
 ): string | null {
+  const set = lastMentionedCalendarSet(text, calendars, servicesByCalendar);
+  return set !== null && set.length === 1 ? set[0] : null;
+}
+
+// R84 (24-10-2026, found while repairing the staff-switch day bug): the calendars the LAST mention in
+// the text can mean. A calendar name means that calendar; a service name means every calendar that
+// offers it ("Knippen" at Bo, Sanne and Milan means all three), so a shared name never silently becomes
+// the first calendar in the list; at the same position the longer match wins ("Knippen + Stylen" of
+// Iris over "Knippen"). Before this, "Kan mijn Knippen + Stylen afspraak verzet worden?" read as Bo in
+// Salon Sanne. null when nothing is named.
+function lastMentionedCalendarSet(
+  text: string,
+  calendars: Array<{ id: string; name: string }>,
+  servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
+): string[] | null {
   const messageTokens = tokenize(text ?? "");
   if (messageTokens.length === 0) return null;
-  let bestId: string | null = null;
-  let bestIndex = -1;
+  const offeredBy = new Map<string, string[]>();
   for (const cal of calendars) {
-    const nameIdx = maxTokenMatchIndex(messageTokens, primaryCalendarNameTokens(cal.name));
-    if (nameIdx > bestIndex) { bestIndex = nameIdx; bestId = cal.id; }
-    const services = servicesByCalendar?.get(cal.id) ?? [];
-    for (const svc of services) {
-      const svcIdx = maxTokenMatchIndex(messageTokens, tokenize(svc.name));
-      if (svcIdx > bestIndex) { bestIndex = svcIdx; bestId = cal.id; }
+    for (const svc of servicesByCalendar?.get(cal.id) ?? []) {
+      const key = tokenize(svc.name).join(" ");
+      if (!key) continue;
+      const ids = offeredBy.get(key) ?? [];
+      if (!ids.includes(cal.id)) ids.push(cal.id);
+      offeredBy.set(key, ids);
     }
   }
-  return bestId;
+  let best: { index: number; length: number; ids: string[] } | null = null;
+  const consider = (index: number, length: number, ids: string[]) => {
+    if (index < 0) return;
+    if (!best || index > best.index || (index === best.index && length > best.length)) best = { index, length, ids };
+  };
+  for (const cal of calendars) {
+    const nameTokens = primaryCalendarNameTokens(cal.name);
+    consider(maxTokenMatchIndex(messageTokens, nameTokens), nameTokens.length, [cal.id]);
+  }
+  for (const [key, ids] of offeredBy) {
+    const svcTokens = key.split(" ");
+    consider(maxTokenMatchIndex(messageTokens, svcTokens), svcTokens.length, ids);
+  }
+  return best ? (best as { ids: string[] }).ids : null;
 }
 
 // R101 (SINGLE-CANDIDATE-DISAMBIGUATION-ASK fix, live-reproduced R96/R100): resolveCandidateCalendarIds
@@ -398,8 +425,9 @@ export function scopeToCurrentTopicWindow(
   servicesByCalendar?: Map<string, PreFilterServiceInfo[]>,
 ): string[] {
   if (calendars.length <= 1) return priorInboundTextsOldestFirst;
-  const currentCal = lastMentionedCalendar(currentText, calendars, servicesByCalendar);
-  if (currentCal === null) return priorInboundTextsOldestFirst;
+  // R84: the calendars the current mention can mean ("Knippen" can mean three), see lastMentionedCalendarSet.
+  const currentSet = lastMentionedCalendarSet(currentText, calendars, servicesByCalendar);
+  if (currentSet === null) return priorInboundTextsOldestFirst;
   // R98 (live-verify fix): the real webhook path inserts THIS turn's own inbound row into
   // whatsapp_messages BEFORE invoking this agent (see index.ts's own "newestIsCurrentInbound"
   // dedup a few hundred lines below, the same established shape), so the newest entry in
@@ -413,11 +441,27 @@ export function scopeToCurrentTopicWindow(
       priorInboundTextsOldestFirst[priorInboundTextsOldestFirst.length - 1] === currentText
     ? priorInboundTextsOldestFirst.slice(0, -1)
     : priorInboundTextsOldestFirst;
-  let recentCal: string | null = null;
+  let recentSet: string[] | null = null;
   for (let i = historyTexts.length - 1; i >= 0; i--) {
-    recentCal = lastMentionedCalendar(historyTexts[i], calendars, servicesByCalendar);
-    if (recentCal !== null) break;
+    recentSet = lastMentionedCalendarSet(historyTexts[i], calendars, servicesByCalendar);
+    if (recentSet !== null) break;
   }
-  if (recentCal !== null && recentCal !== currentCal) return [];
+  // A switch only when no calendar the current message can mean is one the previous topic meant: "Knippen"
+  // after an Iris topic (Iris offers no Knippen) is a switch, "Knippen" after a Sanne topic is not.
+  if (recentSet !== null && !recentSet.some((id) => currentSet.includes(id))) {
+    // R84 (duel D08, 24-10-2026): a change of staff member INSIDE the same request ("liever bij Bo",
+    // "doe maar Bo", "of anders bij Bo", "kan het ook bij Milan?", "Bo instead") keeps the window, so the
+    // day the customer already gave still counts. Before this, blockForNoDayNamed refused the booking with
+    // vraag_dag for both models. A new request ("los van ...", "ook nog", "een nieuwe of tweede afspraak",
+    // "een afspraak bij Bo boeken") still starts fresh, as R98 intended; without a clear switch word it
+    // starts fresh too, because a stale day leaking into a new topic is the worse error.
+    const norm = normalize(currentText ?? "");
+    if (SAME_REQUEST_SWITCH_RE.test(norm) && !NEW_REQUEST_RE.test(norm)) return priorInboundTextsOldestFirst;
+    return [];
+  }
   return priorInboundTextsOldestFirst;
 }
+const SAME_REQUEST_SWITCH_RE =
+  /\b(?:liever|doe maar|dan maar|dan toch|toch maar|toch liever|of anders|kan het ook|mag het ook|is ook goed|ipv|in plaats van|rather|instead|prefer)\b/;
+const NEW_REQUEST_RE =
+  /\b(?:los van|ook nog|ook een|nog een|nieuwe|tweede|andere afspraak|extra afspraak|apart|another|also|second|separate)\b|\bafspraak (?:bij \S+ )?(?:boeken|maken|inplannen)\b|\bbook(?:ing)? an? appointment\b/;
