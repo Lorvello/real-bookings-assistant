@@ -1039,3 +1039,16 @@ for (
     assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
   });
 }
+
+// R84 review round 8 (independent reviewer, 2026-10-24): "if not 4pm" offers 4pm as the alternative.
+for (
+  const [msg, hhmm, want] of [
+    ["tuesday 10am, if not 4pm?", "14:00", TUE],
+    ["dinsdag om 10 uur, zo niet om 4 uur?", "14:00", TUE],
+    ["tuesday 10am or not at all", "14:00", NEXT_TUE],
+  ] as const
+) {
+  Deno.test(`R84 review 8: ${JSON.stringify(msg)} at ${hhmm}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
+  });
+}

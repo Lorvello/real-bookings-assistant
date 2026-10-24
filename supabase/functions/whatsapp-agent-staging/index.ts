@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 2a519698c474372fab4bcb49b2ccd8f9bf025e94f963874c6767d0f41db04a32)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 ca7a9b75762c4d14ec89e10920ac99d4cd7610a86a25a0a76b0da96f2a50923a)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -1993,11 +1993,13 @@ stagingServe(async (req: Request) => {
     // Review round 5: at most the three most recent earlier messages, and an explicit "no preference"
     // ("maakt niet uit bij wie", "geen voorkeur") ends the search: that request is over.
     // Round 6: a request in the same message always wins over a "no preference" phrase.
-    // Round 7: staffRequestOverTopic reads the same three earlier messages plus this one, oldest first;
-    // a different name said without "bij" ("doe maar Bo") now switches the request as well.
+    // Round 7: staffRequestOverTopic reads the same three earlier messages plus this one, oldest first.
+    // Round 8: choosing another staff member without "bij" ("doe maar Bo") ends the request; the
+    // customer's own names (booking name, WhatsApp profile name) never count as a choice.
     const requestedCalendarIds = !isMultiCalendar ? [] : staffRequestOverTopic(
       [...dayScanWindowTexts.filter((t) => t !== String(message ?? "")).slice(-3), String(message ?? "")],
       calendars,
+      [scopedName, waName].filter((n): n is string => !!n),
     );
     // Each calendar's own services (id + name), for the staff check and the same-service correction.
     const servicesByCalendar = isMultiCalendar && calendarsForPrompt

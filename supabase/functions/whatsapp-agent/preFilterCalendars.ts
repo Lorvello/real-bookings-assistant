@@ -207,7 +207,7 @@ function ruledOut(tokens: string[], p: number): boolean {
 export function noStaffPreference(text: string): boolean {
   return /\b(?:maakt (?:het )?(?:mij |me )?niet uit (?:bij wie|wie|welke (?:medewerker|kapper|stylist|collega|behandelaar))|wie dan ook|geen voorkeur (?:voor )?(?:een |de |welke )?(?:medewerker|kapper|stylist|collega|behandelaar|persoon|wie)|doesn['’]?t matter who|no preference (?:for|on) (?:who|staff|stylist|barber)|anyone is fine|whoever is free)\b/i
     .test(normalize(text ?? "")) ||
-    /(?<!\bvoor )\biemand anders\b|\b(?:een )?andere? (?:medewerker|kapper|stylist|collega|behandelaar)\b|\bwie (?:heeft|is) er (?:\S+ ){0,3}(?:plek|tijd|ruimte|vrij)\b|(?<!\bfor )\b(?:someone|somebody|anyone) else\b|\bwho(?:['’]?s| is| has) (?:\S+ )?(?:free|available|time|room)\b/i
+    /(?<!\bvoor )\biemand anders\b(?! mee\b)|\b(?:een )?andere? (?:medewerker|kapper|stylist|collega|behandelaar)\b|\bwie (?:heeft|is) er (?:\S+ ){0,3}(?:plek|tijd|ruimte|vrij)\b|(?<!\bfor )\b(?:someone|somebody|anyone) else\b(?! (?:along|with)\b)|\bwho(?:['’]?s| is| has) (?:\S+ )?(?:free|available|time|room)\b/i
       .test(normalize(text ?? ""));
 }
 export function calendarsRequestedIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {
@@ -258,30 +258,45 @@ export function calendarsRequestedIn(text: string, calendars: Array<{ id: string
 // goed", "Sanne niet, Bo wel"), with the same exclusions as a request: a rule-out right before it ("niet
 // Bo", "ipv Bo", "vorige keer was ik Bo"), "niet" right after it ("Bo niet"), "met Bo mee" and "Bo
 // geweest". A name after a request word belongs to calendarsRequestedIn and is left out here.
-function calendarsNamedBareIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {
+// Round 8 (review round 7): only with a choice word right next to it ("doe maar Bo", "liever Bo", "ok Bo",
+// "Bo graag", "Bo is ook goed", "Bo wel"), and never the customer's own name. A sign-off ("vrijdag om
+// 14:00, groetjes Sanne", "14:00 - Sanne"), a name answer ("Sanne") and a name used in another sense
+// ("Bo zei dat het vrijdag kon") choose nobody.
+const BARE_CHOICE_BEFORE = ["maar", "liever", "gewoon", "toch", "ok", "oke", "okay", "prima", "graag", "rather", "prefer"];
+const BARE_CHOICE_AFTER = ["graag", "dan", "then", "please", "pls", "wel", "works"];
+function calendarsChosenBareIn(text: string, calendars: Array<{ id: string; name: string }>, customerNames: string[] = []): string[] {
   const tokens = tokenize(text ?? "");
+  const own = new Set(customerNames.flatMap((n) => tokenize(n ?? "")));
   const named = new Set<string>();
   for (const cal of calendars) {
     const name = primaryCalendarNameTokens(cal.name);
-    if (name.length === 0) continue;
+    if (name.length === 0 || name.every((t) => own.has(t))) continue;
     for (let i = 0; i + name.length <= tokens.length; i++) {
       if (!name.every((t, j) => tokens[i + j] === t)) continue;
       const before = tokens[i - 1] ?? "";
-      const after = tokens[i + name.length] ?? "";
+      const after = tokens.slice(i + name.length, i + name.length + 3);
       if (REQUEST_WORDS.includes(before) || (before === "voorkeur" && tokens[i - 2] === "bij")) continue;
-      if (ruledOut(tokens, i) || ["niet", "not", "mee", "geweest", "gezeten"].includes(after)) continue;
-      named.add(cal.id);
+      if (ruledOut(tokens, i) || ["niet", "not", "mee", "geweest", "gezeten"].includes(after[0] ?? "")) continue;
+      const chosen = BARE_CHOICE_BEFORE.includes(before) || BARE_CHOICE_AFTER.includes(after[0] ?? "") ||
+        (after[0] === "is" && /^(?:(?:ook|also) )?(?:goed|prima|fine|ok|oke|beter|better|top)\b/.test(after.slice(1).join(" ")));
+      if (chosen) named.add(cal.id);
     }
   }
   return calendars.filter((cal) => named.has(cal.id)).map((cal) => cal.id);
 }
 
-// Rounds 4 to 7: the staff member the customer asks for over the topic, messages oldest first and the
+// Rounds 4 to 8: the staff member the customer asks for over the topic, messages oldest first and the
 // current one last (index.ts passes at most three earlier ones). The latest message that asks for
-// someone by name decides, an explicit "no preference" ends the request, and a different name said
-// without "bij" switches it ("ik wil graag bij Sanne", then "doe maar Bo"). A bare name never starts a
-// request on its own: "Sanne is ziek, kan ik vrijdag knippen?" asks for nobody.
-export function staffRequestOverTopic(texts: string[], calendars: Array<{ id: string; name: string }>): string[] {
+// someone by name decides and an explicit "no preference" ends the request. Round 8: choosing another
+// staff member without "bij" ("ik wil graag bij Sanne", then "doe maar Bo") ENDS the request as well; it
+// never points the check at the new name, so a misread name can switch the check off but can never push
+// the booking towards the wrong person. A bare name never starts a request on its own. customerNames:
+// the customer's own names (booking name, WhatsApp profile name), which never count as a choice.
+export function staffRequestOverTopic(
+  texts: string[],
+  calendars: Array<{ id: string; name: string }>,
+  customerNames: string[] = [],
+): string[] {
   let asked: string[] = [];
   for (const text of texts) {
     const requested = calendarsRequestedIn(text, calendars);
@@ -289,9 +304,8 @@ export function staffRequestOverTopic(texts: string[], calendars: Array<{ id: st
       asked = requested;
     } else if (noStaffPreference(text)) {
       asked = [];
-    } else if (asked.length) {
-      const bare = calendarsNamedBareIn(text, calendars);
-      if (bare.some((id) => !asked.includes(id))) asked = bare;
+    } else if (asked.length && calendarsChosenBareIn(text, calendars, customerNames).some((id) => !asked.includes(id))) {
+      asked = [];
     }
   }
   return asked;

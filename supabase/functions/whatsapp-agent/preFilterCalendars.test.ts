@@ -329,17 +329,20 @@ Deno.test("R84 review 5: noStaffPreference recognises an explicit no-preference"
   }
 });
 
-// R84 review round 7 (independent reviewer, 2026-10-24): the staff request over the topic. A different
-// name said without "bij" switches it, asking for someone else or for whoever has room ends it, a bare
-// name never starts one. Counterexample table in both directions; index.ts passes at most three earlier
-// messages, so the table does the same.
+// R84 review rounds 7 and 8 (independent reviewer, 2026-10-24): the staff request over the topic.
+// Round 7 let a different name said without "bij" switch the request; round 8 (review round 7 found
+// "vrijdag om 14:00, groetjes Sanne" switching it to Sanne) makes that choice need a choice word and only
+// END the request, never point it at the new name, and skips the customer's own names. Rows that
+// expected ["bo"] after "doe maar Bo" in round 7 expect [] since round 8, deliberately. Counterexample
+// table in both directions; index.ts passes at most three earlier messages, so the table does the same.
 const R7_CALS = [{ id: "sanne", name: "Sanne (Knippen)" }, { id: "bo", name: "Bo" }, { id: "iris", name: "Iris" }, { id: "bram", name: "Bram" }];
+const R8_CUSTOMER = ["Sanne de Vries"]; // the customer in these rows is called Sanne
 for (
   const [texts, want] of [
-    [["ik wil graag knippen bij Sanne", "maakt niet uit, doe maar Bo"], ["bo"]],
-    [["ik wil graag knippen bij Sanne", "doe maar Bo"], ["bo"]],
-    [["ik wil graag knippen bij Sanne", "Bo is ook goed"], ["bo"]],
-    [["ik wil graag knippen bij Sanne", "doe maar Bo", "vrijdag om 14:00"], ["bo"]],
+    [["ik wil graag knippen bij Sanne", "maakt niet uit, doe maar Bo"], []],
+    [["ik wil graag knippen bij Sanne", "doe maar Bo"], []],
+    [["ik wil graag knippen bij Sanne", "Bo is ook goed"], []],
+    [["ik wil graag knippen bij Sanne", "doe maar Bo", "vrijdag om 14:00"], []],
     [["ik wil graag knippen bij Sanne", "de tijd maakt me niet uit", "vrijdag om 14:00"], ["sanne"]],
     [["ik wil graag knippen bij Sanne", "maakt niet uit"], ["sanne"]],
     [["ik wil graag knippen bij Sanne", "maakt niet uit bij wie, vrijdag om 14:00"], []],
@@ -351,9 +354,9 @@ for (
     [["I was told to book with Sanne"], ["sanne"]],
     [["vorige keer was ik bij Sanne, nu graag bij Bo"], ["bo"]],
     [["ik was al eens bij Sanne, kan ik weer bij haar?"], []],
-    [["ik wil knippen bij Sanne", "Sanne niet, doe maar Bo"], ["bo"]],
+    [["ik wil knippen bij Sanne", "Sanne niet, doe maar Bo"], []],
     [["ik wil knippen bij Sanne", "niet Bo hoor, gewoon Sanne"], ["sanne"]],
-    [["ik wil knippen bij Sanne", "Bo of Sanne, allebei goed"], ["sanne", "bo"]],
+    [["ik wil knippen bij Sanne", "Bo of Sanne, allebei goed"], ["sanne"]],
     [["kan ik ipv bij bram naar iris?"], ["iris"]],
     [["ik wil knippen bij Sanne", "ik kom met Bo mee", "vrijdag 14:00"], ["sanne"]],
     [["knippen bij Sanne vrijdag", "ok", "14:00 graag"], ["sanne"]],
@@ -364,17 +367,34 @@ for (
     [["ik boek ook voor iemand anders, bij Sanne graag"], ["sanne"]],
     [["knippen bij Sanne", "ik boek ook voor iemand anders"], ["sanne"]],
     [["haircut with Sanne please", "someone else is fine too"], []],
-    [["haircut with Sanne please", "ok Bo then"], ["bo"]],
+    [["haircut with Sanne please", "ok Bo then"], []],
     [["haircut with Sanne please", "it doesn’t matter who"], []],
     [["haircut with Sanne please", "the time doesn't matter"], ["sanne"]],
     [["knippen bij Sanne", "geen voorkeur voor de tijd"], ["sanne"]],
     [["knippen bij Sanne", "mag ook bij een andere kapper"], []],
-    [["knippen bij Sanne", "ok", "prima", "Bo"], ["bo"]],
+    [["knippen bij Sanne", "ok", "prima", "Bo"], ["sanne"]],
     [["knippen bij Sanne", "vrijdag 14:00", "ok", "prima", "Bo"], []],
     [["knippen bij Sanne", "a", "b", "c", "vrijdag 14:00"], []],
+    [["ik wil graag knippen bij Bo", "vrijdag om 14:00, groetjes Sanne"], ["bo"]],
+    [["ik wil graag knippen bij Bo", "vrijdag 14:00 - Sanne"], ["bo"]],
+    [["ik wil graag knippen bij Sanne", "Bo zei dat het vrijdag kon, om 14:00?"], ["sanne"]],
+    [["ik wil graag knippen bij Sanne", "ik neem ook iemand anders mee, vrijdag om 14:00"], ["sanne"]],
+    [["ik wil graag knippen bij Bo", "Sanne"], ["bo"]],
+    [["ik wil graag knippen bij Bo", "ok, op naam van Sanne"], ["bo"]],
+    [["knippen bij Sanne", "liever Bo"], []],
+    [["knippen bij Sanne", "Bo graag"], []],
+    [["knippen bij Sanne", "dan maar bij Bo"], ["bo"]],
+    [["haircut with Sanne please", "i'm bringing someone else along"], ["sanne"]],
+    [["knippen bij Bo", "prima, groetjes Sanne"], ["bo"]],
+    [["knippen bij Bo", "ok Sanne"], ["bo"]],
   ] as Array<[string[], string[]]>
 ) {
-  Deno.test(`R84 review 7: staffRequestOverTopic ${JSON.stringify(texts)}`, () => {
-    assertEquals(staffRequestOverTopic([...texts.slice(0, -1).slice(-3), texts.at(-1)!], R7_CALS), want);
+  Deno.test(`R84 review 7/8: staffRequestOverTopic ${JSON.stringify(texts)}`, () => {
+    assertEquals(staffRequestOverTopic([...texts.slice(0, -1).slice(-3), texts.at(-1)!], R7_CALS, R8_CUSTOMER), want);
   });
 }
+Deno.test("R84 review 8: without the customer's name a misread choice only switches the check off", () => {
+  // "ok Sanne" from a customer called Sanne, profile name unknown: the check goes off, it never points at Sanne.
+  assertEquals(staffRequestOverTopic(["knippen bij Bo", "ok Sanne"], R7_CALS), []);
+  assertEquals(staffRequestOverTopic(["knippen bij Bo", "ok Sanne"], R7_CALS, ["Sanne"]), ["bo"]);
+});

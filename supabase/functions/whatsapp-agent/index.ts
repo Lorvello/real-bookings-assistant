@@ -1973,11 +1973,13 @@ Deno.serve(async (req) => {
     // Review round 5: at most the three most recent earlier messages, and an explicit "no preference"
     // ("maakt niet uit bij wie", "geen voorkeur") ends the search: that request is over.
     // Round 6: a request in the same message always wins over a "no preference" phrase.
-    // Round 7: staffRequestOverTopic reads the same three earlier messages plus this one, oldest first;
-    // a different name said without "bij" ("doe maar Bo") now switches the request as well.
+    // Round 7: staffRequestOverTopic reads the same three earlier messages plus this one, oldest first.
+    // Round 8: choosing another staff member without "bij" ("doe maar Bo") ends the request; the
+    // customer's own names (booking name, WhatsApp profile name) never count as a choice.
     const requestedCalendarIds = !isMultiCalendar ? [] : staffRequestOverTopic(
       [...dayScanWindowTexts.filter((t) => t !== String(message ?? "")).slice(-3), String(message ?? "")],
       calendars,
+      [scopedName, waName].filter((n): n is string => !!n),
     );
     // Each calendar's own services (id + name), for the staff check and the same-service correction.
     const servicesByCalendar = isMultiCalendar && calendarsForPrompt

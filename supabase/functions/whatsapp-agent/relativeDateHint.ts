@@ -226,10 +226,11 @@ const GONE_RE =
 // Round 7: words right after a time that rule it out ("om 10 uur lukt me niet", "10 uur niet", "4pm
 // doesn't work"), and words right before one ("ik kan niet om 10 uur", "liever niet om 10 uur", "can't do
 // 4pm"). "kan het niet om 4 uur?" asks for 4 uur, so the words before need a first person or "liever".
+// Round 8: "if not 4pm" and "or not 4pm" offer 4pm as the alternative.
 const RULED_OUT_AFTER_RE =
   /^\s*(?:(?:ook|helaas|echt|toch)\s+)*niet\b|^\s*(?:kan|lukt|gaat|past)\b(?:\s+(?:ik|het|me|mij|dat|echt|helaas|toch|dan))*\s+niet\b|\b(?:doesn['’]?t|does\s+not|won['’]?t|will\s+not)\s+work\b|^\s*(?:i\s+)?(?:can['’]?t|cannot)\b/i;
 const RULED_OUT_BEFORE_RE =
-  /(?:\b(?:kan ik|ik kan|lukt (?:het )?(?:me|mij)|liever)\s+(?:\w+\s+)?niet|\b(?:can['’]?t|cannot)(?:\s+(?:do|make|make it|come))?|\bnot)\s+(?:om\s+|at\s+)?$/i;
+  /(?:\b(?:kan ik|ik kan|lukt (?:het )?(?:me|mij)|liever)\s+(?:\w+\s+)?niet|\b(?:can['’]?t|cannot)(?:\s+(?:do|make|make it|come))?|(?<!\b(?:if|or)\s)\bnot)\s+(?:om\s+|at\s+)?$/i;
 // The end of the clause that owns a weekday: punctuation that ends a sentence (a dot inside a time
 // such as "9.30" does not), or another day word.
 const CLAUSE_END_RE =
