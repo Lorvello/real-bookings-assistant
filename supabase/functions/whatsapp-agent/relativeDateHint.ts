@@ -215,7 +215,12 @@ const BUSY_REASON_RE = /\b(?:werk\w*|bezig|druk|school|college|les|vergader\w*|d
 // Round 5: a later time is NOT another option when a constraint sits next to it ("ik moet om 3 uur
 // weer weg", "ik ben ook om 3 uur weg"); every other later time in the clause is an alternative
 // ("4 uur kan ook", "liever 4 uur", "desnoods 4 uur", "10 uur / 4 uur", "4pm works too").
-const CONSTRAINT_RE = /\b(?:weg|vertrek\w*|ophalen|halen|moet|moeten|leave|leaving|gone|pick\s*up)\b/i;
+// Round 6: "moet" alone is no constraint ("anders moet het om 4 uur" offers 16:00); a time the customer
+// rules out is one ("om 4 uur kan ik niet", "4pm doesn't work").
+// Work is a constraint ("om 3 uur moet ik werken"), but "na mijn werk om 4 uur" offers 16:00 and
+// "4pm works too" agrees to it.
+const CONSTRAINT_RE =
+  /\b(?:weg|vertrek\w*|ophalen|halen|school|leave|leaving|gone|pick\s*up)\b|(?<!\b(?:na|after)\s+(?:mijn\s+|het\s+|my\s+)?)\b(?:werk\w*|work(?!s\b)\w*)\b|\b(?:kan ik niet|lukt (?:me |mij |het )?niet|kan niet|can'?t|cannot|doesn'?t work|does not work)\b/i;
 // The end of the clause that owns a weekday: punctuation that ends a sentence (a dot inside a time
 // such as "9.30" does not), or another day word.
 const CLAUSE_END_RE =
@@ -338,6 +343,8 @@ function clockTimeForDay(s: string, dayIndex: number, todayLatestEnd?: number | 
   };
   const isLowerBound = (h: ClockHit) => {
     const lead = s.slice(Math.max(0, h.index - 40), h.index);
+    // Round 6: "vrij tot 5" is free until 5, an upper bound, even with "daarna moet ik werken" after it.
+    if (/\b(?:vrij|beschikbaar|free|available)\s+(?:tot|until|till)\s+(?:om\s+|at\s+)?$/i.test(lead)) return false;
     return LOWER_BOUND_ALWAYS_RE.test(lead) || (UNTIL_BEFORE_RE.test(lead) && BUSY_REASON_RE.test(sentenceAround(h)));
   };
   const hits = clockTimesIn(s).filter((h) => !isLowerBound(h));

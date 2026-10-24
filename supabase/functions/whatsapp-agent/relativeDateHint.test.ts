@@ -983,3 +983,18 @@ for (
     assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
   });
 }
+
+// R84 review round 6 (independent reviewer, 2026-10-24).
+for (
+  const [label, msg, hhmm, want] of [
+    ["a ruled-out time is no option ('om 4 uur kan ik niet' rolls)", "dinsdag 10 uur, om 4 uur kan ik niet", "14:00", NEXT_TUE],
+    ["'anders moet het om 4 uur' offers 16:00 (keeps today)", "dinsdag om 10 uur, anders moet het om 4 uur", "14:00", TUE],
+    ["'na mijn werk om 4 uur' offers 16:00 (keeps today)", "dinsdag 10 uur, of na mijn werk om 4 uur", "14:00", TUE],
+    ["'om 3 uur moet ik werken' is a constraint (rolls)", "dinsdag 10 uur, om 3 uur moet ik werken", "14:00", NEXT_TUE],
+    ["'vrij tot 5 uur, daarna moet ik werken' is an upper bound (rolls at 17:30)", "dinsdag ben ik vrij tot 5 uur, daarna moet ik werken", "17:30", NEXT_TUE],
+  ] as const
+) {
+  Deno.test(`R84 review 6: ${label}`, () => {
+    assertEquals(extractRelativeDayHint(msg, tueAt(hhmm))?.iso, want);
+  });
+}

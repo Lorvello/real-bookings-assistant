@@ -310,6 +310,8 @@ for (
     ["ik kom met Milan mee, vrijdag om 2 uur?", []],
     ["vorige keer was ik bij Sanne, nu maakt het niet uit", []],
     ["ik ben bij Bo geweest, kan ik nu bij Milan?", ["milan"]],
+    ["het maakt niet uit hoe laat, als het maar bij Sanne is. vrijdag knippen?", ["sanne"]],
+    ["I was told to book with Sanne", ["sanne"]],
   ] as const
 ) {
   Deno.test(`R84 live: calendarsRequestedIn ${JSON.stringify(msg)}`, () => {
@@ -318,10 +320,11 @@ for (
 }
 
 Deno.test("R84 review 5: noStaffPreference recognises an explicit no-preference", () => {
-  for (const msg of ["nu maakt het niet uit bij wie", "geen voorkeur", "it doesn't matter who", "Maakt me niet uit"]) {
+  for (const msg of ["nu maakt het niet uit bij wie", "geen voorkeur voor een kapper", "it doesn't matter who", "Maakt me niet uit welke kapper", "wie dan ook"]) {
     assertEquals(noStaffPreference(msg), true, msg);
   }
-  for (const msg of ["bij Sanne graag", "maakt het uit hoe lang het duurt?"]) {
+  // Round 6: about the time, not about who.
+  for (const msg of ["bij Sanne graag", "maakt het uit hoe lang het duurt?", "het maakt niet uit hoe laat", "geen voorkeur voor de tijd", "de tijd maakt me niet uit", "Maakt me niet uit"]) {
     assertEquals(noStaffPreference(msg), false, msg);
   }
 });

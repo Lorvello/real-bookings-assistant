@@ -193,12 +193,15 @@ function ruledOut(tokens: string[], p: number): boolean {
   return RULE_OUT_WORDS.includes(tokens[p - 1] ?? "") ||
     /^(?:niet|geen|not|no) (?:meer|langer|more|longer)$/.test(before(2)) ||
     before(3) === "in plaats van" || before(2) === "instead of" ||
-    /\b(?:vorige keer|last time|laatst|was ik|were|was)\b/.test(before(4));
+    /\b(?:vorige keer|last time|laatst|was ik)\b/.test(before(4));
 }
 
-// Round 5: an explicit "no preference" ends any earlier request for a staff member.
+// Round 5: an explicit "no preference" ends any earlier request for a staff member. Round 6: only
+// when it is about WHO ("maakt niet uit bij wie", "geen voorkeur voor een kapper", "wie dan ook",
+// "anyone"); "het maakt niet uit hoe laat" or "geen voorkeur voor de tijd" is about the time and
+// keeps the request. index.ts also ignores it when the same message asks for someone.
 export function noStaffPreference(text: string): boolean {
-  return /\b(?:maakt (?:het )?(?:mij |me )?niet uit(?: bij wie)?|geen voorkeur|wie dan ook|doesn'?t matter|no preference|anyone is fine)\b/i
+  return /\b(?:maakt (?:het )?(?:mij |me )?niet uit (?:bij wie|wie|welke (?:medewerker|kapper|stylist|collega|behandelaar))|wie dan ook|geen voorkeur (?:voor )?(?:een |de |welke )?(?:medewerker|kapper|stylist|collega|behandelaar|persoon|wie)|doesn'?t matter who|no preference (?:for|on) (?:who|staff|stylist|barber)|anyone is fine|whoever is free)\b/i
     .test(normalize(text ?? ""));
 }
 export function calendarsRequestedIn(text: string, calendars: Array<{ id: string; name: string }>): string[] {

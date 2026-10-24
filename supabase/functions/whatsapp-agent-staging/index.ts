@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 1ddac74edb514f347e9d97359e5d78b0416dd66a89af474a5523cd53828e31fa)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 e7519f379ad1ade5299d216800b4d3e91237aa9081ddd57b9b240b83970f6ee2)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -1993,15 +1993,15 @@ stagingServe(async (req: Request) => {
     // fresh on a switch to another calendar, so an old request never outlives a switch.
     // Review round 5: at most the three most recent earlier messages, and an explicit "no preference"
     // ("maakt niet uit bij wie", "geen voorkeur") ends the search: that request is over.
-    const requestedNow = isMultiCalendar && !noStaffPreference(String(message ?? ""))
-      ? calendarsRequestedIn(String(message ?? ""), calendars)
-      : [];
-    const requestedCalendarIds = !isMultiCalendar || noStaffPreference(String(message ?? "")) ? [] : requestedNow.length ? requestedNow : (() => {
+    // Round 6: a request in the same message always wins over a "no preference" phrase.
+    const requestedNow = isMultiCalendar ? calendarsRequestedIn(String(message ?? ""), calendars) : [];
+    const requestedCalendarIds = !isMultiCalendar ? [] : requestedNow.length ? requestedNow
+      : noStaffPreference(String(message ?? "")) ? [] : (() => {
       const earlier = dayScanWindowTexts.filter((t) => t !== String(message ?? ""));
       for (let i = earlier.length - 1; i >= Math.max(0, earlier.length - 3); i--) {
-        if (noStaffPreference(earlier[i])) return [];
         const r = calendarsRequestedIn(earlier[i], calendars);
         if (r.length) return r;
+        if (noStaffPreference(earlier[i])) return [];
       }
       return [];
     })();

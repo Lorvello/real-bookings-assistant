@@ -1973,15 +1973,15 @@ Deno.serve(async (req) => {
     // fresh on a switch to another calendar, so an old request never outlives a switch.
     // Review round 5: at most the three most recent earlier messages, and an explicit "no preference"
     // ("maakt niet uit bij wie", "geen voorkeur") ends the search: that request is over.
-    const requestedNow = isMultiCalendar && !noStaffPreference(String(message ?? ""))
-      ? calendarsRequestedIn(String(message ?? ""), calendars)
-      : [];
-    const requestedCalendarIds = !isMultiCalendar || noStaffPreference(String(message ?? "")) ? [] : requestedNow.length ? requestedNow : (() => {
+    // Round 6: a request in the same message always wins over a "no preference" phrase.
+    const requestedNow = isMultiCalendar ? calendarsRequestedIn(String(message ?? ""), calendars) : [];
+    const requestedCalendarIds = !isMultiCalendar ? [] : requestedNow.length ? requestedNow
+      : noStaffPreference(String(message ?? "")) ? [] : (() => {
       const earlier = dayScanWindowTexts.filter((t) => t !== String(message ?? ""));
       for (let i = earlier.length - 1; i >= Math.max(0, earlier.length - 3); i--) {
-        if (noStaffPreference(earlier[i])) return [];
         const r = calendarsRequestedIn(earlier[i], calendars);
         if (r.length) return r;
+        if (noStaffPreference(earlier[i])) return [];
       }
       return [];
     })();
