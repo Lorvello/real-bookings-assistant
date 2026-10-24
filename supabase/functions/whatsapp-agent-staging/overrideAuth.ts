@@ -14,6 +14,8 @@
 //     "provider": "groq" | "openai" | "gemini" | "anthropic",   (optioneel)
 //     "model": "<modelnaam>",                        (optioneel, alleen met provider)
 //     "effort": "low"|"medium"|"high"|"xhigh"|"max", (optioneel, alleen met provider anthropic)
+//     "thinking": "adaptive"|"off",                  (optioneel, alleen met provider anthropic;
+//                                                    off alleen met effort low/medium/high)
 //     "op": "net-report"|"net-reset"|"net-probe"|"recorder-report"|"recorder-reset"|"whoami" }
 //                                                    (optioneel diagnose-commando)
 //
@@ -36,6 +38,9 @@ export interface OverridePayload {
   // betekent het niets, en een rij met een effort-etiket dat niet over de lijn ging is een
   // verkeerd etiket. Leeg laten = ANTHROPIC_EFFORT uit de secrets (standaard low).
   effort?: string;
+  // R84 (24-10-2026): Claude Haiku 5.5 zonder nadenken ("off") voor de snelheidsmeting. Alleen met
+  // provider "anthropic", en "off" alleen bij effort high of lager (de API weigert het daarboven).
+  thinking?: string;
   // LAUNCH-RUN 2026-09 / R4. Het model van de twee veiligheidsclassifiers, APART van het
   // agent-model. Bewust NIET gekoppeld aan `model`: 17 van de 18 calls per beurt zijn
   // classifier-stemmen, dus een stille koppeling zou een bake-off-rij het verkeerde etiket
@@ -65,6 +70,7 @@ export type OverrideVerdict =
 
 const VALID_PROVIDERS: OverrideProvider[] = ["groq", "openai", "gemini", "anthropic"];
 export const VALID_EFFORTS = ["low", "medium", "high", "xhigh", "max"];
+export const VALID_THINKING = ["adaptive", "off"];
 const VALID_OPS = ["net-report", "net-reset", "net-probe", "recorder-report", "recorder-reset", "whoami", "hop-probe"];
 
 // Maximale toegestane geldigheidsduur vooruit. Een handtekening die een jaar geldig is, is een
@@ -187,6 +193,17 @@ export async function verifyOverrideHeader(req: Request): Promise<OverrideVerdic
     }
     if (payload.provider !== "anthropic") {
       return { kind: "refused", code: "effort_without_anthropic", detail: "effort geldt alleen met provider anthropic" };
+    }
+  }
+  if (payload.thinking !== undefined) {
+    if (typeof payload.thinking !== "string" || !VALID_THINKING.includes(payload.thinking)) {
+      return { kind: "refused", code: "bad_thinking", detail: `thinking moet een van ${VALID_THINKING.join(", ")} zijn` };
+    }
+    if (payload.provider !== "anthropic") {
+      return { kind: "refused", code: "thinking_without_anthropic", detail: "thinking geldt alleen met provider anthropic" };
+    }
+    if (payload.thinking === "off" && (payload.effort === "xhigh" || payload.effort === "max")) {
+      return { kind: "refused", code: "thinking_off_needs_lower_effort", detail: "thinking off kan alleen met effort low, medium of high" };
     }
   }
   if (payload.op !== undefined && !VALID_OPS.includes(payload.op)) {

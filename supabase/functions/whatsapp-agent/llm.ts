@@ -35,7 +35,7 @@
 // improves; re-run the §6 testpad before adopting. GEMINI_MODEL secret = gemini-3.5-flash (harmless
 // while provider=openai; the code below handles it correctly now).
 
-import { effectiveAnthropicEffort, runAgentAnthropic } from "./llmAnthropic.ts";
+import { effectiveAnthropicEffort, effectiveAnthropicThinking, runAgentAnthropic } from "./llmAnthropic.ts";
 
 const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.5-flash-lite";
 const geminiEndpoint = (m: string) =>
@@ -115,6 +115,7 @@ export async function runAgent(opts: RunOpts): Promise<AgentResult> {
       key: Deno.env.get("ANTHROPIC_API_KEY") ?? "",
       model: Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-5-5",
       effort,
+      thinking: effectiveAnthropicThinking(Deno.env.get("ANTHROPIC_THINKING")),
       timeoutMs: LLM_CALL_TIMEOUT_MS,
     });
   }

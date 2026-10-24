@@ -11,7 +11,8 @@
 //   (an assistant last turn is a prefill, also a 400);
 // - adaptive thinking is on by default, so a response can start with thinking blocks: text is read
 //   by block type, and the assistant turn is echoed back unchanged together with the tool results;
-// - effort lives in output_config, not at the top level.
+// - effort lives in output_config, not at the top level;
+// - thinking can be switched off (ANTHROPIC_THINKING=off, {type: "disabled"}), only at effort high or below.
 import Anthropic from "npm:@anthropic-ai/sdk@0.133.0";
 import type { AgentResult, Content, RunOpts } from "./llm.ts";
 
@@ -23,6 +24,15 @@ export const ANTHROPIC_EFFORTS: readonly AnthropicEffort[] = ["low", "medium", "
 export function effectiveAnthropicEffort(raw: string | null | undefined): AnthropicEffort {
   const asked = (raw || "low").toLowerCase();
   return (ANTHROPIC_EFFORTS as readonly string[]).includes(asked) ? asked as AnthropicEffort : "low";
+}
+
+// R84 (Mathieu 24-10-2026: "eerst Haiku zonder nadenken testen op snelheid"). ANTHROPIC_THINKING=off
+// sends thinking {type: "disabled"}; anything else keeps Haiku 5.5's adaptive default and sends no
+// thinking field at all. The API refuses "disabled" at effort xhigh or max, so that pair is refused
+// here, before any call, instead of turning into a 400.
+export type AnthropicThinking = "adaptive" | "off";
+export function effectiveAnthropicThinking(raw: string | null | undefined): AnthropicThinking {
+  return (raw || "").toLowerCase() === "off" ? "off" : "adaptive";
 }
 
 // Room for adaptive thinking plus a WhatsApp-sized reply or a tool call. Thinking counts toward this cap.
@@ -83,11 +93,15 @@ export interface AnthropicConfig {
   key: string;
   model: string;
   effort: AnthropicEffort;
+  thinking?: AnthropicThinking;
   timeoutMs: number;
   client?: AnthropicMessages;
 }
 
 export async function runAgentAnthropic(opts: RunOpts, cfg: AnthropicConfig): Promise<AgentResult> {
+  if (cfg.thinking === "off" && (cfg.effort === "xhigh" || cfg.effort === "max")) {
+    throw new Error(`ANTHROPIC_THINKING=off needs effort high or below (got ${cfg.effort})`);
+  }
   if (!cfg.client && !cfg.key) throw new Error("LLM API key ontbreekt (ANTHROPIC_API_KEY)");
   const client: AnthropicMessages = cfg.client ?? new Anthropic({
     apiKey: cfg.key,
@@ -118,6 +132,7 @@ export async function runAgentAnthropic(opts: RunOpts, cfg: AnthropicConfig): Pr
       system,
       messages,
       output_config: { effort: cfg.effort },
+      ...(cfg.thinking === "off" ? { thinking: { type: "disabled" as const } } : {}),
       // Automatic breakpoint on the last block: the next step of this same turn reads everything
       // before its new tool turn from cache. Together with the explicit breakpoint on the stable
       // system prefix this is the agent-loop pattern from Anthropic's prompt-caching guide.
@@ -141,7 +156,7 @@ export async function runAgentAnthropic(opts: RunOpts, cfg: AnthropicConfig): Pr
       const read = u.cache_read_input_tokens ?? 0;
       const write = u.cache_creation_input_tokens ?? 0;
       console.log(
-        `[llm-usage] model=${cfg.model} effort=${cfg.effort} step=${step} ms=${Date.now() - callT0}` +
+        `[llm-usage] model=${cfg.model} effort=${cfg.effort} thinking=${cfg.thinking ?? "adaptive"} step=${step} ms=${Date.now() - callT0}` +
           ` prompt_tok=${u.input_tokens + read + write} uncached_tok=${u.input_tokens}` +
           ` cached_tok=${read} cache_write_tok=${write} completion_tok=${u.output_tokens}` +
           ` stop=${resp.stop_reason}` +

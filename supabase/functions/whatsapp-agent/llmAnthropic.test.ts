@@ -2,15 +2,7 @@
 // Run: deno test --allow-env llmAnthropic.test.ts
 import { assert, assertEquals, assertRejects } from "jsr:@std/assert@1.0.19";
 import type Anthropic from "npm:@anthropic-ai/sdk@0.133.0";
-import {
-  ALREADY_SENT_NOTE,
-  type AnthropicMessages,
-  effectiveAnthropicEffort,
-  runAgentAnthropic,
-  systemBlocks,
-  toAnthropicMessages,
-  WINDOW_START_NOTE,
-} from "./llmAnthropic.ts";
+import { ALREADY_SENT_NOTE, type AnthropicMessages, effectiveAnthropicEffort, runAgentAnthropic, systemBlocks, toAnthropicMessages, WINDOW_START_NOTE, effectiveAnthropicThinking } from "./llmAnthropic.ts";
 import { type Content, runAgent, type RunOpts } from "./llm.ts";
 import { buildSystemPrompt } from "./prompt.ts";
 
@@ -266,6 +258,44 @@ Deno.test("R84 Haiku review 3: effectiveAnthropicEffort is what is actually sent
   assertEquals(effectiveAnthropicEffort(""), "low");
   assertEquals(effectiveAnthropicEffort("MEDIUM"), "medium");
   assertEquals(effectiveAnthropicEffort("turbo"), "low");
+});
+
+Deno.test("R84 Haiku thinking off: thinking disabled is sent next to the same effort", async () => {
+  const { client, bodies } = fakeClient([reply([text("Hoi!")], "end_turn")]);
+  const r = await runAgentAnthropic(opts(), { ...cfg(client), thinking: "off" as const });
+  assertEquals(r.text, "Hoi!");
+  assertEquals(bodies[0].thinking, { type: "disabled" });
+  assertEquals(bodies[0].output_config, { effort: "low" });
+});
+
+Deno.test("R84 Haiku thinking off at xhigh or max is refused before any call", async () => {
+  for (const effort of ["xhigh", "max"] as const) {
+    const { client, bodies } = fakeClient([reply([text("x")], "end_turn")]);
+    await assertRejects(() => runAgentAnthropic(opts(), { ...cfg(client), effort, thinking: "off" as const }), Error, "high or below");
+    assertEquals(bodies.length, 0);
+  }
+});
+
+Deno.test("R84 Haiku: effectiveAnthropicThinking only turns 'off' into off", () => {
+  assertEquals(effectiveAnthropicThinking(undefined), "adaptive");
+  assertEquals(effectiveAnthropicThinking(""), "adaptive");
+  assertEquals(effectiveAnthropicThinking("OFF"), "off");
+  assertEquals(effectiveAnthropicThinking("disabled"), "adaptive");
+});
+
+Deno.test("R84 Haiku: ANTHROPIC_THINKING reaches the adapter through llm.ts", async () => {
+  const keys = ["LLM_PROVIDER", "ANTHROPIC_API_KEY", "ANTHROPIC_THINKING", "ANTHROPIC_EFFORT"];
+  const saved = keys.map((k) => [k, Deno.env.get(k)] as const);
+  try {
+    Deno.env.set("LLM_PROVIDER", "anthropic");
+    Deno.env.delete("ANTHROPIC_API_KEY");
+    Deno.env.set("ANTHROPIC_THINKING", "off");
+    Deno.env.set("ANTHROPIC_EFFORT", "max");
+    // The thinking check runs before the key check, so this message proves llm.ts passed thinking on.
+    await assertRejects(() => runAgent(opts()), Error, "high or below");
+  } finally {
+    for (const [k, v] of saved) v === undefined ? Deno.env.delete(k) : Deno.env.set(k, v);
+  }
 });
 
 Deno.test("R84 Haiku: LLM_PROVIDER=anthropic reaches this adapter and fails closed without a key", async () => {

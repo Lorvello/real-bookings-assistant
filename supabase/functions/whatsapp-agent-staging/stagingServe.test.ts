@@ -83,6 +83,26 @@ Deno.test("stagingServe actual callback preserves build stamp and safety behavio
       equal((await callback!(request(await signed({ provider: "anthropic", effort: "turbo" })))).status, 401);
       equal(called, false);
     });
+    await t.step("R84 thinking off reaches the handler and the label, then restores", async () => {
+      stagingServe(async () => Response.json({
+        thinking: Deno.env.get("ANTHROPIC_THINKING"),
+        effort: Deno.env.get("ANTHROPIC_EFFORT"),
+      }));
+      const body = await (await callback!(request(await signed({
+        provider: "anthropic", model: "claude-haiku-5-5", effort: "low", thinking: "off",
+      })))).json();
+      equal([body.thinking, body.effort], ["off", "low"]);
+      equal(body.staging.llm_effective.thinking, "off");
+      equal(Deno.env.get("ANTHROPIC_THINKING"), undefined);
+    });
+    await t.step("R84 thinking without anthropic, an unknown value, or off with xhigh is refused before the handler", async () => {
+      let called = false;
+      stagingServe(async () => { called = true; return Response.json({}); });
+      equal((await callback!(request(await signed({ provider: "groq", thinking: "off" })))).status, 401);
+      equal((await callback!(request(await signed({ provider: "anthropic", thinking: "none" })))).status, 401);
+      equal((await callback!(request(await signed({ provider: "anthropic", effort: "xhigh", thinking: "off" })))).status, 401);
+      equal(called, false);
+    });
     await t.step("shell failure retains identity", async () => {
       stagingServe(async () => { throw new Error("local intentional failure"); });
       const response = await callback!(request());

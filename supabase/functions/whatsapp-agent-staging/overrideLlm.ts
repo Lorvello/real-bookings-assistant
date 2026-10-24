@@ -30,7 +30,7 @@
 // en volledig parallel, precies als productie.
 
 import { runAgent as baseRunAgent } from "../whatsapp-agent/llm.ts";
-import { effectiveAnthropicEffort } from "../whatsapp-agent/llmAnthropic.ts";
+import { effectiveAnthropicEffort, effectiveAnthropicThinking } from "../whatsapp-agent/llmAnthropic.ts";
 import type { AgentResult, Content, RunOpts, ToolDecl, ToolExecutor } from "../whatsapp-agent/llm.ts";
 import type { OverrideProvider } from "./overrideAuth.ts";
 
@@ -56,6 +56,8 @@ export interface EffectiveLlm {
   grounding_votes: string | null;
   // R84: de denkstand van Claude zoals deze beurt gelezen, alleen bij provider anthropic.
   effort: string | null;
+  // R84 (24-10): nadenken aan (adaptive) of uit (off), zoals deze beurt verstuurd, alleen bij anthropic.
+  thinking: string | null;
 }
 
 // Wat de LAATSTE agent-run in deze isolate feitelijk gebruikte. Wordt in het antwoord gezet.
@@ -77,6 +79,7 @@ export function currentEnvLlm(): EffectiveLlm {
     grounding_votes: Deno.env.get("GROUNDING_CLF_VOTES") ?? null,
     // The effort that is actually SENT (unset or unknown means low), never the raw setting.
     effort: provider === "anthropic" ? effectiveAnthropicEffort(Deno.env.get("ANTHROPIC_EFFORT")) : null,
+    thinking: provider === "anthropic" ? effectiveAnthropicThinking(Deno.env.get("ANTHROPIC_THINKING")) : null,
   };
 }
 
@@ -92,6 +95,7 @@ export async function withOverride<T>(
       ownerVotes?: number;
       groundingVotes?: number;
       effort?: string;
+      thinking?: string;
     }
     | null,
   fn: () => Promise<T>,
@@ -99,7 +103,7 @@ export async function withOverride<T>(
   // R4: een override die ALLEEN het classifier-model zet is geldig, want 17 van de 18 calls per
   // beurt zijn classifier-stemmen. De oude voorwaarde (`!ov.provider` -> niets doen) zou zo'n
   // override stil hebben genegeerd, en dat is precies de fout die deze schil moet voorkomen.
-  if (!ov || (!ov.provider && !ov.classifierModel && !ov.ownerVotes && !ov.groundingVotes && !ov.effort)) {
+  if (!ov || (!ov.provider && !ov.classifierModel && !ov.ownerVotes && !ov.groundingVotes && !ov.effort && !ov.thinking)) {
     lastEffective = currentEnvLlm();
     return await fn();
   }
@@ -118,6 +122,7 @@ export async function withOverride<T>(
       if (ov.groundingVotes && key === "GROUNDING_CLF_VOTES") return String(ov.groundingVotes);
       // R84: llm.ts leest ANTHROPIC_EFFORT op het moment van de call; ook hier alleen lezen.
       if (ov.effort && key === "ANTHROPIC_EFFORT") return ov.effort;
+      if (ov.thinking && key === "ANTHROPIC_THINKING") return ov.thinking;
       return originalGet(key);
     };
     let placed = false;
@@ -132,18 +137,20 @@ export async function withOverride<T>(
       const seenOwnerV = ov.ownerVotes ? Deno.env.get("OWNER_CLF_VOTES") : null;
       const seenGrndV = ov.groundingVotes ? Deno.env.get("GROUNDING_CLF_VOTES") : null;
       const seenEffort = ov.effort ? Deno.env.get("ANTHROPIC_EFFORT") : null;
+      const seenThinking = ov.thinking ? Deno.env.get("ANTHROPIC_THINKING") : null;
       if (
         (ov.provider && seenProvider !== ov.provider) ||
         (ov.model && seenModel !== ov.model) ||
         (ov.classifierModel && seenClf !== ov.classifierModel) ||
         (ov.ownerVotes && seenOwnerV !== String(ov.ownerVotes)) ||
         (ov.groundingVotes && seenGrndV !== String(ov.groundingVotes)) ||
-        (ov.effort && seenEffort !== ov.effort)
+        (ov.effort && seenEffort !== ov.effort) ||
+        (ov.thinking && seenThinking !== ov.thinking)
       ) {
         throw new Error(
           `[staging-override] de override is NIET geland (gelezen provider=${seenProvider}, ` +
             `model=${seenModel}, classifier_model=${seenClf}, owner_votes=${seenOwnerV}, ` +
-            `grounding_votes=${seenGrndV}, effort=${seenEffort}). Weigeren in plaats van op het oude model of het ` +
+            `grounding_votes=${seenGrndV}, effort=${seenEffort}, thinking=${seenThinking}). Weigeren in plaats van op het oude model of het ` +
             `oude stemaantal draaien.`,
         );
       }
@@ -160,6 +167,9 @@ export async function withOverride<T>(
         effort: effectiveProvider === "anthropic"
           ? effectiveAnthropicEffort(ov.effort ?? originalGet("ANTHROPIC_EFFORT"))
           : null,
+        thinking: effectiveProvider === "anthropic"
+          ? effectiveAnthropicThinking(ov.thinking ?? originalGet("ANTHROPIC_THINKING"))
+          : null,
       };
       console.log(
         "[staging-override-applied]",
@@ -170,6 +180,7 @@ export async function withOverride<T>(
           owner_votes: lastEffective.owner_votes,
           grounding_votes: lastEffective.grounding_votes,
           effort: lastEffective.effort,
+          thinking: lastEffective.thinking,
         }),
       );
       return await fn();

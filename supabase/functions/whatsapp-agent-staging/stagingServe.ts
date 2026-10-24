@@ -359,7 +359,7 @@ export function stagingServe(handler: (req: Request) => Promise<Response>): void
     try {
       resp = await withOverride(
         (payload?.provider || payload?.classifier_model || payload?.owner_votes ||
-            payload?.grounding_votes || payload?.effort)
+            payload?.grounding_votes || payload?.effort || payload?.thinking)
           ? {
             provider: payload.provider,
             model: payload.model,
@@ -367,6 +367,7 @@ export function stagingServe(handler: (req: Request) => Promise<Response>): void
             ownerVotes: payload.owner_votes,
             groundingVotes: payload.grounding_votes,
             effort: payload.effort,
+            thinking: payload.thinking,
           }
           : null,
         () => handler(handlerRequest),
