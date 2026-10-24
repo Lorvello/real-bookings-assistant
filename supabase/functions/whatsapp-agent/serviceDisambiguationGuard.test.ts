@@ -291,6 +291,25 @@ Deno.test("R102 blocks: bare shared-service request after a genuine topic switch
   );
 });
 
+Deno.test("R84 review of round 9: R102 still asks 'bij wie?' after a Milan topic without the Iris tail", () => {
+  const history = [
+    "hoi",
+    "ik wil graag een afspraak bij Sanne boeken voor Knippen",
+    "wat kost dat",
+    "kan het zaterdag",
+    "ok bedankt",
+    "Los van dat alles, ik wil ook nog een afspraak bij Milan boeken, wanneer heb je tijd?",
+    "vrijdag graag",
+    "10 uur is prima",
+  ];
+  assertEquals(shouldBlockAmbiguousBranchScoped("Ik wil graag Knippen boeken, zaterdag 15 augustus om 11:00.", history), true);
+});
+
+Deno.test("R84 review of round 9: R102 still asks 'bij wie?' for a son's Knippen after a Milan question", () => {
+  const history = ["kan ik vrijdag om 10:00 bij Milan terecht?", "top, dank je"];
+  assertEquals(shouldBlockAmbiguousBranchScoped("Mijn zoon wil ook nog knippen, zaterdag 7 november om 11:00", history), true);
+});
+
 Deno.test("R102 does not block: calendar named earlier in the SAME current topic (no topic switch since), still correctly resolved", () => {
   const sameTopicHistory = ["ik wil Knippen bij Bo boeken"];
   // Immediate next turn: bare day/time, no re-mention of Bo. currentMessage names no calendar/

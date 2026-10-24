@@ -424,6 +424,14 @@ for (
     [["Ik wil bij Bo knippen op zaterdag 31 oktober om 10:00"], "Los daarvan wil ik ook nog een nieuwe afspraak voor highlights bij Milan, om 14:00", "reset"],
     // Salon Sanne R97 shape: before the longest-name rule this Iris topic read as Bo, so Iris's day leaked into Bo.
     [["Kan mijn Knippen + Stylen afspraak alsjeblieft nog een keer verzet worden?", "zondag 1 november graag"], "Ik wil graag een afspraak bij Bo boeken, wanneer heb je tijd?", "reset"],
+    // The reviewer's other sequences of round 9, also rows now.
+    [["haircut with Sanne on friday 30 october"], "I'd rather go to Bo, 2pm", "reset"],
+    [["haircut with Sanne on friday 30 october"], "Can I go to Bo instead?", "reset"],
+    [["knippen bij Milan vrijdag 30 oktober"], "of anders Bo?", "reset"],
+    [["Kan mijn afspraak bij Iris verzet worden naar zondag 1 november?"], "My son needs a manicure with Bo, he'd prefer 16:00", "reset"],
+    [["Kan mijn Knippen afspraak alsjeblieft nog een keer verzet worden?", "zondag 1 november graag"], "Los van die afspraak, ik wil ook graag een nieuwe afspraak bij Milan boeken, wanneer heb je tijd?", "reset"],
+    // Review of round 10: a comma between "knippen" and "stylen" is no "Knippen + Stylen" of Iris.
+    [["Bruidskapsel bij Iris zaterdag 31 oktober om 10:00"], "Mijn dochter wil alleen knippen, stylen doet ze zelf. Kan het om 14:00?", "reset"],
     [["knippen bij Sanne vrijdag 30 oktober"], "Kan het bij Sanne ook om 15:00?", "keep"],
     [["knippen bij Sanne vrijdag 30 oktober"], "Kan het om 15:00?", "keep"],
   ] as Array<[string[], string, "keep" | "reset"]>
@@ -440,6 +448,9 @@ for (
     ["knippen bij Bo", "bo"],
     ["highlights graag", "milan"],
     ["Ik wil bij Bo knippen op zaterdag 31 oktober om 10:00", "bo"],
+    // A comma breaks the longer name, so this reads as before the rule (the first calendar offering Knippen).
+    ["Mijn dochter wil alleen knippen, stylen doet ze zelf", "bo"],
+    ["Kan ik knippen+stylen boeken?", "iris"],
   ] as Array<[string, string | null]>
 ) {
   Deno.test(`R84 round 10: lastMentionedCalendar ${JSON.stringify(text)}`, () => {

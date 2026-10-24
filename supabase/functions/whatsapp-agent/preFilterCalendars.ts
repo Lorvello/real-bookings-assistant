@@ -318,6 +318,13 @@ export function lastMentionedCalendar(
 ): string | null {
   const messageTokens = tokenize(text ?? "");
   if (messageTokens.length === 0) return null;
+  // Review of round 10: a name of several words counts as the longer name only when its words stand together in
+  // the message (a space, "+", "&" or "/" between them). Tokenizing drops punctuation, so "alleen knippen, stylen
+  // doet ze zelf" would otherwise read as Iris's "Knippen + Stylen".
+  const norm = normalize(text ?? "");
+  const together = (tokens: string[]) =>
+    tokens.length < 2 ||
+    new RegExp("\\b" + tokens.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("(?:\\s+|\\s*[+&/]\\s*)") + "\\b").test(norm);
   // R84 (24-10-2026): at the same position the longer name wins ("Knippen + Stylen" of Iris over the
   // "Knippen" that Bo also offers). Before this, "Kan mijn Knippen + Stylen afspraak verzet worden?" read
   // as Bo in Salon Sanne, so a later Bo request looked like the same topic and Iris's day could leak in.
@@ -335,11 +342,11 @@ export function lastMentionedCalendar(
   };
   for (const cal of calendars) {
     const nameTokens = primaryCalendarNameTokens(cal.name);
-    consider(maxTokenMatchIndex(messageTokens, nameTokens), nameTokens.length, cal.id);
+    consider(maxTokenMatchIndex(messageTokens, nameTokens), together(nameTokens) ? nameTokens.length : 1, cal.id);
     const services = servicesByCalendar?.get(cal.id) ?? [];
     for (const svc of services) {
       const svcTokens = tokenize(svc.name);
-      consider(maxTokenMatchIndex(messageTokens, svcTokens), svcTokens.length, cal.id);
+      consider(maxTokenMatchIndex(messageTokens, svcTokens), together(svcTokens) ? svcTokens.length : 1, cal.id);
     }
   }
   return bestId;
