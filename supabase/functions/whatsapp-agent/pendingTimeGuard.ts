@@ -19,7 +19,10 @@
 // sentence do not. Independent review of e418c561: a bare confirm question ("Klopt dat?") also covers the sentence
 // before it ("Woensdag 4 november om 16:00. Klopt dat?"), lines without end punctuation are read as one sentence
 // (a bulleted list), and a one-time question whose time is a REAL free slot of this turn's query is an offer
-// ("Op donderdag is alleen 10:00 nog vrij, wil je die?"), never drift. index.ts uses it twice: as a one-shot nudge
+// ("Op donderdag is alleen 10:00 nog vrij, wil je die?"), never drift. Re-check of 93a4b521: a time the CUSTOMER
+// named is never such an offer (offerTimes), a line that starts with a capital letter is a new sentence unless it
+// is a label ("Datum: ..."), and a sentence a bare confirm covers counts only with at most one time (two times plus
+// "Is dat goed?" is an either/or offer). index.ts uses it twice: as a one-shot nudge
 // (pendingDriftNudge) and, when the final reply still drifts and the proposal is still stored, to replace the
 // reply with restatePendingProposal, whose one question is answered by "ja" with exactly the slot the customer
 // reads. Text only: nothing here writes pending_booking. Pure module, unit-tested in pendingTimeGuard.test.ts.
@@ -272,12 +275,17 @@ export function findProposalMismatch(
   return times.length || days.length ? { times, days } : null;
 }
 
-// Sentences, where lines without end punctuation stay together (a list of "Dienst: ... / Tijd: ..." lines).
+// Sentences, where a line without end punctuation runs on into the next line unless that line starts a new
+// sentence (a capital letter that is not a "Label:"); a bulleted list stays one sentence.
+const LABEL_LINE_RE = /^\p{Lu}[\p{L} ]{0,20}:/u;
+const NEW_SENTENCE_RE = /^\p{Lu}/u;
 function sentencesOf(reply: string): string[] {
   const out: string[] = [];
   for (const paragraph of reply.split(/\n\s*\n/)) {
+    const runsOn = (acc: string, line: string) =>
+      !!acc && !/[.!?]$/.test(acc) && (!NEW_SENTENCE_RE.test(line) || LABEL_LINE_RE.test(line));
     const joined = paragraph.split("\n").map((l) => l.trim()).filter(Boolean)
-      .reduce((acc, line) => acc && !/[.!?]$/.test(acc) ? `${acc} ${line}` : (acc ? `${acc}\n${line}` : line), "");
+      .reduce((acc, line) => runsOn(acc, line) ? `${acc} ${line}` : (acc ? `${acc}\n${line}` : line), "");
     for (const line of joined.split("\n")) {
       for (const s of line.split(/(?<=[.!?])\s+/)) if (s.trim()) out.push(s.trim());
     }
@@ -306,7 +314,7 @@ function proposalSentences(
     const clocks = clockMentions(sentence);
     const next = all[i + 1];
     const confirmedByNext = !!next && CONFIRM_RE.test(next) && clockMentions(next).length === 0 &&
-      !hasDayMention(next);
+      !hasDayMention(next) && clocks.length <= 1;
     if (PROPOSAL_RE.test(sentence) || confirmedByNext) {
       out.push({ sentence, clocks });
       return;
@@ -316,6 +324,18 @@ function proposalSentences(
     if (oneTimeQuestion && !grounded) out.push({ sentence, clocks });
   });
   return out;
+}
+
+// Every reading of every clock time in a text ("om 4 uur" gives 04:00 and 16:00).
+export function clockTimesIn(text: string): Set<string> {
+  return new Set(clockMentions(String(text ?? "")).flatMap((m) => m.candidates));
+}
+
+// The real free slots of this turn that count as the agent's own OFFER: never a time the customer named. A
+// customer-named time the model then proposes is a booking for a "ja", whether or not the query showed it free.
+export function offerTimes(slotTimes: Set<string>, customerMessage: string): Set<string> {
+  const named = clockTimesIn(customerMessage);
+  return new Set([...slotTimes].filter((t) => !named.has(t)));
 }
 
 // Does the reply propose any clock time or day at all? (index.ts reads the stored proposal only then.)

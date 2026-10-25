@@ -6,8 +6,10 @@
 import { assert, assertEquals } from "jsr:@std/assert@1.0.19";
 import { countCustomerQuestions } from "../_shared/sanitizeReply.ts";
 import {
+  clockTimesIn,
   findProposalMismatch,
   hasProposalMention,
+  offerTimes,
   pendingDriftNudge,
   restatePendingProposal,
 } from "./pendingTimeGuard.ts";
@@ -73,6 +75,10 @@ const TABLE: Array<[string, string, { times?: string[]; days?: string[] } | null
   ["Spanish a las 4", "¿Te reservo el miércoles a las 4?", { times: ["16:00"] }],
   ["a duration is no time", "Ik zet Balayage (2 uur) op woensdag 4 november 15:00, klopt dat?", null],
   ["Jan 2 is no date", "Shall I book you and Jan 2 slots on Wednesday 4 November at 15:00?", null],
+  // Re-check of 93a4b521.
+  ["a line with a capital letter is a new sentence", "Je hebt al een afspraak op dinsdag 10 november om 10:00\nIk zet Knippen Heren op woensdag 4 november 15:00, klopt dat?", null],
+  ["a list of labels without bullets", "Dienst: Knippen Heren\nDatum: donderdag 5 november\nTijd: 15:00\nKlopt dat?", { days: ["donderdag", "5 november"] }],
+  ["two times plus a bare confirm is an either/or offer", "Er is plek om 16:00 of 16:30. Is dat goed?", null],
   ["English date order", "I'll put you down for Knippen Heren on November 11 at 15:00. Is that correct?", { days: ["November 11"] }],
   ["goedemorgen is not tomorrow", "Goedemorgen! Ik zet Knippen Heren op woensdag 4 november 15:00, klopt dat?", null],
 ];
@@ -173,4 +179,17 @@ Deno.test("R84 tijdvangnet: por la mañana is the morning, not tomorrow", () => 
   const monday = new Date("2026-11-02T10:00:00Z");
   assertEquals(findProposalMismatch("Te reservo el miércoles por la mañana a las 3, ¿está bien?", STORED, monday), null);
   assertEquals(findProposalMismatch("Te reservo mañana a las 3, ¿está bien?", STORED, monday)?.days, ["mañana"]);
+});
+
+Deno.test("R84 tijdvangnet: a time the customer named is never the agent's own offer", () => {
+  assertEquals([...clockTimesIn("oh wacht, kan het om 4 uur?")], ["04:00", "16:00"]);
+  const slots = new Set(["16:00", "16:30"]);
+  assertEquals([...offerTimes(slots, "oh wacht, kan het om 16:00?")], ["16:30"]);
+  assertEquals([...offerTimes(slots, "kan het om 4 uur?")], ["16:30"]);
+  assertEquals([...offerTimes(slots, "kan het later?")], ["16:00", "16:30"]);
+  // The hole the re-check found: the customer asked 16:00, the model looked it up and asks for a "ja" without a preview.
+  const reply = "16:00 is vrij! Wil je dan Knippen Heren op woensdag 4 november om 16:00, op naam Joris?";
+  assertEquals(findProposalMismatch(reply, STORED, NOW, offerTimes(slots, "oh wacht, kan het om 16:00?"))?.times, ["16:00"]);
+  // The agent's own offer of a free slot the customer did not name stays an offer.
+  assertEquals(findProposalMismatch("Op woensdag is 16:30 nog vrij, wil je die?", STORED, NOW, offerTimes(slots, "kan het later?")), null);
 });
