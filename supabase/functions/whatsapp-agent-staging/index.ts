@@ -1,6 +1,6 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 12ca4c381a8f7be66f4d4bf53dbbbd28e0456d1499212ceabd05b0848233e17f)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 cb564a9aa4847dc212c1686a8849290e406ed3f290374ed05f59979374504b4c)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
@@ -3902,14 +3902,16 @@ stagingServe(async (req: Request) => {
     // book/cancel/reschedule/rename call may already have withdrawn or replaced the proposal that pbk still
     // holds; the last net re-reads the database instead), never on a cancel or rename confirmation, a time the
     // slots query of this turn proved free is an offer, and an unbacked slot offer keeps its own query nudge.
-    // Re-check of 93a4b521: a time the customer named is never an offer (offerTimes), and a customer who asks to
-    // cancel or move something, or a turn that looked up the existing appointments, is about another booking.
+    // Re-check of 93a4b521: a time the customer named is never an offer (offerTimes), and a turn that looked up
+    // the existing appointments is about another booking. Final check of d44a8d99: NOT gated on the customer's
+    // reschedule words (mutationIntentOnCurrentMessage): "kun je het naar 16:00 verzetten?" is said about the
+    // unbooked proposal too, and that is exactly the drift this guards; cancelling stays covered by cancelIntent.
     const pendingDrift = pendingBookFresh &&
         !result.toolCalls.some((t) =>
           MUTATION_TOOLS.has(t.name) || t.name === "get_my_appointments"
         ) &&
         !cancelIntent && !confirmCancel && !confirmRename && !slotOfferUnbacked &&
-        !mutationIntentOnCurrentMessage && !!result.text
+        !!result.text
       ? findProposalMismatch(
         result.text,
         pbk?.start_time ?? null,
@@ -4511,8 +4513,8 @@ stagingServe(async (req: Request) => {
         // Review of e418c561: compared against the proposal stored NOW (re-read: a tool or a discarded retry may
         // have withdrawn or replaced it this turn), never on a cancel/reschedule/rename turn or while one of those
         // waits for its own "ja", and a time this turn's slots query proved free stays an offer.
-        // Re-check of 93a4b521: never when the customer asks to cancel or move something or when this turn looked
-        // up the existing appointments, and a time the customer named is never counted as an offer.
+        // Re-check of 93a4b521: never when this turn looked up the existing appointments, and a time the customer
+        // named is never counted as an offer. Not gated on reschedule words (final check of d44a8d99, see above).
         const otherActionThisTurn = result.toolCalls.some((t) =>
           t.name === "cancel_appointment" ||
           t.name === "reschedule_appointment" ||
@@ -4526,7 +4528,6 @@ stagingServe(async (req: Request) => {
         if (
           !paymentFlowActive && conversationId && !cancelIntent &&
           !confirmCancel && !confirmRename && !otherActionThisTurn &&
-          !mutationIntentOnCurrentMessage &&
           hasProposalMention(replyText, driftGroundedTimes)
         ) {
           const { data: liveConv } = await supabase
