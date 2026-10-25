@@ -1,10 +1,10 @@
 // ============================================================================================
 // GEGENEREERD BESTAND. NIET MET DE HAND BEWERKEN.
-// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 ca7a9b75762c4d14ec89e10920ac99d4cd7610a86a25a0a76b0da96f2a50923a)
+// Bron : supabase/functions/whatsapp-agent/index.ts   (ONGEWIJZIGD, sha256 976d9d31a7b1a876417b46fbf9d56d48e917c2fc265dcb3c699fdc30d4d4c3be)
 // Maker: supabase/functions/whatsapp-agent-staging/build_staging.py
 // Run  : python3 build_staging.py        (controle: python3 build_staging.py --check)
 //
-// Dit is `whatsapp-agent` met exact 30 herschreven regels. Alles daarbuiten is
+// Dit is `whatsapp-agent` met exact 31 herschreven regels. Alles daarbuiten is
 // byte-identiek aan de productiefunctie, zodat een meting op deze functie een meting op de
 // echte agent is.
 //
@@ -56,6 +56,11 @@ import {
   noQueryGroundedReply,
   OFFER_CONTEXT_RE,
 } from "../whatsapp-agent/slotOfferGuard.ts";
+import {
+  findProposalMismatch,
+  pendingDriftNudge,
+  restatePendingProposal,
+} from "../whatsapp-agent/pendingTimeGuard.ts";
 import {
   buildDeterministicDateAlternatives,
   extractOfferedDates,
@@ -3843,6 +3848,29 @@ stagingServe(async (req: Request) => {
       bookPreviewLang.test(result.text) && !reschedLang.test(result.text) &&
       !pendingBookFresh && !cancelIntent && !confirmCancel;
 
+    // R84 TIJDVANGNET (pendingTimeGuard.ts header; Mathieu 25-10-2026). bookPreviewMissed above is off while a
+    // fresh proposal exists, so a prose reply that proposes ANOTHER time or day than the stored pending_booking
+    // had no nudge (D09, 24-10: stored 15:00, "Ik boek dan ... om 16:00 ..., klopt dat?", no tool call). A "ja"
+    // commits the stored slot, not the text. Only when this turn made no preview and committed nothing.
+    const previewedThisTurn = result.toolCalls.some((t) =>
+      t.name === "book_appointment" && !!t.result &&
+      typeof t.result === "object" &&
+      (t.result as Record<string, unknown>).needs_confirmation === true &&
+      !!(t.result as Record<string, unknown>).proposal
+    );
+    const pendingDrift = pendingBookFresh && !succeededMutation &&
+        !previewedThisTurn && !cancelIntent && !confirmCancel && !!result.text
+      ? findProposalMismatch(result.text, pbk?.start_time ?? null, now)
+      : null;
+    const pendingTimeDrift = pendingDrift !== null;
+    const pendingServiceName = (id: string | null | undefined): string | null => {
+      if (!id) return null;
+      const all = calendarsForPrompt
+        ? [...services, ...calendarsForPrompt.flatMap((c) => c.services)]
+        : services;
+      return all.find((s) => s.id === id)?.name ?? null;
+    };
+
     // Reschedule-announce-by-talking: the model says it will move the appointment to a CONCRETE new
     // time but doesn't call reschedule_appointment (it treats the move as needing a separate "oké?"
     // confirm). Goal: a clear new time IS the confirmation → ONE mutating call. So when the model's
@@ -3884,7 +3912,7 @@ stagingServe(async (req: Request) => {
         looksLikeStall || cancelPreviewMissed || confirmStall ||
         bookPreviewMissed || reschedStall || cancelCommitMissed ||
         bookCommitMissed || renameCommitMissed || reschedCommitMissed ||
-        emptyNoAction || slotOfferUnbacked
+        emptyNoAction || slotOfferUnbacked || pendingTimeDrift
       )
     ) {
       // T3-LATENCY-RETRY follow-up (R22): the stall-retry DOUBLES the turn's sequential LLM
@@ -3903,6 +3931,8 @@ stagingServe(async (req: Request) => {
         ? "reschedStall"
         : bookPreviewMissed
         ? "bookPreviewMissed"
+        : pendingTimeDrift
+        ? "pendingTimeDrift"
         : cancelPreviewMissed
         ? "cancelPreviewMissed"
         : confirmStall
@@ -3970,6 +4000,12 @@ stagingServe(async (req: Request) => {
         ? "[systeem] Je beschreef een verzetting naar een concrete tijd maar riep reschedule_appointment niet aan, dus er is NIETS verzet. Roep NU reschedule_appointment aan met date (YYYY-MM-DD) + time (HH:MM) van die nieuwe tijd. De genoemde tijd is de bevestiging: vraag niet om 'oké?' of 'klopt dat?', verzet meteen en antwoord met het resultaat ('Gedaan, je staat nu op ...')."
         : bookPreviewMissed
         ? "[systeem] Je beschreef een boeking maar riep book_appointment niet aan, dus er is nog NIETS gereserveerd. Roep NU book_appointment aan (stap 1 / preview) met de dienst, date (YYYY-MM-DD) + time (HH:MM) en de naam, zodat de afspraak echt wordt voorbereid. Beschrijf een boeking nooit zonder de tool aan te roepen."
+        : pendingTimeDrift && pendingDrift
+        ? pendingDriftNudge(
+          pendingDrift,
+          pendingServiceName(pbk?.service_type_id),
+          nlWhen(pbk?.start_time ?? ""),
+        )
         : cancelPreviewMissed
         ? "[systeem] De klant wil annuleren maar je riep cancel_appointment niet aan. Roep NU cancel_appointment aan (ZONDER confirmed) om de exacte afspraak terug te lezen en om bevestiging te vragen — beschrijf de annulering nooit in tekst zonder de tool aan te roepen."
         : confirmStall
@@ -4453,6 +4489,46 @@ stagingServe(async (req: Request) => {
           result.toolCalls,
           customerLanguage,
         );
+        // R84 TIJDVANGNET, last net (pendingTimeGuard.ts header): the pendingTimeDrift nudge above had its one
+        // chance. If the final prose still proposes another time or day than the stored proposal, and that
+        // proposal is still stored (re-read, a tool may have cleared it this turn), restate the stored slot so a
+        // "ja" can only ever commit what the customer reads. Text only; pending_booking is never written here.
+        if (!paymentFlowActive && pendingBookFresh && conversationId) {
+          const finalDrift = findProposalMismatch(
+            replyText,
+            pbk?.start_time ?? null,
+            now,
+          );
+          if (finalDrift) {
+            const { data: liveConv } = await supabase
+              .from("whatsapp_conversations").select("context").eq(
+                "id",
+                conversationId,
+              ).maybeSingle();
+            const live = ((liveConv as { context?: Record<string, unknown> } | null)
+              ?.context?.pending_booking) as typeof pbk;
+            const liveFresh = !!live?.start_time &&
+              (typeof live.at !== "number" ||
+                (Date.now() - live.at) < 15 * 60 * 1000);
+            if (
+              liveFresh && live?.start_time &&
+              findProposalMismatch(replyText, live.start_time, now)
+            ) {
+              console.warn(
+                `pending-time-guard: final reply proposed ${
+                  JSON.stringify(finalDrift)
+                } while the stored proposal starts ${live.start_time}; restated the stored slot`,
+              );
+              replyText = restatePendingProposal(
+                pendingServiceName(live.service_type_id),
+                nlWhen(live.start_time),
+                enWhen(live.start_time, ""),
+                live.customer_name ?? null,
+                customerLanguage != null,
+              );
+            }
+          }
+        }
         // R102 (shared-phone identity fix, deterministic disclosure backstop, see
         // identityDisambiguationGuard.ts header): get_my_appointments is a read-only lookup, so a
         // MISSED disclosure here cannot itself mutate data, but it is the exact R101-1 trigger
